@@ -4,4 +4,4 @@
 
 # XiHan.Admin
 
-XiHan admin repository. Universal and comprehensive management system. Built on XiHan.
+XiHan application repository. Universal and comprehensive management system. Built on XiHan.
