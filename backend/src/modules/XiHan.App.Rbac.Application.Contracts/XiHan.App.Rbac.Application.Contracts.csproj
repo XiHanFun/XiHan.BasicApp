@@ -11,4 +11,8 @@
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="XiHan.Framework.Ddd.Application.Contracts" Version="0.8.1" />
+	</ItemGroup>
+
 </Project>
