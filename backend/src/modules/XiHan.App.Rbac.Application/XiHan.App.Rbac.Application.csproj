@@ -12,7 +12,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.1" />
+	  <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\main\XiHan.App.Application.Contracts\XiHan.App.Application.Contracts.csproj" />
+	  <ProjectReference Include="..\..\main\XiHan.App.Domain\XiHan.App.Domain.csproj" />
 	</ItemGroup>
 
 </Project>
