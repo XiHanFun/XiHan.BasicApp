@@ -15,6 +15,12 @@
     <RepositoryType>git</RepositoryType>
     <!-- 指定源代码仓库 URL -->
     <RepositoryUrl>https://github.com/XiHanFun/XiHan.App</RepositoryUrl>
+    <!-- 发布时包含存储库 URL -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- 发布时包含源代码文件 -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- 生成调试符号文件 -->
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <!-- 指定作者信息 -->
     <Authors>ZhaiFanhua</Authors>
     <!-- 指定版权信息 -->
