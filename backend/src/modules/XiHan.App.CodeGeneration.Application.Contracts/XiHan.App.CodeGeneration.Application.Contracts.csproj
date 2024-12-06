@@ -11,4 +11,12 @@
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="XiHan.Framework.Ddd.Application.Contracts" Version="0.8.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\XiHan.App.CodeGeneration.Domain.Shared\XiHan.App.CodeGeneration.Domain.Shared.csproj" />
+	</ItemGroup>
+
 </Project>
