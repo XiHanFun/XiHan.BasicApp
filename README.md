@@ -2,6 +2,6 @@
 
 [中文](README_cn.md)
 
-# XiHan.App.Admin
+# XiHan.App
 
-XiHan application admin repository. Universal and comprehensive management system. Built on XiHan.Framework.
+XiHan application admin repository. Universal and comprehensive management system. Built on XiHan.Framework and XiHan.UI.

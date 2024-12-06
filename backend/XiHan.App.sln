@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiHan.App.Rbac.Domain", "src\XiHan.App.Rbac.Domain\XiHan.App.Rbac.Domain.csproj", "{B5A653CF-52E4-4E1A-BADA-9EC55BF000A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiHan.App.Rbac.Domain.Shared", "src\XiHan.App.Rbac.Domain.Shared\XiHan.App.Rbac.Domain.Shared.csproj", "{44BFE39C-1B77-4402-A640-704B7CF828C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiHan.App.Rbac.Application.Contracts", "src\XiHan.App.Rbac.Application.Contracts\XiHan.App.Rbac.Application.Contracts.csproj", "{595C585C-A206-43C3-9744-EF3DB07D95CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiHan.App.Rbac.Application", "src\XiHan.App.Rbac.Application\XiHan.App.Rbac.Application.csproj", "{31EC4751-1D66-491D-BC63-34905F0A3242}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rbac", "rbac", "{B7641811-1DC6-48B0-817D-493001DD8F1A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B5A653CF-52E4-4E1A-BADA-9EC55BF000A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5A653CF-52E4-4E1A-BADA-9EC55BF000A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5A653CF-52E4-4E1A-BADA-9EC55BF000A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5A653CF-52E4-4E1A-BADA-9EC55BF000A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44BFE39C-1B77-4402-A640-704B7CF828C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44BFE39C-1B77-4402-A640-704B7CF828C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44BFE39C-1B77-4402-A640-704B7CF828C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44BFE39C-1B77-4402-A640-704B7CF828C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{595C585C-A206-43C3-9744-EF3DB07D95CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{595C585C-A206-43C3-9744-EF3DB07D95CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{595C585C-A206-43C3-9744-EF3DB07D95CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{595C585C-A206-43C3-9744-EF3DB07D95CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31EC4751-1D66-491D-BC63-34905F0A3242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31EC4751-1D66-491D-BC63-34905F0A3242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31EC4751-1D66-491D-BC63-34905F0A3242}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31EC4751-1D66-491D-BC63-34905F0A3242}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B5A653CF-52E4-4E1A-BADA-9EC55BF000A5} = {B7641811-1DC6-48B0-817D-493001DD8F1A}
+		{44BFE39C-1B77-4402-A640-704B7CF828C2} = {B7641811-1DC6-48B0-817D-493001DD8F1A}
+		{595C585C-A206-43C3-9744-EF3DB07D95CD} = {B7641811-1DC6-48B0-817D-493001DD8F1A}
+		{31EC4751-1D66-491D-BC63-34905F0A3242} = {B7641811-1DC6-48B0-817D-493001DD8F1A}
+	EndGlobalSection
+EndGlobal
