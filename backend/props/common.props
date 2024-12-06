@@ -14,7 +14,7 @@
     <!-- 指定源代码仓库类型 -->
     <RepositoryType>git</RepositoryType>
     <!-- 指定源代码仓库 URL -->
-    <RepositoryUrl>https://github.com/XiHanFun/XiHan.App.Admin</RepositoryUrl>
+    <RepositoryUrl>https://github.com/XiHanFun/XiHan.App</RepositoryUrl>
     <!-- 指定作者信息 -->
     <Authors>ZhaiFanhua</Authors>
     <!-- 指定版权信息 -->
@@ -32,13 +32,13 @@
     <!-- 项目网址 -->
     <PackageProjectUrl>https://docs.xihanfun.com</PackageProjectUrl>
     <!-- 定义 NuGet 包的标签 -->
-    <PackageTags>csharp aspnetcore web webapp xihan app zhaifanhua xihanfun</PackageTags>
+    <PackageTags>csharp aspnetcore web webapp xihan app admin zhaifanhua xihanfun</PackageTags>
     <!-- NuGet 包输出路径 -->
     <PackageOutputPath>..\..\nupkgs</PackageOutputPath>
     <!-- 程序集签名 -->
     <SignAssembly>True</SignAssembly>
     <!-- 指定用于签名的密钥文件 -->
-    <AssemblyOriginatorKeyFile>..\..\snks\XiHan.App.Admin.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\snks\XiHan.App.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <!-- 引用 NuGet 包 -->
   <ItemGroup>
