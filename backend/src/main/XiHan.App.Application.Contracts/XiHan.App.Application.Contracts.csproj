@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\..\props\common.props" />
+	<Import Project="..\..\..\props\version.props" />
+
+	<PropertyGroup>
+		<Title>XiHan.App.Application.Contracts</Title>
+		<AssemblyName>XiHan.App.Application.Contracts</AssemblyName>
+		<PackageId>XiHan.App.Application.Contracts</PackageId>
+		<Description>曦寒应用应用契约库</Description>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+</Project>
