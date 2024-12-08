@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\..\props\common.props" />
+	<Import Project="..\..\..\props\version.props" />
+
+	<PropertyGroup>
+		<Title>XiHan.BasicApp.CodeGeneration.Application</Title>
+		<AssemblyName>XiHan.BasicApp.CodeGeneration.Application</AssemblyName>
+		<PackageId>XiHan.BasicApp.CodeGeneration.Application</PackageId>
+		<Description>曦寒基础应用代码生成应用库</Description>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.2" />
+		<PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\main\XiHan.BasicApp.Application.Contracts\XiHan.BasicApp.Application.Contracts.csproj" />
+	</ItemGroup>
+
+</Project>
