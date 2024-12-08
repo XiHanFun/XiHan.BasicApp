@@ -14,7 +14,7 @@
     <!-- 指定源代码仓库类型 -->
     <RepositoryType>git</RepositoryType>
     <!-- 指定源代码仓库 URL -->
-    <RepositoryUrl>https://github.com/XiHanFun/XiHan.App</RepositoryUrl>
+    <RepositoryUrl>https://github.com/XiHanFun/XiHan.BasicApp</RepositoryUrl>
     <!-- 发布时包含存储库 URL -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <!-- 发布时包含源代码文件 -->
@@ -44,7 +44,7 @@
     <!-- 程序集签名 -->
     <SignAssembly>True</SignAssembly>
     <!-- 指定用于签名的密钥文件 -->
-    <AssemblyOriginatorKeyFile>..\..\..\snks\XiHan.App.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\..\snks\XiHan.BasicApp.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <!-- 引用 NuGet 包 -->
   <ItemGroup>
