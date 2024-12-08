@@ -8,4 +8,4 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\ItemTemplate
 【Controller（这里仅为 ApiController）】
 C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\ItemTemplates\AspNetCore\Web\ASP.NET\1033\WebApiEmptyController
 
-2、用管理员打开终端，cd 到当前目录，执行 .\CopyFile.ps1 即可。
+2、用管理员打开终端，cd 到当前目录，执行 .\CopyFile.bat 即可。
