@@ -1,6 +1,6 @@
 ﻿# 设置 version.props 文件路径
 $versionPropsPath = "..\..\props\version.props"
-$projectPath = "..\..\XiHan.App.sln"
+$projectPath = "..\..\XiHan.BasicApp.sln"
 # 读取 version.props 内容，确保以 UTF-8 编码读取
 [xml]$xml = [System.Xml.XmlDocument]::new()
 $reader = [System.IO.StreamReader]::new($versionPropsPath, [System.Text.Encoding]::UTF8)

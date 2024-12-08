@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\..\props\common.props" />
+	<Import Project="..\..\..\props\version.props" />
+
+	<PropertyGroup>
+		<Title>XiHan.BasicApp.Rbac.Domain</Title>
+		<AssemblyName>XiHan.BasicApp.Rbac.Domain</AssemblyName>
+		<PackageId>XiHan.BasicApp.Rbac.Domain</PackageId>
+		<Description>曦寒基础应用角色控制领域库</Description>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\main\XiHan.BasicApp.Domain.Shared\XiHan.BasicApp.Domain.Shared.csproj" />
+	</ItemGroup>
+
+</Project>

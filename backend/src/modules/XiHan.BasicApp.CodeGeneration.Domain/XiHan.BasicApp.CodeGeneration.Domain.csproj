@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\..\props\common.props" />
+	<Import Project="..\..\..\props\version.props" />
+
+	<PropertyGroup>
+		<Title>XiHan.BasicApp.CodeGeneration.Domain</Title>
+		<AssemblyName>XiHan.BasicApp.CodeGeneration.Domain</AssemblyName>
+		<PackageId>XiHan.BasicApp.CodeGeneration.Domain</PackageId>
+		<Description>曦寒基础应用代码生成领域库</Description>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Domain.Shared\XiHan.BasicApp.CodeGeneration.Domain.Shared.csproj" />
+	</ItemGroup>
+
+</Project>
