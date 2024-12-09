@@ -12,6 +12,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.test", "2.test", "{BD2B68F3-793B-49E5-B55B-4AFC17DAC303}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.others", "3.others", "{209D5656-9FAD-40F9-AAC5-A63E85C6E97F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		CodeMaid.config = CodeMaid.config
+		global.json = global.json
+		XiHan.BasicApp.txt = XiHan.BasicApp.txt
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1.Rbac", "1.Rbac", "{B7641811-1DC6-48B0-817D-493001DD8F1A}"
 EndProject
@@ -44,6 +52,46 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XiHan.BasicApp.WebHost", "src\main\XiHan.BasicApp.WebHost\XiHan.BasicApp.WebHost.csproj", "{0567BA28-8106-498A-91C7-866733C8162B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.business", "2.business", "{820EEF23-458F-4903-B310-81BD1ED08C22}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{F8D5C4C9-DDF9-4B42-9133-F8C7A64E3D8D}"
+	ProjectSection(SolutionItems) = preProject
+		props\common.props = props\common.props
+		props\version.props = props\version.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{3EB78574-4E92-4F6D-A567-1021EC91DC6C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "editor", "editor", "{14BAFAD9-CAED-4257-A7EA-CED2FB179FDE}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\editor\Class.cs = scripts\editor\Class.cs
+		scripts\editor\Controller.cs = scripts\editor\Controller.cs
+		scripts\editor\CopyFile.ps1 = scripts\editor\CopyFile.ps1
+		scripts\editor\FilePath.txt = scripts\editor\FilePath.txt
+		scripts\editor\Interface.cs = scripts\editor\Interface.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{06242C7E-4BF2-4957-8FE6-067DAEA7E30B}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\nuget\1.SaveNugetApiKey.ps1 = scripts\nuget\1.SaveNugetApiKey.ps1
+		scripts\nuget\2.VersionUpgrade.ps1 = scripts\nuget\2.VersionUpgrade.ps1
+		scripts\nuget\3.PushNugetPackages.ps1 = scripts\nuget\3.PushNugetPackages.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{98BFE305-5057-4FFA-B80E-AF3C673202FE}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\project\ClearProjecBinObj.ps1 = scripts\project\ClearProjecBinObj.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "service", "service", "{6B9A968C-43D0-4B03-9478-65B268378D2D}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\service\XiHan.BasicApp.bat = scripts\service\XiHan.BasicApp.bat
+		scripts\service\XiHan.BasicApp.service = scripts\service\XiHan.BasicApp.service
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "snks", "snks", "{7373B75A-D278-4116-BC44-777045429764}"
+	ProjectSection(SolutionItems) = preProject
+		snks\XiHan.BasicApp.snk = snks\XiHan.BasicApp.snk
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,5 +174,12 @@ Global
 		{328642B7-EDBC-4EE8-943B-C32637B67275} = {B8AB9561-BADF-4EA6-A6C6-626BF0E3D1ED}
 		{0567BA28-8106-498A-91C7-866733C8162B} = {B8AB9561-BADF-4EA6-A6C6-626BF0E3D1ED}
 		{820EEF23-458F-4903-B310-81BD1ED08C22} = {E3CB1335-4A0F-4FF8-89EB-D96BAE2D647E}
+		{F8D5C4C9-DDF9-4B42-9133-F8C7A64E3D8D} = {209D5656-9FAD-40F9-AAC5-A63E85C6E97F}
+		{3EB78574-4E92-4F6D-A567-1021EC91DC6C} = {209D5656-9FAD-40F9-AAC5-A63E85C6E97F}
+		{14BAFAD9-CAED-4257-A7EA-CED2FB179FDE} = {3EB78574-4E92-4F6D-A567-1021EC91DC6C}
+		{06242C7E-4BF2-4957-8FE6-067DAEA7E30B} = {3EB78574-4E92-4F6D-A567-1021EC91DC6C}
+		{98BFE305-5057-4FFA-B80E-AF3C673202FE} = {3EB78574-4E92-4F6D-A567-1021EC91DC6C}
+		{6B9A968C-43D0-4B03-9478-65B268378D2D} = {3EB78574-4E92-4F6D-A567-1021EC91DC6C}
+		{7373B75A-D278-4116-BC44-777045429764} = {209D5656-9FAD-40F9-AAC5-A63E85C6E97F}
 	EndGlobalSection
 EndGlobal
