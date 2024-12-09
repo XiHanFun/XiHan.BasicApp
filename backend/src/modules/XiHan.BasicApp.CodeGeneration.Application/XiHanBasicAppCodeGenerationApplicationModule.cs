@@ -3,27 +3,27 @@
 // ----------------------------------------------------------------
 // Copyright ©2024 ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanCodeGenerationDomainSharedModule
-// Guid:c78b6eca-f93e-4b78-8084-560b5db2a85d
+// FileName:XiHanBasicAppCodeGenerationApplicationModule
+// Guid:706325c3-33e8-4710-8128-f1ee449ffc27
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2024/12/7 6:37:38
+// CreateTime:2024/12/7 6:36:28
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Ddd.Domain.Shared;
+using XiHan.Framework.Ddd.Application;
 
-namespace XiHan.BasicApp.CodeGeneration.Domain.Shared;
+namespace XiHan.BasicApp.CodeGeneration.Application;
 
 /// <summary>
-/// XiHanCodeGenerationDomainSharedModule
+/// XiHanBasicAppCodeGenerationApplicationModule
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddDomainSharedModule)
+    typeof(XiHanDddApplicationModule)
     )]
-public class XiHanCodeGenerationDomainSharedModule : XiHanModule
+public class XiHanBasicAppCodeGenerationApplicationModule : XiHanModule
 {
     /// <summary>
     /// 服务配置

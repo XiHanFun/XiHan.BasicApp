@@ -3,27 +3,27 @@
 // ----------------------------------------------------------------
 // Copyright ©2024 ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanRbacApplicationModule
-// Guid:9b39d543-6e3f-46b8-a288-40076def6e6a
+// FileName:XiHanBasicAppRbacDomainSharedModule
+// Guid:e8ce7154-a48c-4934-b548-96673cd857e0
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2024/12/7 6:24:50
+// CreateTime:2024/12/7 6:26:04
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Ddd.Application;
+using XiHan.Framework.Ddd.Domain.Shared;
 
-namespace XiHan.BasicApp.Rbac.Application;
+namespace XiHan.BasicApp.Rbac.Domain.Shared;
 
 /// <summary>
-/// XiHanRbacApplicationModule
+/// XiHanBasicAppRbacDomainSharedModule
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddApplicationModule)
+    typeof(XiHanDddDomainSharedModule)
     )]
-public class XiHanRbacApplicationModule : XiHanModule
+public class XiHanBasicAppRbacDomainSharedModule : XiHanModule
 {
     /// <summary>
     /// 服务配置
