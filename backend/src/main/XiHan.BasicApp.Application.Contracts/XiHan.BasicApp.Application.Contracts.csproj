@@ -11,4 +11,14 @@
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="XiHan.Framework.Ddd.Application.Contracts" Version="0.8.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration.Application.Contracts\XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
+	  <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac.Application.Contracts\XiHan.BasicApp.Rbac.Application.Contracts.csproj" />
+	  <ProjectReference Include="..\XiHan.BasicApp.Domain.Shared\XiHan.BasicApp.Domain.Shared.csproj" />
+	</ItemGroup>
+
 </Project>
