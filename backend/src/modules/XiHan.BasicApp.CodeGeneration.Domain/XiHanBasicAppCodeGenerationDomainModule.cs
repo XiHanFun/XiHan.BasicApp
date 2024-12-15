@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainModule)
-    )]
+)]
 public class XiHanBasicAppCodeGenerationDomainModule : XiHanModule
 {
     /// <summary>

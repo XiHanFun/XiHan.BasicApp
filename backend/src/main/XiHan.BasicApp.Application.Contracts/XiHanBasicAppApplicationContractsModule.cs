@@ -25,12 +25,10 @@ namespace XiHan.BasicApp.Application.Contracts;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationContractsModule),
-
     typeof(XiHanBasicAppRbacApplicationContractsModule),
     typeof(XiHanBasicAppCodeGenerationApplicationContractsModule),
-
     typeof(XiHanBasicAppDomainSharedModule)
-    )]
+)]
 public class XiHanBasicAppApplicationContractsModule : XiHanModule
 {
     /// <summary>

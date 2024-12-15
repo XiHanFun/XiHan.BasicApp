@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.CodeGeneration.Application.Contracts;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationContractsModule)
-    )]
+)]
 public class XiHanBasicAppCodeGenerationApplicationContractsModule : XiHanModule
 {
     /// <summary>

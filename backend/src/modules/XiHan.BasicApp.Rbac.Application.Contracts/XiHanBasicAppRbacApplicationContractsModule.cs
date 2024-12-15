@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Application.Contracts;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationContractsModule)
-    )]
+)]
 public class XiHanBasicAppRbacApplicationContractsModule : XiHanModule
 {
     /// <summary>

@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Application;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationModule)
-    )]
+)]
 public class XiHanBasicAppRbacApplicationModule : XiHanModule
 {
     /// <summary>
