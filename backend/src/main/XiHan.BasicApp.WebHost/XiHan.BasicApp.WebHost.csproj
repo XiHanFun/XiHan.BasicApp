@@ -1,23 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-	<Import Project="..\..\..\props\common.props" />
-	<Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\common.props"/>
+    <Import Project="..\..\..\props\version.props"/>
 
-	<PropertyGroup>
-		<Title>XiHan.BasicApp.WebHost</Title>
-		<AssemblyName>XiHan.BasicApp.WebHost</AssemblyName>
-		<PackageId>XiHan.BasicApp.WebHost</PackageId>
-		<Description>曦寒基础应用 Web 主机</Description>
-		<IsPackable>true</IsPackable>
-		<OutputType>Exe</OutputType>
-	</PropertyGroup>
+    <PropertyGroup>
+        <Title>XiHan.BasicApp.WebHost</Title>
+        <AssemblyName>XiHan.BasicApp.WebHost</AssemblyName>
+        <PackageId>XiHan.BasicApp.WebHost</PackageId>
+        <Description>曦寒基础应用 Web 主机</Description>
+        <IsPackable>true</IsPackable>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="XiHan.Framework.AspNetCore" Version="0.8.5" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="XiHan.Framework.AspNetCore" Version="0.8.5"/>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\XiHan.BasicApp.Application\XiHan.BasicApp.Application.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\XiHan.BasicApp.Application\XiHan.BasicApp.Application.csproj"/>
+    </ItemGroup>
 
 </Project>

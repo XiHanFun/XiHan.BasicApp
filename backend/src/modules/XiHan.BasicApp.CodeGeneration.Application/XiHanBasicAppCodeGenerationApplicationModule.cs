@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.CodeGeneration.Application;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationModule)
-    )]
+)]
 public class XiHanBasicAppCodeGenerationApplicationModule : XiHanModule
 {
     /// <summary>

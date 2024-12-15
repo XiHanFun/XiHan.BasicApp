@@ -1,24 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Import Project="..\..\..\props\common.props" />
-	<Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\common.props"/>
+    <Import Project="..\..\..\props\version.props"/>
 
-	<PropertyGroup>
-		<Title>XiHan.BasicApp.Domain</Title>
-		<AssemblyName>XiHan.BasicApp.Domain</AssemblyName>
-		<PackageId>XiHan.BasicApp.Domain</PackageId>
-		<Description>曦寒基础应用领域库</Description>
-		<OutputType>Library</OutputType>
-	</PropertyGroup>
+    <PropertyGroup>
+        <Title>XiHan.BasicApp.Domain</Title>
+        <AssemblyName>XiHan.BasicApp.Domain</AssemblyName>
+        <PackageId>XiHan.BasicApp.Domain</PackageId>
+        <Description>曦寒基础应用领域库</Description>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.5" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.5"/>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration.Domain\XiHan.BasicApp.CodeGeneration.Domain.csproj" />
-	  <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac.Domain\XiHan.BasicApp.Rbac.Domain.csproj" />
-	  <ProjectReference Include="..\XiHan.BasicApp.Domain.Shared\XiHan.BasicApp.Domain.Shared.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration.Domain\XiHan.BasicApp.CodeGeneration.Domain.csproj"/>
+        <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac.Domain\XiHan.BasicApp.Rbac.Domain.csproj"/>
+        <ProjectReference Include="..\XiHan.BasicApp.Domain.Shared\XiHan.BasicApp.Domain.Shared.csproj"/>
+    </ItemGroup>
 
 </Project>

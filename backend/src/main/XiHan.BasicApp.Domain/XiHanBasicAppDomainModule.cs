@@ -25,12 +25,10 @@ namespace XiHan.BasicApp.Domain;
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainModule),
-
     typeof(XiHanBasicAppRbacDomainModule),
     typeof(XiHanBasicAppCodeGenerationDomainModule),
-
     typeof(XiHanBasicAppDomainSharedModule)
-    )]
+)]
 public class XiHanBasicAppDomainModule : XiHanModule
 {
     /// <summary>
