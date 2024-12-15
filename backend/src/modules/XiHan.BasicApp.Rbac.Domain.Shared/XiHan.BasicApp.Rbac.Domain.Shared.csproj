@@ -12,7 +12,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="XiHan.Framework.Ddd.Domain.Shared" Version="0.8.4" />
+	  <PackageReference Include="XiHan.Framework.Ddd.Domain.Shared" Version="0.8.5" />
 	</ItemGroup>
 
 </Project>
