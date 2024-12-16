@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Scalar.AspNetCore;
 using XiHan.BasicApp.Application;
 using XiHan.Framework.AspNetCore.Authentication.JwtBearer;
 using XiHan.Framework.AspNetCore.Authentication.OAuth;
@@ -46,6 +47,7 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         var services = context.Services;
 
         _ = services.AddControllers();
+        _ = services.AddOpenApi();
 
         _ = services.AddCors(options =>
         {
@@ -75,6 +77,8 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         {
             // 不对约定路由做任何假设，也就是不使用约定路由，依赖用户的特性路由
             _ = endpoints.MapControllers();
+            _ = endpoints.MapOpenApi();
+            _ = endpoints.MapScalarApiReference();
         });
     }
 }
