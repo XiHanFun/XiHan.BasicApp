@@ -13,10 +13,13 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Application;
-using XiHan.Framework.AspNetCore;
+using XiHan.Framework.AspNetCore.Authentication.JwtBearer;
+using XiHan.Framework.AspNetCore.Authentication.OAuth;
 using XiHan.Framework.AspNetCore.Extensions;
+using XiHan.Framework.AspNetCore.Mvc;
+using XiHan.Framework.AspNetCore.Scalar;
+using XiHan.Framework.AspNetCore.Swagger;
 using XiHan.Framework.Core.Application;
-using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.WebHost;
@@ -25,7 +28,11 @@ namespace XiHan.BasicApp.WebHost;
 /// XiHanBasicAppWebHostModule
 /// </summary>
 [DependsOn(
-    typeof(XiHanAspNetCoreModule),
+    typeof(XiHanAspNetCoreMvcModule),
+    typeof(XiHanAspNetCoreAuthenticationJwtBearerModule),
+    typeof(XiHanAspNetCoreAuthenticationOAuthModule),
+    typeof(XiHanAspNetCoreScalarModule),
+    typeof(XiHanAspNetCoreSwaggerModule),
     typeof(XiHanBasicAppApplicationModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
@@ -34,12 +41,9 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// 服务配置
     /// </summary>
     /// <param name="context"></param>
-    public override Task ConfigureServicesAsync(ServiceConfigurationContext context)
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
-
-        // TODO: 主包下个版本将会支持自动注册
-        _ = services.AddObjectAccessor<IApplicationBuilder>();
 
         _ = services.AddControllers();
 
@@ -52,8 +56,6 @@ public class XiHanBasicAppWebHostModule : XiHanModule
                     .AllowAnyHeader();
             });
         });
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -61,7 +63,7 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// </summary>
     /// <param name="context"></param>
     /// <returns></returns>
-    public override Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         _ = context.ServiceProvider;
         _ = context.GetEnvironment();
@@ -74,7 +76,5 @@ public class XiHanBasicAppWebHostModule : XiHanModule
             // 不对约定路由做任何假设，也就是不使用约定路由，依赖用户的特性路由
             _ = endpoints.MapControllers();
         });
-
-        return Task.CompletedTask;
     }
 }

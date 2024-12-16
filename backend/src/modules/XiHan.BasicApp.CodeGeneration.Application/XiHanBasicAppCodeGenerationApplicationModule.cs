@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.Framework.CodeGeneration;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Ddd.Application;
 
@@ -21,7 +22,8 @@ namespace XiHan.BasicApp.CodeGeneration.Application;
 /// XiHanBasicAppCodeGenerationApplicationModule
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddApplicationModule)
+    typeof(XiHanDddApplicationModule),
+    typeof(XiHanCodeGenerationModule)
 )]
 public class XiHanBasicAppCodeGenerationApplicationModule : XiHanModule
 {
