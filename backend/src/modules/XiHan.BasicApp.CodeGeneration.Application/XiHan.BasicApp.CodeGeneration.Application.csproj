@@ -12,8 +12,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.6" />
-        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.6" />
+        <PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.7" />
+        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.7" />
     </ItemGroup>
 
     <ItemGroup>
