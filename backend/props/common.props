@@ -24,7 +24,7 @@
         <!-- 指定作者信息 -->
         <Authors>ZhaiFanhua</Authors>
         <!-- 指定版权信息 -->
-        <Copyright>Copyright ©2021-2024 ZhaiFanhua All Rights Reserved.</Copyright>
+        <Copyright>Copyright ©2021-Present ZhaiFanhua All Rights Reserved.</Copyright>
         <!-- 构建时生成 NuGet 包 -->
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <!-- NuGet 包图标 -->
@@ -46,7 +46,7 @@
         <!-- 指定用于签名的密钥文件 -->
         <AssemblyOriginatorKeyFile>..\..\..\snks\XiHan.BasicApp.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
-    <!-- 引用 NuGet 包 -->
+    <!-- 公共 NuGet 包 -->
     <ItemGroup>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
     </ItemGroup>
