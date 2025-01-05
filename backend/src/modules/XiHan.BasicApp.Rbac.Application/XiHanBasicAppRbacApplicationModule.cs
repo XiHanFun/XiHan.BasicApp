@@ -18,7 +18,7 @@ using XiHan.Framework.Ddd.Application;
 namespace XiHan.BasicApp.Rbac.Application;
 
 /// <summary>
-/// XiHanBasicAppRbacApplicationModule
+/// 曦寒基础应用角色控制应用模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationModule)

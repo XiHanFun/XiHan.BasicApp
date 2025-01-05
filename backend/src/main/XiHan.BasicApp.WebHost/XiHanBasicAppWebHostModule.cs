@@ -26,7 +26,7 @@ using XiHan.Framework.Core.Modularity;
 namespace XiHan.BasicApp.WebHost;
 
 /// <summary>
-/// XiHanBasicAppWebHostModule
+/// 曦寒基础应用 Web 主机
 /// </summary>
 [DependsOn(
     typeof(XiHanAspNetCoreMvcModule),

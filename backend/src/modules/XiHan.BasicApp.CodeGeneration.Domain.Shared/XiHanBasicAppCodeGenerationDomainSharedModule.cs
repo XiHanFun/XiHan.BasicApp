@@ -18,7 +18,7 @@ using XiHan.Framework.Ddd.Domain.Shared;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Shared;
 
 /// <summary>
-/// XiHanBasicAppCodeGenerationDomainSharedModule
+/// 曦寒基础应用代码生成领域共享模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainSharedModule)

@@ -18,7 +18,7 @@ using XiHan.Framework.Ddd.Application.Contracts;
 namespace XiHan.BasicApp.CodeGeneration.Application.Contracts;
 
 /// <summary>
-/// XiHanBasicAppCodeGenerationApplicationContractsModule
+/// 曦寒基础应用代码生成应用契约模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationContractsModule)
