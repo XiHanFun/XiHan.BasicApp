@@ -22,7 +22,7 @@ using XiHan.Framework.Ddd.Application;
 namespace XiHan.BasicApp.Application;
 
 /// <summary>
-/// XiHanBasicAppApplicationModule
+/// 曦寒基础应用应用模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationModule),
