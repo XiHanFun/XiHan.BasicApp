@@ -20,7 +20,7 @@ using XiHan.Framework.Ddd.Domain.Shared;
 namespace XiHan.BasicApp.Domain.Shared;
 
 /// <summary>
-/// XiHanBasicAppDomainSharedModule
+/// 曦寒基础应用领域共享模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainSharedModule),

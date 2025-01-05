@@ -18,7 +18,7 @@ using XiHan.Framework.Ddd.Domain;
 namespace XiHan.BasicApp.CodeGeneration.Domain;
 
 /// <summary>
-/// XiHanBasicAppCodeGenerationDomainModule
+/// 曦寒基础应用代码生成领域模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainModule)

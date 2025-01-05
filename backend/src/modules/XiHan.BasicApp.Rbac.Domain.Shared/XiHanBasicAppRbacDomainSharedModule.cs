@@ -18,7 +18,7 @@ using XiHan.Framework.Ddd.Domain.Shared;
 namespace XiHan.BasicApp.Rbac.Domain.Shared;
 
 /// <summary>
-/// XiHanBasicAppRbacDomainSharedModule
+/// 曦寒基础应用角色控制领域共享模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainSharedModule)
