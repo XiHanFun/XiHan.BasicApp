@@ -21,7 +21,7 @@ using XiHan.Framework.Ddd.Domain;
 namespace XiHan.BasicApp.Domain;
 
 /// <summary>
-/// XiHanBasicAppDomainModule
+/// 曦寒基础应用领域模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddDomainModule),

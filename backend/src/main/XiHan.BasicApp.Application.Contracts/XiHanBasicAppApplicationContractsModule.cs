@@ -21,7 +21,7 @@ using XiHan.Framework.Ddd.Application.Contracts;
 namespace XiHan.BasicApp.Application.Contracts;
 
 /// <summary>
-/// XiHanBasicAppApplicationContractsModule
+/// 曦寒基础应用应用契约模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationContractsModule),

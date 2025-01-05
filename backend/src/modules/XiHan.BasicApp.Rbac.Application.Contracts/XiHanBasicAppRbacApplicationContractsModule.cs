@@ -18,7 +18,7 @@ using XiHan.Framework.Ddd.Application.Contracts;
 namespace XiHan.BasicApp.Rbac.Application.Contracts;
 
 /// <summary>
-/// XiHanBasicAppRbacApplicationContractsModule
+/// 曦寒基础应用角色控制应用契约模块
 /// </summary>
 [DependsOn(
     typeof(XiHanDddApplicationContractsModule)
