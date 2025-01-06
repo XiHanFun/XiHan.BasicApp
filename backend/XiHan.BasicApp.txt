@@ -1,40 +1,20 @@
-// 1.Base
-XiHan.Framework  // 曦寒框架库
+1.modules 核心模块
+1.1.Rbac
+XiHan.BasicApp.Rbac.Application
+XiHan.BasicApp.Rbac.Application.Contracts
+XiHan.BasicApp.Rbac.Domain
+XiHan.BasicApp.Rbac.Domain.Shared
+1.2.CodeGeneration
+XiHan.BasicApp.CodeGeneration.Application
+XiHan.BasicApp.CodeGeneration.Application.Contracts
+XiHan.BasicApp.CodeGeneration.Domain
+XiHan.BasicApp.CodeGeneration.Domain.Shared
 
-// 2.Core
-XiHan.Framework.Core  // 曦寒框架核心库
+2.business 业务功能
 
-// 3.Core Libraries
-XiHan.Framework.AI // 曦寒框架人工智能库
-XiHan.Framework.BackgroundJobs  // 曦寒框架后台任务库
-XiHan.Framework.BackgroundWorkers  // 曦寒框架后台工作库
-XiHan.Framework.BlobStoring // 曦寒框架粒子存储库
-XiHan.Framework.Bot  // 曦寒框架自动程序库
-XiHan.Framework.Caching  // 曦寒框架缓存库
-XiHan.Framework.CodeGeneration // 曦寒框架代码生成库
-XiHan.Framework.Ddd.Application  // 曦寒框架领域驱动设计应用库
-XiHan.Framework.Ddd.Application.Contracts  // 曦寒框架领域驱动设计应用契约库
-XiHan.Framework.Ddd.Domain  // 曦寒框架领域驱动设计领域库
-XiHan.Framework.Ddd.Domain.Shared  // 曦寒框架领域驱动设计领域共享库
-XiHan.Framework.EntityFrameworkCore  // 曦寒框架实体框架核心库
-XiHan.Framework.EventBus  // 曦寒框架事件总线库
-XiHan.Framework.Gateway  // 曦寒框架网关库
-XiHan.Framework.Http  // 曦寒框架网络请求库
-XiHan.Framework.Localization  // 曦寒框架本地化库
-XiHan.Framework.Plugin  // 曦寒框架插件库
-XiHan.Framework.SearchEngines  // 曦寒框架搜索引擎库
-XiHan.Framework.Serialization  // 曦寒框架序列化库
-XiHan.Framework.Uow  // 曦寒框架单元工作库
-XiHan.Framework.Utils  // 曦寒框架工具库
-
-// 4.AspNetCore
-XiHan.Framework.AspNetCore  // 曦寒框架 Web 核心库
-
-// 5.AspNetCore Libraries
-XiHan.Framework.AspNetCore.RealTime.SignalR  // 曦寒框架 Web 核心即时通信 SignalR 库
-XiHan.Framework.AspNetCore.ApiDoc.Swagger  // 曦寒框架 Web 核心 Api 文档 Swagger 库
-XiHan.Framework.AspNetCore.Authentication.JwtBearer  // 曦寒框架 Web 核心鉴权 Jwt 库
-XiHan.Framework.AspNetCore.Authentication.OAuth  // 曦寒框架 Web 核心鉴权 OAuth 库
-XiHan.Framework.AspNetCore.Authentication.OpenIdConnect  曦寒框架 Web 核心鉴权 OpenIdConnect 库
-XiHan.Framework.AspNetCore.Logging.Serilog  // 曦寒框架 Web 核心日志 Serilog 库
-XiHan.Framework.AspNetCore.Refit  // 曦寒框架 Web 核心客户端库
+3.main 主程序
+XiHan.BasicApp.Application
+XiHan.BasicApp.Application.Contracts
+XiHan.BasicApp.Domain
+XiHan.BasicApp.Domain.Shared
+XiHan.BasicApp.WebHost
