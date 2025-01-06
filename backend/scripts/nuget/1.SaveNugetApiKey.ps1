@@ -16,7 +16,7 @@ if (-not $apiKey) {
 else {
     Write-Output "已检测到环境变量中的 NuGet API 密钥。"
     # 是否确认覆盖
-    $confirmOverwrite = Read-Host "是否确认覆盖？(Y/N)"
+    $confirmOverwrite = Read-Host "是否确认覆盖 (Y|y / N|n)"
     if ($confirmOverwrite -eq "Y") {
         # 提示用户输入 NuGet API 密钥
         $apiKeySecure = Read-Host -AsSecureString "请输入 NuGet API 密钥"

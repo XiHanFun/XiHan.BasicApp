@@ -20,7 +20,10 @@ Get-ChildItem -Path $RootPath -Recurse -Directory -Force |
 Where-Object { $_.Name -in "bin", "obj" } |
 ForEach-Object {
     try {
-        Remove-Item -Path $_.FullName -Recurse -Force
+        # 使用 \\?\ 处理长路径问题
+        Remove-Item -Path "\\?\$($_.FullName)" -Recurse -Force
+        # 延迟确保释放资源
+        Start-Sleep -Milliseconds 100
         Write-Host "已删除: $($_.FullName)"
     }
     catch {
