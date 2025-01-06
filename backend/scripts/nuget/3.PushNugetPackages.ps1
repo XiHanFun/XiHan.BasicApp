@@ -59,7 +59,7 @@ foreach ($file in $nupkgFiles) {
 }
 
 # 是否确认推送
-$confirm = Read-Host "是否确认推送最新的 nupkg 文件？(Y/N)"
+$confirm = Read-Host "是否确认推送最新的 nupkg 文件 (Y|y / N|n)"
 if ($confirm -ne "Y") {
     Write-Output "取消推送"
     exit
@@ -78,4 +78,6 @@ foreach ($file in $nupkgFiles) {
     else {
         Write-Output "推送失败：$($file.Name)"
     }
+    # 延迟确保释放资源
+    Start-Sleep -Milliseconds 100
 }

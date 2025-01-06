@@ -24,7 +24,8 @@ if ($currentVersion -match $regex) {
     $currentPatch = [int]$matches[3]
     $currentReleaseTag = if ($matches[4]) { $matches[4].ToLower() } else { "" }
     $currentReleaseNumber = if ($matches[5]) { [int]$matches[5] } else { 0 }
-} else {
+}
+else {
     Write-Error "版本格式无效，请提供有效的版本字符串。"
 }
 Write-Output "主版本: $currentMajor，次版本: $currentMinor，修订版本: $currentPatch，发布标签: $currentReleaseTag，发布编号: $currentReleaseNumber"
@@ -162,7 +163,7 @@ $xml.Save($writer)
 $writer.Close()
 
 # 执行项目构建
-$confirm = Read-Host ">>> 是否确认构建项目？(Y/N)"
+$confirm = Read-Host ">>> 是否确认构建项目 (Y|y / N|n)"
 if ($confirm -ne "Y") {
     Write-Output "取消构建项目"
     exit
