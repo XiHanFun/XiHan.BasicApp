@@ -53,22 +53,10 @@
     <!-- 其他文件包含 -->
     <ItemGroup>
         <!-- 将 readme.png 作为 NuGet 包图标 -->
-        <None
-                Include="..\..\..\nuget\readme.png">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
+        <None Include="..\..\nuget\readme.png" Pack="True" PackagePath="" Visible="false" />
         <!-- 将 readme.md 作为 None 类型文件包含在 NuGet 包中 -->
-        <None
-                Include="..\..\..\nuget\readme.md">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
+        <None Include="..\..\nuget\readme.md" Pack="true" PackagePath="" Visible="false" />
         <!-- 将 LICENSE 文件包含在 NuGet 包中 -->
-        <None
-                Include="..\..\..\nuget\LICENSE">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
+        <None Include="..\..\nuget\LICENSE" Pack="true" PackagePath="" Visible="false" />
     </ItemGroup>
 </Project>
