@@ -14,11 +14,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-		<PackageReference Include="XiHan.Framework.AspNetCore.Authentication.JwtBearer" Version="0.8.9" />
-		<PackageReference Include="XiHan.Framework.AspNetCore.Authentication.OAuth" Version="0.8.9" />
-		<PackageReference Include="XiHan.Framework.AspNetCore.Mvc" Version="0.8.9" />
-		<PackageReference Include="XiHan.Framework.AspNetCore.Scalar" Version="0.8.9" />
-		<PackageReference Include="XiHan.Framework.AspNetCore.Swagger" Version="0.8.9" />
+		<PackageReference Include="XiHan.Framework.AspNetCore.Authentication.JwtBearer" Version="0.8.10" />
+		<PackageReference Include="XiHan.Framework.AspNetCore.Authentication.OAuth" Version="0.8.10" />
+		<PackageReference Include="XiHan.Framework.AspNetCore.Mvc" Version="0.8.10" />
+		<PackageReference Include="XiHan.Framework.AspNetCore.Scalar" Version="0.8.10" />
+		<PackageReference Include="XiHan.Framework.AspNetCore.Swagger" Version="0.8.10" />
     </ItemGroup>
 
     <ItemGroup>
