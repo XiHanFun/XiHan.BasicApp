@@ -1,0 +1,61 @@
+<Solution>
+  <Folder Name="/1.src/" />
+  <Folder Name="/1.src/1.modules/" />
+  <Folder Name="/1.src/1.modules/1.Rbac/">
+    <Project Path="src/modules/XiHan.BasicApp.Rbac.Application.Contracts/XiHan.BasicApp.Rbac.Application.Contracts.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.Rbac.Application/XiHan.BasicApp.Rbac.Application.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.Rbac.Domain.Shared/XiHan.BasicApp.Rbac.Domain.Shared.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.Rbac.Domain/XiHan.BasicApp.Rbac.Domain.csproj" />
+  </Folder>
+  <Folder Name="/1.src/1.modules/2.CodeGeneration/">
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application.Contracts/XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application/XiHan.BasicApp.CodeGeneration.Application.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain.Shared/XiHan.BasicApp.CodeGeneration.Domain.Shared.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain/XiHan.BasicApp.CodeGeneration.Domain.csproj" />
+  </Folder>
+  <Folder Name="/1.src/2.business/" />
+  <Folder Name="/1.src/2.business/1.Blog/" />
+  <Folder Name="/1.src/3.main/">
+    <Project Path="src/main/XiHan.BasicApp.Application.Contracts/XiHan.BasicApp.Application.Contracts.csproj" />
+    <Project Path="src/main/XiHan.BasicApp.Application/XiHan.BasicApp.Application.csproj" />
+    <Project Path="src/main/XiHan.BasicApp.Domain.Shared/XiHan.BasicApp.Domain.Shared.csproj" />
+    <Project Path="src/main/XiHan.BasicApp.Domain/XiHan.BasicApp.Domain.csproj" />
+    <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
+  </Folder>
+  <Folder Name="/2.test/" />
+  <Folder Name="/3.others/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CodeMaid.config" />
+    <File Path="global.json" />
+    <File Path="XiHan.BasicApp.txt" />
+  </Folder>
+  <Folder Name="/3.others/props/">
+    <File Path="props/common.props" />
+    <File Path="props/version.props" />
+  </Folder>
+  <Folder Name="/3.others/scripts/" />
+  <Folder Name="/3.others/scripts/editor/">
+    <File Path="scripts/editor/Class.cs" />
+    <File Path="scripts/editor/Controller.cs" />
+    <File Path="scripts/editor/CopyFile.ps1" />
+    <File Path="scripts/editor/FilePath.txt" />
+    <File Path="scripts/editor/Interface.cs" />
+  </Folder>
+  <Folder Name="/3.others/scripts/nuget/">
+    <File Path="scripts/nuget/1.SaveNugetApiKey.ps1" />
+    <File Path="scripts/nuget/2.VersionUpgrade.ps1" />
+    <File Path="scripts/nuget/3.PushNugetPackages.ps1" />
+  </Folder>
+  <Folder Name="/3.others/scripts/project/">
+    <File Path="scripts/project/ClearProjecBinObj.ps1" />
+  </Folder>
+  <Folder Name="/3.others/scripts/service/">
+    <File Path="scripts/service/XiHan.BasicApp.bat" />
+    <File Path="scripts/service/XiHan.BasicApp.service" />
+  </Folder>
+  <Folder Name="/3.others/snks/">
+    <File Path="snks/XiHan.BasicApp.snk" />
+  </Folder>
+</Solution>
