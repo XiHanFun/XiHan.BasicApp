@@ -28,7 +28,7 @@
         <!-- 构建时生成 NuGet 包 -->
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <!-- NuGet 包图标 -->
-        <PackageIcon>readme.png</PackageIcon>
+        <PackageIcon>logo.png</PackageIcon>
         <!-- NuGet 包附带的 README 文件 -->
         <PackageReadmeFile>readme.md</PackageReadmeFile>
         <!-- 要求用户在接受许可证协议后才能安装包 -->
@@ -52,8 +52,8 @@
     </ItemGroup>
     <!-- 其他文件包含 -->
     <ItemGroup>
-        <!-- 将 readme.png 作为 NuGet 包图标 -->
-        <None Include="..\..\..\nuget\readme.png" Pack="True" PackagePath="" Visible="false" />
+        <!-- 将 logo.png 作为 NuGet 包图标 -->
+        <None Include="..\..\..\nuget\logo.png" Pack="True" PackagePath="" Visible="false" />
         <!-- 将 readme.md 作为 None 类型文件包含在 NuGet 包中 -->
         <None Include="..\..\..\nuget\readme.md" Pack="true" PackagePath="" Visible="false" />
         <!-- 将 LICENSE 文件包含在 NuGet 包中 -->
