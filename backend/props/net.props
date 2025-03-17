@@ -1,0 +1,15 @@
+<Project>
+	<!-- 项目属性 -->
+	<PropertyGroup>
+		<!-- 设置 C# 语言版本 -->
+		<LangVersion>latest</LangVersion>
+		<!-- 指定目标框架 -->
+		<TargetFrameworks>net9.0</TargetFrameworks>
+		<!-- 启用隐式全局 usings -->
+		<ImplicitUsings>enable</ImplicitUsings>
+		<!-- 设置可空引用类型 -->
+		<Nullable>enable</Nullable>
+		<!-- 生成 XML 文档文件 -->
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+</Project>

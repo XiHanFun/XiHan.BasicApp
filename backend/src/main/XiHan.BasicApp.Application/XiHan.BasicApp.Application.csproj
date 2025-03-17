@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\..\props\common.props" />
+    <Import Project="..\..\..\props\net.props" />
+    <Import Project="..\..\..\props\nuget.props" />
     <Import Project="..\..\..\props\version.props" />
 
     <PropertyGroup>
@@ -12,7 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.13-rc.4" />
+        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.16" />
     </ItemGroup>
 
     <ItemGroup>
