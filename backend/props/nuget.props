@@ -1,0 +1,52 @@
+﻿<Project>
+	<!-- 项目属性 -->
+	<PropertyGroup>
+		<!-- 指定源代码仓库类型 -->
+		<RepositoryType>git</RepositoryType>
+		<!-- 指定源代码仓库 URL -->
+		<RepositoryUrl>https://github.com/XiHanFun/XiHan.BasicApp</RepositoryUrl>
+		<!-- 发布时包含存储库 URL -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<!-- 发布时包含源代码文件 -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<!-- 生成调试符号文件 -->
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		<!-- 指定作者信息 -->
+		<Authors>ZhaiFanhua</Authors>
+		<!-- 指定版权信息 -->
+		<Copyright>Copyright ©2021-Present ZhaiFanhua All Rights Reserved.</Copyright>
+		<!-- 构建时生成 NuGet 包 -->
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<!-- NuGet 包图标 -->
+		<PackageIcon>logo.png</PackageIcon>
+		<!-- NuGet 包附带的 README 文件 -->
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<!-- 要求用户在接受许可证协议后才能安装包 -->
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<!-- NuGet 包附带的许可证文件 -->
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<!-- 项目网址 -->
+		<PackageProjectUrl>https://docs.xihanfun.com</PackageProjectUrl>
+		<!-- 定义 NuGet 包的标签 -->
+		<PackageTags>csharp aspnetcore web webapp xihan framework zhaifanhua xihanfun</PackageTags>
+		<!-- NuGet 包输出路径 -->
+		<PackageOutputPath>..\..\..\nupkgs</PackageOutputPath>
+		<!-- 程序集签名 -->
+		<SignAssembly>True</SignAssembly>
+		<!-- 指定用于签名的密钥文件 -->
+		<AssemblyOriginatorKeyFile>..\..\..\snks\XiHan.BasicApp.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
+	<!-- 公共 NuGet 包 -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+	</ItemGroup>
+	<!-- 其他文件包含 -->
+	<ItemGroup>
+		 <!-- 将 logo.png 作为 NuGet 包图标 -->
+		<None Include="..\..\..\nuget\logo.png" Pack="True" PackagePath="" Visible="false" />
+		<!-- 将 readme.md 作为 None 类型文件包含在 NuGet 包中 -->
+		<None Include="..\..\..\nuget\readme.md" Pack="true" PackagePath="" Visible="false" />
+		<!-- 将 LICENSE 文件包含在 NuGet 包中 -->
+		<None Include="..\..\..\nuget\LICENSE" Pack="true" PackagePath="" Visible="false" />
+	</ItemGroup>
+</Project>
