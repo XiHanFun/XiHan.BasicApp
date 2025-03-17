@@ -1,9 +1,9 @@
 ﻿<Project>
-  <!-- 项目属性 -->
-  <PropertyGroup>
-    <!-- 设置程序集的版本信息 -->
-    <AssemblyVersion>0.8.11</AssemblyVersion>
-    <FileVersion>0.8.11</FileVersion>
-    <Version>0.8.11</Version>
-  </PropertyGroup>
+	<!-- 项目属性 -->
+	<PropertyGroup>
+		<!-- 设置程序集的版本信息 -->
+		<AssemblyVersion>0.8.17</AssemblyVersion>
+		<FileVersion>0.8.17</FileVersion>
+		<Version>0.8.17</Version>
+	</PropertyGroup>
 </Project>
