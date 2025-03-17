@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Serilog;
 using XiHan.BasicApp.WebHost;
 using XiHan.Framework.AspNetCore.Extensions.Builder;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
