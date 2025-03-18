@@ -1,6 +1,8 @@
 ﻿<Project>
 	<!-- 项目属性 -->
 	<PropertyGroup>
+		<!-- 允许将项目打包为 NuGet 包 -->
+		<IsPackable>true</IsPackable>
 		<!-- 指定源代码仓库类型 -->
 		<RepositoryType>git</RepositoryType>
 		<!-- 指定源代码仓库 URL -->
@@ -42,7 +44,7 @@
 	</ItemGroup>
 	<!-- 其他文件包含 -->
 	<ItemGroup>
-		 <!-- 将 logo.png 作为 NuGet 包图标 -->
+		<!-- 将 logo.png 作为 NuGet 包图标 -->
 		<None Include="..\..\..\nuget\logo.png" Pack="True" PackagePath="" Visible="false" />
 		<!-- 将 readme.md 作为 None 类型文件包含在 NuGet 包中 -->
 		<None Include="..\..\..\nuget\readme.md" Pack="true" PackagePath="" Visible="false" />

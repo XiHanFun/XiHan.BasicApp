@@ -1,0 +1,15 @@
+﻿<Project>
+	<!-- 项目属性 -->
+	<PropertyGroup>
+		<!-- 启用隐式全局 usings，自动导入常用命名空间 -->
+		<ImplicitUsings>enable</ImplicitUsings>
+		<!-- 启用可空引用类型，增强空值检查安全性 -->
+		<Nullable>enable</Nullable>
+		<!-- 生成 XML 文档文件，用于代码提示和文档生成 -->
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+	<!-- 公共 NuGet 包 -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+	</ItemGroup>
+</Project>
