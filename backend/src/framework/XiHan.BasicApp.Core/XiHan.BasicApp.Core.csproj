@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\..\props\net.props" />
-    <Import Project="..\..\..\props\nuget.props" />
+    <Import Project="..\..\..\props\netcore.props" />
+    <Import Project="..\..\..\props\common.props" />
     <Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\nuget.props" />
+
+
 
     <PropertyGroup>
         <Title>XiHan.BasicApp.Core</Title>
@@ -13,33 +16,33 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework.AI" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.BackgroundJobs" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.BackgroundWorkers" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.BlobStoring" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Bot" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Caching" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Caching.StackExchangeRedis" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Core" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Ddd.Application.Contracts" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Ddd.Domain.Shared" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.EventBus" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Gateway" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Http" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Localization" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.ObjectMapping.Mapster" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.SearchEngines" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Security" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Serialization" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Settings" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.TextTemplating" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Threading" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.Uow" Version="0.8.17" />
-      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="0.8.17" />
+      <PackageReference Include="XiHan.Framework.AI" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.BackgroundJobs" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.BackgroundWorkers" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.BlobStoring" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Bot" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Caching" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Caching.StackExchangeRedis" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Core" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Ddd.Application.Contracts" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Ddd.Domain.Shared" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.EventBus" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Gateway" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Http" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Localization" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.ObjectMapping.Mapster" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.SearchEngines" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Security" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Serialization" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Settings" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.TextTemplating" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Threading" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.Uow" Version="0.8.18" />
+      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="0.8.18" />
     </ItemGroup>
 
 </Project>

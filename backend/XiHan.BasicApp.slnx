@@ -39,7 +39,8 @@
     <File Path="XiHan.BasicApp.txt" />
   </Folder>
   <Folder Name="/3.others/props/" Id="3d4d95ec-c164-c61f-d550-42be88f514ca">
-    <File Path="props/net.props" />
+    <File Path="props/common.props" />
+    <File Path="props/netcore.props" />
     <File Path="props/nuget.props" />
     <File Path="props/version.props" />
   </Folder>
