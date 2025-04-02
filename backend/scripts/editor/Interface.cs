@@ -5,7 +5,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:$safeitemname$
 // Guid:$guid1$
-// Author:$username$
+// Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:$time$
 // ----------------------------------------------------------------
