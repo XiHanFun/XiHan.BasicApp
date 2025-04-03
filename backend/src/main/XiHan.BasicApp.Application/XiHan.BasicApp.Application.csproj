@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.20" />
+        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.21-preview" />
     </ItemGroup>
 
     <ItemGroup>
