@@ -8,17 +8,17 @@
     <Project Path="src/framework/XiHan.BasicApp.AspNetCore/XiHan.BasicApp.AspNetCore.csproj" Id="2f646431-98cd-431c-bccb-9bfc08b73fe3" />
   </Folder>
   <Folder Name="/1.src/2.modules/" Id="285740d0-396d-7347-2ab3-1e26ccd72e49" />
-  <Folder Name="/1.src/2.modules/1.CodeGeneration/" Id="e5937bc7-7474-ca4f-6f16-03430ed4d900">
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application.Contracts/XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application/XiHan.BasicApp.CodeGeneration.Application.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain.Shared/XiHan.BasicApp.CodeGeneration.Domain.Shared.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain/XiHan.BasicApp.CodeGeneration.Domain.csproj" />
-  </Folder>
-  <Folder Name="/1.src/2.modules/2.Rbac/" Id="6125a318-0d2d-e264-60d9-c7f066e0a0c5">
+  <Folder Name="/1.src/2.modules/1.Rbac/" Id="6125a318-0d2d-e264-60d9-c7f066e0a0c5">
     <Project Path="src/modules/XiHan.BasicApp.Rbac.Application.Contracts/XiHan.BasicApp.Rbac.Application.Contracts.csproj" />
     <Project Path="src/modules/XiHan.BasicApp.Rbac.Application/XiHan.BasicApp.Rbac.Application.csproj" />
     <Project Path="src/modules/XiHan.BasicApp.Rbac.Domain.Shared/XiHan.BasicApp.Rbac.Domain.Shared.csproj" />
     <Project Path="src/modules/XiHan.BasicApp.Rbac.Domain/XiHan.BasicApp.Rbac.Domain.csproj" />
+  </Folder>
+  <Folder Name="/1.src/2.modules/2.CodeGeneration/" Id="e5937bc7-7474-ca4f-6f16-03430ed4d900">
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application.Contracts/XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application/XiHan.BasicApp.CodeGeneration.Application.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain.Shared/XiHan.BasicApp.CodeGeneration.Domain.Shared.csproj" />
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain/XiHan.BasicApp.CodeGeneration.Domain.csproj" />
   </Folder>
   <Folder Name="/1.src/3.business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
   <Folder Name="/1.src/3.business/1.Blog/" Id="0fe0621d-a601-5510-1a50-69281709077f" />
