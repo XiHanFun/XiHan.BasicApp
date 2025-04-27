@@ -14,12 +14,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.21-preview" />
-        <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.21-preview" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\main\XiHan.BasicApp.Application.Contracts\XiHan.BasicApp.Application.Contracts.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Application.Contracts\XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Domain\XiHan.BasicApp.CodeGeneration.Domain.csproj" />
     </ItemGroup>
 
 </Project>

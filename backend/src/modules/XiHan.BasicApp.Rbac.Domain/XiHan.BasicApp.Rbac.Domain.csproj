@@ -14,11 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.21-preview" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\main\XiHan.BasicApp.Domain.Shared\XiHan.BasicApp.Domain.Shared.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.Rbac.Domain.Shared\XiHan.BasicApp.Rbac.Domain.Shared.csproj" />
     </ItemGroup>
 
 </Project>

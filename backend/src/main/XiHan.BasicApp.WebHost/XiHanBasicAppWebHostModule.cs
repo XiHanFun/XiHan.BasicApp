@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Scalar.AspNetCore;
-using XiHan.BasicApp.Application;
 using XiHan.Framework.AspNetCore.Authentication.JwtBearer;
 using XiHan.Framework.AspNetCore.Authentication.OAuth;
 using XiHan.Framework.AspNetCore.Extensions;
@@ -33,8 +32,7 @@ namespace XiHan.BasicApp.WebHost;
     typeof(XiHanAspNetCoreAuthenticationJwtBearerModule),
     typeof(XiHanAspNetCoreAuthenticationOAuthModule),
     typeof(XiHanAspNetCoreScalarModule),
-    typeof(XiHanAspNetCoreSwaggerModule),
-    typeof(XiHanBasicAppApplicationModule)
+    typeof(XiHanAspNetCoreSwaggerModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
