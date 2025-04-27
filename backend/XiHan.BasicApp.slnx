@@ -23,10 +23,6 @@
   <Folder Name="/1.src/3.business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
   <Folder Name="/1.src/3.business/1.Blog/" Id="0fe0621d-a601-5510-1a50-69281709077f" />
   <Folder Name="/1.src/4.main/" Id="d2d033ac-57c1-ffc6-883a-a6944cad0e51">
-    <Project Path="src/main/XiHan.BasicApp.Application.Contracts/XiHan.BasicApp.Application.Contracts.csproj" />
-    <Project Path="src/main/XiHan.BasicApp.Application/XiHan.BasicApp.Application.csproj" />
-    <Project Path="src/main/XiHan.BasicApp.Domain.Shared/XiHan.BasicApp.Domain.Shared.csproj" />
-    <Project Path="src/main/XiHan.BasicApp.Domain/XiHan.BasicApp.Domain.csproj" />
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>
   <Folder Name="/2.test/" />
