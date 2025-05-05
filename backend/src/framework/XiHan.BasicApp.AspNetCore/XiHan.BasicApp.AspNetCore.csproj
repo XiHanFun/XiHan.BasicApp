@@ -15,15 +15,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework.AspNetCore" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Authentication.JwtBearer" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Authentication.OAuth" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Mvc" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Refit" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Scalar" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Serilog" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.SignalR" Version="0.8.27" />
-      <PackageReference Include="XiHan.Framework.AspNetCore.Swagger" Version="0.8.27" />
+      <PackageReference Include="XiHan.Framework.AspNetCore" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Authentication.JwtBearer" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Authentication.OAuth" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Mvc" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Refit" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Scalar" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Serilog" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.SignalR" Version="0.8.28" />
+      <PackageReference Include="XiHan.Framework.AspNetCore.Swagger" Version="0.8.28" />
     </ItemGroup>
 
     <ItemGroup>
