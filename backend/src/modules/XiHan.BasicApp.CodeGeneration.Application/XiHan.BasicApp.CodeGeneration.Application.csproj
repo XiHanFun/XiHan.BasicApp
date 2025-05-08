@@ -16,6 +16,7 @@
     <ItemGroup>
       <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Application.Contracts\XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
       <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Domain\XiHan.BasicApp.CodeGeneration.Domain.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.Rbac.Application\XiHan.BasicApp.Rbac.Application.csproj" />
     </ItemGroup>
 
 </Project>

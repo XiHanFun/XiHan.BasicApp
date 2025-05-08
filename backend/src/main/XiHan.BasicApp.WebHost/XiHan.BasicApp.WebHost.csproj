@@ -14,6 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration.Application\XiHan.BasicApp.CodeGeneration.Application.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac.Application\XiHan.BasicApp.Rbac.Application.csproj" />
     </ItemGroup>
 
