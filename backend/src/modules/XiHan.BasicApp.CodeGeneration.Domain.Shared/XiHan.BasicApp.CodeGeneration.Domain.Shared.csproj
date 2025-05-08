@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.AspNetCore\XiHan.BasicApp.AspNetCore.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.Rbac.Domain.Shared\XiHan.BasicApp.Rbac.Domain.Shared.csproj" />
     </ItemGroup>
 
 </Project>

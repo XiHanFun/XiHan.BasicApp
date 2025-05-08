@@ -13,12 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Scalar.AspNetCore;
-using XiHan.Framework.AspNetCore.Authentication.JwtBearer;
-using XiHan.Framework.AspNetCore.Authentication.OAuth;
+using XiHan.BasicApp.CodeGeneration.Application;
+using XiHan.BasicApp.Rbac.Application;
 using XiHan.Framework.AspNetCore.Extensions;
-using XiHan.Framework.AspNetCore.Mvc;
-using XiHan.Framework.AspNetCore.Scalar;
-using XiHan.Framework.AspNetCore.Swagger;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 
@@ -28,11 +25,8 @@ namespace XiHan.BasicApp.WebHost;
 /// 曦寒基础应用 Web 主机
 /// </summary>
 [DependsOn(
-    typeof(XiHanAspNetCoreMvcModule),
-    typeof(XiHanAspNetCoreAuthenticationJwtBearerModule),
-    typeof(XiHanAspNetCoreAuthenticationOAuthModule),
-    typeof(XiHanAspNetCoreScalarModule),
-    typeof(XiHanAspNetCoreSwaggerModule)
+    typeof(XiHanBasicAppRbacApplicationModule),
+    typeof(XiHanBasicAppCodeGenerationApplicationModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
