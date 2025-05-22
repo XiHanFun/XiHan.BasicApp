@@ -25,7 +25,7 @@
       <PackageReference Include="XiHan.Framework.Caching.StackExchangeRedis" Version="0.8.33" />
       <PackageReference Include="XiHan.Framework.CodeGeneration" Version="0.8.33" />
       <PackageReference Include="XiHan.Framework.Core" Version="0.8.33" />
-      <PackageReference Include="XiHan.Framework.Data" Version="0.8.32" />
+      <PackageReference Include="XiHan.Framework.DataFiltering" Version="0.8.33" />
       <PackageReference Include="XiHan.Framework.Ddd.Application" Version="0.8.33" />
       <PackageReference Include="XiHan.Framework.Ddd.Application.Contracts" Version="0.8.33" />
       <PackageReference Include="XiHan.Framework.Ddd.Domain" Version="0.8.33" />
