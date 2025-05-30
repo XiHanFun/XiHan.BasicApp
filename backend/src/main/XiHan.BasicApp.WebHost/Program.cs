@@ -12,30 +12,16 @@
 
 #endregion <<版权版本注释>>
 
-using Serilog;
 using XiHan.BasicApp.WebHost;
 using XiHan.Framework.AspNetCore.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 
-try
-{
-    var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-    _ = await builder.Services.AddApplicationAsync<XiHanBasicAppWebHostModule>();
+_ = await builder.Services.AddApplicationAsync<XiHanBasicAppWebHostModule>();
 
-    var app = builder.Build();
+var app = builder.Build();
 
-    await app.InitializeApplicationAsync();
+await app.InitializeApplicationAsync();
 
-    await app.RunAsync();
-
-    Log.Information("应用启动");
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "应用关闭");
-}
-finally
-{
-    Log.CloseAndFlush();
-}
+await app.RunAsync();
