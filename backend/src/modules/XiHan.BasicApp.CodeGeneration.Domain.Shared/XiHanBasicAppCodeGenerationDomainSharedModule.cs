@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.AspNetCore;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Ddd.Domain.Shared;
 
@@ -21,7 +22,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Shared;
 /// 曦寒基础应用代码生成领域共享模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddDomainSharedModule)
+    typeof(XiHanDddDomainSharedModule),
+    typeof(XiHanBasicAppAspNetCoreModule)
 )]
 public class XiHanBasicAppCodeGenerationDomainSharedModule : XiHanModule
 {
