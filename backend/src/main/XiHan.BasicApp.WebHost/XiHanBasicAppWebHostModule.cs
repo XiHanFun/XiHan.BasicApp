@@ -12,10 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using Scalar.AspNetCore;
 using XiHan.BasicApp.CodeGeneration.Application;
 using XiHan.BasicApp.Rbac.Application;
-using XiHan.Framework.AspNetCore.Extensions;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 
@@ -36,20 +34,20 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        var services = context.Services;
+        //var services = context.Services;
 
-        _ = services.AddControllers();
-        _ = services.AddOpenApi();
+        //_ = services.AddControllers();
+        //_ = services.AddOpenApi();
 
-        _ = services.AddCors(options =>
-        {
-            options.AddDefaultPolicy(builder =>
-            {
-                _ = builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        });
+        //_ = services.AddCors(options =>
+        //{
+        //    options.AddDefaultPolicy(builder =>
+        //    {
+        //        _ = builder.AllowAnyOrigin()
+        //            .AllowAnyMethod()
+        //            .AllowAnyHeader();
+        //    });
+        //});
     }
 
     /// <summary>
@@ -59,18 +57,18 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// <returns></returns>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
-        _ = context.ServiceProvider;
-        _ = context.GetEnvironment();
-        var app = context.GetApplicationBuilder();
+        //_ = context.ServiceProvider;
+        //_ = context.GetEnvironment();
+        //var app = context.GetApplicationBuilder();
 
-        _ = app.UseRouting();
-        _ = app.UseCors();
-        _ = app.UseEndpoints(endpoints =>
-        {
-            // 不对约定路由做任何假设，也就是不使用约定路由，依赖用户的特性路由
-            _ = endpoints.MapControllers();
-            _ = endpoints.MapOpenApi();
-            _ = endpoints.MapScalarApiReference();
-        });
+        //_ = app.UseRouting();
+        //_ = app.UseCors();
+        //_ = app.UseEndpoints(endpoints =>
+        //{
+        //    // 不对约定路由做任何假设，也就是不使用约定路由，依赖用户的特性路由
+        //    _ = endpoints.MapControllers();
+        //    _ = endpoints.MapOpenApi();
+        //    _ = endpoints.MapScalarApiReference();
+        //});
     }
 }

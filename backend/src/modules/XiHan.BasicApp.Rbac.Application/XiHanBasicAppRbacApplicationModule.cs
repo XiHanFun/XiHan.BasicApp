@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Rbac.Domain;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Ddd.Application;
 
@@ -21,7 +22,8 @@ namespace XiHan.BasicApp.Rbac.Application;
 /// 曦寒基础应用角色控制应用模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddApplicationModule)
+    typeof(XiHanDddApplicationModule),
+    typeof(XiHanBasicAppRbacDomainModule)
 )]
 public class XiHanBasicAppRbacApplicationModule : XiHanModule
 {

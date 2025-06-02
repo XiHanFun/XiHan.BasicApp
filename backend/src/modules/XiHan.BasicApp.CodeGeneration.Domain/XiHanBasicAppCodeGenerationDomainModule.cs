@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.CodeGeneration.Domain.Shared;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Ddd.Domain;
 
@@ -21,7 +22,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain;
 /// 曦寒基础应用代码生成领域模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddDomainModule)
+    typeof(XiHanDddDomainModule),
+    typeof(XiHanBasicAppCodeGenerationDomainSharedModule)
 )]
 public class XiHanBasicAppCodeGenerationDomainModule : XiHanModule
 {
