@@ -57,7 +57,7 @@ namespace XiHan.BasicApp.Core;
 /// XiHanBasicAppCore
 /// </summary>
 [DependsOn(
-    typeof(XiHanAIModule),
+    typeof(XiHanAiModule),
     typeof(XiHanAuthorizationModule),
     typeof(XiHanBackgroundJobsModule),
     typeof(XiHanBackgroundWorkersModule),
