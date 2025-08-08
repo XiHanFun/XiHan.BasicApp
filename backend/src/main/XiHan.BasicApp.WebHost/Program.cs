@@ -14,14 +14,14 @@
 
 using Serilog;
 using XiHan.BasicApp.WebHost;
-using XiHan.Framework.AspNetCore.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
+using XiHan.Framework.Web.Core.Extensions.DependencyInjection;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    _ = await builder.Services.AddApplicationAsync<XiHanBasicAppWebHostModule>();
+    _ = await builder.AddApplicationAsync<XiHanBasicAppWebHostModule>();
 
     var app = builder.Build();
 
@@ -37,5 +37,5 @@ catch (Exception ex)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
