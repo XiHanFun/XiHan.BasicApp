@@ -6,15 +6,15 @@
     <Import Project="..\..\..\props\nuget.props" />
 
     <PropertyGroup>
-        <Title>XiHan.BasicApp.Rbac.Domain</Title>
-        <AssemblyName>XiHan.BasicApp.Rbac.Domain</AssemblyName>
-        <PackageId>XiHan.BasicApp.Rbac.Domain</PackageId>
-        <Description>曦寒基础应用角色控制领域库</Description>
+        <Title>XiHan.BasicApp.Rbac.Application</Title>
+        <AssemblyName>XiHan.BasicApp.Rbac.Application</AssemblyName>
+        <PackageId>XiHan.BasicApp.Rbac.Application</PackageId>
+        <Description>曦寒基础应用角色控制应用库</Description>
         <OutputType>Library</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\XiHan.BasicApp.Rbac.Domain.Shared\XiHan.BasicApp.Rbac.Domain.Shared.csproj" />
+      <ProjectReference Include="..\..\framework\XiHan.BasicApp.Core\XiHan.BasicApp.Core.csproj" />
     </ItemGroup>
 
 </Project>

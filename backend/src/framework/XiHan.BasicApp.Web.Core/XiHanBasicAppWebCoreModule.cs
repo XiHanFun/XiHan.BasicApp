@@ -3,29 +3,35 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanBasicAppCodeGenerationApplicationModule
-// Guid:706325c3-33e8-4710-8128-f1ee449ffc27
+// FileName:XiHanBasicAppWebCoreModule
+// Guid:ebce03ed-9f7b-4886-9da4-269908e9eca7
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2024/12/7 6:36:28
+// CreateTime:2025/6/3 0:31:13
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
-using XiHan.Framework.CodeGeneration;
+using XiHan.BasicApp.Core;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Ddd.Application;
+using XiHan.Framework.Web.Api;
+using XiHan.Framework.Web.Core;
+using XiHan.Framework.Web.Docs;
+using XiHan.Framework.Web.RealTime;
 
-namespace XiHan.BasicApp.CodeGeneration.Application;
+namespace XiHan.BasicApp.Web.Core;
 
 /// <summary>
-/// 曦寒基础应用代码生成应用模块
+/// XiHanBasicAppWebCoreModule
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddApplicationModule),
-    typeof(XiHanCodeGenerationModule)
+    typeof(XiHanWebCoreModule),
+    typeof(XiHanWebApiModule),
+    typeof(XiHanWebDocsModule),
+    typeof(XiHanWebRealTimeModule),
+    typeof(XiHanBasicAppCoreModule)
 )]
-public class XiHanBasicAppCodeGenerationApplicationModule : XiHanModule
+public class XiHanBasicAppWebCoreModule : XiHanModule
 {
     /// <summary>
     /// 服务配置
