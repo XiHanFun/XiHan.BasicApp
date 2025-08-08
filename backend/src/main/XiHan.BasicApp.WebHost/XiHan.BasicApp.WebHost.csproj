@@ -14,8 +14,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration.Application\XiHan.BasicApp.CodeGeneration.Application.csproj" />
-      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac.Application\XiHan.BasicApp.Rbac.Application.csproj" />
+      <ProjectReference Include="..\..\framework\XiHan.BasicApp.Web.Core\XiHan.BasicApp.Web.Core.csproj" />
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration\XiHan.BasicApp.CodeGeneration.csproj" />
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac\XiHan.BasicApp.Rbac.csproj" />
     </ItemGroup>
 
 </Project>
