@@ -21,7 +21,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    _ = await builder.AddApplicationAsync<XiHanBasicAppWebHostModule>();
+    await builder.AddApplicationAsync<XiHanBasicAppWebHostModule>();
 
     var app = builder.Build();
 

@@ -24,8 +24,8 @@ namespace XiHan.BasicApp.WebHost;
 /// 曦寒基础应用 Web 主机
 /// </summary>
 [DependsOn(
-    typeof(XiHanBasicAppRbacModule),
-    typeof(XiHanBasicAppCodeGenerationModule),
+     typeof(XiHanBasicAppRbacModule),
+     typeof(XiHanBasicAppCodeGenerationModule),
      typeof(XiHanBasicAppWebCoreModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule

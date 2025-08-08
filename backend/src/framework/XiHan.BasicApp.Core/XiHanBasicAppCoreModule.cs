@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.DependencyInjection;
 using XiHan.Framework.AI;
 using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
@@ -30,6 +29,7 @@ using XiHan.Framework.Gateway;
 using XiHan.Framework.Http;
 using XiHan.Framework.Localization;
 using XiHan.Framework.Logging;
+using XiHan.Framework.Messaging;
 using XiHan.Framework.MultiTenancy;
 using XiHan.Framework.ObjectMapping;
 using XiHan.Framework.Script;
@@ -40,10 +40,8 @@ using XiHan.Framework.Settings;
 using XiHan.Framework.Templating;
 using XiHan.Framework.Threading;
 using XiHan.Framework.Uow;
-using XiHan.Framework.Utils.IO;
 using XiHan.Framework.Validation;
 using XiHan.Framework.VirtualFileSystem;
-using XiHan.Framework.VirtualFileSystem.Options;
 
 namespace XiHan.BasicApp.Core;
 
@@ -66,7 +64,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanHttpModule),
     typeof(XiHanLocalizationModule),
     typeof(XiHanLoggingModule),
-    //typeof(XiHanMessagingModule),
+    typeof(XiHanMessagingModule),
     typeof(XiHanMultiTenancyModule),
     typeof(XiHanObjectMappingModule),
     typeof(XiHanScriptModule),
@@ -88,15 +86,6 @@ public class XiHanBasicAppCoreModule : XiHanModule
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        var services = context.Services;
-
-        // 配置虚拟文件系统的本地化资源目录
-        Configure<VirtualFileSystemOptions>(config =>
-        {
-            _ = config
-                .AddPhysical(DirectoryHelper.GetBaseDirectory())
-                .AddPhysical("Localization/Resources");
-        });
     }
 
     /// <summary>
@@ -105,15 +94,5 @@ public class XiHanBasicAppCoreModule : XiHanModule
     /// <param name="context"></param>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
-        var serviceProvider = context.ServiceProvider;
-        var virtualFileSystem = serviceProvider.GetRequiredService<IVirtualFileSystem>();
-
-        // 订阅文件变化事件
-        virtualFileSystem.OnFileChanged += (sender, args) =>
-        {
-            // 处理文件变化逻辑
-            Console.WriteLine($"文件发生变化: {args.FilePath} {args.ChangeType}");
-        };
-        _ = virtualFileSystem.Watch("*.*");
     }
 }
