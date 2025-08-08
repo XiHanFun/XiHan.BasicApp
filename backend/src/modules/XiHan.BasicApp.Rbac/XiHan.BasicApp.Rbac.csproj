@@ -6,9 +6,9 @@
     <Import Project="..\..\..\props\nuget.props" />
 
     <PropertyGroup>
-        <Title>XiHan.BasicApp.Rbac.Application</Title>
-        <AssemblyName>XiHan.BasicApp.Rbac.Application</AssemblyName>
-        <PackageId>XiHan.BasicApp.Rbac.Application</PackageId>
+        <Title>XiHan.BasicApp.Rbac</Title>
+        <AssemblyName>XiHan.BasicApp.Rbac</AssemblyName>
+        <PackageId>XiHan.BasicApp.Rbac</PackageId>
         <Description>曦寒基础应用角色控制应用库</Description>
         <OutputType>Library</OutputType>
     </PropertyGroup>

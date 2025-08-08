@@ -6,10 +6,10 @@
     <Import Project="..\..\..\props\nuget.props" />
 
     <PropertyGroup>
-        <Title>XiHan.BasicApp.CodeGeneration.Application</Title>
-        <AssemblyName>XiHan.BasicApp.CodeGeneration.Application</AssemblyName>
-        <PackageId>XiHan.BasicApp.CodeGeneration.Application</PackageId>
-        <Description>曦寒基础应用代码生成应用库</Description>
+        <Title>XiHan.BasicApp.CodeGeneration</Title>
+        <AssemblyName>XiHan.BasicApp.CodeGeneration</AssemblyName>
+        <PackageId>XiHan.BasicApp.CodeGeneration</PackageId>
+        <Description>曦寒基础应用代码生成库</Description>
         <OutputType>Library</OutputType>
     </PropertyGroup>
 
