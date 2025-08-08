@@ -5,8 +5,6 @@
     <Import Project="..\..\..\props\version.props" />
     <Import Project="..\..\..\props\nuget.props" />
 
-
-
     <PropertyGroup>
         <Title>XiHan.BasicApp.Core</Title>
         <AssemblyName>XiHan.BasicApp.Core</AssemblyName>
