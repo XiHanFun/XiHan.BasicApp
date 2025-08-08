@@ -1,27 +1,18 @@
 <Solution>
   <Folder Name="/1.src/" />
-  <Folder Name="/1.src/1.framework/" Id="fc7b4289-5a6e-4dbc-8e33-0a05f6165c25" />
-  <Folder Name="/1.src/1.framework/1.Core/" Id="02ea681e-c7d8-13c7-8484-4ac65e1b71e8">
+  <Folder Name="/1.src/1.framework/" Id="fc7b4289-5a6e-4dbc-8e33-0a05f6165c25">
     <Project Path="src/framework/XiHan.BasicApp.Core/XiHan.BasicApp.Core.csproj" Id="d91f1216-6bff-4c66-b806-599ff979f3cf" />
-  </Folder>
-  <Folder Name="/1.src/1.framework/2.AspNetCore/" Id="3c8b36ae-53ac-43e9-9ae1-8f551e07ccbb">
-    <Project Path="src/framework/XiHan.BasicApp.AspNetCore/XiHan.BasicApp.AspNetCore.csproj" Id="2f646431-98cd-431c-bccb-9bfc08b73fe3" />
+    <Project Path="src/framework/XiHan.BasicApp.Web.Core/XiHan.BasicApp.Web.Core.csproj" />
   </Folder>
   <Folder Name="/1.src/2.modules/" Id="285740d0-396d-7347-2ab3-1e26ccd72e49" />
-  <Folder Name="/1.src/2.modules/1.Rbac/" Id="6125a318-0d2d-e264-60d9-c7f066e0a0c5">
-    <Project Path="src/modules/XiHan.BasicApp.Rbac.Application.Contracts/XiHan.BasicApp.Rbac.Application.Contracts.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.Rbac.Application/XiHan.BasicApp.Rbac.Application.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.Rbac.Domain.Shared/XiHan.BasicApp.Rbac.Domain.Shared.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.Rbac.Domain/XiHan.BasicApp.Rbac.Domain.csproj" />
+  <Folder Name="/1.src/2.modules/1.Rbac/">
+    <Project Path="src/modules/XiHan.BasicApp.Rbac/XiHan.BasicApp.Rbac.csproj" />
   </Folder>
-  <Folder Name="/1.src/2.modules/2.CodeGeneration/" Id="e5937bc7-7474-ca4f-6f16-03430ed4d900">
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application.Contracts/XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Application/XiHan.BasicApp.CodeGeneration.Application.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain.Shared/XiHan.BasicApp.CodeGeneration.Domain.Shared.csproj" />
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration.Domain/XiHan.BasicApp.CodeGeneration.Domain.csproj" />
+  <Folder Name="/1.src/2.modules/2.CodeGeneration/">
+    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration/XiHan.BasicApp.CodeGeneration.csproj" />
   </Folder>
   <Folder Name="/1.src/3.business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
-  <Folder Name="/1.src/3.business/1.Blog/" Id="0fe0621d-a601-5510-1a50-69281709077f" />
+  <Folder Name="/1.src/3.business/1.Blog/" />
   <Folder Name="/1.src/4.main/" Id="d2d033ac-57c1-ffc6-883a-a6944cad0e51">
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>
@@ -34,33 +25,33 @@
     <File Path="global.json" />
     <File Path="XiHan.BasicApp.txt" />
   </Folder>
-  <Folder Name="/3.others/props/" Id="3d4d95ec-c164-c61f-d550-42be88f514ca">
+  <Folder Name="/3.others/props/">
     <File Path="props/common.props" />
     <File Path="props/netcore.props" />
     <File Path="props/nuget.props" />
     <File Path="props/version.props" />
   </Folder>
-  <Folder Name="/3.others/scripts/" Id="af28042a-d269-3585-82af-65182e6bcb8a" />
-  <Folder Name="/3.others/scripts/editor/" Id="3f1b702d-b316-6ea0-770c-2c0f5344ba3f">
+  <Folder Name="/3.others/scripts/" />
+  <Folder Name="/3.others/scripts/editor/">
     <File Path="scripts/editor/Class.cs" />
     <File Path="scripts/editor/Controller.cs" />
     <File Path="scripts/editor/CopyFile.ps1" />
     <File Path="scripts/editor/FilePath.txt" />
     <File Path="scripts/editor/Interface.cs" />
   </Folder>
-  <Folder Name="/3.others/scripts/nuget/" Id="651d00b9-f366-6a36-6521-feef87220689">
+  <Folder Name="/3.others/scripts/nuget/">
     <File Path="scripts/nuget/1.SaveNugetApiKey.ps1" />
     <File Path="scripts/nuget/2.VersionUpgrade.ps1" />
     <File Path="scripts/nuget/3.PushNugetPackages.ps1" />
   </Folder>
-  <Folder Name="/3.others/scripts/project/" Id="08f103f5-090a-b973-c128-9a7bac219049">
+  <Folder Name="/3.others/scripts/project/">
     <File Path="scripts/project/ClearProjecBinObj.ps1" />
   </Folder>
-  <Folder Name="/3.others/scripts/service/" Id="efee130d-a9c2-f4b3-61c7-50b308a187f5">
+  <Folder Name="/3.others/scripts/service/">
     <File Path="scripts/service/XiHan.BasicApp.bat" />
     <File Path="scripts/service/XiHan.BasicApp.service" />
   </Folder>
-  <Folder Name="/3.others/snks/" Id="56f7518b-acf3-bc7e-bea2-7b442114ffa1">
+  <Folder Name="/3.others/snks/">
     <File Path="snks/XiHan.BasicApp.snk" />
   </Folder>
 </Solution>

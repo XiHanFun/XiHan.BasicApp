@@ -14,36 +14,30 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.Framework.AI;
+using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.BackgroundJobs;
-using XiHan.Framework.BackgroundWorkers;
-using XiHan.Framework.BlobStoring;
 using XiHan.Framework.Bot;
 using XiHan.Framework.Caching;
-using XiHan.Framework.Caching.StackExchangeRedis;
 using XiHan.Framework.CodeGeneration;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.DataFiltering;
-using XiHan.Framework.Ddd.Application;
-using XiHan.Framework.Ddd.Application.Contracts;
-using XiHan.Framework.Ddd.Domain;
-using XiHan.Framework.Ddd.Domain.Shared;
+using XiHan.Framework.Data;
+using XiHan.Framework.Ddd;
 using XiHan.Framework.DistributedIds;
 using XiHan.Framework.EventBus;
 using XiHan.Framework.Gateway;
 using XiHan.Framework.Http;
-using XiHan.Framework.Http.Client;
 using XiHan.Framework.Localization;
+using XiHan.Framework.Logging;
 using XiHan.Framework.MultiTenancy;
-using XiHan.Framework.ObjectMapping.Mapster;
+using XiHan.Framework.ObjectMapping;
 using XiHan.Framework.Script;
 using XiHan.Framework.SearchEngines;
 using XiHan.Framework.Security;
 using XiHan.Framework.Serialization;
 using XiHan.Framework.Settings;
-using XiHan.Framework.SqlSugarCore;
-using XiHan.Framework.TextTemplating;
+using XiHan.Framework.Templating;
 using XiHan.Framework.Threading;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Utils.IO;
@@ -54,38 +48,33 @@ using XiHan.Framework.VirtualFileSystem.Options;
 namespace XiHan.BasicApp.Core;
 
 /// <summary>
-/// XiHanBasicAppCore
+/// XiHanBasicAppCoreModule
 /// </summary>
 [DependsOn(
     typeof(XiHanAIModule),
+    typeof(XiHanAuthenticationModule),
     typeof(XiHanAuthorizationModule),
     typeof(XiHanBackgroundJobsModule),
-    typeof(XiHanBackgroundWorkersModule),
-    typeof(XiHanBlobStoringModule),
     typeof(XiHanBotModule),
     typeof(XiHanCachingModule),
-    typeof(XiHanCachingStackExchangeRedisModule),
     typeof(XiHanCodeGenerationModule),
-    typeof(XiHanDataFilteringModule),
-    typeof(XiHanDddApplicationModule),
-    typeof(XiHanDddApplicationContractsModule),
-    typeof(XiHanDddDomainModule),
-    typeof(XiHanDddDomainSharedModule),
+    typeof(XiHanDataModule),
+    typeof(XiHanDddModule),
     typeof(XiHanDistributedIdsModule),
-    //typeof(XiHanEventBusModule),
+    typeof(XiHanEventBusModule),
     typeof(XiHanGatewayModule),
     typeof(XiHanHttpModule),
-    typeof(XiHanHttpClientModule),
     typeof(XiHanLocalizationModule),
-    //typeof(XiHanMultiTenancyModule),
-    typeof(XiHanObjectMappingMapsterModule),
+    typeof(XiHanLoggingModule),
+    //typeof(XiHanMessagingModule),
+    typeof(XiHanMultiTenancyModule),
+    typeof(XiHanObjectMappingModule),
     typeof(XiHanScriptModule),
     typeof(XiHanSearchEnginesModule),
     typeof(XiHanSecurityModule),
     typeof(XiHanSerializationModule),
-    //typeof(XiHanSettingsModule),
-    typeof(XiHanSqlSugarCoreModule),
-    typeof(XiHanTextTemplatingModule),
+    typeof(XiHanSettingsModule),
+    typeof(XiHanTemplatingModule),
     typeof(XiHanThreadingModule),
     typeof(XiHanUowModule),
     typeof(XiHanValidationModule),

@@ -3,27 +3,27 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanBasicAppCodeGenerationApplicationContractsModule
-// Guid:a71de7c4-4e42-4bf1-a226-8918d7f94b02
+// FileName:XiHanBasicAppCodeGenerationModule
+// Guid:706325c3-33e8-4710-8128-f1ee449ffc27
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2024/12/7 6:36:53
+// CreateTime:2024/12/7 6:36:28
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Ddd.Application.Contracts;
 
-namespace XiHan.BasicApp.CodeGeneration.Application.Contracts;
+namespace XiHan.BasicApp.CodeGeneration;
 
 /// <summary>
-/// 曦寒基础应用代码生成应用契约模块
+/// 曦寒基础应用代码生成应用模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanDddApplicationContractsModule)
+    typeof(XiHanBasicAppCoreModule)
 )]
-public class XiHanBasicAppCodeGenerationApplicationContractsModule : XiHanModule
+public class XiHanBasicAppCodeGenerationModule : XiHanModule
 {
     /// <summary>
     /// 服务配置

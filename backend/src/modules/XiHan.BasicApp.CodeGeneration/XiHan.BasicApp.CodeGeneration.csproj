@@ -14,9 +14,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Application.Contracts\XiHan.BasicApp.CodeGeneration.Application.Contracts.csproj" />
-      <ProjectReference Include="..\XiHan.BasicApp.CodeGeneration.Domain\XiHan.BasicApp.CodeGeneration.Domain.csproj" />
-      <ProjectReference Include="..\XiHan.BasicApp.Rbac.Application\XiHan.BasicApp.Rbac.Application.csproj" />
+      <ProjectReference Include="..\..\framework\XiHan.BasicApp.Core\XiHan.BasicApp.Core.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.Rbac\XiHan.BasicApp.Rbac.csproj" />
     </ItemGroup>
 
 </Project>
