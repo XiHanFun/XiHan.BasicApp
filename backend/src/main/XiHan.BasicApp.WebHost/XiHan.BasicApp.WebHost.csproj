@@ -3,14 +3,15 @@
     <Import Project="..\..\..\props\netcore.props" />
     <Import Project="..\..\..\props\common.props" />
     <Import Project="..\..\..\props\version.props" />
-    <Import Project="..\..\..\props\nuget.props" />
 
     <PropertyGroup>
         <Title>XiHan.BasicApp.WebHost</Title>
         <AssemblyName>XiHan.BasicApp.WebHost</AssemblyName>
         <PackageId>XiHan.BasicApp.WebHost</PackageId>
         <Description>曦寒基础应用 Web 主机</Description>
-        <OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<OutputType>Exe</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
