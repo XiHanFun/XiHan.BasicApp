@@ -15,10 +15,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework.Web.Api" Version="1.0.1-alpha.1" />
-      <PackageReference Include="XiHan.Framework.Web.Core" Version="1.0.1-alpha.1" />
-      <PackageReference Include="XiHan.Framework.Web.Docs" Version="1.0.1-alpha.1" />
-      <PackageReference Include="XiHan.Framework.Web.RealTime" Version="1.0.1-alpha.1" />
+      <PackageReference Include="XiHan.Framework.Web.Api" Version="1.2.0" />
+      <PackageReference Include="XiHan.Framework.Web.Core" Version="1.2.0" />
+      <PackageReference Include="XiHan.Framework.Web.Docs" Version="1.2.0" />
+      <PackageReference Include="XiHan.Framework.Web.RealTime" Version="1.2.0" />
     </ItemGroup>
 
     <ItemGroup>

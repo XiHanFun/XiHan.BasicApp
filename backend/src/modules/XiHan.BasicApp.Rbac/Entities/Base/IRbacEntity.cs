@@ -19,12 +19,12 @@ namespace XiHan.BasicApp.Rbac.Entities.Base;
 /// 定义了所有 RBAC 实体的基本结构
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public interface IRbacEntity<TKey> where TKey : IEquatable<TKey>
+public interface IRbacEntity<TKey> where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
     /// 主键ID
     /// </summary>
-    TKey Id { get; set; }
+    TKey BaseId { get; set; }
 
     /// <summary>
     /// 创建时间
@@ -42,7 +42,7 @@ public interface IRbacEntity<TKey> where TKey : IEquatable<TKey>
 /// 为支持多租户架构的实体提供租户ID字段
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public interface IMultiTenantRbacEntity<TKey> : IRbacEntity<TKey> where TKey : IEquatable<TKey>
+public interface IMultiTenantRbacEntity<TKey> : IRbacEntity<TKey> where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
     /// 租户ID
@@ -56,7 +56,7 @@ public interface IMultiTenantRbacEntity<TKey> : IRbacEntity<TKey> where TKey : I
 /// 为需要记录用户信息的实体提供用户ID字段
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public interface IUserRelatedRbacEntity<TKey> : IRbacEntity<TKey> where TKey : IEquatable<TKey>
+public interface IUserRelatedRbacEntity<TKey> : IRbacEntity<TKey> where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
     /// 用户ID
@@ -70,7 +70,7 @@ public interface IUserRelatedRbacEntity<TKey> : IRbacEntity<TKey> where TKey : I
 /// 为支持软删除的实体提供删除标记字段
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public interface ISoftDeleteRbacEntity<TKey> : IRbacEntity<TKey> where TKey : IEquatable<TKey>
+public interface ISoftDeleteRbacEntity<TKey> : IRbacEntity<TKey> where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
     /// 是否已删除
@@ -89,7 +89,7 @@ public interface ISoftDeleteRbacEntity<TKey> : IRbacEntity<TKey> where TKey : IE
 /// 为需要记录操作人员的实体提供审计字段
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public interface IAuditableRbacEntity<TKey> : IRbacEntity<TKey> where TKey : IEquatable<TKey>
+public interface IAuditableRbacEntity<TKey> : IRbacEntity<TKey> where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
     /// 创建者ID
@@ -107,60 +107,53 @@ public interface IAuditableRbacEntity<TKey> : IRbacEntity<TKey> where TKey : IEq
 /// 集成多租户、用户关联、软删除、审计等所有功能
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public interface IFullFeatureRbacEntity<TKey> : 
-    IMultiTenantRbacEntity<TKey>, 
-    IUserRelatedRbacEntity<TKey>, 
-    ISoftDeleteRbacEntity<TKey>, 
-    IAuditableRbacEntity<TKey> 
-    where TKey : IEquatable<TKey>
+public interface IFullFeatureRbacEntity<TKey> :
+    IMultiTenantRbacEntity<TKey>,
+    IUserRelatedRbacEntity<TKey>,
+    ISoftDeleteRbacEntity<TKey>,
+    IAuditableRbacEntity<TKey>
+    where TKey : struct, IEquatable<TKey>
 {
 }
 
 /// <summary>
-/// 使用统一 ID 类型的 RBAC 实体接口
-/// 这些接口使用项目配置的统一 ID 类型，是推荐的使用方式
+/// 统一 ID 类型的基础 RBAC 实体接口
 /// </summary>
-namespace Unified
+public interface IRbacEntity : IRbacEntity<RbacIdType>
 {
-    /// <summary>
-    /// 统一 ID 类型的基础 RBAC 实体接口
-    /// </summary>
-    public interface IRbacEntity : IRbacEntity<RbacIdType>
-    {
-    }
+}
 
-    /// <summary>
-    /// 统一 ID 类型的多租户 RBAC 实体接口
-    /// </summary>
-    public interface IMultiTenantRbacEntity : IMultiTenantRbacEntity<RbacIdType>
-    {
-    }
+/// <summary>
+/// 统一 ID 类型的多租户 RBAC 实体接口
+/// </summary>
+public interface IMultiTenantRbacEntity : IMultiTenantRbacEntity<RbacIdType>
+{
+}
 
-    /// <summary>
-    /// 统一 ID 类型的用户关联 RBAC 实体接口
-    /// </summary>
-    public interface IUserRelatedRbacEntity : IUserRelatedRbacEntity<RbacIdType>
-    {
-    }
+/// <summary>
+/// 统一 ID 类型的用户关联 RBAC 实体接口
+/// </summary>
+public interface IUserRelatedRbacEntity : IUserRelatedRbacEntity<RbacIdType>
+{
+}
 
-    /// <summary>
-    /// 统一 ID 类型的软删除 RBAC 实体接口
-    /// </summary>
-    public interface ISoftDeleteRbacEntity : ISoftDeleteRbacEntity<RbacIdType>
-    {
-    }
+/// <summary>
+/// 统一 ID 类型的软删除 RBAC 实体接口
+/// </summary>
+public interface ISoftDeleteRbacEntity : ISoftDeleteRbacEntity<RbacIdType>
+{
+}
 
-    /// <summary>
-    /// 统一 ID 类型的审计 RBAC 实体接口
-    /// </summary>
-    public interface IAuditableRbacEntity : IAuditableRbacEntity<RbacIdType>
-    {
-    }
+/// <summary>
+/// 统一 ID 类型的审计 RBAC 实体接口
+/// </summary>
+public interface IAuditableRbacEntity : IAuditableRbacEntity<RbacIdType>
+{
+}
 
-    /// <summary>
-    /// 统一 ID 类型的完整功能 RBAC 实体接口
-    /// </summary>
-    public interface IFullFeatureRbacEntity : IFullFeatureRbacEntity<RbacIdType>
-    {
-    }
+/// <summary>
+/// 统一 ID 类型的完整功能 RBAC 实体接口
+/// </summary>
+public interface IFullFeatureRbacEntity : IFullFeatureRbacEntity<RbacIdType>
+{
 }

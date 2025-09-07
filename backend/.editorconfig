@@ -229,6 +229,29 @@ dotnet_naming_rule.const_field_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.const_field_should_be_pascal_case.symbols = const_field
 dotnet_naming_rule.const_field_should_be_pascal_case.style = pascal_case
 
+dotnet_naming_rule.private_fields_should_have_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_should_have_underscore.style = underscore_prefix
+dotnet_naming_rule.private_fields_should_have_underscore.severity = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_rule.private_static_readonly_field_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_static_readonly_field_should_be_pascal_case.symbols = private_static_readonly_field
+dotnet_naming_rule.private_static_readonly_field_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_static_field_should_be_underscore_camelcase.severity = warning
+dotnet_naming_rule.private_static_field_should_be_underscore_camelcase.symbols = private_static_field
+dotnet_naming_rule.private_static_field_should_be_underscore_camelcase.style = underscore_prefix
+
+dotnet_naming_symbols.private_static_readonly_field.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_field.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_field.required_modifiers = static, readonly
+
+dotnet_naming_symbols.private_static_field.applicable_kinds = field
+dotnet_naming_symbols.private_static_field.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_field.required_modifiers = static
+
 # 符号规范
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
@@ -272,5 +295,12 @@ dotnet_naming_style.private_field.required_suffix =
 dotnet_naming_style.private_field.word_separator =
 dotnet_naming_style.private_field.capitalization = camel_case
 
+dotnet_naming_style.underscore_prefix.required_prefix = _
+dotnet_naming_style.underscore_prefix.capitalization = camel_case
+
 # IDE0290: 使用主构造函数
 csharp_style_prefer_primary_constructors = false
+
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = none
+
