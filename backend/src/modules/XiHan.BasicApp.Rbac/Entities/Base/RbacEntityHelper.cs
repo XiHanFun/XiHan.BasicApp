@@ -41,12 +41,12 @@ public static class RbacEntityHelper
     public static RbacIdType CreateDefaultId()
     {
         var idType = typeof(RbacIdType);
-        
+
         if (idType == typeof(long)) return (RbacIdType)(object)0L;
         if (idType == typeof(int)) return (RbacIdType)(object)0;
         if (idType == typeof(Guid)) return (RbacIdType)(object)Guid.Empty;
         if (idType == typeof(string)) return (RbacIdType)(object)string.Empty;
-        
+
         // 对于其他类型，尝试使用默认构造函数
         try
         {
@@ -65,12 +65,12 @@ public static class RbacEntityHelper
     public static RbacIdType CreateNewId()
     {
         var idType = typeof(RbacIdType);
-        
+
         if (idType == typeof(long)) return (RbacIdType)(object)DateTimeOffset.UtcNow.Ticks;
         if (idType == typeof(int)) return (RbacIdType)(object)Environment.TickCount;
         if (idType == typeof(Guid)) return (RbacIdType)(object)Guid.NewGuid();
         if (idType == typeof(string)) return (RbacIdType)(object)Guid.NewGuid().ToString();
-        
+
         // 对于其他类型，返回默认值
         return CreateDefaultId();
     }
@@ -83,14 +83,14 @@ public static class RbacEntityHelper
     public static bool IsValidId(RbacIdType? id)
     {
         if (id == null) return false;
-        
+
         var idType = typeof(RbacIdType);
-        
+
         if (idType == typeof(long)) return !id.Equals(0L);
         if (idType == typeof(int)) return !id.Equals(0);
         if (idType == typeof(Guid)) return !id.Equals(Guid.Empty);
         if (idType == typeof(string)) return !string.IsNullOrWhiteSpace(id.ToString());
-        
+
         return !id.Equals(CreateDefaultId());
     }
 
@@ -102,12 +102,12 @@ public static class RbacEntityHelper
     public static RbacIdType? ConvertToId(object? value)
     {
         if (value == null) return default;
-        
+
         try
         {
             if (value is RbacIdType directId)
                 return directId;
-                
+
             return (RbacIdType)Convert.ChangeType(value, typeof(RbacIdType));
         }
         catch
@@ -125,29 +125,6 @@ public static class RbacEntityHelper
     {
         return entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => IsRbacProperty(p));
-    }
-
-    /// <summary>
-    /// 判断属性是否为 RBAC 相关属性
-    /// </summary>
-    /// <param name="property">属性信息</param>
-    /// <returns>是否为 RBAC 属性</returns>
-    private static bool IsRbacProperty(PropertyInfo property)
-    {
-        var rbacPropertyNames = new[]
-        {
-            nameof(IRbacEntity<RbacIdType>.Id),
-            nameof(IRbacEntity<RbacIdType>.CreatedTime),
-            nameof(IRbacEntity<RbacIdType>.UpdatedTime),
-            nameof(IMultiTenantRbacEntity<RbacIdType>.TenantId),
-            nameof(IUserRelatedRbacEntity<RbacIdType>.UserId),
-            nameof(ISoftDeleteRbacEntity<RbacIdType>.IsDeleted),
-            nameof(ISoftDeleteRbacEntity<RbacIdType>.DeletedTime),
-            nameof(IAuditableRbacEntity<RbacIdType>.CreatedBy),
-            nameof(IAuditableRbacEntity<RbacIdType>.UpdatedBy)
-        };
-
-        return rbacPropertyNames.Contains(property.Name);
     }
 
     /// <summary>
@@ -200,6 +177,29 @@ public static class RbacEntityHelper
     {
         return ImplementsInterface<IAuditableRbacEntity<RbacIdType>>(entityType);
     }
+
+    /// <summary>
+    /// 判断属性是否为 RBAC 相关属性
+    /// </summary>
+    /// <param name="property">属性信息</param>
+    /// <returns>是否为 RBAC 属性</returns>
+    private static bool IsRbacProperty(PropertyInfo property)
+    {
+        var rbacPropertyNames = new[]
+        {
+            nameof(IRbacEntity<RbacIdType>.BaseId),
+            nameof(IRbacEntity<RbacIdType>.CreatedTime),
+            nameof(IRbacEntity<RbacIdType>.UpdatedTime),
+            nameof(IMultiTenantRbacEntity<RbacIdType>.TenantId),
+            nameof(IUserRelatedRbacEntity<RbacIdType>.UserId),
+            nameof(ISoftDeleteRbacEntity<RbacIdType>.IsDeleted),
+            nameof(ISoftDeleteRbacEntity<RbacIdType>.DeletedTime),
+            nameof(IAuditableRbacEntity<RbacIdType>.CreatedBy),
+            nameof(IAuditableRbacEntity<RbacIdType>.UpdatedBy)
+        };
+
+        return rbacPropertyNames.Contains(property.Name);
+    }
 }
 
 /// <summary>
@@ -215,16 +215,16 @@ public static class RbacEntityExtensions
     /// <param name="entity">实体实例</param>
     /// <param name="createdBy">创建者ID</param>
     /// <returns>实体实例</returns>
-    public static T SetCreatedInfo<T>(this T entity, RbacIdType? createdBy = null) 
+    public static T SetCreatedInfo<T>(this T entity, RbacIdType? createdBy = null)
         where T : IRbacEntity<RbacIdType>
     {
         entity.CreatedTime = DateTimeOffset.UtcNow;
-        
+
         if (entity is IAuditableRbacEntity<RbacIdType> auditableEntity)
         {
             auditableEntity.CreatedBy = createdBy;
         }
-        
+
         return entity;
     }
 
@@ -235,16 +235,16 @@ public static class RbacEntityExtensions
     /// <param name="entity">实体实例</param>
     /// <param name="updatedBy">更新者ID</param>
     /// <returns>实体实例</returns>
-    public static T SetUpdatedInfo<T>(this T entity, RbacIdType? updatedBy = null) 
+    public static T SetUpdatedInfo<T>(this T entity, RbacIdType? updatedBy = null)
         where T : IRbacEntity<RbacIdType>
     {
         entity.UpdatedTime = DateTimeOffset.UtcNow;
-        
+
         if (entity is IAuditableRbacEntity<RbacIdType> auditableEntity)
         {
             auditableEntity.UpdatedBy = updatedBy;
         }
-        
+
         return entity;
     }
 
@@ -254,12 +254,12 @@ public static class RbacEntityExtensions
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="entity">实体实例</param>
     /// <returns>实体实例</returns>
-    public static T SetDeleted<T>(this T entity) 
+    public static T SetDeleted<T>(this T entity)
         where T : ISoftDeleteRbacEntity<RbacIdType>
     {
         entity.IsDeleted = true;
         entity.DeletedTime = DateTimeOffset.UtcNow;
-        
+
         return entity;
     }
 
@@ -269,12 +269,12 @@ public static class RbacEntityExtensions
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="entity">实体实例</param>
     /// <returns>实体实例</returns>
-    public static T SetUndeleted<T>(this T entity) 
+    public static T SetUndeleted<T>(this T entity)
         where T : ISoftDeleteRbacEntity<RbacIdType>
     {
         entity.IsDeleted = false;
         entity.DeletedTime = null;
-        
+
         return entity;
     }
 
@@ -285,7 +285,7 @@ public static class RbacEntityExtensions
     /// <param name="entity">实体实例</param>
     /// <param name="tenantId">租户ID</param>
     /// <returns>实体实例</returns>
-    public static T SetTenant<T>(this T entity, RbacIdType? tenantId) 
+    public static T SetTenant<T>(this T entity, RbacIdType? tenantId)
         where T : IMultiTenantRbacEntity<RbacIdType>
     {
         entity.TenantId = tenantId;
@@ -299,7 +299,7 @@ public static class RbacEntityExtensions
     /// <param name="entity">实体实例</param>
     /// <param name="userId">用户ID</param>
     /// <returns>实体实例</returns>
-    public static T SetUser<T>(this T entity, RbacIdType? userId) 
+    public static T SetUser<T>(this T entity, RbacIdType? userId)
         where T : IUserRelatedRbacEntity<RbacIdType>
     {
         entity.UserId = userId;

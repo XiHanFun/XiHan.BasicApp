@@ -22,7 +22,7 @@ using XiHan.Framework.CodeGeneration;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Data;
-using XiHan.Framework.Ddd;
+using XiHan.Framework.Domain;
 using XiHan.Framework.DistributedIds;
 using XiHan.Framework.EventBus;
 using XiHan.Framework.Gateway;
@@ -42,6 +42,7 @@ using XiHan.Framework.Threading;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Validation;
 using XiHan.Framework.VirtualFileSystem;
+using XiHan.Framework.Application;
 
 namespace XiHan.BasicApp.Core;
 
@@ -57,7 +58,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanCachingModule),
     typeof(XiHanCodeGenerationModule),
     typeof(XiHanDataModule),
-    typeof(XiHanDddModule),
+    typeof(XiHanDomainModule),
     typeof(XiHanDistributedIdsModule),
     typeof(XiHanEventBusModule),
     typeof(XiHanGatewayModule),
@@ -71,12 +72,13 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanSearchEnginesModule),
     typeof(XiHanSecurityModule),
     typeof(XiHanSerializationModule),
-    typeof(XiHanSettingsModule),
+    //typeof(XiHanSettingsModule),
     typeof(XiHanTemplatingModule),
     typeof(XiHanThreadingModule),
     typeof(XiHanUowModule),
     typeof(XiHanValidationModule),
-    typeof(XiHanVirtualFileSystemModule)
+    typeof(XiHanVirtualFileSystemModule),
+    typeof(XiHanApplicationModule)
 )]
 public class XiHanBasicAppCoreModule : XiHanModule
 {

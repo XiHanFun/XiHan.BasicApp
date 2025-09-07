@@ -14,6 +14,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="Entities\Examples\**" />
+      <EmbeddedResource Remove="Entities\Examples\**" />
+      <None Remove="Entities\Examples\**" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Core\XiHan.BasicApp.Core.csproj" />
     </ItemGroup>
 

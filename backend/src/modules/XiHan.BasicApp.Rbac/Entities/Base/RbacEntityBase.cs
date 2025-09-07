@@ -13,20 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base.Unified;
 using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities.Base;
-
-/// <summary>
-/// RBAC 模块泛型实体基类
-/// 通过泛型参数 TKey 抽象化 ID 类型，适用于需要灵活ID类型的场景
-/// </summary>
-/// <typeparam name="TKey">主键类型</typeparam>
-public abstract partial class RbacEntityBase<TKey> : SugarEntityWithAudit<TKey>, IRbacEntity<TKey>
-    where TKey : IEquatable<TKey>
-{
-}
 
 /// <summary>
 /// RBAC 模块统一实体基类
@@ -37,17 +26,27 @@ public abstract partial class RbacEntityBase : RbacEntityBase<RbacIdType>, IRbac
 }
 
 /// <summary>
-/// 支持多租户的 RBAC 实体基类
+/// RBAC 模块泛型实体基类
+/// 通过泛型参数 TKey 抽象化 ID 类型，适用于需要灵活ID类型的场景
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract partial class MultiTenantRbacEntityBase<TKey> : RbacEntityBase<TKey>, IMultiTenantRbacEntity<TKey>
-    where TKey : IEquatable<TKey>
+public abstract partial class RbacEntityBase<TKey> : SugarEntityWithAudit<TKey>, IRbacEntity<TKey>
+    where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
-    /// 租户ID
+    /// 主键ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual TKey? TenantId { get; set; }
+    public virtual TKey BaseId { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public virtual DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public virtual DateTimeOffset? UpdatedTime { get; set; }
 }
 
 /// <summary>
@@ -58,17 +57,17 @@ public abstract partial class MultiTenantRbacEntityBase : MultiTenantRbacEntityB
 }
 
 /// <summary>
-/// 与用户关联的 RBAC 实体基类
+/// 支持多租户的 RBAC 实体基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract partial class UserRelatedRbacEntityBase<TKey> : RbacEntityBase<TKey>, IUserRelatedRbacEntity<TKey>
-    where TKey : IEquatable<TKey>
+public abstract partial class MultiTenantRbacEntityBase<TKey> : RbacEntityBase<TKey>, IMultiTenantRbacEntity<TKey>
+    where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
-    /// 用户ID
+    /// 租户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual TKey? UserId { get; set; }
+    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
+    public virtual TKey? TenantId { get; set; }
 }
 
 /// <summary>
@@ -79,12 +78,34 @@ public abstract partial class UserRelatedRbacEntityBase : UserRelatedRbacEntityB
 }
 
 /// <summary>
+/// 与用户关联的 RBAC 实体基类
+/// </summary>
+/// <typeparam name="TKey">主键类型</typeparam>
+public abstract partial class UserRelatedRbacEntityBase<TKey> : RbacEntityBase<TKey>, IUserRelatedRbacEntity<TKey>
+    where TKey : struct, IEquatable<TKey>
+{
+    /// <summary>
+    /// 用户ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    public virtual TKey? UserId { get; set; }
+}
+
+/// <summary>
+/// 完整功能的 RBAC 实体基类（使用统一ID类型）
+/// 这是功能最全面的基类，推荐用于需要完整RBAC功能的实体
+/// </summary>
+public abstract partial class FullFeatureRbacEntityBase : FullFeatureRbacEntityBase<RbacIdType>, IFullFeatureRbacEntity
+{
+}
+
+/// <summary>
 /// 完整功能的 RBAC 实体基类
 /// 集成多租户、用户关联等功能
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
 public abstract partial class FullFeatureRbacEntityBase<TKey> : RbacEntityBase<TKey>, IFullFeatureRbacEntity<TKey>
-    where TKey : IEquatable<TKey>
+    where TKey : struct, IEquatable<TKey>
 {
     /// <summary>
     /// 租户ID
@@ -121,12 +142,4 @@ public abstract partial class FullFeatureRbacEntityBase<TKey> : RbacEntityBase<T
     /// </summary>
     [SugarColumn(ColumnDescription = "更新者ID", IsNullable = true)]
     public virtual TKey? UpdatedBy { get; set; }
-}
-
-/// <summary>
-/// 完整功能的 RBAC 实体基类（使用统一ID类型）
-/// 这是功能最全面的基类，推荐用于需要完整RBAC功能的实体
-/// </summary>
-public abstract partial class FullFeatureRbacEntityBase : FullFeatureRbacEntityBase<RbacIdType>, IFullFeatureRbacEntity
-{
 }
