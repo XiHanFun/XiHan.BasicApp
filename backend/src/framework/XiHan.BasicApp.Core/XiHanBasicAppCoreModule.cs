@@ -25,7 +25,6 @@ using XiHan.Framework.Data;
 using XiHan.Framework.Domain;
 using XiHan.Framework.DistributedIds;
 using XiHan.Framework.EventBus;
-using XiHan.Framework.Gateway;
 using XiHan.Framework.Http;
 using XiHan.Framework.Localization;
 using XiHan.Framework.Logging;
@@ -61,7 +60,6 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanDomainModule),
     typeof(XiHanDistributedIdsModule),
     typeof(XiHanEventBusModule),
-    typeof(XiHanGatewayModule),
     typeof(XiHanHttpModule),
     typeof(XiHanLocalizationModule),
     typeof(XiHanLoggingModule),
