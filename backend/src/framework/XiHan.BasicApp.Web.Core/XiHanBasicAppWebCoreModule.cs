@@ -17,6 +17,7 @@ using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Api;
 using XiHan.Framework.Web.Core;
 using XiHan.Framework.Web.Docs;
+using XiHan.Framework.Web.Gateway;
 using XiHan.Framework.Web.RealTime;
 
 namespace XiHan.BasicApp.Web.Core;
@@ -29,6 +30,7 @@ namespace XiHan.BasicApp.Web.Core;
     typeof(XiHanWebApiModule),
     typeof(XiHanWebDocsModule),
     typeof(XiHanWebRealTimeModule),
+    typeof(XiHanWebGatewayModule),
     typeof(XiHanBasicAppCoreModule)
 )]
 public class XiHanBasicAppWebCoreModule : XiHanModule
