@@ -1,2 +1,8 @@
-# 或者禁用 scripts 文件夹下的所有文件的换行符处理（强制保留原样）
-scripts/** -text
+# 默认使用 LF
+* text=auto eol=lf
+
+# 特殊文件强制指定 (CRLF)
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+*.ps1     text eol=crlf
+*.txt     text eol=crlf
