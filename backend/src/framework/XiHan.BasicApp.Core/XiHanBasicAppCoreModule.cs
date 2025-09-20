@@ -15,7 +15,7 @@
 using XiHan.Framework.AI;
 using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
-using XiHan.Framework.BackgroundJobs;
+using XiHan.Framework.Tasks;
 using XiHan.Framework.Bot;
 using XiHan.Framework.Caching;
 using XiHan.Framework.CodeGeneration;
@@ -52,7 +52,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanAIModule),
     typeof(XiHanAuthenticationModule),
     typeof(XiHanAuthorizationModule),
-    typeof(XiHanBackgroundJobsModule),
+    typeof(XiHanTasksModule),
     typeof(XiHanBotModule),
     typeof(XiHanCachingModule),
     typeof(XiHanCodeGenerationModule),
