@@ -8,8 +8,4 @@
 		<!-- 生成 XML 文档文件，用于代码提示和文档生成 -->
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
-	<!-- 公共 NuGet 包 -->
-	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-	</ItemGroup>
 </Project>
