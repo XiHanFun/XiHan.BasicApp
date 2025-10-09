@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,12 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统通知实体
 /// </summary>
 [SugarTable("sys_notification", "系统通知表")]
-[SugarIndex("IX_SysNotification_UserId", "UserId", OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_NotificationType", "NotificationType", OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_NotificationStatus", "NotificationStatus", OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_SendTime", "SendTime", OrderByType.Desc)]
-[SugarIndex("IX_SysNotification_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysNotification : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysNotification_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysNotification_NotificationType", nameof(NotificationType), OrderByType.Asc)]
+[SugarIndex("IX_SysNotification_NotificationStatus", nameof(NotificationStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysNotification_SendTime", nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_SysNotification_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

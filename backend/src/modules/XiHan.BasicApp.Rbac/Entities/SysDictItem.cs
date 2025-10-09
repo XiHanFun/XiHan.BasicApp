@@ -14,7 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
+using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,9 +22,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统字典项实体
 /// </summary>
 [SugarTable("sys_dict_item", "系统字典项表")]
-[SugarIndex("IX_SysDictItem_DictId", "DictId", OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_ItemCode", "ItemCode", OrderByType.Asc)]
-public partial class SysDictItem : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysDictItem_DictId", nameof(DictId), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_ItemCode", nameof(ItemCode), OrderByType.Asc)]
+public partial class SysDictItem : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 字典ID

@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -23,12 +23,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统任务实体
 /// </summary>
 [SugarTable("sys_task", "系统任务表")]
-[SugarIndex("IX_SysTask_TaskCode", "TaskCode", OrderByType.Asc, true)]
-[SugarIndex("IX_SysTask_TaskStatus", "TaskStatus", OrderByType.Asc)]
-[SugarIndex("IX_SysTask_TriggerType", "TriggerType", OrderByType.Asc)]
-[SugarIndex("IX_SysTask_NextRunTime", "NextRunTime", OrderByType.Asc)]
-[SugarIndex("IX_SysTask_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysTask : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysTask_TaskCode", nameof(TaskCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysTask_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysTask : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID
@@ -167,12 +167,6 @@ public partial class SysTask : SugarEntityWithAudit<long>
     /// </summary>
     [SugarColumn(ColumnDescription = "最大重试次数")]
     public virtual int MaxRetryCount { get; set; } = 3;
-
-    /// <summary>
-    /// 创建用户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "创建用户ID", IsNullable = true)]
-    public virtual long? CreatorId { get; set; }
 
     /// <summary>
     /// 状态

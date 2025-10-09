@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,12 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统短信实体
 /// </summary>
 [SugarTable("sys_sms", "系统短信表")]
-[SugarIndex("IX_SysSms_ToPhone", "ToPhone", OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SmsStatus", "SmsStatus", OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SmsType", "SmsType", OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SendTime", "SendTime", OrderByType.Desc)]
-[SugarIndex("IX_SysSms_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysSms : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysSms_ToPhone", nameof(ToPhone), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_SmsStatus", nameof(SmsStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_SmsType", nameof(SmsType), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_SendTime", nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_SysSms_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysSms : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

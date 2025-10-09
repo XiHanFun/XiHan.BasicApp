@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 角色菜单关联实体
 /// </summary>
 [SugarTable("sys_role_menu", "角色菜单关联表")]
-public partial class SysRoleMenu : SugarEntityWithAudit<long>
+public partial class SysRoleMenu : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 角色ID

@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
+
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,9 +23,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统菜单实体
 /// </summary>
 [SugarTable("sys_menu", "系统菜单表")]
-[SugarIndex("IX_SysMenu_MenuCode", "MenuCode", OrderByType.Asc, true)]
-[SugarIndex("IX_SysMenu_ParentId", "ParentId", OrderByType.Asc)]
-public partial class SysMenu : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
+public partial class SysMenu : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 父级菜单ID

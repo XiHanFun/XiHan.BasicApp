@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,11 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统文件实体
 /// </summary>
 [SugarTable("sys_file", "系统文件表")]
-[SugarIndex("IX_SysFile_FileHash", "FileHash", OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FileName", "FileName", OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FileType", "FileType", OrderByType.Asc)]
-[SugarIndex("IX_SysFile_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysFile : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysFile_FileHash", nameof(FileHash), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

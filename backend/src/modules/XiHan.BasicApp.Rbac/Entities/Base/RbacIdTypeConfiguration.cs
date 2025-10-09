@@ -12,22 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-/// <summary>
-/// 全局 ID 类型别名
-/// 这是实现统一 ID 类型的核心：通过 global using 实现全局类型别名
-///
-/// 使用方法：
-/// 1. 修改下面的 using 语句来切换整个模块的 ID 类型
-/// 2. 重新编译项目即可应用新的 ID 类型
-///
-/// 常用配置：
-/// - 使用 long：  global using RbacIdType = System.Int64;
-/// - 使用 int：   global using RbacIdType = System.Int32;
-/// - 使用 Guid：  global using RbacIdType = System.Guid;
-/// - 使用 string：global using RbacIdType = System.String;
-/// </summary>
-global using RbacIdType = System.Int64;
-
 namespace XiHan.BasicApp.Rbac.Entities.Base;
 
 /// <summary>

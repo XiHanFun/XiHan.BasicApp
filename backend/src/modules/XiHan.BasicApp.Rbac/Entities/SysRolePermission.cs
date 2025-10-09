@@ -14,7 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
+using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 角色权限关联实体
 /// </summary>
 [SugarTable("sys_role_permission", "角色权限关联表")]
-public partial class SysRolePermission : SugarEntityWithAudit<long>
+public partial class SysRolePermission : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 角色ID
