@@ -14,37 +14,37 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.AI" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Application" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Authentication" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Authorization" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Bot" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Caching" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.CodeGeneration" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Core" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Data" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.DistributedIds" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Domain" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.EventBus" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Http" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Localization" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Logging" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Messaging" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.ObjectMapping" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Script" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.SearchEngines" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Security" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Serialization" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Settings" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Tasks" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Templating" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Threading" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Uow" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Utils" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.Validation" Version="1.3.0" />
-      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="1.3.0" />
+      <PackageReference Include="XiHan.Framework" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.AI" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Application" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Authentication" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Authorization" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Bot" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Caching" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.CodeGeneration" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Core" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Data" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.DistributedIds" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Domain" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.EventBus" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Http" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Localization" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Logging" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Messaging" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.ObjectMapping" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Script" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.SearchEngines" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Security" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Serialization" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Settings" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Tasks" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Templating" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Threading" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Uow" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Utils" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.Validation" Version="1.3.4" />
+      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="1.3.4" />
     </ItemGroup>
 
 </Project>
