@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,12 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统访问日志实体
 /// </summary>
 [SugarTable("sys_access_log", "系统访问日志表")]
-[SugarIndex("IX_SysAccessLog_UserId", "UserId", OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_AccessResult", "AccessResult", OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_AccessTime", "AccessTime", OrderByType.Desc)]
-[SugarIndex("IX_SysAccessLog_ResourcePath", "ResourcePath", OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysAccessLog : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysAccessLog_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_AccessResult", nameof(AccessResult), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_AccessTime", nameof(AccessTime), OrderByType.Desc)]
+[SugarIndex("IX_SysAccessLog_ResourcePath", nameof(ResourcePath), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysAccessLog : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

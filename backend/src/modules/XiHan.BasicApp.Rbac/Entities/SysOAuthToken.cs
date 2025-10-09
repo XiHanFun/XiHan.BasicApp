@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,11 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// OAuth令牌实体
 /// </summary>
 [SugarTable("sys_oauth_token", "OAuth令牌表")]
-[SugarIndex("IX_SysOAuthToken_AccessToken", "AccessToken", OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthToken_RefreshToken", "RefreshToken", OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_ClientId", "ClientId", OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_UserId", "UserId", OrderByType.Asc)]
-public partial class SysOAuthToken : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysOAuthToken_AccessToken", nameof(AccessToken), OrderByType.Asc, true)]
+[SugarIndex("IX_SysOAuthToken_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_ClientId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_UserId", nameof(UserId), OrderByType.Asc)]
+public partial class SysOAuthToken : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 访问令牌

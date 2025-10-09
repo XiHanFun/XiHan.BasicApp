@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,9 +22,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统字典实体
 /// </summary>
 [SugarTable("sys_dict", "系统字典表")]
-[SugarIndex("IX_SysDict_DictCode", "DictCode", OrderByType.Asc, true)]
-[SugarIndex("IX_SysDict_DictType", "DictType", OrderByType.Asc)]
-public partial class SysDict : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysDict_DictCode", nameof(DictCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysDict_DictType", nameof(DictType), OrderByType.Asc)]
+public partial class SysDict : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 字典编码

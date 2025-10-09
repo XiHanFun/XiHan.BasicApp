@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,10 +22,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统配置实体
 /// </summary>
 [SugarTable("sys_config", "系统配置表")]
-[SugarIndex("IX_SysConfig_ConfigKey", "ConfigKey", OrderByType.Asc, true)]
-[SugarIndex("IX_SysConfig_ConfigType", "ConfigType", OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysConfig : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysConfig_ConfigKey", nameof(ConfigKey), OrderByType.Asc, true)]
+[SugarIndex("IX_SysConfig_ConfigType", nameof(ConfigType), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysConfig : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

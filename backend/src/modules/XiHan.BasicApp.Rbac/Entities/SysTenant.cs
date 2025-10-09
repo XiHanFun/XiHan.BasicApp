@@ -14,7 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
+using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,9 +22,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 租户实体
 /// </summary>
 [SugarTable("sys_tenant", "租户表")]
-[SugarIndex("IX_SysTenant_TenantCode", "TenantCode", OrderByType.Asc, true)]
-[SugarIndex("IX_SysTenant_TenantName", "TenantName", OrderByType.Asc)]
-public partial class SysTenant : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
+public partial class SysTenant : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户编码

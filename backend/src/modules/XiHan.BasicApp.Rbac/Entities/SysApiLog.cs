@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.Framework.Data.SqlSugar.Entities;
+using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -21,13 +21,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// API日志实体
 /// </summary>
 [SugarTable("sys_api_log", "API日志表")]
-[SugarIndex("IX_SysApiLog_UserId", "UserId", OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_ApiPath", "ApiPath", OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_Method", "Method", OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_StatusCode", "StatusCode", OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_RequestTime", "RequestTime", OrderByType.Desc)]
-[SugarIndex("IX_SysApiLog_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysApiLog : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysApiLog_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_ApiPath", nameof(ApiPath), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_Method", nameof(Method), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_RequestTime", nameof(RequestTime), OrderByType.Desc)]
+[SugarIndex("IX_SysApiLog_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

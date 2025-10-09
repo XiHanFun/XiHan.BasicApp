@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,11 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 用户统计实体
 /// </summary>
 [SugarTable("sys_user_statistics", "用户统计表")]
-[SugarIndex("IX_SysUserStatistics_UserId", "UserId", OrderByType.Asc)]
-[SugarIndex("IX_SysUserStatistics_StatisticsDate", "StatisticsDate", OrderByType.Desc)]
-[SugarIndex("IX_SysUserStatistics_Period", "Period", OrderByType.Asc)]
-[SugarIndex("IX_SysUserStatistics_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysUserStatistics : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysUserStatistics_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserStatistics_StatisticsDate", nameof(StatisticsDate), OrderByType.Desc)]
+[SugarIndex("IX_SysUserStatistics_Period", nameof(Period), OrderByType.Asc)]
+[SugarIndex("IX_SysUserStatistics_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

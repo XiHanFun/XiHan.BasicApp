@@ -30,7 +30,7 @@ public partial class SysTenant
     /// <summary>
     /// 租户用户列表
     /// </summary>
-    [Navigate(NavigateType.OneToMany, nameof(SysUser.BaseId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysUser.BasicId))]
     public virtual List<SysUser>? Users { get; set; }
 
     /// <summary>

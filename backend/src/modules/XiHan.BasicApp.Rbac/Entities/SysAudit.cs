@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,13 +22,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统审核实体
 /// </summary>
 [SugarTable("sys_audit", "系统审核表")]
-[SugarIndex("IX_SysAudit_AuditStatus", "AuditStatus", OrderByType.Asc)]
-[SugarIndex("IX_SysAudit_SubmitterId", "SubmitterId", OrderByType.Asc)]
-[SugarIndex("IX_SysAudit_AuditorId", "AuditorId", OrderByType.Asc)]
-[SugarIndex("IX_SysAudit_BusinessType", "BusinessType", OrderByType.Asc)]
-[SugarIndex("IX_SysAudit_SubmitTime", "SubmitTime", OrderByType.Desc)]
-[SugarIndex("IX_SysAudit_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysAudit : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysAudit_AuditStatus", nameof(AuditStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysAudit_SubmitterId", nameof(SubmitterId), OrderByType.Asc)]
+[SugarIndex("IX_SysAudit_AuditorId", nameof(AuditorId), OrderByType.Asc)]
+[SugarIndex("IX_SysAudit_BusinessType", nameof(BusinessType), OrderByType.Asc)]
+[SugarIndex("IX_SysAudit_SubmitTime", nameof(SubmitTime), OrderByType.Desc)]
+[SugarIndex("IX_SysAudit_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

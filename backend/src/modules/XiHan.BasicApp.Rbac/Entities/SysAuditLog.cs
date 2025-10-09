@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,11 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统审核日志实体
 /// </summary>
 [SugarTable("sys_audit_log", "系统审核日志表")]
-[SugarIndex("IX_SysAuditLog_AuditId", "AuditId", OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuditorId", "AuditorId", OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuditResult", "AuditResult", OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuditTime", "AuditTime", OrderByType.Desc)]
-public partial class SysAuditLog : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysAuditLog_AuditId", nameof(AuditId), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_AuditorId", nameof(AuditorId), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_AuditResult", nameof(AuditResult), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_AuditTime", nameof(AuditTime), OrderByType.Desc)]
+public partial class SysAuditLog : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 审核ID

@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,11 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统操作日志实体
 /// </summary>
 [SugarTable("sys_operation_log", "系统操作日志表")]
-[SugarIndex("IX_SysOperationLog_UserId", "UserId", OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OperationType", "OperationType", OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OperationTime", "OperationTime", OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_TenantId", "TenantId", OrderByType.Asc)]
-public partial class SysOperationLog : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysOperationLog_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_OperationType", nameof(OperationType), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_OperationTime", nameof(OperationTime), OrderByType.Desc)]
+[SugarIndex("IX_SysOperationLog_TenantId", nameof(TenantId), OrderByType.Asc)]
+public partial class SysOperationLog : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 租户ID

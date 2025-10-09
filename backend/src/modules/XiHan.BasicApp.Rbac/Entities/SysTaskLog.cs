@@ -13,8 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Data.SqlSugar.Entities;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -23,10 +22,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统任务日志实体
 /// </summary>
 [SugarTable("sys_task_log", "系统任务日志表")]
-[SugarIndex("IX_SysTaskLog_TaskId", "TaskId", OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_TaskStatus", "TaskStatus", OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_StartTime", "StartTime", OrderByType.Desc)]
-public partial class SysTaskLog : SugarEntityWithAudit<long>
+[SugarIndex("IX_SysTaskLog_TaskId", nameof(TaskId), OrderByType.Asc)]
+[SugarIndex("IX_SysTaskLog_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTaskLog_StartTime", nameof(StartTime), OrderByType.Desc)]
+public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
     /// 任务ID
