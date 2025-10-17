@@ -26,9 +26,9 @@ namespace XiHan.BasicApp.WebHost;
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
-     typeof(XiHanBasicAppRbacModule),
-     typeof(XiHanBasicAppCodeGenerationModule),
-     typeof(XiHanBasicAppWebCoreModule)
+    typeof(XiHanBasicAppRbacModule),
+    typeof(XiHanBasicAppCodeGenerationModule),
+    typeof(XiHanBasicAppWebCoreModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
