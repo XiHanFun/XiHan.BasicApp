@@ -70,7 +70,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanSearchEnginesModule),
     typeof(XiHanSecurityModule),
     typeof(XiHanSerializationModule),
-    //typeof(XiHanSettingsModule),
+    typeof(XiHanSettingsModule),
     typeof(XiHanTemplatingModule),
     typeof(XiHanThreadingModule),
     typeof(XiHanUowModule),
