@@ -45,10 +45,7 @@
     <File Path="scripts/service/XiHan.BasicApp.bat" />
     <File Path="scripts/service/XiHan.BasicApp.service" />
   </Folder>
-  <Folder Name="/4.others/3.Security/">
-    <File Path="snks/XiHan.BasicApp.snk" />
-  </Folder>
-  <Folder Name="/4.others/4.Root/">
+  <Folder Name="/4.others/3.Root/">
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />

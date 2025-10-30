@@ -33,10 +33,6 @@
 		<PackageTags>csharp aspnetcore web webapp xihan framework zhaifanhua xihanfun</PackageTags>
 		<!-- NuGet 包输出路径 -->
 		<PackageOutputPath>..\..\..\nupkgs</PackageOutputPath>
-		<!-- 程序集签名 -->
-		<SignAssembly>True</SignAssembly>
-		<!-- 指定用于签名的密钥文件 -->
-		<AssemblyOriginatorKeyFile>..\..\..\snks\XiHan.BasicApp.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 	<!-- 其他文件包含 -->
 	<ItemGroup>
