@@ -32,13 +32,13 @@ public partial class SysAuditLog : RbacFullAuditedEntity<RbacIdType>
     /// 审核ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审核ID", IsNullable = false)]
-    public virtual long AuditId { get; set; }
+    public virtual RbacIdType AuditId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审核用户ID", IsNullable = false)]
-    public virtual long AuditorId { get; set; }
+    public virtual RbacIdType AuditorId { get; set; }
 
     /// <summary>
     /// 审核级别

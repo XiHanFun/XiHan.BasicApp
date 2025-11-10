@@ -33,19 +33,19 @@ public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
+    public virtual RbacIdType? TenantId { get; set; }
 
     /// <summary>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual long? UserId { get; set; }
+    public virtual RbacIdType? UserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual long? SenderId { get; set; }
+    public virtual RbacIdType? SenderId { get; set; }
 
     /// <summary>
     /// 通知类型

@@ -28,13 +28,13 @@ public partial class SysRoleMenu : RbacFullAuditedEntity<RbacIdType>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual long RoleId { get; set; }
+    public virtual RbacIdType RoleId { get; set; }
 
     /// <summary>
     /// 菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "菜单ID", IsNullable = false)]
-    public virtual long MenuId { get; set; }
+    public virtual RbacIdType MenuId { get; set; }
 
     /// <summary>
     /// 状态

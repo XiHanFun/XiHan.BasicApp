@@ -30,7 +30,7 @@ public partial class SysDepartment : RbacFullAuditedEntity<RbacIdType>
     /// 父级部门ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级部门ID", IsNullable = true)]
-    public virtual long? ParentId { get; set; }
+    public virtual RbacIdType? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -54,7 +54,7 @@ public partial class SysDepartment : RbacFullAuditedEntity<RbacIdType>
     /// 负责人ID
     /// </summary>
     [SugarColumn(ColumnDescription = "负责人ID", IsNullable = true)]
-    public virtual long? LeaderId { get; set; }
+    public virtual RbacIdType? LeaderId { get; set; }
 
     /// <summary>
     /// 联系电话

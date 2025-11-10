@@ -32,7 +32,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
+    public virtual RbacIdType? TenantId { get; set; }
 
     /// <summary>
     /// 文件名

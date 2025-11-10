@@ -56,7 +56,7 @@ public partial class SysOAuthToken : RbacFullAuditedEntity<RbacIdType>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual long? UserId { get; set; }
+    public virtual RbacIdType? UserId { get; set; }
 
     /// <summary>
     /// 授权类型
