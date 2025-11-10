@@ -28,13 +28,13 @@ public partial class SysUserDepartment : RbacFullAuditedEntity<RbacIdType>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual long UserId { get; set; }
+    public virtual RbacIdType UserId { get; set; }
 
     /// <summary>
     /// 部门ID
     /// </summary>
     [SugarColumn(ColumnDescription = "部门ID", IsNullable = false)]
-    public virtual long DepartmentId { get; set; }
+    public virtual RbacIdType DepartmentId { get; set; }
 
     /// <summary>
     /// 是否主部门

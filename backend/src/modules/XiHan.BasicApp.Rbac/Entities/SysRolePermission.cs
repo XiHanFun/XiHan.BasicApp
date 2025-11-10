@@ -28,13 +28,13 @@ public partial class SysRolePermission : RbacFullAuditedEntity<RbacIdType>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual long RoleId { get; set; }
+    public virtual RbacIdType RoleId { get; set; }
 
     /// <summary>
     /// 权限ID
     /// </summary>
     [SugarColumn(ColumnDescription = "权限ID", IsNullable = false)]
-    public virtual long PermissionId { get; set; }
+    public virtual RbacIdType PermissionId { get; set; }
 
     /// <summary>
     /// 状态

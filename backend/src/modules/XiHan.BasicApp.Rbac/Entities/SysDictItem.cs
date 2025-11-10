@@ -30,7 +30,7 @@ public partial class SysDictItem : RbacFullAuditedEntity<RbacIdType>
     /// 字典ID
     /// </summary>
     [SugarColumn(ColumnDescription = "字典ID", IsNullable = false)]
-    public virtual long DictId { get; set; }
+    public virtual RbacIdType DictId { get; set; }
 
     /// <summary>
     /// 字典编码（冗余字段，便于查询）
@@ -42,7 +42,7 @@ public partial class SysDictItem : RbacFullAuditedEntity<RbacIdType>
     /// 父级字典项ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级字典项ID", IsNullable = true)]
-    public virtual long? ParentId { get; set; }
+    public virtual RbacIdType? ParentId { get; set; }
 
     /// <summary>
     /// 字典项编码

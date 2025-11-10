@@ -31,7 +31,7 @@ public partial class SysMenu : RbacFullAuditedEntity<RbacIdType>
     /// 父级菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级菜单ID", IsNullable = true)]
-    public virtual long? ParentId { get; set; }
+    public virtual RbacIdType? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称

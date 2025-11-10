@@ -31,7 +31,7 @@ public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
     /// 任务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "任务ID", IsNullable = false)]
-    public virtual long TaskId { get; set; }
+    public virtual RbacIdType TaskId { get; set; }
 
     /// <summary>
     /// 任务编码

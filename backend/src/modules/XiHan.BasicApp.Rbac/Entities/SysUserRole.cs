@@ -28,13 +28,13 @@ public partial class SysUserRole : RbacFullAuditedEntity<RbacIdType>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual long UserId { get; set; }
+    public virtual RbacIdType UserId { get; set; }
 
     /// <summary>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual long RoleId { get; set; }
+    public virtual RbacIdType RoleId { get; set; }
 
     /// <summary>
     /// 状态

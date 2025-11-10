@@ -34,7 +34,7 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
+    public virtual RbacIdType? TenantId { get; set; }
 
     /// <summary>
     /// 审核标题
