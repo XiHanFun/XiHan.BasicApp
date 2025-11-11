@@ -144,7 +144,7 @@ public partial class SysUser
     /// <summary>
     /// 创建任务列表
     /// </summary>
-    [Navigate(NavigateType.OneToMany, nameof(SysTask.CreatorId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysTask.CreatedId))]
     public virtual List<SysTask>? CreatedTasks { get; set; }
 
     /// <summary>

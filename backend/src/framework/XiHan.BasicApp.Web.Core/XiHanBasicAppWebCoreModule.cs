@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
+using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Api;
 using XiHan.Framework.Web.Core;
@@ -40,6 +41,14 @@ public class XiHanBasicAppWebCoreModule : XiHanModule
     /// </summary>
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+    }
+
+    /// <summary>
+    /// 应用初始化
+    /// </summary>
+    /// <param name="context"></param>
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
     }
 }

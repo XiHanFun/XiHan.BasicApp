@@ -30,8 +30,8 @@ public partial class SysTask
     /// <summary>
     /// 创建用户信息
     /// </summary>
-    [Navigate(NavigateType.ManyToOne, nameof(CreatorId))]
-    public virtual SysUser? Creator { get; set; }
+    [Navigate(NavigateType.ManyToOne, nameof(CreatedId))]
+    public virtual SysUser? CreatedBy { get; set; }
 
     /// <summary>
     /// 任务执行日志列表
