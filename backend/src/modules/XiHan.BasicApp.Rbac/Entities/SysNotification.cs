@@ -87,7 +87,7 @@ public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual long? BusinessId { get; set; }
+    public virtual RbacIdType? BusinessId { get; set; }
 
     /// <summary>
     /// 通知状态

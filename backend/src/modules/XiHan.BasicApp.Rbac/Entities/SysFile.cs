@@ -68,7 +68,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 文件大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "文件大小（字节）")]
-    public virtual long FileSize { get; set; } = 0;
+    public virtual RbacIdType FileSize { get; set; } = 0;
 
     /// <summary>
     /// 文件哈希值
@@ -104,7 +104,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 上传者ID
     /// </summary>
     [SugarColumn(ColumnDescription = "上传者ID", IsNullable = true)]
-    public virtual long? UploaderId { get; set; }
+    public virtual RbacIdType? UploaderId { get; set; }
 
     /// <summary>
     /// 上传IP
@@ -122,7 +122,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual long? BusinessId { get; set; }
+    public virtual RbacIdType? BusinessId { get; set; }
 
     /// <summary>
     /// 下载次数

@@ -91,7 +91,7 @@ public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
     /// 执行时长（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
-    public virtual long ExecutionTime { get; set; } = 0;
+    public virtual RbacIdType ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 执行结果
