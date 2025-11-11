@@ -22,14 +22,13 @@ using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.BasicApp.Rbac.Services.Abstractions;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Domain.Paging.Dtos;
 
 namespace XiHan.BasicApp.Rbac.Services.Implementations;
 
 /// <summary>
 /// 用户服务实现
 /// </summary>
-public class UserService : ApplicationServiceBase, IUserService
+public class UserService : CrudApplicationServiceBase<SysUser, UserDto, RbacIdType, CreateUserDto, UpdateUserDto>, IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
@@ -45,7 +44,7 @@ public class UserService : ApplicationServiceBase, IUserService
         IRoleRepository roleRepository,
         IDepartmentRepository departmentRepository,
         UserManager userManager,
-        ISqlSugarDbContext dbContext)
+        ISqlSugarDbContext dbContext) : base(userRepository)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
@@ -54,19 +53,12 @@ public class UserService : ApplicationServiceBase, IUserService
         _dbContext = dbContext;
     }
 
-    /// <summary>
-    /// 根据ID获取用户
-    /// </summary>
-    public async Task<UserDto?> GetByIdAsync(long id)
-    {
-        var user = await _userRepository.GetByIdAsync(id);
-        return user?.ToDto();
-    }
+    #region 业务特定方法
 
     /// <summary>
     /// 获取用户详情
     /// </summary>
-    public async Task<UserDetailDto?> GetDetailAsync(long id)
+    public async Task<UserDetailDto?> GetDetailAsync(RbacIdType id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -75,10 +67,10 @@ public class UserService : ApplicationServiceBase, IUserService
         }
 
         var roleIds = await _userRepository.GetUserRoleIdsAsync(id);
-        var roles = await _roleRepository.QueryListAsync(r => roleIds.Contains(r.BasicId));
+        var roles = await _roleRepository.GetListAsync(r => roleIds.Contains(r.BasicId));
 
         var departmentIds = await _userRepository.GetUserDepartmentIdsAsync(id);
-        var departments = await _departmentRepository.QueryListAsync(d => departmentIds.Contains(d.BasicId));
+        var departments = await _departmentRepository.GetListAsync(d => departmentIds.Contains(d.BasicId));
 
         var permissions = await _userRepository.GetUserPermissionsAsync(id);
 
@@ -143,10 +135,14 @@ public class UserService : ApplicationServiceBase, IUserService
         return user?.ToDto();
     }
 
+    #endregion 业务特定方法
+
+    #region 重写基类方法
+
     /// <summary>
     /// 创建用户
     /// </summary>
-    public async Task<UserDto> CreateAsync(CreateUserDto input)
+    public override async Task<UserDto> CreateAsync(CreateUserDto input)
     {
         // 验证用户名唯一性
         if (!await _userManager.IsUserNameUniqueAsync(input.UserName))
@@ -184,7 +180,7 @@ public class UserService : ApplicationServiceBase, IUserService
             Remark = input.Remark
         };
 
-        await _userRepository.InsertAsync(user);
+        await _userRepository.AddAsync(user);
 
         // 分配角色
         if (input.RoleIds.Any())
@@ -212,13 +208,10 @@ public class UserService : ApplicationServiceBase, IUserService
     /// <summary>
     /// 更新用户
     /// </summary>
-    public async Task<UserDto> UpdateAsync(UpdateUserDto input)
+    public override async Task<UserDto> UpdateAsync(RbacIdType id, UpdateUserDto input)
     {
-        var user = await _userRepository.GetByIdAsync(input.BasicId);
-        if (user == null)
-        {
+        var user = await _userRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
-        }
 
         // 验证邮箱唯一性
         if (!string.IsNullOrEmpty(input.Email) && !await _userManager.IsEmailUniqueAsync(input.Email, user.BasicId))
@@ -301,16 +294,17 @@ public class UserService : ApplicationServiceBase, IUserService
     /// <summary>
     /// 删除用户
     /// </summary>
-    public async Task<bool> DeleteAsync(long id)
+    public override async Task<bool> DeleteAsync(RbacIdType id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user == null)
-        {
+        var user = await _userRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
-        }
 
         return await _userRepository.DeleteAsync(user);
     }
+
+    #endregion 重写基类方法
+
+    #region 密码管理
 
     /// <summary>
     /// 修改密码
@@ -336,7 +330,8 @@ public class UserService : ApplicationServiceBase, IUserService
         }
 
         user.Password = _userManager.HashPassword(input.NewPassword);
-        return await _userRepository.UpdateAsync(user);
+        await _userRepository.UpdateAsync(user);
+        return true;
     }
 
     /// <summary>
@@ -351,8 +346,13 @@ public class UserService : ApplicationServiceBase, IUserService
         }
 
         user.Password = _userManager.HashPassword(input.NewPassword);
-        return await _userRepository.UpdateAsync(user);
+        await _userRepository.UpdateAsync(user);
+        return true;
     }
+
+    #endregion 密码管理
+
+    #region 角色和部门管理
 
     /// <summary>
     /// 分配角色
@@ -411,58 +411,118 @@ public class UserService : ApplicationServiceBase, IUserService
     /// <summary>
     /// 获取用户权限
     /// </summary>
-    public async Task<List<string>> GetUserPermissionsAsync(long userId)
+    public async Task<List<string>> GetUserPermissionsAsync(RbacIdType userId)
     {
         return await _userRepository.GetUserPermissionsAsync(userId);
     }
 
+    #endregion 角色和部门管理
+
+    #region 映射方法实现
+
     /// <summary>
-    /// 分页查询用户
+    /// 映射实体到DTO
     /// </summary>
-    public async Task<PageResponse<UserDto>> GetPagedListAsync(PageQuery query)
+    protected override Task<UserDto> MapToEntityDtoAsync(SysUser entity)
     {
-        var queryable = _userRepository.Queryable();
-
-        // 应用筛选条件
-        if (query.Conditions != null && query.Conditions.Any())
-        {
-            foreach (var condition in query.Conditions)
-            {
-                // 这里可以根据条件动态构建查询
-                // 示例：根据用户名搜索
-                if (condition.Field == "UserName" && !string.IsNullOrEmpty(condition.Value?.ToString()))
-                {
-                    queryable = queryable.Where(u => u.UserName.Contains(condition.Value.ToString()!));
-                }
-            }
-        }
-
-        // 应用排序
-        if (query.Sorts != null && query.Sorts.Any())
-        {
-            foreach (var sort in query.Sorts)
-            {
-                queryable = sort.Direction == Paging.Enums.SortDirection.Ascending
-                    ? queryable.OrderBy($"{sort.Field} ASC")
-                    : queryable.OrderBy($"{sort.Field} DESC");
-            }
-        }
-        else
-        {
-            queryable = queryable.OrderBy(u => u.CreatedTime, OrderByType.Desc);
-        }
-
-        // 分页
-        var total = await queryable.CountAsync();
-        var items = await queryable
-            .Skip((query.PageIndex - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToListAsync();
-
-        return new PageResponse<UserDto>
-        {
-            Items = items.ToDto(),
-            PageData = new PageData(query.PageIndex, query.PageSize, total)
-        };
+        return Task.FromResult(entity.ToDto());
     }
+
+    /// <summary>
+    /// 映射 UserDto 到实体（基类方法，不推荐直接使用）
+    /// </summary>
+    protected override Task<SysUser> MapToEntityAsync(UserDto dto)
+    {
+        // 此方法用于支持基类的 CreateAsync(TEntityDto)，但建议使用 CreateAsync(CreateUserDto)
+        var entity = new SysUser
+        {
+            TenantId = dto.TenantId,
+            UserName = dto.UserName,
+            RealName = dto.RealName,
+            NickName = dto.NickName,
+            Avatar = dto.Avatar,
+            Email = dto.Email,
+            Phone = dto.Phone,
+            Gender = dto.Gender,
+            Birthday = dto.Birthday,
+            Status = dto.Status,
+            TimeZone = dto.TimeZone,
+            Language = dto.Language,
+            Country = dto.Country,
+            Remark = dto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射 UserDto 到现有实体（基类方法，不推荐直接使用）
+    /// </summary>
+    protected override Task MapToEntityAsync(UserDto dto, SysUser entity)
+    {
+        // 此方法用于支持基类的 UpdateAsync(TKey, TEntityDto)，但建议使用 UpdateAsync(TKey, UpdateUserDto)
+        if (dto.RealName != null) entity.RealName = dto.RealName;
+        if (dto.NickName != null) entity.NickName = dto.NickName;
+        if (dto.Avatar != null) entity.Avatar = dto.Avatar;
+        if (dto.Email != null) entity.Email = dto.Email;
+        if (dto.Phone != null) entity.Phone = dto.Phone;
+        entity.Gender = dto.Gender;
+        entity.Birthday = dto.Birthday;
+        entity.Status = dto.Status;
+        if (dto.TimeZone != null) entity.TimeZone = dto.TimeZone;
+        if (dto.Language != null) entity.Language = dto.Language;
+        if (dto.Country != null) entity.Country = dto.Country;
+        if (dto.Remark != null) entity.Remark = dto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射创建DTO到实体
+    /// </summary>
+    protected override Task<SysUser> MapToEntityAsync(CreateUserDto createDto)
+    {
+        var entity = new SysUser
+        {
+            TenantId = createDto.TenantId,
+            UserName = createDto.UserName,
+            Password = _userManager.HashPassword(createDto.Password),
+            RealName = createDto.RealName,
+            NickName = createDto.NickName,
+            Avatar = createDto.Avatar,
+            Email = createDto.Email,
+            Phone = createDto.Phone,
+            Gender = createDto.Gender,
+            Birthday = createDto.Birthday,
+            TimeZone = createDto.TimeZone,
+            Language = createDto.Language,
+            Country = createDto.Country,
+            Remark = createDto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射更新DTO到现有实体
+    /// </summary>
+    protected override Task MapToEntityAsync(UpdateUserDto updateDto, SysUser entity)
+    {
+        if (updateDto.RealName != null) entity.RealName = updateDto.RealName;
+        if (updateDto.NickName != null) entity.NickName = updateDto.NickName;
+        if (updateDto.Avatar != null) entity.Avatar = updateDto.Avatar;
+        if (updateDto.Email != null) entity.Email = updateDto.Email;
+        if (updateDto.Phone != null) entity.Phone = updateDto.Phone;
+        if (updateDto.Gender.HasValue) entity.Gender = updateDto.Gender.Value;
+        if (updateDto.Birthday.HasValue) entity.Birthday = updateDto.Birthday;
+        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
+        if (updateDto.TimeZone != null) entity.TimeZone = updateDto.TimeZone;
+        if (updateDto.Language != null) entity.Language = updateDto.Language;
+        if (updateDto.Country != null) entity.Country = updateDto.Country;
+        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    #endregion 映射方法实现
 }

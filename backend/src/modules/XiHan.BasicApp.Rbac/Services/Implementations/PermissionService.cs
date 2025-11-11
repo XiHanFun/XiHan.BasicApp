@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 权限服务实现
 /// </summary>
-public class PermissionService : ApplicationServiceBase, IPermissionService
+public class PermissionService : CrudApplicationServiceBase<SysPermission, PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>, IPermissionService
 {
     private readonly IPermissionRepository _permissionRepository;
     private readonly PermissionManager _permissionManager;
@@ -37,34 +37,18 @@ public class PermissionService : ApplicationServiceBase, IPermissionService
     /// </summary>
     public PermissionService(
         IPermissionRepository permissionRepository,
-        PermissionManager permissionManager)
+        PermissionManager permissionManager) : base(permissionRepository)
     {
         _permissionRepository = permissionRepository;
         _permissionManager = permissionManager;
     }
 
-    /// <summary>
-    /// 根据ID获取权限
-    /// </summary>
-    public async Task<PermissionDto?> GetByIdAsync(long id)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(id);
-        return permission?.ToDto();
-    }
-
-    /// <summary>
-    /// 根据权限编码获取权限
-    /// </summary>
-    public async Task<PermissionDto?> GetByPermissionCodeAsync(string permissionCode)
-    {
-        var permission = await _permissionRepository.GetByPermissionCodeAsync(permissionCode);
-        return permission?.ToDto();
-    }
+    #region 重写基类方法
 
     /// <summary>
     /// 创建权限
     /// </summary>
-    public async Task<PermissionDto> CreateAsync(CreatePermissionDto input)
+    public override async Task<PermissionDto> CreateAsync(CreatePermissionDto input)
     {
         // 验证权限编码唯一性
         if (!await _permissionManager.IsPermissionCodeUniqueAsync(input.PermissionCode))
@@ -83,7 +67,7 @@ public class PermissionService : ApplicationServiceBase, IPermissionService
             Remark = input.Remark
         };
 
-        await _permissionRepository.InsertAsync(permission);
+        await _permissionRepository.AddAsync(permission);
 
         return permission.ToDto();
     }
@@ -91,13 +75,10 @@ public class PermissionService : ApplicationServiceBase, IPermissionService
     /// <summary>
     /// 更新权限
     /// </summary>
-    public async Task<PermissionDto> UpdateAsync(UpdatePermissionDto input)
+    public override async Task<PermissionDto> UpdateAsync(RbacIdType id, UpdatePermissionDto input)
     {
-        var permission = await _permissionRepository.GetByIdAsync(input.BasicId);
-        if (permission == null)
-        {
+        var permission = await _permissionRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.PermissionNotFound);
-        }
 
         // 更新权限信息
         if (input.PermissionName != null)
@@ -143,21 +124,31 @@ public class PermissionService : ApplicationServiceBase, IPermissionService
     /// <summary>
     /// 删除权限
     /// </summary>
-    public async Task<bool> DeleteAsync(long id)
+    public override async Task<bool> DeleteAsync(RbacIdType id)
     {
-        var permission = await _permissionRepository.GetByIdAsync(id);
-        if (permission == null)
-        {
+        var permission = await _permissionRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.PermissionNotFound);
-        }
 
         return await _permissionRepository.DeleteAsync(permission);
+    }
+
+    #endregion 重写基类方法
+
+    #region 业务特定方法
+
+    /// <summary>
+    /// 根据权限编码获取权限
+    /// </summary>
+    public async Task<PermissionDto?> GetByPermissionCodeAsync(string permissionCode)
+    {
+        var permission = await _permissionRepository.GetByPermissionCodeAsync(permissionCode);
+        return permission?.ToDto();
     }
 
     /// <summary>
     /// 获取角色的权限列表
     /// </summary>
-    public async Task<List<PermissionDto>> GetByRoleIdAsync(long roleId)
+    public async Task<List<PermissionDto>> GetByRoleIdAsync(RbacIdType roleId)
     {
         var permissions = await _permissionRepository.GetByRoleIdAsync(roleId);
         return permissions.ToDto();
@@ -166,62 +157,94 @@ public class PermissionService : ApplicationServiceBase, IPermissionService
     /// <summary>
     /// 获取用户的权限列表
     /// </summary>
-    public async Task<List<PermissionDto>> GetByUserIdAsync(long userId)
+    public async Task<List<PermissionDto>> GetByUserIdAsync(RbacIdType userId)
     {
         var permissions = await _permissionRepository.GetByUserIdAsync(userId);
         return permissions.ToDto();
     }
 
+    #endregion 业务特定方法
+
+    #region 映射方法实现
+
     /// <summary>
-    /// 分页查询权限
+    /// 映射实体到DTO
     /// </summary>
-    public async Task<PageResponse<PermissionDto>> GetPagedListAsync(PageQuery query)
+    protected override Task<PermissionDto> MapToEntityDtoAsync(SysPermission entity)
     {
-        var queryable = _permissionRepository.Queryable();
-
-        // 应用筛选条件
-        if (query.Conditions != null && query.Conditions.Any())
-        {
-            foreach (var condition in query.Conditions)
-            {
-                if (condition.Field == "PermissionName" && !string.IsNullOrEmpty(condition.Value?.ToString()))
-                {
-                    queryable = queryable.Where(p => p.PermissionName.Contains(condition.Value.ToString()!));
-                }
-            }
-        }
-
-        // 应用排序
-        if (query.Sorts != null && query.Sorts.Any())
-        {
-            foreach (var sort in query.Sorts)
-            {
-                queryable = sort.Direction == Paging.Enums.SortDirection.Ascending
-                    ? queryable.OrderBy($"{sort.Field} ASC")
-                    : queryable.OrderBy($"{sort.Field} DESC");
-            }
-        }
-        else
-        {
-            queryable = queryable.OrderBy(p => p.Sort);
-        }
-
-        // 分页
-        var total = await queryable.CountAsync();
-        var items = await queryable
-            .Skip((query.PageIndex - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToListAsync();
-
-        return new PageResponse<PermissionDto>
-        {
-            Items = items.ToDto(),
-            PageInfo = new PageInfo
-            {
-                PageIndex = query.PageIndex,
-                PageSize = query.PageSize,
-                Total = total
-            }
-        };
+        return Task.FromResult(entity.ToDto());
     }
+
+    /// <summary>
+    /// 映射 PermissionDto 到实体（基类方法）
+    /// </summary>
+    protected override Task<SysPermission> MapToEntityAsync(PermissionDto dto)
+    {
+        var entity = new SysPermission
+        {
+            PermissionCode = dto.PermissionCode,
+            PermissionName = dto.PermissionName,
+            PermissionDescription = dto.PermissionDescription,
+            PermissionType = dto.PermissionType,
+            PermissionValue = dto.PermissionValue,
+            Status = dto.Status,
+            Sort = dto.Sort,
+            Remark = dto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射 PermissionDto 到现有实体（基类方法）
+    /// </summary>
+    protected override Task MapToEntityAsync(PermissionDto dto, SysPermission entity)
+    {
+        if (dto.PermissionName != null) entity.PermissionName = dto.PermissionName;
+        if (dto.PermissionDescription != null) entity.PermissionDescription = dto.PermissionDescription;
+        entity.PermissionType = dto.PermissionType;
+        if (dto.PermissionValue != null) entity.PermissionValue = dto.PermissionValue;
+        entity.Status = dto.Status;
+        entity.Sort = dto.Sort;
+        if (dto.Remark != null) entity.Remark = dto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射创建DTO到实体
+    /// </summary>
+    protected override Task<SysPermission> MapToEntityAsync(CreatePermissionDto createDto)
+    {
+        var entity = new SysPermission
+        {
+            PermissionCode = createDto.PermissionCode,
+            PermissionName = createDto.PermissionName,
+            PermissionDescription = createDto.PermissionDescription,
+            PermissionType = createDto.PermissionType,
+            PermissionValue = createDto.PermissionValue,
+            Sort = createDto.Sort,
+            Remark = createDto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射更新DTO到现有实体
+    /// </summary>
+    protected override Task MapToEntityAsync(UpdatePermissionDto updateDto, SysPermission entity)
+    {
+        if (updateDto.PermissionName != null) entity.PermissionName = updateDto.PermissionName;
+        if (updateDto.PermissionDescription != null) entity.PermissionDescription = updateDto.PermissionDescription;
+        if (updateDto.PermissionType.HasValue) entity.PermissionType = updateDto.PermissionType.Value;
+        if (updateDto.PermissionValue != null) entity.PermissionValue = updateDto.PermissionValue;
+        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
+        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
+        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    #endregion 映射方法实现
 }

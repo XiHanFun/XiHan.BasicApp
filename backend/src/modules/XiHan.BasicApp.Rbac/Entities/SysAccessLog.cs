@@ -135,13 +135,13 @@ public partial class SysAccessLog : RbacFullAuditedEntity<RbacIdType>
     /// 响应时间（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应时间（毫秒）")]
-    public virtual long ResponseTime { get; set; } = 0;
+    public virtual RbacIdType ResponseTime { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应大小（字节）")]
-    public virtual long ResponseSize { get; set; } = 0;
+    public virtual RbacIdType ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 访问时间
@@ -159,7 +159,7 @@ public partial class SysAccessLog : RbacFullAuditedEntity<RbacIdType>
     /// 停留时长（秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "停留时长（秒）")]
-    public virtual long StayTime { get; set; } = 0;
+    public virtual RbacIdType StayTime { get; set; } = 0;
 
     /// <summary>
     /// 错误信息

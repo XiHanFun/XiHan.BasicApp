@@ -35,7 +35,7 @@ public interface IMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
     /// <param name="menuCode">菜单编码</param>
     /// <param name="excludeId">排除的菜单ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByMenuCodeAsync(string menuCode, long? excludeId = null);
+    Task<bool> ExistsByMenuCodeAsync(string menuCode, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 获取所有根菜单
@@ -48,20 +48,19 @@ public interface IMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
     /// </summary>
     /// <param name="parentId">父级菜单ID</param>
     /// <returns></returns>
-    Task<List<SysMenu>> GetChildrenAsync(long parentId);
+    Task<List<SysMenu>> GetChildrenAsync(RbacIdType parentId);
 
     /// <summary>
     /// 根据角色ID获取菜单列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<SysMenu>> GetByRoleIdAsync(long roleId);
+    Task<List<SysMenu>> GetByRoleIdAsync(RbacIdType roleId);
 
     /// <summary>
     /// 根据用户ID获取菜单列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysMenu>> GetByUserIdAsync(long userId);
+    Task<List<SysMenu>> GetByUserIdAsync(RbacIdType userId);
 }
-

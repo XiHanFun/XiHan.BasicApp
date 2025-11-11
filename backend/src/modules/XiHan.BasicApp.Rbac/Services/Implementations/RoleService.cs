@@ -22,14 +22,13 @@ using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.BasicApp.Rbac.Services.Abstractions;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Domain.Paging.Dtos;
 
 namespace XiHan.BasicApp.Rbac.Services.Implementations;
 
 /// <summary>
 /// 角色服务实现
 /// </summary>
-public class RoleService : ApplicationServiceBase, IRoleService
+public class RoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>, IRoleService
 {
     private readonly IRoleRepository _roleRepository;
     private readonly RoleManager _roleManager;
@@ -41,26 +40,19 @@ public class RoleService : ApplicationServiceBase, IRoleService
     public RoleService(
         IRoleRepository roleRepository,
         RoleManager roleManager,
-        ISqlSugarDbContext dbContext)
+        ISqlSugarDbContext dbContext) : base(roleRepository)
     {
         _roleRepository = roleRepository;
         _roleManager = roleManager;
         _dbContext = dbContext;
     }
 
-    /// <summary>
-    /// 根据ID获取角色
-    /// </summary>
-    public async Task<RoleDto?> GetByIdAsync(long id)
-    {
-        var role = await _roleRepository.GetByIdAsync(id);
-        return role?.ToDto();
-    }
+    #region 业务特定方法
 
     /// <summary>
     /// 获取角色详情
     /// </summary>
-    public async Task<RoleDetailDto?> GetDetailAsync(long id)
+    public async Task<RoleDetailDto?> GetDetailAsync(RbacIdType id)
     {
         var role = await _roleRepository.GetByIdAsync(id);
         if (role == null)
@@ -104,10 +96,14 @@ public class RoleService : ApplicationServiceBase, IRoleService
         return role?.ToDto();
     }
 
+    #endregion 业务特定方法
+
+    #region 重写基类方法
+
     /// <summary>
     /// 创建角色
     /// </summary>
-    public async Task<RoleDto> CreateAsync(CreateRoleDto input)
+    public override async Task<RoleDto> CreateAsync(CreateRoleDto input)
     {
         // 验证角色编码唯一性
         if (!await _roleManager.IsRoleCodeUniqueAsync(input.RoleCode))
@@ -125,7 +121,7 @@ public class RoleService : ApplicationServiceBase, IRoleService
             Remark = input.Remark
         };
 
-        await _roleRepository.InsertAsync(role);
+        await _roleRepository.AddAsync(role);
 
         // 分配菜单
         if (input.MenuIds.Any())
@@ -153,13 +149,10 @@ public class RoleService : ApplicationServiceBase, IRoleService
     /// <summary>
     /// 更新角色
     /// </summary>
-    public async Task<RoleDto> UpdateAsync(UpdateRoleDto input)
+    public override async Task<RoleDto> UpdateAsync(RbacIdType id, UpdateRoleDto input)
     {
-        var role = await _roleRepository.GetByIdAsync(input.BasicId);
-        if (role == null)
-        {
+        var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
-        }
 
         // 更新角色信息
         if (input.RoleName != null)
@@ -200,13 +193,10 @@ public class RoleService : ApplicationServiceBase, IRoleService
     /// <summary>
     /// 删除角色
     /// </summary>
-    public async Task<bool> DeleteAsync(long id)
+    public override async Task<bool> DeleteAsync(RbacIdType id)
     {
-        var role = await _roleRepository.GetByIdAsync(id);
-        if (role == null)
-        {
+        var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
-        }
 
         // 检查是否可以删除
         if (!await _roleManager.CanDeleteAsync(id))
@@ -216,6 +206,10 @@ public class RoleService : ApplicationServiceBase, IRoleService
 
         return await _roleRepository.DeleteAsync(role);
     }
+
+    #endregion 重写基类方法
+
+    #region 角色菜单和权限管理
 
     /// <summary>
     /// 分配菜单
@@ -274,7 +268,7 @@ public class RoleService : ApplicationServiceBase, IRoleService
     /// <summary>
     /// 获取角色的菜单ID列表
     /// </summary>
-    public async Task<List<long>> GetRoleMenuIdsAsync(long roleId)
+    public async Task<List<RbacIdType>> GetRoleMenuIdsAsync(RbacIdType roleId)
     {
         return await _roleRepository.GetRoleMenuIdsAsync(roleId);
     }
@@ -282,61 +276,89 @@ public class RoleService : ApplicationServiceBase, IRoleService
     /// <summary>
     /// 获取角色的权限ID列表
     /// </summary>
-    public async Task<List<long>> GetRolePermissionIdsAsync(long roleId)
+    public async Task<List<RbacIdType>> GetRolePermissionIdsAsync(RbacIdType roleId)
     {
         return await _roleRepository.GetRolePermissionIdsAsync(roleId);
     }
 
+    #endregion 角色菜单和权限管理
+
+    #region 映射方法实现
+
     /// <summary>
-    /// 分页查询角色
+    /// 映射实体到DTO
     /// </summary>
-    public async Task<PageResponse<RoleDto>> GetPagedListAsync(PageQuery query)
+    protected override Task<RoleDto> MapToEntityDtoAsync(SysRole entity)
     {
-        var queryable = _roleRepository.Queryable();
-
-        // 应用筛选条件
-        if (query.Conditions != null && query.Conditions.Any())
-        {
-            foreach (var condition in query.Conditions)
-            {
-                if (condition.Field == "RoleName" && !string.IsNullOrEmpty(condition.Value?.ToString()))
-                {
-                    queryable = queryable.Where(r => r.RoleName.Contains(condition.Value.ToString()!));
-                }
-            }
-        }
-
-        // 应用排序
-        if (query.Sorts != null && query.Sorts.Any())
-        {
-            foreach (var sort in query.Sorts)
-            {
-                queryable = sort.Direction == Paging.Enums.SortDirection.Ascending
-                    ? queryable.OrderBy($"{sort.Field} ASC")
-                    : queryable.OrderBy($"{sort.Field} DESC");
-            }
-        }
-        else
-        {
-            queryable = queryable.OrderBy(r => r.Sort);
-        }
-
-        // 分页
-        var total = await queryable.CountAsync();
-        var items = await queryable
-            .Skip((query.PageIndex - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToListAsync();
-
-        return new PageResponse<RoleDto>
-        {
-            Items = items.ToDto(),
-            PageInfo = new PageInfo
-            {
-                PageIndex = query.PageIndex,
-                PageSize = query.PageSize,
-                Total = total
-            }
-        };
+        return Task.FromResult(entity.ToDto());
     }
+
+    /// <summary>
+    /// 映射 RoleDto 到实体（基类方法）
+    /// </summary>
+    protected override Task<SysRole> MapToEntityAsync(RoleDto dto)
+    {
+        var entity = new SysRole
+        {
+            RoleCode = dto.RoleCode,
+            RoleName = dto.RoleName,
+            RoleDescription = dto.RoleDescription,
+            RoleType = dto.RoleType,
+            Status = dto.Status,
+            Sort = dto.Sort,
+            Remark = dto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射 RoleDto 到现有实体（基类方法）
+    /// </summary>
+    protected override Task MapToEntityAsync(RoleDto dto, SysRole entity)
+    {
+        if (dto.RoleName != null) entity.RoleName = dto.RoleName;
+        if (dto.RoleDescription != null) entity.RoleDescription = dto.RoleDescription;
+        entity.RoleType = dto.RoleType;
+        entity.Status = dto.Status;
+        entity.Sort = dto.Sort;
+        if (dto.Remark != null) entity.Remark = dto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射创建DTO到实体
+    /// </summary>
+    protected override Task<SysRole> MapToEntityAsync(CreateRoleDto createDto)
+    {
+        var entity = new SysRole
+        {
+            RoleCode = createDto.RoleCode,
+            RoleName = createDto.RoleName,
+            RoleDescription = createDto.RoleDescription,
+            RoleType = createDto.RoleType,
+            Sort = createDto.Sort,
+            Remark = createDto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射更新DTO到现有实体
+    /// </summary>
+    protected override Task MapToEntityAsync(UpdateRoleDto updateDto, SysRole entity)
+    {
+        if (updateDto.RoleName != null) entity.RoleName = updateDto.RoleName;
+        if (updateDto.RoleDescription != null) entity.RoleDescription = updateDto.RoleDescription;
+        if (updateDto.RoleType.HasValue) entity.RoleType = updateDto.RoleType.Value;
+        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
+        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
+        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    #endregion 映射方法实现
 }

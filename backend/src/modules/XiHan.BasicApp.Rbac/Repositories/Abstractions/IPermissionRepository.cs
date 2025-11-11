@@ -35,20 +35,19 @@ public interface IPermissionRepository : IRepositoryBase<SysPermission, RbacIdTy
     /// <param name="permissionCode">权限编码</param>
     /// <param name="excludeId">排除的权限ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByPermissionCodeAsync(string permissionCode, long? excludeId = null);
+    Task<bool> ExistsByPermissionCodeAsync(string permissionCode, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 根据角色ID获取权限列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<SysPermission>> GetByRoleIdAsync(long roleId);
+    Task<List<SysPermission>> GetByRoleIdAsync(RbacIdType roleId);
 
     /// <summary>
     /// 根据用户ID获取权限列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysPermission>> GetByUserIdAsync(long userId);
+    Task<List<SysPermission>> GetByUserIdAsync(RbacIdType userId);
 }
-

@@ -49,7 +49,7 @@ public interface IUserRepository : IRepositoryBase<SysUser, RbacIdType>
     /// <param name="userName">用户名</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByUserNameAsync(string userName, long? excludeId = null);
+    Task<bool> ExistsByUserNameAsync(string userName, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 检查邮箱是否存在
@@ -57,7 +57,7 @@ public interface IUserRepository : IRepositoryBase<SysUser, RbacIdType>
     /// <param name="email">邮箱</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByEmailAsync(string email, long? excludeId = null);
+    Task<bool> ExistsByEmailAsync(string email, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 检查手机号是否存在
@@ -65,27 +65,26 @@ public interface IUserRepository : IRepositoryBase<SysUser, RbacIdType>
     /// <param name="phone">手机号</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByPhoneAsync(string phone, long? excludeId = null);
+    Task<bool> ExistsByPhoneAsync(string phone, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 获取用户的角色ID列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<long>> GetUserRoleIdsAsync(long userId);
+    Task<List<RbacIdType>> GetUserRoleIdsAsync(RbacIdType userId);
 
     /// <summary>
     /// 获取用户的部门ID列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<long>> GetUserDepartmentIdsAsync(long userId);
+    Task<List<RbacIdType>> GetUserDepartmentIdsAsync(RbacIdType userId);
 
     /// <summary>
     /// 获取用户的权限编码列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<string>> GetUserPermissionsAsync(long userId);
+    Task<List<string>> GetUserPermissionsAsync(RbacIdType userId);
 }
-

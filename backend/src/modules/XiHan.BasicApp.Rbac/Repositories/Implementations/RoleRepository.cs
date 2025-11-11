@@ -25,12 +25,15 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// </summary>
 public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRoleRepository
 {
+    private readonly ISqlSugarDbContext _dbContext;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
     public RoleRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// <returns></returns>
     public async Task<SysRole?> GetByRoleCodeAsync(string roleCode)
     {
-        return await QueryAsync(r => r.RoleCode == roleCode);
+        return await GetFirstAsync(r => r.RoleCode == roleCode);
     }
 
     /// <summary>
@@ -49,9 +52,9 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByRoleCodeAsync(string roleCode, long? excludeId = null)
+    public async Task<bool> ExistsByRoleCodeAsync(string roleCode, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(r => r.RoleCode == roleCode);
+        var query = _dbContext.GetClient().Queryable<SysRole>().Where(r => r.RoleCode == roleCode);
         if (excludeId.HasValue)
         {
             query = query.Where(r => r.BasicId != excludeId.Value);
@@ -64,9 +67,9 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<long>> GetRoleMenuIdsAsync(long roleId)
+    public async Task<List<RbacIdType>> GetRoleMenuIdsAsync(RbacIdType roleId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
             .Where(rm => rm.RoleId == roleId)
             .Select(rm => rm.MenuId)
@@ -78,9 +81,9 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<long>> GetRolePermissionIdsAsync(long roleId)
+    public async Task<List<RbacIdType>> GetRolePermissionIdsAsync(RbacIdType roleId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
             .Where(rp => rp.RoleId == roleId)
             .Select(rp => rp.PermissionId)
@@ -92,9 +95,9 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<int> GetRoleUserCountAsync(long roleId)
+    public async Task<int> GetRoleUserCountAsync(RbacIdType roleId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
             .Where(ur => ur.RoleId == roleId)
             .CountAsync();
@@ -105,9 +108,9 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysRole>> GetByUserIdAsync(long userId)
+    public async Task<List<SysRole>> GetByUserIdAsync(RbacIdType userId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
             .Where(ur => ur.UserId == userId)
             .LeftJoin<SysRole>((ur, r) => ur.RoleId == r.BasicId)

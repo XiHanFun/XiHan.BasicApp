@@ -39,7 +39,7 @@ public class DepartmentManager : DomainService
     /// <param name="departmentCode">部门编码</param>
     /// <param name="excludeId">排除的部门ID</param>
     /// <returns></returns>
-    public async Task<bool> IsDepartmentCodeUniqueAsync(string departmentCode, long? excludeId = null)
+    public async Task<bool> IsDepartmentCodeUniqueAsync(string departmentCode, RbacIdType? excludeId = null)
     {
         return !await _departmentRepository.ExistsByDepartmentCodeAsync(departmentCode, excludeId);
     }
@@ -49,7 +49,7 @@ public class DepartmentManager : DomainService
     /// </summary>
     /// <param name="departmentId">部门ID</param>
     /// <returns></returns>
-    public async Task<bool> CanDeleteAsync(long departmentId)
+    public async Task<bool> CanDeleteAsync(RbacIdType departmentId)
     {
         var children = await _departmentRepository.GetChildrenAsync(departmentId);
         if (children.Count > 0)

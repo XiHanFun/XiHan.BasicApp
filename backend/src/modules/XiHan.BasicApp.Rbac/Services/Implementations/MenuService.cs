@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 菜单服务实现
 /// </summary>
-public class MenuService : ApplicationServiceBase, IMenuService
+public class MenuService : CrudApplicationServiceBase<SysMenu, MenuDto, RbacIdType, CreateMenuDto, UpdateMenuDto>, IMenuService
 {
     private readonly IMenuRepository _menuRepository;
     private readonly MenuManager _menuManager;
@@ -36,53 +36,18 @@ public class MenuService : ApplicationServiceBase, IMenuService
     /// </summary>
     public MenuService(
         IMenuRepository menuRepository,
-        MenuManager menuManager)
+        MenuManager menuManager) : base(menuRepository)
     {
         _menuRepository = menuRepository;
         _menuManager = menuManager;
     }
 
-    /// <summary>
-    /// 根据ID获取菜单
-    /// </summary>
-    public async Task<MenuDto?> GetByIdAsync(long id)
-    {
-        var menu = await _menuRepository.GetByIdAsync(id);
-        return menu?.ToDto();
-    }
-
-    /// <summary>
-    /// 根据菜单编码获取菜单
-    /// </summary>
-    public async Task<MenuDto?> GetByMenuCodeAsync(string menuCode)
-    {
-        var menu = await _menuRepository.GetByMenuCodeAsync(menuCode);
-        return menu?.ToDto();
-    }
-
-    /// <summary>
-    /// 获取菜单树
-    /// </summary>
-    public async Task<List<MenuTreeDto>> GetTreeAsync()
-    {
-        var allMenus = await _menuRepository.GetAllAsync();
-        var menuDtos = allMenus.ToDto();
-        return menuDtos.BuildTree();
-    }
-
-    /// <summary>
-    /// 根据父级ID获取子菜单
-    /// </summary>
-    public async Task<List<MenuDto>> GetChildrenAsync(long parentId)
-    {
-        var children = await _menuRepository.GetChildrenAsync(parentId);
-        return children.ToDto();
-    }
+    #region 重写基类方法
 
     /// <summary>
     /// 创建菜单
     /// </summary>
-    public async Task<MenuDto> CreateAsync(CreateMenuDto input)
+    public override async Task<MenuDto> CreateAsync(CreateMenuDto input)
     {
         // 验证菜单编码唯一性
         if (!await _menuManager.IsMenuCodeUniqueAsync(input.MenuCode))
@@ -107,7 +72,7 @@ public class MenuService : ApplicationServiceBase, IMenuService
             Remark = input.Remark
         };
 
-        await _menuRepository.InsertAsync(menu);
+        await _menuRepository.AddAsync(menu);
 
         return menu.ToDto();
     }
@@ -115,13 +80,10 @@ public class MenuService : ApplicationServiceBase, IMenuService
     /// <summary>
     /// 更新菜单
     /// </summary>
-    public async Task<MenuDto> UpdateAsync(UpdateMenuDto input)
+    public override async Task<MenuDto> UpdateAsync(RbacIdType id, UpdateMenuDto input)
     {
-        var menu = await _menuRepository.GetByIdAsync(input.BasicId);
-        if (menu == null)
-        {
+        var menu = await _menuRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.MenuNotFound);
-        }
 
         // 更新菜单信息
         if (input.ParentId.HasValue)
@@ -197,13 +159,10 @@ public class MenuService : ApplicationServiceBase, IMenuService
     /// <summary>
     /// 删除菜单
     /// </summary>
-    public async Task<bool> DeleteAsync(long id)
+    public override async Task<bool> DeleteAsync(RbacIdType id)
     {
-        var menu = await _menuRepository.GetByIdAsync(id);
-        if (menu == null)
-        {
+        var menu = await _menuRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.MenuNotFound);
-        }
 
         // 检查是否可以删除
         if (!await _menuManager.CanDeleteAsync(id))
@@ -214,10 +173,42 @@ public class MenuService : ApplicationServiceBase, IMenuService
         return await _menuRepository.DeleteAsync(menu);
     }
 
+    #endregion 重写基类方法
+
+    #region 业务特定方法
+
+    /// <summary>
+    /// 根据菜单编码获取菜单
+    /// </summary>
+    public async Task<MenuDto?> GetByMenuCodeAsync(string menuCode)
+    {
+        var menu = await _menuRepository.GetByMenuCodeAsync(menuCode);
+        return menu?.ToDto();
+    }
+
+    /// <summary>
+    /// 获取菜单树
+    /// </summary>
+    public async Task<List<MenuTreeDto>> GetTreeAsync()
+    {
+        var allMenus = await _menuRepository.GetListAsync();
+        var menuDtos = allMenus.ToDto();
+        return menuDtos.BuildTree();
+    }
+
+    /// <summary>
+    /// 根据父级ID获取子菜单
+    /// </summary>
+    public async Task<List<MenuDto>> GetChildrenAsync(RbacIdType parentId)
+    {
+        var children = await _menuRepository.GetChildrenAsync(parentId);
+        return children.ToDto();
+    }
+
     /// <summary>
     /// 获取角色的菜单列表
     /// </summary>
-    public async Task<List<MenuDto>> GetByRoleIdAsync(long roleId)
+    public async Task<List<MenuDto>> GetByRoleIdAsync(RbacIdType roleId)
     {
         var menus = await _menuRepository.GetByRoleIdAsync(roleId);
         return menus.ToDto();
@@ -226,10 +217,119 @@ public class MenuService : ApplicationServiceBase, IMenuService
     /// <summary>
     /// 获取用户的菜单树
     /// </summary>
-    public async Task<List<MenuTreeDto>> GetUserMenuTreeAsync(long userId)
+    public async Task<List<MenuTreeDto>> GetUserMenuTreeAsync(RbacIdType userId)
     {
         var menus = await _menuRepository.GetByUserIdAsync(userId);
         var menuDtos = menus.ToDto();
         return menuDtos.BuildTree();
     }
+
+    #endregion 业务特定方法
+
+    #region 映射方法实现
+
+    /// <summary>
+    /// 映射实体到DTO
+    /// </summary>
+    protected override Task<MenuDto> MapToEntityDtoAsync(SysMenu entity)
+    {
+        return Task.FromResult(entity.ToDto());
+    }
+
+    /// <summary>
+    /// 映射 MenuDto 到实体（基类方法）
+    /// </summary>
+    protected override Task<SysMenu> MapToEntityAsync(MenuDto dto)
+    {
+        var entity = new SysMenu
+        {
+            ParentId = dto.ParentId,
+            MenuName = dto.MenuName,
+            MenuCode = dto.MenuCode,
+            MenuType = dto.MenuType,
+            Path = dto.Path,
+            Component = dto.Component,
+            Icon = dto.Icon,
+            Permission = dto.Permission,
+            IsExternal = dto.IsExternal,
+            IsCache = dto.IsCache,
+            IsVisible = dto.IsVisible,
+            Status = dto.Status,
+            Sort = dto.Sort,
+            Remark = dto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射 MenuDto 到现有实体（基类方法）
+    /// </summary>
+    protected override Task MapToEntityAsync(MenuDto dto, SysMenu entity)
+    {
+        entity.ParentId = dto.ParentId;
+        if (dto.MenuName != null) entity.MenuName = dto.MenuName;
+        entity.MenuType = dto.MenuType;
+        if (dto.Path != null) entity.Path = dto.Path;
+        if (dto.Component != null) entity.Component = dto.Component;
+        if (dto.Icon != null) entity.Icon = dto.Icon;
+        if (dto.Permission != null) entity.Permission = dto.Permission;
+        entity.IsExternal = dto.IsExternal;
+        entity.IsCache = dto.IsCache;
+        entity.IsVisible = dto.IsVisible;
+        entity.Status = dto.Status;
+        entity.Sort = dto.Sort;
+        if (dto.Remark != null) entity.Remark = dto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射创建DTO到实体
+    /// </summary>
+    protected override Task<SysMenu> MapToEntityAsync(CreateMenuDto createDto)
+    {
+        var entity = new SysMenu
+        {
+            ParentId = createDto.ParentId,
+            MenuName = createDto.MenuName,
+            MenuCode = createDto.MenuCode,
+            MenuType = createDto.MenuType,
+            Path = createDto.Path,
+            Component = createDto.Component,
+            Icon = createDto.Icon,
+            Permission = createDto.Permission,
+            IsExternal = createDto.IsExternal,
+            IsCache = createDto.IsCache,
+            IsVisible = createDto.IsVisible,
+            Sort = createDto.Sort,
+            Remark = createDto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射更新DTO到现有实体
+    /// </summary>
+    protected override Task MapToEntityAsync(UpdateMenuDto updateDto, SysMenu entity)
+    {
+        if (updateDto.ParentId.HasValue) entity.ParentId = updateDto.ParentId;
+        if (updateDto.MenuName != null) entity.MenuName = updateDto.MenuName;
+        if (updateDto.MenuType.HasValue) entity.MenuType = updateDto.MenuType.Value;
+        if (updateDto.Path != null) entity.Path = updateDto.Path;
+        if (updateDto.Component != null) entity.Component = updateDto.Component;
+        if (updateDto.Icon != null) entity.Icon = updateDto.Icon;
+        if (updateDto.Permission != null) entity.Permission = updateDto.Permission;
+        if (updateDto.IsExternal.HasValue) entity.IsExternal = updateDto.IsExternal.Value;
+        if (updateDto.IsCache.HasValue) entity.IsCache = updateDto.IsCache.Value;
+        if (updateDto.IsVisible.HasValue) entity.IsVisible = updateDto.IsVisible.Value;
+        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
+        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
+        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    #endregion 映射方法实现
 }

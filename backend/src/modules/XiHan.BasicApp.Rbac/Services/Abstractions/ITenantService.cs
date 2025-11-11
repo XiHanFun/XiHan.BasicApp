@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 租户服务接口
 /// </summary>
-public interface ITenantService : ICrudApplicationService<SysTenant, RbacIdType>
+public interface ITenantService : ICrudApplicationService<TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>
 {
     /// <summary>
     /// 获取租户详情
     /// </summary>
     /// <param name="id">租户ID</param>
     /// <returns></returns>
-    Task<TenantDetailDto?> GetDetailAsync(long id);
+    Task<TenantDetailDto?> GetDetailAsync(RbacIdType id);
 
     /// <summary>
     /// 根据租户编码获取租户
@@ -51,11 +51,4 @@ public interface ITenantService : ICrudApplicationService<SysTenant, RbacIdType>
     /// <param name="input">配置租户数据库DTO</param>
     /// <returns></returns>
     Task<bool> ConfigureDatabaseAsync(ConfigureTenantDatabaseDto input);
-
-    /// <summary>
-    /// 分页查询租户
-    /// </summary>
-    /// <param name="query">分页查询参数</param>
-    /// <returns></returns>
-    Task<PageResponse<TenantDto>> GetPagedListAsync(PageQuery query);
 }

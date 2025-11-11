@@ -41,7 +41,7 @@ public class TenantManager : DomainService
     /// <param name="tenantCode">租户编码</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsTenantCodeUniqueAsync(string tenantCode, long? excludeId = null)
+    public async Task<bool> IsTenantCodeUniqueAsync(string tenantCode, RbacIdType? excludeId = null)
     {
         return !await _tenantRepository.ExistsByTenantCodeAsync(tenantCode, excludeId);
     }
@@ -52,7 +52,7 @@ public class TenantManager : DomainService
     /// <param name="domain">域名</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsDomainUniqueAsync(string domain, long? excludeId = null)
+    public async Task<bool> IsDomainUniqueAsync(string domain, RbacIdType? excludeId = null)
     {
         return !await _tenantRepository.ExistsByDomainAsync(domain, excludeId);
     }
@@ -87,7 +87,7 @@ public class TenantManager : DomainService
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsUserLimitExceededAsync(long tenantId)
+    public async Task<bool> IsUserLimitExceededAsync(RbacIdType tenantId)
     {
         var tenant = await _tenantRepository.GetByIdAsync(tenantId);
         if (tenant == null || !tenant.UserLimit.HasValue)
@@ -104,7 +104,7 @@ public class TenantManager : DomainService
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsStorageLimitExceededAsync(long tenantId)
+    public async Task<bool> IsStorageLimitExceededAsync(RbacIdType tenantId)
     {
         var tenant = await _tenantRepository.GetByIdAsync(tenantId);
         if (tenant == null || !tenant.StorageLimit.HasValue)

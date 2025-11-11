@@ -25,12 +25,15 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// </summary>
 public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUserRepository
 {
+    private readonly ISqlSugarDbContext _dbContext;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
     public UserRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// <returns></returns>
     public async Task<SysUser?> GetByUserNameAsync(string userName)
     {
-        return await QueryAsync(u => u.UserName == userName);
+        return await GetFirstAsync(u => u.UserName == userName);
     }
 
     /// <summary>
@@ -50,7 +53,7 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// <returns></returns>
     public async Task<SysUser?> GetByEmailAsync(string email)
     {
-        return await QueryAsync(u => u.Email == email);
+        return await GetFirstAsync(u => u.Email == email);
     }
 
     /// <summary>
@@ -60,7 +63,7 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// <returns></returns>
     public async Task<SysUser?> GetByPhoneAsync(string phone)
     {
-        return await QueryAsync(u => u.Phone == phone);
+        return await GetFirstAsync(u => u.Phone == phone);
     }
 
     /// <summary>
@@ -69,9 +72,9 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// <param name="userName">用户名</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByUserNameAsync(string userName, long? excludeId = null)
+    public async Task<bool> ExistsByUserNameAsync(string userName, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(u => u.UserName == userName);
+        var query = _dbContext.GetClient().Queryable<SysUser>().Where(u => u.UserName == userName);
         if (excludeId.HasValue)
         {
             query = query.Where(u => u.BasicId != excludeId.Value);
@@ -85,9 +88,9 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// <param name="email">邮箱</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByEmailAsync(string email, long? excludeId = null)
+    public async Task<bool> ExistsByEmailAsync(string email, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(u => u.Email == email);
+        var query = _dbContext.GetClient().Queryable<SysUser>().Where(u => u.Email == email);
         if (excludeId.HasValue)
         {
             query = query.Where(u => u.BasicId != excludeId.Value);
@@ -101,9 +104,9 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// <param name="phone">手机号</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByPhoneAsync(string phone, long? excludeId = null)
+    public async Task<bool> ExistsByPhoneAsync(string phone, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(u => u.Phone == phone);
+        var query = _dbContext.GetClient().Queryable<SysUser>().Where(u => u.Phone == phone);
         if (excludeId.HasValue)
         {
             query = query.Where(u => u.BasicId != excludeId.Value);
@@ -116,9 +119,9 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<long>> GetUserRoleIdsAsync(long userId)
+    public async Task<List<RbacIdType>> GetUserRoleIdsAsync(RbacIdType userId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
             .Where(ur => ur.UserId == userId)
             .Select(ur => ur.RoleId)
@@ -130,9 +133,9 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<long>> GetUserDepartmentIdsAsync(long userId)
+    public async Task<List<RbacIdType>> GetUserDepartmentIdsAsync(RbacIdType userId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUserDepartment>()
             .Where(ud => ud.UserId == userId)
             .Select(ud => ud.DepartmentId)
@@ -144,7 +147,7 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<string>> GetUserPermissionsAsync(long userId)
+    public async Task<List<string>> GetUserPermissionsAsync(RbacIdType userId)
     {
         // 获取用户的角色ID列表
         var roleIds = await GetUserRoleIdsAsync(userId);
@@ -154,7 +157,7 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
         }
 
         // 通过角色获取权限
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
             .Where(rp => roleIds.Contains(rp.RoleId))
             .LeftJoin<SysPermission>((rp, p) => rp.PermissionId == p.BasicId)

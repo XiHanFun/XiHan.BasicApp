@@ -35,7 +35,7 @@ public interface IDepartmentRepository : IRepositoryBase<SysDepartment, RbacIdTy
     /// <param name="departmentCode">部门编码</param>
     /// <param name="excludeId">排除的部门ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, long? excludeId = null);
+    Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 获取所有根部门
@@ -48,19 +48,19 @@ public interface IDepartmentRepository : IRepositoryBase<SysDepartment, RbacIdTy
     /// </summary>
     /// <param name="parentId">父级部门ID</param>
     /// <returns></returns>
-    Task<List<SysDepartment>> GetChildrenAsync(long parentId);
+    Task<List<SysDepartment>> GetChildrenAsync(RbacIdType parentId);
 
     /// <summary>
     /// 根据用户ID获取部门列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysDepartment>> GetByUserIdAsync(long userId);
+    Task<List<SysDepartment>> GetByUserIdAsync(RbacIdType userId);
 
     /// <summary>
     /// 获取部门的用户数量
     /// </summary>
     /// <param name="departmentId">部门ID</param>
     /// <returns></returns>
-    Task<int> GetDepartmentUserCountAsync(long departmentId);
+    Task<int> GetDepartmentUserCountAsync(RbacIdType departmentId);
 }

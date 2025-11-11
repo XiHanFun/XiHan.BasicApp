@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Dtos.Departments;
-using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Application.Services;
 
 namespace XiHan.BasicApp.Rbac.Services.Abstractions;
@@ -21,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 部门服务接口
 /// </summary>
-public interface IDepartmentService : ICrudApplicationService<SysDepartment, RbacIdType>
+public interface IDepartmentService : ICrudApplicationService<DepartmentDto, RbacIdType, CreateDepartmentDto, UpdateDepartmentDto>
 {
     /// <summary>
     /// 根据部门编码获取部门
@@ -41,12 +40,12 @@ public interface IDepartmentService : ICrudApplicationService<SysDepartment, Rba
     /// </summary>
     /// <param name="parentId">父级部门ID</param>
     /// <returns></returns>
-    Task<List<DepartmentDto>> GetChildrenAsync(long parentId);
+    Task<List<DepartmentDto>> GetChildrenAsync(RbacIdType parentId);
 
     /// <summary>
     /// 获取用户的部门列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<DepartmentDto>> GetByUserIdAsync(long userId);
+    Task<List<DepartmentDto>> GetByUserIdAsync(RbacIdType userId);
 }

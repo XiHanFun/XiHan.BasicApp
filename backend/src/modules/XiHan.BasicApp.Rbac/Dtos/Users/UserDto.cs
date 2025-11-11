@@ -25,7 +25,7 @@ public class UserDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public long? TenantId { get; set; }
+    public RbacIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -111,7 +111,7 @@ public class UserDetailDto : UserDto
     /// <summary>
     /// 用户角色列表
     /// </summary>
-    public List<long> RoleIds { get; set; } = [];
+    public List<RbacIdType> RoleIds { get; set; } = [];
 
     /// <summary>
     /// 用户角色名称列表
@@ -121,7 +121,7 @@ public class UserDetailDto : UserDto
     /// <summary>
     /// 用户部门列表
     /// </summary>
-    public List<long> DepartmentIds { get; set; } = [];
+    public List<RbacIdType> DepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 用户部门名称列表
@@ -142,7 +142,7 @@ public class CreateUserDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public long? TenantId { get; set; }
+    public RbacIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -207,12 +207,12 @@ public class CreateUserDto : RbacCreationDtoBase
     /// <summary>
     /// 角色ID列表
     /// </summary>
-    public List<long> RoleIds { get; set; } = [];
+    public List<RbacIdType> RoleIds { get; set; } = [];
 
     /// <summary>
     /// 部门ID列表
     /// </summary>
-    public List<long> DepartmentIds { get; set; } = [];
+    public List<RbacIdType> DepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 备注
@@ -294,7 +294,7 @@ public class ChangePasswordDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public long UserId { get; set; }
+    public RbacIdType UserId { get; set; }
 
     /// <summary>
     /// 旧密码
@@ -320,7 +320,7 @@ public class ResetPasswordDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public long UserId { get; set; }
+    public RbacIdType UserId { get; set; }
 
     /// <summary>
     /// 新密码
@@ -336,12 +336,12 @@ public class AssignUserRolesDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public long UserId { get; set; }
+    public RbacIdType UserId { get; set; }
 
     /// <summary>
     /// 角色ID列表
     /// </summary>
-    public List<long> RoleIds { get; set; } = [];
+    public List<RbacIdType> RoleIds { get; set; } = [];
 }
 
 /// <summary>
@@ -352,11 +352,11 @@ public class AssignUserDepartmentsDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public long UserId { get; set; }
+    public RbacIdType UserId { get; set; }
 
     /// <summary>
     /// 部门ID列表
     /// </summary>
-    public List<long> DepartmentIds { get; set; } = [];
+    public List<RbacIdType> DepartmentIds { get; set; } = [];
 }
 

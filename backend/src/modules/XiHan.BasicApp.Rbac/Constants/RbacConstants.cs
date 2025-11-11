@@ -266,35 +266,35 @@ public static class CacheKeyConstants
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public static string UserPermissions(long userId) => $"{UserPrefix}:permissions:{userId}";
+    public static string UserPermissions(RbacIdType userId) => $"{UserPrefix}:permissions:{userId}";
 
     /// <summary>
     /// 用户角色缓存键
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public static string UserRoles(long userId) => $"{UserPrefix}:roles:{userId}";
+    public static string UserRoles(RbacIdType userId) => $"{UserPrefix}:roles:{userId}";
 
     /// <summary>
     /// 用户菜单缓存键
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public static string UserMenus(long userId) => $"{UserPrefix}:menus:{userId}";
+    public static string UserMenus(RbacIdType userId) => $"{UserPrefix}:menus:{userId}";
 
     /// <summary>
     /// 角色菜单缓存键
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public static string RoleMenus(long roleId) => $"{RolePrefix}:menus:{roleId}";
+    public static string RoleMenus(RbacIdType roleId) => $"{RolePrefix}:menus:{roleId}";
 
     /// <summary>
     /// 角色权限缓存键
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public static string RolePermissions(long roleId) => $"{RolePrefix}:permissions:{roleId}";
+    public static string RolePermissions(RbacIdType roleId) => $"{RolePrefix}:permissions:{roleId}";
 
     /// <summary>
     /// 菜单树缓存键
