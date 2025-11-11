@@ -56,4 +56,3 @@ public class PermissionManager : DomainService
         return permissions.Any(p => p.PermissionCode == permissionCode);
     }
 }
-

@@ -395,4 +395,3 @@ public static class EntityExtensions
 
     #endregion
 }
-

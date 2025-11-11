@@ -55,4 +55,3 @@ public class RoleManager : DomainService
         return userCount == 0;
     }
 }
-

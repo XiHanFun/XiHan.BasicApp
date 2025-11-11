@@ -129,4 +129,3 @@ public class DataPermissionHandler
         return await _dataPermissionFilter.HasPermissionAsync(userId, targetUserId, targetDepartmentId, scope);
     }
 }
-
