@@ -25,12 +25,15 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// </summary>
 public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacIdType>, IPermissionRepository
 {
+    private readonly ISqlSugarDbContext _dbContext;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
     public PermissionRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
     /// <returns></returns>
     public async Task<SysPermission?> GetByPermissionCodeAsync(string permissionCode)
     {
-        return await QueryAsync(p => p.PermissionCode == permissionCode);
+        return await GetFirstAsync(p => p.PermissionCode == permissionCode);
     }
 
     /// <summary>
@@ -49,9 +52,9 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
     /// <param name="permissionCode">权限编码</param>
     /// <param name="excludeId">排除的权限ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByPermissionCodeAsync(string permissionCode, long? excludeId = null)
+    public async Task<bool> ExistsByPermissionCodeAsync(string permissionCode, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(p => p.PermissionCode == permissionCode);
+        var query = _dbContext.GetClient().Queryable<SysPermission>().Where(p => p.PermissionCode == permissionCode);
         if (excludeId.HasValue)
         {
             query = query.Where(p => p.BasicId != excludeId.Value);
@@ -64,9 +67,9 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<SysPermission>> GetByRoleIdAsync(long roleId)
+    public async Task<List<SysPermission>> GetByRoleIdAsync(RbacIdType roleId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
             .Where(rp => rp.RoleId == roleId)
             .LeftJoin<SysPermission>((rp, p) => rp.PermissionId == p.BasicId)
@@ -79,10 +82,10 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysPermission>> GetByUserIdAsync(long userId)
+    public async Task<List<SysPermission>> GetByUserIdAsync(RbacIdType userId)
     {
         // 获取用户的角色ID列表
-        var roleIds = await DbContext.GetClient()
+        var roleIds = await _dbContext.GetClient()
             .Queryable<SysUserRole>()
             .Where(ur => ur.UserId == userId)
             .Select(ur => ur.RoleId)
@@ -94,7 +97,7 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
         }
 
         // 通过角色获取权限
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
             .Where(rp => roleIds.Contains(rp.RoleId))
             .LeftJoin<SysPermission>((rp, p) => rp.PermissionId == p.BasicId)

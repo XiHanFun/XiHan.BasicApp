@@ -25,12 +25,15 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// </summary>
 public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacIdType>, IDepartmentRepository
 {
+    private readonly ISqlSugarDbContext _dbContext;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
     public DepartmentRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// <returns></returns>
     public async Task<SysDepartment?> GetByDepartmentCodeAsync(string departmentCode)
     {
-        return await QueryAsync(d => d.DepartmentCode == departmentCode);
+        return await GetFirstAsync(d => d.DepartmentCode == departmentCode);
     }
 
     /// <summary>
@@ -49,9 +52,9 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// <param name="departmentCode">部门编码</param>
     /// <param name="excludeId">排除的部门ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, long? excludeId = null)
+    public async Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(d => d.DepartmentCode == departmentCode);
+        var query = _dbContext.GetClient().Queryable<SysDepartment>().Where(d => d.DepartmentCode == departmentCode);
         if (excludeId.HasValue)
         {
             query = query.Where(d => d.BasicId != excludeId.Value);
@@ -65,7 +68,8 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// <returns></returns>
     public async Task<List<SysDepartment>> GetRootDepartmentsAsync()
     {
-        return await QueryListAsync(d => d.ParentId == null || d.ParentId == 0);
+        var result = await GetListAsync(d => d.ParentId == null || d.ParentId == 0);
+        return result.ToList();
     }
 
     /// <summary>
@@ -73,9 +77,10 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// </summary>
     /// <param name="parentId">父级部门ID</param>
     /// <returns></returns>
-    public async Task<List<SysDepartment>> GetChildrenAsync(long parentId)
+    public async Task<List<SysDepartment>> GetChildrenAsync(RbacIdType parentId)
     {
-        return await QueryListAsync(d => d.ParentId == parentId);
+        var result = await GetListAsync(d => d.ParentId == parentId);
+        return result.ToList();
     }
 
     /// <summary>
@@ -83,9 +88,9 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysDepartment>> GetByUserIdAsync(long userId)
+    public async Task<List<SysDepartment>> GetByUserIdAsync(RbacIdType userId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUserDepartment>()
             .Where(ud => ud.UserId == userId)
             .LeftJoin<SysDepartment>((ud, d) => ud.DepartmentId == d.BasicId)
@@ -98,12 +103,11 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// </summary>
     /// <param name="departmentId">部门ID</param>
     /// <returns></returns>
-    public async Task<int> GetDepartmentUserCountAsync(long departmentId)
+    public async Task<int> GetDepartmentUserCountAsync(RbacIdType departmentId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUserDepartment>()
             .Where(ud => ud.DepartmentId == departmentId)
             .CountAsync();
     }
 }
-

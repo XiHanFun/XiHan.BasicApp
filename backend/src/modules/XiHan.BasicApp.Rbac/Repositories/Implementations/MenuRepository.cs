@@ -25,12 +25,15 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// </summary>
 public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenuRepository
 {
+    private readonly ISqlSugarDbContext _dbContext;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
     public MenuRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// <returns></returns>
     public async Task<SysMenu?> GetByMenuCodeAsync(string menuCode)
     {
-        return await QueryAsync(m => m.MenuCode == menuCode);
+        return await GetFirstAsync(m => m.MenuCode == menuCode);
     }
 
     /// <summary>
@@ -49,9 +52,9 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// <param name="menuCode">菜单编码</param>
     /// <param name="excludeId">排除的菜单ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByMenuCodeAsync(string menuCode, long? excludeId = null)
+    public async Task<bool> ExistsByMenuCodeAsync(string menuCode, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(m => m.MenuCode == menuCode);
+        var query = _dbContext.GetClient().Queryable<SysMenu>().Where(m => m.MenuCode == menuCode);
         if (excludeId.HasValue)
         {
             query = query.Where(m => m.BasicId != excludeId.Value);
@@ -65,7 +68,8 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// <returns></returns>
     public async Task<List<SysMenu>> GetRootMenusAsync()
     {
-        return await QueryListAsync(m => m.ParentId == null || m.ParentId == 0);
+        var result = await GetListAsync(m => m.ParentId == null || m.ParentId == 0);
+        return result.ToList();
     }
 
     /// <summary>
@@ -73,9 +77,10 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// </summary>
     /// <param name="parentId">父级菜单ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetChildrenAsync(long parentId)
+    public async Task<List<SysMenu>> GetChildrenAsync(RbacIdType parentId)
     {
-        return await QueryListAsync(m => m.ParentId == parentId);
+        var result = await GetListAsync(m => m.ParentId == parentId);
+        return result.ToList();
     }
 
     /// <summary>
@@ -83,9 +88,9 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetByRoleIdAsync(long roleId)
+    public async Task<List<SysMenu>> GetByRoleIdAsync(RbacIdType roleId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
             .Where(rm => rm.RoleId == roleId)
             .LeftJoin<SysMenu>((rm, m) => rm.MenuId == m.BasicId)
@@ -98,10 +103,10 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetByUserIdAsync(long userId)
+    public async Task<List<SysMenu>> GetByUserIdAsync(RbacIdType userId)
     {
         // 获取用户的角色ID列表
-        var roleIds = await DbContext.GetClient()
+        var roleIds = await _dbContext.GetClient()
             .Queryable<SysUserRole>()
             .Where(ur => ur.UserId == userId)
             .Select(ur => ur.RoleId)
@@ -113,7 +118,7 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
         }
 
         // 通过角色获取菜单
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
             .Where(rm => roleIds.Contains(rm.RoleId))
             .LeftJoin<SysMenu>((rm, m) => rm.MenuId == m.BasicId)

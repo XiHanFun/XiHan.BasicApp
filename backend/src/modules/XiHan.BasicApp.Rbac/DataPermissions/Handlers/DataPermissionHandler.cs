@@ -51,7 +51,7 @@ public class DataPermissionHandler
     /// <returns>过滤后的查询对象</returns>
     public async Task<IQueryable<TEntity>> ApplyDataPermissionAsync<TEntity>(
         IQueryable<TEntity> query,
-        long userId) where TEntity : class
+        RbacIdType userId) where TEntity : class
     {
         // 检查实体是否有数据权限特性
         var entityType = typeof(TEntity);
@@ -88,7 +88,7 @@ public class DataPermissionHandler
     /// <param name="userId">用户ID</param>
     /// <param name="defaultScope">默认权限范围</param>
     /// <returns>数据权限范围</returns>
-    public async Task<DataPermissionScope> GetUserDataPermissionScopeAsync(long userId, DataPermissionScope defaultScope = DataPermissionScope.SelfOnly)
+    public async Task<DataPermissionScope> GetUserDataPermissionScopeAsync(RbacIdType userId, DataPermissionScope defaultScope = DataPermissionScope.SelfOnly)
     {
         // 获取用户的角色
         var roles = await _roleRepository.GetByUserIdAsync(userId);
@@ -121,9 +121,9 @@ public class DataPermissionHandler
     /// <param name="targetDepartmentId">目标数据所属部门ID</param>
     /// <returns>是否有权限</returns>
     public async Task<bool> CheckDataAccessPermissionAsync(
-        long userId,
-        long? targetUserId = null,
-        long? targetDepartmentId = null)
+        RbacIdType userId,
+        RbacIdType? targetUserId = null,
+        RbacIdType? targetDepartmentId = null)
     {
         var scope = await GetUserDataPermissionScopeAsync(userId);
         return await _dataPermissionFilter.HasPermissionAsync(userId, targetUserId, targetDepartmentId, scope);

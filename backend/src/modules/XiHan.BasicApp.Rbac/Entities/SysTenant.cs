@@ -156,7 +156,7 @@ public partial class SysTenant : RbacFullAuditedEntity<RbacIdType>
     /// 存储空间限制(MB)
     /// </summary>
     [SugarColumn(ColumnDescription = "存储空间限制(MB)", IsNullable = true)]
-    public virtual long? StorageLimit { get; set; }
+    public virtual RbacIdType? StorageLimit { get; set; }
 
     /// <summary>
     /// 租户状态

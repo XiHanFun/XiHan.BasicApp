@@ -39,7 +39,7 @@ public class PermissionManager : DomainService
     /// <param name="permissionCode">权限编码</param>
     /// <param name="excludeId">排除的权限ID</param>
     /// <returns></returns>
-    public async Task<bool> IsPermissionCodeUniqueAsync(string permissionCode, long? excludeId = null)
+    public async Task<bool> IsPermissionCodeUniqueAsync(string permissionCode, RbacIdType? excludeId = null)
     {
         return !await _permissionRepository.ExistsByPermissionCodeAsync(permissionCode, excludeId);
     }
@@ -50,7 +50,7 @@ public class PermissionManager : DomainService
     /// <param name="userId">用户ID</param>
     /// <param name="permissionCode">权限编码</param>
     /// <returns></returns>
-    public async Task<bool> HasPermissionAsync(long userId, string permissionCode)
+    public async Task<bool> HasPermissionAsync(RbacIdType userId, string permissionCode)
     {
         var permissions = await _permissionRepository.GetByUserIdAsync(userId);
         return permissions.Any(p => p.PermissionCode == permissionCode);

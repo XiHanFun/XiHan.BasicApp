@@ -20,7 +20,7 @@
 // 2. 重新编译项目即可应用新的 ID 类型
 //
 // 常用配置：
-// - 使用 long：  global using RbacIdType = System.Int64;
+// - 使用 RbacIdType：  global using RbacIdType = System.Int64;
 // - 使用 int：   global using RbacIdType = System.Int32;
 // - 使用 Guid：  global using RbacIdType = System.Guid;
 // - 使用 string：global using RbacIdType = System.String;

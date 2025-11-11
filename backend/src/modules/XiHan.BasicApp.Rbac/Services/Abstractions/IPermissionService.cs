@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 权限服务接口
 /// </summary>
-public interface IPermissionService : ICrudApplicationService<SysPermission, RbacIdType>
+public interface IPermissionService : ICrudApplicationService<PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>
 {
     /// <summary>
     /// 根据权限编码获取权限
@@ -36,19 +36,12 @@ public interface IPermissionService : ICrudApplicationService<SysPermission, Rba
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<PermissionDto>> GetByRoleIdAsync(long roleId);
+    Task<List<PermissionDto>> GetByRoleIdAsync(RbacIdType roleId);
 
     /// <summary>
     /// 获取用户的权限列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<PermissionDto>> GetByUserIdAsync(long userId);
-
-    /// <summary>
-    /// 分页查询权限
-    /// </summary>
-    /// <param name="query">分页查询参数</param>
-    /// <returns></returns>
-    Task<PageResponse<PermissionDto>> GetPagedListAsync(PageQuery query);
+    Task<List<PermissionDto>> GetByUserIdAsync(RbacIdType userId);
 }

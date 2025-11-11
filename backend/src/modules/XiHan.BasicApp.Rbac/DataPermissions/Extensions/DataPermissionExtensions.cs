@@ -50,7 +50,7 @@ public static class DataPermissionExtensions
     public static async Task<IQueryable<TEntity>> WithDataPermissionAsync<TEntity>(
         this IQueryable<TEntity> query,
         DataPermissionHandler handler,
-        long userId) where TEntity : class
+        RbacIdType userId) where TEntity : class
     {
         return await handler.ApplyDataPermissionAsync(query, userId);
     }

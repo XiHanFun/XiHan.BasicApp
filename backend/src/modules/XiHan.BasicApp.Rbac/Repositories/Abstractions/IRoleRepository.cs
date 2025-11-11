@@ -35,34 +35,33 @@ public interface IRoleRepository : IRepositoryBase<SysRole, RbacIdType>
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByRoleCodeAsync(string roleCode, long? excludeId = null);
+    Task<bool> ExistsByRoleCodeAsync(string roleCode, RbacIdType? excludeId = null);
 
     /// <summary>
     /// 获取角色的菜单ID列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<long>> GetRoleMenuIdsAsync(long roleId);
+    Task<List<RbacIdType>> GetRoleMenuIdsAsync(RbacIdType roleId);
 
     /// <summary>
     /// 获取角色的权限ID列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<long>> GetRolePermissionIdsAsync(long roleId);
+    Task<List<RbacIdType>> GetRolePermissionIdsAsync(RbacIdType roleId);
 
     /// <summary>
     /// 获取角色的用户数量
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<int> GetRoleUserCountAsync(long roleId);
+    Task<int> GetRoleUserCountAsync(RbacIdType roleId);
 
     /// <summary>
     /// 根据用户ID获取角色列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysRole>> GetByUserIdAsync(long userId);
+    Task<List<SysRole>> GetByUserIdAsync(RbacIdType userId);
 }
-

@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using SqlSugar;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Dtos.Tenants;
 using XiHan.BasicApp.Rbac.Entities;
@@ -27,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 租户服务实现
 /// </summary>
-public class TenantService : ApplicationServiceBase, ITenantService
+public class TenantService : CrudApplicationServiceBase<SysTenant, TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>, ITenantService
 {
     private readonly ITenantRepository _tenantRepository;
     private readonly TenantManager _tenantManager;
@@ -37,25 +36,18 @@ public class TenantService : ApplicationServiceBase, ITenantService
     /// </summary>
     public TenantService(
         ITenantRepository tenantRepository,
-        TenantManager tenantManager)
+        TenantManager tenantManager) : base(tenantRepository)
     {
         _tenantRepository = tenantRepository;
         _tenantManager = tenantManager;
     }
 
-    /// <summary>
-    /// 根据ID获取租户
-    /// </summary>
-    public async Task<TenantDto?> GetByIdAsync(long id)
-    {
-        var tenant = await _tenantRepository.GetByIdAsync(id);
-        return tenant?.ToDto();
-    }
+    #region 业务特定方法
 
     /// <summary>
     /// 获取租户详情
     /// </summary>
-    public async Task<TenantDetailDto?> GetDetailAsync(long id)
+    public async Task<TenantDetailDto?> GetDetailAsync(RbacIdType id)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id);
         if (tenant == null)
@@ -123,9 +115,39 @@ public class TenantService : ApplicationServiceBase, ITenantService
     }
 
     /// <summary>
+    /// 配置租户数据库
+    /// </summary>
+    public async Task<bool> ConfigureDatabaseAsync(ConfigureTenantDatabaseDto input)
+    {
+        var tenant = await _tenantRepository.GetByIdAsync(input.TenantId);
+        if (tenant == null)
+        {
+            throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
+        }
+
+        tenant.DatabaseType = input.DatabaseType;
+        tenant.DatabaseHost = input.DatabaseHost;
+        tenant.DatabasePort = input.DatabasePort;
+        tenant.DatabaseName = input.DatabaseName;
+        tenant.DatabaseSchema = input.DatabaseSchema;
+        tenant.DatabaseUser = input.DatabaseUser;
+        tenant.DatabasePassword = input.DatabasePassword;
+
+        // 这里可以添加连接字符串构建逻辑
+        // tenant.ConnectionString = BuildConnectionString(input);
+
+        await _tenantRepository.UpdateAsync(tenant);
+        return true;
+    }
+
+    #endregion 业务特定方法
+
+    #region 重写基类方法
+
+    /// <summary>
     /// 创建租户
     /// </summary>
-    public async Task<TenantDto> CreateAsync(CreateTenantDto input)
+    public override async Task<TenantDto> CreateAsync(CreateTenantDto input)
     {
         // 验证租户编码唯一性
         if (!await _tenantManager.IsTenantCodeUniqueAsync(input.TenantCode))
@@ -165,7 +187,7 @@ public class TenantService : ApplicationServiceBase, ITenantService
             Remark = input.Remark
         };
 
-        await _tenantRepository.InsertAsync(tenant);
+        await _tenantRepository.AddAsync(tenant);
 
         return tenant.ToDto();
     }
@@ -173,13 +195,10 @@ public class TenantService : ApplicationServiceBase, ITenantService
     /// <summary>
     /// 更新租户
     /// </summary>
-    public async Task<TenantDto> UpdateAsync(UpdateTenantDto input)
+    public override async Task<TenantDto> UpdateAsync(RbacIdType id, UpdateTenantDto input)
     {
-        var tenant = await _tenantRepository.GetByIdAsync(input.BasicId);
-        if (tenant == null)
-        {
+        var tenant = await _tenantRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
-        }
 
         // 验证域名唯一性
         if (!string.IsNullOrEmpty(input.Domain) && !await _tenantManager.IsDomainUniqueAsync(input.Domain, tenant.BasicId))
@@ -271,92 +290,135 @@ public class TenantService : ApplicationServiceBase, ITenantService
     /// <summary>
     /// 删除租户
     /// </summary>
-    public async Task<bool> DeleteAsync(long id)
+    public override async Task<bool> DeleteAsync(RbacIdType id)
     {
-        var tenant = await _tenantRepository.GetByIdAsync(id);
-        if (tenant == null)
-        {
+        var tenant = await _tenantRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
-        }
 
         return await _tenantRepository.DeleteAsync(tenant);
     }
 
+    #endregion 重写基类方法
+
+    #region 映射方法实现
+
     /// <summary>
-    /// 配置租户数据库
+    /// 映射实体到DTO
     /// </summary>
-    public async Task<bool> ConfigureDatabaseAsync(ConfigureTenantDatabaseDto input)
+    protected override Task<TenantDto> MapToEntityDtoAsync(SysTenant entity)
     {
-        var tenant = await _tenantRepository.GetByIdAsync(input.TenantId);
-        if (tenant == null)
-        {
-            throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
-        }
-
-        tenant.DatabaseType = input.DatabaseType;
-        tenant.DatabaseHost = input.DatabaseHost;
-        tenant.DatabasePort = input.DatabasePort;
-        tenant.DatabaseName = input.DatabaseName;
-        tenant.DatabaseSchema = input.DatabaseSchema;
-        tenant.DatabaseUser = input.DatabaseUser;
-        tenant.DatabasePassword = input.DatabasePassword;
-
-        // 这里可以添加连接字符串构建逻辑
-        // tenant.ConnectionString = BuildConnectionString(input);
-
-        return await _tenantRepository.UpdateAsync(tenant);
+        return Task.FromResult(entity.ToDto());
     }
 
     /// <summary>
-    /// 分页查询租户
+    /// 映射 TenantDto 到实体（基类方法）
     /// </summary>
-    public async Task<PageResponse<TenantDto>> GetPagedListAsync(PageQuery query)
+    protected override Task<SysTenant> MapToEntityAsync(TenantDto dto)
     {
-        var queryable = _tenantRepository.Queryable();
-
-        // 应用筛选条件
-        if (query.Conditions != null && query.Conditions.Any())
+        var entity = new SysTenant
         {
-            foreach (var condition in query.Conditions)
-            {
-                if (condition.Field == "TenantName" && !string.IsNullOrEmpty(condition.Value?.ToString()))
-                {
-                    queryable = queryable.Where(t => t.TenantName.Contains(condition.Value.ToString()!));
-                }
-            }
-        }
-
-        // 应用排序
-        if (query.Sorts != null && query.Sorts.Any())
-        {
-            foreach (var sort in query.Sorts)
-            {
-                queryable = sort.Direction == Paging.Enums.SortDirection.Ascending
-                    ? queryable.OrderBy($"{sort.Field} ASC")
-                    : queryable.OrderBy($"{sort.Field} DESC");
-            }
-        }
-        else
-        {
-            queryable = queryable.OrderBy(t => t.Sort);
-        }
-
-        // 分页
-        var total = await queryable.CountAsync();
-        var items = await queryable
-            .Skip((query.PageIndex - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToListAsync();
-
-        return new PageResponse<TenantDto>
-        {
-            Items = items.ToDto(),
-            PageInfo = new PageInfo
-            {
-                PageIndex = query.PageIndex,
-                PageSize = query.PageSize,
-                Total = total
-            }
+            TenantCode = dto.TenantCode,
+            TenantName = dto.TenantName,
+            TenantShortName = dto.TenantShortName,
+            ContactPerson = dto.ContactPerson,
+            ContactPhone = dto.ContactPhone,
+            ContactEmail = dto.ContactEmail,
+            Address = dto.Address,
+            Logo = dto.Logo,
+            Domain = dto.Domain,
+            ExpireTime = dto.ExpireTime,
+            UserLimit = dto.UserLimit,
+            StorageLimit = dto.StorageLimit,
+            TenantStatus = dto.TenantStatus,
+            Status = dto.Status,
+            Sort = dto.Sort,
+            Remark = dto.Remark
         };
+
+        return Task.FromResult(entity);
     }
+
+    /// <summary>
+    /// 映射 TenantDto 到现有实体（基类方法）
+    /// </summary>
+    protected override Task MapToEntityAsync(TenantDto dto, SysTenant entity)
+    {
+        if (dto.TenantName != null) entity.TenantName = dto.TenantName;
+        if (dto.TenantShortName != null) entity.TenantShortName = dto.TenantShortName;
+        if (dto.ContactPerson != null) entity.ContactPerson = dto.ContactPerson;
+        if (dto.ContactPhone != null) entity.ContactPhone = dto.ContactPhone;
+        if (dto.ContactEmail != null) entity.ContactEmail = dto.ContactEmail;
+        if (dto.Address != null) entity.Address = dto.Address;
+        if (dto.Logo != null) entity.Logo = dto.Logo;
+        if (dto.Domain != null) entity.Domain = dto.Domain;
+        entity.ExpireTime = dto.ExpireTime;
+        entity.UserLimit = dto.UserLimit;
+        entity.StorageLimit = dto.StorageLimit;
+        entity.TenantStatus = dto.TenantStatus;
+        entity.Status = dto.Status;
+        entity.Sort = dto.Sort;
+        if (dto.Remark != null) entity.Remark = dto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射创建DTO到实体
+    /// </summary>
+    protected override Task<SysTenant> MapToEntityAsync(CreateTenantDto createDto)
+    {
+        var entity = new SysTenant
+        {
+            TenantCode = createDto.TenantCode,
+            TenantName = createDto.TenantName,
+            TenantShortName = createDto.TenantShortName,
+            ContactPerson = createDto.ContactPerson,
+            ContactPhone = createDto.ContactPhone,
+            ContactEmail = createDto.ContactEmail,
+            Address = createDto.Address,
+            Logo = createDto.Logo,
+            Domain = createDto.Domain,
+            IsolationMode = createDto.IsolationMode,
+            DatabaseType = createDto.DatabaseType,
+            DatabaseHost = createDto.DatabaseHost,
+            DatabasePort = createDto.DatabasePort,
+            DatabaseName = createDto.DatabaseName,
+            DatabaseSchema = createDto.DatabaseSchema,
+            DatabaseUser = createDto.DatabaseUser,
+            DatabasePassword = createDto.DatabasePassword,
+            ExpireTime = createDto.ExpireTime,
+            UserLimit = createDto.UserLimit,
+            StorageLimit = createDto.StorageLimit,
+            Sort = createDto.Sort,
+            Remark = createDto.Remark
+        };
+
+        return Task.FromResult(entity);
+    }
+
+    /// <summary>
+    /// 映射更新DTO到现有实体
+    /// </summary>
+    protected override Task MapToEntityAsync(UpdateTenantDto updateDto, SysTenant entity)
+    {
+        if (updateDto.TenantName != null) entity.TenantName = updateDto.TenantName;
+        if (updateDto.TenantShortName != null) entity.TenantShortName = updateDto.TenantShortName;
+        if (updateDto.ContactPerson != null) entity.ContactPerson = updateDto.ContactPerson;
+        if (updateDto.ContactPhone != null) entity.ContactPhone = updateDto.ContactPhone;
+        if (updateDto.ContactEmail != null) entity.ContactEmail = updateDto.ContactEmail;
+        if (updateDto.Address != null) entity.Address = updateDto.Address;
+        if (updateDto.Logo != null) entity.Logo = updateDto.Logo;
+        if (updateDto.Domain != null) entity.Domain = updateDto.Domain;
+        if (updateDto.ExpireTime.HasValue) entity.ExpireTime = updateDto.ExpireTime;
+        if (updateDto.UserLimit.HasValue) entity.UserLimit = updateDto.UserLimit;
+        if (updateDto.StorageLimit.HasValue) entity.StorageLimit = updateDto.StorageLimit;
+        if (updateDto.TenantStatus.HasValue) entity.TenantStatus = updateDto.TenantStatus.Value;
+        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
+        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
+        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
+
+        return Task.CompletedTask;
+    }
+
+    #endregion 映射方法实现
 }

@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 用户服务接口
 /// </summary>
-public interface IUserService : ICrudApplicationService<SysUser, RbacIdType>
+public interface IUserService : ICrudApplicationService<UserDto, RbacIdType, CreateUserDto, UpdateUserDto>
 {
     /// <summary>
     /// 获取用户详情
     /// </summary>
     /// <param name="id">用户ID</param>
     /// <returns></returns>
-    Task<UserDetailDto?> GetDetailAsync(long id);
+    Task<UserDetailDto?> GetDetailAsync(RbacIdType id);
 
     /// <summary>
     /// 根据用户名获取用户
@@ -85,12 +85,5 @@ public interface IUserService : ICrudApplicationService<SysUser, RbacIdType>
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<string>> GetUserPermissionsAsync(long userId);
-
-    /// <summary>
-    /// 分页查询用户
-    /// </summary>
-    /// <param name="query">分页查询参数</param>
-    /// <returns></returns>
-    Task<PageResponse<UserDto>> GetPagedListAsync(PageQuery query);
+    Task<List<string>> GetUserPermissionsAsync(RbacIdType userId);
 }

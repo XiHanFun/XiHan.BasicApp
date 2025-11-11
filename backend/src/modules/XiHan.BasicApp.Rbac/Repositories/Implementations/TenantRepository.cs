@@ -25,12 +25,15 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// </summary>
 public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, ITenantRepository
 {
+    private readonly ISqlSugarDbContext _dbContext;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
     public TenantRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// <returns></returns>
     public async Task<SysTenant?> GetByTenantCodeAsync(string tenantCode)
     {
-        return await QueryAsync(t => t.TenantCode == tenantCode);
+        return await GetFirstAsync(t => t.TenantCode == tenantCode);
     }
 
     /// <summary>
@@ -50,7 +53,7 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// <returns></returns>
     public async Task<SysTenant?> GetByDomainAsync(string domain)
     {
-        return await QueryAsync(t => t.Domain == domain);
+        return await GetFirstAsync(t => t.Domain == domain);
     }
 
     /// <summary>
@@ -59,9 +62,9 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// <param name="tenantCode">租户编码</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByTenantCodeAsync(string tenantCode, long? excludeId = null)
+    public async Task<bool> ExistsByTenantCodeAsync(string tenantCode, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(t => t.TenantCode == tenantCode);
+        var query = _dbContext.GetClient().Queryable<SysTenant>().Where(t => t.TenantCode == tenantCode);
         if (excludeId.HasValue)
         {
             query = query.Where(t => t.BasicId != excludeId.Value);
@@ -75,9 +78,9 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// <param name="domain">域名</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByDomainAsync(string domain, long? excludeId = null)
+    public async Task<bool> ExistsByDomainAsync(string domain, RbacIdType? excludeId = null)
     {
-        var query = Queryable().Where(t => t.Domain == domain);
+        var query = _dbContext.GetClient().Queryable<SysTenant>().Where(t => t.Domain == domain);
         if (excludeId.HasValue)
         {
             query = query.Where(t => t.BasicId != excludeId.Value);
@@ -90,9 +93,9 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<int> GetTenantUserCountAsync(long tenantId)
+    public async Task<int> GetTenantUserCountAsync(RbacIdType tenantId)
     {
-        return await DbContext.GetClient()
+        return await _dbContext.GetClient()
             .Queryable<SysUser>()
             .Where(u => u.TenantId == tenantId)
             .CountAsync();
@@ -103,18 +106,16 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<long> GetTenantUsedStorageAsync(long tenantId)
+    public async Task<RbacIdType> GetTenantUsedStorageAsync(RbacIdType tenantId)
     {
         // 这里需要根据实际的文件存储实现来计算
         // 示例：统计租户相关的文件大小
-        var totalSize = await DbContext.GetClient()
+        var totalSize = await _dbContext.GetClient()
             .Queryable<SysFile>()
-            .Where(f => f.CreatedBy.HasValue)
-            .LeftJoin<SysUser>((f, u) => f.CreatedBy == u.BasicId && u.TenantId == tenantId)
-            .Select((f, u) => f.FileSize ?? 0)
+            .Where(f => f.TenantId == tenantId)
+            .Select(f => f.FileSize)
             .ToListAsync();
 
         return totalSize.Sum() / (1024 * 1024); // 转换为 MB
     }
 }
-
