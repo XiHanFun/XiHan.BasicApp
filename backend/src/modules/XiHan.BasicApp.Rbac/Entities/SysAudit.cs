@@ -58,7 +58,7 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = false)]
-    public virtual long BusinessId { get; set; }
+    public virtual RbacIdType BusinessId { get; set; }
 
     /// <summary>
     /// 业务数据（JSON格式）
@@ -70,13 +70,13 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// 提交用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "提交用户ID", IsNullable = false)]
-    public virtual long SubmitterId { get; set; }
+    public virtual RbacIdType SubmitterId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审核用户ID", IsNullable = true)]
-    public virtual long? AuditorId { get; set; }
+    public virtual RbacIdType? AuditorId { get; set; }
 
     /// <summary>
     /// 审核状态

@@ -183,19 +183,19 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// 执行时长（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
-    public virtual long ExecutionTime { get; set; } = 0;
+    public virtual RbacIdType ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 请求大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "请求大小（字节）")]
-    public virtual long RequestSize { get; set; } = 0;
+    public virtual RbacIdType RequestSize { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应大小（字节）")]
-    public virtual long ResponseSize { get; set; } = 0;
+    public virtual RbacIdType ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 是否成功

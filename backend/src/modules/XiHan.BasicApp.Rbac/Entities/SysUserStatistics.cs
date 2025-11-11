@@ -68,7 +68,7 @@ public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
     /// 在线时长（秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "在线时长（秒）")]
-    public virtual long OnlineTime { get; set; } = 0;
+    public virtual RbacIdType OnlineTime { get; set; } = 0;
 
     /// <summary>
     /// 操作次数
