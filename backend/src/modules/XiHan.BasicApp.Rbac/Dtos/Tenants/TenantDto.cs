@@ -396,4 +396,3 @@ public class ConfigureTenantDatabaseDto
     /// </summary>
     public string DatabasePassword { get; set; } = string.Empty;
 }
-

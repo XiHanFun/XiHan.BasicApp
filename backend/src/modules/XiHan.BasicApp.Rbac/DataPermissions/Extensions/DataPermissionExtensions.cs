@@ -55,4 +55,3 @@ public static class DataPermissionExtensions
         return await handler.ApplyDataPermissionAsync(query, userId);
     }
 }
-

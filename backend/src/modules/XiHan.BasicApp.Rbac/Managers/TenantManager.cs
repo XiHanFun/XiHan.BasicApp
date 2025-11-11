@@ -116,4 +116,3 @@ public class TenantManager : DomainService
         return usedStorage >= tenant.StorageLimit.Value;
     }
 }
-

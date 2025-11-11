@@ -61,4 +61,3 @@ public class DepartmentManager : DomainService
         return userCount == 0;
     }
 }
-
