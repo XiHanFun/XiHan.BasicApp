@@ -24,7 +24,7 @@ public static class RbacIdTypeConfiguration
     /// 当前项目使用的 ID 类型
     /// 修改此属性可以全局切换整个 RBAC 模块的 ID 类型
     /// </summary>
-    public static readonly Type CurrentIdType = typeof(long);
+    public static readonly Type CurrentIdType = typeof(RbacIdType);
 
     /// <summary>
     /// 获取当前配置的 ID 类型名称
