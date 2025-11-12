@@ -18,9 +18,9 @@ using XiHan.BasicApp.Rbac.Entities.Base;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// OAuth授权码实体
+/// 系统 OAuth 授权码实体
 /// </summary>
-[SugarTable("sys_oauth_code", "OAuth授权码表")]
+[SugarTable("sys_oauth_code", "系统 OAuth 授权码表")]
 [SugarIndex("IX_SysOAuthCode_Code", nameof(Code), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthCode_ClientId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthCode_UserId", nameof(UserId), OrderByType.Asc)]

@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 用户角色关联实体
+/// 系统用户角色关联实体
 /// </summary>
-[SugarTable("sys_user_role", "用户角色关联表")]
+[SugarTable("sys_user_role", "系统用户角色关联表")]
 public partial class SysUserRole : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>

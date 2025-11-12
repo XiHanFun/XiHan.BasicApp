@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Entities.Base;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 租户实体
+/// 系统租户实体
 /// </summary>
-[SugarTable("sys_tenant", "租户表")]
+[SugarTable("sys_tenant", "系统租户表")]
 [SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
 public partial class SysTenant : RbacFullAuditedEntity<RbacIdType>

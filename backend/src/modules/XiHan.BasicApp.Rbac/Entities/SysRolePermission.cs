@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Entities.Base;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 角色权限关联实体
+/// 系统角色权限关联实体
 /// </summary>
-[SugarTable("sys_role_permission", "角色权限关联表")]
+[SugarTable("sys_role_permission", "系统角色权限关联表")]
 public partial class SysRolePermission : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>

@@ -17,7 +17,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 租户实体扩展
+/// 系统租户实体扩展
 /// </summary>
 public partial class SysTenant
 {

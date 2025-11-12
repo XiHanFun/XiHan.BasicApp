@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 角色菜单关联实体
+/// 系统角色菜单关联实体
 /// </summary>
-[SugarTable("sys_role_menu", "角色菜单关联表")]
+[SugarTable("sys_role_menu", "系统角色菜单关联表")]
 public partial class SysRoleMenu : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>
