@@ -205,4 +205,3 @@ public class UpdateDepartmentDto : RbacUpdateDtoBase
     /// </summary>
     public string? Remark { get; set; }
 }
-

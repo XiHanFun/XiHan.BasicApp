@@ -55,4 +55,3 @@ public class MenuManager : DomainService
         return children.Count == 0;
     }
 }
-

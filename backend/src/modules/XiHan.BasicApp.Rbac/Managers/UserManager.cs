@@ -92,4 +92,3 @@ public class UserManager : DomainService
         return password;
     }
 }
-

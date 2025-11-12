@@ -192,4 +192,3 @@ public class AssignRolePermissionsDto
     /// </summary>
     public List<RbacIdType> PermissionIds { get; set; } = [];
 }
-

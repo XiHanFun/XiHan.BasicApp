@@ -57,4 +57,3 @@ public interface IDataPermissionFilter
     /// <returns>是否有权限</returns>
     Task<bool> HasPermissionAsync(RbacIdType userId, RbacIdType? targetUserId, RbacIdType? targetDepartmentId, DataPermissionScope scope);
 }
-
