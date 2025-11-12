@@ -111,7 +111,7 @@ public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
     /// 模板ID
     /// </summary>
     [SugarColumn(ColumnDescription = "模板ID", IsNullable = true)]
-    public virtual long? TemplateId { get; set; }
+    public virtual RbacIdType? TemplateId { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）
@@ -165,7 +165,7 @@ public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual long? BusinessId { get; set; }
+    public virtual RbacIdType? BusinessId { get; set; }
 
     /// <summary>
     /// 备注
