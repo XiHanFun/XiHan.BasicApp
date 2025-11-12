@@ -245,4 +245,3 @@ public class UpdateMenuDto : RbacUpdateDtoBase
     /// </summary>
     public string? Remark { get; set; }
 }
-

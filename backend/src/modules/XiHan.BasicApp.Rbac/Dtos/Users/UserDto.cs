@@ -359,4 +359,3 @@ public class AssignUserDepartmentsDto
     /// </summary>
     public List<RbacIdType> DepartmentIds { get; set; } = [];
 }
-
