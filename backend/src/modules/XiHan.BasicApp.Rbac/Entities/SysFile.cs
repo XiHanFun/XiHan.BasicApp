@@ -68,7 +68,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 文件大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "文件大小（字节）")]
-    public virtual RbacIdType FileSize { get; set; } = 0;
+    public virtual long FileSize { get; set; } = 0;
 
     /// <summary>
     /// 文件哈希值

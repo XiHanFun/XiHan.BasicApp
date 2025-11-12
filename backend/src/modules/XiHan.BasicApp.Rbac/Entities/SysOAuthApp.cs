@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// OAuth应用实体
+/// 系统 OAuth 应用实体
 /// </summary>
-[SugarTable("sys_oauth_app", "OAuth应用表")]
+[SugarTable("sys_oauth_app", "系统 OAuth 应用表")]
 [SugarIndex("IX_SysOAuthApp_ClientId", nameof(ClientId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthApp_AppName", nameof(AppName), OrderByType.Asc)]
 public partial class SysOAuthApp : RbacFullAuditedEntity<RbacIdType>

@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 用户统计实体
+/// 系统用户统计实体
 /// </summary>
-[SugarTable("sys_user_statistics", "用户统计表")]
+[SugarTable("sys_user_statistics", "系统用户统计表")]
 [SugarIndex("IX_SysUserStatistics_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserStatistics_StatisticsDate", nameof(StatisticsDate), OrderByType.Desc)]
 [SugarIndex("IX_SysUserStatistics_Period", nameof(Period), OrderByType.Asc)]

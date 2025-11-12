@@ -19,9 +19,9 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// OAuth令牌实体
+/// 系统 OAuth 令牌实体
 /// </summary>
-[SugarTable("sys_oauth_token", "OAuth令牌表")]
+[SugarTable("sys_oauth_token", "系统 OAuth 令牌表")]
 [SugarIndex("IX_SysOAuthToken_AccessToken", nameof(AccessToken), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthToken_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_ClientId", nameof(ClientId), OrderByType.Asc)]
