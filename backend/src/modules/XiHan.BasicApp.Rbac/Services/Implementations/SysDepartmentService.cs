@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:DepartmentService
+// FileName:SysDepartmentService
 // Guid:7c2b3c4d-5e6f-7890-abcd-ef12345678bc
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -26,18 +26,18 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 部门服务实现
 /// </summary>
-public class DepartmentService : CrudApplicationServiceBase<SysDepartment, DepartmentDto, RbacIdType, CreateDepartmentDto, UpdateDepartmentDto>, IDepartmentService
+public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, DepartmentDto, RbacIdType, CreateDepartmentDto, UpdateDepartmentDto>, ISysDepartmentService
 {
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly ISysDepartmentRepository _departmentRepository;
+    private readonly ISysUserRepository _userRepository;
     private readonly DepartmentManager _departmentManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DepartmentService(
-        IDepartmentRepository departmentRepository,
-        IUserRepository userRepository,
+    public SysDepartmentService(
+        ISysDepartmentRepository departmentRepository,
+        ISysUserRepository userRepository,
         DepartmentManager departmentManager) : base(departmentRepository)
     {
         _departmentRepository = departmentRepository;

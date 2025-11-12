@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IPermissionRepository
+// FileName:ISysPermissionRepository
 // Guid:aa2b3c4d-5e6f-7890-abcd-ef1234567899
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 
 /// <summary>
-/// 权限仓储接口
+/// 系统权限仓储接口
 /// </summary>
-public interface IPermissionRepository : IRepositoryBase<SysPermission, RbacIdType>
+public interface ISysPermissionRepository : IRepositoryBase<SysPermission, RbacIdType>
 {
     /// <summary>
     /// 根据权限编码获取权限

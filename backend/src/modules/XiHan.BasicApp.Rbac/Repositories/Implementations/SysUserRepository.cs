@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:UserRepository
+// FileName:SysUserRepository
 // Guid:db2b3c4d-5e6f-7890-abcd-ef12345678b2
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,9 +21,9 @@ using XiHan.Framework.Data.SqlSugar.Repository;
 namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 
 /// <summary>
-/// 用户仓储实现
+/// 系统用户仓储实现
 /// </summary>
-public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUserRepository
+public class SysUserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, ISysUserRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -31,7 +31,7 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
-    public UserRepository(ISqlSugarDbContext dbContext) : base(dbContext)
+    public SysUserRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }
@@ -166,4 +166,3 @@ public class UserRepository : SqlSugarRepositoryBase<SysUser, RbacIdType>, IUser
             .ToListAsync();
     }
 }
-

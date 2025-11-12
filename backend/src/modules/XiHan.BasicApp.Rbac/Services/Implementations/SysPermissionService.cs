@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:PermissionService
+// FileName:SysPermissionService
 // Guid:5c2b3c4d-5e6f-7890-abcd-ef12345678ba
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -27,16 +27,16 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 权限服务实现
 /// </summary>
-public class PermissionService : CrudApplicationServiceBase<SysPermission, PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>, IPermissionService
+public class SysPermissionService : CrudApplicationServiceBase<SysPermission, PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>, ISysPermissionService
 {
-    private readonly IPermissionRepository _permissionRepository;
+    private readonly ISysPermissionRepository _permissionRepository;
     private readonly PermissionManager _permissionManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public PermissionService(
-        IPermissionRepository permissionRepository,
+    public SysPermissionService(
+        ISysPermissionRepository permissionRepository,
         PermissionManager permissionManager) : base(permissionRepository)
     {
         _permissionRepository = permissionRepository;

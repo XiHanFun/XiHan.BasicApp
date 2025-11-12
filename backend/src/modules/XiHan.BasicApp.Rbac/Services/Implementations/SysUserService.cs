@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:UserService
+// FileName:SysUserService
 // Guid:3c2b3c4d-5e6f-7890-abcd-ef12345678b8
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -28,21 +28,21 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 用户服务实现
 /// </summary>
-public class UserService : CrudApplicationServiceBase<SysUser, UserDto, RbacIdType, CreateUserDto, UpdateUserDto>, IUserService
+public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, RbacIdType, CreateUserDto, UpdateUserDto>, ISysUserService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IDepartmentRepository _departmentRepository;
+    private readonly ISysUserRepository _userRepository;
+    private readonly ISysRoleRepository _roleRepository;
+    private readonly ISysDepartmentRepository _departmentRepository;
     private readonly UserManager _userManager;
     private readonly ISqlSugarDbContext _dbContext;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public UserService(
-        IUserRepository userRepository,
-        IRoleRepository roleRepository,
-        IDepartmentRepository departmentRepository,
+    public SysUserService(
+        ISysUserRepository userRepository,
+        ISysRoleRepository roleRepository,
+        ISysDepartmentRepository departmentRepository,
         UserManager userManager,
         ISqlSugarDbContext dbContext) : base(userRepository)
     {

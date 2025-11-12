@@ -26,16 +26,16 @@ namespace XiHan.BasicApp.Rbac.DataPermissions.Handlers;
 public class DataPermissionHandler
 {
     private readonly IDataPermissionFilter _dataPermissionFilter;
-    private readonly IUserRepository _userRepository;
-    private readonly IRoleRepository _roleRepository;
+    private readonly ISysUserRepository _userRepository;
+    private readonly ISysRoleRepository _roleRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public DataPermissionHandler(
         IDataPermissionFilter dataPermissionFilter,
-        IUserRepository userRepository,
-        IRoleRepository roleRepository)
+        ISysUserRepository userRepository,
+        ISysRoleRepository roleRepository)
     {
         _dataPermissionFilter = dataPermissionFilter;
         _userRepository = userRepository;

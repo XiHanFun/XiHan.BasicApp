@@ -24,15 +24,15 @@ namespace XiHan.BasicApp.Rbac.DataPermissions.Filters;
 /// </summary>
 public class DataPermissionFilter : IDataPermissionFilter
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IDepartmentRepository _departmentRepository;
+    private readonly ISysUserRepository _userRepository;
+    private readonly ISysDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public DataPermissionFilter(
-        IUserRepository userRepository,
-        IDepartmentRepository departmentRepository)
+        ISysUserRepository userRepository,
+        ISysDepartmentRepository departmentRepository)
     {
         _userRepository = userRepository;
         _departmentRepository = departmentRepository;

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IUserRepository
+// FileName:ISysUserRepository
 // Guid:8a2b3c4d-5e6f-7890-abcd-ef1234567897
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 
 /// <summary>
-/// 用户仓储接口
+/// 系统用户仓储接口
 /// </summary>
-public interface IUserRepository : IRepositoryBase<SysUser, RbacIdType>
+public interface ISysUserRepository : IRepositoryBase<SysUser, RbacIdType>
 {
     /// <summary>
     /// 根据用户名获取用户

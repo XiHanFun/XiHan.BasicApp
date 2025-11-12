@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:MenuService
+// FileName:SysMenuService
 // Guid:6c2b3c4d-5e6f-7890-abcd-ef12345678bb
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -26,16 +26,16 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 菜单服务实现
 /// </summary>
-public class MenuService : CrudApplicationServiceBase<SysMenu, MenuDto, RbacIdType, CreateMenuDto, UpdateMenuDto>, IMenuService
+public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, RbacIdType, CreateMenuDto, UpdateMenuDto>, ISysMenuService
 {
-    private readonly IMenuRepository _menuRepository;
+    private readonly ISysMenuRepository _menuRepository;
     private readonly MenuManager _menuManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public MenuService(
-        IMenuRepository menuRepository,
+    public SysMenuService(
+        ISysMenuRepository menuRepository,
         MenuManager menuManager) : base(menuRepository)
     {
         _menuRepository = menuRepository;

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RoleRepository
+// FileName:SysRoleRepository
 // Guid:eb2b3c4d-5e6f-7890-abcd-ef12345678b3
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,9 +21,9 @@ using XiHan.Framework.Data.SqlSugar.Repository;
 namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 
 /// <summary>
-/// 角色仓储实现
+/// 系统角色仓储实现
 /// </summary>
-public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRoleRepository
+public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, ISysRoleRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -31,7 +31,7 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
-    public RoleRepository(ISqlSugarDbContext dbContext) : base(dbContext)
+    public SysRoleRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }
@@ -118,4 +118,3 @@ public class RoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IRole
             .ToListAsync();
     }
 }
-

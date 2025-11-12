@@ -33,12 +33,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRbacServices(this IServiceCollection services)
     {
         // 注册应用服务实现
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IRoleService, RoleService>();
-        services.AddScoped<IPermissionService, PermissionService>();
-        services.AddScoped<IMenuService, MenuService>();
-        services.AddScoped<IDepartmentService, DepartmentService>();
-        services.AddScoped<ITenantService, TenantService>();
+        services.AddScoped<ISysUserService, SysUserService>();
+        services.AddScoped<ISysRoleService, SysRoleService>();
+        services.AddScoped<ISysPermissionService, SysPermissionService>();
+        services.AddScoped<ISysMenuService, SysMenuService>();
+        services.AddScoped<ISysDepartmentService, SysDepartmentService>();
+        services.AddScoped<ISysTenantService, SysTenantService>();
 
         return services;
     }
@@ -51,12 +51,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRbacRepositories(this IServiceCollection services)
     {
         // 注册仓储实现
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<IPermissionRepository, PermissionRepository>();
-        services.AddScoped<IMenuRepository, MenuRepository>();
-        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-        services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<ISysUserRepository, SysUserRepository>();
+        services.AddScoped<ISysRoleRepository, SysRoleRepository>();
+        services.AddScoped<ISysPermissionRepository, SysPermissionRepository>();
+        services.AddScoped<ISysMenuRepository, SysMenuRepository>();
+        services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
+        services.AddScoped<ISysTenantRepository, SysTenantRepository>();
 
         return services;
     }

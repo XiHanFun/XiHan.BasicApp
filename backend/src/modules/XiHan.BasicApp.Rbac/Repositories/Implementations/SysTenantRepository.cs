@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:TenantRepository
+// FileName:SysTenantRepository
 // Guid:2c2b3c4d-5e6f-7890-abcd-ef12345678b7
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,9 +21,9 @@ using XiHan.Framework.Data.SqlSugar.Repository;
 namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 
 /// <summary>
-/// 租户仓储实现
+/// 系统租户仓储实现
 /// </summary>
-public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, ITenantRepository
+public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, ISysTenantRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -31,7 +31,7 @@ public class TenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, I
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
-    public TenantRepository(ISqlSugarDbContext dbContext) : base(dbContext)
+    public SysTenantRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }

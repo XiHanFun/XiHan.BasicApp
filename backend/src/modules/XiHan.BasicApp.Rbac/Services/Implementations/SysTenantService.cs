@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:TenantService
+// FileName:SysTenantService
 // Guid:8c2b3c4d-5e6f-7890-abcd-ef12345678bd
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -26,16 +26,16 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 租户服务实现
 /// </summary>
-public class TenantService : CrudApplicationServiceBase<SysTenant, TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>, ITenantService
+public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>, ISysTenantService
 {
-    private readonly ITenantRepository _tenantRepository;
+    private readonly ISysTenantRepository _tenantRepository;
     private readonly TenantManager _tenantManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public TenantService(
-        ITenantRepository tenantRepository,
+    public SysTenantService(
+        ISysTenantRepository tenantRepository,
         TenantManager tenantManager) : base(tenantRepository)
     {
         _tenantRepository = tenantRepository;

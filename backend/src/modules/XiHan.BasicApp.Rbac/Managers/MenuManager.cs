@@ -22,13 +22,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class MenuManager : DomainService
 {
-    private readonly IMenuRepository _menuRepository;
+    private readonly ISysMenuRepository _menuRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="menuRepository">菜单仓储</param>
-    public MenuManager(IMenuRepository menuRepository)
+    public MenuManager(ISysMenuRepository menuRepository)
     {
         _menuRepository = menuRepository;
     }
