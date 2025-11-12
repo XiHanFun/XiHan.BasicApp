@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IPermissionService
+// FileName:ISysPermissionService
 // Guid:0b2b3c4d-5e6f-7890-abcd-ef12345678a5
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 权限服务接口
 /// </summary>
-public interface IPermissionService : ICrudApplicationService<PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>
+public interface ISysPermissionService : ICrudApplicationService<PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>
 {
     /// <summary>
     /// 根据权限编码获取权限

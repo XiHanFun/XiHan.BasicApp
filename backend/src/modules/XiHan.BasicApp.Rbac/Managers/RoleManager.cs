@@ -22,13 +22,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class RoleManager : DomainService
 {
-    private readonly IRoleRepository _roleRepository;
+    private readonly ISysRoleRepository _roleRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="roleRepository">角色仓储</param>
-    public RoleManager(IRoleRepository roleRepository)
+    public RoleManager(ISysRoleRepository roleRepository)
     {
         _roleRepository = roleRepository;
     }

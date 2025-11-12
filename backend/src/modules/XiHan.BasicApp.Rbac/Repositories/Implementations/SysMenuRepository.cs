@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:MenuRepository
+// FileName:SysMenuRepository
 // Guid:0c2b3c4d-5e6f-7890-abcd-ef12345678b5
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,9 +21,9 @@ using XiHan.Framework.Data.SqlSugar.Repository;
 namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 
 /// <summary>
-/// 菜单仓储实现
+/// 系统菜单仓储实现
 /// </summary>
-public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenuRepository
+public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, ISysMenuRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -31,7 +31,7 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
-    public MenuRepository(ISqlSugarDbContext dbContext) : base(dbContext)
+    public SysMenuRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }
@@ -127,4 +127,3 @@ public class MenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IMenu
             .ToListAsync();
     }
 }
-

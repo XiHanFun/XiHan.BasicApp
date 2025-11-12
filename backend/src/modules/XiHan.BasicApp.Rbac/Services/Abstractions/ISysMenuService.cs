@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IMenuService
+// FileName:ISysMenuService
 // Guid:1b2b3c4d-5e6f-7890-abcd-ef12345678a6
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 菜单服务接口
 /// </summary>
-public interface IMenuService : ICrudApplicationService<MenuDto, RbacIdType, CreateMenuDto, UpdateMenuDto>
+public interface ISysMenuService : ICrudApplicationService<MenuDto, RbacIdType, CreateMenuDto, UpdateMenuDto>
 {
     /// <summary>
     /// 根据菜单编码获取菜单

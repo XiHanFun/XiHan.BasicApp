@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:DepartmentRepository
+// FileName:SysDepartmentRepository
 // Guid:1c2b3c4d-5e6f-7890-abcd-ef12345678b6
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,9 +21,9 @@ using XiHan.Framework.Data.SqlSugar.Repository;
 namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 
 /// <summary>
-/// 部门仓储实现
+/// 系统部门仓储实现
 /// </summary>
-public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacIdType>, IDepartmentRepository
+public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacIdType>, ISysDepartmentRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -31,7 +31,7 @@ public class DepartmentRepository : SqlSugarRepositoryBase<SysDepartment, RbacId
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
-    public DepartmentRepository(ISqlSugarDbContext dbContext) : base(dbContext)
+    public SysDepartmentRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }

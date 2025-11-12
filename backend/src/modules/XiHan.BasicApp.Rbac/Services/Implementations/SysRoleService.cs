@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RoleService
+// FileName:SysRoleService
 // Guid:4c2b3c4d-5e6f-7890-abcd-ef12345678b9
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -28,17 +28,17 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 角色服务实现
 /// </summary>
-public class RoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>, IRoleService
+public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>, ISysRoleService
 {
-    private readonly IRoleRepository _roleRepository;
+    private readonly ISysRoleRepository _roleRepository;
     private readonly RoleManager _roleManager;
     private readonly ISqlSugarDbContext _dbContext;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RoleService(
-        IRoleRepository roleRepository,
+    public SysRoleService(
+        ISysRoleRepository roleRepository,
         RoleManager roleManager,
         ISqlSugarDbContext dbContext) : base(roleRepository)
     {

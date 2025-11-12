@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IRoleRepository
+// FileName:ISysRoleRepository
 // Guid:9a2b3c4d-5e6f-7890-abcd-ef1234567898
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 
 /// <summary>
-/// 角色仓储接口
+/// 系统角色仓储接口
 /// </summary>
-public interface IRoleRepository : IRepositoryBase<SysRole, RbacIdType>
+public interface ISysRoleRepository : IRepositoryBase<SysRole, RbacIdType>
 {
     /// <summary>
     /// 根据角色编码获取角色

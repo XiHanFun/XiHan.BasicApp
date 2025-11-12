@@ -22,13 +22,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class DepartmentManager : DomainService
 {
-    private readonly IDepartmentRepository _departmentRepository;
+    private readonly ISysDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository">部门仓储</param>
-    public DepartmentManager(IDepartmentRepository departmentRepository)
+    public DepartmentManager(ISysDepartmentRepository departmentRepository)
     {
         _departmentRepository = departmentRepository;
     }

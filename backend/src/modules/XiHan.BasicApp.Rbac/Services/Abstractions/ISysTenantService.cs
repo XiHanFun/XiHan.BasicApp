@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:ITenantService
+// FileName:ISysTenantService
 // Guid:3b2b3c4d-5e6f-7890-abcd-ef12345678a8
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 租户服务接口
 /// </summary>
-public interface ITenantService : ICrudApplicationService<TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>
+public interface ISysTenantService : ICrudApplicationService<TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>
 {
     /// <summary>
     /// 获取租户详情

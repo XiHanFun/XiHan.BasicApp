@@ -22,13 +22,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class PermissionManager : DomainService
 {
-    private readonly IPermissionRepository _permissionRepository;
+    private readonly ISysPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="permissionRepository">权限仓储</param>
-    public PermissionManager(IPermissionRepository permissionRepository)
+    public PermissionManager(ISysPermissionRepository permissionRepository)
     {
         _permissionRepository = permissionRepository;
     }

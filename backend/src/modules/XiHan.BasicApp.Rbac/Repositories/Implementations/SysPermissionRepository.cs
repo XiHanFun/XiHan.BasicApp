@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:PermissionRepository
+// FileName:SysPermissionRepository
 // Guid:fb2b3c4d-5e6f-7890-abcd-ef12345678b4
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,9 +21,9 @@ using XiHan.Framework.Data.SqlSugar.Repository;
 namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 
 /// <summary>
-/// 权限仓储实现
+/// 系统权限仓储实现
 /// </summary>
-public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacIdType>, IPermissionRepository
+public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacIdType>, ISysPermissionRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -31,7 +31,7 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
     /// 构造函数
     /// </summary>
     /// <param name="dbContext">数据库上下文</param>
-    public PermissionRepository(ISqlSugarDbContext dbContext) : base(dbContext)
+    public SysPermissionRepository(ISqlSugarDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }
@@ -106,4 +106,3 @@ public class PermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacId
             .ToListAsync();
     }
 }
-

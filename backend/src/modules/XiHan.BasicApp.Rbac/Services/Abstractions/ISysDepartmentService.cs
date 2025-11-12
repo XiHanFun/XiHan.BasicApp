@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IDepartmentService
+// FileName:ISysDepartmentService
 // Guid:2b2b3c4d-5e6f-7890-abcd-ef12345678a7
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 部门服务接口
 /// </summary>
-public interface IDepartmentService : ICrudApplicationService<DepartmentDto, RbacIdType, CreateDepartmentDto, UpdateDepartmentDto>
+public interface ISysDepartmentService : ICrudApplicationService<DepartmentDto, RbacIdType, CreateDepartmentDto, UpdateDepartmentDto>
 {
     /// <summary>
     /// 根据部门编码获取部门

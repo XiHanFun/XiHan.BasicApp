@@ -23,13 +23,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class UserManager : DomainService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly ISysUserRepository _userRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="userRepository">用户仓储</param>
-    public UserManager(IUserRepository userRepository)
+    public UserManager(ISysUserRepository userRepository)
     {
         _userRepository = userRepository;
     }

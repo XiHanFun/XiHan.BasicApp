@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IMenuRepository
+// FileName:ISysMenuRepository
 // Guid:ba2b3c4d-5e6f-7890-abcd-ef12345678a0
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 
 /// <summary>
-/// 菜单仓储接口
+/// 系统菜单仓储接口
 /// </summary>
-public interface IMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
+public interface ISysMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
 {
     /// <summary>
     /// 根据菜单编码获取菜单

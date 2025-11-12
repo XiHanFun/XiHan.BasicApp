@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IUserService
+// FileName:ISysUserService
 // Guid:ea2b3c4d-5e6f-7890-abcd-ef12345678a3
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 用户服务接口
 /// </summary>
-public interface IUserService : ICrudApplicationService<UserDto, RbacIdType, CreateUserDto, UpdateUserDto>
+public interface ISysUserService : ICrudApplicationService<UserDto, RbacIdType, CreateUserDto, UpdateUserDto>
 {
     /// <summary>
     /// 获取用户详情

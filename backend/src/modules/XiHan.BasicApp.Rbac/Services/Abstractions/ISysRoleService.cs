@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IRoleService
+// FileName:ISysRoleService
 // Guid:fa2b3c4d-5e6f-7890-abcd-ef12345678a4
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 角色服务接口
 /// </summary>
-public interface IRoleService : ICrudApplicationService<RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>
+public interface ISysRoleService : ICrudApplicationService<RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>
 {
     /// <summary>
     /// 获取角色详情

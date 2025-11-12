@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IDepartmentRepository
+// FileName:ISysDepartmentRepository
 // Guid:ca2b3c4d-5e6f-7890-abcd-ef12345678a1
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 
 /// <summary>
-/// 部门仓储接口
+/// 系统部门仓储接口
 /// </summary>
-public interface IDepartmentRepository : IRepositoryBase<SysDepartment, RbacIdType>
+public interface ISysDepartmentRepository : IRepositoryBase<SysDepartment, RbacIdType>
 {
     /// <summary>
     /// 根据部门编码获取部门

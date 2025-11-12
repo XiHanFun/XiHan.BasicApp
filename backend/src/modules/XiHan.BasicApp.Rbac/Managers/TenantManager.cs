@@ -24,13 +24,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class TenantManager : DomainService
 {
-    private readonly ITenantRepository _tenantRepository;
+    private readonly ISysTenantRepository _tenantRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="tenantRepository">租户仓储</param>
-    public TenantManager(ITenantRepository tenantRepository)
+    public TenantManager(ISysTenantRepository tenantRepository)
     {
         _tenantRepository = tenantRepository;
     }

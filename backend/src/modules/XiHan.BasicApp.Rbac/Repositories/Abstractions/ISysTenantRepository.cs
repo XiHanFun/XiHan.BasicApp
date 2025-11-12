@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:ITenantRepository
+// FileName:ISysTenantRepository
 // Guid:da2b3c4d-5e6f-7890-abcd-ef12345678a2
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 
 /// <summary>
-/// 租户仓储接口
+/// 系统租户仓储接口
 /// </summary>
-public interface ITenantRepository : IRepositoryBase<SysTenant, RbacIdType>
+public interface ISysTenantRepository : IRepositoryBase<SysTenant, RbacIdType>
 {
     /// <summary>
     /// 根据租户编码获取租户
