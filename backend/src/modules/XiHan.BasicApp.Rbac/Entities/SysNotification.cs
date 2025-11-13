@@ -62,7 +62,7 @@ public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 通知内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知内容", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "通知内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Content { get; set; }
 
     /// <summary>

@@ -45,7 +45,7 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 审核内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "审核内容", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "审核内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Content { get; set; }
 
     /// <summary>
@@ -63,7 +63,7 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 业务数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "业务数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? BusinessData { get; set; }
 
     /// <summary>

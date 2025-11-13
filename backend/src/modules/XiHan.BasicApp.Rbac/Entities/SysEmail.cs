@@ -92,7 +92,7 @@ public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 邮件内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮件内容", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "邮件内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Content { get; set; }
 
     /// <summary>
@@ -116,7 +116,7 @@ public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 模板参数（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板参数", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "模板参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TemplateParams { get; set; }
 
     /// <summary>

@@ -96,25 +96,25 @@ public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 执行结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行结果", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "执行结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExecutionResult { get; set; }
 
     /// <summary>
     /// 异常信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常信息", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "异常信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionMessage { get; set; }
 
     /// <summary>
     /// 异常堆栈
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
 
     /// <summary>
     /// 输出日志
     /// </summary>
-    [SugarColumn(ColumnDescription = "输出日志", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "输出日志", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? OutputLog { get; set; }
 
     /// <summary>
@@ -144,7 +144,7 @@ public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>

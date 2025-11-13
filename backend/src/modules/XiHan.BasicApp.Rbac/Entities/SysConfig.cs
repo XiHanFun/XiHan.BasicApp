@@ -48,13 +48,13 @@ public partial class SysConfig : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 配置值
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置值", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "配置值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ConfigValue { get; set; }
 
     /// <summary>
     /// 默认值
     /// </summary>
-    [SugarColumn(ColumnDescription = "默认值", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "默认值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? DefaultValue { get; set; }
 
     /// <summary>
