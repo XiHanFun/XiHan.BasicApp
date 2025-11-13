@@ -75,7 +75,7 @@ public partial class SysTask : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 任务参数（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务参数", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "任务参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TaskParams { get; set; }
 
     /// <summary>

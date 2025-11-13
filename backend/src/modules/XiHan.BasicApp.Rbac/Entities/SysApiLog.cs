@@ -98,19 +98,19 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 请求参数
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestParams { get; set; }
 
     /// <summary>
     /// 请求体
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求体", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求体", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestBody { get; set; }
 
     /// <summary>
     /// 响应结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseBody { get; set; }
 
     /// <summary>
@@ -122,13 +122,13 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 请求头
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求头", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestHeaders { get; set; }
 
     /// <summary>
     /// 响应头
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应头", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "响应头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseHeaders { get; set; }
 
     /// <summary>
@@ -212,7 +212,7 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 异常堆栈
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
 
     /// <summary>
@@ -230,7 +230,7 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>

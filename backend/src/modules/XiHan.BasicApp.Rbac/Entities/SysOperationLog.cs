@@ -91,13 +91,13 @@ public partial class SysOperationLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 请求参数
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestParams { get; set; }
 
     /// <summary>
     /// 响应结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseResult { get; set; }
 
     /// <summary>
