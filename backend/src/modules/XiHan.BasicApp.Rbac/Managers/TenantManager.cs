@@ -37,6 +37,31 @@ public class TenantManager : DomainService
     }
 
     /// <summary>
+    /// 检查租户是否可用
+    /// </summary>
+    /// <param name="tenant">租户</param>
+    /// <returns></returns>
+    public static bool IsAvailable(SysTenant tenant)
+    {
+        if (tenant.Status != YesOrNo.Yes)
+        {
+            return false;
+        }
+
+        if (tenant.TenantStatus == TenantStatus.Disabled)
+        {
+            return false;
+        }
+
+        if (tenant.ExpireTime.HasValue && tenant.ExpireTime.Value < DateTimeOffset.Now)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// 验证租户编码是否唯一
     /// </summary>
     /// <param name="tenantCode">租户编码</param>
@@ -56,31 +81,6 @@ public class TenantManager : DomainService
     public async Task<bool> IsDomainUniqueAsync(string domain, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _tenantRepository.ExistsByDomainAsync(domain, excludeId);
-    }
-
-    /// <summary>
-    /// 检查租户是否可用
-    /// </summary>
-    /// <param name="tenant">租户</param>
-    /// <returns></returns>
-    public bool IsAvailable(SysTenant tenant)
-    {
-        if (tenant.Status != YesOrNo.Yes)
-        {
-            return false;
-        }
-
-        if (tenant.TenantStatus == TenantStatus.Disabled)
-        {
-            return false;
-        }
-
-        if (tenant.ExpireTime.HasValue && tenant.ExpireTime.Value < DateTimeOffset.Now)
-        {
-            return false;
-        }
-
-        return true;
     }
 
     /// <summary>
