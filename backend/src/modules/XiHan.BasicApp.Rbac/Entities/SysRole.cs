@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统角色实体
 /// </summary>
-[SugarTable("sys_role", "系统角色表")]
+[SugarTable("Sys_Role", "系统角色表")]
 [SugarIndex("IX_SysRole_RoleCode", nameof(RoleCode), OrderByType.Asc, true)]
 public partial class SysRole : RbacFullAuditedEntity<RbacIdType>
 {

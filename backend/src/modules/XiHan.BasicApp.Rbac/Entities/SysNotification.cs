@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统通知实体
 /// </summary>
-[SugarTable("sys_notification", "系统通知表")]
+[SugarTable("Sys_Notification", "系统通知表")]
 [SugarIndex("IX_SysNotification_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NotificationType", nameof(NotificationType), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NotificationStatus", nameof(NotificationStatus), OrderByType.Asc)]
