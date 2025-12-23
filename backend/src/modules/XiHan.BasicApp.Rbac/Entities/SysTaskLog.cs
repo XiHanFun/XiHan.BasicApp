@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
 
@@ -21,17 +22,17 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统任务日志实体
 /// </summary>
-[SugarTable("sys_task_log", "系统任务日志表")]
+[SugarTable("Sys_Task_Log", "系统任务日志表")]
 [SugarIndex("IX_SysTaskLog_TaskId", nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_StartTime", nameof(StartTime), OrderByType.Desc)]
-public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
+public partial class SysTaskLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 任务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "任务ID", IsNullable = false)]
-    public virtual RbacIdType TaskId { get; set; }
+    public virtual XiHanBasicAppIdType TaskId { get; set; }
 
     /// <summary>
     /// 任务编码
@@ -91,30 +92,30 @@ public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
     /// 执行时长（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
-    public virtual RbacIdType ExecutionTime { get; set; } = 0;
+    public virtual XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 执行结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行结果", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "执行结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExecutionResult { get; set; }
 
     /// <summary>
     /// 异常信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常信息", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "异常信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionMessage { get; set; }
 
     /// <summary>
     /// 异常堆栈
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
 
     /// <summary>
     /// 输出日志
     /// </summary>
-    [SugarColumn(ColumnDescription = "输出日志", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "输出日志", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? OutputLog { get; set; }
 
     /// <summary>
@@ -144,7 +145,7 @@ public partial class SysTaskLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>

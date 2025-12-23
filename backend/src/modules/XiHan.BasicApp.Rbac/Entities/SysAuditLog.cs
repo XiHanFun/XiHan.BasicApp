@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -21,24 +22,24 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统审核日志实体
 /// </summary>
-[SugarTable("sys_audit_log", "系统审核日志表")]
+[SugarTable("Sys_Audit_Log", "系统审核日志表")]
 [SugarIndex("IX_SysAuditLog_AuditId", nameof(AuditId), OrderByType.Asc)]
 [SugarIndex("IX_SysAuditLog_AuditorId", nameof(AuditorId), OrderByType.Asc)]
 [SugarIndex("IX_SysAuditLog_AuditResult", nameof(AuditResult), OrderByType.Asc)]
 [SugarIndex("IX_SysAuditLog_AuditTime", nameof(AuditTime), OrderByType.Desc)]
-public partial class SysAuditLog : RbacFullAuditedEntity<RbacIdType>
+public partial class SysAuditLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 审核ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审核ID", IsNullable = false)]
-    public virtual RbacIdType AuditId { get; set; }
+    public virtual XiHanBasicAppIdType AuditId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审核用户ID", IsNullable = false)]
-    public virtual RbacIdType AuditorId { get; set; }
+    public virtual XiHanBasicAppIdType AuditorId { get; set; }
 
     /// <summary>
     /// 审核级别

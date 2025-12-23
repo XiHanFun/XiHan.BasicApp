@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Domain.Services;
 
@@ -22,13 +23,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class RoleManager : DomainService
 {
-    private readonly IRoleRepository _roleRepository;
+    private readonly ISysRoleRepository _roleRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="roleRepository">角色仓储</param>
-    public RoleManager(IRoleRepository roleRepository)
+    public RoleManager(ISysRoleRepository roleRepository)
     {
         _roleRepository = roleRepository;
     }
@@ -39,7 +40,7 @@ public class RoleManager : DomainService
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    public async Task<bool> IsRoleCodeUniqueAsync(string roleCode, RbacIdType? excludeId = null)
+    public async Task<bool> IsRoleCodeUniqueAsync(string roleCode, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _roleRepository.ExistsByRoleCodeAsync(roleCode, excludeId);
     }
@@ -49,7 +50,7 @@ public class RoleManager : DomainService
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<bool> CanDeleteAsync(RbacIdType roleId)
+    public async Task<bool> CanDeleteAsync(XiHanBasicAppIdType roleId)
     {
         var userCount = await _roleRepository.GetRoleUserCountAsync(roleId);
         return userCount == 0;

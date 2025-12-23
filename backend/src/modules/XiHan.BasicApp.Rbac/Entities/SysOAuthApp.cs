@@ -13,18 +13,19 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// OAuth应用实体
+/// 系统 OAuth 应用实体
 /// </summary>
-[SugarTable("sys_oauth_app", "OAuth应用表")]
+[SugarTable("Sys_OAuth_App", "系统 OAuth 应用表")]
 [SugarIndex("IX_SysOAuthApp_ClientId", nameof(ClientId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthApp_AppName", nameof(AppName), OrderByType.Asc)]
-public partial class SysOAuthApp : RbacFullAuditedEntity<RbacIdType>
+public partial class SysOAuthApp : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 应用名称

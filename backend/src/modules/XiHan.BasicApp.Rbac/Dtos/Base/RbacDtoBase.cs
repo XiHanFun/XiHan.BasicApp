@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
+
 namespace XiHan.BasicApp.Rbac.Dtos.Base;
 
 /// <summary>
@@ -22,7 +24,7 @@ public abstract class RbacDtoBase
     /// <summary>
     /// 主键ID
     /// </summary>
-    public RbacIdType BasicId { get; set; }
+    public XiHanBasicAppIdType BasicId { get; set; }
 }
 
 /// <summary>
@@ -40,7 +42,7 @@ public abstract class RbacUpdateDtoBase
     /// <summary>
     /// 主键ID
     /// </summary>
-    public RbacIdType BasicId { get; set; }
+    public XiHanBasicAppIdType BasicId { get; set; }
 }
 
 /// <summary>
@@ -83,4 +85,3 @@ public abstract class RbacFullAuditedDtoBase : RbacDtoBase
     /// </summary>
     public DateTimeOffset? DeletedTime { get; set; }
 }
-

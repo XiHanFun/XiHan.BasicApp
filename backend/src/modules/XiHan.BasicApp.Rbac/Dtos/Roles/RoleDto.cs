@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -66,12 +67,12 @@ public class RoleDetailDto : RoleDto
     /// <summary>
     /// 菜单ID列表
     /// </summary>
-    public List<RbacIdType> MenuIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> MenuIds { get; set; } = [];
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<RbacIdType> PermissionIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
 
     /// <summary>
     /// 用户数量
@@ -112,12 +113,12 @@ public class CreateRoleDto : RbacCreationDtoBase
     /// <summary>
     /// 菜单ID列表
     /// </summary>
-    public List<RbacIdType> MenuIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> MenuIds { get; set; } = [];
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<RbacIdType> PermissionIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
 
     /// <summary>
     /// 备注
@@ -169,12 +170,12 @@ public class AssignRoleMenusDto
     /// <summary>
     /// 角色ID
     /// </summary>
-    public RbacIdType RoleId { get; set; }
+    public XiHanBasicAppIdType RoleId { get; set; }
 
     /// <summary>
     /// 菜单ID列表
     /// </summary>
-    public List<RbacIdType> MenuIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> MenuIds { get; set; } = [];
 }
 
 /// <summary>
@@ -185,10 +186,10 @@ public class AssignRolePermissionsDto
     /// <summary>
     /// 角色ID
     /// </summary>
-    public RbacIdType RoleId { get; set; }
+    public XiHanBasicAppIdType RoleId { get; set; }
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<RbacIdType> PermissionIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
 }

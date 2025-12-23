@@ -17,7 +17,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// OAuth授权码实体扩展
+/// 系统 OAuth 授权码实体扩展
 /// </summary>
 public partial class SysOAuthCode
 {

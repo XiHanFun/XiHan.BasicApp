@@ -17,7 +17,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 用户部门关联实体扩展
+/// 系统用户部门关联实体扩展
 /// </summary>
 public partial class SysUserDepartment
 {

@@ -13,18 +13,19 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// OAuth授权码实体
+/// 系统 OAuth 授权码实体
 /// </summary>
-[SugarTable("sys_oauth_code", "OAuth授权码表")]
+[SugarTable("Sys_OAuth_Code", "系统 OAuth 授权码表")]
 [SugarIndex("IX_SysOAuthCode_Code", nameof(Code), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthCode_ClientId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthCode_UserId", nameof(UserId), OrderByType.Asc)]
-public partial class SysOAuthCode : RbacFullAuditedEntity<RbacIdType>
+public partial class SysOAuthCode : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 授权码
@@ -42,7 +43,7 @@ public partial class SysOAuthCode : RbacFullAuditedEntity<RbacIdType>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual RbacIdType UserId { get; set; }
+    public virtual XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 重定向URI

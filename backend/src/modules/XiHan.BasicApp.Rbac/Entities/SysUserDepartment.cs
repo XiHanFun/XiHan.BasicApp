@@ -13,28 +13,29 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 用户部门关联实体
+/// 系统用户部门关联实体
 /// </summary>
-[SugarTable("sys_user_department", "用户部门关联表")]
-public partial class SysUserDepartment : RbacFullAuditedEntity<RbacIdType>
+[SugarTable("Sys_User_Department", "系统用户部门关联表")]
+public partial class SysUserDepartment : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual RbacIdType UserId { get; set; }
+    public virtual XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 部门ID
     /// </summary>
     [SugarColumn(ColumnDescription = "部门ID", IsNullable = false)]
-    public virtual RbacIdType DepartmentId { get; set; }
+    public virtual XiHanBasicAppIdType DepartmentId { get; set; }
 
     /// <summary>
     /// 是否主部门
