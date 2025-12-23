@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -25,7 +26,7 @@ public class UserDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public RbacIdType? TenantId { get; set; }
+    public XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -111,7 +112,7 @@ public class UserDetailDto : UserDto
     /// <summary>
     /// 用户角色列表
     /// </summary>
-    public List<RbacIdType> RoleIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> RoleIds { get; set; } = [];
 
     /// <summary>
     /// 用户角色名称列表
@@ -121,7 +122,7 @@ public class UserDetailDto : UserDto
     /// <summary>
     /// 用户部门列表
     /// </summary>
-    public List<RbacIdType> DepartmentIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> DepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 用户部门名称列表
@@ -142,7 +143,7 @@ public class CreateUserDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public RbacIdType? TenantId { get; set; }
+    public XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -207,12 +208,12 @@ public class CreateUserDto : RbacCreationDtoBase
     /// <summary>
     /// 角色ID列表
     /// </summary>
-    public List<RbacIdType> RoleIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> RoleIds { get; set; } = [];
 
     /// <summary>
     /// 部门ID列表
     /// </summary>
-    public List<RbacIdType> DepartmentIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> DepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 备注
@@ -294,7 +295,7 @@ public class ChangePasswordDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public RbacIdType UserId { get; set; }
+    public XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 旧密码
@@ -320,7 +321,7 @@ public class ResetPasswordDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public RbacIdType UserId { get; set; }
+    public XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 新密码
@@ -336,12 +337,12 @@ public class AssignUserRolesDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public RbacIdType UserId { get; set; }
+    public XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 角色ID列表
     /// </summary>
-    public List<RbacIdType> RoleIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> RoleIds { get; set; } = [];
 }
 
 /// <summary>
@@ -352,10 +353,10 @@ public class AssignUserDepartmentsDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public RbacIdType UserId { get; set; }
+    public XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 部门ID列表
     /// </summary>
-    public List<RbacIdType> DepartmentIds { get; set; } = [];
+    public List<XiHanBasicAppIdType> DepartmentIds { get; set; } = [];
 }

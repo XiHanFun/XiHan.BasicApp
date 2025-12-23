@@ -13,32 +13,33 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 用户统计实体
+/// 系统用户统计实体
 /// </summary>
-[SugarTable("sys_user_statistics", "用户统计表")]
+[SugarTable("Sys_User_Statistics", "系统用户统计表")]
 [SugarIndex("IX_SysUserStatistics_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserStatistics_StatisticsDate", nameof(StatisticsDate), OrderByType.Desc)]
 [SugarIndex("IX_SysUserStatistics_Period", nameof(Period), OrderByType.Asc)]
 [SugarIndex("IX_SysUserStatistics_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
+public partial class SysUserStatistics : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID（为空表示全体用户统计）
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual RbacIdType? UserId { get; set; }
+    public virtual XiHanBasicAppIdType? UserId { get; set; }
 
     /// <summary>
     /// 统计日期
@@ -68,7 +69,7 @@ public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
     /// 在线时长（秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "在线时长（秒）")]
-    public virtual RbacIdType OnlineTime { get; set; } = 0;
+    public virtual XiHanBasicAppIdType OnlineTime { get; set; } = 0;
 
     /// <summary>
     /// 操作次数
@@ -145,7 +146,7 @@ public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>

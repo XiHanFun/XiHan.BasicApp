@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
@@ -22,19 +23,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统任务实体
 /// </summary>
-[SugarTable("sys_task", "系统任务表")]
+[SugarTable("Sys_Task", "系统任务表")]
 [SugarIndex("IX_SysTask_TaskCode", nameof(TaskCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTask_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysTask : RbacFullAuditedEntity<RbacIdType>
+public partial class SysTask : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 任务编码
@@ -75,7 +76,7 @@ public partial class SysTask : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 任务参数（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务参数", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "任务参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TaskParams { get; set; }
 
     /// <summary>

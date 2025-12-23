@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Departments;
 using XiHan.BasicApp.Rbac.Dtos.Menus;
 using XiHan.BasicApp.Rbac.Dtos.Permissions;
@@ -212,7 +213,7 @@ public static class EntityExtensions
     /// <param name="menus">菜单列表</param>
     /// <param name="parentId">父级ID</param>
     /// <returns></returns>
-    public static List<MenuTreeDto> BuildTree(this IEnumerable<MenuDto> menus, RbacIdType? parentId = null)
+    public static List<MenuTreeDto> BuildTree(this IEnumerable<MenuDto> menus, XiHanBasicAppIdType? parentId = null)
     {
         var menuList = menus.ToList();
         var treeList = new List<MenuTreeDto>();
@@ -303,7 +304,7 @@ public static class EntityExtensions
     /// <param name="departments">部门列表</param>
     /// <param name="parentId">父级ID</param>
     /// <returns></returns>
-    public static List<DepartmentTreeDto> BuildTree(this IEnumerable<DepartmentDto> departments, RbacIdType? parentId = null)
+    public static List<DepartmentTreeDto> BuildTree(this IEnumerable<DepartmentDto> departments, XiHanBasicAppIdType? parentId = null)
     {
         var departmentList = departments.ToList();
         var treeList = new List<DepartmentTreeDto>();

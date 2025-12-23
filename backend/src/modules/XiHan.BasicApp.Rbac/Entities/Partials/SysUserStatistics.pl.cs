@@ -17,7 +17,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 用户统计实体扩展
+/// 系统用户统计实体扩展
 /// </summary>
 public partial class SysUserStatistics
 {

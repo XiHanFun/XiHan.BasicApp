@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -21,16 +22,16 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统登录日志实体
 /// </summary>
-[SugarTable("sys_login_log", "系统登录日志表")]
+[SugarTable("Sys_Login_Log", "系统登录日志表")]
 [SugarIndex("IX_SysLoginLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoginTime", nameof(LoginTime), OrderByType.Desc)]
-public partial class SysLoginLog : RbacFullAuditedEntity<RbacIdType>
+public partial class SysLoginLog : RbacCreationEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual RbacIdType UserId { get; set; }
+    public virtual XiHanBasicAppIdType UserId { get; set; }
 
     /// <summary>
     /// 用户名

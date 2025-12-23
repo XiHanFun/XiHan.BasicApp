@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -21,31 +22,31 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统通知实体
 /// </summary>
-[SugarTable("sys_notification", "系统通知表")]
+[SugarTable("Sys_Notification", "系统通知表")]
 [SugarIndex("IX_SysNotification_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NotificationType", nameof(NotificationType), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NotificationStatus", nameof(NotificationStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysNotification_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
+public partial class SysNotification : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual RbacIdType? UserId { get; set; }
+    public virtual XiHanBasicAppIdType? UserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual RbacIdType? SenderId { get; set; }
+    public virtual XiHanBasicAppIdType? SenderId { get; set; }
 
     /// <summary>
     /// 通知类型
@@ -62,7 +63,7 @@ public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 通知内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知内容", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "通知内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Content { get; set; }
 
     /// <summary>
@@ -87,7 +88,7 @@ public partial class SysNotification : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual RbacIdType? BusinessId { get; set; }
+    public virtual XiHanBasicAppIdType? BusinessId { get; set; }
 
     /// <summary>
     /// 通知状态

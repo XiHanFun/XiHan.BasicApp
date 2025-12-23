@@ -13,33 +13,34 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// API日志实体
+/// 系统接口日志实体
 /// </summary>
-[SugarTable("sys_api_log", "API日志表")]
+[SugarTable("Sys_Api_Log", "系统接口日志表")]
 [SugarIndex("IX_SysApiLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_ApiPath", nameof(ApiPath), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_Method", nameof(Method), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_RequestTime", nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_SysApiLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
+public partial class SysApiLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual RbacIdType? UserId { get; set; }
+    public virtual XiHanBasicAppIdType? UserId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -98,19 +99,19 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 请求参数
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestParams { get; set; }
 
     /// <summary>
     /// 请求体
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求体", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求体", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestBody { get; set; }
 
     /// <summary>
     /// 响应结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseBody { get; set; }
 
     /// <summary>
@@ -122,13 +123,13 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 请求头
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求头", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "请求头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestHeaders { get; set; }
 
     /// <summary>
     /// 响应头
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应头", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "响应头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseHeaders { get; set; }
 
     /// <summary>
@@ -183,19 +184,19 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// 执行时长（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
-    public virtual RbacIdType ExecutionTime { get; set; } = 0;
+    public virtual XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 请求大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "请求大小（字节）")]
-    public virtual RbacIdType RequestSize { get; set; } = 0;
+    public virtual XiHanBasicAppIdType RequestSize { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应大小（字节）")]
-    public virtual RbacIdType ResponseSize { get; set; } = 0;
+    public virtual XiHanBasicAppIdType ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 是否成功
@@ -212,7 +213,7 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 异常堆栈
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
 
     /// <summary>
@@ -230,7 +231,7 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>

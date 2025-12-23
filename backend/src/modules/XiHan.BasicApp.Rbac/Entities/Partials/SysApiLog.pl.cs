@@ -17,7 +17,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// API日志实体扩展
+/// 系统接口日志实体扩展
 /// </summary>
 public partial class SysApiLog
 {

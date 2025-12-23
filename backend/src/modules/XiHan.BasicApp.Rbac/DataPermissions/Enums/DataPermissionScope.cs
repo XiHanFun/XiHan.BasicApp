@@ -49,4 +49,3 @@ public enum DataPermissionScope
     /// </summary>
     Custom = 99
 }
-

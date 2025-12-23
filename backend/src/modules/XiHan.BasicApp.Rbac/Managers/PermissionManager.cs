@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Domain.Services;
 
@@ -22,13 +23,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class PermissionManager : DomainService
 {
-    private readonly IPermissionRepository _permissionRepository;
+    private readonly ISysPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="permissionRepository">权限仓储</param>
-    public PermissionManager(IPermissionRepository permissionRepository)
+    public PermissionManager(ISysPermissionRepository permissionRepository)
     {
         _permissionRepository = permissionRepository;
     }
@@ -39,7 +40,7 @@ public class PermissionManager : DomainService
     /// <param name="permissionCode">权限编码</param>
     /// <param name="excludeId">排除的权限ID</param>
     /// <returns></returns>
-    public async Task<bool> IsPermissionCodeUniqueAsync(string permissionCode, RbacIdType? excludeId = null)
+    public async Task<bool> IsPermissionCodeUniqueAsync(string permissionCode, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _permissionRepository.ExistsByPermissionCodeAsync(permissionCode, excludeId);
     }
@@ -50,7 +51,7 @@ public class PermissionManager : DomainService
     /// <param name="userId">用户ID</param>
     /// <param name="permissionCode">权限编码</param>
     /// <returns></returns>
-    public async Task<bool> HasPermissionAsync(RbacIdType userId, string permissionCode)
+    public async Task<bool> HasPermissionAsync(XiHanBasicAppIdType userId, string permissionCode)
     {
         var permissions = await _permissionRepository.GetByUserIdAsync(userId);
         return permissions.Any(p => p.PermissionCode == permissionCode);

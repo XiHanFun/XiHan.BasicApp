@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Domain.Services;
@@ -23,13 +24,13 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// </summary>
 public class UserManager : DomainService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly ISysUserRepository _userRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="userRepository">用户仓储</param>
-    public UserManager(IUserRepository userRepository)
+    public UserManager(ISysUserRepository userRepository)
     {
         _userRepository = userRepository;
     }
@@ -40,7 +41,7 @@ public class UserManager : DomainService
     /// <param name="userName">用户名</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsUserNameUniqueAsync(string userName, RbacIdType? excludeId = null)
+    public async Task<bool> IsUserNameUniqueAsync(string userName, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _userRepository.ExistsByUserNameAsync(userName, excludeId);
     }
@@ -51,7 +52,7 @@ public class UserManager : DomainService
     /// <param name="email">邮箱</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsEmailUniqueAsync(string email, RbacIdType? excludeId = null)
+    public async Task<bool> IsEmailUniqueAsync(string email, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _userRepository.ExistsByEmailAsync(email, excludeId);
     }
@@ -62,7 +63,7 @@ public class UserManager : DomainService
     /// <param name="phone">手机号</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsPhoneUniqueAsync(string phone, RbacIdType? excludeId = null)
+    public async Task<bool> IsPhoneUniqueAsync(string phone, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _userRepository.ExistsByPhoneAsync(phone, excludeId);
     }

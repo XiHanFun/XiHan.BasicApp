@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -21,17 +22,17 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统配置实体
 /// </summary>
-[SugarTable("sys_config", "系统配置表")]
+[SugarTable("Sys_Config", "系统配置表")]
 [SugarIndex("IX_SysConfig_ConfigKey", nameof(ConfigKey), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConfig_ConfigType", nameof(ConfigType), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysConfig : RbacFullAuditedEntity<RbacIdType>
+public partial class SysConfig : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 配置键
@@ -48,13 +49,13 @@ public partial class SysConfig : RbacFullAuditedEntity<RbacIdType>
     /// <summary>
     /// 配置值
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置值", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "配置值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ConfigValue { get; set; }
 
     /// <summary>
     /// 默认值
     /// </summary>
-    [SugarColumn(ColumnDescription = "默认值", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "默认值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? DefaultValue { get; set; }
 
     /// <summary>

@@ -4,6 +4,6 @@
 		<!-- 设置 C# 语言版本为最新版本 -->
 		<LangVersion>latest</LangVersion>
 		<!-- 指定目标框架 -->
-		<TargetFrameworks>net9.0</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 	</PropertyGroup>
 </Project>
