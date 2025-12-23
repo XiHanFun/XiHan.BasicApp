@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.CodeGeneration.Entities.Base;
 using XiHan.BasicApp.CodeGeneration.Enums;
+using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;
@@ -26,7 +27,7 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarIndex("IX_SysGenTable_TableName", nameof(TableName), OrderByType.Asc, true)]
 [SugarIndex("IX_SysGenTable_ClassName", nameof(ClassName), OrderByType.Asc)]
 [SugarIndex("IX_SysGenTable_ModuleName", nameof(ModuleName), OrderByType.Asc)]
-public partial class SysGenTable : CodeGenFullAuditedEntity<CodeGenIdType>
+public partial class SysGenTable : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 数据库表名
@@ -98,7 +99,7 @@ public partial class SysGenTable : CodeGenFullAuditedEntity<CodeGenIdType>
     /// 父菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父菜单ID", IsNullable = true)]
-    public virtual CodeGenIdType? ParentMenuId { get; set; }
+    public virtual XiHanBasicAppIdType? ParentMenuId { get; set; }
 
     /// <summary>
     /// 主键列名
@@ -122,7 +123,7 @@ public partial class SysGenTable : CodeGenFullAuditedEntity<CodeGenIdType>
     /// 主子表关联主表ID
     /// </summary>
     [SugarColumn(ColumnDescription = "主子表关联主表ID", IsNullable = true)]
-    public virtual CodeGenIdType? MasterTableId { get; set; }
+    public virtual XiHanBasicAppIdType? MasterTableId { get; set; }
 
     /// <summary>
     /// 主子表关联外键列

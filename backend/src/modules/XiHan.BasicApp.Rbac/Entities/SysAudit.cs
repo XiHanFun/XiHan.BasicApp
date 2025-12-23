@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -28,13 +29,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysAudit_BusinessType", nameof(BusinessType), OrderByType.Asc)]
 [SugarIndex("IX_SysAudit_SubmitTime", nameof(SubmitTime), OrderByType.Desc)]
 [SugarIndex("IX_SysAudit_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
+public partial class SysAudit : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 审核标题
@@ -58,7 +59,7 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = false)]
-    public virtual RbacIdType BusinessId { get; set; }
+    public virtual XiHanBasicAppIdType BusinessId { get; set; }
 
     /// <summary>
     /// 业务数据（JSON格式）
@@ -70,13 +71,13 @@ public partial class SysAudit : RbacFullAuditedEntity<RbacIdType>
     /// 提交用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "提交用户ID", IsNullable = false)]
-    public virtual RbacIdType SubmitterId { get; set; }
+    public virtual XiHanBasicAppIdType SubmitterId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审核用户ID", IsNullable = true)]
-    public virtual RbacIdType? AuditorId { get; set; }
+    public virtual XiHanBasicAppIdType? AuditorId { get; set; }
 
     /// <summary>
     /// 审核状态

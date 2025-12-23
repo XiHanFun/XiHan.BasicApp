@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 
 using XiHan.BasicApp.Rbac.Enums;
@@ -25,13 +26,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Menu", "系统菜单表")]
 [SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
-public partial class SysMenu : RbacFullAuditedEntity<RbacIdType>
+public partial class SysMenu : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 父级菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级菜单ID", IsNullable = true)]
-    public virtual RbacIdType? ParentId { get; set; }
+    public virtual XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称

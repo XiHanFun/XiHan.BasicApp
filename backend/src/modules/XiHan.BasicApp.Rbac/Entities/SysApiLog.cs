@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -27,19 +28,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysApiLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_RequestTime", nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_SysApiLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
+public partial class SysApiLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual RbacIdType? UserId { get; set; }
+    public virtual XiHanBasicAppIdType? UserId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -183,19 +184,19 @@ public partial class SysApiLog : RbacFullAuditedEntity<RbacIdType>
     /// 执行时长（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
-    public virtual RbacIdType ExecutionTime { get; set; } = 0;
+    public virtual XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 请求大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "请求大小（字节）")]
-    public virtual RbacIdType RequestSize { get; set; } = 0;
+    public virtual XiHanBasicAppIdType RequestSize { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应大小（字节）")]
-    public virtual RbacIdType ResponseSize { get; set; } = 0;
+    public virtual XiHanBasicAppIdType ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 是否成功

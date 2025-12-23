@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Domain.Services;
 
@@ -39,7 +40,7 @@ public class MenuManager : DomainService
     /// <param name="menuCode">菜单编码</param>
     /// <param name="excludeId">排除的菜单ID</param>
     /// <returns></returns>
-    public async Task<bool> IsMenuCodeUniqueAsync(string menuCode, RbacIdType? excludeId = null)
+    public async Task<bool> IsMenuCodeUniqueAsync(string menuCode, XiHanBasicAppIdType? excludeId = null)
     {
         return !await _menuRepository.ExistsByMenuCodeAsync(menuCode, excludeId);
     }
@@ -49,7 +50,7 @@ public class MenuManager : DomainService
     /// </summary>
     /// <param name="menuId">菜单ID</param>
     /// <returns></returns>
-    public async Task<bool> CanDeleteAsync(RbacIdType menuId)
+    public async Task<bool> CanDeleteAsync(XiHanBasicAppIdType menuId)
     {
         var children = await _menuRepository.GetChildrenAsync(menuId);
         return children.Count == 0;

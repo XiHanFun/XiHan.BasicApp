@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Dtos.Permissions;
 using XiHan.BasicApp.Rbac.Entities;
@@ -27,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 权限服务实现
 /// </summary>
-public class SysPermissionService : CrudApplicationServiceBase<SysPermission, PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>, ISysPermissionService
+public class SysPermissionService : CrudApplicationServiceBase<SysPermission, PermissionDto, XiHanBasicAppIdType, CreatePermissionDto, UpdatePermissionDto>, ISysPermissionService
 {
     private readonly ISysPermissionRepository _permissionRepository;
     private readonly PermissionManager _permissionManager;
@@ -75,7 +76,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     /// <summary>
     /// 更新权限
     /// </summary>
-    public override async Task<PermissionDto> UpdateAsync(RbacIdType id, UpdatePermissionDto input)
+    public override async Task<PermissionDto> UpdateAsync(XiHanBasicAppIdType id, UpdatePermissionDto input)
     {
         var permission = await _permissionRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.PermissionNotFound);
@@ -124,7 +125,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     /// <summary>
     /// 删除权限
     /// </summary>
-    public override async Task<bool> DeleteAsync(RbacIdType id)
+    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
     {
         var permission = await _permissionRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.PermissionNotFound);
@@ -148,7 +149,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     /// <summary>
     /// 获取角色的权限列表
     /// </summary>
-    public async Task<List<PermissionDto>> GetByRoleIdAsync(RbacIdType roleId)
+    public async Task<List<PermissionDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
     {
         var permissions = await _permissionRepository.GetByRoleIdAsync(roleId);
         return permissions.ToDto();
@@ -157,7 +158,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     /// <summary>
     /// 获取用户的权限列表
     /// </summary>
-    public async Task<List<PermissionDto>> GetByUserIdAsync(RbacIdType userId)
+    public async Task<List<PermissionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var permissions = await _permissionRepository.GetByUserIdAsync(userId);
         return permissions.ToDto();

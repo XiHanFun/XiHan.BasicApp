@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Data.SqlSugar;
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// <summary>
 /// 系统角色仓储实现
 /// </summary>
-public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, ISysRoleRepository
+public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppIdType>, ISysRoleRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +53,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IS
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByRoleCodeAsync(string roleCode, RbacIdType? excludeId = null)
+    public async Task<bool> ExistsByRoleCodeAsync(string roleCode, XiHanBasicAppIdType? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysRole>().Where(r => r.RoleCode == roleCode);
         if (excludeId.HasValue)
@@ -67,7 +68,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IS
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<RbacIdType>> GetRoleMenuIdsAsync(RbacIdType roleId)
+    public async Task<List<XiHanBasicAppIdType>> GetRoleMenuIdsAsync(XiHanBasicAppIdType roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
@@ -81,7 +82,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IS
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<RbacIdType>> GetRolePermissionIdsAsync(RbacIdType roleId)
+    public async Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
@@ -95,7 +96,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IS
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<int> GetRoleUserCountAsync(RbacIdType roleId)
+    public async Task<int> GetRoleUserCountAsync(XiHanBasicAppIdType roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
@@ -108,7 +109,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, RbacIdType>, IS
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysRole>> GetByUserIdAsync(RbacIdType userId)
+    public async Task<List<SysRole>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserRole>()

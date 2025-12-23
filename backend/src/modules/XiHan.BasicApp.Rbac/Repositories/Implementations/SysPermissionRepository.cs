@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Data.SqlSugar;
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// <summary>
 /// 系统权限仓储实现
 /// </summary>
-public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, RbacIdType>, ISysPermissionRepository
+public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, XiHanBasicAppIdType>, ISysPermissionRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +53,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, Rba
     /// <param name="permissionCode">权限编码</param>
     /// <param name="excludeId">排除的权限ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByPermissionCodeAsync(string permissionCode, RbacIdType? excludeId = null)
+    public async Task<bool> ExistsByPermissionCodeAsync(string permissionCode, XiHanBasicAppIdType? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysPermission>().Where(p => p.PermissionCode == permissionCode);
         if (excludeId.HasValue)
@@ -67,7 +68,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, Rba
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<SysPermission>> GetByRoleIdAsync(RbacIdType roleId)
+    public async Task<List<SysPermission>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
@@ -82,7 +83,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, Rba
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysPermission>> GetByUserIdAsync(RbacIdType userId)
+    public async Task<List<SysPermission>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         // 获取用户的角色ID列表
         var roleIds = await _dbContext.GetClient()

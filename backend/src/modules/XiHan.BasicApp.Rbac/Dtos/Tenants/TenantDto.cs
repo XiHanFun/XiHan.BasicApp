@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -90,7 +91,7 @@ public class TenantDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 存储空间限制(MB)
     /// </summary>
-    public RbacIdType? StorageLimit { get; set; }
+    public XiHanBasicAppIdType? StorageLimit { get; set; }
 
     /// <summary>
     /// 租户状态
@@ -151,7 +152,7 @@ public class TenantDetailDto : TenantDto
     /// <summary>
     /// 已使用存储空间(MB)
     /// </summary>
-    public RbacIdType UsedStorage { get; set; }
+    public XiHanBasicAppIdType UsedStorage { get; set; }
 }
 
 /// <summary>
@@ -257,7 +258,7 @@ public class CreateTenantDto : RbacCreationDtoBase
     /// <summary>
     /// 存储空间限制(MB)
     /// </summary>
-    public RbacIdType? StorageLimit { get; set; }
+    public XiHanBasicAppIdType? StorageLimit { get; set; }
 
     /// <summary>
     /// 排序
@@ -328,7 +329,7 @@ public class UpdateTenantDto : RbacUpdateDtoBase
     /// <summary>
     /// 存储空间限制(MB)
     /// </summary>
-    public RbacIdType? StorageLimit { get; set; }
+    public XiHanBasicAppIdType? StorageLimit { get; set; }
 
     /// <summary>
     /// 租户状态
@@ -359,7 +360,7 @@ public class ConfigureTenantDatabaseDto
     /// <summary>
     /// 租户ID
     /// </summary>
-    public RbacIdType TenantId { get; set; }
+    public XiHanBasicAppIdType TenantId { get; set; }
 
     /// <summary>
     /// 数据库类型

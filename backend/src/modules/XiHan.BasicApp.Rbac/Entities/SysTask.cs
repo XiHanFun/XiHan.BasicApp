@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
@@ -28,13 +29,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysTask : RbacFullAuditedEntity<RbacIdType>
+public partial class SysTask : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 任务编码

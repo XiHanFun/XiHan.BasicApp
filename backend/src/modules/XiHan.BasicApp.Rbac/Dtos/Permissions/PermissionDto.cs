@@ -144,4 +144,3 @@ public class UpdatePermissionDto : RbacUpdateDtoBase
     /// </summary>
     public string? Remark { get; set; }
 }
-

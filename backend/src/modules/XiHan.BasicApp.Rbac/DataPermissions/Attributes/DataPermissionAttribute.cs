@@ -24,6 +24,23 @@ namespace XiHan.BasicApp.Rbac.DataPermissions.Attributes;
 public class DataPermissionAttribute : Attribute
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public DataPermissionAttribute()
+    {
+        Scope = DataPermissionScope.All;
+    }
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="scope">数据权限范围</param>
+    public DataPermissionAttribute(DataPermissionScope scope)
+    {
+        Scope = scope;
+    }
+
+    /// <summary>
     /// 数据权限范围
     /// </summary>
     public DataPermissionScope Scope { get; set; }
@@ -52,22 +69,4 @@ public class DataPermissionAttribute : Attribute
     /// 自定义过滤器类型
     /// </summary>
     public Type? CustomFilterType { get; set; }
-
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public DataPermissionAttribute()
-    {
-        Scope = DataPermissionScope.All;
-    }
-
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    /// <param name="scope">数据权限范围</param>
-    public DataPermissionAttribute(DataPermissionScope scope)
-    {
-        Scope = scope;
-    }
 }
-

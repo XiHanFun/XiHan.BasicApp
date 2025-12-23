@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Domain.Repositories;
 
@@ -20,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 /// <summary>
 /// 系统租户仓储接口
 /// </summary>
-public interface ISysTenantRepository : IRepositoryBase<SysTenant, RbacIdType>
+public interface ISysTenantRepository : IRepositoryBase<SysTenant, XiHanBasicAppIdType>
 {
     /// <summary>
     /// 根据租户编码获取租户
@@ -42,7 +43,7 @@ public interface ISysTenantRepository : IRepositoryBase<SysTenant, RbacIdType>
     /// <param name="tenantCode">租户编码</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByTenantCodeAsync(string tenantCode, RbacIdType? excludeId = null);
+    Task<bool> ExistsByTenantCodeAsync(string tenantCode, XiHanBasicAppIdType? excludeId = null);
 
     /// <summary>
     /// 检查域名是否存在
@@ -50,19 +51,19 @@ public interface ISysTenantRepository : IRepositoryBase<SysTenant, RbacIdType>
     /// <param name="domain">域名</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByDomainAsync(string domain, RbacIdType? excludeId = null);
+    Task<bool> ExistsByDomainAsync(string domain, XiHanBasicAppIdType? excludeId = null);
 
     /// <summary>
     /// 获取租户的用户数量
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<int> GetTenantUserCountAsync(RbacIdType tenantId);
+    Task<int> GetTenantUserCountAsync(XiHanBasicAppIdType tenantId);
 
     /// <summary>
     /// 获取租户的已使用存储空间(MB)
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<RbacIdType> GetTenantUsedStorageAsync(RbacIdType tenantId);
+    Task<XiHanBasicAppIdType> GetTenantUsedStorageAsync(XiHanBasicAppIdType tenantId);
 }

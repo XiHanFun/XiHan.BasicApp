@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Dtos.Roles;
 using XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 角色服务实现
 /// </summary>
-public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>, ISysRoleService
+public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHanBasicAppIdType, CreateRoleDto, UpdateRoleDto>, ISysRoleService
 {
     private readonly ISysRoleRepository _roleRepository;
     private readonly RoleManager _roleManager;
@@ -52,7 +53,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacI
     /// <summary>
     /// 获取角色详情
     /// </summary>
-    public async Task<RoleDetailDto?> GetDetailAsync(RbacIdType id)
+    public async Task<RoleDetailDto?> GetDetailAsync(XiHanBasicAppIdType id)
     {
         var role = await _roleRepository.GetByIdAsync(id);
         if (role == null)
@@ -149,7 +150,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacI
     /// <summary>
     /// 更新角色
     /// </summary>
-    public override async Task<RoleDto> UpdateAsync(RbacIdType id, UpdateRoleDto input)
+    public override async Task<RoleDto> UpdateAsync(XiHanBasicAppIdType id, UpdateRoleDto input)
     {
         var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
@@ -193,7 +194,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacI
     /// <summary>
     /// 删除角色
     /// </summary>
-    public override async Task<bool> DeleteAsync(RbacIdType id)
+    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
     {
         var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
@@ -268,7 +269,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacI
     /// <summary>
     /// 获取角色的菜单ID列表
     /// </summary>
-    public async Task<List<RbacIdType>> GetRoleMenuIdsAsync(RbacIdType roleId)
+    public async Task<List<XiHanBasicAppIdType>> GetRoleMenuIdsAsync(XiHanBasicAppIdType roleId)
     {
         return await _roleRepository.GetRoleMenuIdsAsync(roleId);
     }
@@ -276,7 +277,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, RbacI
     /// <summary>
     /// 获取角色的权限ID列表
     /// </summary>
-    public async Task<List<RbacIdType>> GetRolePermissionIdsAsync(RbacIdType roleId)
+    public async Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId)
     {
         return await _roleRepository.GetRolePermissionIdsAsync(roleId);
     }

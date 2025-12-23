@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Permissions;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Application.Services;
@@ -22,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 权限服务接口
 /// </summary>
-public interface ISysPermissionService : ICrudApplicationService<PermissionDto, RbacIdType, CreatePermissionDto, UpdatePermissionDto>
+public interface ISysPermissionService : ICrudApplicationService<PermissionDto, XiHanBasicAppIdType, CreatePermissionDto, UpdatePermissionDto>
 {
     /// <summary>
     /// 根据权限编码获取权限
@@ -36,12 +37,12 @@ public interface ISysPermissionService : ICrudApplicationService<PermissionDto, 
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<PermissionDto>> GetByRoleIdAsync(RbacIdType roleId);
+    Task<List<PermissionDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId);
 
     /// <summary>
     /// 获取用户的权限列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<PermissionDto>> GetByUserIdAsync(RbacIdType userId);
+    Task<List<PermissionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
 }

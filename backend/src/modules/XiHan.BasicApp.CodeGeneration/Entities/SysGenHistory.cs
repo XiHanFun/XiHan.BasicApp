@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.CodeGeneration.Entities.Base;
 using XiHan.BasicApp.CodeGeneration.Enums;
+using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;
 
@@ -25,13 +26,13 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarIndex("IX_SysGenHistory_TableId", nameof(TableId), OrderByType.Asc)]
 [SugarIndex("IX_SysGenHistory_GenTime", nameof(GenTime), OrderByType.Desc)]
 [SugarIndex("IX_SysGenHistory_GenStatus", nameof(GenStatus), OrderByType.Asc)]
-public partial class SysGenHistory : CodeGenFullAuditedEntity<CodeGenIdType>
+public partial class SysGenHistory : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 所属表ID
     /// </summary>
     [SugarColumn(ColumnDescription = "所属表ID", IsNullable = false)]
-    public virtual CodeGenIdType TableId { get; set; }
+    public virtual XiHanBasicAppIdType TableId { get; set; }
 
     /// <summary>
     /// 表名称
@@ -67,7 +68,7 @@ public partial class SysGenHistory : CodeGenFullAuditedEntity<CodeGenIdType>
     /// 生成耗时（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "生成耗时（毫秒）")]
-    public virtual CodeGenIdType Duration { get; set; } = 0;
+    public virtual XiHanBasicAppIdType Duration { get; set; } = 0;
 
     /// <summary>
     /// 生成文件数量
@@ -79,7 +80,7 @@ public partial class SysGenHistory : CodeGenFullAuditedEntity<CodeGenIdType>
     /// 生成文件总大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "生成文件总大小（字节）")]
-    public virtual CodeGenIdType TotalSize { get; set; } = 0;
+    public virtual XiHanBasicAppIdType TotalSize { get; set; } = 0;
 
     /// <summary>
     /// 生成路径
@@ -121,7 +122,7 @@ public partial class SysGenHistory : CodeGenFullAuditedEntity<CodeGenIdType>
     /// 操作用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "操作用户ID", IsNullable = true)]
-    public virtual CodeGenIdType? OperatorId { get; set; }
+    public virtual XiHanBasicAppIdType? OperatorId { get; set; }
 
     /// <summary>
     /// 操作用户名

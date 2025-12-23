@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Data.SqlSugar;
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// <summary>
 /// 系统租户仓储实现
 /// </summary>
-public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>, ISysTenantRepository
+public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, XiHanBasicAppIdType>, ISysTenantRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -62,7 +63,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>
     /// <param name="tenantCode">租户编码</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByTenantCodeAsync(string tenantCode, RbacIdType? excludeId = null)
+    public async Task<bool> ExistsByTenantCodeAsync(string tenantCode, XiHanBasicAppIdType? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysTenant>().Where(t => t.TenantCode == tenantCode);
         if (excludeId.HasValue)
@@ -78,7 +79,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>
     /// <param name="domain">域名</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByDomainAsync(string domain, RbacIdType? excludeId = null)
+    public async Task<bool> ExistsByDomainAsync(string domain, XiHanBasicAppIdType? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysTenant>().Where(t => t.Domain == domain);
         if (excludeId.HasValue)
@@ -93,7 +94,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<int> GetTenantUserCountAsync(RbacIdType tenantId)
+    public async Task<int> GetTenantUserCountAsync(XiHanBasicAppIdType tenantId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUser>()
@@ -106,7 +107,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, RbacIdType>
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<RbacIdType> GetTenantUsedStorageAsync(RbacIdType tenantId)
+    public async Task<XiHanBasicAppIdType> GetTenantUsedStorageAsync(XiHanBasicAppIdType tenantId)
     {
         // 这里需要根据实际的文件存储实现来计算
         // 示例：统计租户相关的文件大小

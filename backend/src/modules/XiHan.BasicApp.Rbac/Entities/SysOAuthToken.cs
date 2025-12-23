@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -26,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOAuthToken_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_ClientId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_UserId", nameof(UserId), OrderByType.Asc)]
-public partial class SysOAuthToken : RbacFullAuditedEntity<RbacIdType>
+public partial class SysOAuthToken : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 访问令牌
@@ -56,7 +57,7 @@ public partial class SysOAuthToken : RbacFullAuditedEntity<RbacIdType>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual RbacIdType? UserId { get; set; }
+    public virtual XiHanBasicAppIdType? UserId { get; set; }
 
     /// <summary>
     /// 授权类型

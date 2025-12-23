@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -26,19 +27,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserStatistics_StatisticsDate", nameof(StatisticsDate), OrderByType.Desc)]
 [SugarIndex("IX_SysUserStatistics_Period", nameof(Period), OrderByType.Asc)]
 [SugarIndex("IX_SysUserStatistics_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
+public partial class SysUserStatistics : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID（为空表示全体用户统计）
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual RbacIdType? UserId { get; set; }
+    public virtual XiHanBasicAppIdType? UserId { get; set; }
 
     /// <summary>
     /// 统计日期
@@ -68,7 +69,7 @@ public partial class SysUserStatistics : RbacFullAuditedEntity<RbacIdType>
     /// 在线时长（秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "在线时长（秒）")]
-    public virtual RbacIdType OnlineTime { get; set; } = 0;
+    public virtual XiHanBasicAppIdType OnlineTime { get; set; } = 0;
 
     /// <summary>
     /// 操作次数

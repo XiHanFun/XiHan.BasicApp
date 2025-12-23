@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Users;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Application.Services;
@@ -22,14 +23,14 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 用户服务接口
 /// </summary>
-public interface ISysUserService : ICrudApplicationService<UserDto, RbacIdType, CreateUserDto, UpdateUserDto>
+public interface ISysUserService : ICrudApplicationService<UserDto, XiHanBasicAppIdType, CreateUserDto, UpdateUserDto>
 {
     /// <summary>
     /// 获取用户详情
     /// </summary>
     /// <param name="id">用户ID</param>
     /// <returns></returns>
-    Task<UserDetailDto?> GetDetailAsync(RbacIdType id);
+    Task<UserDetailDto?> GetDetailAsync(XiHanBasicAppIdType id);
 
     /// <summary>
     /// 根据用户名获取用户
@@ -85,5 +86,5 @@ public interface ISysUserService : ICrudApplicationService<UserDto, RbacIdType, 
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<string>> GetUserPermissionsAsync(RbacIdType userId);
+    Task<List<string>> GetUserPermissionsAsync(XiHanBasicAppIdType userId);
 }
