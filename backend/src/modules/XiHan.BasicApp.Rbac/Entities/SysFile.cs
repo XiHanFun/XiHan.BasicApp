@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统文件实体
 /// </summary>
-[SugarTable("sys_file", "系统文件表")]
+[SugarTable("Sys_File", "系统文件表")]
 [SugarIndex("IX_SysFile_FileHash", nameof(FileHash), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]

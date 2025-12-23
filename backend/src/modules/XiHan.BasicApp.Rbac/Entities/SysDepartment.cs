@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统部门实体
 /// </summary>
-[SugarTable("sys_department", "系统部门表")]
+[SugarTable("Sys_Department", "系统部门表")]
 [SugarIndex("IX_SysDepartment_DepartmentCode", nameof(DepartmentCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDepartment_ParentId", nameof(ParentId), OrderByType.Asc)]
 public partial class SysDepartment : RbacFullAuditedEntity<RbacIdType>

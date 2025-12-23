@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统审核实体
 /// </summary>
-[SugarTable("sys_audit", "系统审核表")]
+[SugarTable("Sys_Audit", "系统审核表")]
 [SugarIndex("IX_SysAudit_AuditStatus", nameof(AuditStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysAudit_SubmitterId", nameof(SubmitterId), OrderByType.Asc)]
 [SugarIndex("IX_SysAudit_AuditorId", nameof(AuditorId), OrderByType.Asc)]

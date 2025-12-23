@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统用户部门关联实体
 /// </summary>
-[SugarTable("sys_user_department", "系统用户部门关联表")]
+[SugarTable("Sys_User_Department", "系统用户部门关联表")]
 public partial class SysUserDepartment : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>

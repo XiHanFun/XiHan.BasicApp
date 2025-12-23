@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统用户实体
 /// </summary>
-[SugarTable("sys_user", "系统用户表")]
+[SugarTable("Sys_User", "系统用户表")]
 [SugarIndex("IX_SysUser_UserName", nameof(UserName), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUser_Email", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Phone", nameof(Phone), OrderByType.Asc)]

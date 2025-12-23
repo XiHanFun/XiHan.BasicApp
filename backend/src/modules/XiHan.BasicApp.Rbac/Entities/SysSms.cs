@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统短信实体
 /// </summary>
-[SugarTable("sys_sms", "系统短信表")]
+[SugarTable("Sys_Sms", "系统短信表")]
 [SugarIndex("IX_SysSms_ToPhone", nameof(ToPhone), OrderByType.Asc)]
 [SugarIndex("IX_SysSms_SmsStatus", nameof(SmsStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysSms_SmsType", nameof(SmsType), OrderByType.Asc)]

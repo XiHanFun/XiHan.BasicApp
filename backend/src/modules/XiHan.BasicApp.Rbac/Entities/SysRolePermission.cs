@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统角色权限关联实体
 /// </summary>
-[SugarTable("sys_role_permission", "系统角色权限关联表")]
+[SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
 public partial class SysRolePermission : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>

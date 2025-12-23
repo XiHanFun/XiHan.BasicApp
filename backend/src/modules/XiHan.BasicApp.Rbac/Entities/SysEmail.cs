@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统邮件实体
 /// </summary>
-[SugarTable("sys_email", "系统邮件表")]
+[SugarTable("Sys_Email", "系统邮件表")]
 [SugarIndex("IX_SysEmail_ToEmail", nameof(ToEmail), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_EmailStatus", nameof(EmailStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_EmailType", nameof(EmailType), OrderByType.Asc)]

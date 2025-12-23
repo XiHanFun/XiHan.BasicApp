@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统菜单实体
 /// </summary>
-[SugarTable("sys_menu", "系统菜单表")]
+[SugarTable("Sys_Menu", "系统菜单表")]
 [SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
 public partial class SysMenu : RbacFullAuditedEntity<RbacIdType>

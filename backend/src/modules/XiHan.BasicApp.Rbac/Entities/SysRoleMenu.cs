@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统角色菜单关联实体
 /// </summary>
-[SugarTable("sys_role_menu", "系统角色菜单关联表")]
+[SugarTable("Sys_Role_Menu", "系统角色菜单关联表")]
 public partial class SysRoleMenu : RbacFullAuditedEntity<RbacIdType>
 {
     /// <summary>

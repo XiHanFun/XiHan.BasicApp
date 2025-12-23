@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统字典项实体
 /// </summary>
-[SugarTable("sys_dict_item", "系统字典项表")]
+[SugarTable("Sys_Dict_Item", "系统字典项表")]
 [SugarIndex("IX_SysDictItem_DictId", nameof(DictId), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_ItemCode", nameof(ItemCode), OrderByType.Asc)]
 public partial class SysDictItem : RbacFullAuditedEntity<RbacIdType>
