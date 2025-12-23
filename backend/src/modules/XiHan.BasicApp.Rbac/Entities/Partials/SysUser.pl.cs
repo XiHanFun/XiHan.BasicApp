@@ -142,12 +142,6 @@ public partial class SysUser
     public virtual List<SysAccessLog>? AccessLogs { get; set; }
 
     /// <summary>
-    /// 创建任务列表
-    /// </summary>
-    [Navigate(NavigateType.OneToMany, nameof(SysTask.CreatedId))]
-    public virtual List<SysTask>? CreatedTasks { get; set; }
-
-    /// <summary>
     /// API日志列表
     /// </summary>
     [Navigate(NavigateType.OneToMany, nameof(SysApiLog.UserId))]
