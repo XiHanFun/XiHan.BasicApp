@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.CodeGeneration.Entities.Base;
 using XiHan.BasicApp.CodeGeneration.Enums;
+using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;
@@ -25,7 +26,7 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarTable("Sys_Gen_Template", "系统代码生成模板表")]
 [SugarIndex("IX_SysGenTemplate_TemplateCode", nameof(TemplateCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysGenTemplate_TemplateGroup", nameof(TemplateGroup), OrderByType.Asc)]
-public partial class SysGenTemplate : CodeGenFullAuditedEntity<CodeGenIdType>
+public partial class SysGenTemplate : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 模板编码

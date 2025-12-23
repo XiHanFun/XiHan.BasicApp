@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Roles;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Application.Services;
@@ -22,14 +23,14 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 角色服务接口
 /// </summary>
-public interface ISysRoleService : ICrudApplicationService<RoleDto, RbacIdType, CreateRoleDto, UpdateRoleDto>
+public interface ISysRoleService : ICrudApplicationService<RoleDto, XiHanBasicAppIdType, CreateRoleDto, UpdateRoleDto>
 {
     /// <summary>
     /// 获取角色详情
     /// </summary>
     /// <param name="id">角色ID</param>
     /// <returns></returns>
-    Task<RoleDetailDto?> GetDetailAsync(RbacIdType id);
+    Task<RoleDetailDto?> GetDetailAsync(XiHanBasicAppIdType id);
 
     /// <summary>
     /// 根据角色编码获取角色
@@ -57,12 +58,12 @@ public interface ISysRoleService : ICrudApplicationService<RoleDto, RbacIdType, 
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<RbacIdType>> GetRoleMenuIdsAsync(RbacIdType roleId);
+    Task<List<XiHanBasicAppIdType>> GetRoleMenuIdsAsync(XiHanBasicAppIdType roleId);
 
     /// <summary>
     /// 获取角色的权限ID列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<RbacIdType>> GetRolePermissionIdsAsync(RbacIdType roleId);
+    Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId);
 }

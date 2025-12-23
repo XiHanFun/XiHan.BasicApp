@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -25,7 +26,7 @@ public class DepartmentDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public RbacIdType? ParentId { get; set; }
+    public XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -45,7 +46,7 @@ public class DepartmentDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 负责人ID
     /// </summary>
-    public RbacIdType? LeaderId { get; set; }
+    public XiHanBasicAppIdType? LeaderId { get; set; }
 
     /// <summary>
     /// 负责人姓名
@@ -102,7 +103,7 @@ public class CreateDepartmentDto : RbacCreationDtoBase
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public RbacIdType? ParentId { get; set; }
+    public XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -122,7 +123,7 @@ public class CreateDepartmentDto : RbacCreationDtoBase
     /// <summary>
     /// 负责人ID
     /// </summary>
-    public RbacIdType? LeaderId { get; set; }
+    public XiHanBasicAppIdType? LeaderId { get; set; }
 
     /// <summary>
     /// 联系电话
@@ -158,7 +159,7 @@ public class UpdateDepartmentDto : RbacUpdateDtoBase
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public RbacIdType? ParentId { get; set; }
+    public XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -173,7 +174,7 @@ public class UpdateDepartmentDto : RbacUpdateDtoBase
     /// <summary>
     /// 负责人ID
     /// </summary>
-    public RbacIdType? LeaderId { get; set; }
+    public XiHanBasicAppIdType? LeaderId { get; set; }
 
     /// <summary>
     /// 联系电话

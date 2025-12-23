@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -26,13 +27,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUser_Email", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Phone", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysUser : RbacFullAuditedEntity<RbacIdType>
+public partial class SysUser : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 用户名

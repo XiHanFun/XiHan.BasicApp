@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Tenants;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Application.Services;
@@ -22,14 +23,14 @@ namespace XiHan.BasicApp.Rbac.Services.Abstractions;
 /// <summary>
 /// 租户服务接口
 /// </summary>
-public interface ISysTenantService : ICrudApplicationService<TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>
+public interface ISysTenantService : ICrudApplicationService<TenantDto, XiHanBasicAppIdType, CreateTenantDto, UpdateTenantDto>
 {
     /// <summary>
     /// 获取租户详情
     /// </summary>
     /// <param name="id">租户ID</param>
     /// <returns></returns>
-    Task<TenantDetailDto?> GetDetailAsync(RbacIdType id);
+    Task<TenantDetailDto?> GetDetailAsync(XiHanBasicAppIdType id);
 
     /// <summary>
     /// 根据租户编码获取租户

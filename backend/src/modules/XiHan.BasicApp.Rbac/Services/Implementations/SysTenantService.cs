@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Dtos.Tenants;
 using XiHan.BasicApp.Rbac.Entities;
@@ -26,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 租户服务实现
 /// </summary>
-public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto, RbacIdType, CreateTenantDto, UpdateTenantDto>, ISysTenantService
+public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto, XiHanBasicAppIdType, CreateTenantDto, UpdateTenantDto>, ISysTenantService
 {
     private readonly ISysTenantRepository _tenantRepository;
     private readonly TenantManager _tenantManager;
@@ -47,7 +48,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// <summary>
     /// 获取租户详情
     /// </summary>
-    public async Task<TenantDetailDto?> GetDetailAsync(RbacIdType id)
+    public async Task<TenantDetailDto?> GetDetailAsync(XiHanBasicAppIdType id)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id);
         if (tenant == null)
@@ -195,7 +196,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// <summary>
     /// 更新租户
     /// </summary>
-    public override async Task<TenantDto> UpdateAsync(RbacIdType id, UpdateTenantDto input)
+    public override async Task<TenantDto> UpdateAsync(XiHanBasicAppIdType id, UpdateTenantDto input)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
@@ -290,7 +291,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// <summary>
     /// 删除租户
     /// </summary>
-    public override async Task<bool> DeleteAsync(RbacIdType id)
+    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);

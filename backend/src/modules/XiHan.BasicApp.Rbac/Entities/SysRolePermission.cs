@@ -13,8 +13,10 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Enums;
+using XiHan.BasicApp.Core;
+
 using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -22,19 +24,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统角色权限关联实体
 /// </summary>
 [SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
-public partial class SysRolePermission : RbacFullAuditedEntity<RbacIdType>
+public partial class SysRolePermission : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual RbacIdType RoleId { get; set; }
+    public virtual XiHanBasicAppIdType RoleId { get; set; }
 
     /// <summary>
     /// 权限ID
     /// </summary>
     [SugarColumn(ColumnDescription = "权限ID", IsNullable = false)]
-    public virtual RbacIdType PermissionId { get; set; }
+    public virtual XiHanBasicAppIdType PermissionId { get; set; }
 
     /// <summary>
     /// 状态

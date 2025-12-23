@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Permission", "系统权限表")]
 [SugarIndex("IX_SysPermission_PermissionCode", nameof(PermissionCode), OrderByType.Asc, true)]
-public partial class SysPermission : RbacFullAuditedEntity<RbacIdType>
+public partial class SysPermission : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 权限编码

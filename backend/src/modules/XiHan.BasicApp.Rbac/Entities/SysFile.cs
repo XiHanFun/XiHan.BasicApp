@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -26,13 +27,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
+public partial class SysFile : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 文件名
@@ -104,7 +105,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 上传者ID
     /// </summary>
     [SugarColumn(ColumnDescription = "上传者ID", IsNullable = true)]
-    public virtual RbacIdType? UploaderId { get; set; }
+    public virtual XiHanBasicAppIdType? UploaderId { get; set; }
 
     /// <summary>
     /// 上传IP
@@ -122,7 +123,7 @@ public partial class SysFile : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual RbacIdType? BusinessId { get; set; }
+    public virtual XiHanBasicAppIdType? BusinessId { get; set; }
 
     /// <summary>
     /// 下载次数

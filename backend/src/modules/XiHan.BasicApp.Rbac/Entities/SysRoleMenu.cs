@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -22,19 +23,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统角色菜单关联实体
 /// </summary>
 [SugarTable("Sys_Role_Menu", "系统角色菜单关联表")]
-public partial class SysRoleMenu : RbacFullAuditedEntity<RbacIdType>
+public partial class SysRoleMenu : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual RbacIdType RoleId { get; set; }
+    public virtual XiHanBasicAppIdType RoleId { get; set; }
 
     /// <summary>
     /// 菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "菜单ID", IsNullable = false)]
-    public virtual RbacIdType MenuId { get; set; }
+    public virtual XiHanBasicAppIdType MenuId { get; set; }
 
     /// <summary>
     /// 状态

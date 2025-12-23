@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Enums;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -24,13 +25,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Dict_Item", "系统字典项表")]
 [SugarIndex("IX_SysDictItem_DictId", nameof(DictId), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_ItemCode", nameof(ItemCode), OrderByType.Asc)]
-public partial class SysDictItem : RbacFullAuditedEntity<RbacIdType>
+public partial class SysDictItem : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 字典ID
     /// </summary>
     [SugarColumn(ColumnDescription = "字典ID", IsNullable = false)]
-    public virtual RbacIdType DictId { get; set; }
+    public virtual XiHanBasicAppIdType DictId { get; set; }
 
     /// <summary>
     /// 字典编码（冗余字段，便于查询）
@@ -42,7 +43,7 @@ public partial class SysDictItem : RbacFullAuditedEntity<RbacIdType>
     /// 父级字典项ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级字典项ID", IsNullable = true)]
-    public virtual RbacIdType? ParentId { get; set; }
+    public virtual XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 字典项编码

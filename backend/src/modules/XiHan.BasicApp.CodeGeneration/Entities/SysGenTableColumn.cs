@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.CodeGeneration.Entities.Base;
 using XiHan.BasicApp.CodeGeneration.Enums;
+using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;
@@ -25,13 +26,13 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarTable("Sys_Gen_Table_Column", "系统代码生成表列配置表")]
 [SugarIndex("IX_SysGenTableColumn_TableId", nameof(TableId), OrderByType.Asc)]
 [SugarIndex("IX_SysGenTableColumn_ColumnName", nameof(ColumnName), OrderByType.Asc)]
-public partial class SysGenTableColumn : CodeGenFullAuditedEntity<CodeGenIdType>
+public partial class SysGenTableColumn : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 所属表ID
     /// </summary>
     [SugarColumn(ColumnDescription = "所属表ID", IsNullable = false)]
-    public virtual CodeGenIdType TableId { get; set; }
+    public virtual XiHanBasicAppIdType TableId { get; set; }
 
     /// <summary>
     /// 数据库列名

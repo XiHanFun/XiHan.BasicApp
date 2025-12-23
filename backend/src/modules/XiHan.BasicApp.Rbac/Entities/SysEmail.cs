@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -27,25 +28,25 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysEmail_EmailType", nameof(EmailType), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysEmail_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
+public partial class SysEmail : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual RbacIdType? TenantId { get; set; }
+    public virtual XiHanBasicAppIdType? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual RbacIdType? SenderId { get; set; }
+    public virtual XiHanBasicAppIdType? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual RbacIdType? ReceiverId { get; set; }
+    public virtual XiHanBasicAppIdType? ReceiverId { get; set; }
 
     /// <summary>
     /// 邮件类型
@@ -111,7 +112,7 @@ public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
     /// 模板ID
     /// </summary>
     [SugarColumn(ColumnDescription = "模板ID", IsNullable = true)]
-    public virtual RbacIdType? TemplateId { get; set; }
+    public virtual XiHanBasicAppIdType? TemplateId { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）
@@ -165,7 +166,7 @@ public partial class SysEmail : RbacFullAuditedEntity<RbacIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual RbacIdType? BusinessId { get; set; }
+    public virtual XiHanBasicAppIdType? BusinessId { get; set; }
 
     /// <summary>
     /// 备注

@@ -315,4 +315,3 @@ public enum DatabaseType
     [Description("SQLite")]
     Sqlite = 4
 }
-

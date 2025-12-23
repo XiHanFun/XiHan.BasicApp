@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Dtos.Users;
 using XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Services.Implementations;
 /// <summary>
 /// 用户服务实现
 /// </summary>
-public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, RbacIdType, CreateUserDto, UpdateUserDto>, ISysUserService
+public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHanBasicAppIdType, CreateUserDto, UpdateUserDto>, ISysUserService
 {
     private readonly ISysUserRepository _userRepository;
     private readonly ISysRoleRepository _roleRepository;
@@ -58,7 +59,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, RbacI
     /// <summary>
     /// 获取用户详情
     /// </summary>
-    public async Task<UserDetailDto?> GetDetailAsync(RbacIdType id)
+    public async Task<UserDetailDto?> GetDetailAsync(XiHanBasicAppIdType id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -208,7 +209,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, RbacI
     /// <summary>
     /// 更新用户
     /// </summary>
-    public override async Task<UserDto> UpdateAsync(RbacIdType id, UpdateUserDto input)
+    public override async Task<UserDto> UpdateAsync(XiHanBasicAppIdType id, UpdateUserDto input)
     {
         var user = await _userRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
@@ -294,7 +295,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, RbacI
     /// <summary>
     /// 删除用户
     /// </summary>
-    public override async Task<bool> DeleteAsync(RbacIdType id)
+    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
     {
         var user = await _userRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
@@ -411,7 +412,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, RbacI
     /// <summary>
     /// 获取用户权限
     /// </summary>
-    public async Task<List<string>> GetUserPermissionsAsync(RbacIdType userId)
+    public async Task<List<string>> GetUserPermissionsAsync(XiHanBasicAppIdType userId)
     {
         return await _userRepository.GetUserPermissionsAsync(userId);
     }

@@ -3,23 +3,23 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacDtoBase
-// Guid:1a2b3c4d-5e6f-7890-abcd-ef1234567890
+// FileName:CodeGenDtoBase
+// Guid:a1b2c3d4-e5f6-7890-abcd-ef1234567020
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/10/31 3:58:00
+// CreateTime:2025/12/23 10:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
 
-namespace XiHan.BasicApp.Rbac.Dtos.Base;
+namespace XiHan.BasicApp.CodeGeneration.Dtos.Base;
 
 /// <summary>
-/// RBAC DTO 基类
+/// CodeGen DTO 基类
 /// </summary>
-public abstract class RbacDtoBase
+public abstract class CodeGenDtoBase
 {
     /// <summary>
     /// 主键ID
@@ -28,16 +28,16 @@ public abstract class RbacDtoBase
 }
 
 /// <summary>
-/// RBAC 创建 DTO 基类
+/// CodeGen 创建 DTO 基类
 /// </summary>
-public abstract class RbacCreationDtoBase
+public abstract class CodeGenCreationDtoBase
 {
 }
 
 /// <summary>
-/// RBAC 更新 DTO 基类
+/// CodeGen 更新 DTO 基类
 /// </summary>
-public abstract class RbacUpdateDtoBase
+public abstract class CodeGenUpdateDtoBase
 {
     /// <summary>
     /// 主键ID
@@ -46,9 +46,9 @@ public abstract class RbacUpdateDtoBase
 }
 
 /// <summary>
-/// RBAC 完整审计 DTO 基类
+/// CodeGen 完整审计 DTO 基类
 /// </summary>
-public abstract class RbacFullAuditedDtoBase : RbacDtoBase
+public abstract class CodeGenFullAuditedDtoBase : CodeGenDtoBase
 {
     /// <summary>
     /// 创建者ID

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Abstractions;
 using XiHan.Framework.Data.SqlSugar;
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Implementations;
 /// <summary>
 /// 系统菜单仓储实现
 /// </summary>
-public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, ISysMenuRepository
+public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, XiHanBasicAppIdType>, ISysMenuRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +53,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IS
     /// <param name="menuCode">菜单编码</param>
     /// <param name="excludeId">排除的菜单ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByMenuCodeAsync(string menuCode, RbacIdType? excludeId = null)
+    public async Task<bool> ExistsByMenuCodeAsync(string menuCode, XiHanBasicAppIdType? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysMenu>().Where(m => m.MenuCode == menuCode);
         if (excludeId.HasValue)
@@ -77,7 +78,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IS
     /// </summary>
     /// <param name="parentId">父级菜单ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetChildrenAsync(RbacIdType parentId)
+    public async Task<List<SysMenu>> GetChildrenAsync(XiHanBasicAppIdType parentId)
     {
         var result = await GetListAsync(m => m.ParentId == parentId);
         return result.ToList();
@@ -88,7 +89,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IS
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetByRoleIdAsync(RbacIdType roleId)
+    public async Task<List<SysMenu>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
@@ -103,7 +104,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, RbacIdType>, IS
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetByUserIdAsync(RbacIdType userId)
+    public async Task<List<SysMenu>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         // 获取用户的角色ID列表
         var roleIds = await _dbContext.GetClient()

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Domain.Repositories;
 
@@ -20,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Abstractions;
 /// <summary>
 /// 系统菜单仓储接口
 /// </summary>
-public interface ISysMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
+public interface ISysMenuRepository : IRepositoryBase<SysMenu, XiHanBasicAppIdType>
 {
     /// <summary>
     /// 根据菜单编码获取菜单
@@ -35,7 +36,7 @@ public interface ISysMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
     /// <param name="menuCode">菜单编码</param>
     /// <param name="excludeId">排除的菜单ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByMenuCodeAsync(string menuCode, RbacIdType? excludeId = null);
+    Task<bool> ExistsByMenuCodeAsync(string menuCode, XiHanBasicAppIdType? excludeId = null);
 
     /// <summary>
     /// 获取所有根菜单
@@ -48,19 +49,19 @@ public interface ISysMenuRepository : IRepositoryBase<SysMenu, RbacIdType>
     /// </summary>
     /// <param name="parentId">父级菜单ID</param>
     /// <returns></returns>
-    Task<List<SysMenu>> GetChildrenAsync(RbacIdType parentId);
+    Task<List<SysMenu>> GetChildrenAsync(XiHanBasicAppIdType parentId);
 
     /// <summary>
     /// 根据角色ID获取菜单列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<SysMenu>> GetByRoleIdAsync(RbacIdType roleId);
+    Task<List<SysMenu>> GetByRoleIdAsync(XiHanBasicAppIdType roleId);
 
     /// <summary>
     /// 根据用户ID获取菜单列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysMenu>> GetByUserIdAsync(RbacIdType userId);
+    Task<List<SysMenu>> GetByUserIdAsync(XiHanBasicAppIdType userId);
 }

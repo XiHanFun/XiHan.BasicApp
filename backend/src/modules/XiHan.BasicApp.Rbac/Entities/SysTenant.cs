@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -24,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Tenant", "系统租户表")]
 [SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
-public partial class SysTenant : RbacFullAuditedEntity<RbacIdType>
+public partial class SysTenant : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 租户编码
@@ -156,7 +157,7 @@ public partial class SysTenant : RbacFullAuditedEntity<RbacIdType>
     /// 存储空间限制(MB)
     /// </summary>
     [SugarColumn(ColumnDescription = "存储空间限制(MB)", IsNullable = true)]
-    public virtual RbacIdType? StorageLimit { get; set; }
+    public virtual XiHanBasicAppIdType? StorageLimit { get; set; }
 
     /// <summary>
     /// 租户状态

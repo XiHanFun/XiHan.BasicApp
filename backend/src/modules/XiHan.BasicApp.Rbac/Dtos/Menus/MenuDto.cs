@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -25,7 +26,7 @@ public class MenuDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    public RbacIdType? ParentId { get; set; }
+    public XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称
@@ -112,7 +113,7 @@ public class CreateMenuDto : RbacCreationDtoBase
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    public RbacIdType? ParentId { get; set; }
+    public XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称
@@ -183,7 +184,7 @@ public class UpdateMenuDto : RbacUpdateDtoBase
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    public RbacIdType? ParentId { get; set; }
+    public XiHanBasicAppIdType? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称
