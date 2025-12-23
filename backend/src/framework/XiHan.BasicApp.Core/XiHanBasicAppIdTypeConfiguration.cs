@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacIdTypeConfiguration
+// FileName:XiHanBasicAppIdTypeConfiguration
 // Guid:8b28152c-d6e9-4396-addb-b479254bad98
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -12,19 +12,19 @@
 
 #endregion <<版权版本注释>>
 
-namespace XiHan.BasicApp.Rbac.Entities.Base;
+namespace XiHan.BasicApp.Core;
 
 /// <summary>
 /// RBAC 模块 ID 类型统一配置
 /// 这是推荐的最佳实践方案：简单、统一、易维护
 /// </summary>
-public static class RbacIdTypeConfiguration
+public static class XiHanBasicAppIdTypeConfiguration
 {
     /// <summary>
     /// 当前项目使用的 ID 类型
     /// 修改此属性可以全局切换整个 RBAC 模块的 ID 类型
     /// </summary>
-    public static readonly Type CurrentIdType = typeof(RbacIdType);
+    public static readonly Type CurrentIdType = typeof(XiHanBasicAppIdType);
 
     /// <summary>
     /// 获取当前配置的 ID 类型名称
