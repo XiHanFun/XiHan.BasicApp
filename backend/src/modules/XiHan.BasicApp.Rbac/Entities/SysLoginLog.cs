@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Login_Log", "系统登录日志表")]
 [SugarIndex("IX_SysLoginLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoginTime", nameof(LoginTime), OrderByType.Desc)]
-public partial class SysLoginLog : RbacCreationEntity<XiHanBasicAppIdType>
+public partial class SysLoginLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
     /// <summary>
     /// 用户ID
