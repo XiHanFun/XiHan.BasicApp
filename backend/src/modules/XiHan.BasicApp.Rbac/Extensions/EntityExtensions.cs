@@ -28,6 +28,7 @@ using XiHan.BasicApp.Rbac.Services.Emails.Dtos;
 using XiHan.BasicApp.Rbac.Services.Files.Dtos;
 using XiHan.BasicApp.Rbac.Services.LoginLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Menus.Dtos;
+using XiHan.BasicApp.Rbac.Services.Notifications.Dtos;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Permissions.Dtos;
 using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
@@ -1152,6 +1153,58 @@ public static class EntityExtensions
     public static List<SmsDto> ToDto(this IEnumerable<SysSms> entities)
     {
         return entities.Adapt<List<SmsDto>>();
+    }
+
+    #endregion
+
+    #region 通知扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static NotificationDto ToDto(this SysNotification entity)
+    {
+        return new NotificationDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            UserId = entity.UserId,
+            SenderId = entity.SenderId,
+            NotificationType = entity.NotificationType,
+            Title = entity.Title,
+            Content = entity.Content,
+            Icon = entity.Icon,
+            Link = entity.Link,
+            BusinessType = entity.BusinessType,
+            BusinessId = entity.BusinessId,
+            NotificationStatus = entity.NotificationStatus,
+            ReadTime = entity.ReadTime,
+            SendTime = entity.SendTime,
+            ExpireTime = entity.ExpireTime,
+            IsGlobal = entity.IsGlobal,
+            NeedConfirm = entity.NeedConfirm,
+            Status = entity.Status,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<NotificationDto> ToDto(this IEnumerable<SysNotification> entities)
+    {
+        return entities.Adapt<List<NotificationDto>>();
     }
 
     #endregion
