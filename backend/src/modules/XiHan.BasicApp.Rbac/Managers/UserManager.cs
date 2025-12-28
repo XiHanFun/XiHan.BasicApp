@@ -14,13 +14,13 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Repositories.Abstractions;
+using XiHan.BasicApp.Rbac.Repositories.Users;
 using XiHan.Framework.Domain.Services;
 
 namespace XiHan.BasicApp.Rbac.Managers;
 
 /// <summary>
-/// 用户领域管理器
+/// 系统用户领域管理器
 /// </summary>
 public class UserManager : DomainService
 {

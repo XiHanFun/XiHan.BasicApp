@@ -16,7 +16,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.DataPermissions.Enums;
-using XiHan.BasicApp.Rbac.Repositories.Abstractions;
+using XiHan.BasicApp.Rbac.Repositories.Departments;
+using XiHan.BasicApp.Rbac.Repositories.Users;
 
 namespace XiHan.BasicApp.Rbac.DataPermissions.Filters;
 

@@ -13,10 +13,18 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Rbac.Repositories.Abstractions;
-using XiHan.BasicApp.Rbac.Repositories.Implementations;
-using XiHan.BasicApp.Rbac.Services.Abstractions;
-using XiHan.BasicApp.Rbac.Services.Implementations;
+using XiHan.BasicApp.Rbac.Repositories.Departments;
+using XiHan.BasicApp.Rbac.Repositories.Menus;
+using XiHan.BasicApp.Rbac.Repositories.Permissions;
+using XiHan.BasicApp.Rbac.Repositories.Roles;
+using XiHan.BasicApp.Rbac.Repositories.Tenants;
+using XiHan.BasicApp.Rbac.Repositories.Users;
+using XiHan.BasicApp.Rbac.Services.Departments;
+using XiHan.BasicApp.Rbac.Services.Menus;
+using XiHan.BasicApp.Rbac.Services.Permissions;
+using XiHan.BasicApp.Rbac.Services.Roles;
+using XiHan.BasicApp.Rbac.Services.Tenants;
+using XiHan.BasicApp.Rbac.Services.Users;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 

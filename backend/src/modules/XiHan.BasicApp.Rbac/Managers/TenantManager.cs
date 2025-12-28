@@ -15,13 +15,13 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Repositories.Abstractions;
+using XiHan.BasicApp.Rbac.Repositories.Tenants;
 using XiHan.Framework.Domain.Services;
 
 namespace XiHan.BasicApp.Rbac.Managers;
 
 /// <summary>
-/// 租户领域管理器
+/// 系统租户领域管理器
 /// </summary>
 public class TenantManager : DomainService
 {
