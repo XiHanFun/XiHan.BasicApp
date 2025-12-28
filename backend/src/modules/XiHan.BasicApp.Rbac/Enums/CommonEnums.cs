@@ -623,3 +623,59 @@ public enum AccessResult
     /// </summary>
     ServerError = 5
 }
+
+/// <summary>
+/// 设备类型枚举
+/// </summary>
+public enum DeviceType
+{
+    /// <summary>
+    /// 未知
+    /// </summary>
+    Unknown = 0,
+
+    /// <summary>
+    /// Web浏览器
+    /// </summary>
+    Web = 1,
+
+    /// <summary>
+    /// iOS移动端
+    /// </summary>
+    iOS = 2,
+
+    /// <summary>
+    /// Android移动端
+    /// </summary>
+    Android = 3,
+
+    /// <summary>
+    /// Windows桌面
+    /// </summary>
+    Windows = 4,
+
+    /// <summary>
+    /// macOS桌面
+    /// </summary>
+    macOS = 5,
+
+    /// <summary>
+    /// Linux桌面
+    /// </summary>
+    Linux = 6,
+
+    /// <summary>
+    /// 平板设备
+    /// </summary>
+    Tablet = 7,
+
+    /// <summary>
+    /// 小程序
+    /// </summary>
+    MiniProgram = 8,
+
+    /// <summary>
+    /// API调用
+    /// </summary>
+    Api = 9
+}

@@ -39,3 +39,19 @@ public enum PermissionType
     /// </summary>
     Data = 3
 }
+
+/// <summary>
+/// 权限操作枚举
+/// </summary>
+public enum PermissionAction
+{
+    /// <summary>
+    /// 授予权限
+    /// </summary>
+    Grant = 0,
+
+    /// <summary>
+    /// 禁用权限
+    /// </summary>
+    Deny = 1
+}
