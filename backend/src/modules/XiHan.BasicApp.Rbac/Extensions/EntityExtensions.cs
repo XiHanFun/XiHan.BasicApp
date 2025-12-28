@@ -39,7 +39,10 @@ using XiHan.BasicApp.Rbac.Services.Sms.Dtos;
 using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Tasks.Dtos;
 using XiHan.BasicApp.Rbac.Services.Tenants.Dtos;
+using XiHan.BasicApp.Rbac.Services.UserPermissions.Dtos;
 using XiHan.BasicApp.Rbac.Services.Users.Dtos;
+using XiHan.BasicApp.Rbac.Services.UserSecurities.Dtos;
+using XiHan.BasicApp.Rbac.Services.UserSessions.Dtos;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
@@ -1348,6 +1351,153 @@ public static class EntityExtensions
     public static List<OAuthTokenDto> ToDto(this IEnumerable<SysOAuthToken> entities)
     {
         return entities.Adapt<List<OAuthTokenDto>>();
+    }
+
+    #endregion
+
+    #region 用户权限扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static UserPermissionDto ToDto(this SysUserPermission entity)
+    {
+        return new UserPermissionDto
+        {
+            BasicId = entity.BasicId,
+            UserId = entity.UserId,
+            PermissionId = entity.PermissionId,
+            PermissionAction = entity.PermissionAction,
+            EffectiveTime = entity.EffectiveTime,
+            ExpirationTime = entity.ExpirationTime,
+            Status = entity.Status,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<UserPermissionDto> ToDto(this IEnumerable<SysUserPermission> entities)
+    {
+        return entities.Adapt<List<UserPermissionDto>>();
+    }
+
+    #endregion
+
+    #region 用户安全扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static UserSecurityDto ToDto(this SysUserSecurity entity)
+    {
+        return new UserSecurityDto
+        {
+            BasicId = entity.BasicId,
+            UserId = entity.UserId,
+            LastPasswordChangeTime = entity.LastPasswordChangeTime,
+            PasswordExpiryTime = entity.PasswordExpiryTime,
+            FailedLoginAttempts = entity.FailedLoginAttempts,
+            LastFailedLoginTime = entity.LastFailedLoginTime,
+            IsLocked = entity.IsLocked,
+            LockoutTime = entity.LockoutTime,
+            LockoutEndTime = entity.LockoutEndTime,
+            TwoFactorEnabled = entity.TwoFactorEnabled,
+            TwoFactorSecret = entity.TwoFactorSecret,
+            SecurityStamp = entity.SecurityStamp,
+            EmailVerified = entity.EmailVerified,
+            PhoneVerified = entity.PhoneVerified,
+            AllowMultiLogin = entity.AllowMultiLogin,
+            MaxLoginDevices = entity.MaxLoginDevices,
+            LastSecurityCheckTime = entity.LastSecurityCheckTime,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<UserSecurityDto> ToDto(this IEnumerable<SysUserSecurity> entities)
+    {
+        return entities.Adapt<List<UserSecurityDto>>();
+    }
+
+    #endregion
+
+    #region 用户会话扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static UserSessionDto ToDto(this SysUserSession entity)
+    {
+        return new UserSessionDto
+        {
+            BasicId = entity.BasicId,
+            UserId = entity.UserId,
+            Token = entity.Token,
+            RefreshToken = entity.RefreshToken,
+            SessionId = entity.SessionId,
+            DeviceType = entity.DeviceType,
+            DeviceName = entity.DeviceName,
+            DeviceId = entity.DeviceId,
+            OperatingSystem = entity.OperatingSystem,
+            Browser = entity.Browser,
+            IpAddress = entity.IpAddress,
+            Location = entity.Location,
+            LoginTime = entity.LoginTime,
+            LastActivityTime = entity.LastActivityTime,
+            TokenExpiresAt = entity.TokenExpiresAt,
+            RefreshTokenExpiresAt = entity.RefreshTokenExpiresAt,
+            IsOnline = entity.IsOnline,
+            IsRevoked = entity.IsRevoked,
+            RevokedAt = entity.RevokedAt,
+            RevokedReason = entity.RevokedReason,
+            LogoutTime = entity.LogoutTime,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<UserSessionDto> ToDto(this IEnumerable<SysUserSession> entities)
+    {
+        return entities.Adapt<List<UserSessionDto>>();
     }
 
     #endregion
