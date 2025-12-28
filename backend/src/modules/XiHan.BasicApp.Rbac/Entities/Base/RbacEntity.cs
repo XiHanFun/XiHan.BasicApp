@@ -32,12 +32,6 @@ public abstract class RbacEntity<TKey> : SugarEntity<TKey>
 public abstract class RbacEntityWithIdentity<TKey> : SugarEntityWithIdentity<TKey>
     where TKey : IEquatable<TKey>
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    protected RbacEntityWithIdentity() : base()
-    {
-    }
 }
 
 /// <summary>
