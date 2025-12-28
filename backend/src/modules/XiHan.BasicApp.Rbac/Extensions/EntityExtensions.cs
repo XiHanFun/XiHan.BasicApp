@@ -24,12 +24,14 @@ using XiHan.BasicApp.Rbac.Services.Configs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Departments.Dtos;
 using XiHan.BasicApp.Rbac.Services.DictItems.Dtos;
 using XiHan.BasicApp.Rbac.Services.Dicts.Dtos;
+using XiHan.BasicApp.Rbac.Services.Emails.Dtos;
 using XiHan.BasicApp.Rbac.Services.Files.Dtos;
 using XiHan.BasicApp.Rbac.Services.LoginLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Menus.Dtos;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Permissions.Dtos;
 using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
+using XiHan.BasicApp.Rbac.Services.Sms.Dtos;
 using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Tasks.Dtos;
 using XiHan.BasicApp.Rbac.Services.Tenants.Dtos;
@@ -1038,6 +1040,118 @@ public static class EntityExtensions
     public static List<FileDto> ToDto(this IEnumerable<SysFile> entities)
     {
         return entities.Adapt<List<FileDto>>();
+    }
+
+    #endregion
+
+    #region 邮件扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static EmailDto ToDto(this SysEmail entity)
+    {
+        return new EmailDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            SenderId = entity.SenderId,
+            ReceiverId = entity.ReceiverId,
+            EmailType = entity.EmailType,
+            FromEmail = entity.FromEmail,
+            FromName = entity.FromName,
+            ToEmail = entity.ToEmail,
+            CcEmail = entity.CcEmail,
+            BccEmail = entity.BccEmail,
+            Subject = entity.Subject,
+            Content = entity.Content,
+            IsHtml = entity.IsHtml,
+            Attachments = entity.Attachments,
+            TemplateId = entity.TemplateId,
+            TemplateParams = entity.TemplateParams,
+            EmailStatus = entity.EmailStatus,
+            ScheduledTime = entity.ScheduledTime,
+            SendTime = entity.SendTime,
+            RetryCount = entity.RetryCount,
+            MaxRetryCount = entity.MaxRetryCount,
+            ErrorMessage = entity.ErrorMessage,
+            BusinessType = entity.BusinessType,
+            BusinessId = entity.BusinessId,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<EmailDto> ToDto(this IEnumerable<SysEmail> entities)
+    {
+        return entities.Adapt<List<EmailDto>>();
+    }
+
+    #endregion
+
+    #region 短信扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static SmsDto ToDto(this SysSms entity)
+    {
+        return new SmsDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            SenderId = entity.SenderId,
+            ReceiverId = entity.ReceiverId,
+            SmsType = entity.SmsType,
+            ToPhone = entity.ToPhone,
+            Content = entity.Content,
+            TemplateId = entity.TemplateId,
+            TemplateParams = entity.TemplateParams,
+            Provider = entity.Provider,
+            SmsStatus = entity.SmsStatus,
+            ScheduledTime = entity.ScheduledTime,
+            SendTime = entity.SendTime,
+            ProviderMessageId = entity.ProviderMessageId,
+            RetryCount = entity.RetryCount,
+            MaxRetryCount = entity.MaxRetryCount,
+            ErrorMessage = entity.ErrorMessage,
+            Cost = entity.Cost,
+            BusinessType = entity.BusinessType,
+            BusinessId = entity.BusinessId,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<SmsDto> ToDto(this IEnumerable<SysSms> entities)
+    {
+        return entities.Adapt<List<SmsDto>>();
     }
 
     #endregion
