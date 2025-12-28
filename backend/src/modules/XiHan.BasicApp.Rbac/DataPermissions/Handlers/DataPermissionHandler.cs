@@ -16,7 +16,8 @@ using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.DataPermissions.Attributes;
 using XiHan.BasicApp.Rbac.DataPermissions.Enums;
 using XiHan.BasicApp.Rbac.DataPermissions.Filters;
-using XiHan.BasicApp.Rbac.Repositories.Abstractions;
+using XiHan.BasicApp.Rbac.Repositories.Roles;
+using XiHan.BasicApp.Rbac.Repositories.Users;
 
 namespace XiHan.BasicApp.Rbac.DataPermissions.Handlers;
 

@@ -13,13 +13,13 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Rbac.Repositories.Abstractions;
+using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.Framework.Domain.Services;
 
 namespace XiHan.BasicApp.Rbac.Managers;
 
 /// <summary>
-/// 部门领域管理器
+/// 系统部门领域管理器
 /// </summary>
 public class DepartmentManager : DomainService
 {

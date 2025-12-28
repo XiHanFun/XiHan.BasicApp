@@ -12,14 +12,22 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
+using System.Linq;
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Rbac.Dtos.Departments;
-using XiHan.BasicApp.Rbac.Dtos.Menus;
-using XiHan.BasicApp.Rbac.Dtos.Permissions;
-using XiHan.BasicApp.Rbac.Dtos.Roles;
-using XiHan.BasicApp.Rbac.Dtos.Tenants;
-using XiHan.BasicApp.Rbac.Dtos.Users;
 using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Services.AccessLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.AuditLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.Departments.Dtos;
+using XiHan.BasicApp.Rbac.Services.LoginLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.Menus.Dtos;
+using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.Permissions.Dtos;
+using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
+using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.Tenants.Dtos;
+using XiHan.BasicApp.Rbac.Services.Users.Dtos;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
@@ -392,6 +400,334 @@ public static class EntityExtensions
     public static List<TenantDto> ToDto(this IEnumerable<SysTenant> entities)
     {
         return entities.Select(e => e.ToDto()).ToList();
+    }
+
+    #endregion
+
+    #region 访问日志扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static AccessLogDto ToDto(this SysAccessLog entity)
+    {
+        return new AccessLogDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            UserId = entity.UserId,
+            UserName = entity.UserName,
+            SessionId = entity.SessionId,
+            ResourcePath = entity.ResourcePath,
+            ResourceName = entity.ResourceName,
+            ResourceType = entity.ResourceType,
+            Method = entity.Method,
+            AccessResult = entity.AccessResult,
+            StatusCode = entity.StatusCode,
+            AccessIp = entity.AccessIp,
+            AccessLocation = entity.AccessLocation,
+            UserAgent = entity.UserAgent,
+            Browser = entity.Browser,
+            Os = entity.Os,
+            Device = entity.Device,
+            Referer = entity.Referer,
+            ResponseTime = entity.ResponseTime,
+            ResponseSize = entity.ResponseSize,
+            AccessTime = entity.AccessTime,
+            LeaveTime = entity.LeaveTime,
+            StayTime = entity.StayTime,
+            ErrorMessage = entity.ErrorMessage,
+            ExtendData = entity.ExtendData,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<AccessLogDto> ToDto(this IEnumerable<SysAccessLog> entities)
+    {
+        return entities.Adapt<List<AccessLogDto>>();
+    }
+
+    #endregion
+
+    #region API日志扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static ApiLogDto ToDto(this SysApiLog entity)
+    {
+        return new ApiLogDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            UserId = entity.UserId,
+            UserName = entity.UserName,
+            RequestId = entity.RequestId,
+            SessionId = entity.SessionId,
+            ApiPath = entity.ApiPath,
+            ApiName = entity.ApiName,
+            ApiDescription = entity.ApiDescription,
+            Method = entity.Method,
+            ControllerName = entity.ControllerName,
+            ActionName = entity.ActionName,
+            RequestParams = entity.RequestParams,
+            RequestBody = entity.RequestBody,
+            ResponseBody = entity.ResponseBody,
+            StatusCode = entity.StatusCode,
+            RequestHeaders = entity.RequestHeaders,
+            ResponseHeaders = entity.ResponseHeaders,
+            RequestIp = entity.RequestIp,
+            RequestLocation = entity.RequestLocation,
+            UserAgent = entity.UserAgent,
+            Browser = entity.Browser,
+            Os = entity.Os,
+            Referer = entity.Referer,
+            RequestTime = entity.RequestTime,
+            ResponseTime = entity.ResponseTime,
+            ExecutionTime = entity.ExecutionTime,
+            RequestSize = entity.RequestSize,
+            ResponseSize = entity.ResponseSize,
+            IsSuccess = entity.IsSuccess,
+            ErrorMessage = entity.ErrorMessage,
+            ExceptionStackTrace = entity.ExceptionStackTrace,
+            ApiVersion = entity.ApiVersion,
+            BusinessType = entity.BusinessType,
+            ExtendData = entity.ExtendData,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<ApiLogDto> ToDto(this IEnumerable<SysApiLog> entities)
+    {
+        return entities.Select(e => e.ToDto()).ToList();
+    }
+
+    #endregion
+
+    #region 审核日志扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static AuditLogDto ToDto(this SysAuditLog entity)
+    {
+        return new AuditLogDto
+        {
+            BasicId = entity.BasicId,
+            AuditId = entity.AuditId,
+            AuditorId = entity.AuditorId,
+            AuditLevel = entity.AuditLevel,
+            AuditResult = entity.AuditResult,
+            AuditOpinion = entity.AuditOpinion,
+            AuditTime = entity.AuditTime,
+            BeforeStatus = entity.BeforeStatus,
+            AfterStatus = entity.AfterStatus,
+            AuditIp = entity.AuditIp,
+            AuditLocation = entity.AuditLocation,
+            Browser = entity.Browser,
+            Os = entity.Os,
+            Attachments = entity.Attachments,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<AuditLogDto> ToDto(this IEnumerable<SysAuditLog> entities)
+    {
+        return entities.Select(e => e.ToDto()).ToList();
+    }
+
+    #endregion
+
+    #region 操作日志扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static OperationLogDto ToDto(this SysOperationLog entity)
+    {
+        return new OperationLogDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            UserId = entity.UserId,
+            UserName = entity.UserName,
+            OperationType = entity.OperationType,
+            Module = entity.Module,
+            Function = entity.Function,
+            Title = entity.Title,
+            Description = entity.Description,
+            Method = entity.Method,
+            RequestUrl = entity.RequestUrl,
+            RequestParams = entity.RequestParams,
+            ResponseResult = entity.ResponseResult,
+            ExecutionTime = entity.ExecutionTime,
+            OperationIp = entity.OperationIp,
+            OperationLocation = entity.OperationLocation,
+            Browser = entity.Browser,
+            Os = entity.Os,
+            Status = entity.Status,
+            ErrorMessage = entity.ErrorMessage,
+            OperationTime = entity.OperationTime,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<OperationLogDto> ToDto(this IEnumerable<SysOperationLog> entities)
+    {
+        return entities.Select(e => e.ToDto()).ToList();
+    }
+
+    #endregion
+
+    #region 登录日志扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static LoginLogDto ToDto(this SysLoginLog entity)
+    {
+        return new LoginLogDto
+        {
+            BasicId = entity.BasicId,
+            UserId = entity.UserId,
+            UserName = entity.UserName,
+            LoginIp = entity.LoginIp,
+            LoginLocation = entity.LoginLocation,
+            Browser = entity.Browser,
+            Os = entity.Os,
+            Status = entity.Status,
+            Message = entity.Message,
+            LoginTime = entity.LoginTime,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<LoginLogDto> ToDto(this IEnumerable<SysLoginLog> entities)
+    {
+        return entities.Adapt<List<LoginLogDto>>();
+    }
+
+    #endregion
+
+    #region 任务日志扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static TaskLogDto ToDto(this SysTaskLog entity)
+    {
+        return new TaskLogDto
+        {
+            BasicId = entity.BasicId,
+            TaskId = entity.TaskId,
+            TaskCode = entity.TaskCode,
+            TaskName = entity.TaskName,
+            BatchNumber = entity.BatchNumber,
+            ServerName = entity.ServerName,
+            ProcessId = entity.ProcessId,
+            ThreadId = entity.ThreadId,
+            TaskStatus = entity.TaskStatus,
+            StartTime = entity.StartTime,
+            EndTime = entity.EndTime,
+            ExecutionTime = entity.ExecutionTime,
+            ExecutionResult = entity.ExecutionResult,
+            ExceptionMessage = entity.ExceptionMessage,
+            ExceptionStackTrace = entity.ExceptionStackTrace,
+            OutputLog = entity.OutputLog,
+            MemoryUsage = entity.MemoryUsage,
+            CpuUsage = entity.CpuUsage,
+            RetryCount = entity.RetryCount,
+            TriggerMode = entity.TriggerMode,
+            ExtendData = entity.ExtendData,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<TaskLogDto> ToDto(this IEnumerable<SysTaskLog> entities)
+    {
+        return entities.Adapt<List<TaskLogDto>>();
     }
 
     #endregion
