@@ -19,13 +19,19 @@ using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Services.AccessLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.AuditLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.Audits.Dtos;
+using XiHan.BasicApp.Rbac.Services.Configs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Departments.Dtos;
+using XiHan.BasicApp.Rbac.Services.DictItems.Dtos;
+using XiHan.BasicApp.Rbac.Services.Dicts.Dtos;
+using XiHan.BasicApp.Rbac.Services.Files.Dtos;
 using XiHan.BasicApp.Rbac.Services.LoginLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Menus.Dtos;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Permissions.Dtos;
 using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
 using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
+using XiHan.BasicApp.Rbac.Services.Tasks.Dtos;
 using XiHan.BasicApp.Rbac.Services.Tenants.Dtos;
 using XiHan.BasicApp.Rbac.Services.Users.Dtos;
 
@@ -728,6 +734,310 @@ public static class EntityExtensions
     public static List<TaskLogDto> ToDto(this IEnumerable<SysTaskLog> entities)
     {
         return entities.Adapt<List<TaskLogDto>>();
+    }
+
+    #endregion
+
+    #region 任务扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static TaskDto ToDto(this SysTask entity)
+    {
+        return new TaskDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            TaskCode = entity.TaskCode,
+            TaskName = entity.TaskName,
+            TaskDescription = entity.TaskDescription,
+            TaskGroup = entity.TaskGroup,
+            TaskClass = entity.TaskClass,
+            TaskMethod = entity.TaskMethod,
+            TaskParams = entity.TaskParams,
+            TriggerType = entity.TriggerType,
+            CronExpression = entity.CronExpression,
+            StartTime = entity.StartTime,
+            EndTime = entity.EndTime,
+            NextRunTime = entity.NextRunTime,
+            LastRunTime = entity.LastRunTime,
+            IntervalSeconds = entity.IntervalSeconds,
+            RepeatCount = entity.RepeatCount,
+            ExecutedCount = entity.ExecutedCount,
+            TimeoutSeconds = entity.TimeoutSeconds,
+            TaskStatus = entity.TaskStatus,
+            Priority = entity.Priority,
+            AllowConcurrent = entity.AllowConcurrent,
+            RetryCount = entity.RetryCount,
+            MaxRetryCount = entity.MaxRetryCount,
+            Status = entity.Status,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<TaskDto> ToDto(this IEnumerable<SysTask> entities)
+    {
+        return entities.Adapt<List<TaskDto>>();
+    }
+
+    #endregion
+
+    #region 审核扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static AuditDto ToDto(this SysAudit entity)
+    {
+        return new AuditDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            Title = entity.Title,
+            Content = entity.Content,
+            BusinessType = entity.BusinessType,
+            BusinessId = entity.BusinessId,
+            BusinessData = entity.BusinessData,
+            SubmitterId = entity.SubmitterId,
+            AuditorId = entity.AuditorId,
+            AuditStatus = entity.AuditStatus,
+            AuditResult = entity.AuditResult,
+            AuditOpinion = entity.AuditOpinion,
+            SubmitTime = entity.SubmitTime,
+            AuditTime = entity.AuditTime,
+            Priority = entity.Priority,
+            IsMultiLevel = entity.IsMultiLevel,
+            CurrentLevel = entity.CurrentLevel,
+            TotalLevel = entity.TotalLevel,
+            Deadline = entity.Deadline,
+            Attachments = entity.Attachments,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<AuditDto> ToDto(this IEnumerable<SysAudit> entities)
+    {
+        return entities.Adapt<List<AuditDto>>();
+    }
+
+    #endregion
+
+    #region 字典扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static DictDto ToDto(this SysDict entity)
+    {
+        return new DictDto
+        {
+            BasicId = entity.BasicId,
+            DictCode = entity.DictCode,
+            DictName = entity.DictName,
+            DictType = entity.DictType,
+            DictDescription = entity.DictDescription,
+            IsBuiltIn = entity.IsBuiltIn,
+            Status = entity.Status,
+            Sort = entity.Sort,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<DictDto> ToDto(this IEnumerable<SysDict> entities)
+    {
+        return entities.Adapt<List<DictDto>>();
+    }
+
+    #endregion
+
+    #region 字典项扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static DictItemDto ToDto(this SysDictItem entity)
+    {
+        return new DictItemDto
+        {
+            BasicId = entity.BasicId,
+            DictId = entity.DictId,
+            DictCode = entity.DictCode,
+            ParentId = entity.ParentId,
+            ItemCode = entity.ItemCode,
+            ItemName = entity.ItemName,
+            ItemValue = entity.ItemValue,
+            ItemDescription = entity.ItemDescription,
+            ExtendField1 = entity.ExtendField1,
+            ExtendField2 = entity.ExtendField2,
+            ExtendField3 = entity.ExtendField3,
+            IsDefault = entity.IsDefault,
+            Status = entity.Status,
+            Sort = entity.Sort,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<DictItemDto> ToDto(this IEnumerable<SysDictItem> entities)
+    {
+        return entities.Adapt<List<DictItemDto>>();
+    }
+
+    #endregion
+
+    #region 配置扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static ConfigDto ToDto(this SysConfig entity)
+    {
+        return new ConfigDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            ConfigKey = entity.ConfigKey,
+            ConfigName = entity.ConfigName,
+            ConfigValue = entity.ConfigValue,
+            DefaultValue = entity.DefaultValue,
+            ConfigType = entity.ConfigType,
+            DataType = entity.DataType,
+            ConfigDescription = entity.ConfigDescription,
+            IsBuiltIn = entity.IsBuiltIn,
+            IsEncrypted = entity.IsEncrypted,
+            Status = entity.Status,
+            Sort = entity.Sort,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<ConfigDto> ToDto(this IEnumerable<SysConfig> entities)
+    {
+        return entities.Adapt<List<ConfigDto>>();
+    }
+
+    #endregion
+
+    #region 文件扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static FileDto ToDto(this SysFile entity)
+    {
+        return new FileDto
+        {
+            BasicId = entity.BasicId,
+            TenantId = entity.TenantId,
+            FileName = entity.FileName,
+            OriginalName = entity.OriginalName,
+            FileExtension = entity.FileExtension,
+            FileType = entity.FileType,
+            MimeType = entity.MimeType,
+            FileSize = entity.FileSize,
+            FileHash = entity.FileHash,
+            StoragePath = entity.StoragePath,
+            AccessUrl = entity.AccessUrl,
+            StorageType = entity.StorageType,
+            BucketName = entity.BucketName,
+            UploaderId = entity.UploaderId,
+            UploadIp = entity.UploadIp,
+            BusinessType = entity.BusinessType,
+            BusinessId = entity.BusinessId,
+            DownloadCount = entity.DownloadCount,
+            LastDownloadTime = entity.LastDownloadTime,
+            Status = entity.Status,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<FileDto> ToDto(this IEnumerable<SysFile> entities)
+    {
+        return entities.Adapt<List<FileDto>>();
     }
 
     #endregion
