@@ -29,6 +29,9 @@ using XiHan.BasicApp.Rbac.Services.Files.Dtos;
 using XiHan.BasicApp.Rbac.Services.LoginLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Menus.Dtos;
 using XiHan.BasicApp.Rbac.Services.Notifications.Dtos;
+using XiHan.BasicApp.Rbac.Services.OAuthApps.Dtos;
+using XiHan.BasicApp.Rbac.Services.OAuthCodes.Dtos;
+using XiHan.BasicApp.Rbac.Services.OAuthTokens.Dtos;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Permissions.Dtos;
 using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
@@ -1205,6 +1208,146 @@ public static class EntityExtensions
     public static List<NotificationDto> ToDto(this IEnumerable<SysNotification> entities)
     {
         return entities.Adapt<List<NotificationDto>>();
+    }
+
+    #endregion
+
+    #region OAuth应用扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static OAuthAppDto ToDto(this SysOAuthApp entity)
+    {
+        return new OAuthAppDto
+        {
+            BasicId = entity.BasicId,
+            AppName = entity.AppName,
+            AppDescription = entity.AppDescription,
+            ClientId = entity.ClientId,
+            ClientSecret = entity.ClientSecret,
+            AppType = entity.AppType,
+            GrantTypes = entity.GrantTypes,
+            RedirectUris = entity.RedirectUris,
+            Scopes = entity.Scopes,
+            AccessTokenLifetime = entity.AccessTokenLifetime,
+            RefreshTokenLifetime = entity.RefreshTokenLifetime,
+            AuthorizationCodeLifetime = entity.AuthorizationCodeLifetime,
+            Logo = entity.Logo,
+            Homepage = entity.Homepage,
+            SkipConsent = entity.SkipConsent,
+            Status = entity.Status,
+            Remark = entity.Remark,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<OAuthAppDto> ToDto(this IEnumerable<SysOAuthApp> entities)
+    {
+        return entities.Adapt<List<OAuthAppDto>>();
+    }
+
+    #endregion
+
+    #region OAuth授权码扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static OAuthCodeDto ToDto(this SysOAuthCode entity)
+    {
+        return new OAuthCodeDto
+        {
+            BasicId = entity.BasicId,
+            Code = entity.Code,
+            ClientId = entity.ClientId,
+            UserId = entity.UserId,
+            RedirectUri = entity.RedirectUri,
+            Scopes = entity.Scopes,
+            State = entity.State,
+            CodeChallenge = entity.CodeChallenge,
+            CodeChallengeMethod = entity.CodeChallengeMethod,
+            ExpiresAt = entity.ExpiresAt,
+            IsUsed = entity.IsUsed,
+            UsedAt = entity.UsedAt,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<OAuthCodeDto> ToDto(this IEnumerable<SysOAuthCode> entities)
+    {
+        return entities.Adapt<List<OAuthCodeDto>>();
+    }
+
+    #endregion
+
+    #region OAuth令牌扩展
+
+    /// <summary>
+    /// 实体转DTO
+    /// </summary>
+    /// <param name="entity">实体</param>
+    /// <returns></returns>
+    public static OAuthTokenDto ToDto(this SysOAuthToken entity)
+    {
+        return new OAuthTokenDto
+        {
+            BasicId = entity.BasicId,
+            AccessToken = entity.AccessToken,
+            RefreshToken = entity.RefreshToken,
+            TokenType = entity.TokenType,
+            ClientId = entity.ClientId,
+            UserId = entity.UserId,
+            GrantType = entity.GrantType,
+            Scopes = entity.Scopes,
+            AccessTokenExpiresAt = entity.AccessTokenExpiresAt,
+            RefreshTokenExpiresAt = entity.RefreshTokenExpiresAt,
+            IsRevoked = entity.IsRevoked,
+            RevokedAt = entity.RevokedAt,
+            CreatedBy = entity.CreatedBy,
+            CreatedTime = entity.CreatedTime,
+            ModifiedBy = entity.ModifiedBy,
+            ModifiedTime = entity.ModifiedTime,
+            IsDeleted = entity.IsDeleted,
+            DeletedBy = entity.DeletedBy,
+            DeletedTime = entity.DeletedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体列表转DTO列表
+    /// </summary>
+    /// <param name="entities">实体列表</param>
+    /// <returns></returns>
+    public static List<OAuthTokenDto> ToDto(this IEnumerable<SysOAuthToken> entities)
+    {
+        return entities.Adapt<List<OAuthTokenDto>>();
     }
 
     #endregion
