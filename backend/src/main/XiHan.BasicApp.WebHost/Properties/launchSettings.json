@@ -5,7 +5,7 @@
       "commandName": "Project",
       "launchBrowser": true,
       "applicationUrl": "http://127.0.0.1:9707",
-      "launchUrl": "swagger",
+      "launchUrl": "scalar",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Test"
       },
@@ -15,7 +15,7 @@
       "commandName": "Project",
       "launchBrowser": true,
       "applicationUrl": "http://127.0.0.1:9708",
-      "launchUrl": "swagger",
+      "launchUrl": "scalar",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
@@ -24,7 +24,7 @@
     "Production": {
       "commandName": "Project",
       "applicationUrl": "http://127.0.0.1:9709",
-      "launchUrl": "swagger",
+      "launchUrl": "scalar",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Production"
       },
