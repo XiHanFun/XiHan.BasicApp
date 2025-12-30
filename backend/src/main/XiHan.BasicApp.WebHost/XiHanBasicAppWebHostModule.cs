@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.CodeGeneration;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
@@ -25,7 +24,6 @@ namespace XiHan.BasicApp.WebHost;
 /// 曦寒基础应用 Web 主机
 /// </summary>
 [DependsOn(
-    typeof(XiHanBasicAppCoreModule),
     typeof(XiHanBasicAppRbacModule),
     typeof(XiHanBasicAppCodeGenerationModule),
     typeof(XiHanBasicAppWebCoreModule)

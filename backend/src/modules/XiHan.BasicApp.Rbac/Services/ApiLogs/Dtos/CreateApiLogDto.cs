@@ -12,51 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
-// Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:CreateApiLogDto
-// Guid:c2c2d3e4-f5a6-7890-abcd-ef1234567893
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2025/12/28 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
-
-
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
-// Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:CreateApiLogDto
-// Guid:c2c2d3e4-f5a6-7890-abcd-ef1234567893
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2025/12/28 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
-
-
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
-// Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:CreateApiLogDto
-// Guid:c2c2d3e4-f5a6-7890-abcd-ef1234567893
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2025/12/28 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
-
 using XiHan.BasicApp.Core;
 
 namespace XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
@@ -231,4 +186,3 @@ public class CreateApiLogDto
     /// </summary>
     public string? Remark { get; set; }
 }
-

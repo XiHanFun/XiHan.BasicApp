@@ -14,37 +14,37 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.AI" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Application" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Authentication" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Authorization" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Bot" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Caching" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.CodeGeneration" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Core" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Data" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.DistributedIds" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Domain" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.EventBus" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Http" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Localization" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Logging" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Messaging" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.ObjectMapping" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Script" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.SearchEngines" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Security" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Serialization" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Settings" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Tasks" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Templating" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Threading" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Uow" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Utils" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.Validation" Version="2.0.0-alpha.12" />
-      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="2.0.0-alpha.12" />
+      <PackageReference Include="XiHan.Framework" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.AI" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Application" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Authentication" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Authorization" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Bot" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Caching" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.CodeGeneration" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Core" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Data" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.DistributedIds" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Domain" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.EventBus" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Http" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Localization" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Logging" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Messaging" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.ObjectMapping" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Script" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.SearchEngines" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Security" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Serialization" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Settings" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Tasks" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Templating" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Threading" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Uow" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Utils" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.Validation" Version="2.0.0-alpha.13" />
+      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="2.0.0-alpha.13" />
     </ItemGroup>
 
 </Project>

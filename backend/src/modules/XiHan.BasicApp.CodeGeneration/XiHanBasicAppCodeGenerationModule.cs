@@ -12,7 +12,7 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.CodeGeneration;
@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 曦寒基础应用代码生成应用模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanBasicAppCoreModule)
+    typeof(XiHanBasicAppRbacModule)
 )]
 public class XiHanBasicAppCodeGenerationModule : XiHanModule
 {

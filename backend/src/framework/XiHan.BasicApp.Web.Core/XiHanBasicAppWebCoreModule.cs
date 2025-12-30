@@ -27,12 +27,12 @@ namespace XiHan.BasicApp.Web.Core;
 /// XiHanBasicAppWebCoreModule
 /// </summary>
 [DependsOn(
+    typeof(XiHanBasicAppCoreModule),
     typeof(XiHanWebCoreModule),
     typeof(XiHanWebApiModule),
     typeof(XiHanWebDocsModule),
     typeof(XiHanWebRealTimeModule),
-    typeof(XiHanWebGatewayModule),
-    typeof(XiHanBasicAppCoreModule)
+    typeof(XiHanWebGatewayModule)
 )]
 public class XiHanBasicAppWebCoreModule : XiHanModule
 {
