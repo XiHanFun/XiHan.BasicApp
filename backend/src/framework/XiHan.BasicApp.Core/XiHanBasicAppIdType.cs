@@ -48,7 +48,7 @@ public readonly struct XiHanBasicAppIdType(long value)
     /// <returns></returns>
     public static bool operator ==(XiHanBasicAppIdType left, XiHanBasicAppIdType right)
     {
-        return left.Equals(right);
+        return left == right;
     }
 
     /// <summary>
