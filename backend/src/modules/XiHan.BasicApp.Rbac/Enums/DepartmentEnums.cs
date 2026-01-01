@@ -20,17 +20,82 @@ namespace XiHan.BasicApp.Rbac.Enums;
 public enum DepartmentType
 {
     /// <summary>
+    /// 集团（最高级别的组织单位）
+    /// </summary>
+    Corporation = 0,
+
+    /// <summary>
+    /// 总公司/总部
+    /// </summary>
+    Headquarters = 1,
+
+    /// <summary>
     /// 公司
     /// </summary>
-    Company = 0,
+    Company = 2,
+
+    /// <summary>
+    /// 分公司
+    /// </summary>
+    Branch = 3,
+
+    /// <summary>
+    /// 事业部
+    /// </summary>
+    Division = 4,
+
+    /// <summary>
+    /// 中心
+    /// </summary>
+    Center = 5,
 
     /// <summary>
     /// 部门
     /// </summary>
-    Department = 1,
+    Department = 6,
+
+    /// <summary>
+    /// 科室
+    /// </summary>
+    Section = 7,
+
+    /// <summary>
+    /// 团队
+    /// </summary>
+    Team = 8,
 
     /// <summary>
     /// 小组
     /// </summary>
-    Group = 2
+    Group = 9,
+
+    /// <summary>
+    /// 项目组
+    /// </summary>
+    Project = 10,
+
+    /// <summary>
+    /// 工作组
+    /// </summary>
+    Workgroup = 11,
+
+    /// <summary>
+    /// 虚拟组织（跨部门协作组织）
+    /// </summary>
+    Virtual = 12,
+
+    /// <summary>
+    /// 办事处
+    /// </summary>
+    Office = 13,
+
+    /// <summary>
+    /// 子公司
+    /// </summary>
+    Subsidiary = 14,
+
+    /// <summary>
+    /// 其他
+    /// </summary>
+    Other = 99
 }

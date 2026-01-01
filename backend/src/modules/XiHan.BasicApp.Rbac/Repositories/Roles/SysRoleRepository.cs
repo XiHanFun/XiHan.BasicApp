@@ -117,4 +117,132 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
             .Select((ur, r) => r)
             .ToListAsync();
     }
+
+    /// <summary>
+    /// 获取角色的所有父角色ID（递归查询继承链）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>父角色ID列表（包括所有祖先角色）</returns>
+    public async Task<List<XiHanBasicAppIdType>> GetParentRoleIdsAsync(XiHanBasicAppIdType roleId)
+    {
+        var parentRoleIds = new List<XiHanBasicAppIdType>();
+        await GetParentRoleIdsRecursiveAsync(roleId, parentRoleIds);
+        return parentRoleIds;
+    }
+
+    /// <summary>
+    /// 获取角色的所有子角色ID（递归查询继承链）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>子角色ID列表（包括所有后代角色）</returns>
+    public async Task<List<XiHanBasicAppIdType>> GetChildRoleIdsAsync(XiHanBasicAppIdType roleId)
+    {
+        var childRoleIds = new List<XiHanBasicAppIdType>();
+        await GetChildRoleIdsRecursiveAsync(roleId, childRoleIds);
+        return childRoleIds;
+    }
+
+    /// <summary>
+    /// 获取角色的所有父角色（递归查询继承链）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>父角色列表（包括所有祖先角色）</returns>
+    public async Task<List<SysRole>> GetParentRolesAsync(XiHanBasicAppIdType roleId)
+    {
+        var parentRoleIds = await GetParentRoleIdsAsync(roleId);
+        if (!parentRoleIds.Any())
+        {
+            return [];
+        }
+
+        var roles = await GetListAsync(r => parentRoleIds.Contains(r.BasicId));
+        return roles.ToList();
+    }
+
+    /// <summary>
+    /// 获取角色的所有子角色（递归查询继承链）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>子角色列表（包括所有后代角色）</returns>
+    public async Task<List<SysRole>> GetChildRolesAsync(XiHanBasicAppIdType roleId)
+    {
+        var childRoleIds = await GetChildRoleIdsAsync(roleId);
+        if (!childRoleIds.Any())
+        {
+            return [];
+        }
+
+        var roles = await GetListAsync(r => childRoleIds.Contains(r.BasicId));
+        return roles.ToList();
+    }
+
+    /// <summary>
+    /// 检查是否会形成循环继承
+    /// </summary>
+    /// <param name="roleId">当前角色ID</param>
+    /// <param name="parentRoleId">要设置的父角色ID</param>
+    /// <returns>是否会形成循环</returns>
+    public async Task<bool> WouldCreateCycleAsync(XiHanBasicAppIdType roleId, XiHanBasicAppIdType parentRoleId)
+    {
+        // 如果父角色ID等于当前角色ID，直接返回true
+        if (roleId == parentRoleId)
+        {
+            return true;
+        }
+
+        // 检查parentRoleId是否是roleId的子孙角色
+        var childRoleIds = await GetChildRoleIdsAsync(roleId);
+        return childRoleIds.Contains(parentRoleId);
+    }
+
+    /// <summary>
+    /// 获取角色树（包含子角色）
+    /// </summary>
+    /// <param name="parentRoleId">父角色ID，null表示获取根角色</param>
+    /// <returns>角色树</returns>
+    public async Task<List<SysRole>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null)
+    {
+        if (parentRoleId == null)
+        {
+            // 获取所有根角色（没有父角色的角色）
+            var rootRoles = await GetListAsync(r => r.ParentRoleId == null);
+            return rootRoles.ToList();
+        }
+
+        // 获取指定父角色下的所有子角色
+        var childRoles = await GetListAsync(r => r.ParentRoleId == parentRoleId);
+        return childRoles.ToList();
+    }
+
+    /// <summary>
+    /// 递归获取父角色ID
+    /// </summary>
+    private async Task GetParentRoleIdsRecursiveAsync(XiHanBasicAppIdType roleId, List<XiHanBasicAppIdType> result)
+    {
+        var role = await GetByIdAsync(roleId);
+        if (role?.ParentRoleId != null && role.ParentRoleId.Value != default(XiHanBasicAppIdType))
+        {
+            if (!result.Contains(role.ParentRoleId.Value))
+            {
+                result.Add(role.ParentRoleId.Value);
+                await GetParentRoleIdsRecursiveAsync(role.ParentRoleId.Value, result);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 递归获取子角色ID
+    /// </summary>
+    private async Task GetChildRoleIdsRecursiveAsync(XiHanBasicAppIdType roleId, List<XiHanBasicAppIdType> result)
+    {
+        var childRoles = await GetListAsync(r => r.ParentRoleId == roleId);
+        foreach (var child in childRoles)
+        {
+            if (!result.Contains(child.BasicId))
+            {
+                result.Add(child.BasicId);
+                await GetChildRoleIdsRecursiveAsync(child.BasicId, result);
+            }
+        }
+    }
 }

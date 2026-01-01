@@ -16,9 +16,13 @@ using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Managers;
+using XiHan.BasicApp.Rbac.Repositories.Menus;
+using XiHan.BasicApp.Rbac.Repositories.Permissions;
 using XiHan.BasicApp.Rbac.Repositories.Roles;
+using XiHan.BasicApp.Rbac.Repositories.UserPermissions;
 using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Data.SqlSugar;
@@ -31,6 +35,9 @@ namespace XiHan.BasicApp.Rbac.Services.Roles;
 public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHanBasicAppIdType, CreateRoleDto, UpdateRoleDto>, ISysRoleService
 {
     private readonly ISysRoleRepository _roleRepository;
+    private readonly ISysPermissionRepository _permissionRepository;
+    private readonly ISysMenuRepository _menuRepository;
+    private readonly ISysUserPermissionRepository _userPermissionRepository;
     private readonly RoleManager _roleManager;
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -39,10 +46,16 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// </summary>
     public SysRoleService(
         ISysRoleRepository roleRepository,
+        ISysPermissionRepository permissionRepository,
+        ISysMenuRepository menuRepository,
+        ISysUserPermissionRepository userPermissionRepository,
         RoleManager roleManager,
         ISqlSugarDbContext dbContext) : base(roleRepository)
     {
         _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _menuRepository = menuRepository;
+        _userPermissionRepository = userPermissionRepository;
         _roleManager = roleManager;
         _dbContext = dbContext;
     }
@@ -111,8 +124,19 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
             throw new InvalidOperationException(ErrorMessageConstants.RoleCodeExists);
         }
 
+        // 如果设置了父角色，验证父角色是否存在
+        if (input.ParentRoleId.HasValue)
+        {
+            var parentRole = await _roleRepository.GetByIdAsync(input.ParentRoleId.Value);
+            if (parentRole == null)
+            {
+                throw new InvalidOperationException("指定的父角色不存在");
+            }
+        }
+
         var role = new SysRole
         {
+            ParentRoleId = input.ParentRoleId,
             RoleCode = input.RoleCode,
             RoleName = input.RoleName,
             RoleDescription = input.RoleDescription,
@@ -153,6 +177,24 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     {
         var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
+
+        // 如果要更新父角色，需要检查循环继承
+        if (input.ParentRoleId.HasValue)
+        {
+            if (await _roleRepository.WouldCreateCycleAsync(id, input.ParentRoleId.Value))
+            {
+                throw new InvalidOperationException("设置该父角色将形成循环继承，操作被拒绝");
+            }
+
+            // 检查父角色是否存在
+            var parentRole = await _roleRepository.GetByIdAsync(input.ParentRoleId.Value);
+            if (parentRole == null)
+            {
+                throw new InvalidOperationException("指定的父角色不存在");
+            }
+
+            role.ParentRoleId = input.ParentRoleId;
+        }
 
         // 更新角色信息
         if (input.RoleName != null)
@@ -282,6 +324,271 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     }
 
     #endregion 角色菜单和权限管理
+
+    #region 角色继承
+
+    /// <summary>
+    /// 设置父角色（建立继承关系）
+    /// </summary>
+    public async Task<bool> SetParentRoleAsync(XiHanBasicAppIdType roleId, XiHanBasicAppIdType? parentRoleId)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId) ??
+            throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
+
+        // 如果要设置父角色，需要检查循环继承
+        if (parentRoleId.HasValue)
+        {
+            if (await _roleRepository.WouldCreateCycleAsync(roleId, parentRoleId.Value))
+            {
+                throw new InvalidOperationException("设置该父角色将形成循环继承，操作被拒绝");
+            }
+
+            // 检查父角色是否存在
+            var parentRole = await _roleRepository.GetByIdAsync(parentRoleId.Value);
+            if (parentRole == null)
+            {
+                throw new InvalidOperationException("指定的父角色不存在");
+            }
+        }
+
+        role.ParentRoleId = parentRoleId;
+        await _roleRepository.UpdateAsync(role);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 获取角色的所有权限（包括继承的权限）
+    /// </summary>
+    public async Task<List<SysPermission>> GetRolePermissionsWithInheritanceAsync(XiHanBasicAppIdType roleId, bool includeInherited = true)
+    {
+        var permissions = new List<SysPermission>();
+
+        // 1. 获取角色直接拥有的权限
+        var directPermissions = await _permissionRepository.GetByRoleIdAsync(roleId);
+        permissions.AddRange(directPermissions);
+
+        // 2. 如果需要包括继承的权限
+        if (includeInherited)
+        {
+            var inheritedPermissions = await GetInheritedPermissionsAsync(roleId);
+            permissions.AddRange(inheritedPermissions);
+        }
+
+        return permissions.DistinctBy(p => p.BasicId).ToList();
+    }
+
+    /// <summary>
+    /// 获取角色的所有菜单（包括继承的菜单）
+    /// </summary>
+    public async Task<List<SysMenu>> GetRoleMenusWithInheritanceAsync(XiHanBasicAppIdType roleId, bool includeInherited = true)
+    {
+        var menus = new List<SysMenu>();
+
+        // 1. 获取角色直接拥有的菜单
+        var menuIds = await _roleRepository.GetRoleMenuIdsAsync(roleId);
+        if (menuIds.Any())
+        {
+            var directMenus = await _menuRepository.GetListAsync(m => menuIds.Contains(m.BasicId));
+            menus.AddRange(directMenus);
+        }
+
+        // 2. 如果需要包括继承的菜单
+        if (includeInherited)
+        {
+            var inheritedMenus = await GetInheritedMenusAsync(roleId);
+            menus.AddRange(inheritedMenus);
+        }
+
+        return menus.DistinctBy(m => m.BasicId).ToList();
+    }
+
+    /// <summary>
+    /// 获取用户的所有权限（包括角色继承的权限）
+    /// </summary>
+    public async Task<List<SysPermission>> GetUserPermissionsAsync(XiHanBasicAppIdType userId)
+    {
+        var allPermissions = new List<SysPermission>();
+
+        // 1. 获取用户的所有角色
+        var userRoles = await _roleRepository.GetByUserIdAsync(userId);
+
+        // 2. 获取每个角色的权限（包括继承）
+        foreach (var role in userRoles)
+        {
+            var rolePermissions = await GetRolePermissionsWithInheritanceAsync(role.BasicId, true);
+            allPermissions.AddRange(rolePermissions);
+        }
+
+        // 3. 获取用户直接授予的权限并处理授予/禁用逻辑
+        var userPermissions = await _dbContext.GetClient()
+            .Queryable<SysUserPermission>()
+            .Where(up => up.UserId == userId && up.Status == YesOrNo.Yes)
+            .LeftJoin<SysPermission>((up, p) => up.PermissionId == p.BasicId)
+            .Where((up, p) => p.Status == YesOrNo.Yes)
+            .Select((up, p) => new { Permission = p, up.PermissionAction })
+            .ToListAsync();
+
+        // 4. 处理授予和禁用操作
+        foreach (var item in userPermissions)
+        {
+            if (item.PermissionAction == PermissionAction.Grant)
+            {
+                // 添加授予的权限
+                if (!allPermissions.Any(p => p.BasicId == item.Permission.BasicId))
+                {
+                    allPermissions.Add(item.Permission);
+                }
+            }
+            else if (item.PermissionAction == PermissionAction.Deny)
+            {
+                // 移除被禁用的权限
+                allPermissions.RemoveAll(p => p.BasicId == item.Permission.BasicId);
+            }
+        }
+
+        return allPermissions.DistinctBy(p => p.BasicId).ToList();
+    }
+
+    /// <summary>
+    /// 获取用户的所有菜单（包括角色继承的菜单）
+    /// </summary>
+    public async Task<List<SysMenu>> GetUserMenusAsync(XiHanBasicAppIdType userId)
+    {
+        var allMenus = new List<SysMenu>();
+
+        // 获取用户的所有角色
+        var userRoles = await _roleRepository.GetByUserIdAsync(userId);
+
+        // 获取每个角色的菜单（包括继承）
+        foreach (var role in userRoles)
+        {
+            var roleMenus = await GetRoleMenusWithInheritanceAsync(role.BasicId, true);
+            allMenus.AddRange(roleMenus);
+        }
+
+        return allMenus.DistinctBy(m => m.BasicId).ToList();
+    }
+
+    /// <summary>
+    /// 检查用户是否拥有指定权限（考虑继承和直接授予/禁用）
+    /// </summary>
+    public async Task<bool> HasPermissionAsync(XiHanBasicAppIdType userId, string permissionCode)
+    {
+        // 1. 检查用户直接禁用的权限（最高优先级）
+        var userDeniedPermissions = await _dbContext.GetClient()
+            .Queryable<SysUserPermission>()
+            .Where(up => up.UserId == userId
+                && up.PermissionAction == PermissionAction.Deny
+                && up.Status == YesOrNo.Yes)
+            .LeftJoin<SysPermission>((up, p) => up.PermissionId == p.BasicId)
+            .Where((up, p) => p.PermissionCode == permissionCode)
+            .AnyAsync();
+
+        if (userDeniedPermissions) return false;
+
+        // 2. 检查用户直接授予的权限
+        var userGrantedPermissions = await _dbContext.GetClient()
+            .Queryable<SysUserPermission>()
+            .Where(up => up.UserId == userId
+                && up.PermissionAction == PermissionAction.Grant
+                && up.Status == YesOrNo.Yes)
+            .LeftJoin<SysPermission>((up, p) => up.PermissionId == p.BasicId)
+            .Where((up, p) => p.PermissionCode == permissionCode)
+            .AnyAsync();
+
+        if (userGrantedPermissions) return true;
+
+        // 3. 检查角色权限（含继承）
+        var userPermissions = await GetUserPermissionsAsync(userId);
+        return userPermissions.Any(p => p.PermissionCode == permissionCode);
+    }
+
+    /// <summary>
+    /// 批量检查用户权限
+    /// </summary>
+    public async Task<Dictionary<string, bool>> BatchCheckPermissionsAsync(XiHanBasicAppIdType userId, params string[] permissionCodes)
+    {
+        var result = new Dictionary<string, bool>();
+
+        foreach (var permissionCode in permissionCodes)
+        {
+            result[permissionCode] = await HasPermissionAsync(userId, permissionCode);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取角色继承链（从当前角色到根角色）
+    /// </summary>
+    public async Task<List<RoleDto>> GetRoleInheritanceChainAsync(XiHanBasicAppIdType roleId)
+    {
+        var chain = new List<RoleDto>();
+        var parentRoles = await _roleRepository.GetParentRolesAsync(roleId);
+
+        foreach (var role in parentRoles)
+        {
+            chain.Add(role.ToDto());
+        }
+
+        return chain;
+    }
+
+    /// <summary>
+    /// 获取角色树（包含子角色）
+    /// </summary>
+    public async Task<List<RoleDto>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null)
+    {
+        var roles = await _roleRepository.GetRoleTreeAsync(parentRoleId);
+        return roles.Select(r => r.ToDto()).ToList();
+    }
+
+    /// <summary>
+    /// 递归获取继承的权限
+    /// </summary>
+    private async Task<List<SysPermission>> GetInheritedPermissionsAsync(XiHanBasicAppIdType roleId)
+    {
+        var inheritedPermissions = new List<SysPermission>();
+
+        // 获取父角色ID列表
+        var parentRoleIds = await _roleRepository.GetParentRoleIdsAsync(roleId);
+
+        foreach (var parentRoleId in parentRoleIds)
+        {
+            // 获取父角色的直接权限
+            var parentPermissions = await _permissionRepository.GetByRoleIdAsync(parentRoleId);
+            inheritedPermissions.AddRange(parentPermissions);
+        }
+
+        return inheritedPermissions;
+    }
+
+    /// <summary>
+    /// 递归获取继承的菜单
+    /// </summary>
+    private async Task<List<SysMenu>> GetInheritedMenusAsync(XiHanBasicAppIdType roleId)
+    {
+        var inheritedMenus = new List<SysMenu>();
+
+        // 获取父角色ID列表
+        var parentRoleIds = await _roleRepository.GetParentRoleIdsAsync(roleId);
+
+        foreach (var parentRoleId in parentRoleIds)
+        {
+            // 获取父角色的菜单
+            var menuIds = await _roleRepository.GetRoleMenuIdsAsync(parentRoleId);
+            if (menuIds.Any())
+            {
+                var parentMenus = await _menuRepository.GetListAsync(m => menuIds.Contains(m.BasicId));
+                inheritedMenus.AddRange(parentMenus);
+            }
+        }
+
+        return inheritedMenus;
+    }
+
+    #endregion 角色继承
 
     #region 映射方法实现
 

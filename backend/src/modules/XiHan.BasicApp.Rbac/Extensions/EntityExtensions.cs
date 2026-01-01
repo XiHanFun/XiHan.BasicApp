@@ -113,6 +113,7 @@ public static class EntityExtensions
         return new RoleDto
         {
             BasicId = entity.BasicId,
+            ParentRoleId = entity.ParentRoleId,
             RoleCode = entity.RoleCode,
             RoleName = entity.RoleName,
             RoleDescription = entity.RoleDescription,

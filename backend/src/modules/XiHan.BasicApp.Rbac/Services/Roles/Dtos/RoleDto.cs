@@ -24,6 +24,11 @@ namespace XiHan.BasicApp.Rbac.Services.Roles.Dtos;
 public class RoleDto : RbacFullAuditedDtoBase
 {
     /// <summary>
+    /// 父角色ID
+    /// </summary>
+    public XiHanBasicAppIdType? ParentRoleId { get; set; }
+
+    /// <summary>
     /// 角色编码
     /// </summary>
     public string RoleCode { get; set; } = string.Empty;
@@ -86,6 +91,11 @@ public class RoleDetailDto : RoleDto
 public class CreateRoleDto : RbacCreationDtoBase
 {
     /// <summary>
+    /// 父角色ID（用于角色继承）
+    /// </summary>
+    public XiHanBasicAppIdType? ParentRoleId { get; set; }
+
+    /// <summary>
     /// 角色编码
     /// </summary>
     public string RoleCode { get; set; } = string.Empty;
@@ -131,6 +141,11 @@ public class CreateRoleDto : RbacCreationDtoBase
 /// </summary>
 public class UpdateRoleDto : RbacUpdateDtoBase
 {
+    /// <summary>
+    /// 父角色ID（用于角色继承）
+    /// </summary>
+    public XiHanBasicAppIdType? ParentRoleId { get; set; }
+
     /// <summary>
     /// 角色名称
     /// </summary>

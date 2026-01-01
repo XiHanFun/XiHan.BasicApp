@@ -24,8 +24,15 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Role", "系统角色表")]
 [SugarIndex("IX_SysRole_RoleCode", nameof(RoleCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRole_ParentRoleId", nameof(ParentRoleId), OrderByType.Asc)]
 public partial class SysRole : RbacFullAuditedEntity<XiHanBasicAppIdType>
 {
+    /// <summary>
+    /// 父角色ID（用于角色继承，子角色继承父角色的所有权限）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "父角色ID", IsNullable = true)]
+    public virtual XiHanBasicAppIdType? ParentRoleId { get; set; }
+
     /// <summary>
     /// 角色编码
     /// </summary>

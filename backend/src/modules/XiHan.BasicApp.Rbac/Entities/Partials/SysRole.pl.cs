@@ -56,4 +56,16 @@ public partial class SysRole
     /// </summary>
     [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.RoleId), nameof(SysRoleMenu.MenuId))]
     public virtual List<SysMenu>? Menus { get; set; }
+
+    /// <summary>
+    /// 父角色
+    /// </summary>
+    [Navigate(NavigateType.OneToOne, nameof(ParentRoleId))]
+    public virtual SysRole? ParentRole { get; set; }
+
+    /// <summary>
+    /// 子角色列表
+    /// </summary>
+    [Navigate(NavigateType.OneToMany, nameof(ParentRoleId))]
+    public virtual List<SysRole>? ChildRoles { get; set; }
 }
