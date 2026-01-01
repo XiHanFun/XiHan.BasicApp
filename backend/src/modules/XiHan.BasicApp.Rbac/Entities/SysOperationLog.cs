@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统操作日志实体
 /// </summary>
 [SugarTable("Sys_Operation_Log", "系统操作日志表")]
+[SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysOperationLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysOperationLog_OperationType", nameof(OperationType), OrderByType.Asc)]
 [SugarIndex("IX_SysOperationLog_OperationTime", nameof(OperationTime), OrderByType.Desc)]
@@ -148,4 +149,11 @@ public partial class SysOperationLog : RbacFullAuditedEntity<XiHanBasicAppIdType
     /// </summary>
     [SugarColumn(ColumnDescription = "操作时间")]
     public virtual DateTimeOffset OperationTime { get; set; } = DateTimeOffset.Now;
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SplitField]
+    public override DateTimeOffset CreatedTime { get; set; }
 }

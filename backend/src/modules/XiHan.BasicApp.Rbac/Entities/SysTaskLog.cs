@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统任务日志实体
 /// </summary>
 [SugarTable("Sys_Task_Log", "系统任务日志表")]
+[SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysTaskLog_TaskId", nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_StartTime", nameof(StartTime), OrderByType.Desc)]
@@ -153,4 +154,11 @@ public partial class SysTaskLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// </summary>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SplitField]
+    public override DateTimeOffset CreatedTime { get; set; }
 }

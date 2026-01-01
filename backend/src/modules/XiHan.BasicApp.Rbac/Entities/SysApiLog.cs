@@ -22,6 +22,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统接口日志实体
 /// </summary>
 [SugarTable("Sys_Api_Log", "系统接口日志表")]
+[SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysApiLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_ApiPath", nameof(ApiPath), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_Method", nameof(Method), OrderByType.Asc)]
@@ -239,4 +240,11 @@ public partial class SysApiLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// </summary>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SplitField]
+    public override DateTimeOffset CreatedTime { get; set; }
 }
