@@ -101,7 +101,7 @@ public class DataPermissionFilter : IDataPermissionFilter
         List<XiHanBasicAppIdType> customDepartmentIds,
         string departmentField = "DepartmentId") where TEntity : class
     {
-        if (!customDepartmentIds.Any())
+        if (customDepartmentIds.Count == 0)
         {
             return null;
         }
