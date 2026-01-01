@@ -12,7 +12,7 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Rbac.DataPermissions.Enums;
+using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.DataPermissions.Attributes;
 
