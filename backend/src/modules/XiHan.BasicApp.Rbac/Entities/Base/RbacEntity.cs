@@ -68,18 +68,4 @@ public abstract class RbacDeletionEntity<TKey> : SugarDeletionEntity<TKey>
 public abstract class RbacFullAuditedEntity<TKey> : SugarFullAuditedEntity<TKey>
     where TKey : IEquatable<TKey>
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    protected RbacFullAuditedEntity() : base()
-    {
-    }
-
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    /// <param name="basicId">主键</param>
-    protected RbacFullAuditedEntity(TKey basicId) : base(basicId)
-    {
-    }
 }
