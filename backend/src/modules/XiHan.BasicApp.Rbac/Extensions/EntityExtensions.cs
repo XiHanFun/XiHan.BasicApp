@@ -118,6 +118,7 @@ public static class EntityExtensions
             RoleName = entity.RoleName,
             RoleDescription = entity.RoleDescription,
             RoleType = entity.RoleType,
+            DataScope = entity.DataScope,
             Status = entity.Status,
             Sort = entity.Sort,
             Remark = entity.Remark,

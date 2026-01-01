@@ -15,7 +15,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Rbac.DataPermissions.Enums;
+using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.BasicApp.Rbac.Repositories.Users;
 
@@ -84,12 +84,29 @@ public class DataPermissionFilter : IDataPermissionFilter
                 return await BuildDepartmentAndChildrenExpressionAsync<TEntity>(userId, departmentField);
 
             case DataPermissionScope.Custom:
-                // 自定义数据权限，需要实现自定义过滤器
+                // 自定义数据权限，需要由外部提供自定义部门ID列表
+                // 这里返回null，由调用方使用BuildCustomFilterExpression方法构建
                 return null;
 
             default:
                 return null;
         }
+    }
+
+    /// <summary>
+    /// 构建自定义数据权限表达式
+    /// </summary>
+    public Expression<Func<TEntity, bool>>? BuildCustomFilterExpression<TEntity>(
+        XiHanBasicAppIdType userId,
+        List<XiHanBasicAppIdType> customDepartmentIds,
+        string departmentField = "DepartmentId") where TEntity : class
+    {
+        if (!customDepartmentIds.Any())
+        {
+            return null;
+        }
+
+        return BuildDepartmentExpression<TEntity>(customDepartmentIds, departmentField);
     }
 
     /// <summary>

@@ -12,12 +12,15 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.DataPermissions.Attributes;
-using XiHan.BasicApp.Rbac.DataPermissions.Enums;
 using XiHan.BasicApp.Rbac.DataPermissions.Filters;
+using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Roles;
 using XiHan.BasicApp.Rbac.Repositories.Users;
+using XiHan.Framework.Data.SqlSugar;
 
 namespace XiHan.BasicApp.Rbac.DataPermissions.Handlers;
 
@@ -30,6 +33,7 @@ public class DataPermissionHandler
     private readonly IDataPermissionFilter _dataPermissionFilter;
     private readonly ISysUserRepository _userRepository;
     private readonly ISysRoleRepository _roleRepository;
+    private readonly ISqlSugarDbContext _dbContext;
 
     /// <summary>
     /// 构造函数
@@ -37,11 +41,13 @@ public class DataPermissionHandler
     public DataPermissionHandler(
         IDataPermissionFilter dataPermissionFilter,
         ISysUserRepository userRepository,
-        ISysRoleRepository roleRepository)
+        ISysRoleRepository roleRepository,
+        ISqlSugarDbContext dbContext)
     {
         _dataPermissionFilter = dataPermissionFilter;
         _userRepository = userRepository;
         _roleRepository = roleRepository;
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -109,10 +115,40 @@ public class DataPermissionHandler
             return DataPermissionScope.All;
         }
 
-        // 这里可以根据角色配置返回不同的数据权限范围
-        // 示例：从角色的扩展属性或配置中读取数据权限范围
-        // 目前返回默认权限范围
-        return defaultScope;
+        // 获取最大的数据权限范围（权限范围从大到小：All > DepartmentAndChildren > DepartmentOnly > SelfOnly）
+        var maxScope = roles.Select(r => r.DataScope).Max();
+        return maxScope;
+    }
+
+    /// <summary>
+    /// 获取用户的自定义数据权限部门ID列表
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>部门ID列表</returns>
+    public async Task<List<XiHanBasicAppIdType>> GetUserCustomDataScopeDepartmentIdsAsync(XiHanBasicAppIdType userId)
+    {
+        // 获取用户的角色
+        var roles = await _roleRepository.GetByUserIdAsync(userId);
+        if (!roles.Any())
+        {
+            return [];
+        }
+
+        // 获取所有角色的自定义数据权限部门ID
+        var roleIds = roles.Where(r => r.DataScope == DataPermissionScope.Custom).Select(r => r.BasicId).ToList();
+        if (!roleIds.Any())
+        {
+            return [];
+        }
+
+        var departmentIds = await _dbContext.GetClient()
+            .Queryable<SysRoleDataScope>()
+            .Where(rds => roleIds.Contains(rds.RoleId) && rds.Status == Enums.YesOrNo.Yes)
+            .Select(rds => rds.DepartmentId)
+            .Distinct()
+            .ToListAsync();
+
+        return departmentIds;
     }
 
     /// <summary>

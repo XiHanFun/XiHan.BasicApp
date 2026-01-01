@@ -49,6 +49,11 @@ public class RoleDto : RbacFullAuditedDtoBase
     public RoleType RoleType { get; set; }
 
     /// <summary>
+    /// 数据权限范围
+    /// </summary>
+    public DataPermissionScope DataScope { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; }
@@ -78,6 +83,11 @@ public class RoleDetailDto : RoleDto
     /// 权限ID列表
     /// </summary>
     public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+
+    /// <summary>
+    /// 自定义数据权限部门ID列表（当DataScope=Custom时使用）
+    /// </summary>
+    public List<XiHanBasicAppIdType> CustomDataScopeDepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 用户数量
@@ -116,6 +126,11 @@ public class CreateRoleDto : RbacCreationDtoBase
     public RoleType RoleType { get; set; } = RoleType.System;
 
     /// <summary>
+    /// 数据权限范围
+    /// </summary>
+    public DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
+
+    /// <summary>
     /// 排序
     /// </summary>
     public int Sort { get; set; } = 0;
@@ -129,6 +144,11 @@ public class CreateRoleDto : RbacCreationDtoBase
     /// 权限ID列表
     /// </summary>
     public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+
+    /// <summary>
+    /// 自定义数据权限部门ID列表（当DataScope=Custom时使用）
+    /// </summary>
+    public List<XiHanBasicAppIdType> CustomDataScopeDepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 备注
@@ -160,6 +180,11 @@ public class UpdateRoleDto : RbacUpdateDtoBase
     /// 角色类型
     /// </summary>
     public RoleType? RoleType { get; set; }
+
+    /// <summary>
+    /// 数据权限范围
+    /// </summary>
+    public DataPermissionScope? DataScope { get; set; }
 
     /// <summary>
     /// 状态
@@ -207,4 +232,20 @@ public class AssignRolePermissionsDto
     /// 权限ID列表
     /// </summary>
     public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+}
+
+/// <summary>
+/// 分配自定义数据权限 DTO
+/// </summary>
+public class AssignRoleDataScopeDto
+{
+    /// <summary>
+    /// 角色ID
+    /// </summary>
+    public XiHanBasicAppIdType RoleId { get; set; }
+
+    /// <summary>
+    /// 部门ID列表（自定义数据权限范围）
+    /// </summary>
+    public List<XiHanBasicAppIdType> DepartmentIds { get; set; } = [];
 }

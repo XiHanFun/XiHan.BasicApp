@@ -68,4 +68,10 @@ public partial class SysRole
     /// </summary>
     [Navigate(NavigateType.OneToMany, nameof(ParentRoleId))]
     public virtual List<SysRole>? ChildRoles { get; set; }
+
+    /// <summary>
+    /// 角色自定义数据权限范围列表
+    /// </summary>
+    [Navigate(NavigateType.OneToMany, nameof(SysRoleDataScope.RoleId))]
+    public virtual List<SysRoleDataScope>? DataScopes { get; set; }
 }

@@ -58,6 +58,12 @@ public partial class SysRole : RbacFullAuditedEntity<XiHanBasicAppIdType>
     public virtual RoleType RoleType { get; set; } = RoleType.System;
 
     /// <summary>
+    /// 数据权限范围
+    /// </summary>
+    [SugarColumn(ColumnDescription = "数据权限范围")]
+    public virtual DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]

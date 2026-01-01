@@ -14,7 +14,7 @@
 
 using System.Linq.Expressions;
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Rbac.DataPermissions.Enums;
+using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.DataPermissions.Filters;
 
@@ -47,6 +47,19 @@ public interface IDataPermissionFilter
         DataPermissionScope scope,
         string departmentField = "DepartmentId",
         string creatorField = "CreatedBy") where TEntity : class;
+
+    /// <summary>
+    /// 构建自定义数据权限表达式
+    /// </summary>
+    /// <typeparam name="TEntity">实体类型</typeparam>
+    /// <param name="userId">用户ID</param>
+    /// <param name="customDepartmentIds">自定义部门ID列表</param>
+    /// <param name="departmentField">部门字段名称</param>
+    /// <returns>过滤表达式</returns>
+    Expression<Func<TEntity, bool>>? BuildCustomFilterExpression<TEntity>(
+        XiHanBasicAppIdType userId,
+        List<XiHanBasicAppIdType> customDepartmentIds,
+        string departmentField = "DepartmentId") where TEntity : class;
 
     /// <summary>
     /// 检查用户是否有数据访问权限
