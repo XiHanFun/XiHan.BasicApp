@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统访问日志实体
 /// </summary>
 [SugarTable("Sys_Access_Log", "系统访问日志表")]
+[SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysAccessLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysAccessLog_AccessResult", nameof(AccessResult), OrderByType.Asc)]
 [SugarIndex("IX_SysAccessLog_AccessTime", nameof(AccessTime), OrderByType.Desc)]
@@ -179,4 +180,11 @@ public partial class SysAccessLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// </summary>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SplitField]
+    public override DateTimeOffset CreatedTime { get; set; }
 }

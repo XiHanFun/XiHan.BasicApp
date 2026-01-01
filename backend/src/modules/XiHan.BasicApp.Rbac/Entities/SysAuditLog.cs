@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统审核日志实体
 /// </summary>
 [SugarTable("Sys_Audit_Log", "系统审核日志表")]
+[SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysAuditLog_AuditId", nameof(AuditId), OrderByType.Asc)]
 [SugarIndex("IX_SysAuditLog_AuditorId", nameof(AuditorId), OrderByType.Asc)]
 [SugarIndex("IX_SysAuditLog_AuditResult", nameof(AuditResult), OrderByType.Asc)]
@@ -112,4 +113,11 @@ public partial class SysAuditLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// </summary>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SplitField]
+    public override DateTimeOffset CreatedTime { get; set; }
 }
