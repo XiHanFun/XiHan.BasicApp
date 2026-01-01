@@ -66,4 +66,72 @@ public interface ISysRoleService : ICrudApplicationService<RoleDto, XiHanBasicAp
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
     Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId);
+
+    /// <summary>
+    /// 设置父角色（建立继承关系）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="parentRoleId">父角色ID，null表示移除继承关系</param>
+    /// <returns></returns>
+    Task<bool> SetParentRoleAsync(XiHanBasicAppIdType roleId, XiHanBasicAppIdType? parentRoleId);
+
+    /// <summary>
+    /// 获取角色的所有权限（包括继承的权限）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="includeInherited">是否包括继承的权限，默认true</param>
+    /// <returns>权限列表</returns>
+    Task<List<SysPermission>> GetRolePermissionsWithInheritanceAsync(XiHanBasicAppIdType roleId, bool includeInherited = true);
+
+    /// <summary>
+    /// 获取角色的所有菜单（包括继承的菜单）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="includeInherited">是否包括继承的菜单，默认true</param>
+    /// <returns>菜单列表</returns>
+    Task<List<SysMenu>> GetRoleMenusWithInheritanceAsync(XiHanBasicAppIdType roleId, bool includeInherited = true);
+
+    /// <summary>
+    /// 获取用户的所有权限（包括角色继承的权限）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>权限列表</returns>
+    Task<List<SysPermission>> GetUserPermissionsAsync(XiHanBasicAppIdType userId);
+
+    /// <summary>
+    /// 获取用户的所有菜单（包括角色继承的菜单）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>菜单列表</returns>
+    Task<List<SysMenu>> GetUserMenusAsync(XiHanBasicAppIdType userId);
+
+    /// <summary>
+    /// 检查用户是否拥有指定权限（考虑继承和直接授予/禁用）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionCode">权限编码</param>
+    /// <returns>是否拥有权限</returns>
+    Task<bool> HasPermissionAsync(XiHanBasicAppIdType userId, string permissionCode);
+
+    /// <summary>
+    /// 批量检查用户权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionCodes">权限编码列表</param>
+    /// <returns>权限检查结果字典（key: 权限编码, value: 是否拥有）</returns>
+    Task<Dictionary<string, bool>> BatchCheckPermissionsAsync(XiHanBasicAppIdType userId, params string[] permissionCodes);
+
+    /// <summary>
+    /// 获取角色继承链（从当前角色到根角色）
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>角色继承链</returns>
+    Task<List<RoleDto>> GetRoleInheritanceChainAsync(XiHanBasicAppIdType roleId);
+
+    /// <summary>
+    /// 获取角色树（包含子角色）
+    /// </summary>
+    /// <param name="parentRoleId">父角色ID，null表示获取根角色</param>
+    /// <returns>角色树</returns>
+    Task<List<RoleDto>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null);
 }
