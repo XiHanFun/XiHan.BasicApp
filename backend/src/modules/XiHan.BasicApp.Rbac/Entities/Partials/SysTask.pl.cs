@@ -24,12 +24,16 @@ public partial class SysTask
     /// <summary>
     /// 租户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 
     /// <summary>
     /// 任务执行日志列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysTaskLog.TaskId))]
     public virtual List<SysTaskLog>? TaskLogs { get; set; }
 }

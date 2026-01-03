@@ -24,6 +24,8 @@ public partial class SysTaskLog
     /// <summary>
     /// 任务信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(TaskId))]
     public virtual SysTask? Task { get; set; }
 }

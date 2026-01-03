@@ -24,18 +24,24 @@ public partial class SysDictItem
     /// <summary>
     /// 所属字典
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(DictId))]
     public virtual SysDict? Dict { get; set; }
 
     /// <summary>
     /// 父级字典项
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(ParentId))]
     public virtual SysDictItem? ParentItem { get; set; }
 
     /// <summary>
     /// 子字典项列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysDictItem>? Children { get; set; }
 }
