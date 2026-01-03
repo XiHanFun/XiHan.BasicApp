@@ -24,12 +24,16 @@ public partial class SysAuditLog
     /// <summary>
     /// 审核信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(AuditId))]
     public virtual SysAudit? Audit { get; set; }
 
     /// <summary>
     /// 审核用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(AuditorId))]
     public virtual SysUser? Auditor { get; set; }
 }

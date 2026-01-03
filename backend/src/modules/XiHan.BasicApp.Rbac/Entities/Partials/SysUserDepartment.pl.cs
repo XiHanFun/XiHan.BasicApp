@@ -24,12 +24,16 @@ public partial class SysUserDepartment
     /// <summary>
     /// 用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 
     /// <summary>
     /// 部门信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(DepartmentId))]
     public virtual SysDepartment? Department { get; set; }
 }

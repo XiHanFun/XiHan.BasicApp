@@ -24,24 +24,32 @@ public partial class SysAudit
     /// <summary>
     /// 租户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 
     /// <summary>
     /// 提交用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(SubmitterId))]
     public virtual SysUser? Submitter { get; set; }
 
     /// <summary>
     /// 审核用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(AuditorId))]
     public virtual SysUser? Auditor { get; set; }
 
     /// <summary>
     /// 审核日志列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.AuditId))]
     public virtual List<SysAuditLog>? AuditLogs { get; set; }
 }

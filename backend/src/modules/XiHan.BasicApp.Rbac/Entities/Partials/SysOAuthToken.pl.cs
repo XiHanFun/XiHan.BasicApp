@@ -24,12 +24,16 @@ public partial class SysOAuthToken
     /// <summary>
     /// OAuth应用信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(ClientId), nameof(SysOAuthApp.ClientId))]
     public virtual SysOAuthApp? OAuthApp { get; set; }
 
     /// <summary>
     /// 用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 }
