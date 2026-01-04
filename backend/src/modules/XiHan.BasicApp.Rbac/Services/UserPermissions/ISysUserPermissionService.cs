@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.UserPermissions.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.UserPermissions;
 
@@ -76,4 +76,3 @@ public interface ISysUserPermissionService : ICrudApplicationService<UserPermiss
     /// <returns></returns>
     Task<int> DeleteByUserAndPermissionsAsync(XiHanBasicAppIdType userId, List<XiHanBasicAppIdType> permissionIds);
 }
-

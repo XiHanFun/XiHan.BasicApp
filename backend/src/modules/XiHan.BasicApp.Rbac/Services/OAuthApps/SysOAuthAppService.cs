@@ -182,4 +182,3 @@ public class SysOAuthAppService : CrudApplicationServiceBase<SysOAuthApp, OAuthA
 
     #endregion 映射方法实现
 }
-

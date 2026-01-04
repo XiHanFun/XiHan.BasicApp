@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.Dicts.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.Dicts;
 
@@ -45,4 +45,3 @@ public interface ISysDictService : ICrudApplicationService<DictDto, XiHanBasicAp
     /// <returns></returns>
     Task<bool> ExistsByCodeAsync(string dictCode, XiHanBasicAppIdType? excludeId = null);
 }
-

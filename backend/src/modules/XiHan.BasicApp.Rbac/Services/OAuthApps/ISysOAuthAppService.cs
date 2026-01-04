@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.OAuthApps.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.OAuthApps;
 
@@ -45,4 +45,3 @@ public interface ISysOAuthAppService : ICrudApplicationService<OAuthAppDto, XiHa
     /// <returns></returns>
     Task<bool> ExistsByClientIdAsync(string clientId, XiHanBasicAppIdType? excludeId = null);
 }
-

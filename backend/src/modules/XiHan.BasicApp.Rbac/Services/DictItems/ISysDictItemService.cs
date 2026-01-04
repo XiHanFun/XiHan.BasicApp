@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.DictItems.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.DictItems;
 
@@ -52,4 +52,3 @@ public interface ISysDictItemService : ICrudApplicationService<DictItemDto, XiHa
     /// <returns></returns>
     Task<List<DictItemDto>> GetByParentIdAsync(XiHanBasicAppIdType parentId);
 }
-

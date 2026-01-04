@@ -174,4 +174,3 @@ public class SysConfigService : CrudApplicationServiceBase<SysConfig, ConfigDto,
 
     #endregion 映射方法实现
 }
-

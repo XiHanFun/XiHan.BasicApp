@@ -137,4 +137,3 @@ public class CreateAccessLogDto
     /// </summary>
     public string? Remark { get; set; }
 }
-

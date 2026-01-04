@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.OAuthTokens.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.OAuthTokens;
 
@@ -51,4 +51,3 @@ public interface ISysOAuthTokenService : ICrudApplicationService<OAuthTokenDto, 
     /// <returns></returns>
     Task<int> DeleteExpiredTokensAsync();
 }
-

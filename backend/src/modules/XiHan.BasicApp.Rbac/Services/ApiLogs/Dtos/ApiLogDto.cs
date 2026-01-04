@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Rbac.Services.Base.Dtos;
+using XiHan.BasicApp.Rbac.Dtos.Base;
 
 namespace XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
 
@@ -197,4 +197,3 @@ public class ApiLogDto : RbacFullAuditedDtoBase
     /// </summary>
     public string? Remark { get; set; }
 }
-

@@ -256,4 +256,3 @@ public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, 
 
     #endregion 映射方法实现
 }
-

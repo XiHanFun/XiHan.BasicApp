@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.Configs.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.Configs;
 
@@ -53,4 +53,3 @@ public interface ISysConfigService : ICrudApplicationService<ConfigDto, XiHanBas
     /// <returns></returns>
     Task<bool> ExistsByKeyAsync(string configKey, XiHanBasicAppIdType? excludeId = null);
 }
-

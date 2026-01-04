@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.Emails.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.Emails;
 
@@ -66,4 +66,3 @@ public interface ISysEmailService : ICrudApplicationService<EmailDto, XiHanBasic
     /// <returns></returns>
     Task<List<EmailDto>> GetPendingEmailsAsync(int count = 100);
 }
-
