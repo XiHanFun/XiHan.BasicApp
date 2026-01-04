@@ -87,4 +87,3 @@ public class CreateAuditLogDto
     /// </summary>
     public string? Remark { get; set; }
 }
-

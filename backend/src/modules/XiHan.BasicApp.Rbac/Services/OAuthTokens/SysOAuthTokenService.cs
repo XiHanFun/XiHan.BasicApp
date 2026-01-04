@@ -162,4 +162,3 @@ public class SysOAuthTokenService : CrudApplicationServiceBase<SysOAuthToken, OA
 
     #endregion 映射方法实现
 }
-

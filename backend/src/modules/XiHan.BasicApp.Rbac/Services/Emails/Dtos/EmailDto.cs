@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Services.Base.Dtos;
 
 namespace XiHan.BasicApp.Rbac.Services.Emails.Dtos;
 
@@ -275,4 +275,3 @@ public class UpdateEmailDto : RbacUpdateDtoBase
     /// </summary>
     public string? Remark { get; set; }
 }
-

@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.UserSecurities.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.UserSecurities;
 
@@ -78,4 +78,3 @@ public interface ISysUserSecurityService : ICrudApplicationService<UserSecurityD
     /// <returns></returns>
     Task<bool> UpdateSecurityStampAsync(XiHanBasicAppIdType userId);
 }
-

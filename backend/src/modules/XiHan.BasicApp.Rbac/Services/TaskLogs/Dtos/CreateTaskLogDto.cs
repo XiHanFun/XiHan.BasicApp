@@ -117,4 +117,3 @@ public class CreateTaskLogDto
     /// </summary>
     public string? Remark { get; set; }
 }
-

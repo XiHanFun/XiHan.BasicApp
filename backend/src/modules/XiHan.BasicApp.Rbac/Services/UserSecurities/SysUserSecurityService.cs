@@ -206,4 +206,3 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
 
     #endregion 映射方法实现
 }
-

@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.Notifications.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.Notifications;
 
@@ -72,4 +72,3 @@ public interface ISysNotificationService : ICrudApplicationService<NotificationD
     /// <returns></returns>
     Task<bool> MarkAsReadAsync(MarkReadDto input);
 }
-

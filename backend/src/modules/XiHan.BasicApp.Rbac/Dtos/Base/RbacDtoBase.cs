@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 
-namespace XiHan.BasicApp.Rbac.Services.Base.Dtos;
+namespace XiHan.BasicApp.Rbac.Dtos.Base;
 
 /// <summary>
 /// RBAC DTO 基类

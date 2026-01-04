@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.OperationLogs;
 

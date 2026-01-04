@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.Sms.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.Sms;
 
@@ -66,4 +66,3 @@ public interface ISysSmsService : ICrudApplicationService<SmsDto, XiHanBasicAppI
     /// <returns></returns>
     Task<List<SmsDto>> GetPendingSmsAsync(int count = 100);
 }
-

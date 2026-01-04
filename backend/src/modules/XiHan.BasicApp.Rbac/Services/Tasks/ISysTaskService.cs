@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.Tasks.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
 
 namespace XiHan.BasicApp.Rbac.Services.Tasks;
@@ -60,4 +60,3 @@ public interface ISysTaskService : ICrudApplicationService<TaskDto, XiHanBasicAp
     /// <returns></returns>
     Task<bool> ExistsByTaskCodeAsync(string taskCode, XiHanBasicAppIdType? excludeId = null);
 }
-

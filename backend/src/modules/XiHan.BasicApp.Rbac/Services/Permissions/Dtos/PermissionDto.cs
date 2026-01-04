@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Rbac.Dtos.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Services.Base.Dtos;
 
 namespace XiHan.BasicApp.Rbac.Services.Permissions.Dtos;
 

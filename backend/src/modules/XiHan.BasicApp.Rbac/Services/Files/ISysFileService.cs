@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Services.Files.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.Files;
 
@@ -60,4 +60,3 @@ public interface ISysFileService : ICrudApplicationService<FileDto, XiHanBasicAp
     /// <returns></returns>
     Task<List<FileDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
 }
-

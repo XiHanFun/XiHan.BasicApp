@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Rbac.Services.Base.Dtos;
+using XiHan.BasicApp.Rbac.Dtos.Base;
 
 namespace XiHan.BasicApp.Rbac.Services.UserSecurities.Dtos;
 
@@ -169,4 +169,3 @@ public class UpdateUserSecurityDto : RbacUpdateDtoBase
     /// </summary>
     public string? Remark { get; set; }
 }
-

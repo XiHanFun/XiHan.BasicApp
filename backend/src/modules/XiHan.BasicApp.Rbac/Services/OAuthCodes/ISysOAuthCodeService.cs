@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.OAuthCodes.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.Application.Services.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Services.OAuthCodes;
 
@@ -44,4 +44,3 @@ public interface ISysOAuthCodeService : ICrudApplicationService<OAuthCodeDto, Xi
     /// <returns></returns>
     Task<int> DeleteExpiredCodesAsync();
 }
-

@@ -189,4 +189,3 @@ public class SysFileService : CrudApplicationServiceBase<SysFile, FileDto, XiHan
 
     #endregion 映射方法实现
 }
-

@@ -146,4 +146,3 @@ public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, XiHan
 
     #endregion 映射方法实现
 }
-
