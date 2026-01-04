@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.CodeGeneration.Dtos.Base;
 using XiHan.BasicApp.CodeGeneration.Enums;
-using XiHan.BasicApp.Core;
 
 namespace XiHan.BasicApp.CodeGeneration.Dtos.Histories;
 

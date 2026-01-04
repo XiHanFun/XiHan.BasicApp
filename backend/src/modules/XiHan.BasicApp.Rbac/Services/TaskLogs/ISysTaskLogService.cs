@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
 using XiHan.Framework.Application.Services.Abstracts;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;

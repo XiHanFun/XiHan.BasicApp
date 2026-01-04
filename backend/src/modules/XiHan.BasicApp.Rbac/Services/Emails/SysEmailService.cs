@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Emails;
