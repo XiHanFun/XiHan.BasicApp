@@ -12,12 +12,22 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.DataPermissions.Extensions;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Managers;
+using XiHan.BasicApp.Rbac.Seeders;
+using XiHan.BasicApp.Web.Core;
+using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Data.SqlSugar.Extensions;
+using XiHan.Framework.Data.SqlSugar.Options;
+using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.Framework.Utils.Threading;
+using XiHan.Framework.Web.Core.Extensions;
 
 namespace XiHan.BasicApp.Rbac;
 
@@ -25,7 +35,8 @@ namespace XiHan.BasicApp.Rbac;
 /// 曦寒基础应用角色控制应用模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanBasicAppCoreModule)
+    typeof(XiHanBasicAppCoreModule),
+    typeof(XiHanBasicAppWebCoreModule)
 )]
 public class XiHanBasicAppRbacModule : XiHanModule
 {
@@ -37,6 +48,10 @@ public class XiHanBasicAppRbacModule : XiHanModule
     {
         var services = context.Services;
 
+        // 添加 RBAC 服务和仓储
+        services.AddRbacRepositories();
+        services.AddRbacServices();
+
         // 注册领域管理器
         services.AddScoped<UserManager>();
         services.AddScoped<RoleManager>();
@@ -45,11 +60,28 @@ public class XiHanBasicAppRbacModule : XiHanModule
         services.AddScoped<DepartmentManager>();
         services.AddScoped<TenantManager>();
 
-        // 添加 RBAC 服务和仓储
-        services.AddRbacServices();
-        services.AddRbacRepositories();
-
         // 添加数据权限支持
         services.AddDataPermission();
+
+        var optins = services.GetConfiguration().GetSection("XiHanSqlSugarCore").Get<XiHanSqlSugarCoreOptions>();
+
+        // 注册种子数据提供者
+        services.AddDataSeeder<SysRoleSeeder>();
+        services.AddDataSeeder<SysUserSeeder>();
+        services.AddDataSeeder<SysUserRoleSeeder>();
+    }
+
+    /// <summary>
+    /// 应用初始化
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var app = context.GetApplicationBuilder();
+        AsyncHelper.RunSync(async () =>
+        {
+            await app.UseDbInitializerAsync(initialize: true);
+        });
     }
 }

@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Core\XiHan.BasicApp.Core.csproj" />
+      <ProjectReference Include="..\..\framework\XiHan.BasicApp.Web.Core\XiHan.BasicApp.Web.Core.csproj" />
     </ItemGroup>
 
 </Project>
