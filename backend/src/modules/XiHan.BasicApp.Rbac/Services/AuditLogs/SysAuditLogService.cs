@@ -12,11 +12,13 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.AuditLogs;
+using XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.AuditLogs.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -45,7 +47,7 @@ public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditL
     public async Task<List<AuditLogDto>> GetByAuditIdAsync(XiHanBasicAppIdType auditId)
     {
         var logs = await _auditLogRepository.GetByAuditIdAsync(auditId);
-        return logs.ToDto();
+        return logs.Adapt<List<AuditLogDto>>();
     }
 
     /// <summary>
@@ -54,7 +56,7 @@ public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditL
     public async Task<List<AuditLogDto>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId)
     {
         var logs = await _auditLogRepository.GetByAuditorIdAsync(auditorId);
-        return logs.ToDto();
+        return logs.Adapt<List<AuditLogDto>>();
     }
 
     /// <summary>
@@ -63,7 +65,7 @@ public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditL
     public async Task<List<AuditLogDto>> GetByResultAsync(AuditResult auditResult)
     {
         var logs = await _auditLogRepository.GetByResultAsync(auditResult);
-        return logs.ToDto();
+        return logs.Adapt<List<AuditLogDto>>();
     }
 
     /// <summary>
@@ -72,60 +74,8 @@ public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditL
     public async Task<List<AuditLogDto>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var logs = await _auditLogRepository.GetByTimeRangeAsync(startTime, endTime);
-        return logs.ToDto();
+        return logs.Adapt<List<AuditLogDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<AuditLogDto> MapToEntityDtoAsync(SysAuditLog entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 CreateAuditLogDto 到实体
-    /// </summary>
-    protected override Task<SysAuditLog> MapToEntityAsync(CreateAuditLogDto createDto)
-    {
-        var entity = new SysAuditLog
-        {
-            AuditId = createDto.AuditId,
-            AuditorId = createDto.AuditorId,
-            AuditLevel = createDto.AuditLevel,
-            AuditResult = createDto.AuditResult,
-            AuditOpinion = createDto.AuditOpinion,
-            BeforeStatus = createDto.BeforeStatus,
-            AfterStatus = createDto.AfterStatus,
-            AuditIp = createDto.AuditIp,
-            AuditLocation = createDto.AuditLocation,
-            Browser = createDto.Browser,
-            Os = createDto.Os,
-            Attachments = createDto.Attachments,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    protected override Task MapToEntityAsync(CreateAuditLogDto updateDto, SysAuditLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<SysAuditLog> MapToEntityAsync(AuditLogDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task MapToEntityAsync(AuditLogDto dto, SysAuditLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion 映射方法实现
 }

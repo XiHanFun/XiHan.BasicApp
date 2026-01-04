@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
@@ -106,7 +107,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     public async Task<RoleDto?> GetByRoleCodeAsync(string roleCode)
     {
         var role = await _roleRepository.GetByRoleCodeAsync(roleCode);
-        return role?.ToDto();
+        return role?.Adapt<RoleDto>();
     }
 
     #endregion 业务特定方法
@@ -167,7 +168,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
             });
         }
 
-        return role.ToDto();
+        return role.Adapt<RoleDto>();
     }
 
     /// <summary>
@@ -229,7 +230,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
 
         await _roleRepository.UpdateAsync(role);
 
-        return role.ToDto();
+        return role.Adapt<RoleDto>();
     }
 
     /// <summary>
@@ -529,7 +530,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
 
         foreach (var role in parentRoles)
         {
-            chain.Add(role.ToDto());
+            chain.Add(role.Adapt<RoleDto>());
         }
 
         return chain;
@@ -541,7 +542,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     public async Task<List<RoleDto>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null)
     {
         var roles = await _roleRepository.GetRoleTreeAsync(parentRoleId);
-        return roles.Select(r => r.ToDto()).ToList();
+        return roles.Select(r => r.Adapt<RoleDto>()).ToList();
     }
 
     /// <summary>
@@ -589,83 +590,4 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     }
 
     #endregion 角色继承
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<RoleDto> MapToEntityDtoAsync(SysRole entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 RoleDto 到实体（基类方法）
-    /// </summary>
-    protected override Task<SysRole> MapToEntityAsync(RoleDto dto)
-    {
-        var entity = new SysRole
-        {
-            RoleCode = dto.RoleCode,
-            RoleName = dto.RoleName,
-            RoleDescription = dto.RoleDescription,
-            RoleType = dto.RoleType,
-            Status = dto.Status,
-            Sort = dto.Sort,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 RoleDto 到现有实体（基类方法）
-    /// </summary>
-    protected override Task MapToEntityAsync(RoleDto dto, SysRole entity)
-    {
-        if (dto.RoleName != null) entity.RoleName = dto.RoleName;
-        if (dto.RoleDescription != null) entity.RoleDescription = dto.RoleDescription;
-        entity.RoleType = dto.RoleType;
-        entity.Status = dto.Status;
-        entity.Sort = dto.Sort;
-        if (dto.Remark != null) entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysRole> MapToEntityAsync(CreateRoleDto createDto)
-    {
-        var entity = new SysRole
-        {
-            RoleCode = createDto.RoleCode,
-            RoleName = createDto.RoleName,
-            RoleDescription = createDto.RoleDescription,
-            RoleType = createDto.RoleType,
-            Sort = createDto.Sort,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateRoleDto updateDto, SysRole entity)
-    {
-        if (updateDto.RoleName != null) entity.RoleName = updateDto.RoleName;
-        if (updateDto.RoleDescription != null) entity.RoleDescription = updateDto.RoleDescription;
-        if (updateDto.RoleType.HasValue) entity.RoleType = updateDto.RoleType.Value;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }

@@ -12,10 +12,12 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.ApiLogs;
+using XiHan.BasicApp.Rbac.Services.AccessLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -44,7 +46,7 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     public async Task<List<ApiLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var logs = await _apiLogRepository.GetByUserIdAsync(userId);
-        return logs.ToDto();
+        return logs.Adapt<List<ApiLogDto>>();
     }
 
     /// <summary>
@@ -53,7 +55,7 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     public async Task<List<ApiLogDto>> GetByApiPathAsync(string apiPath)
     {
         var logs = await _apiLogRepository.GetByApiPathAsync(apiPath);
-        return logs.ToDto();
+        return logs.Adapt<List<ApiLogDto>>();
     }
 
     /// <summary>
@@ -62,7 +64,7 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     public async Task<List<ApiLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
     {
         var logs = await _apiLogRepository.GetByTenantIdAsync(tenantId);
-        return logs.ToDto();
+        return logs.Adapt<List<ApiLogDto>>();
     }
 
     /// <summary>
@@ -71,7 +73,7 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     public async Task<List<ApiLogDto>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var logs = await _apiLogRepository.GetByTimeRangeAsync(startTime, endTime);
-        return logs.ToDto();
+        return logs.Adapt<List<ApiLogDto>>();
     }
 
     /// <summary>
@@ -80,80 +82,8 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     public async Task<List<ApiLogDto>> GetByStatusCodeAsync(int statusCode)
     {
         var logs = await _apiLogRepository.GetByStatusCodeAsync(statusCode);
-        return logs.ToDto();
+        return logs.Adapt<List<ApiLogDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<ApiLogDto> MapToEntityDtoAsync(SysApiLog entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 CreateApiLogDto 到实体
-    /// </summary>
-    protected override Task<SysApiLog> MapToEntityAsync(CreateApiLogDto createDto)
-    {
-        var entity = new SysApiLog
-        {
-            TenantId = createDto.TenantId,
-            UserId = createDto.UserId,
-            UserName = createDto.UserName,
-            RequestId = createDto.RequestId,
-            SessionId = createDto.SessionId,
-            ApiPath = createDto.ApiPath,
-            ApiName = createDto.ApiName,
-            ApiDescription = createDto.ApiDescription,
-            Method = createDto.Method,
-            ControllerName = createDto.ControllerName,
-            ActionName = createDto.ActionName,
-            RequestParams = createDto.RequestParams,
-            RequestBody = createDto.RequestBody,
-            ResponseBody = createDto.ResponseBody,
-            StatusCode = createDto.StatusCode,
-            RequestHeaders = createDto.RequestHeaders,
-            ResponseHeaders = createDto.ResponseHeaders,
-            RequestIp = createDto.RequestIp,
-            RequestLocation = createDto.RequestLocation,
-            UserAgent = createDto.UserAgent,
-            Browser = createDto.Browser,
-            Os = createDto.Os,
-            Referer = createDto.Referer,
-            ExecutionTime = createDto.ExecutionTime,
-            RequestSize = createDto.RequestSize,
-            ResponseSize = createDto.ResponseSize,
-            IsSuccess = createDto.IsSuccess,
-            ErrorMessage = createDto.ErrorMessage,
-            ExceptionStackTrace = createDto.ExceptionStackTrace,
-            ApiVersion = createDto.ApiVersion,
-            BusinessType = createDto.BusinessType,
-            ExtendData = createDto.ExtendData,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    protected override Task MapToEntityAsync(CreateApiLogDto updateDto, SysApiLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<SysApiLog> MapToEntityAsync(ApiLogDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task MapToEntityAsync(ApiLogDto dto, SysApiLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion 映射方法实现
 }

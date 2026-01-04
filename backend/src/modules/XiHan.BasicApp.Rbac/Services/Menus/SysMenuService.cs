@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Entities;
@@ -74,7 +75,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
 
         await _menuRepository.AddAsync(menu);
 
-        return menu.ToDto();
+        return menu.Adapt<MenuDto>();
     }
 
     /// <summary>
@@ -153,7 +154,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
 
         await _menuRepository.UpdateAsync(menu);
 
-        return menu.ToDto();
+        return menu.Adapt<MenuDto>();
     }
 
     /// <summary>
@@ -183,7 +184,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     public async Task<MenuDto?> GetByMenuCodeAsync(string menuCode)
     {
         var menu = await _menuRepository.GetByMenuCodeAsync(menuCode);
-        return menu?.ToDto();
+        return menu.Adapt<MenuDto>();
     }
 
     /// <summary>
@@ -192,8 +193,12 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     public async Task<List<MenuTreeDto>> GetTreeAsync()
     {
         var allMenus = await _menuRepository.GetListAsync();
-        var menuDtos = allMenus.ToDto();
-        return menuDtos.BuildTree();
+        var menuDtos = allMenus.Adapt<List<MenuDto>>();
+
+        // TODO 优化BuildTree方法，直接生成MenuTreeDto列表，避免重复转换
+        //return menuDtos.BuildTree();
+
+        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -202,7 +207,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     public async Task<List<MenuDto>> GetChildrenAsync(XiHanBasicAppIdType parentId)
     {
         var children = await _menuRepository.GetChildrenAsync(parentId);
-        return children.ToDto();
+        return children.Adapt<List<MenuDto>>();
     }
 
     /// <summary>
@@ -211,7 +216,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     public async Task<List<MenuDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
     {
         var menus = await _menuRepository.GetByRoleIdAsync(roleId);
-        return menus.ToDto();
+        return menus.Adapt<List<MenuDto>>();
     }
 
     /// <summary>
@@ -220,8 +225,11 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     public async Task<List<MenuTreeDto>> GetUserMenuTreeAsync(XiHanBasicAppIdType userId)
     {
         var menus = await _menuRepository.GetByUserIdAsync(userId);
-        var menuDtos = menus.ToDto();
-        return menuDtos.BuildTree();
+        var menuDtos = menus.Adapt<List<MenuDto>>();
+
+        // TODO 优化BuildTree方法，直接生成MenuTreeDto列表，避免重复转换
+        //return menuDtos.BuildTree();
+        throw new NotImplementedException();
     }
 
     #endregion 业务特定方法

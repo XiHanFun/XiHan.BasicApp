@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Extensions;
@@ -44,7 +45,7 @@ public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, Acce
     public async Task<List<AccessLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var logs = await _accessLogRepository.GetByUserIdAsync(userId);
-        return logs.ToDto();
+        return logs.Adapt<List<AccessLogDto>>();
     }
 
     /// <summary>
@@ -53,7 +54,7 @@ public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, Acce
     public async Task<List<AccessLogDto>> GetByResourcePathAsync(string resourcePath)
     {
         var logs = await _accessLogRepository.GetByResourcePathAsync(resourcePath);
-        return logs.ToDto();
+        return logs.Adapt<List<AccessLogDto>>();
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, Acce
     public async Task<List<AccessLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
     {
         var logs = await _accessLogRepository.GetByTenantIdAsync(tenantId);
-        return logs.ToDto();
+        return logs.Adapt<List<AccessLogDto>>();
     }
 
     /// <summary>
@@ -71,70 +72,8 @@ public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, Acce
     public async Task<List<AccessLogDto>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var logs = await _accessLogRepository.GetByTimeRangeAsync(startTime, endTime);
-        return logs.ToDto();
+        return logs.Adapt<List<AccessLogDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<AccessLogDto> MapToEntityDtoAsync(SysAccessLog entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 CreateAccessLogDto 到实体
-    /// </summary>
-    protected override Task<SysAccessLog> MapToEntityAsync(CreateAccessLogDto createDto)
-    {
-        var entity = new SysAccessLog
-        {
-            TenantId = createDto.TenantId,
-            UserId = createDto.UserId,
-            UserName = createDto.UserName,
-            SessionId = createDto.SessionId,
-            ResourcePath = createDto.ResourcePath,
-            ResourceName = createDto.ResourceName,
-            ResourceType = createDto.ResourceType,
-            Method = createDto.Method,
-            AccessResult = createDto.AccessResult,
-            StatusCode = createDto.StatusCode,
-            AccessIp = createDto.AccessIp,
-            AccessLocation = createDto.AccessLocation,
-            UserAgent = createDto.UserAgent,
-            Browser = createDto.Browser,
-            Os = createDto.Os,
-            Device = createDto.Device,
-            Referer = createDto.Referer,
-            ResponseTime = createDto.ResponseTime,
-            ResponseSize = createDto.ResponseSize,
-            StayTime = createDto.StayTime,
-            ErrorMessage = createDto.ErrorMessage,
-            ExtendData = createDto.ExtendData,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    protected override Task MapToEntityAsync(CreateAccessLogDto updateDto, SysAccessLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<SysAccessLog> MapToEntityAsync(AccessLogDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task MapToEntityAsync(AccessLogDto dto, SysAccessLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion 映射方法实现
 }

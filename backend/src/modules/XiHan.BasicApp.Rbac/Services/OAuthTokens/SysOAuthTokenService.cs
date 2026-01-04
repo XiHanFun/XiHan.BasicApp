@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Extensions;
@@ -44,7 +45,7 @@ public class SysOAuthTokenService : CrudApplicationServiceBase<SysOAuthToken, OA
     public async Task<OAuthTokenDto?> GetByAccessTokenAsync(string accessToken)
     {
         var token = await _oauthTokenRepository.GetByAccessTokenAsync(accessToken);
-        return token?.ToDto();
+        return token?.Adapt<OAuthTokenDto>();
     }
 
     /// <summary>
@@ -53,7 +54,7 @@ public class SysOAuthTokenService : CrudApplicationServiceBase<SysOAuthToken, OA
     public async Task<OAuthTokenDto?> GetByRefreshTokenAsync(string refreshToken)
     {
         var token = await _oauthTokenRepository.GetByRefreshTokenAsync(refreshToken);
-        return token?.ToDto();
+        return token?.Adapt<OAuthTokenDto>();
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public class SysOAuthTokenService : CrudApplicationServiceBase<SysOAuthToken, OA
     public async Task<List<OAuthTokenDto>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId)
     {
         var tokens = await _oauthTokenRepository.GetByClientAndUserAsync(clientId, userId);
-        return tokens.ToDto();
+        return tokens.Adapt<List<OAuthTokenDto>>();
     }
 
     /// <summary>
@@ -74,91 +75,4 @@ public class SysOAuthTokenService : CrudApplicationServiceBase<SysOAuthToken, OA
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<OAuthTokenDto> MapToEntityDtoAsync(SysOAuthToken entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 OAuthTokenDto 到实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task<SysOAuthToken> MapToEntityAsync(OAuthTokenDto dto)
-    {
-        var entity = new SysOAuthToken
-        {
-            AccessToken = dto.AccessToken,
-            RefreshToken = dto.RefreshToken,
-            TokenType = dto.TokenType,
-            ClientId = dto.ClientId,
-            UserId = dto.UserId,
-            GrantType = dto.GrantType,
-            Scopes = dto.Scopes,
-            AccessTokenExpiresAt = dto.AccessTokenExpiresAt,
-            RefreshTokenExpiresAt = dto.RefreshTokenExpiresAt,
-            IsRevoked = dto.IsRevoked,
-            RevokedAt = dto.RevokedAt
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 OAuthTokenDto 到现有实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task MapToEntityAsync(OAuthTokenDto dto, SysOAuthToken entity)
-    {
-        entity.AccessToken = dto.AccessToken;
-        entity.RefreshToken = dto.RefreshToken;
-        entity.TokenType = dto.TokenType;
-        entity.ClientId = dto.ClientId;
-        entity.UserId = dto.UserId;
-        entity.GrantType = dto.GrantType;
-        entity.Scopes = dto.Scopes;
-        entity.AccessTokenExpiresAt = dto.AccessTokenExpiresAt;
-        entity.RefreshTokenExpiresAt = dto.RefreshTokenExpiresAt;
-        entity.IsRevoked = dto.IsRevoked;
-        entity.RevokedAt = dto.RevokedAt;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysOAuthToken> MapToEntityAsync(CreateOAuthTokenDto createDto)
-    {
-        var entity = new SysOAuthToken
-        {
-            AccessToken = createDto.AccessToken,
-            RefreshToken = createDto.RefreshToken,
-            TokenType = createDto.TokenType,
-            ClientId = createDto.ClientId,
-            UserId = createDto.UserId,
-            GrantType = createDto.GrantType,
-            Scopes = createDto.Scopes,
-            AccessTokenExpiresAt = createDto.AccessTokenExpiresAt,
-            RefreshTokenExpiresAt = createDto.RefreshTokenExpiresAt
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateOAuthTokenDto updateDto, SysOAuthToken entity)
-    {
-        if (updateDto.IsRevoked.HasValue) entity.IsRevoked = updateDto.IsRevoked.Value;
-        if (updateDto.RevokedAt.HasValue) entity.RevokedAt = updateDto.RevokedAt;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }
