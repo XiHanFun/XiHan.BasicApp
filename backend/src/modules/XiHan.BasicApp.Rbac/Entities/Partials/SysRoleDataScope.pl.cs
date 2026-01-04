@@ -24,13 +24,16 @@ public partial class SysRoleDataScope
     /// <summary>
     /// 角色
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 
     /// <summary>
     /// 部门
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(DepartmentId))]
     public virtual SysDepartment? Department { get; set; }
 }
-

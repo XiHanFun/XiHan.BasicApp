@@ -24,54 +24,72 @@ public partial class SysRole
     /// <summary>
     /// 用户角色关联列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysUserRole.RoleId))]
     public virtual List<SysUserRole>? UserRoles { get; set; }
 
     /// <summary>
     /// 角色权限关联列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysRolePermission.RoleId))]
     public virtual List<SysRolePermission>? RolePermissions { get; set; }
 
     /// <summary>
     /// 角色菜单关联列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleMenu.RoleId))]
     public virtual List<SysRoleMenu>? RoleMenus { get; set; }
 
     /// <summary>
     /// 用户列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(typeof(SysUserRole), nameof(SysUserRole.RoleId), nameof(SysUserRole.UserId))]
     public virtual List<SysUser>? Users { get; set; }
 
     /// <summary>
     /// 权限列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(typeof(SysRolePermission), nameof(SysRolePermission.RoleId), nameof(SysRolePermission.PermissionId))]
     public virtual List<SysPermission>? Permissions { get; set; }
 
     /// <summary>
     /// 菜单列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.RoleId), nameof(SysRoleMenu.MenuId))]
     public virtual List<SysMenu>? Menus { get; set; }
 
     /// <summary>
     /// 父角色
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(ParentRoleId))]
     public virtual SysRole? ParentRole { get; set; }
 
     /// <summary>
     /// 子角色列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(ParentRoleId))]
     public virtual List<SysRole>? ChildRoles { get; set; }
 
     /// <summary>
     /// 角色自定义数据权限范围列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleDataScope.RoleId))]
     public virtual List<SysRoleDataScope>? DataScopes { get; set; }
 }
