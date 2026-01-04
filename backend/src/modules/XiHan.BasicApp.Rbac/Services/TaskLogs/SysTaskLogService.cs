@@ -12,10 +12,12 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.TaskLogs;
+using XiHan.BasicApp.Rbac.Services.Sms.Dtos;
 using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
 using XiHan.Framework.Application.Services;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
@@ -45,7 +47,7 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     public async Task<List<TaskLogDto>> GetByTaskIdAsync(XiHanBasicAppIdType taskId)
     {
         var logs = await _taskLogRepository.GetByTaskIdAsync(taskId);
-        return logs.ToDto();
+        return logs.Adapt<List<TaskLogDto>>();
     }
 
     /// <summary>
@@ -54,7 +56,7 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     public async Task<List<TaskLogDto>> GetByTaskCodeAsync(string taskCode)
     {
         var logs = await _taskLogRepository.GetByTaskCodeAsync(taskCode);
-        return logs.ToDto();
+        return logs.Adapt<List<TaskLogDto>>();
     }
 
     /// <summary>
@@ -63,7 +65,7 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     public async Task<List<TaskLogDto>> GetByStatusAsync(TaskStatus taskStatus)
     {
         var logs = await _taskLogRepository.GetByStatusAsync(taskStatus);
-        return logs.ToDto();
+        return logs.Adapt<List<TaskLogDto>>();
     }
 
     /// <summary>
@@ -72,7 +74,7 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     public async Task<List<TaskLogDto>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var logs = await _taskLogRepository.GetByTimeRangeAsync(startTime, endTime);
-        return logs.ToDto();
+        return logs.Adapt<List<TaskLogDto>>();
     }
 
     /// <summary>
@@ -81,66 +83,8 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     public async Task<List<TaskLogDto>> GetRecentLogsAsync(XiHanBasicAppIdType taskId, int count = 10)
     {
         var logs = await _taskLogRepository.GetRecentLogsAsync(taskId, count);
-        return logs.ToDto();
+        return logs.Adapt<List<TaskLogDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<TaskLogDto> MapToEntityDtoAsync(SysTaskLog entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 CreateTaskLogDto 到实体
-    /// </summary>
-    protected override Task<SysTaskLog> MapToEntityAsync(CreateTaskLogDto createDto)
-    {
-        var entity = new SysTaskLog
-        {
-            TaskId = createDto.TaskId,
-            TaskCode = createDto.TaskCode,
-            TaskName = createDto.TaskName,
-            BatchNumber = createDto.BatchNumber,
-            ServerName = createDto.ServerName,
-            ProcessId = createDto.ProcessId,
-            ThreadId = createDto.ThreadId,
-            TaskStatus = createDto.TaskStatus,
-            ExecutionTime = createDto.ExecutionTime,
-            ExecutionResult = createDto.ExecutionResult,
-            ExceptionMessage = createDto.ExceptionMessage,
-            ExceptionStackTrace = createDto.ExceptionStackTrace,
-            OutputLog = createDto.OutputLog,
-            MemoryUsage = createDto.MemoryUsage,
-            CpuUsage = createDto.CpuUsage,
-            RetryCount = createDto.RetryCount,
-            TriggerMode = createDto.TriggerMode,
-            ExtendData = createDto.ExtendData,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    protected override Task MapToEntityAsync(CreateTaskLogDto updateDto, SysTaskLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<SysTaskLog> MapToEntityAsync(TaskLogDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task MapToEntityAsync(TaskLogDto dto, SysTaskLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion 映射方法实现
 }

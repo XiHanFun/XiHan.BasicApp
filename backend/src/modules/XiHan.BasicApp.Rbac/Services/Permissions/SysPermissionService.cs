@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
@@ -69,7 +70,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
 
         await _permissionRepository.AddAsync(permission);
 
-        return permission.ToDto();
+        return permission.Adapt<PermissionDto>();
     }
 
     /// <summary>
@@ -118,7 +119,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
 
         await _permissionRepository.UpdateAsync(permission);
 
-        return permission.ToDto();
+        return permission.Adapt<PermissionDto>();
     }
 
     /// <summary>
@@ -142,7 +143,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     public async Task<PermissionDto?> GetByPermissionCodeAsync(string permissionCode)
     {
         var permission = await _permissionRepository.GetByPermissionCodeAsync(permissionCode);
-        return permission?.ToDto();
+        return permission?.Adapt<PermissionDto>();
     }
 
     /// <summary>
@@ -151,7 +152,7 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     public async Task<List<PermissionDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
     {
         var permissions = await _permissionRepository.GetByRoleIdAsync(roleId);
-        return permissions.ToDto();
+        return permissions.Adapt<List<PermissionDto>>();
     }
 
     /// <summary>
@@ -160,91 +161,8 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
     public async Task<List<PermissionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var permissions = await _permissionRepository.GetByUserIdAsync(userId);
-        return permissions.ToDto();
+        return permissions.Adapt<List<PermissionDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<PermissionDto> MapToEntityDtoAsync(SysPermission entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 PermissionDto 到实体（基类方法）
-    /// </summary>
-    protected override Task<SysPermission> MapToEntityAsync(PermissionDto dto)
-    {
-        var entity = new SysPermission
-        {
-            PermissionCode = dto.PermissionCode,
-            PermissionName = dto.PermissionName,
-            PermissionDescription = dto.PermissionDescription,
-            PermissionType = dto.PermissionType,
-            PermissionValue = dto.PermissionValue,
-            Status = dto.Status,
-            Sort = dto.Sort,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 PermissionDto 到现有实体（基类方法）
-    /// </summary>
-    protected override Task MapToEntityAsync(PermissionDto dto, SysPermission entity)
-    {
-        if (dto.PermissionName != null) entity.PermissionName = dto.PermissionName;
-        if (dto.PermissionDescription != null) entity.PermissionDescription = dto.PermissionDescription;
-        entity.PermissionType = dto.PermissionType;
-        if (dto.PermissionValue != null) entity.PermissionValue = dto.PermissionValue;
-        entity.Status = dto.Status;
-        entity.Sort = dto.Sort;
-        if (dto.Remark != null) entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysPermission> MapToEntityAsync(CreatePermissionDto createDto)
-    {
-        var entity = new SysPermission
-        {
-            PermissionCode = createDto.PermissionCode,
-            PermissionName = createDto.PermissionName,
-            PermissionDescription = createDto.PermissionDescription,
-            PermissionType = createDto.PermissionType,
-            PermissionValue = createDto.PermissionValue,
-            Sort = createDto.Sort,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdatePermissionDto updateDto, SysPermission entity)
-    {
-        if (updateDto.PermissionName != null) entity.PermissionName = updateDto.PermissionName;
-        if (updateDto.PermissionDescription != null) entity.PermissionDescription = updateDto.PermissionDescription;
-        if (updateDto.PermissionType.HasValue) entity.PermissionType = updateDto.PermissionType.Value;
-        if (updateDto.PermissionValue != null) entity.PermissionValue = updateDto.PermissionValue;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }

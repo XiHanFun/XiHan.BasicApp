@@ -12,11 +12,13 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.OperationLogs;
+using XiHan.BasicApp.Rbac.Services.OAuthTokens.Dtos;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -45,7 +47,7 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     public async Task<List<OperationLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var logs = await _operationLogRepository.GetByUserIdAsync(userId);
-        return logs.ToDto();
+        return logs.Adapt<List<OperationLogDto>>();
     }
 
     /// <summary>
@@ -54,7 +56,7 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     public async Task<List<OperationLogDto>> GetByOperationTypeAsync(OperationType operationType)
     {
         var logs = await _operationLogRepository.GetByOperationTypeAsync(operationType);
-        return logs.ToDto();
+        return logs.Adapt<List<OperationLogDto>>();
     }
 
     /// <summary>
@@ -63,7 +65,7 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     public async Task<List<OperationLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
     {
         var logs = await _operationLogRepository.GetByTenantIdAsync(tenantId);
-        return logs.ToDto();
+        return logs.Adapt<List<OperationLogDto>>();
     }
 
     /// <summary>
@@ -72,7 +74,7 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     public async Task<List<OperationLogDto>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var logs = await _operationLogRepository.GetByTimeRangeAsync(startTime, endTime);
-        return logs.ToDto();
+        return logs.Adapt<List<OperationLogDto>>();
     }
 
     /// <summary>
@@ -81,66 +83,8 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     public async Task<List<OperationLogDto>> GetByModuleAsync(string module)
     {
         var logs = await _operationLogRepository.GetByModuleAsync(module);
-        return logs.ToDto();
+        return logs.Adapt<List<OperationLogDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<OperationLogDto> MapToEntityDtoAsync(SysOperationLog entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 CreateOperationLogDto 到实体
-    /// </summary>
-    protected override Task<SysOperationLog> MapToEntityAsync(CreateOperationLogDto createDto)
-    {
-        var entity = new SysOperationLog
-        {
-            TenantId = createDto.TenantId,
-            UserId = createDto.UserId,
-            UserName = createDto.UserName,
-            OperationType = createDto.OperationType,
-            Module = createDto.Module,
-            Function = createDto.Function,
-            Title = createDto.Title,
-            Description = createDto.Description,
-            Method = createDto.Method,
-            RequestUrl = createDto.RequestUrl,
-            RequestParams = createDto.RequestParams,
-            ResponseResult = createDto.ResponseResult,
-            ExecutionTime = createDto.ExecutionTime,
-            OperationIp = createDto.OperationIp,
-            OperationLocation = createDto.OperationLocation,
-            Browser = createDto.Browser,
-            Os = createDto.Os,
-            Status = createDto.Status,
-            ErrorMessage = createDto.ErrorMessage
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    protected override Task MapToEntityAsync(CreateOperationLogDto updateDto, SysOperationLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<SysOperationLog> MapToEntityAsync(OperationLogDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task MapToEntityAsync(OperationLogDto dto, SysOperationLog entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion 映射方法实现
 }

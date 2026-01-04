@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
@@ -45,7 +46,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     public async Task<List<NotificationDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var notifications = await _notificationRepository.GetByUserIdAsync(userId);
-        return notifications.ToDto();
+        return notifications.Adapt<List<NotificationDto>>();
     }
 
     /// <summary>
@@ -54,7 +55,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     public async Task<List<NotificationDto>> GetByTypeAsync(NotificationType notificationType)
     {
         var notifications = await _notificationRepository.GetByTypeAsync(notificationType);
-        return notifications.ToDto();
+        return notifications.Adapt<List<NotificationDto>>();
     }
 
     /// <summary>
@@ -63,7 +64,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     public async Task<List<NotificationDto>> GetByStatusAsync(NotificationStatus notificationStatus)
     {
         var notifications = await _notificationRepository.GetByStatusAsync(notificationStatus);
-        return notifications.ToDto();
+        return notifications.Adapt<List<NotificationDto>>();
     }
 
     /// <summary>
@@ -72,7 +73,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     public async Task<List<NotificationDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
     {
         var notifications = await _notificationRepository.GetBySenderIdAsync(senderId);
-        return notifications.ToDto();
+        return notifications.Adapt<List<NotificationDto>>();
     }
 
     /// <summary>
@@ -89,7 +90,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     public async Task<List<NotificationDto>> GetGlobalNotificationsAsync()
     {
         var notifications = await _notificationRepository.GetGlobalNotificationsAsync();
-        return notifications.ToDto();
+        return notifications.Adapt<List<NotificationDto>>();
     }
 
     /// <summary>
@@ -112,108 +113,4 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<NotificationDto> MapToEntityDtoAsync(SysNotification entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 NotificationDto 到实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task<SysNotification> MapToEntityAsync(NotificationDto dto)
-    {
-        var entity = new SysNotification
-        {
-            TenantId = dto.TenantId,
-            UserId = dto.UserId,
-            SenderId = dto.SenderId,
-            NotificationType = dto.NotificationType,
-            Title = dto.Title,
-            Content = dto.Content,
-            Icon = dto.Icon,
-            Link = dto.Link,
-            BusinessType = dto.BusinessType,
-            BusinessId = dto.BusinessId,
-            NotificationStatus = dto.NotificationStatus,
-            ReadTime = dto.ReadTime,
-            SendTime = dto.SendTime,
-            ExpireTime = dto.ExpireTime,
-            IsGlobal = dto.IsGlobal,
-            NeedConfirm = dto.NeedConfirm,
-            Status = dto.Status,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 NotificationDto 到现有实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task MapToEntityAsync(NotificationDto dto, SysNotification entity)
-    {
-        entity.Title = dto.Title;
-        entity.Content = dto.Content;
-        entity.Icon = dto.Icon;
-        entity.Link = dto.Link;
-        entity.NotificationStatus = dto.NotificationStatus;
-        entity.ReadTime = dto.ReadTime;
-        entity.ExpireTime = dto.ExpireTime;
-        entity.Status = dto.Status;
-        entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysNotification> MapToEntityAsync(CreateNotificationDto createDto)
-    {
-        var entity = new SysNotification
-        {
-            TenantId = createDto.TenantId,
-            UserId = createDto.UserId,
-            SenderId = createDto.SenderId,
-            NotificationType = createDto.NotificationType,
-            Title = createDto.Title,
-            Content = createDto.Content,
-            Icon = createDto.Icon,
-            Link = createDto.Link,
-            BusinessType = createDto.BusinessType,
-            BusinessId = createDto.BusinessId,
-            SendTime = DateTimeOffset.Now,
-            ExpireTime = createDto.ExpireTime,
-            IsGlobal = createDto.IsGlobal,
-            NeedConfirm = createDto.NeedConfirm,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateNotificationDto updateDto, SysNotification entity)
-    {
-        if (updateDto.Title != null) entity.Title = updateDto.Title;
-        if (updateDto.Content != null) entity.Content = updateDto.Content;
-        if (updateDto.Icon != null) entity.Icon = updateDto.Icon;
-        if (updateDto.Link != null) entity.Link = updateDto.Link;
-        if (updateDto.NotificationStatus.HasValue) entity.NotificationStatus = updateDto.NotificationStatus.Value;
-        if (updateDto.ExpireTime.HasValue) entity.ExpireTime = updateDto.ExpireTime;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
@@ -45,7 +46,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     public async Task<List<UserPermissionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var userPermissions = await _userPermissionRepository.GetByUserIdAsync(userId);
-        return userPermissions.ToDto();
+        return userPermissions.Adapt<List<UserPermissionDto>>();
     }
 
     /// <summary>
@@ -54,7 +55,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     public async Task<List<UserPermissionDto>> GetByUserIdAndActionAsync(XiHanBasicAppIdType userId, PermissionAction permissionAction)
     {
         var userPermissions = await _userPermissionRepository.GetByUserIdAndActionAsync(userId, permissionAction);
-        return userPermissions.ToDto();
+        return userPermissions.Adapt<List<UserPermissionDto>>();
     }
 
     /// <summary>
@@ -63,7 +64,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     public async Task<List<UserPermissionDto>> GetByPermissionIdAsync(XiHanBasicAppIdType permissionId)
     {
         var userPermissions = await _userPermissionRepository.GetByPermissionIdAsync(permissionId);
-        return userPermissions.ToDto();
+        return userPermissions.Adapt<List<UserPermissionDto>>();
     }
 
     /// <summary>
@@ -72,7 +73,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     public async Task<UserPermissionDto?> GetByUserAndPermissionAsync(XiHanBasicAppIdType userId, XiHanBasicAppIdType permissionId)
     {
         var userPermission = await _userPermissionRepository.GetByUserAndPermissionAsync(userId, permissionId);
-        return userPermission?.ToDto();
+        return userPermission?.Adapt<UserPermissionDto>();
     }
 
     /// <summary>
@@ -81,7 +82,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     public async Task<List<UserPermissionDto>> GetEffectivePermissionsAsync(XiHanBasicAppIdType userId)
     {
         var userPermissions = await _userPermissionRepository.GetEffectivePermissionsAsync(userId);
-        return userPermissions.ToDto();
+        return userPermissions.Adapt<List<UserPermissionDto>>();
     }
 
     /// <summary>
@@ -132,83 +133,4 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<UserPermissionDto> MapToEntityDtoAsync(SysUserPermission entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 UserPermissionDto 到实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task<SysUserPermission> MapToEntityAsync(UserPermissionDto dto)
-    {
-        var entity = new SysUserPermission
-        {
-            UserId = dto.UserId,
-            PermissionId = dto.PermissionId,
-            PermissionAction = dto.PermissionAction,
-            EffectiveTime = dto.EffectiveTime,
-            ExpirationTime = dto.ExpirationTime,
-            Status = dto.Status,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 UserPermissionDto 到现有实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task MapToEntityAsync(UserPermissionDto dto, SysUserPermission entity)
-    {
-        entity.UserId = dto.UserId;
-        entity.PermissionId = dto.PermissionId;
-        entity.PermissionAction = dto.PermissionAction;
-        entity.EffectiveTime = dto.EffectiveTime;
-        entity.ExpirationTime = dto.ExpirationTime;
-        entity.Status = dto.Status;
-        entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysUserPermission> MapToEntityAsync(CreateUserPermissionDto createDto)
-    {
-        var entity = new SysUserPermission
-        {
-            UserId = createDto.UserId,
-            PermissionId = createDto.PermissionId,
-            PermissionAction = createDto.PermissionAction,
-            EffectiveTime = createDto.EffectiveTime,
-            ExpirationTime = createDto.ExpirationTime,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateUserPermissionDto updateDto, SysUserPermission entity)
-    {
-        if (updateDto.PermissionAction.HasValue) entity.PermissionAction = updateDto.PermissionAction.Value;
-        if (updateDto.EffectiveTime.HasValue) entity.EffectiveTime = updateDto.EffectiveTime;
-        if (updateDto.ExpirationTime.HasValue) entity.ExpirationTime = updateDto.ExpirationTime;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Entities;
@@ -21,6 +22,7 @@ using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.BasicApp.Rbac.Repositories.Users;
 using XiHan.BasicApp.Rbac.Services.Departments.Dtos;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Utils.Collections;
 
 namespace XiHan.BasicApp.Rbac.Services.Departments;
 
@@ -59,7 +61,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
             return null;
         }
 
-        var dto = department.ToDto();
+        var dto = department.Adapt<DepartmentDto>();
 
         // 获取负责人姓名
         if (department.LeaderId.HasValue)
@@ -98,7 +100,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
 
         await _departmentRepository.AddAsync(department);
 
-        return department.ToDto();
+        return department.Adapt<DepartmentDto>();
     }
 
     /// <summary>
@@ -162,7 +164,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
 
         await _departmentRepository.UpdateAsync(department);
 
-        return department.ToDto();
+        return department.Adapt<DepartmentDto>();
     }
 
     /// <summary>
@@ -200,7 +202,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     public async Task<DepartmentDto?> GetByDepartmentCodeAsync(string departmentCode)
     {
         var department = await _departmentRepository.GetByDepartmentCodeAsync(departmentCode);
-        return department?.ToDto();
+        return department.Adapt<DepartmentDto>();
     }
 
     /// <summary>
@@ -209,8 +211,10 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     public async Task<List<DepartmentTreeDto>> GetTreeAsync()
     {
         var allDepartments = await _departmentRepository.GetListAsync();
-        var departmentDtos = allDepartments.ToDto();
-        return departmentDtos.BuildTree();
+        var departmentDtos = allDepartments.Adapt<List<DepartmentTreeDto>>();
+        // TODO: 实现树形结构转换
+        //return departmentDtos.ToTree<DepartmentTreeDto>();
+        return departmentDtos;
     }
 
     /// <summary>
@@ -219,7 +223,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     public async Task<List<DepartmentDto>> GetChildrenAsync(XiHanBasicAppIdType parentId)
     {
         var children = await _departmentRepository.GetChildrenAsync(parentId);
-        return children.ToDto();
+        return children.Adapt<List<DepartmentDto>>();
     }
 
     /// <summary>
@@ -228,103 +232,8 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     public async Task<List<DepartmentDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
     {
         var departments = await _departmentRepository.GetByUserIdAsync(userId);
-        return departments.ToDto();
+        return departments.Adapt<List<DepartmentDto>>();
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<DepartmentDto> MapToEntityDtoAsync(SysDepartment entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 DepartmentDto 到实体（基类方法）
-    /// </summary>
-    protected override Task<SysDepartment> MapToEntityAsync(DepartmentDto dto)
-    {
-        var entity = new SysDepartment
-        {
-            ParentId = dto.ParentId,
-            DepartmentName = dto.DepartmentName,
-            DepartmentCode = dto.DepartmentCode,
-            DepartmentType = dto.DepartmentType,
-            LeaderId = dto.LeaderId,
-            Phone = dto.Phone,
-            Email = dto.Email,
-            Address = dto.Address,
-            Status = dto.Status,
-            Sort = dto.Sort,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 DepartmentDto 到现有实体（基类方法）
-    /// </summary>
-    protected override Task MapToEntityAsync(DepartmentDto dto, SysDepartment entity)
-    {
-        entity.ParentId = dto.ParentId;
-        if (dto.DepartmentName != null) entity.DepartmentName = dto.DepartmentName;
-        entity.DepartmentType = dto.DepartmentType;
-        entity.LeaderId = dto.LeaderId;
-        if (dto.Phone != null) entity.Phone = dto.Phone;
-        if (dto.Email != null) entity.Email = dto.Email;
-        if (dto.Address != null) entity.Address = dto.Address;
-        entity.Status = dto.Status;
-        entity.Sort = dto.Sort;
-        if (dto.Remark != null) entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysDepartment> MapToEntityAsync(CreateDepartmentDto createDto)
-    {
-        var entity = new SysDepartment
-        {
-            ParentId = createDto.ParentId,
-            DepartmentName = createDto.DepartmentName,
-            DepartmentCode = createDto.DepartmentCode,
-            DepartmentType = createDto.DepartmentType,
-            LeaderId = createDto.LeaderId,
-            Phone = createDto.Phone,
-            Email = createDto.Email,
-            Address = createDto.Address,
-            Sort = createDto.Sort,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateDepartmentDto updateDto, SysDepartment entity)
-    {
-        if (updateDto.ParentId.HasValue) entity.ParentId = updateDto.ParentId;
-        if (updateDto.DepartmentName != null) entity.DepartmentName = updateDto.DepartmentName;
-        if (updateDto.DepartmentType.HasValue) entity.DepartmentType = updateDto.DepartmentType.Value;
-        if (updateDto.LeaderId.HasValue) entity.LeaderId = updateDto.LeaderId;
-        if (updateDto.Phone != null) entity.Phone = updateDto.Phone;
-        if (updateDto.Email != null) entity.Email = updateDto.Email;
-        if (updateDto.Address != null) entity.Address = updateDto.Address;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }

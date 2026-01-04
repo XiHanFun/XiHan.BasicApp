@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
@@ -116,7 +117,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     public async Task<UserDto?> GetByUserNameAsync(string userName)
     {
         var user = await _userRepository.GetByUserNameAsync(userName);
-        return user?.ToDto();
+        return user?.Adapt<UserDto>();
     }
 
     /// <summary>
@@ -125,7 +126,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     public async Task<UserDto?> GetByEmailAsync(string email)
     {
         var user = await _userRepository.GetByEmailAsync(email);
-        return user?.ToDto();
+        return user?.Adapt<UserDto>();
     }
 
     /// <summary>
@@ -134,7 +135,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     public async Task<UserDto?> GetByPhoneAsync(string phone)
     {
         var user = await _userRepository.GetByPhoneAsync(phone);
-        return user?.ToDto();
+        return user?.Adapt<UserDto>();
     }
 
     #endregion 业务特定方法
@@ -204,7 +205,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
             });
         }
 
-        return user.ToDto();
+        return user.Adapt<UserDto>();
     }
 
     /// <summary>
@@ -290,7 +291,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
 
         await _userRepository.UpdateAsync(user);
 
-        return user.ToDto();
+        return user.Adapt<UserDto>();
     }
 
     /// <summary>
@@ -419,112 +420,4 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     }
 
     #endregion 角色和部门管理
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<UserDto> MapToEntityDtoAsync(SysUser entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 UserDto 到实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task<SysUser> MapToEntityAsync(UserDto dto)
-    {
-        // 此方法用于支持基类的 CreateAsync(TEntityDto)，但建议使用 CreateAsync(CreateUserDto)
-        var entity = new SysUser
-        {
-            TenantId = dto.TenantId,
-            UserName = dto.UserName,
-            RealName = dto.RealName,
-            NickName = dto.NickName,
-            Avatar = dto.Avatar,
-            Email = dto.Email,
-            Phone = dto.Phone,
-            Gender = dto.Gender,
-            Birthday = dto.Birthday,
-            Status = dto.Status,
-            TimeZone = dto.TimeZone,
-            Language = dto.Language,
-            Country = dto.Country,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 UserDto 到现有实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task MapToEntityAsync(UserDto dto, SysUser entity)
-    {
-        // 此方法用于支持基类的 UpdateAsync(TKey, TEntityDto)，但建议使用 UpdateAsync(TKey, UpdateUserDto)
-        if (dto.RealName != null) entity.RealName = dto.RealName;
-        if (dto.NickName != null) entity.NickName = dto.NickName;
-        if (dto.Avatar != null) entity.Avatar = dto.Avatar;
-        if (dto.Email != null) entity.Email = dto.Email;
-        if (dto.Phone != null) entity.Phone = dto.Phone;
-        entity.Gender = dto.Gender;
-        entity.Birthday = dto.Birthday;
-        entity.Status = dto.Status;
-        if (dto.TimeZone != null) entity.TimeZone = dto.TimeZone;
-        if (dto.Language != null) entity.Language = dto.Language;
-        if (dto.Country != null) entity.Country = dto.Country;
-        if (dto.Remark != null) entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysUser> MapToEntityAsync(CreateUserDto createDto)
-    {
-        var entity = new SysUser
-        {
-            TenantId = createDto.TenantId,
-            UserName = createDto.UserName,
-            Password = _userManager.HashPassword(createDto.Password),
-            RealName = createDto.RealName,
-            NickName = createDto.NickName,
-            Avatar = createDto.Avatar,
-            Email = createDto.Email,
-            Phone = createDto.Phone,
-            Gender = createDto.Gender,
-            Birthday = createDto.Birthday,
-            TimeZone = createDto.TimeZone,
-            Language = createDto.Language,
-            Country = createDto.Country,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateUserDto updateDto, SysUser entity)
-    {
-        if (updateDto.RealName != null) entity.RealName = updateDto.RealName;
-        if (updateDto.NickName != null) entity.NickName = updateDto.NickName;
-        if (updateDto.Avatar != null) entity.Avatar = updateDto.Avatar;
-        if (updateDto.Email != null) entity.Email = updateDto.Email;
-        if (updateDto.Phone != null) entity.Phone = updateDto.Phone;
-        if (updateDto.Gender.HasValue) entity.Gender = updateDto.Gender.Value;
-        if (updateDto.Birthday.HasValue) entity.Birthday = updateDto.Birthday;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.TimeZone != null) entity.TimeZone = updateDto.TimeZone;
-        if (updateDto.Language != null) entity.Language = updateDto.Language;
-        if (updateDto.Country != null) entity.Country = updateDto.Country;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }

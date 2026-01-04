@@ -12,9 +12,9 @@
 
 #endregion <<版权版本注释>>
 
+using Mapster;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.Dicts;
 using XiHan.BasicApp.Rbac.Services.Dicts.Dtos;
 using XiHan.Framework.Application.Services;
@@ -44,7 +44,7 @@ public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, XiHan
     public async Task<DictDto?> GetByCodeAsync(string dictCode)
     {
         var dict = await _dictRepository.GetByCodeAsync(dictCode);
-        return dict?.ToDto();
+        return dict.Adapt<DictDto>();
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, XiHan
     public async Task<List<DictDto>> GetByTypeAsync(string dictType)
     {
         var dicts = await _dictRepository.GetByTypeAsync(dictType);
-        return dicts.ToDto();
+        return dicts.Adapt<List<DictDto>>();
     }
 
     /// <summary>
@@ -65,84 +65,4 @@ public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, XiHan
     }
 
     #endregion 业务特定方法
-
-    #region 映射方法实现
-
-    /// <summary>
-    /// 映射实体到DTO
-    /// </summary>
-    protected override Task<DictDto> MapToEntityDtoAsync(SysDict entity)
-    {
-        return Task.FromResult(entity.ToDto());
-    }
-
-    /// <summary>
-    /// 映射 DictDto 到实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task<SysDict> MapToEntityAsync(DictDto dto)
-    {
-        var entity = new SysDict
-        {
-            DictCode = dto.DictCode,
-            DictName = dto.DictName,
-            DictType = dto.DictType,
-            DictDescription = dto.DictDescription,
-            IsBuiltIn = dto.IsBuiltIn,
-            Status = dto.Status,
-            Sort = dto.Sort,
-            Remark = dto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射 DictDto 到现有实体（基类方法，不推荐直接使用）
-    /// </summary>
-    protected override Task MapToEntityAsync(DictDto dto, SysDict entity)
-    {
-        entity.DictName = dto.DictName;
-        entity.DictType = dto.DictType;
-        entity.DictDescription = dto.DictDescription;
-        entity.Status = dto.Status;
-        entity.Sort = dto.Sort;
-        entity.Remark = dto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 映射创建DTO到实体
-    /// </summary>
-    protected override Task<SysDict> MapToEntityAsync(CreateDictDto createDto)
-    {
-        var entity = new SysDict
-        {
-            DictCode = createDto.DictCode,
-            DictName = createDto.DictName,
-            DictType = createDto.DictType,
-            DictDescription = createDto.DictDescription,
-            Sort = createDto.Sort,
-            Remark = createDto.Remark
-        };
-
-        return Task.FromResult(entity);
-    }
-
-    /// <summary>
-    /// 映射更新DTO到现有实体
-    /// </summary>
-    protected override Task MapToEntityAsync(UpdateDictDto updateDto, SysDict entity)
-    {
-        if (updateDto.DictName != null) entity.DictName = updateDto.DictName;
-        if (updateDto.DictType != null) entity.DictType = updateDto.DictType;
-        if (updateDto.DictDescription != null) entity.DictDescription = updateDto.DictDescription;
-        if (updateDto.Status.HasValue) entity.Status = updateDto.Status.Value;
-        if (updateDto.Sort.HasValue) entity.Sort = updateDto.Sort.Value;
-        if (updateDto.Remark != null) entity.Remark = updateDto.Remark;
-
-        return Task.CompletedTask;
-    }
-
-    #endregion 映射方法实现
 }
