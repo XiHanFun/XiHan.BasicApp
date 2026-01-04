@@ -24,12 +24,16 @@ public partial class SysFile
     /// <summary>
     /// 租户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 
     /// <summary>
     /// 上传者信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(UploaderId))]
     public virtual SysUser? Uploader { get; set; }
 }

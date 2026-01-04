@@ -24,6 +24,8 @@ public partial class SysConfig
     /// <summary>
     /// 租户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 }

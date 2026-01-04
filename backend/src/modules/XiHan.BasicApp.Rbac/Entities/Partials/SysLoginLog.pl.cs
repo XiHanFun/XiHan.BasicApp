@@ -24,6 +24,8 @@ public partial class SysLoginLog
     /// <summary>
     /// 用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 }

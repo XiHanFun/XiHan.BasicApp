@@ -24,18 +24,24 @@ public partial class SysNotification
     /// <summary>
     /// 租户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 
     /// <summary>
     /// 接收用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 
     /// <summary>
     /// 发送用户信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(SenderId))]
     public virtual SysUser? Sender { get; set; }
 }

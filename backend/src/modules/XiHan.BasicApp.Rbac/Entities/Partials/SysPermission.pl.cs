@@ -24,12 +24,16 @@ public partial class SysPermission
     /// <summary>
     /// 角色权限关联列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysRolePermission.PermissionId))]
     public virtual List<SysRolePermission>? RolePermissions { get; set; }
 
     /// <summary>
     /// 角色列表
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(typeof(SysRolePermission), nameof(SysRolePermission.PermissionId), nameof(SysRolePermission.RoleId))]
     public virtual List<SysRole>? Roles { get; set; }
 }

@@ -24,12 +24,16 @@ public partial class SysRoleMenu
     /// <summary>
     /// 角色信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 
     /// <summary>
     /// 菜单信息
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.ManyToOne, nameof(MenuId))]
     public virtual SysMenu? Menu { get; set; }
 }
