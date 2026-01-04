@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Emails;
 /// <summary>
 /// 系统邮件服务接口
 /// </summary>
-public interface ISysEmailService : ICrudApplicationService<EmailDto, XiHanBasicAppIdType, CreateEmailDto, UpdateEmailDto>
+public interface ISysEmailService : ICrudApplicationService<EmailDto, long, CreateEmailDto, UpdateEmailDto>
 {
     /// <summary>
     /// 根据邮件状态获取邮件列表
@@ -50,14 +50,14 @@ public interface ISysEmailService : ICrudApplicationService<EmailDto, XiHanBasic
     /// </summary>
     /// <param name="senderId">发送者ID</param>
     /// <returns></returns>
-    Task<List<EmailDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId);
+    Task<List<EmailDto>> GetBySenderIdAsync(long senderId);
 
     /// <summary>
     /// 根据接收者ID获取邮件列表
     /// </summary>
     /// <param name="receiverId">接收者ID</param>
     /// <returns></returns>
-    Task<List<EmailDto>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId);
+    Task<List<EmailDto>> GetByReceiverIdAsync(long receiverId);
 
     /// <summary>
     /// 获取待发送的邮件列表

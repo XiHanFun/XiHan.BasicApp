@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Data.SqlSugar;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Configs;
 /// <summary>
 /// 系统配置仓储实现
 /// </summary>
-public class SysConfigRepository : SqlSugarRepositoryBase<SysConfig, XiHanBasicAppIdType>, ISysConfigRepository
+public class SysConfigRepository : SqlSugarRepositoryBase<SysConfig, long>, ISysConfigRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -57,7 +56,7 @@ public class SysConfigRepository : SqlSugarRepositoryBase<SysConfig, XiHanBasicA
     /// <summary>
     /// 根据租户ID获取配置列表
     /// </summary>
-    public async Task<List<SysConfig>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<SysConfig>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(config => config.TenantId == tenantId);
         return result.OrderBy(config => config.Sort).ToList();
@@ -66,7 +65,7 @@ public class SysConfigRepository : SqlSugarRepositoryBase<SysConfig, XiHanBasicA
     /// <summary>
     /// 检查配置键是否存在
     /// </summary>
-    public async Task<bool> ExistsByKeyAsync(string configKey, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByKeyAsync(string configKey, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysConfig>().Where(config => config.ConfigKey == configKey);
         if (excludeId.HasValue)

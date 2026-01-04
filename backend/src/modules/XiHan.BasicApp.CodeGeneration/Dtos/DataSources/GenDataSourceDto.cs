@@ -270,7 +270,7 @@ public class TestDataSourceDto
     /// <summary>
     /// 数据源ID（如果已存在）
     /// </summary>
-    public XiHanBasicAppIdType? DataSourceId { get; set; }
+    public long? DataSourceId { get; set; }
 
     /// <summary>
     /// 数据库类型

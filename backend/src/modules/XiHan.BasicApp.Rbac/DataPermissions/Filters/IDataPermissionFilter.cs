@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using System.Linq.Expressions;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.DataPermissions.Filters;
@@ -31,7 +30,7 @@ public interface IDataPermissionFilter
     /// <param name="userId">用户ID</param>
     /// <param name="scope">数据权限范围</param>
     /// <returns>过滤后的查询对象</returns>
-    IQueryable<TEntity> ApplyFilter<TEntity>(IQueryable<TEntity> query, XiHanBasicAppIdType userId, DataPermissionScope scope) where TEntity : class;
+    IQueryable<TEntity> ApplyFilter<TEntity>(IQueryable<TEntity> query, long userId, DataPermissionScope scope) where TEntity : class;
 
     /// <summary>
     /// 构建数据权限表达式
@@ -43,7 +42,7 @@ public interface IDataPermissionFilter
     /// <param name="creatorField">创建者字段名称</param>
     /// <returns>过滤表达式</returns>
     Task<Expression<Func<TEntity, bool>>?> BuildFilterExpressionAsync<TEntity>(
-        XiHanBasicAppIdType userId,
+        long userId,
         DataPermissionScope scope,
         string departmentField = "DepartmentId",
         string creatorField = "CreatedBy") where TEntity : class;
@@ -57,8 +56,8 @@ public interface IDataPermissionFilter
     /// <param name="departmentField">部门字段名称</param>
     /// <returns>过滤表达式</returns>
     Expression<Func<TEntity, bool>>? BuildCustomFilterExpression<TEntity>(
-        XiHanBasicAppIdType userId,
-        List<XiHanBasicAppIdType> customDepartmentIds,
+        long userId,
+        List<long> customDepartmentIds,
         string departmentField = "DepartmentId") where TEntity : class;
 
     /// <summary>
@@ -69,5 +68,5 @@ public interface IDataPermissionFilter
     /// <param name="targetDepartmentId">目标部门ID</param>
     /// <param name="scope">数据权限范围</param>
     /// <returns>是否有权限</returns>
-    Task<bool> HasPermissionAsync(XiHanBasicAppIdType userId, XiHanBasicAppIdType? targetUserId, XiHanBasicAppIdType? targetDepartmentId, DataPermissionScope scope);
+    Task<bool> HasPermissionAsync(long userId, long? targetUserId, long? targetDepartmentId, DataPermissionScope scope);
 }

@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Data.SqlSugar;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Notifications;
 /// <summary>
 /// 系统通知仓储实现
 /// </summary>
-public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification, XiHanBasicAppIdType>, ISysNotificationRepository
+public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification, long>, ISysNotificationRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -40,7 +39,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     /// <summary>
     /// 根据用户ID获取通知列表
     /// </summary>
-    public async Task<List<SysNotification>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysNotification>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(n => n.UserId == userId || n.IsGlobal);
         return result.OrderByDescending(n => n.SendTime).ToList();
@@ -67,7 +66,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     /// <summary>
     /// 根据发送者ID获取通知列表
     /// </summary>
-    public async Task<List<SysNotification>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
+    public async Task<List<SysNotification>> GetBySenderIdAsync(long senderId)
     {
         var result = await GetListAsync(n => n.SenderId == senderId);
         return result.OrderByDescending(n => n.SendTime).ToList();
@@ -76,7 +75,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     /// <summary>
     /// 获取用户的未读通知数量
     /// </summary>
-    public async Task<int> GetUnreadCountAsync(XiHanBasicAppIdType userId)
+    public async Task<int> GetUnreadCountAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysNotification>()

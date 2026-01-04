@@ -26,7 +26,7 @@ public class RoleDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 父角色ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentRoleId { get; set; }
+    public long? ParentRoleId { get; set; }
 
     /// <summary>
     /// 角色编码
@@ -77,17 +77,17 @@ public class RoleDetailDto : RoleDto
     /// <summary>
     /// 菜单ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> MenuIds { get; set; } = [];
+    public List<long> MenuIds { get; set; } = [];
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+    public List<long> PermissionIds { get; set; } = [];
 
     /// <summary>
     /// 自定义数据权限部门ID列表（当DataScope=Custom时使用）
     /// </summary>
-    public List<XiHanBasicAppIdType> CustomDataScopeDepartmentIds { get; set; } = [];
+    public List<long> CustomDataScopeDepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 用户数量
@@ -103,7 +103,7 @@ public class CreateRoleDto : RbacCreationDtoBase
     /// <summary>
     /// 父角色ID（用于角色继承）
     /// </summary>
-    public XiHanBasicAppIdType? ParentRoleId { get; set; }
+    public long? ParentRoleId { get; set; }
 
     /// <summary>
     /// 角色编码
@@ -138,17 +138,17 @@ public class CreateRoleDto : RbacCreationDtoBase
     /// <summary>
     /// 菜单ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> MenuIds { get; set; } = [];
+    public List<long> MenuIds { get; set; } = [];
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+    public List<long> PermissionIds { get; set; } = [];
 
     /// <summary>
     /// 自定义数据权限部门ID列表（当DataScope=Custom时使用）
     /// </summary>
-    public List<XiHanBasicAppIdType> CustomDataScopeDepartmentIds { get; set; } = [];
+    public List<long> CustomDataScopeDepartmentIds { get; set; } = [];
 
     /// <summary>
     /// 备注
@@ -164,7 +164,7 @@ public class UpdateRoleDto : RbacUpdateDtoBase
     /// <summary>
     /// 父角色ID（用于角色继承）
     /// </summary>
-    public XiHanBasicAppIdType? ParentRoleId { get; set; }
+    public long? ParentRoleId { get; set; }
 
     /// <summary>
     /// 角色名称
@@ -210,12 +210,12 @@ public class AssignRoleMenusDto
     /// <summary>
     /// 角色ID
     /// </summary>
-    public XiHanBasicAppIdType RoleId { get; set; }
+    public long RoleId { get; set; }
 
     /// <summary>
     /// 菜单ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> MenuIds { get; set; } = [];
+    public List<long> MenuIds { get; set; } = [];
 }
 
 /// <summary>
@@ -226,12 +226,12 @@ public class AssignRolePermissionsDto
     /// <summary>
     /// 角色ID
     /// </summary>
-    public XiHanBasicAppIdType RoleId { get; set; }
+    public long RoleId { get; set; }
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+    public List<long> PermissionIds { get; set; } = [];
 }
 
 /// <summary>
@@ -242,10 +242,10 @@ public class AssignRoleDataScopeDto
     /// <summary>
     /// 角色ID
     /// </summary>
-    public XiHanBasicAppIdType RoleId { get; set; }
+    public long RoleId { get; set; }
 
     /// <summary>
     /// 部门ID列表（自定义数据权限范围）
     /// </summary>
-    public List<XiHanBasicAppIdType> DepartmentIds { get; set; } = [];
+    public List<long> DepartmentIds { get; set; } = [];
 }

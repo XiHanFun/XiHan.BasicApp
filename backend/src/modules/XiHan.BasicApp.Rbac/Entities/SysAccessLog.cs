@@ -29,19 +29,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysAccessLog_AccessTime", nameof(AccessTime), OrderByType.Desc)]
 [SugarIndex("IX_SysAccessLog_ResourcePath", nameof(ResourcePath), OrderByType.Asc)]
 [SugarIndex("IX_SysAccessLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysAccessLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysAccessLog : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TenantId { get; set; }
+    public virtual long? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? UserId { get; set; }
+    public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -137,13 +137,13 @@ public partial class SysAccessLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 响应时间（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应时间（毫秒）")]
-    public virtual XiHanBasicAppIdType ResponseTime { get; set; } = 0;
+    public virtual long ResponseTime { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
     [SugarColumn(ColumnDescription = "响应大小（字节）")]
-    public virtual XiHanBasicAppIdType ResponseSize { get; set; } = 0;
+    public virtual long ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 访问时间
@@ -161,7 +161,7 @@ public partial class SysAccessLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 停留时长（秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "停留时长（秒）")]
-    public virtual XiHanBasicAppIdType StayTime { get; set; } = 0;
+    public virtual long StayTime { get; set; } = 0;
 
     /// <summary>
     /// 错误信息

@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -25,13 +24,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Role", "系统角色表")]
 [SugarIndex("IX_SysRole_RoleCode", nameof(RoleCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysRole_ParentRoleId", nameof(ParentRoleId), OrderByType.Asc)]
-public partial class SysRole : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysRole : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 父角色ID（用于角色继承，子角色继承父角色的所有权限）
     /// </summary>
     [SugarColumn(ColumnDescription = "父角色ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? ParentRoleId { get; set; }
+    public virtual long? ParentRoleId { get; set; }
 
     /// <summary>
     /// 角色编码

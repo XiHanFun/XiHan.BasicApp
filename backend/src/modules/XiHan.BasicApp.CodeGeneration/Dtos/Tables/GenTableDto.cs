@@ -82,7 +82,7 @@ public class GenTableDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 父菜单ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentMenuId { get; set; }
+    public long? ParentMenuId { get; set; }
 
     /// <summary>
     /// 主键列名
@@ -102,7 +102,7 @@ public class GenTableDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 主子表关联主表ID
     /// </summary>
-    public XiHanBasicAppIdType? MasterTableId { get; set; }
+    public long? MasterTableId { get; set; }
 
     /// <summary>
     /// 主子表关联外键列
@@ -229,7 +229,7 @@ public class CreateGenTableDto : CodeGenCreationDtoBase
     /// <summary>
     /// 父菜单ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentMenuId { get; set; }
+    public long? ParentMenuId { get; set; }
 
     /// <summary>
     /// 数据库类型
@@ -310,7 +310,7 @@ public class UpdateGenTableDto : CodeGenUpdateDtoBase
     /// <summary>
     /// 父菜单ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentMenuId { get; set; }
+    public long? ParentMenuId { get; set; }
 
     /// <summary>
     /// 主键列名
@@ -330,7 +330,7 @@ public class UpdateGenTableDto : CodeGenUpdateDtoBase
     /// <summary>
     /// 主子表关联主表ID
     /// </summary>
-    public XiHanBasicAppIdType? MasterTableId { get; set; }
+    public long? MasterTableId { get; set; }
 
     /// <summary>
     /// 主子表关联外键列
@@ -366,7 +366,7 @@ public class ImportTableDto
     /// <summary>
     /// 数据源ID
     /// </summary>
-    public XiHanBasicAppIdType? DataSourceId { get; set; }
+    public long? DataSourceId { get; set; }
 
     /// <summary>
     /// 表名列表
@@ -397,12 +397,12 @@ public class PreviewCodeDto
     /// <summary>
     /// 表ID
     /// </summary>
-    public XiHanBasicAppIdType TableId { get; set; }
+    public long TableId { get; set; }
 
     /// <summary>
     /// 模板ID列表（为空则使用所有启用的模板）
     /// </summary>
-    public List<XiHanBasicAppIdType>? TemplateIds { get; set; }
+    public List<long>? TemplateIds { get; set; }
 }
 
 /// <summary>
@@ -413,12 +413,12 @@ public class GenerateCodeDto
     /// <summary>
     /// 表ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> TableIds { get; set; } = [];
+    public List<long> TableIds { get; set; } = [];
 
     /// <summary>
     /// 模板ID列表（为空则使用所有启用的模板）
     /// </summary>
-    public List<XiHanBasicAppIdType>? TemplateIds { get; set; }
+    public List<long>? TemplateIds { get; set; }
 
     /// <summary>
     /// 生成方式

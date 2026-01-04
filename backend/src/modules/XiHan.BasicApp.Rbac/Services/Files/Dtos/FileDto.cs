@@ -26,7 +26,7 @@ public class FileDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 文件名
@@ -86,7 +86,7 @@ public class FileDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 上传者ID
     /// </summary>
-    public XiHanBasicAppIdType? UploaderId { get; set; }
+    public long? UploaderId { get; set; }
 
     /// <summary>
     /// 上传IP
@@ -101,7 +101,7 @@ public class FileDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 下载次数
@@ -132,7 +132,7 @@ public class CreateFileDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 文件名
@@ -192,7 +192,7 @@ public class CreateFileDto : RbacCreationDtoBase
     /// <summary>
     /// 上传者ID
     /// </summary>
-    public XiHanBasicAppIdType? UploaderId { get; set; }
+    public long? UploaderId { get; set; }
 
     /// <summary>
     /// 上传IP
@@ -207,7 +207,7 @@ public class CreateFileDto : RbacCreationDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注
@@ -238,7 +238,7 @@ public class UpdateFileDto : RbacUpdateDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 状态

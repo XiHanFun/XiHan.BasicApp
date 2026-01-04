@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.OAuthTokens;
 /// <summary>
 /// 系统OAuth令牌服务接口
 /// </summary>
-public interface ISysOAuthTokenService : ICrudApplicationService<OAuthTokenDto, XiHanBasicAppIdType, CreateOAuthTokenDto, UpdateOAuthTokenDto>
+public interface ISysOAuthTokenService : ICrudApplicationService<OAuthTokenDto, long, CreateOAuthTokenDto, UpdateOAuthTokenDto>
 {
     /// <summary>
     /// 根据访问令牌获取
@@ -43,7 +43,7 @@ public interface ISysOAuthTokenService : ICrudApplicationService<OAuthTokenDto, 
     /// <param name="clientId">客户端ID</param>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<OAuthTokenDto>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId);
+    Task<List<OAuthTokenDto>> GetByClientAndUserAsync(string clientId, long userId);
 
     /// <summary>
     /// 删除过期的令牌

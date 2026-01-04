@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -28,25 +27,25 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysEmail_EmailType", nameof(EmailType), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysEmail_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysEmail : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysEmail : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TenantId { get; set; }
+    public virtual long? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? SenderId { get; set; }
+    public virtual long? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? ReceiverId { get; set; }
+    public virtual long? ReceiverId { get; set; }
 
     /// <summary>
     /// 邮件类型
@@ -112,7 +111,7 @@ public partial class SysEmail : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 模板ID
     /// </summary>
     [SugarColumn(ColumnDescription = "模板ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TemplateId { get; set; }
+    public virtual long? TemplateId { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）
@@ -166,7 +165,7 @@ public partial class SysEmail : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? BusinessId { get; set; }
+    public virtual long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注

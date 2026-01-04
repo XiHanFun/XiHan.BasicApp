@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Data.SqlSugar;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Emails;
 /// <summary>
 /// 系统邮件仓储实现
 /// </summary>
-public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, XiHanBasicAppIdType>, ISysEmailRepository
+public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, long>, ISysEmailRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -67,7 +66,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, XiHanBasicApp
     /// <summary>
     /// 根据发送者ID获取邮件列表
     /// </summary>
-    public async Task<List<SysEmail>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
+    public async Task<List<SysEmail>> GetBySenderIdAsync(long senderId)
     {
         var result = await GetListAsync(email => email.SenderId == senderId);
         return result.OrderByDescending(email => email.SendTime ?? email.CreatedTime).ToList();
@@ -76,7 +75,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, XiHanBasicApp
     /// <summary>
     /// 根据接收者ID获取邮件列表
     /// </summary>
-    public async Task<List<SysEmail>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId)
+    public async Task<List<SysEmail>> GetByReceiverIdAsync(long receiverId)
     {
         var result = await GetListAsync(email => email.ReceiverId == receiverId);
         return result.OrderByDescending(email => email.SendTime ?? email.CreatedTime).ToList();

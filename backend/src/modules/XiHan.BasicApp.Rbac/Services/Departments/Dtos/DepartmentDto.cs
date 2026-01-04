@@ -26,7 +26,7 @@ public class DepartmentDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -46,7 +46,7 @@ public class DepartmentDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 负责人ID
     /// </summary>
-    public XiHanBasicAppIdType? LeaderId { get; set; }
+    public long? LeaderId { get; set; }
 
     /// <summary>
     /// 负责人姓名
@@ -103,7 +103,7 @@ public class CreateDepartmentDto : RbacCreationDtoBase
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -123,7 +123,7 @@ public class CreateDepartmentDto : RbacCreationDtoBase
     /// <summary>
     /// 负责人ID
     /// </summary>
-    public XiHanBasicAppIdType? LeaderId { get; set; }
+    public long? LeaderId { get; set; }
 
     /// <summary>
     /// 联系电话
@@ -159,7 +159,7 @@ public class UpdateDepartmentDto : RbacUpdateDtoBase
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
@@ -174,7 +174,7 @@ public class UpdateDepartmentDto : RbacUpdateDtoBase
     /// <summary>
     /// 负责人ID
     /// </summary>
-    public XiHanBasicAppIdType? LeaderId { get; set; }
+    public long? LeaderId { get; set; }
 
     /// <summary>
     /// 联系电话

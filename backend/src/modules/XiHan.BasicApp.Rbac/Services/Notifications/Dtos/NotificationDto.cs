@@ -26,17 +26,17 @@ public class NotificationDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
-    public XiHanBasicAppIdType? UserId { get; set; }
+    public long? UserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    public XiHanBasicAppIdType? SenderId { get; set; }
+    public long? SenderId { get; set; }
 
     /// <summary>
     /// 通知类型
@@ -71,7 +71,7 @@ public class NotificationDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 通知状态
@@ -122,17 +122,17 @@ public class CreateNotificationDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
-    public XiHanBasicAppIdType? UserId { get; set; }
+    public long? UserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    public XiHanBasicAppIdType? SenderId { get; set; }
+    public long? SenderId { get; set; }
 
     /// <summary>
     /// 通知类型
@@ -167,7 +167,7 @@ public class CreateNotificationDto : RbacCreationDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 过期时间
@@ -244,10 +244,10 @@ public class MarkReadDto
     /// <summary>
     /// 通知ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> NotificationIds { get; set; } = [];
+    public List<long> NotificationIds { get; set; } = [];
 
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 }

@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Menus;
 /// <summary>
 /// 系统菜单仓储实现
 /// </summary>
-public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, XiHanBasicAppIdType>, ISysMenuRepository
+public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, long>, ISysMenuRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +52,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, XiHanBasicAppId
     /// <param name="menuCode">菜单编码</param>
     /// <param name="excludeId">排除的菜单ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByMenuCodeAsync(string menuCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByMenuCodeAsync(string menuCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysMenu>().Where(m => m.MenuCode == menuCode);
         if (excludeId.HasValue)
@@ -77,7 +77,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, XiHanBasicAppId
     /// </summary>
     /// <param name="parentId">父级菜单ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetChildrenAsync(XiHanBasicAppIdType parentId)
+    public async Task<List<SysMenu>> GetChildrenAsync(long parentId)
     {
         var result = await GetListAsync(m => m.ParentId == parentId);
         return result.ToList();
@@ -88,7 +88,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<SysMenu>> GetByRoleIdAsync(long roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
@@ -103,7 +103,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, XiHanBasicAppId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysMenu>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysMenu>> GetByUserIdAsync(long userId)
     {
         // 获取用户的角色ID列表
         var roleIds = await _dbContext.GetClient()

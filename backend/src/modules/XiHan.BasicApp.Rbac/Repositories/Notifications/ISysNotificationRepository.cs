@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.Notifications;
 /// <summary>
 /// 系统通知仓储接口
 /// </summary>
-public interface ISysNotificationRepository : IRepositoryBase<SysNotification, XiHanBasicAppIdType>
+public interface ISysNotificationRepository : IRepositoryBase<SysNotification, long>
 {
     /// <summary>
     /// 根据用户ID获取通知列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysNotification>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysNotification>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据通知类型获取通知列表
@@ -50,14 +50,14 @@ public interface ISysNotificationRepository : IRepositoryBase<SysNotification, X
     /// </summary>
     /// <param name="senderId">发送者ID</param>
     /// <returns></returns>
-    Task<List<SysNotification>> GetBySenderIdAsync(XiHanBasicAppIdType senderId);
+    Task<List<SysNotification>> GetBySenderIdAsync(long senderId);
 
     /// <summary>
     /// 获取用户的未读通知数量
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<int> GetUnreadCountAsync(XiHanBasicAppIdType userId);
+    Task<int> GetUnreadCountAsync(long userId);
 
     /// <summary>
     /// 获取全局通知列表

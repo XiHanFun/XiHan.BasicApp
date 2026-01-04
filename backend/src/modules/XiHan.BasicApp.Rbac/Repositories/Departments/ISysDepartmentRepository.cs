@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Departments;
 /// <summary>
 /// 系统部门仓储接口
 /// </summary>
-public interface ISysDepartmentRepository : IRepositoryBase<SysDepartment, XiHanBasicAppIdType>
+public interface ISysDepartmentRepository : IRepositoryBase<SysDepartment, long>
 {
     /// <summary>
     /// 根据部门编码获取部门
@@ -36,7 +36,7 @@ public interface ISysDepartmentRepository : IRepositoryBase<SysDepartment, XiHan
     /// <param name="departmentCode">部门编码</param>
     /// <param name="excludeId">排除的部门ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, long? excludeId = null);
 
     /// <summary>
     /// 获取所有根部门
@@ -49,19 +49,19 @@ public interface ISysDepartmentRepository : IRepositoryBase<SysDepartment, XiHan
     /// </summary>
     /// <param name="parentId">父级部门ID</param>
     /// <returns></returns>
-    Task<List<SysDepartment>> GetChildrenAsync(XiHanBasicAppIdType parentId);
+    Task<List<SysDepartment>> GetChildrenAsync(long parentId);
 
     /// <summary>
     /// 根据用户ID获取部门列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysDepartment>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysDepartment>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 获取部门的用户数量
     /// </summary>
     /// <param name="departmentId">部门ID</param>
     /// <returns></returns>
-    Task<int> GetDepartmentUserCountAsync(XiHanBasicAppIdType departmentId);
+    Task<int> GetDepartmentUserCountAsync(long departmentId);
 }

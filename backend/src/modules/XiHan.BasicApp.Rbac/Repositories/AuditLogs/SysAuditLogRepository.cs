@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.AuditLogs;
 /// <summary>
 /// 系统审核日志仓储实现
 /// </summary>
-public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, XiHanBasicAppIdType>, ISysAuditLogRepository
+public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, long>, ISysAuditLogRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -39,7 +39,7 @@ public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, XiHanBa
     /// <summary>
     /// 根据审核ID获取审核日志列表
     /// </summary>
-    public async Task<List<SysAuditLog>> GetByAuditIdAsync(XiHanBasicAppIdType auditId)
+    public async Task<List<SysAuditLog>> GetByAuditIdAsync(long auditId)
     {
         var result = await GetListAsync(log => log.AuditId == auditId);
         return result.OrderBy(log => log.AuditTime).ToList();
@@ -48,7 +48,7 @@ public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, XiHanBa
     /// <summary>
     /// 根据审核用户ID获取审核日志列表
     /// </summary>
-    public async Task<List<SysAuditLog>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId)
+    public async Task<List<SysAuditLog>> GetByAuditorIdAsync(long auditorId)
     {
         var result = await GetListAsync(log => log.AuditorId == auditorId);
         return result.OrderByDescending(log => log.AuditTime).ToList();

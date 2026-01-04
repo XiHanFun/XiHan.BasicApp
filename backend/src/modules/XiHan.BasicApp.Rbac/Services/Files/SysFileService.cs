@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Services.Files;
 /// <summary>
 /// 系统文件服务实现
 /// </summary>
-public class SysFileService : CrudApplicationServiceBase<SysFile, FileDto, XiHanBasicAppIdType, CreateFileDto, UpdateFileDto>, ISysFileService
+public class SysFileService : CrudApplicationServiceBase<SysFile, FileDto, long, CreateFileDto, UpdateFileDto>, ISysFileService
 {
     private readonly ISysFileRepository _fileRepository;
 
@@ -63,7 +63,7 @@ public class SysFileService : CrudApplicationServiceBase<SysFile, FileDto, XiHan
     /// <summary>
     /// 根据上传者ID获取文件列表
     /// </summary>
-    public async Task<List<FileDto>> GetByUploaderIdAsync(XiHanBasicAppIdType uploaderId)
+    public async Task<List<FileDto>> GetByUploaderIdAsync(long uploaderId)
     {
         var files = await _fileRepository.GetByUploaderIdAsync(uploaderId);
         return files.Adapt<List<FileDto>>();
@@ -72,7 +72,7 @@ public class SysFileService : CrudApplicationServiceBase<SysFile, FileDto, XiHan
     /// <summary>
     /// 根据业务类型和业务ID获取文件列表
     /// </summary>
-    public async Task<List<FileDto>> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId)
+    public async Task<List<FileDto>> GetByBusinessAsync(string businessType, long businessId)
     {
         var files = await _fileRepository.GetByBusinessAsync(businessType, businessId);
         return files.Adapt<List<FileDto>>();
@@ -81,7 +81,7 @@ public class SysFileService : CrudApplicationServiceBase<SysFile, FileDto, XiHan
     /// <summary>
     /// 根据租户ID获取文件列表
     /// </summary>
-    public async Task<List<FileDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<FileDto>> GetByTenantIdAsync(long tenantId)
     {
         var files = await _fileRepository.GetByTenantIdAsync(tenantId);
         return files.Adapt<List<FileDto>>();

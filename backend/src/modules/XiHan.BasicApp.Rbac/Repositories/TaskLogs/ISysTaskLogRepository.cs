@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.TaskLogs;
 /// <summary>
 /// 系统任务日志仓储接口
 /// </summary>
-public interface ISysTaskLogRepository : IRepositoryBase<SysTaskLog, XiHanBasicAppIdType>
+public interface ISysTaskLogRepository : IRepositoryBase<SysTaskLog, long>
 {
     /// <summary>
     /// 根据任务ID获取任务日志列表
     /// </summary>
     /// <param name="taskId">任务ID</param>
     /// <returns></returns>
-    Task<List<SysTaskLog>> GetByTaskIdAsync(XiHanBasicAppIdType taskId);
+    Task<List<SysTaskLog>> GetByTaskIdAsync(long taskId);
 
     /// <summary>
     /// 根据任务编码获取任务日志列表
@@ -59,5 +59,5 @@ public interface ISysTaskLogRepository : IRepositoryBase<SysTaskLog, XiHanBasicA
     /// <param name="taskId">任务ID</param>
     /// <param name="count">数量</param>
     /// <returns></returns>
-    Task<List<SysTaskLog>> GetRecentLogsAsync(XiHanBasicAppIdType taskId, int count = 10);
+    Task<List<SysTaskLog>> GetRecentLogsAsync(long taskId, int count = 10);
 }

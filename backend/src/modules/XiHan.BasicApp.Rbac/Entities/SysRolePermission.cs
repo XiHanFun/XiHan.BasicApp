@@ -24,19 +24,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统角色权限关联实体
 /// </summary>
 [SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
-public partial class SysRolePermission : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysRolePermission : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType RoleId { get; set; }
+    public virtual long RoleId { get; set; }
 
     /// <summary>
     /// 权限ID
     /// </summary>
     [SugarColumn(ColumnDescription = "权限ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType PermissionId { get; set; }
+    public virtual long PermissionId { get; set; }
 
     /// <summary>
     /// 状态

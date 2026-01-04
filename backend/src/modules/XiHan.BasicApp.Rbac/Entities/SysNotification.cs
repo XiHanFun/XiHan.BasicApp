@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -28,25 +27,25 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysNotification_NotificationStatus", nameof(NotificationStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysNotification_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysNotification : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysNotification : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TenantId { get; set; }
+    public virtual long? TenantId { get; set; }
 
     /// <summary>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? UserId { get; set; }
+    public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? SenderId { get; set; }
+    public virtual long? SenderId { get; set; }
 
     /// <summary>
     /// 通知类型
@@ -88,7 +87,7 @@ public partial class SysNotification : RbacFullAuditedEntity<XiHanBasicAppIdType
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? BusinessId { get; set; }
+    public virtual long? BusinessId { get; set; }
 
     /// <summary>
     /// 通知状态

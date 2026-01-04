@@ -26,7 +26,7 @@ public class AuditDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 审核标题
@@ -46,7 +46,7 @@ public class AuditDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType BusinessId { get; set; }
+    public long BusinessId { get; set; }
 
     /// <summary>
     /// 业务数据（JSON格式）
@@ -56,12 +56,12 @@ public class AuditDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 提交用户ID
     /// </summary>
-    public XiHanBasicAppIdType SubmitterId { get; set; }
+    public long SubmitterId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
-    public XiHanBasicAppIdType? AuditorId { get; set; }
+    public long? AuditorId { get; set; }
 
     /// <summary>
     /// 审核状态
@@ -132,7 +132,7 @@ public class CreateAuditDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 审核标题
@@ -152,7 +152,7 @@ public class CreateAuditDto : RbacCreationDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType BusinessId { get; set; }
+    public long BusinessId { get; set; }
 
     /// <summary>
     /// 业务数据（JSON格式）
@@ -162,7 +162,7 @@ public class CreateAuditDto : RbacCreationDtoBase
     /// <summary>
     /// 提交用户ID
     /// </summary>
-    public XiHanBasicAppIdType SubmitterId { get; set; }
+    public long SubmitterId { get; set; }
 
     /// <summary>
     /// 优先级（1-5，数字越小优先级越高）
@@ -244,12 +244,12 @@ public class ProcessAuditDto
     /// <summary>
     /// 审核ID
     /// </summary>
-    public XiHanBasicAppIdType AuditId { get; set; }
+    public long AuditId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
-    public XiHanBasicAppIdType AuditorId { get; set; }
+    public long AuditorId { get; set; }
 
     /// <summary>
     /// 审核结果

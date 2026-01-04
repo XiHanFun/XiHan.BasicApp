@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Dicts;
 using XiHan.BasicApp.Rbac.Services.Dicts.Dtos;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.Dicts;
 /// <summary>
 /// 系统字典服务实现
 /// </summary>
-public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, XiHanBasicAppIdType, CreateDictDto, UpdateDictDto>, ISysDictService
+public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, long, CreateDictDto, UpdateDictDto>, ISysDictService
 {
     private readonly ISysDictRepository _dictRepository;
 
@@ -59,7 +58,7 @@ public class SysDictService : CrudApplicationServiceBase<SysDict, DictDto, XiHan
     /// <summary>
     /// 检查字典编码是否存在
     /// </summary>
-    public async Task<bool> ExistsByCodeAsync(string dictCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByCodeAsync(string dictCode, long? excludeId = null)
     {
         return await _dictRepository.ExistsByCodeAsync(dictCode, excludeId);
     }

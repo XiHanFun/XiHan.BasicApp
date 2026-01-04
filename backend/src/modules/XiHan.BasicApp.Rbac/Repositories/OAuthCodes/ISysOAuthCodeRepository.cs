@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OAuthCodes;
 /// <summary>
 /// 系统OAuth授权码仓储接口
 /// </summary>
-public interface ISysOAuthCodeRepository : IRepositoryBase<SysOAuthCode, XiHanBasicAppIdType>
+public interface ISysOAuthCodeRepository : IRepositoryBase<SysOAuthCode, long>
 {
     /// <summary>
     /// 根据授权码获取
@@ -36,7 +36,7 @@ public interface ISysOAuthCodeRepository : IRepositoryBase<SysOAuthCode, XiHanBa
     /// <param name="clientId">客户端ID</param>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysOAuthCode>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId);
+    Task<List<SysOAuthCode>> GetByClientAndUserAsync(string clientId, long userId);
 
     /// <summary>
     /// 删除过期的授权码

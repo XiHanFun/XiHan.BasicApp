@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.AccessLogs;
 /// <summary>
 /// 系统访问日志仓储实现
 /// </summary>
-public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, XiHanBasicAppIdType>, ISysAccessLogRepository
+public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, long>, ISysAccessLogRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -38,7 +38,7 @@ public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, XiHan
     /// <summary>
     /// 根据用户ID获取访问日志列表
     /// </summary>
-    public async Task<List<SysAccessLog>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysAccessLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
         return result.OrderByDescending(log => log.AccessTime).ToList();
@@ -56,7 +56,7 @@ public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, XiHan
     /// <summary>
     /// 根据租户ID获取访问日志列表
     /// </summary>
-    public async Task<List<SysAccessLog>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<SysAccessLog>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(log => log.TenantId == tenantId);
         return result.OrderByDescending(log => log.AccessTime).ToList();

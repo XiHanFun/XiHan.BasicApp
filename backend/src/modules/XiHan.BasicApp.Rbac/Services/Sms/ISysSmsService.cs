@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Sms;
 /// <summary>
 /// 系统短信服务接口
 /// </summary>
-public interface ISysSmsService : ICrudApplicationService<SmsDto, XiHanBasicAppIdType, CreateSmsDto, UpdateSmsDto>
+public interface ISysSmsService : ICrudApplicationService<SmsDto, long, CreateSmsDto, UpdateSmsDto>
 {
     /// <summary>
     /// 根据短信状态获取短信列表
@@ -50,14 +50,14 @@ public interface ISysSmsService : ICrudApplicationService<SmsDto, XiHanBasicAppI
     /// </summary>
     /// <param name="senderId">发送者ID</param>
     /// <returns></returns>
-    Task<List<SmsDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId);
+    Task<List<SmsDto>> GetBySenderIdAsync(long senderId);
 
     /// <summary>
     /// 根据接收者ID获取短信列表
     /// </summary>
     /// <param name="receiverId">接收者ID</param>
     /// <returns></returns>
-    Task<List<SmsDto>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId);
+    Task<List<SmsDto>> GetByReceiverIdAsync(long receiverId);
 
     /// <summary>
     /// 获取待发送的短信列表

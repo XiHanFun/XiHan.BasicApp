@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -26,13 +25,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserSession_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_Token", nameof(Token), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserSession_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
-public partial class SysUserSession : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysUserSession : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType UserId { get; set; }
+    public virtual long UserId { get; set; }
 
     /// <summary>
     /// 访问令牌
@@ -154,4 +153,3 @@ public partial class SysUserSession : RbacFullAuditedEntity<XiHanBasicAppIdType>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }
-

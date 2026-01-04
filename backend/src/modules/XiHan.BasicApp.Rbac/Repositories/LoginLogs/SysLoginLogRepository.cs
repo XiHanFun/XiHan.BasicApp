@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.LoginLogs;
 /// <summary>
 /// 系统登录日志仓储实现
 /// </summary>
-public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, XiHanBasicAppIdType>, ISysLoginLogRepository
+public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ISysLoginLogRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -39,7 +38,7 @@ public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, XiHanBa
     /// <summary>
     /// 根据用户ID获取登录日志列表
     /// </summary>
-    public async Task<List<SysLoginLog>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysLoginLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
         return result.OrderByDescending(log => log.LoginTime).ToList();
@@ -66,7 +65,7 @@ public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, XiHanBa
     /// <summary>
     /// 获取最近的登录日志
     /// </summary>
-    public async Task<List<SysLoginLog>> GetRecentLoginLogsAsync(XiHanBasicAppIdType userId, int count = 10)
+    public async Task<List<SysLoginLog>> GetRecentLoginLogsAsync(long userId, int count = 10)
     {
         return await _dbContext.GetClient()
             .Queryable<SysLoginLog>()

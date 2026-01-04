@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Services.Menus;
 /// <summary>
 /// 系统菜单服务实现
 /// </summary>
-public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHanBasicAppIdType, CreateMenuDto, UpdateMenuDto>, ISysMenuService
+public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, long, CreateMenuDto, UpdateMenuDto>, ISysMenuService
 {
     private readonly ISysMenuRepository _menuRepository;
     private readonly MenuManager _menuManager;
@@ -81,7 +81,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     /// <summary>
     /// 更新菜单
     /// </summary>
-    public override async Task<MenuDto> UpdateAsync(XiHanBasicAppIdType id, UpdateMenuDto input)
+    public override async Task<MenuDto> UpdateAsync(long id, UpdateMenuDto input)
     {
         var menu = await _menuRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.MenuNotFound);
@@ -160,7 +160,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     /// <summary>
     /// 删除菜单
     /// </summary>
-    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
+    public override async Task<bool> DeleteAsync(long id)
     {
         var menu = await _menuRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.MenuNotFound);
@@ -204,7 +204,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     /// <summary>
     /// 根据父级ID获取子菜单
     /// </summary>
-    public async Task<List<MenuDto>> GetChildrenAsync(XiHanBasicAppIdType parentId)
+    public async Task<List<MenuDto>> GetChildrenAsync(long parentId)
     {
         var children = await _menuRepository.GetChildrenAsync(parentId);
         return children.Adapt<List<MenuDto>>();
@@ -213,7 +213,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     /// <summary>
     /// 获取角色的菜单列表
     /// </summary>
-    public async Task<List<MenuDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<MenuDto>> GetByRoleIdAsync(long roleId)
     {
         var menus = await _menuRepository.GetByRoleIdAsync(roleId);
         return menus.Adapt<List<MenuDto>>();
@@ -222,7 +222,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, XiHan
     /// <summary>
     /// 获取用户的菜单树
     /// </summary>
-    public async Task<List<MenuTreeDto>> GetUserMenuTreeAsync(XiHanBasicAppIdType userId)
+    public async Task<List<MenuTreeDto>> GetUserMenuTreeAsync(long userId)
     {
         var menus = await _menuRepository.GetByUserIdAsync(userId);
         var menuDtos = menus.Adapt<List<MenuDto>>();

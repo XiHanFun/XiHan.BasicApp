@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Services.AccessLogs;
 /// <summary>
 /// 系统访问日志服务接口
 /// </summary>
-public interface ISysAccessLogService : ICrudApplicationService<AccessLogDto, XiHanBasicAppIdType, CreateAccessLogDto, CreateAccessLogDto>
+public interface ISysAccessLogService : ICrudApplicationService<AccessLogDto, long, CreateAccessLogDto, CreateAccessLogDto>
 {
     /// <summary>
     /// 根据用户ID获取访问日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<AccessLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<AccessLogDto>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据资源路径获取访问日志列表
@@ -42,7 +42,7 @@ public interface ISysAccessLogService : ICrudApplicationService<AccessLogDto, Xi
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<AccessLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<AccessLogDto>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 根据时间范围获取访问日志列表

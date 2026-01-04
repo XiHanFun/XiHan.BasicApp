@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.TaskLogs;
 /// <summary>
 /// 系统任务日志仓储实现
 /// </summary>
-public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, XiHanBasicAppIdType>, ISysTaskLogRepository
+public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, long>, ISysTaskLogRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -40,7 +40,7 @@ public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, XiHanBasi
     /// <summary>
     /// 根据任务ID获取任务日志列表
     /// </summary>
-    public async Task<List<SysTaskLog>> GetByTaskIdAsync(XiHanBasicAppIdType taskId)
+    public async Task<List<SysTaskLog>> GetByTaskIdAsync(long taskId)
     {
         var result = await GetListAsync(log => log.TaskId == taskId);
         return result.OrderByDescending(log => log.StartTime).ToList();
@@ -76,7 +76,7 @@ public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, XiHanBasi
     /// <summary>
     /// 获取最近的任务日志
     /// </summary>
-    public async Task<List<SysTaskLog>> GetRecentLogsAsync(XiHanBasicAppIdType taskId, int count = 10)
+    public async Task<List<SysTaskLog>> GetRecentLogsAsync(long taskId, int count = 10)
     {
         return await _dbContext.GetClient()
             .Queryable<SysTaskLog>()

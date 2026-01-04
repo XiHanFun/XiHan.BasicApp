@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Tenants;
 /// <summary>
 /// 系统租户仓储实现
 /// </summary>
-public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, XiHanBasicAppIdType>, ISysTenantRepository
+public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, long>, ISysTenantRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -62,7 +62,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, XiHanBasicA
     /// <param name="tenantCode">租户编码</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByTenantCodeAsync(string tenantCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByTenantCodeAsync(string tenantCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysTenant>().Where(t => t.TenantCode == tenantCode);
         if (excludeId.HasValue)
@@ -78,7 +78,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, XiHanBasicA
     /// <param name="domain">域名</param>
     /// <param name="excludeId">排除的租户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByDomainAsync(string domain, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByDomainAsync(string domain, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysTenant>().Where(t => t.Domain == domain);
         if (excludeId.HasValue)
@@ -93,7 +93,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, XiHanBasicA
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<int> GetTenantUserCountAsync(XiHanBasicAppIdType tenantId)
+    public async Task<int> GetTenantUserCountAsync(long tenantId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUser>()
@@ -106,7 +106,7 @@ public class SysTenantRepository : SqlSugarRepositoryBase<SysTenant, XiHanBasicA
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    public async Task<XiHanBasicAppIdType> GetTenantUsedStorageAsync(XiHanBasicAppIdType tenantId)
+    public async Task<long> GetTenantUsedStorageAsync(long tenantId)
     {
         // 这里需要根据实际的文件存储实现来计算
         // 示例：统计租户相关的文件大小

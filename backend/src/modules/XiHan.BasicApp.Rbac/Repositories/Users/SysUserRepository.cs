@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Users;
 /// <summary>
 /// 系统用户仓储实现
 /// </summary>
-public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppIdType>, ISysUserRepository
+public class SysUserRepository : SqlSugarRepositoryBase<SysUser, long>, ISysUserRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -72,7 +72,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppId
     /// <param name="userName">用户名</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByUserNameAsync(string userName, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByUserNameAsync(string userName, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysUser>().Where(u => u.UserName == userName);
         if (excludeId.HasValue)
@@ -88,7 +88,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppId
     /// <param name="email">邮箱</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByEmailAsync(string email, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByEmailAsync(string email, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysUser>().Where(u => u.Email == email);
         if (excludeId.HasValue)
@@ -104,7 +104,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppId
     /// <param name="phone">手机号</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByPhoneAsync(string phone, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByPhoneAsync(string phone, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysUser>().Where(u => u.Phone == phone);
         if (excludeId.HasValue)
@@ -119,7 +119,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<XiHanBasicAppIdType>> GetUserRoleIdsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<long>> GetUserRoleIdsAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
@@ -133,7 +133,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<XiHanBasicAppIdType>> GetUserDepartmentIdsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<long>> GetUserDepartmentIdsAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserDepartment>()
@@ -147,7 +147,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, XiHanBasicAppId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<string>> GetUserPermissionsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<string>> GetUserPermissionsAsync(long userId)
     {
         // 获取用户的角色ID列表
         var roleIds = await GetUserRoleIdsAsync(userId);

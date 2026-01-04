@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarTable("Sys_Gen_Template", "系统代码生成模板表")]
 [SugarIndex("IX_SysGenTemplate_TemplateCode", nameof(TemplateCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysGenTemplate_TemplateGroup", nameof(TemplateGroup), OrderByType.Asc)]
-public partial class SysGenTemplate : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysGenTemplate : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 模板编码

@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Services.OperationLogs;
 /// <summary>
 /// 系统操作日志服务接口
 /// </summary>
-public interface ISysOperationLogService : ICrudApplicationService<OperationLogDto, XiHanBasicAppIdType, CreateOperationLogDto, CreateOperationLogDto>
+public interface ISysOperationLogService : ICrudApplicationService<OperationLogDto, long, CreateOperationLogDto, CreateOperationLogDto>
 {
     /// <summary>
     /// 根据用户ID获取操作日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<OperationLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<OperationLogDto>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据操作类型获取日志列表
@@ -43,7 +43,7 @@ public interface ISysOperationLogService : ICrudApplicationService<OperationLogD
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<OperationLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<OperationLogDto>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 根据时间范围获取操作日志列表

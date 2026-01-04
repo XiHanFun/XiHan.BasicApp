@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Tasks;
 /// <summary>
 /// 系统任务仓储接口
 /// </summary>
-public interface ISysTaskRepository : IRepositoryBase<SysTask, XiHanBasicAppIdType>
+public interface ISysTaskRepository : IRepositoryBase<SysTask, long>
 {
     /// <summary>
     /// 根据任务编码获取任务
@@ -58,5 +58,5 @@ public interface ISysTaskRepository : IRepositoryBase<SysTask, XiHanBasicAppIdTy
     /// <param name="taskCode">任务编码</param>
     /// <param name="excludeId">排除的任务ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByTaskCodeAsync(string taskCode, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByTaskCodeAsync(string taskCode, long? excludeId = null);
 }

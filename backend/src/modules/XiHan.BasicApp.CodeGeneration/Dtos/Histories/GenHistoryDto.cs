@@ -26,7 +26,7 @@ public class GenHistoryDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 所属表ID
     /// </summary>
-    public XiHanBasicAppIdType TableId { get; set; }
+    public long TableId { get; set; }
 
     /// <summary>
     /// 表名称
@@ -56,7 +56,7 @@ public class GenHistoryDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 生成耗时（毫秒）
     /// </summary>
-    public XiHanBasicAppIdType Duration { get; set; }
+    public long Duration { get; set; }
 
     /// <summary>
     /// 生成文件数量
@@ -66,7 +66,7 @@ public class GenHistoryDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 生成文件总大小（字节）
     /// </summary>
-    public XiHanBasicAppIdType TotalSize { get; set; }
+    public long TotalSize { get; set; }
 
     /// <summary>
     /// 生成路径
@@ -96,7 +96,7 @@ public class GenHistoryDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 操作用户ID
     /// </summary>
-    public XiHanBasicAppIdType? OperatorId { get; set; }
+    public long? OperatorId { get; set; }
 
     /// <summary>
     /// 操作用户名
@@ -169,7 +169,7 @@ public class UsedTemplateDto
     /// <summary>
     /// 模板ID
     /// </summary>
-    public XiHanBasicAppIdType TemplateId { get; set; }
+    public long TemplateId { get; set; }
 
     /// <summary>
     /// 模板编码

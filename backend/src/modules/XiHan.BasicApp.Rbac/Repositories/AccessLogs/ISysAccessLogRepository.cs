@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.AccessLogs;
 /// <summary>
 /// 系统访问日志仓储接口
 /// </summary>
-public interface ISysAccessLogRepository : IRepositoryBase<SysAccessLog, XiHanBasicAppIdType>
+public interface ISysAccessLogRepository : IRepositoryBase<SysAccessLog, long>
 {
     /// <summary>
     /// 根据用户ID获取访问日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysAccessLog>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysAccessLog>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据资源路径获取访问日志列表
@@ -42,7 +42,7 @@ public interface ISysAccessLogRepository : IRepositoryBase<SysAccessLog, XiHanBa
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<SysAccessLog>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<SysAccessLog>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 根据时间范围获取访问日志列表

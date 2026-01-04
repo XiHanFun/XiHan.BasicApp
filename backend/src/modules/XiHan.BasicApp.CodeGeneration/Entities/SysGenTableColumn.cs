@@ -26,13 +26,13 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarTable("Sys_Gen_Table_Column", "系统代码生成表列配置表")]
 [SugarIndex("IX_SysGenTableColumn_TableId", nameof(TableId), OrderByType.Asc)]
 [SugarIndex("IX_SysGenTableColumn_ColumnName", nameof(ColumnName), OrderByType.Asc)]
-public partial class SysGenTableColumn : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysGenTableColumn : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 所属表ID
     /// </summary>
     [SugarColumn(ColumnDescription = "所属表ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType TableId { get; set; }
+    public virtual long TableId { get; set; }
 
     /// <summary>
     /// 数据库列名

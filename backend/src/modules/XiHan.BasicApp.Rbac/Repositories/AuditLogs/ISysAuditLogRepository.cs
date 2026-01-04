@@ -22,21 +22,21 @@ namespace XiHan.BasicApp.Rbac.Repositories.AuditLogs;
 /// <summary>
 /// 系统审核日志仓储接口
 /// </summary>
-public interface ISysAuditLogRepository : IRepositoryBase<SysAuditLog, XiHanBasicAppIdType>
+public interface ISysAuditLogRepository : IRepositoryBase<SysAuditLog, long>
 {
     /// <summary>
     /// 根据审核ID获取审核日志列表
     /// </summary>
     /// <param name="auditId">审核ID</param>
     /// <returns></returns>
-    Task<List<SysAuditLog>> GetByAuditIdAsync(XiHanBasicAppIdType auditId);
+    Task<List<SysAuditLog>> GetByAuditIdAsync(long auditId);
 
     /// <summary>
     /// 根据审核用户ID获取审核日志列表
     /// </summary>
     /// <param name="auditorId">审核用户ID</param>
     /// <returns></returns>
-    Task<List<SysAuditLog>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId);
+    Task<List<SysAuditLog>> GetByAuditorIdAsync(long auditorId);
 
     /// <summary>
     /// 根据审核结果获取审核日志列表

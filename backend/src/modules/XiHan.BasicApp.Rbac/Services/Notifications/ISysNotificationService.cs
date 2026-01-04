@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Services.Notifications;
 /// <summary>
 /// 系统通知服务接口
 /// </summary>
-public interface ISysNotificationService : ICrudApplicationService<NotificationDto, XiHanBasicAppIdType, CreateNotificationDto, UpdateNotificationDto>
+public interface ISysNotificationService : ICrudApplicationService<NotificationDto, long, CreateNotificationDto, UpdateNotificationDto>
 {
     /// <summary>
     /// 根据用户ID获取通知列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<NotificationDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<NotificationDto>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据通知类型获取通知列表
@@ -50,14 +50,14 @@ public interface ISysNotificationService : ICrudApplicationService<NotificationD
     /// </summary>
     /// <param name="senderId">发送者ID</param>
     /// <returns></returns>
-    Task<List<NotificationDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId);
+    Task<List<NotificationDto>> GetBySenderIdAsync(long senderId);
 
     /// <summary>
     /// 获取用户的未读通知数量
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<int> GetUnreadCountAsync(XiHanBasicAppIdType userId);
+    Task<int> GetUnreadCountAsync(long userId);
 
     /// <summary>
     /// 获取全局通知列表

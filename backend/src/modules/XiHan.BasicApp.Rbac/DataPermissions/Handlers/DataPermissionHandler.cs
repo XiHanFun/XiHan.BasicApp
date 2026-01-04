@@ -59,7 +59,7 @@ public class DataPermissionHandler
     /// <returns>过滤后的查询对象</returns>
     public async Task<IQueryable<TEntity>> ApplyDataPermissionAsync<TEntity>(
         IQueryable<TEntity> query,
-        XiHanBasicAppIdType userId) where TEntity : class
+        long userId) where TEntity : class
     {
         // 检查实体是否有数据权限特性
         var entityType = typeof(TEntity);
@@ -96,7 +96,7 @@ public class DataPermissionHandler
     /// <param name="userId">用户ID</param>
     /// <param name="defaultScope">默认权限范围</param>
     /// <returns>数据权限范围</returns>
-    public async Task<DataPermissionScope> GetUserDataPermissionScopeAsync(XiHanBasicAppIdType userId, DataPermissionScope defaultScope = DataPermissionScope.SelfOnly)
+    public async Task<DataPermissionScope> GetUserDataPermissionScopeAsync(long userId, DataPermissionScope defaultScope = DataPermissionScope.SelfOnly)
     {
         // 获取用户的角色
         var roles = await _roleRepository.GetByUserIdAsync(userId);
@@ -125,7 +125,7 @@ public class DataPermissionHandler
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns>部门ID列表</returns>
-    public async Task<List<XiHanBasicAppIdType>> GetUserCustomDataScopeDepartmentIdsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<long>> GetUserCustomDataScopeDepartmentIdsAsync(long userId)
     {
         // 获取用户的角色
         var roles = await _roleRepository.GetByUserIdAsync(userId);
@@ -159,9 +159,9 @@ public class DataPermissionHandler
     /// <param name="targetDepartmentId">目标数据所属部门ID</param>
     /// <returns>是否有权限</returns>
     public async Task<bool> CheckDataAccessPermissionAsync(
-        XiHanBasicAppIdType userId,
-        XiHanBasicAppIdType? targetUserId = null,
-        XiHanBasicAppIdType? targetDepartmentId = null)
+        long userId,
+        long? targetUserId = null,
+        long? targetDepartmentId = null)
     {
         var scope = await GetUserDataPermissionScopeAsync(userId);
         return await _dataPermissionFilter.HasPermissionAsync(userId, targetUserId, targetDepartmentId, scope);

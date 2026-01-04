@@ -26,7 +26,7 @@ public class MenuDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称
@@ -113,7 +113,7 @@ public class CreateMenuDto : RbacCreationDtoBase
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称
@@ -184,7 +184,7 @@ public class UpdateMenuDto : RbacUpdateDtoBase
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称

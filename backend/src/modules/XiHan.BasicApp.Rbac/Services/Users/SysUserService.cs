@@ -14,10 +14,8 @@
 
 using Mapster;
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Managers;
 using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.BasicApp.Rbac.Repositories.Roles;
@@ -31,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Services.Users;
 /// <summary>
 /// 系统用户服务实现
 /// </summary>
-public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHanBasicAppIdType, CreateUserDto, UpdateUserDto>, ISysUserService
+public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long, CreateUserDto, UpdateUserDto>, ISysUserService
 {
     private readonly ISysUserRepository _userRepository;
     private readonly ISysRoleRepository _roleRepository;
@@ -61,7 +59,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     /// <summary>
     /// 获取用户详情
     /// </summary>
-    public async Task<UserDetailDto?> GetDetailAsync(XiHanBasicAppIdType id)
+    public async Task<UserDetailDto?> GetDetailAsync(long id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -211,7 +209,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     /// <summary>
     /// 更新用户
     /// </summary>
-    public override async Task<UserDto> UpdateAsync(XiHanBasicAppIdType id, UpdateUserDto input)
+    public override async Task<UserDto> UpdateAsync(long id, UpdateUserDto input)
     {
         var user = await _userRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
@@ -297,7 +295,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     /// <summary>
     /// 删除用户
     /// </summary>
-    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
+    public override async Task<bool> DeleteAsync(long id)
     {
         var user = await _userRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
@@ -414,7 +412,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, XiHan
     /// <summary>
     /// 获取用户权限
     /// </summary>
-    public async Task<List<string>> GetUserPermissionsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<string>> GetUserPermissionsAsync(long userId)
     {
         return await _userRepository.GetUserPermissionsAsync(userId);
     }

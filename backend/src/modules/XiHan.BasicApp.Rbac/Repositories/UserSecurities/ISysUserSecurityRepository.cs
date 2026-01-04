@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.UserSecurities;
 /// <summary>
 /// 系统用户安全仓储接口
 /// </summary>
-public interface ISysUserSecurityRepository : IRepositoryBase<SysUserSecurity, XiHanBasicAppIdType>
+public interface ISysUserSecurityRepository : IRepositoryBase<SysUserSecurity, long>
 {
     /// <summary>
     /// 根据用户ID获取用户安全信息
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<SysUserSecurity?> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<SysUserSecurity?> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 获取锁定的用户列表
@@ -47,14 +47,14 @@ public interface ISysUserSecurityRepository : IRepositoryBase<SysUserSecurity, X
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<bool> IncrementFailedLoginAttemptsAsync(XiHanBasicAppIdType userId);
+    Task<bool> IncrementFailedLoginAttemptsAsync(long userId);
 
     /// <summary>
     /// 重置失败登录次数
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<bool> ResetFailedLoginAttemptsAsync(XiHanBasicAppIdType userId);
+    Task<bool> ResetFailedLoginAttemptsAsync(long userId);
 
     /// <summary>
     /// 锁定用户
@@ -62,20 +62,20 @@ public interface ISysUserSecurityRepository : IRepositoryBase<SysUserSecurity, X
     /// <param name="userId">用户ID</param>
     /// <param name="lockoutEndTime">锁定结束时间</param>
     /// <returns></returns>
-    Task<bool> LockUserAsync(XiHanBasicAppIdType userId, DateTimeOffset? lockoutEndTime = null);
+    Task<bool> LockUserAsync(long userId, DateTimeOffset? lockoutEndTime = null);
 
     /// <summary>
     /// 解锁用户
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<bool> UnlockUserAsync(XiHanBasicAppIdType userId);
+    Task<bool> UnlockUserAsync(long userId);
 
     /// <summary>
     /// 更新安全戳
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<bool> UpdateSecurityStampAsync(XiHanBasicAppIdType userId);
+    Task<bool> UpdateSecurityStampAsync(long userId);
 }
 

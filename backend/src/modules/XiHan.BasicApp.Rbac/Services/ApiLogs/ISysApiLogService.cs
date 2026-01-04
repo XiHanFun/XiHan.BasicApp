@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Services.ApiLogs;
 /// <summary>
 /// 系统API日志服务接口
 /// </summary>
-public interface ISysApiLogService : ICrudApplicationService<ApiLogDto, XiHanBasicAppIdType, CreateApiLogDto, CreateApiLogDto>
+public interface ISysApiLogService : ICrudApplicationService<ApiLogDto, long, CreateApiLogDto, CreateApiLogDto>
 {
     /// <summary>
     /// 根据用户ID获取API日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<ApiLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<ApiLogDto>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据API路径获取日志列表
@@ -42,7 +42,7 @@ public interface ISysApiLogService : ICrudApplicationService<ApiLogDto, XiHanBas
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<ApiLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<ApiLogDto>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 根据时间范围获取API日志列表

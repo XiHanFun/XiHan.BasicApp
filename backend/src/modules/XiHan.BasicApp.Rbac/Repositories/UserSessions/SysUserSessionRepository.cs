@@ -12,8 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Data.SqlSugar;
@@ -24,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.UserSessions;
 /// <summary>
 /// 系统用户会话仓储实现
 /// </summary>
-public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, XiHanBasicAppIdType>, ISysUserSessionRepository
+public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, long>, ISysUserSessionRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -64,7 +62,7 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
     /// <summary>
     /// 获取用户的所有会话
     /// </summary>
-    public async Task<List<SysUserSession>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysUserSession>> GetByUserIdAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserSession>()
@@ -75,7 +73,7 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
     /// <summary>
     /// 获取用户的在线会话
     /// </summary>
-    public async Task<List<SysUserSession>> GetOnlineSessionsByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysUserSession>> GetOnlineSessionsByUserIdAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserSession>()
@@ -97,11 +95,11 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
     /// <summary>
     /// 撤销用户的所有会话（踢人下线）
     /// </summary>
-    public async Task<int> RevokeUserSessionsAsync(XiHanBasicAppIdType userId, string? reason = null)
+    public async Task<int> RevokeUserSessionsAsync(long userId, string? reason = null)
     {
         var sessions = await GetOnlineSessionsByUserIdAsync(userId);
         var now = DateTimeOffset.Now;
-        
+
         foreach (var session in sessions)
         {
             session.IsRevoked = true;
@@ -128,7 +126,7 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
         session.RevokedAt = DateTimeOffset.Now;
         session.RevokedReason = reason ?? "会话已撤销";
         session.LogoutTime = DateTimeOffset.Now;
-        
+
         await UpdateAsync(session);
         return true;
     }
@@ -136,7 +134,7 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
     /// <summary>
     /// 撤销除当前会话外的其他所有会话
     /// </summary>
-    public async Task<int> RevokeOtherSessionsAsync(XiHanBasicAppIdType userId, string currentSessionId, string? reason = null)
+    public async Task<int> RevokeOtherSessionsAsync(long userId, string currentSessionId, string? reason = null)
     {
         var sessions = await _dbContext.GetClient()
             .Queryable<SysUserSession>()
@@ -185,7 +183,7 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
     /// <summary>
     /// 根据设备类型获取用户会话数量
     /// </summary>
-    public async Task<int> GetSessionCountByDeviceTypeAsync(XiHanBasicAppIdType userId, DeviceType deviceType)
+    public async Task<int> GetSessionCountByDeviceTypeAsync(long userId, DeviceType deviceType)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserSession>()
@@ -193,4 +191,3 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, X
             .CountAsync();
     }
 }
-

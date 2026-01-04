@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.DictItems;
 /// <summary>
 /// 系统字典项仓储实现
 /// </summary>
-public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, XiHanBasicAppIdType>, ISysDictItemRepository
+public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, long>, ISysDictItemRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -38,7 +38,7 @@ public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, XiHanBa
     /// <summary>
     /// 根据字典ID获取字典项列表
     /// </summary>
-    public async Task<List<SysDictItem>> GetByDictIdAsync(XiHanBasicAppIdType dictId)
+    public async Task<List<SysDictItem>> GetByDictIdAsync(long dictId)
     {
         var result = await GetListAsync(item => item.DictId == dictId);
         return result.OrderBy(item => item.Sort).ToList();
@@ -64,7 +64,7 @@ public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, XiHanBa
     /// <summary>
     /// 根据父级ID获取子项列表
     /// </summary>
-    public async Task<List<SysDictItem>> GetByParentIdAsync(XiHanBasicAppIdType parentId)
+    public async Task<List<SysDictItem>> GetByParentIdAsync(long parentId)
     {
         var result = await GetListAsync(item => item.ParentId == parentId);
         return result.OrderBy(item => item.Sort).ToList();

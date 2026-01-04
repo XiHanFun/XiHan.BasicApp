@@ -26,12 +26,12 @@ public class UserPermissionDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 权限ID
     /// </summary>
-    public XiHanBasicAppIdType PermissionId { get; set; }
+    public long PermissionId { get; set; }
 
     /// <summary>
     /// 权限操作（授予/禁用）
@@ -67,12 +67,12 @@ public class CreateUserPermissionDto : RbacCreationDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 权限ID
     /// </summary>
-    public XiHanBasicAppIdType PermissionId { get; set; }
+    public long PermissionId { get; set; }
 
     /// <summary>
     /// 权限操作（授予/禁用）
@@ -134,12 +134,12 @@ public class BatchGrantUserPermissionsDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 权限ID列表
     /// </summary>
-    public List<XiHanBasicAppIdType> PermissionIds { get; set; } = [];
+    public List<long> PermissionIds { get; set; } = [];
 
     /// <summary>
     /// 权限操作（授予/禁用）

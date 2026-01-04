@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.OAuthApps;
 using XiHan.BasicApp.Rbac.Services.OAuthApps.Dtos;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.OAuthApps;
 /// <summary>
 /// 系统OAuth应用服务实现
 /// </summary>
-public class SysOAuthAppService : CrudApplicationServiceBase<SysOAuthApp, OAuthAppDto, XiHanBasicAppIdType, CreateOAuthAppDto, UpdateOAuthAppDto>, ISysOAuthAppService
+public class SysOAuthAppService : CrudApplicationServiceBase<SysOAuthApp, OAuthAppDto, long, CreateOAuthAppDto, UpdateOAuthAppDto>, ISysOAuthAppService
 {
     private readonly ISysOAuthAppRepository _oauthAppRepository;
 
@@ -59,7 +58,7 @@ public class SysOAuthAppService : CrudApplicationServiceBase<SysOAuthApp, OAuthA
     /// <summary>
     /// 检查客户端ID是否存在
     /// </summary>
-    public async Task<bool> ExistsByClientIdAsync(string clientId, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByClientIdAsync(string clientId, long? excludeId = null)
     {
         return await _oauthAppRepository.ExistsByClientIdAsync(clientId, excludeId);
     }

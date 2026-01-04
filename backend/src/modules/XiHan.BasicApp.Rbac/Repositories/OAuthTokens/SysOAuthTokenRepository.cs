@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OAuthTokens;
 /// <summary>
 /// 系统OAuth令牌仓储实现
 /// </summary>
-public class SysOAuthTokenRepository : SqlSugarRepositoryBase<SysOAuthToken, XiHanBasicAppIdType>, ISysOAuthTokenRepository
+public class SysOAuthTokenRepository : SqlSugarRepositoryBase<SysOAuthToken, long>, ISysOAuthTokenRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -55,7 +54,7 @@ public class SysOAuthTokenRepository : SqlSugarRepositoryBase<SysOAuthToken, XiH
     /// <summary>
     /// 根据客户端ID和用户ID获取令牌列表
     /// </summary>
-    public async Task<List<SysOAuthToken>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId)
+    public async Task<List<SysOAuthToken>> GetByClientAndUserAsync(string clientId, long userId)
     {
         var result = await GetListAsync(t => t.ClientId == clientId && t.UserId == userId);
         return result.OrderByDescending(t => t.CreatedTime).ToList();

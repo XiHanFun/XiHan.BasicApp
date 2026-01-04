@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Permissions;
 /// <summary>
 /// 系统权限仓储实现
 /// </summary>
-public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, XiHanBasicAppIdType>, ISysPermissionRepository
+public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, long>, ISysPermissionRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +52,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, XiH
     /// <param name="permissionCode">权限编码</param>
     /// <param name="excludeId">排除的权限ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByPermissionCodeAsync(string permissionCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByPermissionCodeAsync(string permissionCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysPermission>().Where(p => p.PermissionCode == permissionCode);
         if (excludeId.HasValue)
@@ -67,7 +67,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, XiH
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<SysPermission>> GetByRoleIdAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<SysPermission>> GetByRoleIdAsync(long roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
@@ -82,7 +82,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, XiH
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysPermission>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysPermission>> GetByUserIdAsync(long userId)
     {
         // 获取用户的角色ID列表
         var roleIds = await _dbContext.GetClient()

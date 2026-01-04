@@ -40,7 +40,7 @@ public class RoleManager : DomainService
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    public async Task<bool> IsRoleCodeUniqueAsync(string roleCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> IsRoleCodeUniqueAsync(string roleCode, long? excludeId = null)
     {
         return !await _roleRepository.ExistsByRoleCodeAsync(roleCode, excludeId);
     }
@@ -50,7 +50,7 @@ public class RoleManager : DomainService
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<bool> CanDeleteAsync(XiHanBasicAppIdType roleId)
+    public async Task<bool> CanDeleteAsync(long roleId)
     {
         var userCount = await _roleRepository.GetRoleUserCountAsync(roleId);
         return userCount == 0;

@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Permission", "系统权限表")]
 [SugarIndex("IX_SysPermission_PermissionCode", nameof(PermissionCode), OrderByType.Asc, true)]
-public partial class SysPermission : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysPermission : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 权限编码

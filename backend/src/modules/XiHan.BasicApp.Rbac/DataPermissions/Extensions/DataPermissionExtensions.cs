@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.DataPermissions.Filters;
 using XiHan.BasicApp.Rbac.DataPermissions.Handlers;
 
@@ -51,7 +50,7 @@ public static class DataPermissionExtensions
     public static async Task<IQueryable<TEntity>> WithDataPermissionAsync<TEntity>(
         this IQueryable<TEntity> query,
         DataPermissionHandler handler,
-        XiHanBasicAppIdType userId) where TEntity : class
+        long userId) where TEntity : class
     {
         return await handler.ApplyDataPermissionAsync(query, userId);
     }

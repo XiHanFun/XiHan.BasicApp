@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Users;
 /// <summary>
 /// 系统用户仓储接口
 /// </summary>
-public interface ISysUserRepository : IRepositoryBase<SysUser, XiHanBasicAppIdType>
+public interface ISysUserRepository : IRepositoryBase<SysUser, long>
 {
     /// <summary>
     /// 根据用户名获取用户
@@ -50,7 +50,7 @@ public interface ISysUserRepository : IRepositoryBase<SysUser, XiHanBasicAppIdTy
     /// <param name="userName">用户名</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByUserNameAsync(string userName, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByUserNameAsync(string userName, long? excludeId = null);
 
     /// <summary>
     /// 检查邮箱是否存在
@@ -58,7 +58,7 @@ public interface ISysUserRepository : IRepositoryBase<SysUser, XiHanBasicAppIdTy
     /// <param name="email">邮箱</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByEmailAsync(string email, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByEmailAsync(string email, long? excludeId = null);
 
     /// <summary>
     /// 检查手机号是否存在
@@ -66,26 +66,26 @@ public interface ISysUserRepository : IRepositoryBase<SysUser, XiHanBasicAppIdTy
     /// <param name="phone">手机号</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByPhoneAsync(string phone, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByPhoneAsync(string phone, long? excludeId = null);
 
     /// <summary>
     /// 获取用户的角色ID列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<XiHanBasicAppIdType>> GetUserRoleIdsAsync(XiHanBasicAppIdType userId);
+    Task<List<long>> GetUserRoleIdsAsync(long userId);
 
     /// <summary>
     /// 获取用户的部门ID列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<XiHanBasicAppIdType>> GetUserDepartmentIdsAsync(XiHanBasicAppIdType userId);
+    Task<List<long>> GetUserDepartmentIdsAsync(long userId);
 
     /// <summary>
     /// 获取用户的权限编码列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<string>> GetUserPermissionsAsync(XiHanBasicAppIdType userId);
+    Task<List<string>> GetUserPermissionsAsync(long userId);
 }

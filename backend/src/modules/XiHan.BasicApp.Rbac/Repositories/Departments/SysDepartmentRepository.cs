@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Departments;
 /// <summary>
 /// 系统部门仓储实现
 /// </summary>
-public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, XiHanBasicAppIdType>, ISysDepartmentRepository
+public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, long>, ISysDepartmentRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +52,7 @@ public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, XiH
     /// <param name="departmentCode">部门编码</param>
     /// <param name="excludeId">排除的部门ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByDepartmentCodeAsync(string departmentCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysDepartment>().Where(d => d.DepartmentCode == departmentCode);
         if (excludeId.HasValue)
@@ -77,7 +77,7 @@ public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, XiH
     /// </summary>
     /// <param name="parentId">父级部门ID</param>
     /// <returns></returns>
-    public async Task<List<SysDepartment>> GetChildrenAsync(XiHanBasicAppIdType parentId)
+    public async Task<List<SysDepartment>> GetChildrenAsync(long parentId)
     {
         var result = await GetListAsync(d => d.ParentId == parentId);
         return result.ToList();
@@ -88,7 +88,7 @@ public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, XiH
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysDepartment>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysDepartment>> GetByUserIdAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserDepartment>()
@@ -103,7 +103,7 @@ public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, XiH
     /// </summary>
     /// <param name="departmentId">部门ID</param>
     /// <returns></returns>
-    public async Task<int> GetDepartmentUserCountAsync(XiHanBasicAppIdType departmentId)
+    public async Task<int> GetDepartmentUserCountAsync(long departmentId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserDepartment>()

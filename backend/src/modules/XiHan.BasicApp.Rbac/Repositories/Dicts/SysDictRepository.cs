@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Dicts;
 /// <summary>
 /// 系统字典仓储实现
 /// </summary>
-public class SysDictRepository : SqlSugarRepositoryBase<SysDict, XiHanBasicAppIdType>, ISysDictRepository
+public class SysDictRepository : SqlSugarRepositoryBase<SysDict, long>, ISysDictRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -56,7 +56,7 @@ public class SysDictRepository : SqlSugarRepositoryBase<SysDict, XiHanBasicAppId
     /// <summary>
     /// 检查字典编码是否存在
     /// </summary>
-    public async Task<bool> ExistsByCodeAsync(string dictCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByCodeAsync(string dictCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysDict>().Where(dict => dict.DictCode == dictCode);
         if (excludeId.HasValue)

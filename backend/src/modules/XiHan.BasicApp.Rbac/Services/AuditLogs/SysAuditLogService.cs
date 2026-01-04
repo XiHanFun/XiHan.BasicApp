@@ -13,12 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.AuditLogs;
-using XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.AuditLogs.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -27,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.AuditLogs;
 /// <summary>
 /// 系统审核日志服务实现
 /// </summary>
-public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditLogDto, XiHanBasicAppIdType, CreateAuditLogDto, CreateAuditLogDto>, ISysAuditLogService
+public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditLogDto, long, CreateAuditLogDto, CreateAuditLogDto>, ISysAuditLogService
 {
     private readonly ISysAuditLogRepository _auditLogRepository;
 
@@ -44,7 +41,7 @@ public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditL
     /// <summary>
     /// 根据审核ID获取审核日志列表
     /// </summary>
-    public async Task<List<AuditLogDto>> GetByAuditIdAsync(XiHanBasicAppIdType auditId)
+    public async Task<List<AuditLogDto>> GetByAuditIdAsync(long auditId)
     {
         var logs = await _auditLogRepository.GetByAuditIdAsync(auditId);
         return logs.Adapt<List<AuditLogDto>>();
@@ -53,7 +50,7 @@ public class SysAuditLogService : CrudApplicationServiceBase<SysAuditLog, AuditL
     /// <summary>
     /// 根据审核用户ID获取审核日志列表
     /// </summary>
-    public async Task<List<AuditLogDto>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId)
+    public async Task<List<AuditLogDto>> GetByAuditorIdAsync(long auditorId)
     {
         var logs = await _auditLogRepository.GetByAuditorIdAsync(auditorId);
         return logs.Adapt<List<AuditLogDto>>();

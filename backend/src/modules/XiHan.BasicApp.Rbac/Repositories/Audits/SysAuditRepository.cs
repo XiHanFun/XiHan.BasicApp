@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Audits;
 /// <summary>
 /// 系统审核仓储实现
 /// </summary>
-public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, XiHanBasicAppIdType>, ISysAuditRepository
+public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, long>, ISysAuditRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -39,7 +39,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, XiHanBasicApp
     /// <summary>
     /// 根据提交用户ID获取审核列表
     /// </summary>
-    public async Task<List<SysAudit>> GetBySubmitterIdAsync(XiHanBasicAppIdType submitterId)
+    public async Task<List<SysAudit>> GetBySubmitterIdAsync(long submitterId)
     {
         var result = await GetListAsync(audit => audit.SubmitterId == submitterId);
         return result.OrderByDescending(audit => audit.SubmitTime).ToList();
@@ -48,7 +48,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, XiHanBasicApp
     /// <summary>
     /// 根据审核用户ID获取审核列表
     /// </summary>
-    public async Task<List<SysAudit>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId)
+    public async Task<List<SysAudit>> GetByAuditorIdAsync(long auditorId)
     {
         var result = await GetListAsync(audit => audit.AuditorId == auditorId);
         return result.OrderByDescending(audit => audit.SubmitTime).ToList();
@@ -66,7 +66,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, XiHanBasicApp
     /// <summary>
     /// 根据业务类型和业务ID获取审核
     /// </summary>
-    public async Task<SysAudit?> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId)
+    public async Task<SysAudit?> GetByBusinessAsync(string businessType, long businessId)
     {
         return await GetFirstAsync(audit => audit.BusinessType == businessType && audit.BusinessId == businessId);
     }
@@ -74,7 +74,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, XiHanBasicApp
     /// <summary>
     /// 根据租户ID获取审核列表
     /// </summary>
-    public async Task<List<SysAudit>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<SysAudit>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(audit => audit.TenantId == tenantId);
         return result.OrderByDescending(audit => audit.SubmitTime).ToList();

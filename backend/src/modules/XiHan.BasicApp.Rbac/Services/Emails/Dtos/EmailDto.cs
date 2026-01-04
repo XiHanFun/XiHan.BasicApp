@@ -26,17 +26,17 @@ public class EmailDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    public XiHanBasicAppIdType? SenderId { get; set; }
+    public long? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
-    public XiHanBasicAppIdType? ReceiverId { get; set; }
+    public long? ReceiverId { get; set; }
 
     /// <summary>
     /// 邮件类型
@@ -91,7 +91,7 @@ public class EmailDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 模板ID
     /// </summary>
-    public XiHanBasicAppIdType? TemplateId { get; set; }
+    public long? TemplateId { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）
@@ -136,7 +136,7 @@ public class EmailDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注
@@ -152,17 +152,17 @@ public class CreateEmailDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    public XiHanBasicAppIdType? SenderId { get; set; }
+    public long? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
-    public XiHanBasicAppIdType? ReceiverId { get; set; }
+    public long? ReceiverId { get; set; }
 
     /// <summary>
     /// 邮件类型
@@ -217,7 +217,7 @@ public class CreateEmailDto : RbacCreationDtoBase
     /// <summary>
     /// 模板ID
     /// </summary>
-    public XiHanBasicAppIdType? TemplateId { get; set; }
+    public long? TemplateId { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）
@@ -242,7 +242,7 @@ public class CreateEmailDto : RbacCreationDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注

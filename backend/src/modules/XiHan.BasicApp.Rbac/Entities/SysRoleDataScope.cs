@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -25,19 +24,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Role_DataScope", "系统角色自定义数据权限范围表")]
 [SugarIndex("IX_SysRoleDataScope_RoleId", nameof(RoleId), OrderByType.Asc)]
-public partial class SysRoleDataScope : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysRoleDataScope : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 角色ID
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType RoleId { get; set; }
+    public virtual long RoleId { get; set; }
 
     /// <summary>
     /// 部门ID（自定义数据权限可访问的部门）
     /// </summary>
     [SugarColumn(ColumnDescription = "部门ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType DepartmentId { get; set; }
+    public virtual long DepartmentId { get; set; }
 
     /// <summary>
     /// 状态
@@ -51,4 +50,3 @@ public partial class SysRoleDataScope : RbacFullAuditedEntity<XiHanBasicAppIdTyp
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }
-

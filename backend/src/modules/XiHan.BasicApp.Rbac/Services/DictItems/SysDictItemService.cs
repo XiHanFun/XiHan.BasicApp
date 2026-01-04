@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.DictItems;
 using XiHan.BasicApp.Rbac.Services.DictItems.Dtos;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.DictItems;
 /// <summary>
 /// 系统字典项服务实现
 /// </summary>
-public class SysDictItemService : CrudApplicationServiceBase<SysDictItem, DictItemDto, XiHanBasicAppIdType, CreateDictItemDto, UpdateDictItemDto>, ISysDictItemService
+public class SysDictItemService : CrudApplicationServiceBase<SysDictItem, DictItemDto, long, CreateDictItemDto, UpdateDictItemDto>, ISysDictItemService
 {
     private readonly ISysDictItemRepository _dictItemRepository;
 
@@ -41,7 +40,7 @@ public class SysDictItemService : CrudApplicationServiceBase<SysDictItem, DictIt
     /// <summary>
     /// 根据字典ID获取字典项列表
     /// </summary>
-    public async Task<List<DictItemDto>> GetByDictIdAsync(XiHanBasicAppIdType dictId)
+    public async Task<List<DictItemDto>> GetByDictIdAsync(long dictId)
     {
         var dictItems = await _dictItemRepository.GetByDictIdAsync(dictId);
         return dictItems.Adapt<List<DictItemDto>>();
@@ -68,7 +67,7 @@ public class SysDictItemService : CrudApplicationServiceBase<SysDictItem, DictIt
     /// <summary>
     /// 根据父级ID获取子项列表
     /// </summary>
-    public async Task<List<DictItemDto>> GetByParentIdAsync(XiHanBasicAppIdType parentId)
+    public async Task<List<DictItemDto>> GetByParentIdAsync(long parentId)
     {
         var dictItems = await _dictItemRepository.GetByParentIdAsync(parentId);
         return dictItems.Adapt<List<DictItemDto>>();

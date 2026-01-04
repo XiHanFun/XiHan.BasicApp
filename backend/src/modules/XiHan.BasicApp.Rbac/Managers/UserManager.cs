@@ -41,7 +41,7 @@ public class UserManager : DomainService
     /// <param name="userName">用户名</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsUserNameUniqueAsync(string userName, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> IsUserNameUniqueAsync(string userName, long? excludeId = null)
     {
         return !await _userRepository.ExistsByUserNameAsync(userName, excludeId);
     }
@@ -52,7 +52,7 @@ public class UserManager : DomainService
     /// <param name="email">邮箱</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsEmailUniqueAsync(string email, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> IsEmailUniqueAsync(string email, long? excludeId = null)
     {
         return !await _userRepository.ExistsByEmailAsync(email, excludeId);
     }
@@ -63,7 +63,7 @@ public class UserManager : DomainService
     /// <param name="phone">手机号</param>
     /// <param name="excludeId">排除的用户ID</param>
     /// <returns></returns>
-    public async Task<bool> IsPhoneUniqueAsync(string phone, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> IsPhoneUniqueAsync(string phone, long? excludeId = null)
     {
         return !await _userRepository.ExistsByPhoneAsync(phone, excludeId);
     }

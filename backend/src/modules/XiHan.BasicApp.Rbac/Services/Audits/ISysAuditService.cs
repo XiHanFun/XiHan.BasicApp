@@ -22,21 +22,21 @@ namespace XiHan.BasicApp.Rbac.Services.Audits;
 /// <summary>
 /// 系统审核服务接口
 /// </summary>
-public interface ISysAuditService : ICrudApplicationService<AuditDto, XiHanBasicAppIdType, CreateAuditDto, UpdateAuditDto>
+public interface ISysAuditService : ICrudApplicationService<AuditDto, long, CreateAuditDto, UpdateAuditDto>
 {
     /// <summary>
     /// 根据提交用户ID获取审核列表
     /// </summary>
     /// <param name="submitterId">提交用户ID</param>
     /// <returns></returns>
-    Task<List<AuditDto>> GetBySubmitterIdAsync(XiHanBasicAppIdType submitterId);
+    Task<List<AuditDto>> GetBySubmitterIdAsync(long submitterId);
 
     /// <summary>
     /// 根据审核用户ID获取审核列表
     /// </summary>
     /// <param name="auditorId">审核用户ID</param>
     /// <returns></returns>
-    Task<List<AuditDto>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId);
+    Task<List<AuditDto>> GetByAuditorIdAsync(long auditorId);
 
     /// <summary>
     /// 根据审核状态获取审核列表
@@ -51,14 +51,14 @@ public interface ISysAuditService : ICrudApplicationService<AuditDto, XiHanBasic
     /// <param name="businessType">业务类型</param>
     /// <param name="businessId">业务ID</param>
     /// <returns></returns>
-    Task<AuditDto?> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId);
+    Task<AuditDto?> GetByBusinessAsync(string businessType, long businessId);
 
     /// <summary>
     /// 根据租户ID获取审核列表
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<AuditDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<AuditDto>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 处理审核

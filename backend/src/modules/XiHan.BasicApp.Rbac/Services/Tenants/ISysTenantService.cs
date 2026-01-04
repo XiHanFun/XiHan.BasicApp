@@ -24,14 +24,14 @@ namespace XiHan.BasicApp.Rbac.Services.Tenants;
 /// <summary>
 /// 系统租户服务接口
 /// </summary>
-public interface ISysTenantService : ICrudApplicationService<TenantDto, XiHanBasicAppIdType, CreateTenantDto, UpdateTenantDto>
+public interface ISysTenantService : ICrudApplicationService<TenantDto, long, CreateTenantDto, UpdateTenantDto>
 {
     /// <summary>
     /// 获取租户详情
     /// </summary>
     /// <param name="id">租户ID</param>
     /// <returns></returns>
-    Task<TenantDetailDto?> GetDetailAsync(XiHanBasicAppIdType id);
+    Task<TenantDetailDto?> GetDetailAsync(long id);
 
     /// <summary>
     /// 根据租户编码获取租户

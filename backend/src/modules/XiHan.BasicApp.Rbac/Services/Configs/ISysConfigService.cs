@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Configs;
 /// <summary>
 /// 系统配置服务接口
 /// </summary>
-public interface ISysConfigService : ICrudApplicationService<ConfigDto, XiHanBasicAppIdType, CreateConfigDto, UpdateConfigDto>
+public interface ISysConfigService : ICrudApplicationService<ConfigDto, long, CreateConfigDto, UpdateConfigDto>
 {
     /// <summary>
     /// 根据配置键获取配置
@@ -43,7 +43,7 @@ public interface ISysConfigService : ICrudApplicationService<ConfigDto, XiHanBas
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<ConfigDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<ConfigDto>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 检查配置键是否存在
@@ -51,5 +51,5 @@ public interface ISysConfigService : ICrudApplicationService<ConfigDto, XiHanBas
     /// <param name="configKey">配置键</param>
     /// <param name="excludeId">排除的配置ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByKeyAsync(string configKey, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByKeyAsync(string configKey, long? excludeId = null);
 }

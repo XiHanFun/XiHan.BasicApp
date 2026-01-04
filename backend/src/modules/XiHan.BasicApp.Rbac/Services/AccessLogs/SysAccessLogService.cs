@@ -13,9 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.AccessLogs;
 using XiHan.BasicApp.Rbac.Services.AccessLogs.Dtos;
 using XiHan.Framework.Application.Services;
@@ -25,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.AccessLogs;
 /// <summary>
 /// 系统访问日志服务实现
 /// </summary>
-public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, AccessLogDto, XiHanBasicAppIdType, CreateAccessLogDto, CreateAccessLogDto>, ISysAccessLogService
+public class SysAccessLogService : BatchCrudApplicationServiceBase<SysAccessLog, AccessLogDto, long, CreateAccessLogDto, CreateAccessLogDto>, ISysAccessLogService
 {
     private readonly ISysAccessLogRepository _accessLogRepository;
 
@@ -42,7 +40,7 @@ public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, Acce
     /// <summary>
     /// 根据用户ID获取访问日志列表
     /// </summary>
-    public async Task<List<AccessLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<AccessLogDto>> GetByUserIdAsync(long userId)
     {
         var logs = await _accessLogRepository.GetByUserIdAsync(userId);
         return logs.Adapt<List<AccessLogDto>>();
@@ -60,7 +58,7 @@ public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, Acce
     /// <summary>
     /// 根据租户ID获取访问日志列表
     /// </summary>
-    public async Task<List<AccessLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<AccessLogDto>> GetByTenantIdAsync(long tenantId)
     {
         var logs = await _accessLogRepository.GetByTenantIdAsync(tenantId);
         return logs.Adapt<List<AccessLogDto>>();

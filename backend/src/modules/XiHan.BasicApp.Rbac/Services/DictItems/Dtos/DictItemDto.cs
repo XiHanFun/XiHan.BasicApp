@@ -26,7 +26,7 @@ public class DictItemDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 字典ID
     /// </summary>
-    public XiHanBasicAppIdType DictId { get; set; }
+    public long DictId { get; set; }
 
     /// <summary>
     /// 字典编码（冗余字段，便于查询）
@@ -36,7 +36,7 @@ public class DictItemDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 父级字典项ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 字典项编码
@@ -102,7 +102,7 @@ public class CreateDictItemDto : RbacCreationDtoBase
     /// <summary>
     /// 字典ID
     /// </summary>
-    public XiHanBasicAppIdType DictId { get; set; }
+    public long DictId { get; set; }
 
     /// <summary>
     /// 字典编码（冗余字段，便于查询）
@@ -112,7 +112,7 @@ public class CreateDictItemDto : RbacCreationDtoBase
     /// <summary>
     /// 父级字典项ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 字典项编码
@@ -173,7 +173,7 @@ public class UpdateDictItemDto : RbacUpdateDtoBase
     /// <summary>
     /// 父级字典项ID
     /// </summary>
-    public XiHanBasicAppIdType? ParentId { get; set; }
+    public long? ParentId { get; set; }
 
     /// <summary>
     /// 字典项名称

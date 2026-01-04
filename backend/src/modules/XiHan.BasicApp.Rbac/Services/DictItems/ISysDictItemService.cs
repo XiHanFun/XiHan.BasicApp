@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Services.DictItems;
 /// <summary>
 /// 系统字典项服务接口
 /// </summary>
-public interface ISysDictItemService : ICrudApplicationService<DictItemDto, XiHanBasicAppIdType, CreateDictItemDto, UpdateDictItemDto>
+public interface ISysDictItemService : ICrudApplicationService<DictItemDto, long, CreateDictItemDto, UpdateDictItemDto>
 {
     /// <summary>
     /// 根据字典ID获取字典项列表
     /// </summary>
     /// <param name="dictId">字典ID</param>
     /// <returns></returns>
-    Task<List<DictItemDto>> GetByDictIdAsync(XiHanBasicAppIdType dictId);
+    Task<List<DictItemDto>> GetByDictIdAsync(long dictId);
 
     /// <summary>
     /// 根据字典编码获取字典项列表
@@ -50,5 +50,5 @@ public interface ISysDictItemService : ICrudApplicationService<DictItemDto, XiHa
     /// </summary>
     /// <param name="parentId">父级ID</param>
     /// <returns></returns>
-    Task<List<DictItemDto>> GetByParentIdAsync(XiHanBasicAppIdType parentId);
+    Task<List<DictItemDto>> GetByParentIdAsync(long parentId);
 }

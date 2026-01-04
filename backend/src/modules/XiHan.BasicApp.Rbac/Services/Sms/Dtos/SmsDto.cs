@@ -26,17 +26,17 @@ public class SmsDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    public XiHanBasicAppIdType? SenderId { get; set; }
+    public long? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
-    public XiHanBasicAppIdType? ReceiverId { get; set; }
+    public long? ReceiverId { get; set; }
 
     /// <summary>
     /// 短信类型
@@ -116,7 +116,7 @@ public class SmsDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注
@@ -132,17 +132,17 @@ public class CreateSmsDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    public XiHanBasicAppIdType? SenderId { get; set; }
+    public long? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
-    public XiHanBasicAppIdType? ReceiverId { get; set; }
+    public long? ReceiverId { get; set; }
 
     /// <summary>
     /// 短信类型
@@ -192,7 +192,7 @@ public class CreateSmsDto : RbacCreationDtoBase
     /// <summary>
     /// 业务ID
     /// </summary>
-    public XiHanBasicAppIdType? BusinessId { get; set; }
+    public long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注

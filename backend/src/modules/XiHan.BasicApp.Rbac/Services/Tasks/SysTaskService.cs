@@ -13,11 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.Tasks;
-using XiHan.BasicApp.Rbac.Services.TaskLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.Tasks.Dtos;
 using XiHan.Framework.Application.Services;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
@@ -27,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.Tasks;
 /// <summary>
 /// 系统任务服务实现
 /// </summary>
-public class SysTaskService : CrudApplicationServiceBase<SysTask, TaskDto, XiHanBasicAppIdType, CreateTaskDto, UpdateTaskDto>, ISysTaskService
+public class SysTaskService : CrudApplicationServiceBase<SysTask, TaskDto, long, CreateTaskDto, UpdateTaskDto>, ISysTaskService
 {
     private readonly ISysTaskRepository _taskRepository;
 
@@ -80,7 +77,7 @@ public class SysTaskService : CrudApplicationServiceBase<SysTask, TaskDto, XiHan
     /// <summary>
     /// 检查任务编码是否存在
     /// </summary>
-    public async Task<bool> ExistsByTaskCodeAsync(string taskCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByTaskCodeAsync(string taskCode, long? excludeId = null)
     {
         return await _taskRepository.ExistsByTaskCodeAsync(taskCode, excludeId);
     }

@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.UserPermissions;
 /// <summary>
 /// 系统用户权限仓储实现
 /// </summary>
-public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermission, XiHanBasicAppIdType>, ISysUserPermissionRepository
+public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermission, long>, ISysUserPermissionRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -42,7 +42,7 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysUserPermission>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysUserPermission>> GetByUserIdAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserPermission>()
@@ -56,7 +56,7 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
     /// <param name="userId">用户ID</param>
     /// <param name="permissionAction">权限操作类型</param>
     /// <returns></returns>
-    public async Task<List<SysUserPermission>> GetByUserIdAndActionAsync(XiHanBasicAppIdType userId, PermissionAction permissionAction)
+    public async Task<List<SysUserPermission>> GetByUserIdAndActionAsync(long userId, PermissionAction permissionAction)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserPermission>()
@@ -69,7 +69,7 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
     /// </summary>
     /// <param name="permissionId">权限ID</param>
     /// <returns></returns>
-    public async Task<List<SysUserPermission>> GetByPermissionIdAsync(XiHanBasicAppIdType permissionId)
+    public async Task<List<SysUserPermission>> GetByPermissionIdAsync(long permissionId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserPermission>()
@@ -83,7 +83,7 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
     /// <param name="userId">用户ID</param>
     /// <param name="permissionId">权限ID</param>
     /// <returns></returns>
-    public async Task<SysUserPermission?> GetByUserAndPermissionAsync(XiHanBasicAppIdType userId, XiHanBasicAppIdType permissionId)
+    public async Task<SysUserPermission?> GetByUserAndPermissionAsync(long userId, long permissionId)
     {
         return await GetFirstAsync(up => up.UserId == userId && up.PermissionId == permissionId);
     }
@@ -93,7 +93,7 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysUserPermission>> GetEffectivePermissionsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysUserPermission>> GetEffectivePermissionsAsync(long userId)
     {
         var now = DateTimeOffset.Now;
         return await _dbContext.GetClient()
@@ -111,7 +111,7 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
     /// <param name="userId">用户ID</param>
     /// <param name="permissionIds">权限ID列表</param>
     /// <returns></returns>
-    public async Task<int> DeleteByUserAndPermissionsAsync(XiHanBasicAppIdType userId, List<XiHanBasicAppIdType> permissionIds)
+    public async Task<int> DeleteByUserAndPermissionsAsync(long userId, List<long> permissionIds)
     {
         return await _dbContext.GetClient()
             .Deleteable<SysUserPermission>()
@@ -119,4 +119,3 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
             .ExecuteCommandAsync();
     }
 }
-

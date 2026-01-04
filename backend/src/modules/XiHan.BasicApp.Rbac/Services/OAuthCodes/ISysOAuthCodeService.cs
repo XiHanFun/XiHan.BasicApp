@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.OAuthCodes;
 /// <summary>
 /// 系统OAuth授权码服务接口
 /// </summary>
-public interface ISysOAuthCodeService : ICrudApplicationService<OAuthCodeDto, XiHanBasicAppIdType, CreateOAuthCodeDto, UpdateOAuthCodeDto>
+public interface ISysOAuthCodeService : ICrudApplicationService<OAuthCodeDto, long, CreateOAuthCodeDto, UpdateOAuthCodeDto>
 {
     /// <summary>
     /// 根据授权码获取
@@ -36,7 +36,7 @@ public interface ISysOAuthCodeService : ICrudApplicationService<OAuthCodeDto, Xi
     /// <param name="clientId">客户端ID</param>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<OAuthCodeDto>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId);
+    Task<List<OAuthCodeDto>> GetByClientAndUserAsync(string clientId, long userId);
 
     /// <summary>
     /// 删除过期的授权码

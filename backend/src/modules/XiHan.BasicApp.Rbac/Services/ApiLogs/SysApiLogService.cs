@@ -13,11 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.ApiLogs;
-using XiHan.BasicApp.Rbac.Services.AccessLogs.Dtos;
 using XiHan.BasicApp.Rbac.Services.ApiLogs.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -26,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.ApiLogs;
 /// <summary>
 /// 系统API日志服务实现
 /// </summary>
-public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto, XiHanBasicAppIdType, CreateApiLogDto, CreateApiLogDto>, ISysApiLogService
+public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto, long, CreateApiLogDto, CreateApiLogDto>, ISysApiLogService
 {
     private readonly ISysApiLogRepository _apiLogRepository;
 
@@ -43,7 +40,7 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     /// <summary>
     /// 根据用户ID获取API日志列表
     /// </summary>
-    public async Task<List<ApiLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<ApiLogDto>> GetByUserIdAsync(long userId)
     {
         var logs = await _apiLogRepository.GetByUserIdAsync(userId);
         return logs.Adapt<List<ApiLogDto>>();
@@ -61,7 +58,7 @@ public class SysApiLogService : CrudApplicationServiceBase<SysApiLog, ApiLogDto,
     /// <summary>
     /// 根据租户ID获取API日志列表
     /// </summary>
-    public async Task<List<ApiLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<ApiLogDto>> GetByTenantIdAsync(long tenantId)
     {
         var logs = await _apiLogRepository.GetByTenantIdAsync(tenantId);
         return logs.Adapt<List<ApiLogDto>>();

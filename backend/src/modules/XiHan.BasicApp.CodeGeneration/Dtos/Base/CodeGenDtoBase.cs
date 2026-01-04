@@ -24,7 +24,7 @@ public abstract class CodeGenDtoBase
     /// <summary>
     /// 主键ID
     /// </summary>
-    public XiHanBasicAppIdType BasicId { get; set; }
+    public long BasicId { get; set; }
 }
 
 /// <summary>
@@ -42,7 +42,7 @@ public abstract class CodeGenUpdateDtoBase
     /// <summary>
     /// 主键ID
     /// </summary>
-    public XiHanBasicAppIdType BasicId { get; set; }
+    public long BasicId { get; set; }
 }
 
 /// <summary>

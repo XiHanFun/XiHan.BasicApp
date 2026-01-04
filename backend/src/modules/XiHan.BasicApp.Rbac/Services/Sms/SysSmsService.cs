@@ -13,12 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.Sms;
-using XiHan.BasicApp.Rbac.Services.Roles.Dtos;
 using XiHan.BasicApp.Rbac.Services.Sms.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -27,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.Sms;
 /// <summary>
 /// 系统短信服务实现
 /// </summary>
-public class SysSmsService : CrudApplicationServiceBase<SysSms, SmsDto, XiHanBasicAppIdType, CreateSmsDto, UpdateSmsDto>, ISysSmsService
+public class SysSmsService : CrudApplicationServiceBase<SysSms, SmsDto, long, CreateSmsDto, UpdateSmsDto>, ISysSmsService
 {
     private readonly ISysSmsRepository _smsRepository;
 
@@ -71,7 +68,7 @@ public class SysSmsService : CrudApplicationServiceBase<SysSms, SmsDto, XiHanBas
     /// <summary>
     /// 根据发送者ID获取短信列表
     /// </summary>
-    public async Task<List<SmsDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
+    public async Task<List<SmsDto>> GetBySenderIdAsync(long senderId)
     {
         var smsList = await _smsRepository.GetBySenderIdAsync(senderId);
         return smsList.Adapt<List<SmsDto>>();
@@ -80,7 +77,7 @@ public class SysSmsService : CrudApplicationServiceBase<SysSms, SmsDto, XiHanBas
     /// <summary>
     /// 根据接收者ID获取短信列表
     /// </summary>
-    public async Task<List<SmsDto>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId)
+    public async Task<List<SmsDto>> GetByReceiverIdAsync(long receiverId)
     {
         var smsList = await _smsRepository.GetByReceiverIdAsync(receiverId);
         return smsList.Adapt<List<SmsDto>>();

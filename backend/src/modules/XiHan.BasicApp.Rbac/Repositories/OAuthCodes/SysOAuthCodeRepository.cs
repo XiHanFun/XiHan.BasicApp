@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OAuthCodes;
 /// <summary>
 /// 系统OAuth授权码仓储实现
 /// </summary>
-public class SysOAuthCodeRepository : SqlSugarRepositoryBase<SysOAuthCode, XiHanBasicAppIdType>, ISysOAuthCodeRepository
+public class SysOAuthCodeRepository : SqlSugarRepositoryBase<SysOAuthCode, long>, ISysOAuthCodeRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -47,7 +46,7 @@ public class SysOAuthCodeRepository : SqlSugarRepositoryBase<SysOAuthCode, XiHan
     /// <summary>
     /// 根据客户端ID和用户ID获取授权码列表
     /// </summary>
-    public async Task<List<SysOAuthCode>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId)
+    public async Task<List<SysOAuthCode>> GetByClientAndUserAsync(string clientId, long userId)
     {
         var result = await GetListAsync(c => c.ClientId == clientId && c.UserId == userId);
         return result.OrderByDescending(c => c.CreatedTime).ToList();

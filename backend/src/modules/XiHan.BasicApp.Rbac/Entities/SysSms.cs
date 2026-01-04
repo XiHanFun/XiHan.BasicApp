@@ -28,25 +28,25 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysSms_SmsType", nameof(SmsType), OrderByType.Asc)]
 [SugarIndex("IX_SysSms_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysSms_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysSms : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysSms : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TenantId { get; set; }
+    public virtual long? TenantId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? SenderId { get; set; }
+    public virtual long? SenderId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? ReceiverId { get; set; }
+    public virtual long? ReceiverId { get; set; }
 
     /// <summary>
     /// 短信类型
@@ -142,7 +142,7 @@ public partial class SysSms : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 业务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? BusinessId { get; set; }
+    public virtual long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注

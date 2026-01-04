@@ -27,7 +27,7 @@ public class GenTableColumnDto : CodeGenFullAuditedDtoBase
     /// <summary>
     /// 所属表ID
     /// </summary>
-    public XiHanBasicAppIdType TableId { get; set; }
+    public long TableId { get; set; }
 
     /// <summary>
     /// 数据库列名
@@ -173,7 +173,7 @@ public class CreateGenTableColumnDto : CodeGenCreationDtoBase
     /// <summary>
     /// 所属表ID
     /// </summary>
-    public XiHanBasicAppIdType TableId { get; set; }
+    public long TableId { get; set; }
 
     /// <summary>
     /// 数据库列名

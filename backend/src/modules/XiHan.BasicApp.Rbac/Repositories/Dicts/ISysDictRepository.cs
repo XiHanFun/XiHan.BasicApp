@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Dicts;
 /// <summary>
 /// 系统字典仓储接口
 /// </summary>
-public interface ISysDictRepository : IRepositoryBase<SysDict, XiHanBasicAppIdType>
+public interface ISysDictRepository : IRepositoryBase<SysDict, long>
 {
     /// <summary>
     /// 根据字典编码获取字典
@@ -43,5 +43,5 @@ public interface ISysDictRepository : IRepositoryBase<SysDict, XiHanBasicAppIdTy
     /// <param name="dictCode">字典编码</param>
     /// <param name="excludeId">排除的字典ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByCodeAsync(string dictCode, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByCodeAsync(string dictCode, long? excludeId = null);
 }

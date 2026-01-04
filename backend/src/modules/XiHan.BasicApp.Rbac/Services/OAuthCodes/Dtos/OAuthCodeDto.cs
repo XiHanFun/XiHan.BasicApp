@@ -35,7 +35,7 @@ public class OAuthCodeDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 重定向URI
@@ -96,7 +96,7 @@ public class CreateOAuthCodeDto : RbacCreationDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 重定向URI

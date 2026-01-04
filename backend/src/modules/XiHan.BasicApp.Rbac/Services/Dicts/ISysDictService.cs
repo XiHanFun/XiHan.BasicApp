@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.Dicts;
 /// <summary>
 /// 系统字典服务接口
 /// </summary>
-public interface ISysDictService : ICrudApplicationService<DictDto, XiHanBasicAppIdType, CreateDictDto, UpdateDictDto>
+public interface ISysDictService : ICrudApplicationService<DictDto, long, CreateDictDto, UpdateDictDto>
 {
     /// <summary>
     /// 根据字典编码获取字典
@@ -43,5 +43,5 @@ public interface ISysDictService : ICrudApplicationService<DictDto, XiHanBasicAp
     /// <param name="dictCode">字典编码</param>
     /// <param name="excludeId">排除的字典ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByCodeAsync(string dictCode, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByCodeAsync(string dictCode, long? excludeId = null);
 }

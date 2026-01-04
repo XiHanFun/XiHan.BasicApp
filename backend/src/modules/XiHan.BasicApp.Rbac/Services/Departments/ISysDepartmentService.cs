@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.Departments;
 /// <summary>
 /// 系统部门服务接口
 /// </summary>
-public interface ISysDepartmentService : ICrudApplicationService<DepartmentDto, XiHanBasicAppIdType, CreateDepartmentDto, UpdateDepartmentDto>
+public interface ISysDepartmentService : ICrudApplicationService<DepartmentDto, long, CreateDepartmentDto, UpdateDepartmentDto>
 {
     /// <summary>
     /// 根据部门编码获取部门
@@ -41,12 +41,12 @@ public interface ISysDepartmentService : ICrudApplicationService<DepartmentDto, 
     /// </summary>
     /// <param name="parentId">父级部门ID</param>
     /// <returns></returns>
-    Task<List<DepartmentDto>> GetChildrenAsync(XiHanBasicAppIdType parentId);
+    Task<List<DepartmentDto>> GetChildrenAsync(long parentId);
 
     /// <summary>
     /// 获取用户的部门列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<DepartmentDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<DepartmentDto>> GetByUserIdAsync(long userId);
 }
