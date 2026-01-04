@@ -13,12 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.OperationLogs;
-using XiHan.BasicApp.Rbac.Services.OAuthTokens.Dtos;
 using XiHan.BasicApp.Rbac.Services.OperationLogs.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -27,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.OperationLogs;
 /// <summary>
 /// 系统操作日志服务实现
 /// </summary>
-public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog, OperationLogDto, XiHanBasicAppIdType, CreateOperationLogDto, CreateOperationLogDto>, ISysOperationLogService
+public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog, OperationLogDto, long, CreateOperationLogDto, CreateOperationLogDto>, ISysOperationLogService
 {
     private readonly ISysOperationLogRepository _operationLogRepository;
 
@@ -44,7 +41,7 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     /// <summary>
     /// 根据用户ID获取操作日志列表
     /// </summary>
-    public async Task<List<OperationLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<OperationLogDto>> GetByUserIdAsync(long userId)
     {
         var logs = await _operationLogRepository.GetByUserIdAsync(userId);
         return logs.Adapt<List<OperationLogDto>>();
@@ -62,7 +59,7 @@ public class SysOperationLogService : CrudApplicationServiceBase<SysOperationLog
     /// <summary>
     /// 根据租户ID获取操作日志列表
     /// </summary>
-    public async Task<List<OperationLogDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<OperationLogDto>> GetByTenantIdAsync(long tenantId)
     {
         var logs = await _operationLogRepository.GetByTenantIdAsync(tenantId);
         return logs.Adapt<List<OperationLogDto>>();

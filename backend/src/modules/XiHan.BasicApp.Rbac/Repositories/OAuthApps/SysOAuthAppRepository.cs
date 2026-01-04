@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OAuthApps;
 /// <summary>
 /// 系统OAuth应用仓储实现
 /// </summary>
-public class SysOAuthAppRepository : SqlSugarRepositoryBase<SysOAuthApp, XiHanBasicAppIdType>, ISysOAuthAppRepository
+public class SysOAuthAppRepository : SqlSugarRepositoryBase<SysOAuthApp, long>, ISysOAuthAppRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -55,7 +55,7 @@ public class SysOAuthAppRepository : SqlSugarRepositoryBase<SysOAuthApp, XiHanBa
     /// <summary>
     /// 检查客户端ID是否存在
     /// </summary>
-    public async Task<bool> ExistsByClientIdAsync(string clientId, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByClientIdAsync(string clientId, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysOAuthApp>().Where(app => app.ClientId == clientId);
         if (excludeId.HasValue)

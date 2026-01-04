@@ -33,7 +33,7 @@ namespace XiHan.BasicApp.Rbac.Services.Roles;
 /// <summary>
 /// 系统角色服务实现
 /// </summary>
-public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHanBasicAppIdType, CreateRoleDto, UpdateRoleDto>, ISysRoleService
+public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long, CreateRoleDto, UpdateRoleDto>, ISysRoleService
 {
     private readonly ISysRoleRepository _roleRepository;
     private readonly ISysPermissionRepository _permissionRepository;
@@ -66,7 +66,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色详情
     /// </summary>
-    public async Task<RoleDetailDto?> GetDetailAsync(XiHanBasicAppIdType id)
+    public async Task<RoleDetailDto?> GetDetailAsync(long id)
     {
         var role = await _roleRepository.GetByIdAsync(id);
         if (role == null)
@@ -174,7 +174,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 更新角色
     /// </summary>
-    public override async Task<RoleDto> UpdateAsync(XiHanBasicAppIdType id, UpdateRoleDto input)
+    public override async Task<RoleDto> UpdateAsync(long id, UpdateRoleDto input)
     {
         var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
@@ -236,7 +236,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 删除角色
     /// </summary>
-    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
+    public override async Task<bool> DeleteAsync(long id)
     {
         var role = await _roleRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
@@ -311,7 +311,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色的菜单ID列表
     /// </summary>
-    public async Task<List<XiHanBasicAppIdType>> GetRoleMenuIdsAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<long>> GetRoleMenuIdsAsync(long roleId)
     {
         return await _roleRepository.GetRoleMenuIdsAsync(roleId);
     }
@@ -319,7 +319,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色的权限ID列表
     /// </summary>
-    public async Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<long>> GetRolePermissionIdsAsync(long roleId)
     {
         return await _roleRepository.GetRolePermissionIdsAsync(roleId);
     }
@@ -331,7 +331,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 设置父角色（建立继承关系）
     /// </summary>
-    public async Task<bool> SetParentRoleAsync(XiHanBasicAppIdType roleId, XiHanBasicAppIdType? parentRoleId)
+    public async Task<bool> SetParentRoleAsync(long roleId, long? parentRoleId)
     {
         var role = await _roleRepository.GetByIdAsync(roleId) ??
             throw new InvalidOperationException(ErrorMessageConstants.RoleNotFound);
@@ -361,7 +361,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色的所有权限（包括继承的权限）
     /// </summary>
-    public async Task<List<SysPermission>> GetRolePermissionsWithInheritanceAsync(XiHanBasicAppIdType roleId, bool includeInherited = true)
+    public async Task<List<SysPermission>> GetRolePermissionsWithInheritanceAsync(long roleId, bool includeInherited = true)
     {
         var permissions = new List<SysPermission>();
 
@@ -382,7 +382,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色的所有菜单（包括继承的菜单）
     /// </summary>
-    public async Task<List<SysMenu>> GetRoleMenusWithInheritanceAsync(XiHanBasicAppIdType roleId, bool includeInherited = true)
+    public async Task<List<SysMenu>> GetRoleMenusWithInheritanceAsync(long roleId, bool includeInherited = true)
     {
         var menus = new List<SysMenu>();
 
@@ -407,7 +407,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取用户的所有权限（包括角色继承的权限）
     /// </summary>
-    public async Task<List<SysPermission>> GetUserPermissionsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysPermission>> GetUserPermissionsAsync(long userId)
     {
         var allPermissions = new List<SysPermission>();
 
@@ -454,7 +454,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取用户的所有菜单（包括角色继承的菜单）
     /// </summary>
-    public async Task<List<SysMenu>> GetUserMenusAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysMenu>> GetUserMenusAsync(long userId)
     {
         var allMenus = new List<SysMenu>();
 
@@ -474,7 +474,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 检查用户是否拥有指定权限（考虑继承和直接授予/禁用）
     /// </summary>
-    public async Task<bool> HasPermissionAsync(XiHanBasicAppIdType userId, string permissionCode)
+    public async Task<bool> HasPermissionAsync(long userId, string permissionCode)
     {
         // 1. 检查用户直接禁用的权限（最高优先级）
         var userDeniedPermissions = await _dbContext.GetClient()
@@ -508,7 +508,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 批量检查用户权限
     /// </summary>
-    public async Task<Dictionary<string, bool>> BatchCheckPermissionsAsync(XiHanBasicAppIdType userId, params string[] permissionCodes)
+    public async Task<Dictionary<string, bool>> BatchCheckPermissionsAsync(long userId, params string[] permissionCodes)
     {
         var result = new Dictionary<string, bool>();
 
@@ -523,7 +523,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色继承链（从当前角色到根角色）
     /// </summary>
-    public async Task<List<RoleDto>> GetRoleInheritanceChainAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<RoleDto>> GetRoleInheritanceChainAsync(long roleId)
     {
         var chain = new List<RoleDto>();
         var parentRoles = await _roleRepository.GetParentRolesAsync(roleId);
@@ -539,7 +539,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 获取角色树（包含子角色）
     /// </summary>
-    public async Task<List<RoleDto>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null)
+    public async Task<List<RoleDto>> GetRoleTreeAsync(long? parentRoleId = null)
     {
         var roles = await _roleRepository.GetRoleTreeAsync(parentRoleId);
         return roles.Select(r => r.Adapt<RoleDto>()).ToList();
@@ -548,7 +548,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 递归获取继承的权限
     /// </summary>
-    private async Task<List<SysPermission>> GetInheritedPermissionsAsync(XiHanBasicAppIdType roleId)
+    private async Task<List<SysPermission>> GetInheritedPermissionsAsync(long roleId)
     {
         var inheritedPermissions = new List<SysPermission>();
 
@@ -568,7 +568,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, XiHan
     /// <summary>
     /// 递归获取继承的菜单
     /// </summary>
-    private async Task<List<SysMenu>> GetInheritedMenusAsync(XiHanBasicAppIdType roleId)
+    private async Task<List<SysMenu>> GetInheritedMenusAsync(long roleId)
     {
         var inheritedMenus = new List<SysMenu>();
 

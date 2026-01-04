@@ -25,7 +25,7 @@ public class UserSecurityDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 最后修改密码时间
@@ -116,7 +116,7 @@ public class CreateUserSecurityDto : RbacCreationDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 密码过期时间

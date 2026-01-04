@@ -25,12 +25,12 @@ public class ApiLogDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType? UserId { get; set; }
+    public long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -150,17 +150,17 @@ public class ApiLogDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 执行时长（毫秒）
     /// </summary>
-    public XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
+    public long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 请求大小（字节）
     /// </summary>
-    public XiHanBasicAppIdType RequestSize { get; set; } = 0;
+    public long RequestSize { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
-    public XiHanBasicAppIdType ResponseSize { get; set; } = 0;
+    public long ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 是否成功

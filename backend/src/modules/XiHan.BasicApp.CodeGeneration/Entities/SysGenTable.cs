@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarIndex("IX_SysGenTable_TableName", nameof(TableName), OrderByType.Asc, true)]
 [SugarIndex("IX_SysGenTable_ClassName", nameof(ClassName), OrderByType.Asc)]
 [SugarIndex("IX_SysGenTable_ModuleName", nameof(ModuleName), OrderByType.Asc)]
-public partial class SysGenTable : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysGenTable : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 数据库表名
@@ -99,7 +99,7 @@ public partial class SysGenTable : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 父菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父菜单ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? ParentMenuId { get; set; }
+    public virtual long? ParentMenuId { get; set; }
 
     /// <summary>
     /// 主键列名
@@ -123,7 +123,7 @@ public partial class SysGenTable : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 主子表关联主表ID
     /// </summary>
     [SugarColumn(ColumnDescription = "主子表关联主表ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? MasterTableId { get; set; }
+    public virtual long? MasterTableId { get; set; }
 
     /// <summary>
     /// 主子表关联外键列

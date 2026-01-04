@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.UserSessions;
 /// <summary>
 /// 系统用户会话服务接口
 /// </summary>
-public interface ISysUserSessionService : ICrudApplicationService<UserSessionDto, XiHanBasicAppIdType, CreateUserSessionDto, UpdateUserSessionDto>
+public interface ISysUserSessionService : ICrudApplicationService<UserSessionDto, long, CreateUserSessionDto, UpdateUserSessionDto>
 {
     /// <summary>
     /// 根据Token获取会话
@@ -50,14 +50,14 @@ public interface ISysUserSessionService : ICrudApplicationService<UserSessionDto
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<UserSessionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<UserSessionDto>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 获取用户的在线会话
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<UserSessionDto>> GetOnlineSessionsByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<UserSessionDto>> GetOnlineSessionsByUserIdAsync(long userId);
 
     /// <summary>
     /// 获取所有在线会话
@@ -71,7 +71,7 @@ public interface ISysUserSessionService : ICrudApplicationService<UserSessionDto
     /// <param name="userId">用户ID</param>
     /// <param name="reason">撤销原因</param>
     /// <returns></returns>
-    Task<int> RevokeUserSessionsAsync(XiHanBasicAppIdType userId, string? reason = null);
+    Task<int> RevokeUserSessionsAsync(long userId, string? reason = null);
 
     /// <summary>
     /// 撤销指定会话
@@ -88,7 +88,7 @@ public interface ISysUserSessionService : ICrudApplicationService<UserSessionDto
     /// <param name="currentSessionId">当前会话ID</param>
     /// <param name="reason">撤销原因</param>
     /// <returns></returns>
-    Task<int> RevokeOtherSessionsAsync(XiHanBasicAppIdType userId, string currentSessionId, string? reason = null);
+    Task<int> RevokeOtherSessionsAsync(long userId, string currentSessionId, string? reason = null);
 
     /// <summary>
     /// 更新会话活动时间
@@ -109,5 +109,5 @@ public interface ISysUserSessionService : ICrudApplicationService<UserSessionDto
     /// <param name="userId">用户ID</param>
     /// <param name="deviceType">设备类型</param>
     /// <returns></returns>
-    Task<int> GetSessionCountByDeviceTypeAsync(XiHanBasicAppIdType userId, DeviceType deviceType);
+    Task<int> GetSessionCountByDeviceTypeAsync(long userId, DeviceType deviceType);
 }

@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Services.OAuthCodes;
 /// <summary>
 /// 系统OAuth授权码服务实现
 /// </summary>
-public class SysOAuthCodeService : CrudApplicationServiceBase<SysOAuthCode, OAuthCodeDto, XiHanBasicAppIdType, CreateOAuthCodeDto, UpdateOAuthCodeDto>, ISysOAuthCodeService
+public class SysOAuthCodeService : CrudApplicationServiceBase<SysOAuthCode, OAuthCodeDto, long, CreateOAuthCodeDto, UpdateOAuthCodeDto>, ISysOAuthCodeService
 {
     private readonly ISysOAuthCodeRepository _oauthCodeRepository;
 
@@ -51,7 +51,7 @@ public class SysOAuthCodeService : CrudApplicationServiceBase<SysOAuthCode, OAut
     /// <summary>
     /// 根据客户端ID和用户ID获取授权码列表
     /// </summary>
-    public async Task<List<OAuthCodeDto>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId)
+    public async Task<List<OAuthCodeDto>> GetByClientAndUserAsync(string clientId, long userId)
     {
         var codes = await _oauthCodeRepository.GetByClientAndUserAsync(clientId, userId);
         return codes.Adapt<List<OAuthCodeDto>>();

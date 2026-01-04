@@ -45,7 +45,7 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// </summary>
     public IQueryable<TEntity> ApplyFilter<TEntity>(
         IQueryable<TEntity> query,
-        XiHanBasicAppIdType userId,
+        long userId,
         DataPermissionScope scope) where TEntity : class
     {
         var expression = BuildFilterExpressionAsync<TEntity>(userId, scope).GetAwaiter().GetResult();
@@ -60,7 +60,7 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 构建数据权限表达式
     /// </summary>
     public async Task<Expression<Func<TEntity, bool>>?> BuildFilterExpressionAsync<TEntity>(
-        XiHanBasicAppIdType userId,
+        long userId,
         DataPermissionScope scope,
         string departmentField = "DepartmentId",
         string creatorField = "CreatedBy") where TEntity : class
@@ -97,8 +97,8 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 构建自定义数据权限表达式
     /// </summary>
     public Expression<Func<TEntity, bool>>? BuildCustomFilterExpression<TEntity>(
-        XiHanBasicAppIdType userId,
-        List<XiHanBasicAppIdType> customDepartmentIds,
+        long userId,
+        List<long> customDepartmentIds,
         string departmentField = "DepartmentId") where TEntity : class
     {
         if (customDepartmentIds.Count == 0)
@@ -113,9 +113,9 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 检查用户是否有数据访问权限
     /// </summary>
     public async Task<bool> HasPermissionAsync(
-        XiHanBasicAppIdType userId,
-        XiHanBasicAppIdType? targetUserId,
-        XiHanBasicAppIdType? targetDepartmentId,
+        long userId,
+        long? targetUserId,
+        long? targetDepartmentId,
         DataPermissionScope scope)
     {
         switch (scope)
@@ -155,13 +155,13 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 构建仅本人数据权限表达式
     /// </summary>
     private Expression<Func<TEntity, bool>>? BuildSelfOnlyExpression<TEntity>(
-        XiHanBasicAppIdType userId,
+        long userId,
         string creatorField) where TEntity : class
     {
         var entityType = typeof(TEntity);
         var property = entityType.GetProperty(creatorField, BindingFlags.Public | BindingFlags.Instance);
 
-        if (property == null || (property.PropertyType != typeof(XiHanBasicAppIdType) && property.PropertyType != typeof(XiHanBasicAppIdType?)))
+        if (property == null || (property.PropertyType != typeof(long) && property.PropertyType != typeof(long?)))
         {
             return null;
         }
@@ -170,7 +170,7 @@ public class DataPermissionFilter : IDataPermissionFilter
         var propertyAccess = Expression.Property(parameter, property);
 
         Expression comparison;
-        if (property.PropertyType == typeof(XiHanBasicAppIdType?))
+        if (property.PropertyType == typeof(long?))
         {
             // 处理可空类型
             var hasValue = Expression.Property(propertyAccess, "HasValue");
@@ -190,7 +190,7 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 构建仅本部门数据权限表达式
     /// </summary>
     private async Task<Expression<Func<TEntity, bool>>?> BuildDepartmentOnlyExpressionAsync<TEntity>(
-        XiHanBasicAppIdType userId,
+        long userId,
         string departmentField) where TEntity : class
     {
         var userDepartmentIds = await _userRepository.GetUserDepartmentIdsAsync(userId);
@@ -206,7 +206,7 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 构建本部门及子部门数据权限表达式
     /// </summary>
     private async Task<Expression<Func<TEntity, bool>>?> BuildDepartmentAndChildrenExpressionAsync<TEntity>(
-        XiHanBasicAppIdType userId,
+        long userId,
         string departmentField) where TEntity : class
     {
         var allDepartmentIds = await GetUserAllDepartmentIdsAsync(userId);
@@ -222,13 +222,13 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// 构建部门表达式
     /// </summary>
     private Expression<Func<TEntity, bool>>? BuildDepartmentExpression<TEntity>(
-        List<XiHanBasicAppIdType> departmentIds,
+        List<long> departmentIds,
         string departmentField) where TEntity : class
     {
         var entityType = typeof(TEntity);
         var property = entityType.GetProperty(departmentField, BindingFlags.Public | BindingFlags.Instance);
 
-        if (property == null || (property.PropertyType != typeof(XiHanBasicAppIdType) && property.PropertyType != typeof(XiHanBasicAppIdType?)))
+        if (property == null || (property.PropertyType != typeof(long) && property.PropertyType != typeof(long?)))
         {
             return null;
         }
@@ -237,7 +237,7 @@ public class DataPermissionFilter : IDataPermissionFilter
         var propertyAccess = Expression.Property(parameter, property);
 
         Expression comparison;
-        if (property.PropertyType == typeof(XiHanBasicAppIdType?))
+        if (property.PropertyType == typeof(long?))
         {
             // 处理可空类型
             var hasValue = Expression.Property(propertyAccess, "HasValue");
@@ -245,7 +245,7 @@ public class DataPermissionFilter : IDataPermissionFilter
             var contains = Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.Contains),
-                [typeof(XiHanBasicAppIdType)],
+                [typeof(long)],
                 Expression.Constant(departmentIds),
                 value);
             comparison = Expression.AndAlso(hasValue, contains);
@@ -255,7 +255,7 @@ public class DataPermissionFilter : IDataPermissionFilter
             comparison = Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.Contains),
-                [typeof(XiHanBasicAppIdType)],
+                [typeof(long)],
                 Expression.Constant(departmentIds),
                 propertyAccess);
         }
@@ -266,10 +266,10 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// <summary>
     /// 获取用户的所有部门ID（包括子部门）
     /// </summary>
-    private async Task<List<XiHanBasicAppIdType>> GetUserAllDepartmentIdsAsync(XiHanBasicAppIdType userId)
+    private async Task<List<long>> GetUserAllDepartmentIdsAsync(long userId)
     {
         var userDepartmentIds = await _userRepository.GetUserDepartmentIdsAsync(userId);
-        var allDepartmentIds = new List<XiHanBasicAppIdType>(userDepartmentIds);
+        var allDepartmentIds = new List<long>(userDepartmentIds);
 
         foreach (var departmentId in userDepartmentIds)
         {
@@ -283,9 +283,9 @@ public class DataPermissionFilter : IDataPermissionFilter
     /// <summary>
     /// 递归获取子部门ID
     /// </summary>
-    private async Task<List<XiHanBasicAppIdType>> GetChildDepartmentIdsAsync(XiHanBasicAppIdType departmentId)
+    private async Task<List<long>> GetChildDepartmentIdsAsync(long departmentId)
     {
-        var result = new List<XiHanBasicAppIdType>();
+        var result = new List<long>();
         var children = await _departmentRepository.GetChildrenAsync(departmentId);
 
         foreach (var child in children)

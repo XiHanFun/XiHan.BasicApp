@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.UserSecurities;
 /// <summary>
 /// 系统用户安全仓储实现
 /// </summary>
-public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity, XiHanBasicAppIdType>, ISysUserSecurityRepository
+public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity, long>, ISysUserSecurityRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -39,7 +39,7 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     /// <summary>
     /// 根据用户ID获取用户安全信息
     /// </summary>
-    public async Task<SysUserSecurity?> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<SysUserSecurity?> GetByUserIdAsync(long userId)
     {
         return await GetFirstAsync(us => us.UserId == userId);
     }
@@ -70,7 +70,7 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     /// <summary>
     /// 增加失败登录次数
     /// </summary>
-    public async Task<bool> IncrementFailedLoginAttemptsAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> IncrementFailedLoginAttemptsAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
         if (userSecurity == null) return false;
@@ -84,7 +84,7 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     /// <summary>
     /// 重置失败登录次数
     /// </summary>
-    public async Task<bool> ResetFailedLoginAttemptsAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> ResetFailedLoginAttemptsAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
         if (userSecurity == null) return false;
@@ -98,7 +98,7 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     /// <summary>
     /// 锁定用户
     /// </summary>
-    public async Task<bool> LockUserAsync(XiHanBasicAppIdType userId, DateTimeOffset? lockoutEndTime = null)
+    public async Task<bool> LockUserAsync(long userId, DateTimeOffset? lockoutEndTime = null)
     {
         var userSecurity = await GetByUserIdAsync(userId);
         if (userSecurity == null) return false;
@@ -113,7 +113,7 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     /// <summary>
     /// 解锁用户
     /// </summary>
-    public async Task<bool> UnlockUserAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> UnlockUserAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
         if (userSecurity == null) return false;
@@ -129,7 +129,7 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     /// <summary>
     /// 更新安全戳
     /// </summary>
-    public async Task<bool> UpdateSecurityStampAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> UpdateSecurityStampAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
         if (userSecurity == null) return false;

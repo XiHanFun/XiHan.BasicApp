@@ -13,12 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.UserSessions;
-using XiHan.BasicApp.Rbac.Services.UserSecurities.Dtos;
 using XiHan.BasicApp.Rbac.Services.UserSessions.Dtos;
 using XiHan.Framework.Application.Services;
 
@@ -27,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.UserSessions;
 /// <summary>
 /// 系统用户会话服务实现
 /// </summary>
-public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, UserSessionDto, XiHanBasicAppIdType, CreateUserSessionDto, UpdateUserSessionDto>, ISysUserSessionService
+public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, UserSessionDto, long, CreateUserSessionDto, UpdateUserSessionDto>, ISysUserSessionService
 {
     private readonly ISysUserSessionRepository _userSessionRepository;
 
@@ -71,7 +68,7 @@ public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, 
     /// <summary>
     /// 获取用户的所有会话
     /// </summary>
-    public async Task<List<UserSessionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<UserSessionDto>> GetByUserIdAsync(long userId)
     {
         var sessions = await _userSessionRepository.GetByUserIdAsync(userId);
         return sessions.Adapt<List<UserSessionDto>>();
@@ -80,7 +77,7 @@ public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, 
     /// <summary>
     /// 获取用户的在线会话
     /// </summary>
-    public async Task<List<UserSessionDto>> GetOnlineSessionsByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<UserSessionDto>> GetOnlineSessionsByUserIdAsync(long userId)
     {
         var sessions = await _userSessionRepository.GetOnlineSessionsByUserIdAsync(userId);
         return sessions.Adapt<List<UserSessionDto>>();
@@ -98,7 +95,7 @@ public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, 
     /// <summary>
     /// 撤销用户的所有会话（踢人下线）
     /// </summary>
-    public async Task<int> RevokeUserSessionsAsync(XiHanBasicAppIdType userId, string? reason = null)
+    public async Task<int> RevokeUserSessionsAsync(long userId, string? reason = null)
     {
         return await _userSessionRepository.RevokeUserSessionsAsync(userId, reason);
     }
@@ -114,7 +111,7 @@ public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, 
     /// <summary>
     /// 撤销除当前会话外的其他所有会话
     /// </summary>
-    public async Task<int> RevokeOtherSessionsAsync(XiHanBasicAppIdType userId, string currentSessionId, string? reason = null)
+    public async Task<int> RevokeOtherSessionsAsync(long userId, string currentSessionId, string? reason = null)
     {
         return await _userSessionRepository.RevokeOtherSessionsAsync(userId, currentSessionId, reason);
     }
@@ -138,7 +135,7 @@ public class SysUserSessionService : CrudApplicationServiceBase<SysUserSession, 
     /// <summary>
     /// 根据设备类型获取用户会话数量
     /// </summary>
-    public async Task<int> GetSessionCountByDeviceTypeAsync(XiHanBasicAppIdType userId, DeviceType deviceType)
+    public async Task<int> GetSessionCountByDeviceTypeAsync(long userId, DeviceType deviceType)
     {
         return await _userSessionRepository.GetSessionCountByDeviceTypeAsync(userId, deviceType);
     }

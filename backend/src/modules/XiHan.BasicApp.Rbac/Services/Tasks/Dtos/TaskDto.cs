@@ -27,7 +27,7 @@ public class TaskDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 任务编码
@@ -158,7 +158,7 @@ public class CreateTaskDto : RbacCreationDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 任务编码

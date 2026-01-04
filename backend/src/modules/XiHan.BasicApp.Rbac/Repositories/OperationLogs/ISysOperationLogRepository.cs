@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.OperationLogs;
 /// <summary>
 /// 系统操作日志仓储接口
 /// </summary>
-public interface ISysOperationLogRepository : IRepositoryBase<SysOperationLog, XiHanBasicAppIdType>
+public interface ISysOperationLogRepository : IRepositoryBase<SysOperationLog, long>
 {
     /// <summary>
     /// 根据用户ID获取操作日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysOperationLog>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysOperationLog>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据操作类型获取日志列表
@@ -43,7 +43,7 @@ public interface ISysOperationLogRepository : IRepositoryBase<SysOperationLog, X
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<SysOperationLog>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<SysOperationLog>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 根据时间范围获取操作日志列表

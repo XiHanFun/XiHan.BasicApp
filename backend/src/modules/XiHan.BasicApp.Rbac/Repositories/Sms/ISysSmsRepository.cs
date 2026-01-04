@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Sms;
 /// <summary>
 /// 系统短信仓储接口
 /// </summary>
-public interface ISysSmsRepository : IRepositoryBase<SysSms, XiHanBasicAppIdType>
+public interface ISysSmsRepository : IRepositoryBase<SysSms, long>
 {
     /// <summary>
     /// 根据短信状态获取短信列表
@@ -50,14 +50,14 @@ public interface ISysSmsRepository : IRepositoryBase<SysSms, XiHanBasicAppIdType
     /// </summary>
     /// <param name="senderId">发送者ID</param>
     /// <returns></returns>
-    Task<List<SysSms>> GetBySenderIdAsync(XiHanBasicAppIdType senderId);
+    Task<List<SysSms>> GetBySenderIdAsync(long senderId);
 
     /// <summary>
     /// 根据接收者ID获取短信列表
     /// </summary>
     /// <param name="receiverId">接收者ID</param>
     /// <returns></returns>
-    Task<List<SysSms>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId);
+    Task<List<SysSms>> GetByReceiverIdAsync(long receiverId);
 
     /// <summary>
     /// 获取待发送的短信列表

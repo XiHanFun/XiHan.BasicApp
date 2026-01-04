@@ -27,13 +27,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUser_Email", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Phone", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysUser : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysUser : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TenantId { get; set; }
+    public virtual long? TenantId { get; set; }
 
     /// <summary>
     /// 用户名

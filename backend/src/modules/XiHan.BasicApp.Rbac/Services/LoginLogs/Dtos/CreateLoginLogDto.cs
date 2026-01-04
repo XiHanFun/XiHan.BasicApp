@@ -25,7 +25,7 @@ public class CreateLoginLogDto
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 用户名

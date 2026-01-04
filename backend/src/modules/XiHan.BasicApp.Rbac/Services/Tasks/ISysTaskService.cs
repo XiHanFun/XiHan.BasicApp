@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Tasks;
 /// <summary>
 /// 系统任务服务接口
 /// </summary>
-public interface ISysTaskService : ICrudApplicationService<TaskDto, XiHanBasicAppIdType, CreateTaskDto, UpdateTaskDto>
+public interface ISysTaskService : ICrudApplicationService<TaskDto, long, CreateTaskDto, UpdateTaskDto>
 {
     /// <summary>
     /// 根据任务编码获取任务
@@ -58,5 +58,5 @@ public interface ISysTaskService : ICrudApplicationService<TaskDto, XiHanBasicAp
     /// <param name="taskCode">任务编码</param>
     /// <param name="excludeId">排除的任务ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByTaskCodeAsync(string taskCode, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByTaskCodeAsync(string taskCode, long? excludeId = null);
 }

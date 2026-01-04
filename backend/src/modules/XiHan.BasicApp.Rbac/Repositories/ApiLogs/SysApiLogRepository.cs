@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.ApiLogs;
 /// <summary>
 /// 系统API日志仓储实现
 /// </summary>
-public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, XiHanBasicAppIdType>, ISysApiLogRepository
+public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, long>, ISysApiLogRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -38,7 +38,7 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, XiHanBasicA
     /// <summary>
     /// 根据用户ID获取API日志列表
     /// </summary>
-    public async Task<List<SysApiLog>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysApiLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
         return result.OrderByDescending(log => log.RequestTime).ToList();
@@ -56,7 +56,7 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, XiHanBasicA
     /// <summary>
     /// 根据租户ID获取API日志列表
     /// </summary>
-    public async Task<List<SysApiLog>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<SysApiLog>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(log => log.TenantId == tenantId);
         return result.OrderByDescending(log => log.RequestTime).ToList();

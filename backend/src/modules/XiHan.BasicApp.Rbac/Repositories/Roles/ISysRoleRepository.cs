@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Roles;
 /// <summary>
 /// 系统角色仓储接口
 /// </summary>
-public interface ISysRoleRepository : IRepositoryBase<SysRole, XiHanBasicAppIdType>
+public interface ISysRoleRepository : IRepositoryBase<SysRole, long>
 {
     /// <summary>
     /// 根据角色编码获取角色
@@ -36,63 +36,63 @@ public interface ISysRoleRepository : IRepositoryBase<SysRole, XiHanBasicAppIdTy
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByRoleCodeAsync(string roleCode, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByRoleCodeAsync(string roleCode, long? excludeId = null);
 
     /// <summary>
     /// 获取角色的菜单ID列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<XiHanBasicAppIdType>> GetRoleMenuIdsAsync(XiHanBasicAppIdType roleId);
+    Task<List<long>> GetRoleMenuIdsAsync(long roleId);
 
     /// <summary>
     /// 获取角色的权限ID列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId);
+    Task<List<long>> GetRolePermissionIdsAsync(long roleId);
 
     /// <summary>
     /// 获取角色的用户数量
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<int> GetRoleUserCountAsync(XiHanBasicAppIdType roleId);
+    Task<int> GetRoleUserCountAsync(long roleId);
 
     /// <summary>
     /// 根据用户ID获取角色列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysRole>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysRole>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 获取角色的所有父角色ID（递归查询继承链）
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>父角色ID列表（包括所有祖先角色）</returns>
-    Task<List<XiHanBasicAppIdType>> GetParentRoleIdsAsync(XiHanBasicAppIdType roleId);
+    Task<List<long>> GetParentRoleIdsAsync(long roleId);
 
     /// <summary>
     /// 获取角色的所有子角色ID（递归查询继承链）
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>子角色ID列表（包括所有后代角色）</returns>
-    Task<List<XiHanBasicAppIdType>> GetChildRoleIdsAsync(XiHanBasicAppIdType roleId);
+    Task<List<long>> GetChildRoleIdsAsync(long roleId);
 
     /// <summary>
     /// 获取角色的所有父角色（递归查询继承链）
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>父角色列表（包括所有祖先角色）</returns>
-    Task<List<SysRole>> GetParentRolesAsync(XiHanBasicAppIdType roleId);
+    Task<List<SysRole>> GetParentRolesAsync(long roleId);
 
     /// <summary>
     /// 获取角色的所有子角色（递归查询继承链）
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>子角色列表（包括所有后代角色）</returns>
-    Task<List<SysRole>> GetChildRolesAsync(XiHanBasicAppIdType roleId);
+    Task<List<SysRole>> GetChildRolesAsync(long roleId);
 
     /// <summary>
     /// 检查是否会形成循环继承
@@ -100,12 +100,12 @@ public interface ISysRoleRepository : IRepositoryBase<SysRole, XiHanBasicAppIdTy
     /// <param name="roleId">当前角色ID</param>
     /// <param name="parentRoleId">要设置的父角色ID</param>
     /// <returns>是否会形成循环</returns>
-    Task<bool> WouldCreateCycleAsync(XiHanBasicAppIdType roleId, XiHanBasicAppIdType parentRoleId);
+    Task<bool> WouldCreateCycleAsync(long roleId, long parentRoleId);
 
     /// <summary>
     /// 获取角色树（包含子角色）
     /// </summary>
     /// <param name="parentRoleId">父角色ID，null表示获取根角色</param>
     /// <returns>角色树</returns>
-    Task<List<SysRole>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null);
+    Task<List<SysRole>> GetRoleTreeAsync(long? parentRoleId = null);
 }

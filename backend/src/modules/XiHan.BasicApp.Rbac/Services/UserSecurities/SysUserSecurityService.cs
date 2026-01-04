@@ -13,9 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Repositories.UserSecurities;
 using XiHan.BasicApp.Rbac.Services.UserSecurities.Dtos;
 using XiHan.Framework.Application.Services;
@@ -25,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.UserSecurities;
 /// <summary>
 /// 系统用户安全服务实现
 /// </summary>
-public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity, UserSecurityDto, XiHanBasicAppIdType, CreateUserSecurityDto, UpdateUserSecurityDto>, ISysUserSecurityService
+public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity, UserSecurityDto, long, CreateUserSecurityDto, UpdateUserSecurityDto>, ISysUserSecurityService
 {
     private readonly ISysUserSecurityRepository _userSecurityRepository;
 
@@ -42,7 +40,7 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
     /// <summary>
     /// 根据用户ID获取用户安全信息
     /// </summary>
-    public async Task<UserSecurityDto?> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<UserSecurityDto?> GetByUserIdAsync(long userId)
     {
         var userSecurity = await _userSecurityRepository.GetByUserIdAsync(userId);
         return userSecurity?.Adapt<UserSecurityDto>();
@@ -69,7 +67,7 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
     /// <summary>
     /// 增加失败登录次数
     /// </summary>
-    public async Task<bool> IncrementFailedLoginAttemptsAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> IncrementFailedLoginAttemptsAsync(long userId)
     {
         return await _userSecurityRepository.IncrementFailedLoginAttemptsAsync(userId);
     }
@@ -77,7 +75,7 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
     /// <summary>
     /// 重置失败登录次数
     /// </summary>
-    public async Task<bool> ResetFailedLoginAttemptsAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> ResetFailedLoginAttemptsAsync(long userId)
     {
         return await _userSecurityRepository.ResetFailedLoginAttemptsAsync(userId);
     }
@@ -85,7 +83,7 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
     /// <summary>
     /// 锁定用户
     /// </summary>
-    public async Task<bool> LockUserAsync(XiHanBasicAppIdType userId, DateTimeOffset? lockoutEndTime = null)
+    public async Task<bool> LockUserAsync(long userId, DateTimeOffset? lockoutEndTime = null)
     {
         return await _userSecurityRepository.LockUserAsync(userId, lockoutEndTime);
     }
@@ -93,7 +91,7 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
     /// <summary>
     /// 解锁用户
     /// </summary>
-    public async Task<bool> UnlockUserAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> UnlockUserAsync(long userId)
     {
         return await _userSecurityRepository.UnlockUserAsync(userId);
     }
@@ -101,7 +99,7 @@ public class SysUserSecurityService : CrudApplicationServiceBase<SysUserSecurity
     /// <summary>
     /// 更新安全戳（强制重新登录）
     /// </summary>
-    public async Task<bool> UpdateSecurityStampAsync(XiHanBasicAppIdType userId)
+    public async Task<bool> UpdateSecurityStampAsync(long userId)
     {
         return await _userSecurityRepository.UpdateSecurityStampAsync(userId);
     }

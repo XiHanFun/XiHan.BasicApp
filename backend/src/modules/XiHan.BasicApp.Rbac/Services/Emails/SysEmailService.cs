@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Services.Emails;
 /// <summary>
 /// 系统邮件服务实现
 /// </summary>
-public class SysEmailService : CrudApplicationServiceBase<SysEmail, EmailDto, XiHanBasicAppIdType, CreateEmailDto, UpdateEmailDto>, ISysEmailService
+public class SysEmailService : CrudApplicationServiceBase<SysEmail, EmailDto, long, CreateEmailDto, UpdateEmailDto>, ISysEmailService
 {
     private readonly ISysEmailRepository _emailRepository;
 
@@ -69,7 +69,7 @@ public class SysEmailService : CrudApplicationServiceBase<SysEmail, EmailDto, Xi
     /// <summary>
     /// 根据发送者ID获取邮件列表
     /// </summary>
-    public async Task<List<EmailDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
+    public async Task<List<EmailDto>> GetBySenderIdAsync(long senderId)
     {
         var emails = await _emailRepository.GetBySenderIdAsync(senderId);
         return emails.Adapt<List<EmailDto>>();
@@ -78,7 +78,7 @@ public class SysEmailService : CrudApplicationServiceBase<SysEmail, EmailDto, Xi
     /// <summary>
     /// 根据接收者ID获取邮件列表
     /// </summary>
-    public async Task<List<EmailDto>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId)
+    public async Task<List<EmailDto>> GetByReceiverIdAsync(long receiverId)
     {
         var emails = await _emailRepository.GetByReceiverIdAsync(receiverId);
         return emails.Adapt<List<EmailDto>>();

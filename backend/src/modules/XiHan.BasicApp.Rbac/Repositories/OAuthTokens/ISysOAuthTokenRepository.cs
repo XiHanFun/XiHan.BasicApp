@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OAuthTokens;
 /// <summary>
 /// 系统OAuth令牌仓储接口
 /// </summary>
-public interface ISysOAuthTokenRepository : IRepositoryBase<SysOAuthToken, XiHanBasicAppIdType>
+public interface ISysOAuthTokenRepository : IRepositoryBase<SysOAuthToken, long>
 {
     /// <summary>
     /// 根据访问令牌获取
@@ -43,7 +43,7 @@ public interface ISysOAuthTokenRepository : IRepositoryBase<SysOAuthToken, XiHan
     /// <param name="clientId">客户端ID</param>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysOAuthToken>> GetByClientAndUserAsync(string clientId, XiHanBasicAppIdType userId);
+    Task<List<SysOAuthToken>> GetByClientAndUserAsync(string clientId, long userId);
 
     /// <summary>
     /// 删除过期的令牌

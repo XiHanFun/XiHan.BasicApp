@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.UserPermissions;
 /// <summary>
 /// 系统用户权限仓储接口
 /// </summary>
-public interface ISysUserPermissionRepository : IRepositoryBase<SysUserPermission, XiHanBasicAppIdType>
+public interface ISysUserPermissionRepository : IRepositoryBase<SysUserPermission, long>
 {
     /// <summary>
     /// 根据用户ID获取用户权限列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysUserPermission>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysUserPermission>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据用户ID和权限操作类型获取用户权限列表
@@ -37,14 +37,14 @@ public interface ISysUserPermissionRepository : IRepositoryBase<SysUserPermissio
     /// <param name="userId">用户ID</param>
     /// <param name="permissionAction">权限操作类型</param>
     /// <returns></returns>
-    Task<List<SysUserPermission>> GetByUserIdAndActionAsync(XiHanBasicAppIdType userId, PermissionAction permissionAction);
+    Task<List<SysUserPermission>> GetByUserIdAndActionAsync(long userId, PermissionAction permissionAction);
 
     /// <summary>
     /// 根据权限ID获取用户权限列表
     /// </summary>
     /// <param name="permissionId">权限ID</param>
     /// <returns></returns>
-    Task<List<SysUserPermission>> GetByPermissionIdAsync(XiHanBasicAppIdType permissionId);
+    Task<List<SysUserPermission>> GetByPermissionIdAsync(long permissionId);
 
     /// <summary>
     /// 检查用户是否有指定权限的直授记录
@@ -52,14 +52,14 @@ public interface ISysUserPermissionRepository : IRepositoryBase<SysUserPermissio
     /// <param name="userId">用户ID</param>
     /// <param name="permissionId">权限ID</param>
     /// <returns></returns>
-    Task<SysUserPermission?> GetByUserAndPermissionAsync(XiHanBasicAppIdType userId, XiHanBasicAppIdType permissionId);
+    Task<SysUserPermission?> GetByUserAndPermissionAsync(long userId, long permissionId);
 
     /// <summary>
     /// 获取用户的有效权限（未过期）
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysUserPermission>> GetEffectivePermissionsAsync(XiHanBasicAppIdType userId);
+    Task<List<SysUserPermission>> GetEffectivePermissionsAsync(long userId);
 
     /// <summary>
     /// 批量删除用户的权限
@@ -67,6 +67,6 @@ public interface ISysUserPermissionRepository : IRepositoryBase<SysUserPermissio
     /// <param name="userId">用户ID</param>
     /// <param name="permissionIds">权限ID列表</param>
     /// <returns></returns>
-    Task<int> DeleteByUserAndPermissionsAsync(XiHanBasicAppIdType userId, List<XiHanBasicAppIdType> permissionIds);
+    Task<int> DeleteByUserAndPermissionsAsync(long userId, List<long> permissionIds);
 }
 

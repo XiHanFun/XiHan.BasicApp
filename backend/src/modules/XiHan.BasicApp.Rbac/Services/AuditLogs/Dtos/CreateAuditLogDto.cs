@@ -25,12 +25,12 @@ public class CreateAuditLogDto
     /// <summary>
     /// 审核ID
     /// </summary>
-    public XiHanBasicAppIdType AuditId { get; set; }
+    public long AuditId { get; set; }
 
     /// <summary>
     /// 审核用户ID
     /// </summary>
-    public XiHanBasicAppIdType AuditorId { get; set; }
+    public long AuditorId { get; set; }
 
     /// <summary>
     /// 审核级别

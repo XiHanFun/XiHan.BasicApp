@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Files;
 /// <summary>
 /// 系统文件仓储接口
 /// </summary>
-public interface ISysFileRepository : IRepositoryBase<SysFile, XiHanBasicAppIdType>
+public interface ISysFileRepository : IRepositoryBase<SysFile, long>
 {
     /// <summary>
     /// 根据文件哈希获取文件
@@ -43,7 +43,7 @@ public interface ISysFileRepository : IRepositoryBase<SysFile, XiHanBasicAppIdTy
     /// </summary>
     /// <param name="uploaderId">上传者ID</param>
     /// <returns></returns>
-    Task<List<SysFile>> GetByUploaderIdAsync(XiHanBasicAppIdType uploaderId);
+    Task<List<SysFile>> GetByUploaderIdAsync(long uploaderId);
 
     /// <summary>
     /// 根据业务类型和业务ID获取文件列表
@@ -51,12 +51,12 @@ public interface ISysFileRepository : IRepositoryBase<SysFile, XiHanBasicAppIdTy
     /// <param name="businessType">业务类型</param>
     /// <param name="businessId">业务ID</param>
     /// <returns></returns>
-    Task<List<SysFile>> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId);
+    Task<List<SysFile>> GetByBusinessAsync(string businessType, long businessId);
 
     /// <summary>
     /// 根据租户ID获取文件列表
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<SysFile>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<SysFile>> GetByTenantIdAsync(long tenantId);
 }

@@ -26,13 +26,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Menu", "系统菜单表")]
 [SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
-public partial class SysMenu : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysMenu : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 父级菜单ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级菜单ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? ParentId { get; set; }
+    public virtual long? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称

@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Sms;
 /// <summary>
 /// 系统短信仓储实现
 /// </summary>
-public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, XiHanBasicAppIdType>, ISysSmsRepository
+public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, long>, ISysSmsRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -67,7 +67,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, XiHanBasicAppIdTy
     /// <summary>
     /// 根据发送者ID获取短信列表
     /// </summary>
-    public async Task<List<SysSms>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
+    public async Task<List<SysSms>> GetBySenderIdAsync(long senderId)
     {
         var result = await GetListAsync(sms => sms.SenderId == senderId);
         return result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime).ToList();
@@ -76,7 +76,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, XiHanBasicAppIdTy
     /// <summary>
     /// 根据接收者ID获取短信列表
     /// </summary>
-    public async Task<List<SysSms>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId)
+    public async Task<List<SysSms>> GetByReceiverIdAsync(long receiverId)
     {
         var result = await GetListAsync(sms => sms.ReceiverId == receiverId);
         return result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime).ToList();

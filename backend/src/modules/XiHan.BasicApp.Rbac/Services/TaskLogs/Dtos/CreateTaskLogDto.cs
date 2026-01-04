@@ -25,7 +25,7 @@ public class CreateTaskLogDto
     /// <summary>
     /// 任务ID
     /// </summary>
-    public XiHanBasicAppIdType TaskId { get; set; }
+    public long TaskId { get; set; }
 
     /// <summary>
     /// 任务编码
@@ -65,7 +65,7 @@ public class CreateTaskLogDto
     /// <summary>
     /// 执行时长（毫秒）
     /// </summary>
-    public XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
+    public long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 执行结果

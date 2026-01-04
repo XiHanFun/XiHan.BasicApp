@@ -27,13 +27,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTaskLog_TaskId", nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_StartTime", nameof(StartTime), OrderByType.Desc)]
-public partial class SysTaskLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysTaskLog : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 任务ID
     /// </summary>
     [SugarColumn(ColumnDescription = "任务ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType TaskId { get; set; }
+    public virtual long TaskId { get; set; }
 
     /// <summary>
     /// 任务编码
@@ -93,7 +93,7 @@ public partial class SysTaskLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
     /// 执行时长（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
-    public virtual XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
+    public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 执行结果

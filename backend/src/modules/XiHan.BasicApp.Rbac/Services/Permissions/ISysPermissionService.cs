@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.Permissions;
 /// <summary>
 /// 系统权限服务接口
 /// </summary>
-public interface ISysPermissionService : ICrudApplicationService<PermissionDto, XiHanBasicAppIdType, CreatePermissionDto, UpdatePermissionDto>
+public interface ISysPermissionService : ICrudApplicationService<PermissionDto, long, CreatePermissionDto, UpdatePermissionDto>
 {
     /// <summary>
     /// 根据权限编码获取权限
@@ -38,12 +38,12 @@ public interface ISysPermissionService : ICrudApplicationService<PermissionDto, 
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<PermissionDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId);
+    Task<List<PermissionDto>> GetByRoleIdAsync(long roleId);
 
     /// <summary>
     /// 获取用户的权限列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<PermissionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<PermissionDto>> GetByUserIdAsync(long userId);
 }

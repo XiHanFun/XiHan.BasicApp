@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.DictItems;
 /// <summary>
 /// 系统字典项仓储接口
 /// </summary>
-public interface ISysDictItemRepository : IRepositoryBase<SysDictItem, XiHanBasicAppIdType>
+public interface ISysDictItemRepository : IRepositoryBase<SysDictItem, long>
 {
     /// <summary>
     /// 根据字典ID获取字典项列表
     /// </summary>
     /// <param name="dictId">字典ID</param>
     /// <returns></returns>
-    Task<List<SysDictItem>> GetByDictIdAsync(XiHanBasicAppIdType dictId);
+    Task<List<SysDictItem>> GetByDictIdAsync(long dictId);
 
     /// <summary>
     /// 根据字典编码获取字典项列表
@@ -50,5 +50,5 @@ public interface ISysDictItemRepository : IRepositoryBase<SysDictItem, XiHanBasi
     /// </summary>
     /// <param name="parentId">父级ID</param>
     /// <returns></returns>
-    Task<List<SysDictItem>> GetByParentIdAsync(XiHanBasicAppIdType parentId);
+    Task<List<SysDictItem>> GetByParentIdAsync(long parentId);
 }

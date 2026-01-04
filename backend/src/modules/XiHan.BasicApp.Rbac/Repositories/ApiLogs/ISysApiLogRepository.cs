@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Repositories.ApiLogs;
 /// <summary>
 /// 系统API日志仓储接口
 /// </summary>
-public interface ISysApiLogRepository : IRepositoryBase<SysApiLog, XiHanBasicAppIdType>
+public interface ISysApiLogRepository : IRepositoryBase<SysApiLog, long>
 {
     /// <summary>
     /// 根据用户ID获取API日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<SysApiLog>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<SysApiLog>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据API路径获取日志列表
@@ -42,7 +42,7 @@ public interface ISysApiLogRepository : IRepositoryBase<SysApiLog, XiHanBasicApp
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<SysApiLog>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<SysApiLog>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 根据时间范围获取API日志列表

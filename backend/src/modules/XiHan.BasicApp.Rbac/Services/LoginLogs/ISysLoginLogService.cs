@@ -21,14 +21,14 @@ namespace XiHan.BasicApp.Rbac.Services.LoginLogs;
 /// <summary>
 /// 系统登录日志服务接口
 /// </summary>
-public interface ISysLoginLogService : ICrudApplicationService<LoginLogDto, XiHanBasicAppIdType, CreateLoginLogDto, CreateLoginLogDto>
+public interface ISysLoginLogService : ICrudApplicationService<LoginLogDto, long, CreateLoginLogDto, CreateLoginLogDto>
 {
     /// <summary>
     /// 根据用户ID获取登录日志列表
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<LoginLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId);
+    Task<List<LoginLogDto>> GetByUserIdAsync(long userId);
 
     /// <summary>
     /// 根据用户名获取登录日志列表
@@ -51,5 +51,5 @@ public interface ISysLoginLogService : ICrudApplicationService<LoginLogDto, XiHa
     /// <param name="userId">用户ID</param>
     /// <param name="count">数量</param>
     /// <returns></returns>
-    Task<List<LoginLogDto>> GetRecentLoginLogsAsync(XiHanBasicAppIdType userId, int count = 10);
+    Task<List<LoginLogDto>> GetRecentLoginLogsAsync(long userId, int count = 10);
 }

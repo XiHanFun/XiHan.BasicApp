@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Configs;
 /// <summary>
 /// 系统配置仓储接口
 /// </summary>
-public interface ISysConfigRepository : IRepositoryBase<SysConfig, XiHanBasicAppIdType>
+public interface ISysConfigRepository : IRepositoryBase<SysConfig, long>
 {
     /// <summary>
     /// 根据配置键获取配置
@@ -43,7 +43,7 @@ public interface ISysConfigRepository : IRepositoryBase<SysConfig, XiHanBasicApp
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<SysConfig>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<SysConfig>> GetByTenantIdAsync(long tenantId);
 
     /// <summary>
     /// 检查配置键是否存在
@@ -51,5 +51,5 @@ public interface ISysConfigRepository : IRepositoryBase<SysConfig, XiHanBasicApp
     /// <param name="configKey">配置键</param>
     /// <param name="excludeId">排除的配置ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByKeyAsync(string configKey, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByKeyAsync(string configKey, long? excludeId = null);
 }

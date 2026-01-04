@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Services.UserPermissions;
 /// <summary>
 /// 系统用户权限服务实现
 /// </summary>
-public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermission, UserPermissionDto, XiHanBasicAppIdType, CreateUserPermissionDto, UpdateUserPermissionDto>, ISysUserPermissionService
+public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermission, UserPermissionDto, long, CreateUserPermissionDto, UpdateUserPermissionDto>, ISysUserPermissionService
 {
     private readonly ISysUserPermissionRepository _userPermissionRepository;
 
@@ -43,7 +43,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     /// <summary>
     /// 根据用户ID获取用户权限列表
     /// </summary>
-    public async Task<List<UserPermissionDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<UserPermissionDto>> GetByUserIdAsync(long userId)
     {
         var userPermissions = await _userPermissionRepository.GetByUserIdAsync(userId);
         return userPermissions.Adapt<List<UserPermissionDto>>();
@@ -52,7 +52,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     /// <summary>
     /// 根据用户ID和权限操作类型获取用户权限列表
     /// </summary>
-    public async Task<List<UserPermissionDto>> GetByUserIdAndActionAsync(XiHanBasicAppIdType userId, PermissionAction permissionAction)
+    public async Task<List<UserPermissionDto>> GetByUserIdAndActionAsync(long userId, PermissionAction permissionAction)
     {
         var userPermissions = await _userPermissionRepository.GetByUserIdAndActionAsync(userId, permissionAction);
         return userPermissions.Adapt<List<UserPermissionDto>>();
@@ -61,7 +61,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     /// <summary>
     /// 根据权限ID获取用户权限列表
     /// </summary>
-    public async Task<List<UserPermissionDto>> GetByPermissionIdAsync(XiHanBasicAppIdType permissionId)
+    public async Task<List<UserPermissionDto>> GetByPermissionIdAsync(long permissionId)
     {
         var userPermissions = await _userPermissionRepository.GetByPermissionIdAsync(permissionId);
         return userPermissions.Adapt<List<UserPermissionDto>>();
@@ -70,7 +70,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     /// <summary>
     /// 检查用户是否有指定权限的直授记录
     /// </summary>
-    public async Task<UserPermissionDto?> GetByUserAndPermissionAsync(XiHanBasicAppIdType userId, XiHanBasicAppIdType permissionId)
+    public async Task<UserPermissionDto?> GetByUserAndPermissionAsync(long userId, long permissionId)
     {
         var userPermission = await _userPermissionRepository.GetByUserAndPermissionAsync(userId, permissionId);
         return userPermission?.Adapt<UserPermissionDto>();
@@ -79,7 +79,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     /// <summary>
     /// 获取用户的有效权限（未过期）
     /// </summary>
-    public async Task<List<UserPermissionDto>> GetEffectivePermissionsAsync(XiHanBasicAppIdType userId)
+    public async Task<List<UserPermissionDto>> GetEffectivePermissionsAsync(long userId)
     {
         var userPermissions = await _userPermissionRepository.GetEffectivePermissionsAsync(userId);
         return userPermissions.Adapt<List<UserPermissionDto>>();
@@ -127,7 +127,7 @@ public class SysUserPermissionService : CrudApplicationServiceBase<SysUserPermis
     /// <summary>
     /// 批量删除用户的权限
     /// </summary>
-    public async Task<int> DeleteByUserAndPermissionsAsync(XiHanBasicAppIdType userId, List<XiHanBasicAppIdType> permissionIds)
+    public async Task<int> DeleteByUserAndPermissionsAsync(long userId, List<long> permissionIds)
     {
         return await _userPermissionRepository.DeleteByUserAndPermissionsAsync(userId, permissionIds);
     }

@@ -23,13 +23,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_User_Security", "系统用户安全状态表")]
 [SugarIndex("IX_SysUserSecurity_UserId", nameof(UserId), OrderByType.Asc, true)]
-public partial class SysUserSecurity : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysUserSecurity : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual XiHanBasicAppIdType UserId { get; set; }
+    public virtual long UserId { get; set; }
 
     /// <summary>
     /// 最后修改密码时间
@@ -127,4 +127,3 @@ public partial class SysUserSecurity : RbacFullAuditedEntity<XiHanBasicAppIdType
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }
-

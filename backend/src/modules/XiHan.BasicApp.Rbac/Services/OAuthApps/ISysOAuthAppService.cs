@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.OAuthApps;
 /// <summary>
 /// 系统OAuth应用服务接口
 /// </summary>
-public interface ISysOAuthAppService : ICrudApplicationService<OAuthAppDto, XiHanBasicAppIdType, CreateOAuthAppDto, UpdateOAuthAppDto>
+public interface ISysOAuthAppService : ICrudApplicationService<OAuthAppDto, long, CreateOAuthAppDto, UpdateOAuthAppDto>
 {
     /// <summary>
     /// 根据客户端ID获取应用
@@ -43,5 +43,5 @@ public interface ISysOAuthAppService : ICrudApplicationService<OAuthAppDto, XiHa
     /// <param name="clientId">客户端ID</param>
     /// <param name="excludeId">排除的应用ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByClientIdAsync(string clientId, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByClientIdAsync(string clientId, long? excludeId = null);
 }

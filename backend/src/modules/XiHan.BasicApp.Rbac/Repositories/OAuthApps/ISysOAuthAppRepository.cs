@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OAuthApps;
 /// <summary>
 /// 系统OAuth应用仓储接口
 /// </summary>
-public interface ISysOAuthAppRepository : IRepositoryBase<SysOAuthApp, XiHanBasicAppIdType>
+public interface ISysOAuthAppRepository : IRepositoryBase<SysOAuthApp, long>
 {
     /// <summary>
     /// 根据客户端ID获取应用
@@ -43,5 +43,5 @@ public interface ISysOAuthAppRepository : IRepositoryBase<SysOAuthApp, XiHanBasi
     /// <param name="clientId">客户端ID</param>
     /// <param name="excludeId">排除的应用ID</param>
     /// <returns></returns>
-    Task<bool> ExistsByClientIdAsync(string clientId, XiHanBasicAppIdType? excludeId = null);
+    Task<bool> ExistsByClientIdAsync(string clientId, long? excludeId = null);
 }

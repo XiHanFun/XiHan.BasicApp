@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.OperationLogs;
 /// <summary>
 /// 系统操作日志仓储实现
 /// </summary>
-public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog, XiHanBasicAppIdType>, ISysOperationLogRepository
+public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog, long>, ISysOperationLogRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -39,7 +39,7 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     /// <summary>
     /// 根据用户ID获取操作日志列表
     /// </summary>
-    public async Task<List<SysOperationLog>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysOperationLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
         return result.OrderByDescending(log => log.OperationTime).ToList();
@@ -57,7 +57,7 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     /// <summary>
     /// 根据租户ID获取操作日志列表
     /// </summary>
-    public async Task<List<SysOperationLog>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<SysOperationLog>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(log => log.TenantId == tenantId);
         return result.OrderByDescending(log => log.OperationTime).ToList();

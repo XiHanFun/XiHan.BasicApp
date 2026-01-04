@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Configs;
@@ -25,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.Configs;
 /// <summary>
 /// 系统配置服务实现
 /// </summary>
-public class SysConfigService : CrudApplicationServiceBase<SysConfig, ConfigDto, XiHanBasicAppIdType, CreateConfigDto, UpdateConfigDto>, ISysConfigService
+public class SysConfigService : CrudApplicationServiceBase<SysConfig, ConfigDto, long, CreateConfigDto, UpdateConfigDto>, ISysConfigService
 {
     private readonly ISysConfigRepository _configRepository;
 
@@ -60,7 +59,7 @@ public class SysConfigService : CrudApplicationServiceBase<SysConfig, ConfigDto,
     /// <summary>
     /// 根据租户ID获取配置列表
     /// </summary>
-    public async Task<List<ConfigDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<ConfigDto>> GetByTenantIdAsync(long tenantId)
     {
         var configs = await _configRepository.GetByTenantIdAsync(tenantId);
         return configs.Adapt<List<ConfigDto>>();
@@ -69,7 +68,7 @@ public class SysConfigService : CrudApplicationServiceBase<SysConfig, ConfigDto,
     /// <summary>
     /// 检查配置键是否存在
     /// </summary>
-    public async Task<bool> ExistsByKeyAsync(string configKey, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByKeyAsync(string configKey, long? excludeId = null)
     {
         return await _configRepository.ExistsByKeyAsync(configKey, excludeId);
     }

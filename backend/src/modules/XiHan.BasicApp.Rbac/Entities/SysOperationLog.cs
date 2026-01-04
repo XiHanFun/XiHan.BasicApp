@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
 
@@ -28,19 +27,19 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOperationLog_OperationType", nameof(OperationType), OrderByType.Asc)]
 [SugarIndex("IX_SysOperationLog_OperationTime", nameof(OperationTime), OrderByType.Desc)]
 [SugarIndex("IX_SysOperationLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysOperationLog : RbacFullAuditedEntity<XiHanBasicAppIdType>
+public partial class SysOperationLog : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 租户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? TenantId { get; set; }
+    public virtual long? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual XiHanBasicAppIdType? UserId { get; set; }
+    public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -106,7 +105,7 @@ public partial class SysOperationLog : RbacFullAuditedEntity<XiHanBasicAppIdType
     /// 执行时间（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时间（毫秒）")]
-    public virtual XiHanBasicAppIdType ExecutionTime { get; set; } = 0;
+    public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 操作IP

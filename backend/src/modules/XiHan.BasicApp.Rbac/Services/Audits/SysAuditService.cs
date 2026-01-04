@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Services.Audits;
 /// <summary>
 /// 系统审核服务实现
 /// </summary>
-public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, XiHanBasicAppIdType, CreateAuditDto, UpdateAuditDto>, ISysAuditService
+public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, long, CreateAuditDto, UpdateAuditDto>, ISysAuditService
 {
     private readonly ISysAuditRepository _auditRepository;
 
@@ -44,7 +44,7 @@ public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, Xi
     /// <summary>
     /// 根据提交用户ID获取审核列表
     /// </summary>
-    public async Task<List<AuditDto>> GetBySubmitterIdAsync(XiHanBasicAppIdType submitterId)
+    public async Task<List<AuditDto>> GetBySubmitterIdAsync(long submitterId)
     {
         var audits = await _auditRepository.GetBySubmitterIdAsync(submitterId);
         return audits.Adapt<List<AuditDto>>();
@@ -53,7 +53,7 @@ public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, Xi
     /// <summary>
     /// 根据审核用户ID获取审核列表
     /// </summary>
-    public async Task<List<AuditDto>> GetByAuditorIdAsync(XiHanBasicAppIdType auditorId)
+    public async Task<List<AuditDto>> GetByAuditorIdAsync(long auditorId)
     {
         var audits = await _auditRepository.GetByAuditorIdAsync(auditorId);
         return audits.Adapt<List<AuditDto>>();
@@ -71,7 +71,7 @@ public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, Xi
     /// <summary>
     /// 根据业务类型和业务ID获取审核
     /// </summary>
-    public async Task<AuditDto?> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId)
+    public async Task<AuditDto?> GetByBusinessAsync(string businessType, long businessId)
     {
         var audit = await _auditRepository.GetByBusinessAsync(businessType, businessId);
         return audit.Adapt<AuditDto>();
@@ -80,7 +80,7 @@ public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, Xi
     /// <summary>
     /// 根据租户ID获取审核列表
     /// </summary>
-    public async Task<List<AuditDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<AuditDto>> GetByTenantIdAsync(long tenantId)
     {
         var audits = await _auditRepository.GetByTenantIdAsync(tenantId);
         return audits.Adapt<List<AuditDto>>();

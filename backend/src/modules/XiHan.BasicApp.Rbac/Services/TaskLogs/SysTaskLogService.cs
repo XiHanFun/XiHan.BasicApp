@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Services.TaskLogs;
 /// <summary>
 /// 系统任务日志服务实现
 /// </summary>
-public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogDto, XiHanBasicAppIdType, CreateTaskLogDto, CreateTaskLogDto>, ISysTaskLogService
+public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogDto, long, CreateTaskLogDto, CreateTaskLogDto>, ISysTaskLogService
 {
     private readonly ISysTaskLogRepository _taskLogRepository;
 
@@ -44,7 +44,7 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     /// <summary>
     /// 根据任务ID获取任务日志列表
     /// </summary>
-    public async Task<List<TaskLogDto>> GetByTaskIdAsync(XiHanBasicAppIdType taskId)
+    public async Task<List<TaskLogDto>> GetByTaskIdAsync(long taskId)
     {
         var logs = await _taskLogRepository.GetByTaskIdAsync(taskId);
         return logs.Adapt<List<TaskLogDto>>();
@@ -80,7 +80,7 @@ public class SysTaskLogService : CrudApplicationServiceBase<SysTaskLog, TaskLogD
     /// <summary>
     /// 获取最近的任务日志
     /// </summary>
-    public async Task<List<TaskLogDto>> GetRecentLogsAsync(XiHanBasicAppIdType taskId, int count = 10)
+    public async Task<List<TaskLogDto>> GetRecentLogsAsync(long taskId, int count = 10)
     {
         var logs = await _taskLogRepository.GetRecentLogsAsync(taskId, count);
         return logs.Adapt<List<TaskLogDto>>();

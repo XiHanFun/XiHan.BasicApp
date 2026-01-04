@@ -13,10 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Constants;
 using XiHan.BasicApp.Rbac.Entities;
-using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Managers;
 using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.BasicApp.Rbac.Repositories.Users;
@@ -29,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Services.Departments;
 /// <summary>
 /// 系统部门服务实现
 /// </summary>
-public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, DepartmentDto, XiHanBasicAppIdType, CreateDepartmentDto, UpdateDepartmentDto>, ISysDepartmentService
+public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, DepartmentDto, long, CreateDepartmentDto, UpdateDepartmentDto>, ISysDepartmentService
 {
     private readonly ISysDepartmentRepository _departmentRepository;
     private readonly ISysUserRepository _userRepository;
@@ -53,7 +51,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     /// <summary>
     /// 根据ID获取部门（包含负责人信息）
     /// </summary>
-    public override async Task<DepartmentDto?> GetByIdAsync(XiHanBasicAppIdType id)
+    public override async Task<DepartmentDto?> GetByIdAsync(long id)
     {
         var department = await _departmentRepository.GetByIdAsync(id);
         if (department == null)
@@ -106,7 +104,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     /// <summary>
     /// 更新部门
     /// </summary>
-    public override async Task<DepartmentDto> UpdateAsync(XiHanBasicAppIdType id, UpdateDepartmentDto input)
+    public override async Task<DepartmentDto> UpdateAsync(long id, UpdateDepartmentDto input)
     {
         var department = await _departmentRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.DepartmentNotFound);
@@ -170,7 +168,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     /// <summary>
     /// 删除部门
     /// </summary>
-    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
+    public override async Task<bool> DeleteAsync(long id)
     {
         var department = await _departmentRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.DepartmentNotFound);
@@ -220,7 +218,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     /// <summary>
     /// 根据父级ID获取子部门
     /// </summary>
-    public async Task<List<DepartmentDto>> GetChildrenAsync(XiHanBasicAppIdType parentId)
+    public async Task<List<DepartmentDto>> GetChildrenAsync(long parentId)
     {
         var children = await _departmentRepository.GetChildrenAsync(parentId);
         return children.Adapt<List<DepartmentDto>>();
@@ -229,7 +227,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     /// <summary>
     /// 获取用户的部门列表
     /// </summary>
-    public async Task<List<DepartmentDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<DepartmentDto>> GetByUserIdAsync(long userId)
     {
         var departments = await _departmentRepository.GetByUserIdAsync(userId);
         return departments.Adapt<List<DepartmentDto>>();

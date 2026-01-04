@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Rbac.Services.TaskLogs;
 /// <summary>
 /// 系统任务日志服务接口
 /// </summary>
-public interface ISysTaskLogService : ICrudApplicationService<TaskLogDto, XiHanBasicAppIdType, CreateTaskLogDto, CreateTaskLogDto>
+public interface ISysTaskLogService : ICrudApplicationService<TaskLogDto, long, CreateTaskLogDto, CreateTaskLogDto>
 {
     /// <summary>
     /// 根据任务ID获取任务日志列表
     /// </summary>
     /// <param name="taskId">任务ID</param>
     /// <returns></returns>
-    Task<List<TaskLogDto>> GetByTaskIdAsync(XiHanBasicAppIdType taskId);
+    Task<List<TaskLogDto>> GetByTaskIdAsync(long taskId);
 
     /// <summary>
     /// 根据任务编码获取任务日志列表
@@ -59,5 +59,5 @@ public interface ISysTaskLogService : ICrudApplicationService<TaskLogDto, XiHanB
     /// <param name="taskId">任务ID</param>
     /// <param name="count">数量</param>
     /// <returns></returns>
-    Task<List<TaskLogDto>> GetRecentLogsAsync(XiHanBasicAppIdType taskId, int count = 10);
+    Task<List<TaskLogDto>> GetRecentLogsAsync(long taskId, int count = 10);
 }

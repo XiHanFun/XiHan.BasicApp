@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Services.Tenants;
 /// <summary>
 /// 系统租户服务实现
 /// </summary>
-public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto, XiHanBasicAppIdType, CreateTenantDto, UpdateTenantDto>, ISysTenantService
+public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto, long, CreateTenantDto, UpdateTenantDto>, ISysTenantService
 {
     private readonly ISysTenantRepository _tenantRepository;
     private readonly TenantManager _tenantManager;
@@ -50,7 +50,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// <summary>
     /// 获取租户详情
     /// </summary>
-    public async Task<TenantDetailDto?> GetDetailAsync(XiHanBasicAppIdType id)
+    public async Task<TenantDetailDto?> GetDetailAsync(long id)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id);
         if (tenant == null)
@@ -198,7 +198,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// <summary>
     /// 更新租户
     /// </summary>
-    public override async Task<TenantDto> UpdateAsync(XiHanBasicAppIdType id, UpdateTenantDto input)
+    public override async Task<TenantDto> UpdateAsync(long id, UpdateTenantDto input)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
@@ -293,7 +293,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// <summary>
     /// 删除租户
     /// </summary>
-    public override async Task<bool> DeleteAsync(XiHanBasicAppIdType id)
+    public override async Task<bool> DeleteAsync(long id)
     {
         var tenant = await _tenantRepository.GetByIdAsync(id) ??
             throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);

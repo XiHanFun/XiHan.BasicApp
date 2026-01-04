@@ -26,7 +26,7 @@ public class UserSessionDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 访问令牌
@@ -137,7 +137,7 @@ public class CreateUserSessionDto : RbacCreationDtoBase
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// 访问令牌

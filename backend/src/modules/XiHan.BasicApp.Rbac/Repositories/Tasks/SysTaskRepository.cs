@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Tasks;
 /// <summary>
 /// 系统任务仓储实现
 /// </summary>
-public class SysTaskRepository : SqlSugarRepositoryBase<SysTask, XiHanBasicAppIdType>, ISysTaskRepository
+public class SysTaskRepository : SqlSugarRepositoryBase<SysTask, long>, ISysTaskRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -80,7 +79,7 @@ public class SysTaskRepository : SqlSugarRepositoryBase<SysTask, XiHanBasicAppId
     /// <summary>
     /// 检查任务编码是否存在
     /// </summary>
-    public async Task<bool> ExistsByTaskCodeAsync(string taskCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByTaskCodeAsync(string taskCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysTask>().Where(task => task.TaskCode == taskCode);
         if (excludeId.HasValue)

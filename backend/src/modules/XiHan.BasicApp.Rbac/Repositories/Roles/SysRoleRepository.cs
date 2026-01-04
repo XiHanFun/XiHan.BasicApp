@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Roles;
 /// <summary>
 /// 系统角色仓储实现
 /// </summary>
-public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppIdType>, ISysRoleRepository
+public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, long>, ISysRoleRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -52,7 +51,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// <param name="roleCode">角色编码</param>
     /// <param name="excludeId">排除的角色ID</param>
     /// <returns></returns>
-    public async Task<bool> ExistsByRoleCodeAsync(string roleCode, XiHanBasicAppIdType? excludeId = null)
+    public async Task<bool> ExistsByRoleCodeAsync(string roleCode, long? excludeId = null)
     {
         var query = _dbContext.GetClient().Queryable<SysRole>().Where(r => r.RoleCode == roleCode);
         if (excludeId.HasValue)
@@ -67,7 +66,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<XiHanBasicAppIdType>> GetRoleMenuIdsAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<long>> GetRoleMenuIdsAsync(long roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRoleMenu>()
@@ -81,7 +80,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<List<XiHanBasicAppIdType>> GetRolePermissionIdsAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<long>> GetRolePermissionIdsAsync(long roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysRolePermission>()
@@ -95,7 +94,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    public async Task<int> GetRoleUserCountAsync(XiHanBasicAppIdType roleId)
+    public async Task<int> GetRoleUserCountAsync(long roleId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
@@ -108,7 +107,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    public async Task<List<SysRole>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<SysRole>> GetByUserIdAsync(long userId)
     {
         return await _dbContext.GetClient()
             .Queryable<SysUserRole>()
@@ -123,9 +122,9 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>父角色ID列表（包括所有祖先角色）</returns>
-    public async Task<List<XiHanBasicAppIdType>> GetParentRoleIdsAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<long>> GetParentRoleIdsAsync(long roleId)
     {
-        var parentRoleIds = new List<XiHanBasicAppIdType>();
+        var parentRoleIds = new List<long>();
         await GetParentRoleIdsRecursiveAsync(roleId, parentRoleIds);
         return parentRoleIds;
     }
@@ -135,9 +134,9 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>子角色ID列表（包括所有后代角色）</returns>
-    public async Task<List<XiHanBasicAppIdType>> GetChildRoleIdsAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<long>> GetChildRoleIdsAsync(long roleId)
     {
-        var childRoleIds = new List<XiHanBasicAppIdType>();
+        var childRoleIds = new List<long>();
         await GetChildRoleIdsRecursiveAsync(roleId, childRoleIds);
         return childRoleIds;
     }
@@ -147,7 +146,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>父角色列表（包括所有祖先角色）</returns>
-    public async Task<List<SysRole>> GetParentRolesAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<SysRole>> GetParentRolesAsync(long roleId)
     {
         var parentRoleIds = await GetParentRoleIdsAsync(roleId);
         if (!parentRoleIds.Any())
@@ -164,7 +163,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns>子角色列表（包括所有后代角色）</returns>
-    public async Task<List<SysRole>> GetChildRolesAsync(XiHanBasicAppIdType roleId)
+    public async Task<List<SysRole>> GetChildRolesAsync(long roleId)
     {
         var childRoleIds = await GetChildRoleIdsAsync(roleId);
         if (!childRoleIds.Any())
@@ -182,7 +181,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// <param name="roleId">当前角色ID</param>
     /// <param name="parentRoleId">要设置的父角色ID</param>
     /// <returns>是否会形成循环</returns>
-    public async Task<bool> WouldCreateCycleAsync(XiHanBasicAppIdType roleId, XiHanBasicAppIdType parentRoleId)
+    public async Task<bool> WouldCreateCycleAsync(long roleId, long parentRoleId)
     {
         // 如果父角色ID等于当前角色ID，直接返回true
         if (roleId == parentRoleId)
@@ -200,7 +199,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// </summary>
     /// <param name="parentRoleId">父角色ID，null表示获取根角色</param>
     /// <returns>角色树</returns>
-    public async Task<List<SysRole>> GetRoleTreeAsync(XiHanBasicAppIdType? parentRoleId = null)
+    public async Task<List<SysRole>> GetRoleTreeAsync(long? parentRoleId = null)
     {
         if (parentRoleId == null)
         {
@@ -217,10 +216,10 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// <summary>
     /// 递归获取父角色ID
     /// </summary>
-    private async Task GetParentRoleIdsRecursiveAsync(XiHanBasicAppIdType roleId, List<XiHanBasicAppIdType> result)
+    private async Task GetParentRoleIdsRecursiveAsync(long roleId, List<long> result)
     {
         var role = await GetByIdAsync(roleId);
-        if (role?.ParentRoleId != null && role.ParentRoleId.Value != default(XiHanBasicAppIdType))
+        if (role?.ParentRoleId != null && role.ParentRoleId.Value != default(long))
         {
             if (!result.Contains(role.ParentRoleId.Value))
             {
@@ -233,7 +232,7 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, XiHanBasicAppId
     /// <summary>
     /// 递归获取子角色ID
     /// </summary>
-    private async Task GetChildRoleIdsRecursiveAsync(XiHanBasicAppIdType roleId, List<XiHanBasicAppIdType> result)
+    private async Task GetChildRoleIdsRecursiveAsync(long roleId, List<long> result)
     {
         var childRoles = await GetListAsync(r => r.ParentRoleId == roleId);
         foreach (var child in childRoles)

@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Services.Files;
 /// <summary>
 /// 系统文件服务接口
 /// </summary>
-public interface ISysFileService : ICrudApplicationService<FileDto, XiHanBasicAppIdType, CreateFileDto, UpdateFileDto>
+public interface ISysFileService : ICrudApplicationService<FileDto, long, CreateFileDto, UpdateFileDto>
 {
     /// <summary>
     /// 根据文件哈希获取文件
@@ -43,7 +43,7 @@ public interface ISysFileService : ICrudApplicationService<FileDto, XiHanBasicAp
     /// </summary>
     /// <param name="uploaderId">上传者ID</param>
     /// <returns></returns>
-    Task<List<FileDto>> GetByUploaderIdAsync(XiHanBasicAppIdType uploaderId);
+    Task<List<FileDto>> GetByUploaderIdAsync(long uploaderId);
 
     /// <summary>
     /// 根据业务类型和业务ID获取文件列表
@@ -51,12 +51,12 @@ public interface ISysFileService : ICrudApplicationService<FileDto, XiHanBasicAp
     /// <param name="businessType">业务类型</param>
     /// <param name="businessId">业务ID</param>
     /// <returns></returns>
-    Task<List<FileDto>> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId);
+    Task<List<FileDto>> GetByBusinessAsync(string businessType, long businessId);
 
     /// <summary>
     /// 根据租户ID获取文件列表
     /// </summary>
     /// <param name="tenantId">租户ID</param>
     /// <returns></returns>
-    Task<List<FileDto>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId);
+    Task<List<FileDto>> GetByTenantIdAsync(long tenantId);
 }

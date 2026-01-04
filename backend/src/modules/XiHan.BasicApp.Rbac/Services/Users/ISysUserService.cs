@@ -24,14 +24,14 @@ namespace XiHan.BasicApp.Rbac.Services.Users;
 /// <summary>
 /// 系统用户服务接口
 /// </summary>
-public interface ISysUserService : ICrudApplicationService<UserDto, XiHanBasicAppIdType, CreateUserDto, UpdateUserDto>
+public interface ISysUserService : ICrudApplicationService<UserDto, long, CreateUserDto, UpdateUserDto>
 {
     /// <summary>
     /// 获取用户详情
     /// </summary>
     /// <param name="id">用户ID</param>
     /// <returns></returns>
-    Task<UserDetailDto?> GetDetailAsync(XiHanBasicAppIdType id);
+    Task<UserDetailDto?> GetDetailAsync(long id);
 
     /// <summary>
     /// 根据用户名获取用户
@@ -87,5 +87,5 @@ public interface ISysUserService : ICrudApplicationService<UserDto, XiHanBasicAp
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<string>> GetUserPermissionsAsync(XiHanBasicAppIdType userId);
+    Task<List<string>> GetUserPermissionsAsync(long userId);
 }

@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Services.LoginLogs;
 /// <summary>
 /// 系统登录日志服务实现
 /// </summary>
-public class SysLoginLogService : CrudApplicationServiceBase<SysLoginLog, LoginLogDto, XiHanBasicAppIdType, CreateLoginLogDto, CreateLoginLogDto>, ISysLoginLogService
+public class SysLoginLogService : CrudApplicationServiceBase<SysLoginLog, LoginLogDto, long, CreateLoginLogDto, CreateLoginLogDto>, ISysLoginLogService
 {
     private readonly ISysLoginLogRepository _loginLogRepository;
 
@@ -41,7 +41,7 @@ public class SysLoginLogService : CrudApplicationServiceBase<SysLoginLog, LoginL
     /// <summary>
     /// 根据用户ID获取登录日志列表
     /// </summary>
-    public async Task<List<LoginLogDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<LoginLogDto>> GetByUserIdAsync(long userId)
     {
         var logs = await _loginLogRepository.GetByUserIdAsync(userId);
         return logs.Adapt<List<LoginLogDto>>();
@@ -68,7 +68,7 @@ public class SysLoginLogService : CrudApplicationServiceBase<SysLoginLog, LoginL
     /// <summary>
     /// 获取最近的登录日志
     /// </summary>
-    public async Task<List<LoginLogDto>> GetRecentLoginLogsAsync(XiHanBasicAppIdType userId, int count = 10)
+    public async Task<List<LoginLogDto>> GetRecentLoginLogsAsync(long userId, int count = 10)
     {
         var logs = await _loginLogRepository.GetRecentLoginLogsAsync(userId, count);
         return logs.Adapt<List<LoginLogDto>>();

@@ -26,12 +26,12 @@ public class AccessLogDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 租户ID
     /// </summary>
-    public XiHanBasicAppIdType? TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
-    public XiHanBasicAppIdType? UserId { get; set; }
+    public long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
@@ -111,12 +111,12 @@ public class AccessLogDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 响应时间（毫秒）
     /// </summary>
-    public XiHanBasicAppIdType ResponseTime { get; set; } = 0;
+    public long ResponseTime { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
-    public XiHanBasicAppIdType ResponseSize { get; set; } = 0;
+    public long ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 访问时间
@@ -131,7 +131,7 @@ public class AccessLogDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 停留时长（秒）
     /// </summary>
-    public XiHanBasicAppIdType StayTime { get; set; } = 0;
+    public long StayTime { get; set; } = 0;
 
     /// <summary>
     /// 错误信息

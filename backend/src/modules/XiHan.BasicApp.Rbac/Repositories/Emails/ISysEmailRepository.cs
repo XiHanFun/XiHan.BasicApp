@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Emails;
 /// <summary>
 /// 系统邮件仓储接口
 /// </summary>
-public interface ISysEmailRepository : IRepositoryBase<SysEmail, XiHanBasicAppIdType>
+public interface ISysEmailRepository : IRepositoryBase<SysEmail, long>
 {
     /// <summary>
     /// 根据邮件状态获取邮件列表
@@ -50,14 +50,14 @@ public interface ISysEmailRepository : IRepositoryBase<SysEmail, XiHanBasicAppId
     /// </summary>
     /// <param name="senderId">发送者ID</param>
     /// <returns></returns>
-    Task<List<SysEmail>> GetBySenderIdAsync(XiHanBasicAppIdType senderId);
+    Task<List<SysEmail>> GetBySenderIdAsync(long senderId);
 
     /// <summary>
     /// 根据接收者ID获取邮件列表
     /// </summary>
     /// <param name="receiverId">接收者ID</param>
     /// <returns></returns>
-    Task<List<SysEmail>> GetByReceiverIdAsync(XiHanBasicAppIdType receiverId);
+    Task<List<SysEmail>> GetByReceiverIdAsync(long receiverId);
 
     /// <summary>
     /// 获取待发送的邮件列表

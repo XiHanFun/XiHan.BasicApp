@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Services.Menus;
 /// <summary>
 /// 系统菜单服务接口
 /// </summary>
-public interface ISysMenuService : ICrudApplicationService<MenuDto, XiHanBasicAppIdType, CreateMenuDto, UpdateMenuDto>
+public interface ISysMenuService : ICrudApplicationService<MenuDto, long, CreateMenuDto, UpdateMenuDto>
 {
     /// <summary>
     /// 根据菜单编码获取菜单
@@ -41,19 +41,19 @@ public interface ISysMenuService : ICrudApplicationService<MenuDto, XiHanBasicAp
     /// </summary>
     /// <param name="parentId">父级菜单ID</param>
     /// <returns></returns>
-    Task<List<MenuDto>> GetChildrenAsync(XiHanBasicAppIdType parentId);
+    Task<List<MenuDto>> GetChildrenAsync(long parentId);
 
     /// <summary>
     /// 获取角色的菜单列表
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <returns></returns>
-    Task<List<MenuDto>> GetByRoleIdAsync(XiHanBasicAppIdType roleId);
+    Task<List<MenuDto>> GetByRoleIdAsync(long roleId);
 
     /// <summary>
     /// 获取用户的菜单树
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns></returns>
-    Task<List<MenuTreeDto>> GetUserMenuTreeAsync(XiHanBasicAppIdType userId);
+    Task<List<MenuTreeDto>> GetUserMenuTreeAsync(long userId);
 }

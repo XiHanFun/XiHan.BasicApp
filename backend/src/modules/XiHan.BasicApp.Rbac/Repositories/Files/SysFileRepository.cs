@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Repositories.Files;
 /// <summary>
 /// 系统文件仓储实现
 /// </summary>
-public class SysFileRepository : SqlSugarRepositoryBase<SysFile, XiHanBasicAppIdType>, ISysFileRepository
+public class SysFileRepository : SqlSugarRepositoryBase<SysFile, long>, ISysFileRepository
 {
     private readonly ISqlSugarDbContext _dbContext;
 
@@ -56,7 +56,7 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, XiHanBasicAppId
     /// <summary>
     /// 根据上传者ID获取文件列表
     /// </summary>
-    public async Task<List<SysFile>> GetByUploaderIdAsync(XiHanBasicAppIdType uploaderId)
+    public async Task<List<SysFile>> GetByUploaderIdAsync(long uploaderId)
     {
         var result = await GetListAsync(file => file.UploaderId == uploaderId);
         return result.OrderByDescending(file => file.CreatedTime).ToList();
@@ -65,7 +65,7 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, XiHanBasicAppId
     /// <summary>
     /// 根据业务类型和业务ID获取文件列表
     /// </summary>
-    public async Task<List<SysFile>> GetByBusinessAsync(string businessType, XiHanBasicAppIdType businessId)
+    public async Task<List<SysFile>> GetByBusinessAsync(string businessType, long businessId)
     {
         var result = await GetListAsync(file => file.BusinessType == businessType && file.BusinessId == businessId);
         return result.OrderByDescending(file => file.CreatedTime).ToList();
@@ -74,7 +74,7 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, XiHanBasicAppId
     /// <summary>
     /// 根据租户ID获取文件列表
     /// </summary>
-    public async Task<List<SysFile>> GetByTenantIdAsync(XiHanBasicAppIdType tenantId)
+    public async Task<List<SysFile>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(file => file.TenantId == tenantId);
         return result.OrderByDescending(file => file.CreatedTime).ToList();

@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Services.Notifications;
 /// <summary>
 /// 系统通知服务实现
 /// </summary>
-public class SysNotificationService : CrudApplicationServiceBase<SysNotification, NotificationDto, XiHanBasicAppIdType, CreateNotificationDto, UpdateNotificationDto>, ISysNotificationService
+public class SysNotificationService : CrudApplicationServiceBase<SysNotification, NotificationDto, long, CreateNotificationDto, UpdateNotificationDto>, ISysNotificationService
 {
     private readonly ISysNotificationRepository _notificationRepository;
 
@@ -43,7 +43,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     /// <summary>
     /// 根据用户ID获取通知列表
     /// </summary>
-    public async Task<List<NotificationDto>> GetByUserIdAsync(XiHanBasicAppIdType userId)
+    public async Task<List<NotificationDto>> GetByUserIdAsync(long userId)
     {
         var notifications = await _notificationRepository.GetByUserIdAsync(userId);
         return notifications.Adapt<List<NotificationDto>>();
@@ -70,7 +70,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     /// <summary>
     /// 根据发送者ID获取通知列表
     /// </summary>
-    public async Task<List<NotificationDto>> GetBySenderIdAsync(XiHanBasicAppIdType senderId)
+    public async Task<List<NotificationDto>> GetBySenderIdAsync(long senderId)
     {
         var notifications = await _notificationRepository.GetBySenderIdAsync(senderId);
         return notifications.Adapt<List<NotificationDto>>();
@@ -79,7 +79,7 @@ public class SysNotificationService : CrudApplicationServiceBase<SysNotification
     /// <summary>
     /// 获取用户的未读通知数量
     /// </summary>
-    public async Task<int> GetUnreadCountAsync(XiHanBasicAppIdType userId)
+    public async Task<int> GetUnreadCountAsync(long userId)
     {
         return await _notificationRepository.GetUnreadCountAsync(userId);
     }
