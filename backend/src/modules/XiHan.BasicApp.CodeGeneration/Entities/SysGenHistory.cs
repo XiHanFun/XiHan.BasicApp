@@ -14,7 +14,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Enums;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Entities.Base;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;

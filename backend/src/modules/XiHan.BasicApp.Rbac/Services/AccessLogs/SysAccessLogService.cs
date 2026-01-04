@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Services.AccessLogs;
 /// <summary>
 /// 系统访问日志服务实现
 /// </summary>
-public class SysAccessLogService : BatchCrudApplicationServiceBase<SysAccessLog, AccessLogDto, long, CreateAccessLogDto, CreateAccessLogDto>, ISysAccessLogService
+public class SysAccessLogService : CrudApplicationServiceBase<SysAccessLog, AccessLogDto, long, CreateAccessLogDto, CreateAccessLogDto>, ISysAccessLogService
 {
     private readonly ISysAccessLogRepository _accessLogRepository;
 

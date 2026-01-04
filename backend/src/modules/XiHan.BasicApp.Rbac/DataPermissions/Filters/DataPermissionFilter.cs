@@ -14,7 +14,6 @@
 
 using System.Linq.Expressions;
 using System.Reflection;
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.BasicApp.Rbac.Repositories.Users;

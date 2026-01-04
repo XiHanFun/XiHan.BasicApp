@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Repositories.Departments;
 using XiHan.Framework.Domain.Services;
 

@@ -12,8 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Core;
-
 namespace XiHan.BasicApp.Rbac.Constants;
 
 /// <summary>
