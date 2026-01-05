@@ -17,7 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.Framework.Data.SqlSugar.Initializers;
 
-namespace XiHan.BasicApp.Rbac;
+namespace XiHan.BasicApp.Rbac.Extensions;
 
 /// <summary>
 /// 数据库初始化扩展方法

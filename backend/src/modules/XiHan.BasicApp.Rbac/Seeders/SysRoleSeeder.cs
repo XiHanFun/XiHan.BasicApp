@@ -44,7 +44,7 @@ public class SysRoleSeeder : DataSeederBase
     public override string Name => "系统角色种子数据";
 
     /// <summary>
-    /// 种子数据实现（异步）
+    /// 种子数据实现
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
