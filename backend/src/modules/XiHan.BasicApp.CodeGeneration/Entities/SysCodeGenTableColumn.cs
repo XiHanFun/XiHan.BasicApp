@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysGenTableColumn
+// FileName:SysCodeGenTableColumn
 // Guid:a1b2c3d4-e5f6-7890-abcd-ef1234567011
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -22,10 +22,10 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 /// <summary>
 /// 系统代码生成表列配置实体
 /// </summary>
-[SugarTable("Sys_Gen_Table_Column", "系统代码生成表列配置表")]
-[SugarIndex("IX_SysGenTableColumn_TableId", nameof(TableId), OrderByType.Asc)]
-[SugarIndex("IX_SysGenTableColumn_ColumnName", nameof(ColumnName), OrderByType.Asc)]
-public partial class SysGenTableColumn : RbacFullAuditedEntity<long>
+[SugarTable("Sys_Code_Gen_Table_Column", "系统代码生成表列配置表")]
+[SugarIndex("IX_SysCodeGenTableColumn_TableId", nameof(TableId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenTableColumn_ColumnName", nameof(ColumnName), OrderByType.Asc)]
+public partial class SysCodeGenTableColumn : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 所属表ID

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysGenHistory
+// FileName:SysCodeGenHistory
 // Guid:a1b2c3d4-e5f6-7890-abcd-ef1234567013
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,11 +21,11 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 /// <summary>
 /// 系统代码生成历史记录实体
 /// </summary>
-[SugarTable("Sys_Gen_History", "系统代码生成历史记录表")]
-[SugarIndex("IX_SysGenHistory_TableId", nameof(TableId), OrderByType.Asc)]
-[SugarIndex("IX_SysGenHistory_GenTime", nameof(GenTime), OrderByType.Desc)]
-[SugarIndex("IX_SysGenHistory_GenStatus", nameof(GenStatus), OrderByType.Asc)]
-public partial class SysGenHistory : RbacFullAuditedEntity<long>
+[SugarTable("Sys_Code_Gen_History", "系统代码生成历史记录表")]
+[SugarIndex("IX_SysCodeGenHistory_TableId", nameof(TableId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenHistory_GenTime", nameof(GenTime), OrderByType.Desc)]
+[SugarIndex("IX_SysCodeGenHistory_GenStatus", nameof(GenStatus), OrderByType.Asc)]
+public partial class SysCodeGenHistory : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 所属表ID
