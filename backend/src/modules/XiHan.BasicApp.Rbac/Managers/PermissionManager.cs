@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.Text.RegularExpressions;
 using XiHan.BasicApp.Rbac.Repositories.Permissions;
 using XiHan.Framework.Domain.Services;
 
@@ -20,6 +21,9 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// <summary>
 /// 系统权限领域管理器
 /// </summary>
+/// <remarks>
+/// 职责：权限相关的领域业务规则和验证逻辑
+/// </remarks>
 public class PermissionManager : DomainService
 {
     private readonly ISysPermissionRepository _permissionRepository;
@@ -45,14 +49,37 @@ public class PermissionManager : DomainService
     }
 
     /// <summary>
-    /// 验证用户是否有权限
+    /// 检查权限编码格式是否合法
     /// </summary>
-    /// <param name="userId">用户ID</param>
     /// <param name="permissionCode">权限编码</param>
     /// <returns></returns>
-    public async Task<bool> HasPermissionAsync(long userId, string permissionCode)
+    public bool IsValidPermissionCode(string permissionCode)
     {
-        var permissions = await _permissionRepository.GetByUserIdAsync(userId);
-        return permissions.Any(p => p.PermissionCode == permissionCode);
+        // 业务规则：权限编码格式为 Module.Action，如 User.Create
+        if (string.IsNullOrWhiteSpace(permissionCode))
+        {
+            return false;
+        }
+
+        var parts = permissionCode.Split('.');
+        if (parts.Length != 2)
+        {
+            return false;
+        }
+
+        return parts.All(p => !string.IsNullOrWhiteSpace(p) && Regex.IsMatch(p, @"^[a-zA-Z0-9_]+$"));
+    }
+
+    /// <summary>
+    /// 检查权限是否可以删除
+    /// </summary>
+    /// <param name="permissionId">权限ID</param>
+    /// <returns></returns>
+    public async Task<bool> CanDeleteAsync(long permissionId)
+    {
+        // 检查权限是否被引用
+        // 这里可以添加更多业务规则
+        var permission = await _permissionRepository.GetByIdAsync(permissionId);
+        return permission != null && !permission.IsDeleted;
     }
 }
