@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysGenTemplate
+// FileName:SysCodeGenTemplate
 // Guid:a1b2c3d4-e5f6-7890-abcd-ef1234567012
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -22,10 +22,10 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 /// <summary>
 /// 系统代码生成模板实体
 /// </summary>
-[SugarTable("Sys_Gen_Template", "系统代码生成模板表")]
-[SugarIndex("IX_SysGenTemplate_TemplateCode", nameof(TemplateCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysGenTemplate_TemplateGroup", nameof(TemplateGroup), OrderByType.Asc)]
-public partial class SysGenTemplate : RbacFullAuditedEntity<long>
+[SugarTable("Sys_Code_Gen_Template", "系统代码生成模板表")]
+[SugarIndex("IX_SysCodeGenTemplate_TemplateCode", nameof(TemplateCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysCodeGenTemplate_TemplateGroup", nameof(TemplateGroup), OrderByType.Asc)]
+public partial class SysCodeGenTemplate : RbacFullAuditedEntity<long>
 {
     /// <summary>
     /// 模板编码
