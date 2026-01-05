@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统任务日志实体
 /// </summary>
-[SugarTable("Sys_Task_Log", "系统任务日志表")]
+[SugarTable("Sys_Task_Log_{year}{month}{day}", "系统任务日志表")]
 [SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysTaskLog_TaskId", nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
