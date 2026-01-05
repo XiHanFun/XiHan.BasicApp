@@ -28,8 +28,8 @@ public class SysRoleSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysRoleSeeder(ISqlSugarDbContext dbContext, ILogger<SysRoleSeeder> logger)
-        : base(dbContext, logger)
+    public SysRoleSeeder(ISqlSugarDbContext dbContext, ILogger<SysRoleSeeder> logger, IServiceProvider serviceProvider)
+        : base(dbContext, logger, serviceProvider)
     {
     }
 

@@ -27,8 +27,8 @@ public class SysUserRoleSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysUserRoleSeeder(ISqlSugarDbContext dbContext, ILogger<SysUserRoleSeeder> logger)
-        : base(dbContext, logger)
+    public SysUserRoleSeeder(ISqlSugarDbContext dbContext, ILogger<SysUserRoleSeeder> logger, IServiceProvider serviceProvider)
+        : base(dbContext, logger, serviceProvider)
     {
     }
 
@@ -57,6 +57,7 @@ public class SysUserRoleSeeder : DataSeederBase
         // 获取用户和角色
         var adminUser = await DbContext.GetClient().Queryable<SysUser>().FirstAsync(u => u.UserName == "admin");
         var testUser = await DbContext.GetClient().Queryable<SysUser>().FirstAsync(u => u.UserName == "test");
+
         var superAdminRole = await DbContext.GetClient().Queryable<SysRole>().FirstAsync(r => r.RoleCode == "SuperAdmin");
         var userRole = await DbContext.GetClient().Queryable<SysRole>().FirstAsync(r => r.RoleCode == "User");
 
