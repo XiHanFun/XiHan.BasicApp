@@ -41,7 +41,7 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     public async Task<List<SysOperationLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
-        return result.OrderByDescending(log => log.OperationTime).ToList();
+        return [.. result.OrderByDescending(log => log.OperationTime)];
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     public async Task<List<SysOperationLog>> GetByOperationTypeAsync(OperationType operationType)
     {
         var result = await GetListAsync(log => log.OperationType == operationType);
-        return result.OrderByDescending(log => log.OperationTime).ToList();
+        return [.. result.OrderByDescending(log => log.OperationTime)];
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     public async Task<List<SysOperationLog>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(log => log.TenantId == tenantId);
-        return result.OrderByDescending(log => log.OperationTime).ToList();
+        return [.. result.OrderByDescending(log => log.OperationTime)];
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     public async Task<List<SysOperationLog>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var result = await GetListAsync(log => log.OperationTime >= startTime && log.OperationTime <= endTime);
-        return result.OrderByDescending(log => log.OperationTime).ToList();
+        return [.. result.OrderByDescending(log => log.OperationTime)];
     }
 
     /// <summary>
@@ -77,6 +77,6 @@ public class SysOperationLogRepository : SqlSugarRepositoryBase<SysOperationLog,
     public async Task<List<SysOperationLog>> GetByModuleAsync(string module)
     {
         var result = await GetListAsync(log => log.Module == module);
-        return result.OrderByDescending(log => log.OperationTime).ToList();
+        return [.. result.OrderByDescending(log => log.OperationTime)];
     }
 }

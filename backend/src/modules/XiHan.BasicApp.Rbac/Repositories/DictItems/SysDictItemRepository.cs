@@ -40,7 +40,7 @@ public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, long>, 
     public async Task<List<SysDictItem>> GetByDictIdAsync(long dictId)
     {
         var result = await GetListAsync(item => item.DictId == dictId);
-        return result.OrderBy(item => item.Sort).ToList();
+        return [.. result.OrderBy(item => item.Sort)];
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, long>, 
     public async Task<List<SysDictItem>> GetByDictCodeAsync(string dictCode)
     {
         var result = await GetListAsync(item => item.DictCode == dictCode);
-        return result.OrderBy(item => item.Sort).ToList();
+        return [.. result.OrderBy(item => item.Sort)];
     }
 
     /// <summary>
@@ -66,6 +66,6 @@ public class SysDictItemRepository : SqlSugarRepositoryBase<SysDictItem, long>, 
     public async Task<List<SysDictItem>> GetByParentIdAsync(long parentId)
     {
         var result = await GetListAsync(item => item.ParentId == parentId);
-        return result.OrderBy(item => item.Sort).ToList();
+        return [.. result.OrderBy(item => item.Sort)];
     }
 }

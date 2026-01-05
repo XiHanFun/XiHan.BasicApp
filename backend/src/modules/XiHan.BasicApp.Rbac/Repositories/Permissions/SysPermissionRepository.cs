@@ -90,7 +90,7 @@ public class SysPermissionRepository : SqlSugarRepositoryBase<SysPermission, lon
             .Select(ur => ur.RoleId)
             .ToListAsync();
 
-        if (!roleIds.Any())
+        if (roleIds.Count == 0)
         {
             return [];
         }

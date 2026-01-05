@@ -42,7 +42,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     public async Task<List<SysNotification>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(n => n.UserId == userId || n.IsGlobal);
-        return result.OrderByDescending(n => n.SendTime).ToList();
+        return [.. result.OrderByDescending(n => n.SendTime)];
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     public async Task<List<SysNotification>> GetByTypeAsync(NotificationType notificationType)
     {
         var result = await GetListAsync(n => n.NotificationType == notificationType);
-        return result.OrderByDescending(n => n.SendTime).ToList();
+        return [.. result.OrderByDescending(n => n.SendTime)];
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     public async Task<List<SysNotification>> GetByStatusAsync(NotificationStatus notificationStatus)
     {
         var result = await GetListAsync(n => n.NotificationStatus == notificationStatus);
-        return result.OrderByDescending(n => n.SendTime).ToList();
+        return [.. result.OrderByDescending(n => n.SendTime)];
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     public async Task<List<SysNotification>> GetBySenderIdAsync(long senderId)
     {
         var result = await GetListAsync(n => n.SenderId == senderId);
-        return result.OrderByDescending(n => n.SendTime).ToList();
+        return [.. result.OrderByDescending(n => n.SendTime)];
     }
 
     /// <summary>
@@ -89,6 +89,6 @@ public class SysNotificationRepository : SqlSugarRepositoryBase<SysNotification,
     public async Task<List<SysNotification>> GetGlobalNotificationsAsync()
     {
         var result = await GetListAsync(n => n.IsGlobal);
-        return result.OrderByDescending(n => n.SendTime).ToList();
+        return [.. result.OrderByDescending(n => n.SendTime)];
     }
 }

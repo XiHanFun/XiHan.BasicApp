@@ -118,12 +118,7 @@ public class SysTenantService : CrudApplicationServiceBase<SysTenant, TenantDto,
     /// </summary>
     public async Task<bool> ConfigureDatabaseAsync(ConfigureTenantDatabaseDto input)
     {
-        var tenant = await _tenantRepository.GetByIdAsync(input.TenantId);
-        if (tenant == null)
-        {
-            throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
-        }
-
+        var tenant = await _tenantRepository.GetByIdAsync(input.TenantId) ?? throw new InvalidOperationException(ErrorMessageConstants.TenantNotFound);
         tenant.DatabaseType = input.DatabaseType;
         tenant.DatabaseHost = input.DatabaseHost;
         tenant.DatabasePort = input.DatabasePort;

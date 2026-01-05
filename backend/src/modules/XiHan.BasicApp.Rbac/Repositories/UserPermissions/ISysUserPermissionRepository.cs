@@ -67,5 +67,19 @@ public interface ISysUserPermissionRepository : IRepositoryBase<SysUserPermissio
     /// <param name="permissionIds">权限ID列表</param>
     /// <returns></returns>
     Task<int> DeleteByUserAndPermissionsAsync(long userId, List<long> permissionIds);
+
+    /// <summary>
+    /// 添加用户权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionId">权限ID</param>
+    Task AddUserPermissionAsync(long userId, long permissionId);
+
+    /// <summary>
+    /// 移除用户权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionId">权限ID</param>
+    Task RemoveUserPermissionAsync(long userId, long permissionId);
 }
 

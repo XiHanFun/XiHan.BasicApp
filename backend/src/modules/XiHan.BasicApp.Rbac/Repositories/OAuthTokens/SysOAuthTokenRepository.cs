@@ -57,7 +57,7 @@ public class SysOAuthTokenRepository : SqlSugarRepositoryBase<SysOAuthToken, lon
     public async Task<List<SysOAuthToken>> GetByClientAndUserAsync(string clientId, long userId)
     {
         var result = await GetListAsync(t => t.ClientId == clientId && t.UserId == userId);
-        return result.OrderByDescending(t => t.CreatedTime).ToList();
+        return [.. result.OrderByDescending(t => t.CreatedTime)];
     }
 
     /// <summary>

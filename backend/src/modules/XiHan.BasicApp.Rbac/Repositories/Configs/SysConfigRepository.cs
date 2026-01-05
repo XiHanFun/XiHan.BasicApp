@@ -50,7 +50,7 @@ public class SysConfigRepository : SqlSugarRepositoryBase<SysConfig, long>, ISys
     public async Task<List<SysConfig>> GetByTypeAsync(ConfigType configType)
     {
         var result = await GetListAsync(config => config.ConfigType == configType);
-        return result.OrderBy(config => config.Sort).ToList();
+        return [.. result.OrderBy(config => config.Sort)];
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class SysConfigRepository : SqlSugarRepositoryBase<SysConfig, long>, ISys
     public async Task<List<SysConfig>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(config => config.TenantId == tenantId);
-        return result.OrderBy(config => config.Sort).ToList();
+        return [.. result.OrderBy(config => config.Sort)];
     }
 
     /// <summary>

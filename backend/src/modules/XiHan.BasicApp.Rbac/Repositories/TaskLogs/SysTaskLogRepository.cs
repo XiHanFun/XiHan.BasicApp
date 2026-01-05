@@ -42,7 +42,7 @@ public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, long>, IS
     public async Task<List<SysTaskLog>> GetByTaskIdAsync(long taskId)
     {
         var result = await GetListAsync(log => log.TaskId == taskId);
-        return result.OrderByDescending(log => log.StartTime).ToList();
+        return [.. result.OrderByDescending(log => log.StartTime)];
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, long>, IS
     public async Task<List<SysTaskLog>> GetByTaskCodeAsync(string taskCode)
     {
         var result = await GetListAsync(log => log.TaskCode == taskCode);
-        return result.OrderByDescending(log => log.StartTime).ToList();
+        return [.. result.OrderByDescending(log => log.StartTime)];
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, long>, IS
     public async Task<List<SysTaskLog>> GetByStatusAsync(TaskStatus taskStatus)
     {
         var result = await GetListAsync(log => log.TaskStatus == taskStatus);
-        return result.OrderByDescending(log => log.StartTime).ToList();
+        return [.. result.OrderByDescending(log => log.StartTime)];
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class SysTaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, long>, IS
     public async Task<List<SysTaskLog>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var result = await GetListAsync(log => log.StartTime >= startTime && log.StartTime <= endTime);
-        return result.OrderByDescending(log => log.StartTime).ToList();
+        return [.. result.OrderByDescending(log => log.StartTime)];
     }
 
     /// <summary>

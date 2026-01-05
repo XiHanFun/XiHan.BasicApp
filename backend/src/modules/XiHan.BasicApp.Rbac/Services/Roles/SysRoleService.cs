@@ -126,11 +126,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
         // 如果设置了父角色，验证父角色是否存在
         if (input.ParentRoleId.HasValue)
         {
-            var parentRole = await _roleRepository.GetByIdAsync(input.ParentRoleId.Value);
-            if (parentRole == null)
-            {
-                throw new InvalidOperationException("指定的父角色不存在");
-            }
+            var parentRole = await _roleRepository.GetByIdAsync(input.ParentRoleId.Value) ?? throw new InvalidOperationException("指定的父角色不存在");
         }
 
         var role = new SysRole
@@ -147,7 +143,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
         await _roleRepository.AddAsync(role);
 
         // 分配菜单
-        if (input.MenuIds.Any())
+        if (input.MenuIds.Count != 0)
         {
             await AssignMenusAsync(new AssignRoleMenusDto
             {
@@ -157,7 +153,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
         }
 
         // 分配权限
-        if (input.PermissionIds.Any())
+        if (input.PermissionIds.Count != 0)
         {
             await AssignPermissionsAsync(new AssignRolePermissionsDto
             {
@@ -186,12 +182,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             }
 
             // 检查父角色是否存在
-            var parentRole = await _roleRepository.GetByIdAsync(input.ParentRoleId.Value);
-            if (parentRole == null)
-            {
-                throw new InvalidOperationException("指定的父角色不存在");
-            }
-
+            var parentRole = await _roleRepository.GetByIdAsync(input.ParentRoleId.Value) ?? throw new InvalidOperationException("指定的父角色不存在");
             role.ParentRoleId = input.ParentRoleId;
         }
 
@@ -265,7 +256,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             .ExecuteCommandAsync();
 
         // 添加新菜单
-        if (input.MenuIds.Any())
+        if (input.MenuIds.Count != 0)
         {
             var roleMenus = input.MenuIds.Select(menuId => new SysRoleMenu
             {
@@ -292,7 +283,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             .ExecuteCommandAsync();
 
         // 添加新权限
-        if (input.PermissionIds.Any())
+        if (input.PermissionIds.Count != 0)
         {
             var rolePermissions = input.PermissionIds.Select(permissionId => new SysRolePermission
             {
@@ -343,11 +334,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             }
 
             // 检查父角色是否存在
-            var parentRole = await _roleRepository.GetByIdAsync(parentRoleId.Value);
-            if (parentRole == null)
-            {
-                throw new InvalidOperationException("指定的父角色不存在");
-            }
+            var parentRole = await _roleRepository.GetByIdAsync(parentRoleId.Value) ?? throw new InvalidOperationException("指定的父角色不存在");
         }
 
         role.ParentRoleId = parentRoleId;
@@ -374,7 +361,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             permissions.AddRange(inheritedPermissions);
         }
 
-        return permissions.DistinctBy(p => p.BasicId).ToList();
+        return [.. permissions.DistinctBy(p => p.BasicId)];
     }
 
     /// <summary>
@@ -386,7 +373,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
 
         // 1. 获取角色直接拥有的菜单
         var menuIds = await _roleRepository.GetRoleMenuIdsAsync(roleId);
-        if (menuIds.Any())
+        if (menuIds.Count != 0)
         {
             var directMenus = await _menuRepository.GetListAsync(m => menuIds.Contains(m.BasicId));
             menus.AddRange(directMenus);
@@ -399,7 +386,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             menus.AddRange(inheritedMenus);
         }
 
-        return menus.DistinctBy(m => m.BasicId).ToList();
+        return [.. menus.DistinctBy(m => m.BasicId)];
     }
 
     /// <summary>
@@ -446,7 +433,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             }
         }
 
-        return allPermissions.DistinctBy(p => p.BasicId).ToList();
+        return [.. allPermissions.DistinctBy(p => p.BasicId)];
     }
 
     /// <summary>
@@ -466,7 +453,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             allMenus.AddRange(roleMenus);
         }
 
-        return allMenus.DistinctBy(m => m.BasicId).ToList();
+        return [.. allMenus.DistinctBy(m => m.BasicId)];
     }
 
     /// <summary>
@@ -540,7 +527,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
     public async Task<List<RoleDto>> GetRoleTreeAsync(long? parentRoleId = null)
     {
         var roles = await _roleRepository.GetRoleTreeAsync(parentRoleId);
-        return roles.Select(r => r.Adapt<RoleDto>()).ToList();
+        return [.. roles.Select(r => r.Adapt<RoleDto>())];
     }
 
     /// <summary>
@@ -577,7 +564,7 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
         {
             // 获取父角色的菜单
             var menuIds = await _roleRepository.GetRoleMenuIdsAsync(parentRoleId);
-            if (menuIds.Any())
+            if (menuIds.Count != 0)
             {
                 var parentMenus = await _menuRepository.GetListAsync(m => menuIds.Contains(m.BasicId));
                 inheritedMenus.AddRange(parentMenus);

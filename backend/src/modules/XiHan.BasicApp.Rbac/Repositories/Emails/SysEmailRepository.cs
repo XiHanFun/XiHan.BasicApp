@@ -42,7 +42,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, long>, ISysEm
     public async Task<List<SysEmail>> GetByStatusAsync(EmailStatus emailStatus)
     {
         var result = await GetListAsync(email => email.EmailStatus == emailStatus);
-        return result.OrderByDescending(email => email.CreatedTime).ToList();
+        return [.. result.OrderByDescending(email => email.CreatedTime)];
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, long>, ISysEm
     public async Task<List<SysEmail>> GetByTypeAsync(EmailType emailType)
     {
         var result = await GetListAsync(email => email.EmailType == emailType);
-        return result.OrderByDescending(email => email.CreatedTime).ToList();
+        return [.. result.OrderByDescending(email => email.CreatedTime)];
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, long>, ISysEm
     public async Task<List<SysEmail>> GetByToEmailAsync(string toEmail)
     {
         var result = await GetListAsync(email => email.ToEmail.Contains(toEmail));
-        return result.OrderByDescending(email => email.SendTime ?? email.CreatedTime).ToList();
+        return [.. result.OrderByDescending(email => email.SendTime ?? email.CreatedTime)];
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, long>, ISysEm
     public async Task<List<SysEmail>> GetBySenderIdAsync(long senderId)
     {
         var result = await GetListAsync(email => email.SenderId == senderId);
-        return result.OrderByDescending(email => email.SendTime ?? email.CreatedTime).ToList();
+        return [.. result.OrderByDescending(email => email.SendTime ?? email.CreatedTime)];
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class SysEmailRepository : SqlSugarRepositoryBase<SysEmail, long>, ISysEm
     public async Task<List<SysEmail>> GetByReceiverIdAsync(long receiverId)
     {
         var result = await GetListAsync(email => email.ReceiverId == receiverId);
-        return result.OrderByDescending(email => email.SendTime ?? email.CreatedTime).ToList();
+        return [.. result.OrderByDescending(email => email.SendTime ?? email.CreatedTime)];
     }
 
     /// <summary>

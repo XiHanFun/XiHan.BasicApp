@@ -41,7 +41,7 @@ public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, long>, 
     public async Task<List<SysAuditLog>> GetByAuditIdAsync(long auditId)
     {
         var result = await GetListAsync(log => log.AuditId == auditId);
-        return result.OrderBy(log => log.AuditTime).ToList();
+        return [.. result.OrderBy(log => log.AuditTime)];
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, long>, 
     public async Task<List<SysAuditLog>> GetByAuditorIdAsync(long auditorId)
     {
         var result = await GetListAsync(log => log.AuditorId == auditorId);
-        return result.OrderByDescending(log => log.AuditTime).ToList();
+        return [.. result.OrderByDescending(log => log.AuditTime)];
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, long>, 
     public async Task<List<SysAuditLog>> GetByResultAsync(AuditResult auditResult)
     {
         var result = await GetListAsync(log => log.AuditResult == auditResult);
-        return result.OrderByDescending(log => log.AuditTime).ToList();
+        return [.. result.OrderByDescending(log => log.AuditTime)];
     }
 
     /// <summary>
@@ -68,6 +68,6 @@ public class SysAuditLogRepository : SqlSugarRepositoryBase<SysAuditLog, long>, 
     public async Task<List<SysAuditLog>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var result = await GetListAsync(log => log.AuditTime >= startTime && log.AuditTime <= endTime);
-        return result.OrderByDescending(log => log.AuditTime).ToList();
+        return [.. result.OrderByDescending(log => log.AuditTime)];
     }
 }

@@ -62,10 +62,9 @@ public class DataPermissionHandler
     {
         // 检查实体是否有数据权限特性
         var entityType = typeof(TEntity);
-        var attribute = entityType.GetCustomAttributes(typeof(DataPermissionAttribute), true)
-            .FirstOrDefault() as DataPermissionAttribute;
 
-        if (attribute == null)
+        if (entityType.GetCustomAttributes(typeof(DataPermissionAttribute), true)
+            .FirstOrDefault() is not DataPermissionAttribute attribute)
         {
             // 没有数据权限特性，返回原查询
             return query;
@@ -99,15 +98,15 @@ public class DataPermissionHandler
     {
         // 获取用户的角色
         var roles = await _roleRepository.GetByUserIdAsync(userId);
-        if (!roles.Any())
+        if (roles.Count == 0)
         {
             return DataPermissionScope.SelfOnly;
         }
 
         // 检查是否有管理员角色（拥有全部数据权限）
         var hasAdminRole = roles.Any(r =>
-            r.RoleCode == Constants.RbacConstants.SuperAdminRoleCode ||
-            r.RoleCode == Constants.RbacConstants.AdminRoleCode);
+            r.RoleCode is Constants.RbacConstants.SuperAdminRoleCode or
+            Constants.RbacConstants.AdminRoleCode);
 
         if (hasAdminRole)
         {
@@ -128,14 +127,14 @@ public class DataPermissionHandler
     {
         // 获取用户的角色
         var roles = await _roleRepository.GetByUserIdAsync(userId);
-        if (!roles.Any())
+        if (roles.Count == 0)
         {
             return [];
         }
 
         // 获取所有角色的自定义数据权限部门ID
         var roleIds = roles.Where(r => r.DataScope == DataPermissionScope.Custom).Select(r => r.BasicId).ToList();
-        if (!roleIds.Any())
+        if (roleIds.Count == 0)
         {
             return [];
         }

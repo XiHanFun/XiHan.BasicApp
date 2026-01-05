@@ -193,7 +193,7 @@ public class DataPermissionFilter : IDataPermissionFilter
         string departmentField) where TEntity : class
     {
         var userDepartmentIds = await _userRepository.GetUserDepartmentIdsAsync(userId);
-        if (!userDepartmentIds.Any())
+        if (userDepartmentIds.Count == 0)
         {
             return null;
         }
@@ -209,7 +209,7 @@ public class DataPermissionFilter : IDataPermissionFilter
         string departmentField) where TEntity : class
     {
         var allDepartmentIds = await GetUserAllDepartmentIdsAsync(userId);
-        if (!allDepartmentIds.Any())
+        if (allDepartmentIds.Count == 0)
         {
             return null;
         }
@@ -276,7 +276,7 @@ public class DataPermissionFilter : IDataPermissionFilter
             allDepartmentIds.AddRange(childDepartmentIds);
         }
 
-        return allDepartmentIds.Distinct().ToList();
+        return [.. allDepartmentIds.Distinct()];
     }
 
     /// <summary>

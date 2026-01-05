@@ -102,9 +102,9 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
             DeletedBy = user.DeletedBy,
             DeletedTime = user.DeletedTime,
             RoleIds = roleIds,
-            RoleNames = roles.Select(r => r.RoleName).ToList(),
+            RoleNames = [.. roles.Select(r => r.RoleName)],
             DepartmentIds = departmentIds,
-            DepartmentNames = departments.Select(d => d.DepartmentName).ToList(),
+            DepartmentNames = [.. departments.Select(d => d.DepartmentName)],
             Permissions = permissions
         };
     }
@@ -184,7 +184,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
         await _userRepository.AddAsync(user);
 
         // 分配角色
-        if (input.RoleIds.Any())
+        if (input.RoleIds.Count != 0)
         {
             await AssignRolesAsync(new AssignUserRolesDto
             {
@@ -194,7 +194,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
         }
 
         // 分配部门
-        if (input.DepartmentIds.Any())
+        if (input.DepartmentIds.Count != 0)
         {
             await AssignDepartmentsAsync(new AssignUserDepartmentsDto
             {
@@ -312,11 +312,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
     /// </summary>
     public async Task<bool> ChangePasswordAsync(ChangePasswordDto input)
     {
-        var user = await _userRepository.GetByIdAsync(input.UserId);
-        if (user == null)
-        {
-            throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
-        }
+        var user = await _userRepository.GetByIdAsync(input.UserId) ?? throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
 
         // 验证原密码
         if (!_userManager.VerifyPassword(user, input.OldPassword))
@@ -340,12 +336,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
     /// </summary>
     public async Task<bool> ResetPasswordAsync(ResetPasswordDto input)
     {
-        var user = await _userRepository.GetByIdAsync(input.UserId);
-        if (user == null)
-        {
-            throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
-        }
-
+        var user = await _userRepository.GetByIdAsync(input.UserId) ?? throw new InvalidOperationException(ErrorMessageConstants.UserNotFound);
         user.Password = _userManager.HashPassword(input.NewPassword);
         await _userRepository.UpdateAsync(user);
         return true;
@@ -368,7 +359,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
             .ExecuteCommandAsync();
 
         // 添加新角色
-        if (input.RoleIds.Any())
+        if (input.RoleIds.Count != 0)
         {
             var userRoles = input.RoleIds.Select(roleId => new SysUserRole
             {
@@ -395,7 +386,7 @@ public class SysUserService : CrudApplicationServiceBase<SysUser, UserDto, long,
             .ExecuteCommandAsync();
 
         // 添加新部门
-        if (input.DepartmentIds.Any())
+        if (input.DepartmentIds.Count != 0)
         {
             var userDepartments = input.DepartmentIds.Select(departmentId => new SysUserDepartment
             {
