@@ -23,6 +23,21 @@ namespace XiHan.BasicApp.Rbac.Entities.Base;
 public abstract class RbacEntity<TKey> : SugarEntity<TKey>
     where TKey : IEquatable<TKey>
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    protected RbacEntity()
+    {
+    }
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="basicId"></param>
+    protected RbacEntity(TKey basicId)
+        : base(basicId)
+    {
+    }
 }
 
 /// <summary>
@@ -68,4 +83,19 @@ public abstract class RbacDeletionEntity<TKey> : SugarDeletionEntity<TKey>
 public abstract class RbacFullAuditedEntity<TKey> : SugarFullAuditedEntity<TKey>
     where TKey : IEquatable<TKey>
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    protected RbacFullAuditedEntity()
+    {
+    }
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="basicId"></param>
+    protected RbacFullAuditedEntity(TKey basicId)
+        : base(basicId)
+    {
+    }
 }

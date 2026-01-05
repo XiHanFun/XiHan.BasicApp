@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.DataPermissions.Extensions;
 using XiHan.BasicApp.Rbac.Extensions;
@@ -26,6 +27,8 @@ using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.Data.SqlSugar.Options;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.Framework.Domain.Entities.Abstracts;
+using XiHan.Framework.Utils.Reflections;
 using XiHan.Framework.Utils.Threading;
 using XiHan.Framework.Web.Core.Extensions;
 
@@ -63,7 +66,24 @@ public class XiHanBasicAppRbacModule : XiHanModule
         // 添加数据权限支持
         services.AddDataPermission();
 
-        var optins = services.GetConfiguration().GetSection("XiHanSqlSugarCore").Get<XiHanSqlSugarCoreOptions>();
+        // 配置SqlSugar选项
+        var config = services.GetConfiguration().GetSection("XiHanSqlSugarCore");
+
+        // 从配置文件绑定基础配置
+        Configure<XiHanSqlSugarCoreOptions>(config);
+
+        // 配置实体类型和其他选项
+        Configure<XiHanSqlSugarCoreOptions>(options =>
+        {
+            // 获取所有带 SugarTable 特性的实体类型
+            var dbEntities = ReflectionHelper.GetContainsAttributeSubClasses<IEntityBase, SugarTable>().ToList();
+            options.EntityTypes = dbEntities;
+
+            // 可以在这里添加其他配置
+            // 例如：启用数据库初始化和种子数据（如果配置文件中未设置）
+            // options.EnableDbInitialization = true;
+            // options.EnableDataSeeding = true;
+        });
 
         // 注册种子数据提供者
         services.AddDataSeeder<SysRoleSeeder>();
