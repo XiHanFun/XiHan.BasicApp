@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using XiHan.BasicApp.Core;
@@ -26,7 +25,6 @@ using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.Data.SqlSugar.Options;
-using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Utils.Reflections;
 using XiHan.Framework.Utils.Threading;
