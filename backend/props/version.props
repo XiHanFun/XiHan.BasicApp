@@ -4,6 +4,6 @@
     <!-- 设置程序集的版本信息 -->
     <AssemblyVersion>2.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
-    <Version>2.0.0-alpha.1</Version>
+    <Version>2.0.0-alpha.22</Version>
   </PropertyGroup>
 </Project>
