@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Rbac.Managers;
 using XiHan.BasicApp.Rbac.Repositories.Roles;
 using XiHan.Framework.Authorization.Roles;
 
@@ -20,18 +21,26 @@ namespace XiHan.BasicApp.Rbac.Adapters.Authorization;
 /// <summary>
 /// RBAC 角色管理器适配器
 /// </summary>
+/// <remarks>
+/// 适配框架接口，内部使用领域管理器处理业务逻辑
+/// </remarks>
 public class RbacRoleManager : IRoleManager
 {
     private readonly IRoleStore _roleStore;
     private readonly ISysRoleRepository _roleRepository;
+    private readonly RoleManager _domainRoleManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacRoleManager(IRoleStore roleStore, ISysRoleRepository roleRepository)
+    public RbacRoleManager(
+        IRoleStore roleStore,
+        ISysRoleRepository roleRepository,
+        RoleManager domainRoleManager)
     {
         _roleStore = roleStore;
         _roleRepository = roleRepository;
+        _domainRoleManager = domainRoleManager;
     }
 
     /// <summary>
@@ -41,9 +50,14 @@ public class RbacRoleManager : IRoleManager
     {
         try
         {
-            // 检查角色是否已存在
-            var existingRole = await _roleStore.GetRoleByNameAsync(role.Name, cancellationToken);
-            if (existingRole != null)
+            // 使用领域管理器验证业务规则
+            if (!_domainRoleManager.IsValidRoleCode(role.Name))
+            {
+                return RoleOperationResult.Failure("角色编码格式不合法", "InvalidRoleCode");
+            }
+
+            // 检查角色编码是否唯一
+            if (!await _domainRoleManager.IsRoleCodeUniqueAsync(role.Name))
             {
                 return RoleOperationResult.Failure($"角色已存在: {role.Name}", "DuplicateRoleName");
             }
@@ -86,6 +100,11 @@ public class RbacRoleManager : IRoleManager
     {
         try
         {
+            if (!long.TryParse(roleId, out var roleIdLong))
+            {
+                return RoleOperationResult.Failure("无效的角色ID", "InvalidRoleId");
+            }
+
             var role = await _roleStore.GetRoleByIdAsync(roleId, cancellationToken);
             if (role == null)
             {
@@ -96,6 +115,12 @@ public class RbacRoleManager : IRoleManager
             if (role.IsStatic)
             {
                 return RoleOperationResult.Failure("不能删除系统角色", "CannotDeleteStaticRole");
+            }
+
+            // 使用领域管理器检查业务规则
+            if (!await _domainRoleManager.CanDeleteAsync(roleIdLong))
+            {
+                return RoleOperationResult.Failure("角色下还有用户，不能删除", "RoleHasUsers");
             }
 
             await _roleStore.DeleteRoleAsync(roleId, cancellationToken);

@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories.Users;
+using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Domain.Services;
 
 namespace XiHan.BasicApp.Rbac.Managers;
@@ -21,17 +22,23 @@ namespace XiHan.BasicApp.Rbac.Managers;
 /// <summary>
 /// 系统用户领域管理器
 /// </summary>
+/// <remarks>
+/// 职责：用户相关的领域业务规则和验证逻辑
+/// </remarks>
 public class UserManager : DomainService
 {
     private readonly ISysUserRepository _userRepository;
+    private readonly IPasswordHasher _passwordHasher;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="userRepository">用户仓储</param>
-    public UserManager(ISysUserRepository userRepository)
+    /// <param name="passwordHasher">密码哈希服务</param>
+    public UserManager(ISysUserRepository userRepository, IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
+        _passwordHasher = passwordHasher;
     }
 
     /// <summary>
@@ -75,9 +82,7 @@ public class UserManager : DomainService
     /// <returns></returns>
     public bool VerifyPassword(SysUser user, string password)
     {
-        // 这里应该使用密码加密算法验证
-        // 示例：return PasswordHasher.Verify(password, user.Password);
-        return user.Password == password;
+        return _passwordHasher.VerifyPassword(user.Password, password);
     }
 
     /// <summary>
@@ -87,8 +92,39 @@ public class UserManager : DomainService
     /// <returns></returns>
     public string HashPassword(string password)
     {
-        // 这里应该使用密码加密算法
-        // 示例：return PasswordHasher.Hash(password);
-        return password;
+        return _passwordHasher.HashPassword(password);
+    }
+
+    /// <summary>
+    /// 检查密码是否需要重新哈希
+    /// </summary>
+    /// <param name="user">用户</param>
+    /// <returns></returns>
+    public bool NeedsPasswordRehash(SysUser user)
+    {
+        return _passwordHasher.NeedsRehash(user.Password);
+    }
+
+    /// <summary>
+    /// 验证用户状态是否有效
+    /// </summary>
+    /// <param name="user">用户</param>
+    /// <returns></returns>
+    public bool IsUserActive(SysUser user)
+    {
+        return user.Status == Enums.YesOrNo.Yes && !user.IsDeleted;
+    }
+
+    /// <summary>
+    /// 检查用户是否可以删除
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns></returns>
+    public async Task<bool> CanDeleteAsync(long userId)
+    {
+        // 检查用户是否存在未完成的任务、订单等
+        // 这里可以添加更多业务规则
+        var user = await _userRepository.GetByIdAsync(userId);
+        return user != null && !user.IsDeleted;
     }
 }
