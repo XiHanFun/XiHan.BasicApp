@@ -15,11 +15,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Rbac.Adapters.Authentication;
+using XiHan.BasicApp.Rbac.Adapters.Authorization;
 using XiHan.BasicApp.Rbac.DataPermissions.Extensions;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Rbac.Managers;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.BasicApp.Web.Core;
+using XiHan.Framework.Authentication;
+using XiHan.Framework.Authorization;
+using XiHan.Framework.Authorization.Permissions;
+using XiHan.Framework.Authorization.Policies;
+using XiHan.Framework.Authorization.Roles;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
@@ -37,7 +44,9 @@ namespace XiHan.BasicApp.Rbac;
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
-    typeof(XiHanBasicAppWebCoreModule)
+    typeof(XiHanBasicAppWebCoreModule),
+    typeof(XiHanAuthenticationModule),
+    typeof(XiHanAuthorizationModule)
 )]
 public class XiHanBasicAppRbacModule : XiHanModule
 {
@@ -60,6 +69,10 @@ public class XiHanBasicAppRbacModule : XiHanModule
         services.AddScoped<MenuManager>();
         services.AddScoped<DepartmentManager>();
         services.AddScoped<TenantManager>();
+
+        // 注册认证和授权适配器
+        RegisterAuthenticationAdapters(services);
+        RegisterAuthorizationAdapters(services);
 
         // 添加数据权限支持
         services.AddDataPermission();
@@ -101,5 +114,33 @@ public class XiHanBasicAppRbacModule : XiHanModule
         {
             await app.UseDbInitializerAsync(initialize: true);
         });
+    }
+
+    /// <summary>
+    /// 注册认证适配器
+    /// </summary>
+    /// <param name="services"></param>
+    private static void RegisterAuthenticationAdapters(IServiceCollection services)
+    {
+        // 注册认证服务实现
+        services.AddScoped<IAuthenticationService, RbacAuthenticationService>();
+    }
+
+    /// <summary>
+    /// 注册授权适配器
+    /// </summary>
+    /// <param name="services"></param>
+    private static void RegisterAuthorizationAdapters(IServiceCollection services)
+    {
+        // 注册权限存储
+        services.AddScoped<IPermissionStore, RbacPermissionStore>();
+
+        // 注册角色存储和管理器
+        services.AddScoped<IRoleStore, RbacRoleStore>();
+        services.AddScoped<IRoleManager, RbacRoleManager>();
+
+        // 注册策略存储和评估器
+        services.AddSingleton<IPolicyStore, RbacPolicyStore>();
+        services.AddScoped<IPolicyEvaluator, RbacPolicyEvaluator>();
     }
 }

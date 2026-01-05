@@ -42,7 +42,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, long>, ISysSmsRep
     public async Task<List<SysSms>> GetByStatusAsync(SmsStatus smsStatus)
     {
         var result = await GetListAsync(sms => sms.SmsStatus == smsStatus);
-        return result.OrderByDescending(sms => sms.CreatedTime).ToList();
+        return [.. result.OrderByDescending(sms => sms.CreatedTime)];
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, long>, ISysSmsRep
     public async Task<List<SysSms>> GetByTypeAsync(SmsType smsType)
     {
         var result = await GetListAsync(sms => sms.SmsType == smsType);
-        return result.OrderByDescending(sms => sms.CreatedTime).ToList();
+        return [.. result.OrderByDescending(sms => sms.CreatedTime)];
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, long>, ISysSmsRep
     public async Task<List<SysSms>> GetByToPhoneAsync(string toPhone)
     {
         var result = await GetListAsync(sms => sms.ToPhone.Contains(toPhone));
-        return result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime).ToList();
+        return [.. result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime)];
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, long>, ISysSmsRep
     public async Task<List<SysSms>> GetBySenderIdAsync(long senderId)
     {
         var result = await GetListAsync(sms => sms.SenderId == senderId);
-        return result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime).ToList();
+        return [.. result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime)];
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class SysSmsRepository : SqlSugarRepositoryBase<SysSms, long>, ISysSmsRep
     public async Task<List<SysSms>> GetByReceiverIdAsync(long receiverId)
     {
         var result = await GetListAsync(sms => sms.ReceiverId == receiverId);
-        return result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime).ToList();
+        return [.. result.OrderByDescending(sms => sms.SendTime ?? sms.CreatedTime)];
     }
 
     /// <summary>

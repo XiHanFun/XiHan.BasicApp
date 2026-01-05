@@ -41,7 +41,7 @@ public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, 
     public async Task<List<SysLoginLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
-        return result.OrderByDescending(log => log.LoginTime).ToList();
+        return [.. result.OrderByDescending(log => log.LoginTime)];
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, 
     public async Task<List<SysLoginLog>> GetByUserNameAsync(string userName)
     {
         var result = await GetListAsync(log => log.UserName == userName);
-        return result.OrderByDescending(log => log.LoginTime).ToList();
+        return [.. result.OrderByDescending(log => log.LoginTime)];
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class SysLoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, 
     public async Task<List<SysLoginLog>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var result = await GetListAsync(log => log.LoginTime >= startTime && log.LoginTime <= endTime);
-        return result.OrderByDescending(log => log.LoginTime).ToList();
+        return [.. result.OrderByDescending(log => log.LoginTime)];
     }
 
     /// <summary>

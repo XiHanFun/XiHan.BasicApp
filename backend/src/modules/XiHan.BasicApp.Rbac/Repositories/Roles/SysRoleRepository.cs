@@ -149,13 +149,13 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, long>, ISysRole
     public async Task<List<SysRole>> GetParentRolesAsync(long roleId)
     {
         var parentRoleIds = await GetParentRoleIdsAsync(roleId);
-        if (!parentRoleIds.Any())
+        if (parentRoleIds.Count == 0)
         {
             return [];
         }
 
         var roles = await GetListAsync(r => parentRoleIds.Contains(r.BasicId));
-        return roles.ToList();
+        return [.. roles];
     }
 
     /// <summary>
@@ -166,13 +166,13 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, long>, ISysRole
     public async Task<List<SysRole>> GetChildRolesAsync(long roleId)
     {
         var childRoleIds = await GetChildRoleIdsAsync(roleId);
-        if (!childRoleIds.Any())
+        if (childRoleIds.Count == 0)
         {
             return [];
         }
 
         var roles = await GetListAsync(r => childRoleIds.Contains(r.BasicId));
-        return roles.ToList();
+        return [.. roles];
     }
 
     /// <summary>
@@ -205,12 +205,12 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, long>, ISysRole
         {
             // 获取所有根角色（没有父角色的角色）
             var rootRoles = await GetListAsync(r => r.ParentRoleId == null);
-            return rootRoles.ToList();
+            return [.. rootRoles];
         }
 
         // 获取指定父角色下的所有子角色
         var childRoles = await GetListAsync(r => r.ParentRoleId == parentRoleId);
-        return childRoles.ToList();
+        return [.. childRoles];
     }
 
     /// <summary>
@@ -243,5 +243,101 @@ public class SysRoleRepository : SqlSugarRepositoryBase<SysRole, long>, ISysRole
                 await GetChildRoleIdsRecursiveAsync(child.BasicId, result);
             }
         }
+    }
+
+    /// <summary>
+    /// 添加角色权限
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="permissionId">权限ID</param>
+    public async Task AddRolePermissionAsync(long roleId, long permissionId)
+    {
+        // 检查是否已存在
+        var exists = await _dbContext.GetClient()
+            .Queryable<SysRolePermission>()
+            .Where(rp => rp.RoleId == roleId && rp.PermissionId == permissionId)
+            .AnyAsync();
+
+        if (exists)
+        {
+            return; // 已存在，不重复添加
+        }
+
+        // 添加角色权限
+        var rolePermission = new SysRolePermission
+        {
+            RoleId = roleId,
+            PermissionId = permissionId
+        };
+
+        await _dbContext.GetClient().Insertable(rolePermission).ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 移除角色权限
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="permissionId">权限ID</param>
+    public async Task RemoveRolePermissionAsync(long roleId, long permissionId)
+    {
+        await _dbContext.GetClient()
+            .Deleteable<SysRolePermission>()
+            .Where(rp => rp.RoleId == roleId && rp.PermissionId == permissionId)
+            .ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 添加用户角色
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleId">角色ID</param>
+    public async Task AddUserRoleAsync(long userId, long roleId)
+    {
+        // 检查是否已存在
+        var exists = await _dbContext.GetClient()
+            .Queryable<SysUserRole>()
+            .Where(ur => ur.UserId == userId && ur.RoleId == roleId)
+            .AnyAsync();
+
+        if (exists)
+        {
+            return; // 已存在，不重复添加
+        }
+
+        // 添加用户角色
+        var userRole = new SysUserRole
+        {
+            UserId = userId,
+            RoleId = roleId
+        };
+
+        await _dbContext.GetClient().Insertable(userRole).ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 移除用户角色
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleId">角色ID</param>
+    public async Task RemoveUserRoleAsync(long userId, long roleId)
+    {
+        await _dbContext.GetClient()
+            .Deleteable<SysUserRole>()
+            .Where(ur => ur.UserId == userId && ur.RoleId == roleId)
+            .ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 获取角色中的用户ID列表
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>用户ID列表</returns>
+    public async Task<List<long>> GetUsersInRoleAsync(long roleId)
+    {
+        return await _dbContext.GetClient()
+            .Queryable<SysUserRole>()
+            .Where(ur => ur.RoleId == roleId)
+            .Select(ur => ur.UserId)
+            .ToListAsync();
     }
 }

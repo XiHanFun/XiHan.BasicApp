@@ -116,4 +116,47 @@ public class SysUserPermissionRepository : SqlSugarRepositoryBase<SysUserPermiss
             .Where(up => up.UserId == userId && permissionIds.Contains(up.PermissionId))
             .ExecuteCommandAsync();
     }
+
+    /// <summary>
+    /// 添加用户权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionId">权限ID</param>
+    public async Task AddUserPermissionAsync(long userId, long permissionId)
+    {
+        // 检查是否已存在
+        var exists = await _dbContext.GetClient()
+            .Queryable<SysUserPermission>()
+            .Where(up => up.UserId == userId && up.PermissionId == permissionId)
+            .AnyAsync();
+
+        if (exists)
+        {
+            return; // 已存在，不重复添加
+        }
+
+        // 添加用户权限
+        var userPermission = new SysUserPermission
+        {
+            UserId = userId,
+            PermissionId = permissionId,
+            PermissionAction = PermissionAction.Grant,
+            Status = YesOrNo.Yes
+        };
+
+        await _dbContext.GetClient().Insertable(userPermission).ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 移除用户权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionId">权限ID</param>
+    public async Task RemoveUserPermissionAsync(long userId, long permissionId)
+    {
+        await _dbContext.GetClient()
+            .Deleteable<SysUserPermission>()
+            .Where(up => up.UserId == userId && up.PermissionId == permissionId)
+            .ExecuteCommandAsync();
+    }
 }

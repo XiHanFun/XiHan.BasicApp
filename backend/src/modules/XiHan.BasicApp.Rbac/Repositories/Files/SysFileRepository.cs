@@ -49,7 +49,7 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, long>, ISysFile
     public async Task<List<SysFile>> GetByFileTypeAsync(FileType fileType)
     {
         var result = await GetListAsync(file => file.FileType == fileType);
-        return result.OrderByDescending(file => file.CreatedTime).ToList();
+        return [.. result.OrderByDescending(file => file.CreatedTime)];
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, long>, ISysFile
     public async Task<List<SysFile>> GetByUploaderIdAsync(long uploaderId)
     {
         var result = await GetListAsync(file => file.UploaderId == uploaderId);
-        return result.OrderByDescending(file => file.CreatedTime).ToList();
+        return [.. result.OrderByDescending(file => file.CreatedTime)];
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, long>, ISysFile
     public async Task<List<SysFile>> GetByBusinessAsync(string businessType, long businessId)
     {
         var result = await GetListAsync(file => file.BusinessType == businessType && file.BusinessId == businessId);
-        return result.OrderByDescending(file => file.CreatedTime).ToList();
+        return [.. result.OrderByDescending(file => file.CreatedTime)];
     }
 
     /// <summary>
@@ -76,6 +76,6 @@ public class SysFileRepository : SqlSugarRepositoryBase<SysFile, long>, ISysFile
     public async Task<List<SysFile>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(file => file.TenantId == tenantId);
-        return result.OrderByDescending(file => file.CreatedTime).ToList();
+        return [.. result.OrderByDescending(file => file.CreatedTime)];
     }
 }

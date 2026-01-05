@@ -88,12 +88,7 @@ public class SysAuditService : CrudApplicationServiceBase<SysAudit, AuditDto, lo
     /// </summary>
     public async Task<bool> ProcessAuditAsync(ProcessAuditDto input)
     {
-        var audit = await _auditRepository.GetByIdAsync(input.AuditId);
-        if (audit == null)
-        {
-            throw new InvalidOperationException("审核记录不存在");
-        }
-
+        var audit = await _auditRepository.GetByIdAsync(input.AuditId) ?? throw new InvalidOperationException("审核记录不存在");
         if (audit.AuditStatus != AuditStatus.Pending && audit.AuditStatus != AuditStatus.InProgress)
         {
             throw new InvalidOperationException("当前审核状态不允许处理");

@@ -68,7 +68,7 @@ public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, lon
     public async Task<List<SysDepartment>> GetRootDepartmentsAsync()
     {
         var result = await GetListAsync(d => d.ParentId == null || d.ParentId == 0);
-        return result.ToList();
+        return [.. result];
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class SysDepartmentRepository : SqlSugarRepositoryBase<SysDepartment, lon
     public async Task<List<SysDepartment>> GetChildrenAsync(long parentId)
     {
         var result = await GetListAsync(d => d.ParentId == parentId);
-        return result.ToList();
+        return [.. result];
     }
 
     /// <summary>

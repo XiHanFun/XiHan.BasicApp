@@ -68,7 +68,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, long>, ISysMenu
     public async Task<List<SysMenu>> GetRootMenusAsync()
     {
         var result = await GetListAsync(m => m.ParentId == null || m.ParentId == 0);
-        return result.ToList();
+        return [.. result];
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, long>, ISysMenu
     public async Task<List<SysMenu>> GetChildrenAsync(long parentId)
     {
         var result = await GetListAsync(m => m.ParentId == parentId);
-        return result.ToList();
+        return [.. result];
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class SysMenuRepository : SqlSugarRepositoryBase<SysMenu, long>, ISysMenu
             .Select(ur => ur.RoleId)
             .ToListAsync();
 
-        if (!roleIds.Any())
+        if (roleIds.Count == 0)
         {
             return [];
         }

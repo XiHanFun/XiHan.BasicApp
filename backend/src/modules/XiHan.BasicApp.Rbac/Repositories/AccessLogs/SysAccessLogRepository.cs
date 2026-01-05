@@ -40,7 +40,7 @@ public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, long>
     public async Task<List<SysAccessLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
-        return result.OrderByDescending(log => log.AccessTime).ToList();
+        return [.. result.OrderByDescending(log => log.AccessTime)];
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, long>
     public async Task<List<SysAccessLog>> GetByResourcePathAsync(string resourcePath)
     {
         var result = await GetListAsync(log => log.ResourcePath == resourcePath);
-        return result.OrderByDescending(log => log.AccessTime).ToList();
+        return [.. result.OrderByDescending(log => log.AccessTime)];
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, long>
     public async Task<List<SysAccessLog>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(log => log.TenantId == tenantId);
-        return result.OrderByDescending(log => log.AccessTime).ToList();
+        return [.. result.OrderByDescending(log => log.AccessTime)];
     }
 
     /// <summary>
@@ -67,6 +67,6 @@ public class SysAccessLogRepository : SqlSugarRepositoryBase<SysAccessLog, long>
     public async Task<List<SysAccessLog>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var result = await GetListAsync(log => log.AccessTime >= startTime && log.AccessTime <= endTime);
-        return result.OrderByDescending(log => log.AccessTime).ToList();
+        return [.. result.OrderByDescending(log => log.AccessTime)];
     }
 }

@@ -190,7 +190,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, long,
     /// </summary>
     public async Task<List<MenuTreeDto>> GetTreeAsync()
     {
-        var allMenus = await _menuRepository.GetListAsync();
+        var allMenus = await _menuRepository.GetAllAsync();
         var menuDtos = allMenus.Adapt<List<MenuDto>>();
 
         // TODO 优化BuildTree方法，直接生成MenuTreeDto列表，避免重复转换

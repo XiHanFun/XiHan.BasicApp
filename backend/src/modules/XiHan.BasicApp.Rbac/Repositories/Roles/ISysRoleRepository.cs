@@ -107,4 +107,39 @@ public interface ISysRoleRepository : IRepositoryBase<SysRole, long>
     /// <param name="parentRoleId">父角色ID，null表示获取根角色</param>
     /// <returns>角色树</returns>
     Task<List<SysRole>> GetRoleTreeAsync(long? parentRoleId = null);
+
+    /// <summary>
+    /// 添加角色权限
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="permissionId">权限ID</param>
+    Task AddRolePermissionAsync(long roleId, long permissionId);
+
+    /// <summary>
+    /// 移除角色权限
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="permissionId">权限ID</param>
+    Task RemoveRolePermissionAsync(long roleId, long permissionId);
+
+    /// <summary>
+    /// 添加用户角色
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleId">角色ID</param>
+    Task AddUserRoleAsync(long userId, long roleId);
+
+    /// <summary>
+    /// 移除用户角色
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleId">角色ID</param>
+    Task RemoveUserRoleAsync(long userId, long roleId);
+
+    /// <summary>
+    /// 获取角色中的用户ID列表
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <returns>用户ID列表</returns>
+    Task<List<long>> GetUsersInRoleAsync(long roleId);
 }

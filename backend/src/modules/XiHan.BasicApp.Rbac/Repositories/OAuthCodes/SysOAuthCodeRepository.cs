@@ -49,7 +49,7 @@ public class SysOAuthCodeRepository : SqlSugarRepositoryBase<SysOAuthCode, long>
     public async Task<List<SysOAuthCode>> GetByClientAndUserAsync(string clientId, long userId)
     {
         var result = await GetListAsync(c => c.ClientId == clientId && c.UserId == userId);
-        return result.OrderByDescending(c => c.CreatedTime).ToList();
+        return [.. result.OrderByDescending(c => c.CreatedTime)];
     }
 
     /// <summary>

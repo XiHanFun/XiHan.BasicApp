@@ -40,7 +40,7 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, long>, ISys
     public async Task<List<SysApiLog>> GetByUserIdAsync(long userId)
     {
         var result = await GetListAsync(log => log.UserId == userId);
-        return result.OrderByDescending(log => log.RequestTime).ToList();
+        return [.. result.OrderByDescending(log => log.RequestTime)];
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, long>, ISys
     public async Task<List<SysApiLog>> GetByApiPathAsync(string apiPath)
     {
         var result = await GetListAsync(log => log.ApiPath == apiPath);
-        return result.OrderByDescending(log => log.RequestTime).ToList();
+        return [.. result.OrderByDescending(log => log.RequestTime)];
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, long>, ISys
     public async Task<List<SysApiLog>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(log => log.TenantId == tenantId);
-        return result.OrderByDescending(log => log.RequestTime).ToList();
+        return [.. result.OrderByDescending(log => log.RequestTime)];
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, long>, ISys
     public async Task<List<SysApiLog>> GetByTimeRangeAsync(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         var result = await GetListAsync(log => log.RequestTime >= startTime && log.RequestTime <= endTime);
-        return result.OrderByDescending(log => log.RequestTime).ToList();
+        return [.. result.OrderByDescending(log => log.RequestTime)];
     }
 
     /// <summary>
@@ -76,6 +76,6 @@ public class SysApiLogRepository : SqlSugarRepositoryBase<SysApiLog, long>, ISys
     public async Task<List<SysApiLog>> GetByStatusCodeAsync(int statusCode)
     {
         var result = await GetListAsync(log => log.StatusCode == statusCode);
-        return result.OrderByDescending(log => log.RequestTime).ToList();
+        return [.. result.OrderByDescending(log => log.RequestTime)];
     }
 }

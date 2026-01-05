@@ -41,7 +41,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, long>, ISysAu
     public async Task<List<SysAudit>> GetBySubmitterIdAsync(long submitterId)
     {
         var result = await GetListAsync(audit => audit.SubmitterId == submitterId);
-        return result.OrderByDescending(audit => audit.SubmitTime).ToList();
+        return [.. result.OrderByDescending(audit => audit.SubmitTime)];
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, long>, ISysAu
     public async Task<List<SysAudit>> GetByAuditorIdAsync(long auditorId)
     {
         var result = await GetListAsync(audit => audit.AuditorId == auditorId);
-        return result.OrderByDescending(audit => audit.SubmitTime).ToList();
+        return [.. result.OrderByDescending(audit => audit.SubmitTime)];
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, long>, ISysAu
     public async Task<List<SysAudit>> GetByStatusAsync(AuditStatus auditStatus)
     {
         var result = await GetListAsync(audit => audit.AuditStatus == auditStatus);
-        return result.OrderByDescending(audit => audit.SubmitTime).ToList();
+        return [.. result.OrderByDescending(audit => audit.SubmitTime)];
     }
 
     /// <summary>
@@ -76,6 +76,6 @@ public class SysAuditRepository : SqlSugarRepositoryBase<SysAudit, long>, ISysAu
     public async Task<List<SysAudit>> GetByTenantIdAsync(long tenantId)
     {
         var result = await GetListAsync(audit => audit.TenantId == tenantId);
-        return result.OrderByDescending(audit => audit.SubmitTime).ToList();
+        return [.. result.OrderByDescending(audit => audit.SubmitTime)];
     }
 }

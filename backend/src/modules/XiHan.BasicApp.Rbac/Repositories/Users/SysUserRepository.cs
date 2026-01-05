@@ -150,7 +150,7 @@ public class SysUserRepository : SqlSugarRepositoryBase<SysUser, long>, ISysUser
     {
         // 获取用户的角色ID列表
         var roleIds = await GetUserRoleIdsAsync(userId);
-        if (!roleIds.Any())
+        if (roleIds.Count == 0)
         {
             return [];
         }

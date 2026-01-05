@@ -49,7 +49,7 @@ public class SysDictRepository : SqlSugarRepositoryBase<SysDict, long>, ISysDict
     public async Task<List<SysDict>> GetByTypeAsync(string dictType)
     {
         var result = await GetListAsync(dict => dict.DictType == dictType);
-        return result.OrderBy(dict => dict.Sort).ToList();
+        return [.. result.OrderBy(dict => dict.Sort)];
     }
 
     /// <summary>

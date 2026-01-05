@@ -50,7 +50,7 @@ public class SysTaskRepository : SqlSugarRepositoryBase<SysTask, long>, ISysTask
     public async Task<List<SysTask>> GetByStatusAsync(TaskStatus taskStatus)
     {
         var result = await GetListAsync(task => task.TaskStatus == taskStatus);
-        return result.OrderBy(task => task.Priority).ThenBy(task => task.NextRunTime).ToList();
+        return [.. result.OrderBy(task => task.Priority).ThenBy(task => task.NextRunTime)];
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class SysTaskRepository : SqlSugarRepositoryBase<SysTask, long>, ISysTask
     public async Task<List<SysTask>> GetByTaskGroupAsync(string taskGroup)
     {
         var result = await GetListAsync(task => task.TaskGroup == taskGroup);
-        return result.OrderBy(task => task.Priority).ToList();
+        return [.. result.OrderBy(task => task.Priority)];
     }
 
     /// <summary>

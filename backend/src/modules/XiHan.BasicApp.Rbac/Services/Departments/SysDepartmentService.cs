@@ -177,7 +177,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
         if (!await _departmentManager.CanDeleteAsync(id))
         {
             var children = await _departmentRepository.GetChildrenAsync(id);
-            if (children.Any())
+            if (children.Count != 0)
             {
                 throw new InvalidOperationException(ErrorMessageConstants.DepartmentHasChildren);
             }
@@ -208,7 +208,7 @@ public class SysDepartmentService : CrudApplicationServiceBase<SysDepartment, De
     /// </summary>
     public async Task<List<DepartmentTreeDto>> GetTreeAsync()
     {
-        var allDepartments = await _departmentRepository.GetListAsync();
+        var allDepartments = await _departmentRepository.GetAllAsync();
         var departmentDtos = allDepartments.Adapt<List<DepartmentTreeDto>>();
         // TODO: 实现树形结构转换
         //return departmentDtos.ToTree<DepartmentTreeDto>();
