@@ -71,7 +71,10 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     public async Task<bool> IncrementFailedLoginAttemptsAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
-        if (userSecurity == null) return false;
+        if (userSecurity == null)
+        {
+            return false;
+        }
 
         userSecurity.FailedLoginAttempts++;
         userSecurity.LastFailedLoginTime = DateTimeOffset.Now;
@@ -85,7 +88,10 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     public async Task<bool> ResetFailedLoginAttemptsAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
-        if (userSecurity == null) return false;
+        if (userSecurity == null)
+        {
+            return false;
+        }
 
         userSecurity.FailedLoginAttempts = 0;
         userSecurity.LastFailedLoginTime = null;
@@ -99,7 +105,10 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     public async Task<bool> LockUserAsync(long userId, DateTimeOffset? lockoutEndTime = null)
     {
         var userSecurity = await GetByUserIdAsync(userId);
-        if (userSecurity == null) return false;
+        if (userSecurity == null)
+        {
+            return false;
+        }
 
         userSecurity.IsLocked = true;
         userSecurity.LockoutTime = DateTimeOffset.Now;
@@ -114,7 +123,10 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     public async Task<bool> UnlockUserAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
-        if (userSecurity == null) return false;
+        if (userSecurity == null)
+        {
+            return false;
+        }
 
         userSecurity.IsLocked = false;
         userSecurity.LockoutTime = null;
@@ -130,7 +142,10 @@ public class SysUserSecurityRepository : SqlSugarRepositoryBase<SysUserSecurity,
     public async Task<bool> UpdateSecurityStampAsync(long userId)
     {
         var userSecurity = await GetByUserIdAsync(userId);
-        if (userSecurity == null) return false;
+        if (userSecurity == null)
+        {
+            return false;
+        }
 
         userSecurity.SecurityStamp = Guid.NewGuid().ToString("N");
         await UpdateAsync(userSecurity);

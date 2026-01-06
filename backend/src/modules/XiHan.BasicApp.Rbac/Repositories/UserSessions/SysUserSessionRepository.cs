@@ -109,7 +109,11 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, l
             session.LogoutTime = now;
         }
 
-        if (sessions.Count == 0) return 0;
+        if (sessions.Count == 0)
+        {
+            return 0;
+        }
+
         return await _dbContext.GetClient().Updateable(sessions).ExecuteCommandAsync();
     }
 
@@ -119,7 +123,10 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, l
     public async Task<bool> RevokeSessionAsync(string sessionId, string? reason = null)
     {
         var session = await GetBySessionIdAsync(sessionId);
-        if (session == null) return false;
+        if (session == null)
+        {
+            return false;
+        }
 
         session.IsRevoked = true;
         session.IsOnline = false;
@@ -151,7 +158,11 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, l
             session.LogoutTime = now;
         }
 
-        if (sessions.Count == 0) return 0;
+        if (sessions.Count == 0)
+        {
+            return 0;
+        }
+
         return await _dbContext.GetClient().Updateable(sessions).ExecuteCommandAsync();
     }
 
@@ -161,7 +172,10 @@ public class SysUserSessionRepository : SqlSugarRepositoryBase<SysUserSession, l
     public async Task<bool> UpdateActivityTimeAsync(string sessionId)
     {
         var session = await GetBySessionIdAsync(sessionId);
-        if (session == null) return false;
+        if (session == null)
+        {
+            return false;
+        }
 
         session.LastActivityTime = DateTimeOffset.Now;
         await UpdateAsync(session);
