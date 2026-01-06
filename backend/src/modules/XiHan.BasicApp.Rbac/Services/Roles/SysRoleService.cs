@@ -471,7 +471,10 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             .Where((up, p) => p.PermissionCode == permissionCode)
             .AnyAsync();
 
-        if (userDeniedPermissions) return false;
+        if (userDeniedPermissions)
+        {
+            return false;
+        }
 
         // 2. 检查用户直接授予的权限
         var userGrantedPermissions = await _dbContext.GetClient()
@@ -483,7 +486,10 @@ public class SysRoleService : CrudApplicationServiceBase<SysRole, RoleDto, long,
             .Where((up, p) => p.PermissionCode == permissionCode)
             .AnyAsync();
 
-        if (userGrantedPermissions) return true;
+        if (userGrantedPermissions)
+        {
+            return true;
+        }
 
         // 3. 检查角色权限（含继承）
         var userPermissions = await GetUserPermissionsAsync(userId);
