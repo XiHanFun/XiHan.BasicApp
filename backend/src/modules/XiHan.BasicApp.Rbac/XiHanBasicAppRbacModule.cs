@@ -96,10 +96,16 @@ public class XiHanBasicAppRbacModule : XiHanModule
             // options.EnableDataSeeding = true;
         });
 
-        // 注册种子数据提供者
-        services.AddDataSeeder<SysRoleSeeder>();
-        services.AddDataSeeder<SysUserSeeder>();
-        services.AddDataSeeder<SysUserRoleSeeder>();
+        // 注册种子数据提供者（按执行顺序注册）
+        services.AddDataSeeder<SysOperationSeeder>();        // Order = 1
+        services.AddDataSeeder<SysResourceSeeder>();          // Order = 2
+        services.AddDataSeeder<SysPermissionSeeder>();        // Order = 3
+        services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 4
+        services.AddDataSeeder<SysRoleSeeder>();              // Order = 10
+        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 15
+        services.AddDataSeeder<SysUserSeeder>();              // Order = 20
+        services.AddDataSeeder<SysMenuSeeder>();              // Order = 25
+        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 30
     }
 
     /// <summary>
