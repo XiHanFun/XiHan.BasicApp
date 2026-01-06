@@ -58,31 +58,69 @@ public class SysUserSeeder : DataSeederBase
 
         var users = new List<SysUser>
         {
+            // 超级管理员
             new()
             {
+                TenantId = null,
                 UserName = "admin",
-                Password = HashHelper.Md5("Admin@123"),
-                RealName = "系统管理员",
+                Password = HashHelper.Sha256("Admin@123"),
+                RealName = "超级管理员",
                 NickName = "Admin",
-                Gender = UserGender.Unknown,
-                Email = "admin@xihan.com",
+                Gender = UserGender.Male,
+                Email = "admin@xihanfun.com",
                 Phone = "13800138000",
                 Avatar = "/assets/avatars/admin.png",
+                Language = "zh-CN",
                 Status = YesOrNo.Yes
             },
+            // 系统管理员
             new()
             {
+                TenantId = null,
+                UserName = "system",
+                Password = HashHelper.Sha256("System@123"),
+                RealName = "系统管理员",
+                NickName = "System",
+                Gender = UserGender.Male,
+                Email = "system@xihanfun.com",
+                Phone = "13800138001",
+                Avatar = "/assets/avatars/system.png",
+                Language = "zh-CN",
+                Status = YesOrNo.Yes
+            },
+            // 测试用户
+            new()
+            {
+                TenantId = null,
                 UserName = "test",
-                Password = HashHelper.Md5("Test@123"),
+                Password = HashHelper.Sha256("Test@123"),
                 RealName = "测试用户",
                 NickName = "Test",
                 Gender = UserGender.Unknown,
-                Email = "test@xihan.com",
-                Phone = "13800138001",
+                Email = "test@xihanfun.com",
+                Phone = "13800138002",
+                Avatar = "/assets/avatars/default.png",
+                Language = "zh-CN",
+                Status = YesOrNo.Yes
+            },
+            // 演示用户
+            new()
+            {
+                TenantId = null,
+                UserName = "demo",
+                Password = HashHelper.Sha256("Demo@123"),
+                RealName = "演示用户",
+                NickName = "Demo",
+                Gender = UserGender.Unknown,
+                Email = "demo@xihanfun.com",
+                Phone = "13800138003",
+                Avatar = "/assets/avatars/default.png",
+                Language = "zh-CN",
                 Status = YesOrNo.Yes
             }
         };
 
         await BulkInsertAsync(users);
+        Logger.LogInformation($"成功初始化 {users.Count} 个系统用户");
     }
 }

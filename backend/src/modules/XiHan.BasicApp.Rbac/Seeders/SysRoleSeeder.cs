@@ -57,38 +57,81 @@ public class SysRoleSeeder : DataSeederBase
 
         var roles = new List<SysRole>
         {
+            // 超级管理员
             new()
             {
-                RoleCode = "SuperAdmin",
+                ParentRoleId = null,
+                RoleCode = "super_admin",
                 RoleName = "超级管理员",
-                RoleDescription = "系统超级管理员，拥有所有权限",
+                RoleDescription = "系统最高权限角色，拥有所有功能权限",
                 RoleType = RoleType.System,
                 DataScope = DataPermissionScope.All,
                 Status = YesOrNo.Yes,
-                Sort = 0
-            },
-            new()
-            {
-                RoleCode = "Admin",
-                RoleName = "管理员",
-                RoleDescription = "系统管理员，拥有大部分管理权限",
-                RoleType = RoleType.System,
-                DataScope = DataPermissionScope.Custom,
-                Status = YesOrNo.Yes,
                 Sort = 1
             },
+            // 系统管理员
             new()
             {
-                RoleCode = "User",
-                RoleName = "普通用户",
-                RoleDescription = "系统普通用户",
+                ParentRoleId = null,
+                RoleCode = "admin",
+                RoleName = "系统管理员",
+                RoleDescription = "系统管理员，拥有系统配置和管理权限",
+                RoleType = RoleType.System,
+                DataScope = DataPermissionScope.All,
+                Status = YesOrNo.Yes,
+                Sort = 2
+            },
+            // 部门管理员
+            new()
+            {
+                ParentRoleId = null,
+                RoleCode = "dept_admin",
+                RoleName = "部门管理员",
+                RoleDescription = "部门管理员，管理本部门及子部门数据",
+                RoleType = RoleType.Custom,
+                DataScope = DataPermissionScope.DepartmentAndChildren,
+                Status = YesOrNo.Yes,
+                Sort = 10
+            },
+            // 部门经理
+            new()
+            {
+                ParentRoleId = null,
+                RoleCode = "dept_manager",
+                RoleName = "部门经理",
+                RoleDescription = "部门经理，管理本部门数据",
+                RoleType = RoleType.Custom,
+                DataScope = DataPermissionScope.DepartmentOnly,
+                Status = YesOrNo.Yes,
+                Sort = 11
+            },
+            // 普通员工
+            new()
+            {
+                ParentRoleId = null,
+                RoleCode = "employee",
+                RoleName = "普通员工",
+                RoleDescription = "普通员工，查看和管理自己的数据",
                 RoleType = RoleType.Custom,
                 DataScope = DataPermissionScope.SelfOnly,
                 Status = YesOrNo.Yes,
-                Sort = 2
+                Sort = 20
+            },
+            // 访客
+            new()
+            {
+                ParentRoleId = null,
+                RoleCode = "guest",
+                RoleName = "访客",
+                RoleDescription = "访客角色，仅拥有基础查看权限",
+                RoleType = RoleType.Custom,
+                DataScope = DataPermissionScope.SelfOnly,
+                Status = YesOrNo.Yes,
+                Sort = 30
             }
         };
 
         await BulkInsertAsync(roles);
+        Logger.LogInformation($"成功初始化 {roles.Count} 个系统角色");
     }
 }

@@ -54,33 +54,49 @@ public class SysUserRoleSeeder : DataSeederBase
             return;
         }
 
-        // 获取用户和角色
-        var adminUser = await DbContext.GetClient().Queryable<SysUser>().FirstAsync(u => u.UserName == "admin");
-        var testUser = await DbContext.GetClient().Queryable<SysUser>().FirstAsync(u => u.UserName == "test");
+        // 获取用户
+        var users = await DbContext.GetClient().Queryable<SysUser>().ToListAsync();
+        var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
 
-        var superAdminRole = await DbContext.GetClient().Queryable<SysRole>().FirstAsync(r => r.RoleCode == "SuperAdmin");
-        var userRole = await DbContext.GetClient().Queryable<SysRole>().FirstAsync(r => r.RoleCode == "User");
-
-        if (adminUser == null || testUser == null || superAdminRole == null || userRole == null)
+        if (users.Count == 0 || roles.Count == 0)
         {
-            Logger.LogWarning("找不到相关用户或角色数据，跳过用户角色关系种子数据");
+            Logger.LogWarning("找不到用户或角色数据，跳过用户角色关系种子数据");
             return;
         }
 
-        var userRoles = new List<SysUserRole>
-        {
-            new()
-            {
-                UserId = adminUser.BasicId,
-                RoleId = superAdminRole.BasicId
-            },
-            new()
-            {
-                UserId = testUser.BasicId,
-                RoleId = userRole.BasicId
-            }
-        };
+        var userMap = users.ToDictionary(u => u.UserName, u => u.BasicId);
+        var roleMap = roles.ToDictionary(r => r.RoleCode, r => r.BasicId);
+
+        var userRoles = new List<SysUserRole>();
+
+        // admin -> super_admin
+        AddUserRole(userRoles, userMap, roleMap, "admin", "super_admin");
+
+        // system -> admin
+        AddUserRole(userRoles, userMap, roleMap, "system", "admin");
+
+        // test -> employee
+        AddUserRole(userRoles, userMap, roleMap, "test", "employee");
+
+        // demo -> guest
+        AddUserRole(userRoles, userMap, roleMap, "demo", "guest");
 
         await BulkInsertAsync(userRoles);
+        Logger.LogInformation($"成功初始化 {userRoles.Count} 个用户角色关系");
+    }
+
+    /// <summary>
+    /// 添加用户角色关系
+    /// </summary>
+    private static void AddUserRole(List<SysUserRole> userRoles, Dictionary<string, long> userMap, Dictionary<string, long> roleMap, string userName, string roleCode)
+    {
+        if (userMap.TryGetValue(userName, out var userId) && roleMap.TryGetValue(roleCode, out var roleId))
+        {
+            userRoles.Add(new SysUserRole
+            {
+                UserId = userId,
+                RoleId = roleId
+            });
+        }
     }
 }
