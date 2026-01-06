@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysMenu.pl
-// Guid:dc28152c-d6e9-4396-addb-b479254bad17
+// FileName:SysResource.pl
+// Guid:7f890123-4567-8901-2345-567890123456
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 3:20:00
+// CreateTime:2026/1/7 10:40:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -17,47 +17,39 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 系统菜单实体扩展
+/// 系统资源实体扩展
 /// </summary>
-public partial class SysMenu
+public partial class SysResource
 {
     /// <summary>
-    /// 关联的资源
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToOne, nameof(ResourceId))]
-    public virtual SysResource? Resource { get; set; }
-
-    /// <summary>
-    /// 父级菜单
+    /// 父资源
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToOne, nameof(ParentId))]
-    public virtual SysMenu? ParentMenu { get; set; }
+    public virtual SysResource? ParentResource { get; set; }
 
     /// <summary>
-    /// 子菜单列表
+    /// 子资源列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
-    public virtual List<SysMenu>? Children { get; set; }
+    public virtual List<SysResource>? ChildResources { get; set; }
 
     /// <summary>
-    /// 角色菜单关联列表
+    /// 关联的菜单列表（一个资源可以被多个菜单引用）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(SysRoleMenu.MenuId))]
-    public virtual List<SysRoleMenu>? RoleMenus { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysMenu.ResourceId))]
+    public virtual List<SysMenu>? Menus { get; set; }
 
     /// <summary>
-    /// 角色列表
+    /// 资源权限列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.MenuId), nameof(SysRoleMenu.RoleId))]
-    public virtual List<SysRole>? Roles { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysPermission.ResourceId))]
+    public virtual List<SysPermission>? Permissions { get; set; }
 }

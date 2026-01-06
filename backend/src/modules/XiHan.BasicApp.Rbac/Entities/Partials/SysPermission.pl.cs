@@ -22,6 +22,22 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysPermission
 {
     /// <summary>
+    /// 关联的资源
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToOne, nameof(ResourceId))]
+    public virtual SysResource? Resource { get; set; }
+
+    /// <summary>
+    /// 关联的操作
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToOne, nameof(OperationId))]
+    public virtual SysOperation? Operation { get; set; }
+
+    /// <summary>
     /// 角色权限关联列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -36,4 +52,20 @@ public partial class SysPermission
     [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(typeof(SysRolePermission), nameof(SysRolePermission.PermissionId), nameof(SysRolePermission.RoleId))]
     public virtual List<SysRole>? Roles { get; set; }
+
+    /// <summary>
+    /// 用户权限关联列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysUserPermission.PermissionId))]
+    public virtual List<SysUserPermission>? UserPermissions { get; set; }
+
+    /// <summary>
+    /// 用户列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(typeof(SysUserPermission), nameof(SysUserPermission.PermissionId), nameof(SysUserPermission.UserId))]
+    public virtual List<SysUser>? Users { get; set; }
 }

@@ -92,4 +92,28 @@ public partial class SysRole
     [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleDataScope.RoleId))]
     public virtual List<SysRoleDataScope>? DataScopes { get; set; }
+
+    /// <summary>
+    /// 作为父角色的继承关系列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.ParentRoleId))]
+    public virtual List<SysRoleHierarchy>? ParentHierarchies { get; set; }
+
+    /// <summary>
+    /// 作为子角色的继承关系列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.ChildRoleId))]
+    public virtual List<SysRoleHierarchy>? ChildHierarchies { get; set; }
+
+    /// <summary>
+    /// 会话角色映射列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysSessionRole.RoleId))]
+    public virtual List<SysSessionRole>? SessionRoles { get; set; }
 }
