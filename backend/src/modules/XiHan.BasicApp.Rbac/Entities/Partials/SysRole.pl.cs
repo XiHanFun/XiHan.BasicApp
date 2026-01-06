@@ -70,22 +70,6 @@ public partial class SysRole
     public virtual List<SysMenu>? Menus { get; set; }
 
     /// <summary>
-    /// 父角色
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToOne, nameof(ParentRoleId))]
-    public virtual SysRole? ParentRole { get; set; }
-
-    /// <summary>
-    /// 子角色列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(ParentRoleId))]
-    public virtual List<SysRole>? ChildRoles { get; set; }
-
-    /// <summary>
     /// 角色自定义数据权限范围列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
