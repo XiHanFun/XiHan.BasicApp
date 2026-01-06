@@ -22,6 +22,14 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysMenu
 {
     /// <summary>
+    /// 关联的资源
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToOne, nameof(ResourceId))]
+    public virtual SysResource? Resource { get; set; }
+
+    /// <summary>
     /// 父级菜单
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]

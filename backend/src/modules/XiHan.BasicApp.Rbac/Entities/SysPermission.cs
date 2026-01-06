@@ -20,21 +20,36 @@ namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
 /// 系统权限实体
+/// 权限 = 资源 + 操作（标准 RBAC 模型）
 /// </summary>
 [SugarTable("Sys_Permission", "系统权限表")]
 [SugarIndex("IX_SysPermission_PermissionCode", nameof(PermissionCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysPermission_Resource_Operation", nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysPermission_ResourceId", nameof(ResourceId), OrderByType.Asc)]
 public partial class SysPermission : RbacFullAuditedEntity<long>
 {
     /// <summary>
-    /// 权限编码
+    /// 资源ID（关联 SysResource 表，必填）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnDescription = "资源ID", IsNullable = false)]
+    public virtual long ResourceId { get; set; }
+
+    /// <summary>
+    /// 操作ID（关联 SysOperation 表，必填）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "操作ID", IsNullable = false)]
+    public virtual long OperationId { get; set; }
+
+    /// <summary>
+    /// 权限编码（唯一标识，格式：资源编码:操作编码，如：user:create, order:view）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "权限编码", Length = 150, IsNullable = false)]
     public virtual string PermissionCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 权限名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnDescription = "权限名称", Length = 200, IsNullable = false)]
     public virtual string PermissionName { get; set; } = string.Empty;
 
     /// <summary>
@@ -44,16 +59,23 @@ public partial class SysPermission : RbacFullAuditedEntity<long>
     public virtual string? PermissionDescription { get; set; }
 
     /// <summary>
-    /// 权限类型
+    /// 权限标签（多个标签用逗号分隔，如：admin,sensitive,audit）
+    /// 用于权限分类和快速筛选
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限类型")]
-    public virtual PermissionType PermissionType { get; set; } = PermissionType.Menu;
+    [SugarColumn(ColumnDescription = "权限标签", Length = 200, IsNullable = true)]
+    public virtual string? Tags { get; set; }
 
     /// <summary>
-    /// 权限值
+    /// 是否需要审计（操作此权限是否需要记录审计日志）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限值", Length = 200, IsNullable = true)]
-    public virtual string? PermissionValue { get; set; }
+    [SugarColumn(ColumnDescription = "是否需要审计")]
+    public virtual bool RequireAudit { get; set; } = false;
+
+    /// <summary>
+    /// 优先级（数字越大优先级越高，用于权限冲突时的决策）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "优先级")]
+    public virtual int Priority { get; set; } = 0;
 
     /// <summary>
     /// 状态
