@@ -38,14 +38,29 @@ public class PermissionDto : RbacFullAuditedDtoBase
     public string? PermissionDescription { get; set; }
 
     /// <summary>
-    /// 权限类型
+    /// 资源ID
     /// </summary>
-    public PermissionType PermissionType { get; set; }
+    public long ResourceId { get; set; }
 
     /// <summary>
-    /// 权限值
+    /// 操作ID
     /// </summary>
-    public string? PermissionValue { get; set; }
+    public long OperationId { get; set; }
+
+    /// <summary>
+    /// 权限标签
+    /// </summary>
+    public string? Tags { get; set; }
+
+    /// <summary>
+    /// 是否需要审计
+    /// </summary>
+    public bool RequireAudit { get; set; }
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int Priority { get; set; }
 
     /// <summary>
     /// 状态
@@ -84,14 +99,29 @@ public class CreatePermissionDto : RbacCreationDtoBase
     public string? PermissionDescription { get; set; }
 
     /// <summary>
-    /// 权限类型
+    /// 资源ID
     /// </summary>
-    public PermissionType PermissionType { get; set; } = PermissionType.Menu;
+    public long ResourceId { get; set; }
 
     /// <summary>
-    /// 权限值
+    /// 操作ID
     /// </summary>
-    public string? PermissionValue { get; set; }
+    public long OperationId { get; set; }
+
+    /// <summary>
+    /// 权限标签
+    /// </summary>
+    public string? Tags { get; set; }
+
+    /// <summary>
+    /// 是否需要审计
+    /// </summary>
+    public bool RequireAudit { get; set; } = false;
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int Priority { get; set; } = 0;
 
     /// <summary>
     /// 排序
@@ -120,14 +150,29 @@ public class UpdatePermissionDto : RbacUpdateDtoBase
     public string? PermissionDescription { get; set; }
 
     /// <summary>
-    /// 权限类型
+    /// 资源ID
     /// </summary>
-    public PermissionType? PermissionType { get; set; }
+    public long? ResourceId { get; set; }
 
     /// <summary>
-    /// 权限值
+    /// 操作ID
     /// </summary>
-    public string? PermissionValue { get; set; }
+    public long? OperationId { get; set; }
+
+    /// <summary>
+    /// 权限标签
+    /// </summary>
+    public string? Tags { get; set; }
+
+    /// <summary>
+    /// 是否需要审计
+    /// </summary>
+    public bool? RequireAudit { get; set; }
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int? Priority { get; set; }
 
     /// <summary>
     /// 状态

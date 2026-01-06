@@ -63,7 +63,7 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, long,
             Path = input.Path,
             Component = input.Component,
             Icon = input.Icon,
-            Permission = input.Permission,
+            ResourceId = input.ResourceId,
             IsExternal = input.IsExternal,
             IsCache = input.IsCache,
             IsVisible = input.IsVisible,
@@ -115,9 +115,9 @@ public class SysMenuService : CrudApplicationServiceBase<SysMenu, MenuDto, long,
             menu.Icon = input.Icon;
         }
 
-        if (input.Permission != null)
+        if (input.ResourceId.HasValue)
         {
-            menu.Permission = input.Permission;
+            menu.ResourceId = input.ResourceId;
         }
 
         if (input.IsExternal.HasValue)

@@ -58,9 +58,9 @@ public class MenuDto : RbacFullAuditedDtoBase
     public string? Icon { get; set; }
 
     /// <summary>
-    /// 权限标识
+    /// 关联资源ID
     /// </summary>
-    public string? Permission { get; set; }
+    public long? ResourceId { get; set; }
 
     /// <summary>
     /// 是否外链
@@ -145,9 +145,9 @@ public class CreateMenuDto : RbacCreationDtoBase
     public string? Icon { get; set; }
 
     /// <summary>
-    /// 权限标识
+    /// 关联资源ID
     /// </summary>
-    public string? Permission { get; set; }
+    public long? ResourceId { get; set; }
 
     /// <summary>
     /// 是否外链
@@ -211,9 +211,9 @@ public class UpdateMenuDto : RbacUpdateDtoBase
     public string? Icon { get; set; }
 
     /// <summary>
-    /// 权限标识
+    /// 关联资源ID
     /// </summary>
-    public string? Permission { get; set; }
+    public long? ResourceId { get; set; }
 
     /// <summary>
     /// 是否外链

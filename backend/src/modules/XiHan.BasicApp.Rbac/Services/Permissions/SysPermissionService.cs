@@ -59,8 +59,11 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
             PermissionCode = input.PermissionCode,
             PermissionName = input.PermissionName,
             PermissionDescription = input.PermissionDescription,
-            PermissionType = input.PermissionType,
-            PermissionValue = input.PermissionValue,
+            ResourceId = input.ResourceId,
+            OperationId = input.OperationId,
+            Tags = input.Tags,
+            RequireAudit = input.RequireAudit,
+            Priority = input.Priority,
             Sort = input.Sort,
             Remark = input.Remark
         };
@@ -89,14 +92,29 @@ public class SysPermissionService : CrudApplicationServiceBase<SysPermission, Pe
             permission.PermissionDescription = input.PermissionDescription;
         }
 
-        if (input.PermissionType.HasValue)
+        if (input.ResourceId.HasValue)
         {
-            permission.PermissionType = input.PermissionType.Value;
+            permission.ResourceId = input.ResourceId.Value;
         }
 
-        if (input.PermissionValue != null)
+        if (input.OperationId.HasValue)
         {
-            permission.PermissionValue = input.PermissionValue;
+            permission.OperationId = input.OperationId.Value;
+        }
+
+        if (input.Tags != null)
+        {
+            permission.Tags = input.Tags;
+        }
+
+        if (input.RequireAudit.HasValue)
+        {
+            permission.RequireAudit = input.RequireAudit.Value;
+        }
+
+        if (input.Priority.HasValue)
+        {
+            permission.Priority = input.Priority.Value;
         }
 
         if (input.Status.HasValue)
