@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
+using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -26,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysPermission_PermissionCode", nameof(PermissionCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysPermission_Resource_Operation", nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysPermission_ResourceId", nameof(ResourceId), OrderByType.Asc)]
-public partial class SysPermission : RbacFullAuditedEntity<long>
+public partial class SysPermission : AggregateRootBase<long>
 {
     /// <summary>
     /// 资源ID（关联 SysResource 表，必填）

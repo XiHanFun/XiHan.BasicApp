@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
+using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Role", "系统角色表")]
 [SugarIndex("IX_SysRole_RoleCode", nameof(RoleCode), OrderByType.Asc, true)]
-public partial class SysRole : RbacFullAuditedEntity<long>
+public partial class SysRole : AggregateRootBase<long>
 {
     /// <summary>
     /// 角色编码
