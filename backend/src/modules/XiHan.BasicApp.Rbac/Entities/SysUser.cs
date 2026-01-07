@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Rbac.Enums;
+using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -26,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUser_Email", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Phone", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysUser : RbacFullAuditedEntity<long>
+public partial class SysUser : AggregateRootBase<long>
 {
     /// <summary>
     /// 租户ID

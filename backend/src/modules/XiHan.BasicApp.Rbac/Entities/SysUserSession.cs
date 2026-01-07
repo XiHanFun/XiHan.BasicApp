@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
+using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -25,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserSession_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_Token", nameof(Token), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserSession_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
-public partial class SysUserSession : RbacFullAuditedEntity<long>
+public partial class SysUserSession : AggregateRootBase<long>
 {
     /// <summary>
     /// 用户ID

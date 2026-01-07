@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
+using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -28,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysAudit_BusinessType", nameof(BusinessType), OrderByType.Asc)]
 [SugarIndex("IX_SysAudit_SubmitTime", nameof(SubmitTime), OrderByType.Desc)]
 [SugarIndex("IX_SysAudit_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysAudit : RbacFullAuditedEntity<long>
+public partial class SysAudit : AggregateRootBase<long>
 {
     /// <summary>
     /// 租户ID
