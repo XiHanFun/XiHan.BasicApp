@@ -12,19 +12,15 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Extensions;
-using XiHan.BasicApp.Rbac.Seeders;
-using XiHan.BasicApp.Rbac.Services.Domain;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.Data.SqlSugar.Options;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Utils.Reflections;
@@ -52,24 +48,6 @@ public class XiHanBasicAppRbacModule : XiHanModule
     {
         var services = context.Services;
 
-        // 1. 注册基础设施（Repositories）
-        services.AddRbacRepositories();
-
-        // 2. 注册领域服务（Domain Layer）
-        services.AddScoped<UserDomainService>();
-        services.AddScoped<RoleDomainService>();
-        services.AddScoped<PermissionDomainService>();
-        services.AddScoped<MenuDomainService>();
-        services.AddScoped<DepartmentDomainService>();
-        services.AddScoped<TenantDomainService>();
-        services.AddScoped<AuthorizationDomainService>();  // 新增：处理授权和数据权限过滤
-
-        // 3. 注册应用服务（Application Layer）
-        services.AddRbacServices();
-
-        // 4. 注册基础设施适配器（Infrastructure Layer）
-        RegisterInfrastructureAdapters(services);
-
         // 配置SqlSugar选项
         var config = services.GetConfiguration().GetSection("XiHanSqlSugarCore");
 
@@ -89,16 +67,20 @@ public class XiHanBasicAppRbacModule : XiHanModule
             // options.EnableDataSeeding = true;
         });
 
-        // 注册种子数据提供者（按执行顺序注册）
-        services.AddDataSeeder<SysOperationSeeder>();        // Order = 1
-        services.AddDataSeeder<SysResourceSeeder>();          // Order = 2
-        services.AddDataSeeder<SysPermissionSeeder>();        // Order = 3
-        services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 4
-        services.AddDataSeeder<SysRoleSeeder>();              // Order = 10
-        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 15
-        services.AddDataSeeder<SysUserSeeder>();              // Order = 20
-        services.AddDataSeeder<SysMenuSeeder>();              // Order = 25
-        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 30
+        // 1. 注册基础设施（Repositories）
+        services.AddRbacRepositories();
+
+        // 2. 注册领域服务（Domain Layer）
+        services.AddRbacDomainServices();
+
+        // 3. 注册应用服务（Application Layer）
+        services.AddRbacApplicationServices();
+
+        // 4. 注册基础设施适配器（Infrastructure Layer）
+        services.AddRbacInfrastructureAdapters();
+
+        // 5. 注册数据种子提供者
+        services.AddRbacDataSeeders();
     }
 
     /// <summary>
@@ -111,29 +93,8 @@ public class XiHanBasicAppRbacModule : XiHanModule
         var app = context.GetApplicationBuilder();
         AsyncHelper.RunSync(async () =>
         {
+            // 进行数据库初始化
             await app.UseDbInitializerAsync(initialize: true);
         });
-    }
-
-    /// <summary>
-    /// 注册基础设施适配器
-    /// </summary>
-    /// <remarks>
-    /// Adapters 属于基础设施层，作为防腐层（Anti-Corruption Layer）隔离框架接口和领域模型
-    /// 所有适配器只做接口转换，不包含业务逻辑，完全委托给 Domain Services 和 Application Services
-    /// </remarks>
-    /// <param name="services"></param>
-    private static void RegisterInfrastructureAdapters(IServiceCollection services)
-    {
-        // 暂时注释掉，稍后创建极简实现
-        // 认证适配器
-        // services.AddScoped<IAuthenticationService, RbacAuthenticationService>();
-
-        // 授权适配器
-        // services.AddScoped<IPermissionStore, RbacPermissionStore>();
-        // services.AddScoped<IRoleStore, RbacRoleStore>();
-        // services.AddScoped<IRoleManager, RbacRoleManager>();
-        // services.AddSingleton<IPolicyStore, RbacPolicyStore>();
-        // services.AddScoped<IPolicyEvaluator, RbacPolicyEvaluator>();
     }
 }
