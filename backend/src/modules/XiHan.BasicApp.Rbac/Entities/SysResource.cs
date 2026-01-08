@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -27,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysResource_ResourceCode", nameof(ResourceCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysResource_ParentId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_ResourceType", nameof(ResourceType), OrderByType.Asc)]
-public partial class SysResource : AuditedAggregateRoot<long>
+public partial class SysResource : RbacAggregateRoot<long>
 {
     /// <summary>
     /// 父资源ID（支持资源树结构）

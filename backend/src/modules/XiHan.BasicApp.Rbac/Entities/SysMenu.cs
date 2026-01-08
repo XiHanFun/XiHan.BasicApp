@@ -14,9 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
-
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -29,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_ResourceId", nameof(ResourceId), OrderByType.Asc)]
-public partial class SysMenu : AuditedAggregateRoot<long>
+public partial class SysMenu : RbacAggregateRoot<long>
 {
     /// <summary>
     /// 关联资源ID（每个菜单对应一个资源，可为空表示纯展示菜单）

@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -28,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysSms_SmsType", nameof(SmsType), OrderByType.Asc)]
 [SugarIndex("IX_SysSms_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysSms_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysSms : AuditedAggregateRoot<long>
+public partial class SysSms : RbacAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID

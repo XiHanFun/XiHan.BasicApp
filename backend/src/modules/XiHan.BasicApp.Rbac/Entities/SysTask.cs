@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Domain.Aggregates;
 using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -29,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysTask : AuditedAggregateRoot<long>
+public partial class SysTask : RbacAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID

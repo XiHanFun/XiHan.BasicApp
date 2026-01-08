@@ -23,7 +23,6 @@ namespace XiHan.BasicApp.Rbac.Services.Domain;
 /// 部门领域服务
 /// 处理部门相关的业务逻辑（部门树构建、部门验证等）
 /// </summary>
-/// <remarks>
 public class DepartmentDomainService : DomainService
 {
     private readonly IDepartmentRepository _departmentRepository;
