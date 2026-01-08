@@ -128,7 +128,7 @@ public class RoleDomainService : DomainService
         var parentRoles = await _roleRepository.GetParentRolesAsync(roleId, cancellationToken);
         foreach (var parentRole in parentRoles)
         {
-            var parentPermissions = await _permissionRepository.GetByRoleIdAsync(parentRole.BaseId, cancellationToken);
+            var parentPermissions = await _permissionRepository.GetByRoleIdAsync(parentRole.BasicId, cancellationToken);
             foreach (var permission in parentPermissions)
             {
                 allPermissions.Add(permission);
@@ -162,7 +162,7 @@ public class RoleDomainService : DomainService
         var parentRoles = await _roleRepository.GetParentRolesAsync(roleId, cancellationToken);
         foreach (var parentRole in parentRoles)
         {
-            var parentMenus = await _menuRepository.GetByRoleIdAsync(parentRole.BaseId, cancellationToken);
+            var parentMenus = await _menuRepository.GetByRoleIdAsync(parentRole.BasicId, cancellationToken);
             foreach (var menu in parentMenus)
             {
                 allMenus.Add(menu);

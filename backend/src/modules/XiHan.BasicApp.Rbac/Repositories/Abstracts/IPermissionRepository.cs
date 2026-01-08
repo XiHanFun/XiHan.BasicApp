@@ -64,14 +64,6 @@ public interface IPermissionRepository : IAggregateRootRepository<SysPermission,
     Task<List<SysPermission>> GetByResourceIdAsync(long resourceId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 批量获取权限
-    /// </summary>
-    /// <param name="permissionIds">权限ID列表</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>权限列表</returns>
-    Task<List<SysPermission>> GetByIdsAsync(List<long> permissionIds, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 根据权限编码批量获取权限
     /// </summary>
     /// <param name="permissionCodes">权限编码列表</param>

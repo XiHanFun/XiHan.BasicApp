@@ -67,7 +67,7 @@ public partial class SysLoginLog : RbacFullAuditedEntity<long>
     /// 登录状态
     /// </summary>
     [SugarColumn(ColumnDescription = "登录状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual LoginResult Result { get; set; } = LoginResult.Success;
 
     /// <summary>
     /// 登录消息

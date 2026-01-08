@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Dict", "系统字典表")]
 [SugarIndex("IX_SysDict_DictCode", nameof(DictCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDict_DictType", nameof(DictType), OrderByType.Asc)]
-public partial class SysDict : AggregateRootBase<long>
+public partial class SysDict : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 字典编码

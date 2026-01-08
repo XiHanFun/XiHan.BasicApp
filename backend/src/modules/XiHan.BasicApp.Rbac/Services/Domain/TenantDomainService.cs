@@ -106,7 +106,7 @@ public class TenantDomainService : DomainService
             return false;
         }
 
-        var userCount = await _tenantRepository.GetTenantUserCountAsync(tenantId, cancellationToken);
+        var userCount = await _tenantRepository.GetUserCountAsync(tenantId, cancellationToken);
         var isExceeded = userCount >= tenant.UserLimit.Value;
 
         if (isExceeded)
@@ -134,7 +134,7 @@ public class TenantDomainService : DomainService
             return false;
         }
 
-        var usedStorage = await _tenantRepository.GetTenantUsedStorageAsync(tenantId, cancellationToken);
+        var usedStorage = await _tenantRepository.GetUsedStorageAsync(tenantId, cancellationToken);
         var isExceeded = usedStorage >= tenant.StorageLimit.Value;
 
         if (isExceeded)
@@ -160,7 +160,7 @@ public class TenantDomainService : DomainService
             return null; // 无限制
         }
 
-        var userCount = await _tenantRepository.GetTenantUserCountAsync(tenantId, cancellationToken);
+        var userCount = await _tenantRepository.GetUserCountAsync(tenantId, cancellationToken);
         return Math.Max(0, tenant.UserLimit.Value - userCount);
     }
 
@@ -178,7 +178,7 @@ public class TenantDomainService : DomainService
             return null; // 无限制
         }
 
-        var usedStorage = await _tenantRepository.GetTenantUsedStorageAsync(tenantId, cancellationToken);
+        var usedStorage = await _tenantRepository.GetUsedStorageAsync(tenantId, cancellationToken);
         return Math.Max(0, tenant.StorageLimit.Value - usedStorage);
     }
 
@@ -200,7 +200,7 @@ public class TenantDomainService : DomainService
         }
 
         // 检查租户下是否还有用户
-        var userCount = await _tenantRepository.GetTenantUserCountAsync(tenantId, cancellationToken);
+        var userCount = await _tenantRepository.GetUserCountAsync(tenantId, cancellationToken);
         if (userCount > 0)
         {
             throw new InvalidOperationException($"租户下还有 {userCount} 个用户，无法删除");

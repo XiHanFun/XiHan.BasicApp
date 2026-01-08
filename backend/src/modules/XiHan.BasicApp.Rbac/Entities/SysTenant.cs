@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Tenant", "系统租户表")]
 [SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
-public partial class SysTenant : AggregateRootBase<long>
+public partial class SysTenant : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户编码

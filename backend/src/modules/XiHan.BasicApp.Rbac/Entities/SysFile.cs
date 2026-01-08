@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysFile : AggregateRootBase<long>
+public partial class SysFile : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID

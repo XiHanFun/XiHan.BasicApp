@@ -52,7 +52,7 @@ public interface IConfigRepository : IAggregateRootRepository<SysConfig, long>
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>配置字典（Key-Value）</returns>
-    Task<Dictionary<string, string>> GetAllConfigsAsync(CancellationToken cancellationToken = default);
+    Task<Dictionary<string, string?>> GetAllConfigsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 批量更新配置

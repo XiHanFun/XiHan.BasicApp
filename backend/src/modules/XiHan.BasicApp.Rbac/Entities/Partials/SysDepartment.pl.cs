@@ -60,4 +60,12 @@ public partial class SysDepartment
     [System.Text.Json.Serialization.JsonIgnore]
     [Navigate(typeof(SysUserDepartment), nameof(SysUserDepartment.DepartmentId), nameof(SysUserDepartment.UserId))]
     public virtual List<SysUser>? Users { get; set; }
+
+    /// <summary>
+    /// 部门审计日志列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.DepartmentId))]
+    public virtual List<SysAuditLog>? AuditLogs { get; set; }
 }

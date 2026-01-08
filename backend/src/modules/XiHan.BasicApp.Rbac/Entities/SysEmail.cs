@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysEmail_EmailType", nameof(EmailType), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysEmail_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysEmail : AggregateRootBase<long>
+public partial class SysEmail : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID

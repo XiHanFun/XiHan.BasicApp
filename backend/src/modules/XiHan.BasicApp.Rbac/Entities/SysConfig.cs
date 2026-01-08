@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysConfig_ConfigKey", nameof(ConfigKey), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConfig_ConfigType", nameof(ConfigType), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysConfig : AggregateRootBase<long>
+public partial class SysConfig : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID
@@ -35,16 +35,22 @@ public partial class SysConfig : AggregateRootBase<long>
     public virtual long? TenantId { get; set; }
 
     /// <summary>
-    /// 配置键
-    /// </summary>
-    [SugarColumn(ColumnDescription = "配置键", Length = 100, IsNullable = false)]
-    public virtual string ConfigKey { get; set; } = string.Empty;
-
-    /// <summary>
     /// 配置名称
     /// </summary>
     [SugarColumn(ColumnDescription = "配置名称", Length = 100, IsNullable = false)]
     public virtual string ConfigName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 配置分组
+    /// </summary>
+    [SugarColumn(ColumnDescription = "配置分组", Length = 100, IsNullable = true)]
+    public virtual string? ConfigGroup { get; set; }
+
+    /// <summary>
+    /// 配置键
+    /// </summary>
+    [SugarColumn(ColumnDescription = "配置键", Length = 100, IsNullable = false)]
+    public virtual string ConfigKey { get; set; } = string.Empty;
 
     /// <summary>
     /// 配置值

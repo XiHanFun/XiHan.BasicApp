@@ -49,13 +49,12 @@ public interface IResourceRepository : IAggregateRootRepository<SysResource, lon
     Task<List<SysResource>> GetByResourceTypeAsync(ResourceType resourceType, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 根据API路径查询资源
+    /// 根据路径查询资源
     /// </summary>
-    /// <param name="apiPath">API路径</param>
-    /// <param name="httpMethod">HTTP方法</param>
+    /// <param name="apiPath">路径</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>资源实体</returns>
-    Task<SysResource?> GetByApiPathAsync(string apiPath, string? httpMethod = null, CancellationToken cancellationToken = default);
+    Task<SysResource?> GetByApiPathAsync(string apiPath, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取用户可访问的资源
@@ -74,12 +73,4 @@ public interface IResourceRepository : IAggregateRootRepository<SysResource, lon
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>资源列表</returns>
     Task<List<SysResource>> GetByRoleIdAsync(long roleId, ResourceType? resourceType = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 批量获取资源
-    /// </summary>
-    /// <param name="resourceIds">资源ID列表</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>资源列表</returns>
-    Task<List<SysResource>> GetByIdsAsync(List<long> resourceIds, CancellationToken cancellationToken = default);
 }
