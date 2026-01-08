@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -25,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Tenant", "系统租户表")]
 [SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
-public partial class SysTenant : AuditedAggregateRoot<long>
+public partial class SysTenant : RbacAggregateRoot<long>
 {
     /// <summary>
     /// 租户编码

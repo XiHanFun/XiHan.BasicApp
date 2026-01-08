@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.Framework.Data.SqlSugar.Aggregates;
 using XiHan.Framework.Data.SqlSugar.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities.Base;
@@ -95,6 +96,30 @@ public abstract class RbacFullAuditedEntity<TKey> : SugarFullAuditedEntity<TKey>
     /// </summary>
     /// <param name="basicId"></param>
     protected RbacFullAuditedEntity(TKey basicId)
+        : base(basicId)
+    {
+    }
+}
+
+/// <summary>
+/// Rbac 聚合根基类
+/// </summary>
+/// <typeparam name="TKey">主键类型</typeparam>
+public abstract class RbacAggregateRoot<TKey> : SugarAggregateRoot<TKey>
+    where TKey : IEquatable<TKey>
+{
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    protected RbacAggregateRoot()
+    {
+    }
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="basicId"></param>
+    protected RbacAggregateRoot(TKey basicId)
         : base(basicId)
     {
     }

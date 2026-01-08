@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using XiHan.Framework.Domain.Aggregates;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -25,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Dict", "系统字典表")]
 [SugarIndex("IX_SysDict_DictCode", nameof(DictCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDict_DictType", nameof(DictType), OrderByType.Asc)]
-public partial class SysDict : AuditedAggregateRoot<long>
+public partial class SysDict : RbacAggregateRoot<long>
 {
     /// <summary>
     /// 字典编码
