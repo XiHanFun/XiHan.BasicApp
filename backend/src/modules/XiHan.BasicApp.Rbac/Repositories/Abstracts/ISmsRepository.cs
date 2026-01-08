@@ -52,10 +52,9 @@ public interface ISmsRepository : IAggregateRootRepository<SysSms, long>
     /// <param name="smsId">短信ID</param>
     /// <param name="smsStatus">发送状态</param>
     /// <param name="sendTime">发送时间</param>
-    /// <param name="sendResult">发送结果</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>是否成功</returns>
-    Task<bool> UpdateSendStatusAsync(long smsId, SmsStatus smsStatus, DateTimeOffset? sendTime, string? sendResult, CancellationToken cancellationToken = default);
+    Task<bool> UpdateSendStatusAsync(long smsId, SmsStatus smsStatus, DateTimeOffset? sendTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取指定时间段内的短信列表

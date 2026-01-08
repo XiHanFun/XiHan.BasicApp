@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Domain.Repositories;
 
 namespace XiHan.BasicApp.Rbac.Repositories.Abstracts;
@@ -60,7 +61,7 @@ public interface IFileRepository : IAggregateRootRepository<SysFile, long>
     /// <param name="fileType">文件类型</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>文件列表</returns>
-    Task<List<SysFile>> GetByFileTypeAsync(string fileType, CancellationToken cancellationToken = default);
+    Task<List<SysFile>> GetByFileTypeAsync(FileType fileType, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取指定时间段内的文件列表

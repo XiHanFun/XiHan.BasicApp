@@ -203,9 +203,9 @@ public class UserDomainService : DomainService
 
         // 检查用户数量限制
         var userCount = await _tenantRepository.GetUserCountAsync(tenantId, cancellationToken);
-        if (tenant.MaxUsers.HasValue && userCount >= tenant.MaxUsers.Value)
+        if (tenant.UserLimit.HasValue && userCount >= tenant.UserLimit.Value)
         {
-            throw new InvalidOperationException($"租户用户数量已达上限 ({tenant.MaxUsers.Value})");
+            throw new InvalidOperationException($"租户用户数量已达上限 ({tenant.UserLimit.Value})");
         }
 
         return true;

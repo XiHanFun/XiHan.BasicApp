@@ -34,10 +34,10 @@ public interface IEmailRepository : IAggregateRootRepository<SysEmail, long>
     /// <summary>
     /// 根据发送状态获取邮件列表
     /// </summary>
-    /// <param name="smsStatus">发送状态</param>
+    /// <param name="emailStatus">发送状态</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>邮件列表</returns>
-    Task<List<SysEmail>> GetBySendStatusAsync(SmsStatus smsStatus, CancellationToken cancellationToken = default);
+    Task<List<SysEmail>> GetBySendStatusAsync(EmailStatus emailStatus, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取待发送的邮件列表
@@ -50,12 +50,11 @@ public interface IEmailRepository : IAggregateRootRepository<SysEmail, long>
     /// 更新邮件发送状态
     /// </summary>
     /// <param name="emailId">邮件ID</param>
-    /// <param name="smsStatus">发送状态</param>
+    /// <param name="emailStatus">发送状态</param>
     /// <param name="sendTime">发送时间</param>
-    /// <param name="sendResult">发送结果</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>是否成功</returns>
-    Task<bool> UpdateSendStatusAsync(long emailId, SmsStatus smsStatus, DateTimeOffset? sendTime, string? sendResult, CancellationToken cancellationToken = default);
+    Task<bool> UpdateSendStatusAsync(long emailId, EmailStatus emailStatus, DateTimeOffset? sendTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取指定时间段内的邮件列表

@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysResource_ResourceCode", nameof(ResourceCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysResource_ParentId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_ResourceType", nameof(ResourceType), OrderByType.Asc)]
-public partial class SysResource : AggregateRootBase<long>
+public partial class SysResource : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 父资源ID（支持资源树结构）

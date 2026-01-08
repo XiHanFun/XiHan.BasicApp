@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Domain.Repositories;
 
 namespace XiHan.BasicApp.Rbac.Repositories.Abstracts;
@@ -36,7 +37,7 @@ public interface IOperationLogRepository : IRepositoryBase<SysOperationLog, long
     /// <param name="operationType">操作类型</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>操作日志列表</returns>
-    Task<List<SysOperationLog>> GetByOperationTypeAsync(string operationType, CancellationToken cancellationToken = default);
+    Task<List<SysOperationLog>> GetByOperationTypeAsync(OperationType operationType, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取指定时间段内的操作日志

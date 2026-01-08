@@ -86,12 +86,28 @@ public partial class SysTenant
     public virtual List<SysUserStatistics>? UserStatistics { get; set; }
 
     /// <summary>
-    /// 租户审核列表
+    /// 租户审查列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(SysAudit.TenantId))]
-    public virtual List<SysAudit>? Audits { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysReview.TenantId))]
+    public virtual List<SysReview>? Reviews { get; set; }
+
+    /// <summary>
+    /// 租户审查日志列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysReviewLog.TenantId))]
+    public virtual List<SysReviewLog>? ReviewLogs { get; set; }
+
+    /// <summary>
+    /// 租户审计日志列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.TenantId))]
+    public virtual List<SysAuditLog>? AuditLogs { get; set; }
 
     /// <summary>
     /// 租户访问日志列表

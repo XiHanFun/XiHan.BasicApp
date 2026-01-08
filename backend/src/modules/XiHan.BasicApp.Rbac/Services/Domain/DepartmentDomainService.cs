@@ -86,11 +86,13 @@ public class DepartmentDomainService : DomainService
     /// <param name="parentId">父部门ID（null为根节点）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>部门树</returns>
-    public async Task<List<SysDepartment>> BuildDepartmentTreeAsync(long? parentId = null, CancellationToken cancellationToken = default)
+    public async Task<List<SysDepartment>> BuildDepartmentTreeAsync(long? parentId, CancellationToken cancellationToken = default)
     {
         LogDomainOperation(nameof(BuildDepartmentTreeAsync), new { parentId });
 
-        var departments = await _departmentRepository.GetByParentIdAsync(parentId);
+        parentId ??= 0;
+
+        var departments = await _departmentRepository.GetByParentIdAsync(parentId.Value);
 
         // 递归构建子部门（注意：实际实现中可能需要优化递归深度）
         foreach (var department in departments)

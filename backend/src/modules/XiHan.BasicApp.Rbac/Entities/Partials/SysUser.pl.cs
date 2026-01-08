@@ -150,27 +150,35 @@ public partial class SysUser
     public virtual List<SysUserStatistics>? UserStatistics { get; set; }
 
     /// <summary>
-    /// 提交审核列表
+    /// 提交审查列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(SysAudit.SubmitterId))]
-    public virtual List<SysAudit>? SubmittedAudits { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysReview.SubmitterId))]
+    public virtual List<SysReview>? SubmittedReviews { get; set; }
 
     /// <summary>
-    /// 审核列表
+    /// 当前审查列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(SysAudit.AuditorId))]
-    public virtual List<SysAudit>? AuditedItems { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysReview.CurrentReviewerId))]
+    public virtual List<SysReview>? CurrentReviews { get; set; }
 
     /// <summary>
-    /// 审核日志列表
+    /// 审查日志列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.AuditorId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysReviewLog.ReviewerId))]
+    public virtual List<SysReviewLog>? ReviewLogs { get; set; }
+
+    /// <summary>
+    /// 审计日志列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.UserId))]
     public virtual List<SysAuditLog>? AuditLogs { get; set; }
 
     /// <summary>

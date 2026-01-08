@@ -15,7 +15,7 @@
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Domain.Repositories;
 
-namespace XiHan.BasicApp.Rbac.Repositories.Abstracts.Logs;
+namespace XiHan.BasicApp.Rbac.Repositories.Abstracts;
 
 /// <summary>
 /// 访问日志仓储接口
@@ -33,10 +33,10 @@ public interface IAccessLogRepository : IRepositoryBase<SysAccessLog, long>
     /// <summary>
     /// 根据访问路径获取日志
     /// </summary>
-    /// <param name="accessPath">访问路径</param>
+    /// <param name="resourcePath">访问路径</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>访问日志列表</returns>
-    Task<List<SysAccessLog>> GetByAccessPathAsync(string accessPath, CancellationToken cancellationToken = default);
+    Task<List<SysAccessLog>> GetByResourcePathAsync(string resourcePath, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 根据IP地址获取访问日志

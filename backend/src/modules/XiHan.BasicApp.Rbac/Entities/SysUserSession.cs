@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserSession_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_Token", nameof(Token), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserSession_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
-public partial class SysUserSession : AggregateRootBase<long>
+public partial class SysUserSession : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 用户ID

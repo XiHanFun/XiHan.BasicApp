@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysTask : AggregateRootBase<long>
+public partial class SysTask : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID

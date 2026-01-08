@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Department", "系统部门表")]
 [SugarIndex("IX_SysDepartment_DepartmentCode", nameof(DepartmentCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDepartment_ParentId", nameof(ParentId), OrderByType.Asc)]
-public partial class SysDepartment : AggregateRootBase<long>
+public partial class SysDepartment : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 父级部门ID

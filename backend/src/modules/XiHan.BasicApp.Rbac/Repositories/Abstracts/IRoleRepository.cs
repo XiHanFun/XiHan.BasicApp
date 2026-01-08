@@ -80,14 +80,6 @@ public interface IRoleRepository : IAggregateRootRepository<SysRole, long>
     Task<List<SysRole>> GetChildRolesAsync(long roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 批量获取角色
-    /// </summary>
-    /// <param name="roleIds">角色ID列表</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色列表</returns>
-    Task<List<SysRole>> GetByIdsAsync(List<long> roleIds, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 根据用户ID获取角色列表
     /// </summary>
     /// <param name="userId">用户ID</param>

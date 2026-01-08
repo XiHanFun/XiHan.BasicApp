@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysNotification_NotificationStatus", nameof(NotificationStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SendTime", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysNotification_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysNotification : AggregateRootBase<long>
+public partial class SysNotification : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 租户ID

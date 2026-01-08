@@ -70,4 +70,12 @@ public interface ITenantRepository : IAggregateRootRepository<SysTenant, long>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户数量</returns>
     Task<int> GetUserCountAsync(long tenantId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取租户已使用的存储空间大小（MB）
+    /// </summary>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已使用的存储空间大小（MB）</returns>
+    Task<long> GetUsedStorageAsync(long tenantId, CancellationToken cancellationToken = default);
 }

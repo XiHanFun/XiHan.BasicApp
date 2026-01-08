@@ -58,10 +58,10 @@ public interface IApiLogRepository : IRepositoryBase<SysApiLog, long>
     /// <summary>
     /// 获取慢查询日志（执行时间超过指定毫秒数）
     /// </summary>
-    /// <param name="minDuration">最小执行时间（毫秒）</param>
+    /// <param name="minExecutionTime">最小执行时间（毫秒）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>API日志列表</returns>
-    Task<List<SysApiLog>> GetSlowLogsAsync(long minDuration, CancellationToken cancellationToken = default);
+    Task<List<SysApiLog>> GetSlowLogsAsync(long minExecutionTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 批量插入API日志

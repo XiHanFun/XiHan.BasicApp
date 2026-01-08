@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Role", "系统角色表")]
 [SugarIndex("IX_SysRole_RoleCode", nameof(RoleCode), OrderByType.Asc, true)]
-public partial class SysRole : AggregateRootBase<long>
+public partial class SysRole : AuditedAggregateRoot<long>
 {
     /// <summary>
     /// 角色编码
