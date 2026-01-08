@@ -24,9 +24,6 @@ namespace XiHan.BasicApp.Rbac.Services.Domain;
 /// 处理部门相关的业务逻辑（部门树构建、部门验证等）
 /// </summary>
 /// <remarks>
-/// 从 DepartmentManager 迁移的逻辑
-/// TODO: 后续需要更新为新的 IDepartmentRepository 接口
-/// </remarks>
 public class DepartmentDomainService : DomainService
 {
     private readonly IDepartmentRepository _departmentRepository;

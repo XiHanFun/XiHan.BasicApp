@@ -24,9 +24,6 @@ namespace XiHan.BasicApp.Rbac.Services.Domain;
 /// 租户领域服务
 /// 处理租户相关的业务逻辑（租户验证、限额检查等）
 /// </summary>
-/// <remarks>
-/// 从 TenantManager 迁移的逻辑
-/// </remarks>
 public class TenantDomainService : DomainService
 {
     private readonly ITenantRepository _tenantRepository;

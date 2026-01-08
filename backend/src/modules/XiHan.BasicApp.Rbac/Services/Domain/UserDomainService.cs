@@ -24,9 +24,6 @@ namespace XiHan.BasicApp.Rbac.Services.Domain;
 /// 用户领域服务
 /// 处理用户相关的跨聚合业务逻辑
 /// </summary>
-/// <remarks>
-/// 包含从 UserManager 迁移的验证逻辑
-/// </remarks>
 public class UserDomainService : DomainService
 {
     private readonly IUserRepository _userRepository;
