@@ -19,15 +19,22 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 系统文件实体
+/// 系统文件实体（聚合根）
 /// </summary>
+/// <remarks>
+/// 文件元数据的聚合根，负责管理文件的基本信息、业务关联和统计信息
+/// 一个文件可以对应多个存储位置（主存储、备份、CDN等）
+/// </remarks>
 [SugarTable("Sys_File", "系统文件表")]
 [SugarIndex("IX_SysFile_FileHash", nameof(FileHash), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_BusinessType_BusinessId", $"{nameof(BusinessType)},{nameof(BusinessId)}", OrderByType.Asc)]
 public partial class SysFile : RbacAggregateRoot<long>
 {
+    #region 基本信息
+
     /// <summary>
     /// 租户ID
     /// </summary>
@@ -35,19 +42,19 @@ public partial class SysFile : RbacAggregateRoot<long>
     public virtual long? TenantId { get; set; }
 
     /// <summary>
-    /// 文件名
+    /// 文件名（系统生成的唯一文件名）
     /// </summary>
     [SugarColumn(ColumnDescription = "文件名", Length = 200, IsNullable = false)]
     public virtual string FileName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 原始文件名
+    /// 原始文件名（用户上传时的文件名）
     /// </summary>
     [SugarColumn(ColumnDescription = "原始文件名", Length = 200, IsNullable = false)]
     public virtual string OriginalName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 文件扩展名
+    /// 文件扩展名（含点，如：.jpg）
     /// </summary>
     [SugarColumn(ColumnDescription = "文件扩展名", Length = 20, IsNullable = true)]
     public virtual string? FileExtension { get; set; }
@@ -59,7 +66,7 @@ public partial class SysFile : RbacAggregateRoot<long>
     public virtual FileType FileType { get; set; } = FileType.Other;
 
     /// <summary>
-    /// MIME类型
+    /// MIME类型（如：image/jpeg）
     /// </summary>
     [SugarColumn(ColumnDescription = "MIME类型", Length = 100, IsNullable = true)]
     public virtual string? MimeType { get; set; }
@@ -71,34 +78,51 @@ public partial class SysFile : RbacAggregateRoot<long>
     public virtual long FileSize { get; set; } = 0;
 
     /// <summary>
-    /// 文件哈希值
+    /// 文件哈希值（用于去重和完整性校验）
     /// </summary>
+    /// <remarks>
+    /// 建议使用 SHA256 或 MD5
+    /// </remarks>
     [SugarColumn(ColumnDescription = "文件哈希值", Length = 100, IsNullable = true)]
     public virtual string? FileHash { get; set; }
 
     /// <summary>
-    /// 存储路径
+    /// 哈希算法类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储路径", Length = 500, IsNullable = false)]
-    public virtual string StoragePath { get; set; } = string.Empty;
+    [SugarColumn(ColumnDescription = "哈希算法类型", Length = 20, IsNullable = true)]
+    public virtual string? HashAlgorithm { get; set; }
+
+    #endregion
+
+    #region 图片/视频特有信息
 
     /// <summary>
-    /// 访问URL
+    /// 图片/视频宽度
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问URL", Length = 1000, IsNullable = true)]
-    public virtual string? AccessUrl { get; set; }
+    [SugarColumn(ColumnDescription = "宽度", IsNullable = true)]
+    public virtual int? Width { get; set; }
 
     /// <summary>
-    /// 存储类型（本地、OSS、云存储等）
+    /// 图片/视频高度
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储类型", Length = 20, IsNullable = false)]
-    public virtual string StorageType { get; set; } = "Local";
+    [SugarColumn(ColumnDescription = "高度", IsNullable = true)]
+    public virtual int? Height { get; set; }
 
     /// <summary>
-    /// 存储桶名称
+    /// 视频/音频时长（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储桶名称", Length = 100, IsNullable = true)]
-    public virtual string? BucketName { get; set; }
+    [SugarColumn(ColumnDescription = "时长（秒）", IsNullable = true)]
+    public virtual int? Duration { get; set; }
+
+    /// <summary>
+    /// 缩略图文件ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "缩略图文件ID", IsNullable = true)]
+    public virtual long? ThumbnailFileId { get; set; }
+
+    #endregion
+
+    #region 上传信息
 
     /// <summary>
     /// 上传者ID
@@ -107,13 +131,35 @@ public partial class SysFile : RbacAggregateRoot<long>
     public virtual long? UploaderId { get; set; }
 
     /// <summary>
+    /// 上传者姓名（冗余字段，便于查询）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "上传者姓名", Length = 50, IsNullable = true)]
+    public virtual string? UploaderName { get; set; }
+
+    /// <summary>
     /// 上传IP
     /// </summary>
     [SugarColumn(ColumnDescription = "上传IP", Length = 50, IsNullable = true)]
     public virtual string? UploadIp { get; set; }
 
     /// <summary>
-    /// 业务类型
+    /// 上传时间
+    /// </summary>
+    [SugarColumn(ColumnDescription = "上传时间", IsNullable = true)]
+    public virtual DateTimeOffset? UploadTime { get; set; }
+
+    /// <summary>
+    /// 上传来源（Web、App、API等）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "上传来源", Length = 50, IsNullable = true)]
+    public virtual string? UploadSource { get; set; }
+
+    #endregion
+
+    #region 业务关联
+
+    /// <summary>
+    /// 业务类型（如：Avatar、Product、Article等）
     /// </summary>
     [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
     public virtual string? BusinessType { get; set; }
@@ -125,10 +171,32 @@ public partial class SysFile : RbacAggregateRoot<long>
     public virtual long? BusinessId { get; set; }
 
     /// <summary>
+    /// 业务模块
+    /// </summary>
+    [SugarColumn(ColumnDescription = "业务模块", Length = 50, IsNullable = true)]
+    public virtual string? BusinessModule { get; set; }
+
+    /// <summary>
+    /// 分组标识（用于文件分组管理）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "分组标识", Length = 100, IsNullable = true)]
+    public virtual string? GroupKey { get; set; }
+
+    #endregion
+
+    #region 访问统计
+
+    /// <summary>
     /// 下载次数
     /// </summary>
     [SugarColumn(ColumnDescription = "下载次数")]
     public virtual int DownloadCount { get; set; } = 0;
+
+    /// <summary>
+    /// 访问次数
+    /// </summary>
+    [SugarColumn(ColumnDescription = "访问次数")]
+    public virtual int ViewCount { get; set; } = 0;
 
     /// <summary>
     /// 最后下载时间
@@ -137,14 +205,111 @@ public partial class SysFile : RbacAggregateRoot<long>
     public virtual DateTimeOffset? LastDownloadTime { get; set; }
 
     /// <summary>
-    /// 状态
+    /// 最后访问时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    [SugarColumn(ColumnDescription = "最后访问时间", IsNullable = true)]
+    public virtual DateTimeOffset? LastAccessTime { get; set; }
+
+    #endregion
+
+    #region 安全与权限
+
+    /// <summary>
+    /// 是否公开访问
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否公开访问")]
+    public virtual bool IsPublic { get; set; } = true;
+
+    /// <summary>
+    /// 是否需要授权访问
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否需要授权访问")]
+    public virtual bool RequireAuth { get; set; } = false;
+
+    /// <summary>
+    /// 访问权限（角色、用户等）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "访问权限", Length = 500, IsNullable = true, ColumnDataType = "json")]
+    public virtual string? AccessPermissions { get; set; }
+
+    /// <summary>
+    /// 是否加密存储
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否加密存储")]
+    public virtual bool IsEncrypted { get; set; } = false;
+
+    /// <summary>
+    /// 加密密钥ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "加密密钥ID", Length = 100, IsNullable = true)]
+    public virtual string? EncryptionKeyId { get; set; }
+
+    #endregion
+
+    #region 生命周期管理
+
+    /// <summary>
+    /// 过期时间（用于临时文件）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// 是否已过期
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public virtual bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < DateTimeOffset.Now;
+
+    /// <summary>
+    /// 是否为临时文件
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否为临时文件")]
+    public virtual bool IsTemporary { get; set; } = false;
+
+    /// <summary>
+    /// 保留天数（0表示永久保留）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "保留天数")]
+    public virtual int RetentionDays { get; set; } = 0;
+
+    #endregion
+
+    #region 状态与其他
+
+    /// <summary>
+    /// 文件状态
+    /// </summary>
+    [SugarColumn(ColumnDescription = "文件状态")]
+    public virtual FileStatus Status { get; set; } = FileStatus.Normal;
+
+    /// <summary>
+    /// 标签（用于分类和搜索）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "标签", Length = 500, IsNullable = true)]
+    public virtual string? Tags { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
+
+    /// <summary>
+    /// 扩展数据（JSON格式）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true, ColumnDataType = "json")]
+    public virtual string? ExtensionData { get; set; }
+
+    #endregion
+
+    #region 导航属性
+
+    /// <summary>
+    /// 文件存储列表（一对多）
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysFileStorage.FileId))]
+    public virtual List<SysFileStorage>? Storages { get; set; }
+
+    #endregion
 }
