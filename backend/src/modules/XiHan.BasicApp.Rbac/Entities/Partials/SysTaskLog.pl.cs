@@ -26,6 +26,7 @@ public partial class SysTaskLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(TaskId))]
     public virtual SysTask? Task { get; set; }
 }

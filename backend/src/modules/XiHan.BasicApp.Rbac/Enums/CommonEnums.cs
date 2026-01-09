@@ -273,44 +273,24 @@ public enum StorageType
     TencentCos = 2,
 
     /// <summary>
-    /// 华为云OBS
-    /// </summary>
-    HuaweiObs = 3,
-
-    /// <summary>
-    /// 七牛云Kodo
-    /// </summary>
-    QiniuKodo = 4,
-
-    /// <summary>
-    /// AWS S3
-    /// </summary>
-    AwsS3 = 5,
-
-    /// <summary>
     /// MinIO
     /// </summary>
-    Minio = 6,
-
-    /// <summary>
-    /// Azure Blob
-    /// </summary>
-    AzureBlob = 7,
+    Minio = 3,
 
     /// <summary>
     /// FTP
     /// </summary>
-    Ftp = 8,
+    Ftp = 10,
 
     /// <summary>
     /// SFTP
     /// </summary>
-    Sftp = 9,
+    Sftp = 11,
 
     /// <summary>
     /// WebDAV
     /// </summary>
-    WebDav = 10,
+    WebDav = 12,
 
     /// <summary>
     /// 自定义存储

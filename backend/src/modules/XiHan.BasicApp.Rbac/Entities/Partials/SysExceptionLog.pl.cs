@@ -26,6 +26,7 @@ public partial class SysExceptionLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysExceptionLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysExceptionLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(HandledBy))]
     public virtual SysUser? Handler { get; set; }
 }

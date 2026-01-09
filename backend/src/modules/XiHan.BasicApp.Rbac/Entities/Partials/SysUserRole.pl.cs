@@ -26,6 +26,7 @@ public partial class SysUserRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysUserRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 }

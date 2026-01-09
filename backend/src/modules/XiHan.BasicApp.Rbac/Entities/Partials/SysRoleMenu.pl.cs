@@ -26,6 +26,7 @@ public partial class SysRoleMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysRoleMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(MenuId))]
     public virtual SysMenu? Menu { get; set; }
 }

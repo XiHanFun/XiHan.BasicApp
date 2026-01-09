@@ -26,6 +26,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserRole.UserId))]
     public virtual List<SysUserRole>? UserRoles { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserDepartment.UserId))]
     public virtual List<SysUserDepartment>? UserDepartments { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserRole), nameof(SysUserRole.UserId), nameof(SysUserRole.RoleId))]
     public virtual List<SysRole>? Roles { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserDepartment), nameof(SysUserDepartment.UserId), nameof(SysUserDepartment.DepartmentId))]
     public virtual List<SysDepartment>? Departments { get; set; }
 
@@ -58,6 +62,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysLoginLog.UserId))]
     public virtual List<SysLoginLog>? LoginLogs { get; set; }
 
@@ -66,7 +71,8 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [Navigate(NavigateType.OneToMany, nameof(SysFile.UploaderId))]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysFile.CreatedId))]
     public virtual List<SysFile>? UploadedFiles { get; set; }
 
     /// <summary>
@@ -74,6 +80,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysOperationLog.UserId))]
     public virtual List<SysOperationLog>? OperationLogs { get; set; }
 
@@ -82,6 +89,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysNotification.UserId))]
     public virtual List<SysNotification>? ReceivedNotifications { get; set; }
 
@@ -90,6 +98,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysNotification.SenderId))]
     public virtual List<SysNotification>? SentNotifications { get; set; }
 
@@ -98,6 +107,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysOAuthCode.UserId))]
     public virtual List<SysOAuthCode>? OAuthCodes { get; set; }
 
@@ -106,6 +116,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysOAuthToken.UserId))]
     public virtual List<SysOAuthToken>? OAuthTokens { get; set; }
 
@@ -114,6 +125,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysEmail.SenderId))]
     public virtual List<SysEmail>? SentEmails { get; set; }
 
@@ -122,6 +134,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysEmail.ReceiverId))]
     public virtual List<SysEmail>? ReceivedEmails { get; set; }
 
@@ -130,6 +143,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysSms.SenderId))]
     public virtual List<SysSms>? SentSms { get; set; }
 
@@ -138,6 +152,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysSms.ReceiverId))]
     public virtual List<SysSms>? ReceivedSms { get; set; }
 
@@ -146,6 +161,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserStatistics.UserId))]
     public virtual List<SysUserStatistics>? UserStatistics { get; set; }
 
@@ -154,6 +170,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysReview.SubmitterId))]
     public virtual List<SysReview>? SubmittedReviews { get; set; }
 
@@ -162,6 +179,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysReview.CurrentReviewerId))]
     public virtual List<SysReview>? CurrentReviews { get; set; }
 
@@ -170,6 +188,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysReviewLog.ReviewerId))]
     public virtual List<SysReviewLog>? ReviewLogs { get; set; }
 
@@ -178,6 +197,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.UserId))]
     public virtual List<SysAuditLog>? AuditLogs { get; set; }
 
@@ -186,6 +206,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysAccessLog.UserId))]
     public virtual List<SysAccessLog>? AccessLogs { get; set; }
 
@@ -194,6 +215,7 @@ public partial class SysUser
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysApiLog.UserId))]
     public virtual List<SysApiLog>? ApiLogs { get; set; }
 }

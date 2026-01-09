@@ -26,6 +26,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserRole.RoleId))]
     public virtual List<SysUserRole>? UserRoles { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRolePermission.RoleId))]
     public virtual List<SysRolePermission>? RolePermissions { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleMenu.RoleId))]
     public virtual List<SysRoleMenu>? RoleMenus { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserRole), nameof(SysUserRole.RoleId), nameof(SysUserRole.UserId))]
     public virtual List<SysUser>? Users { get; set; }
 
@@ -58,6 +62,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysRolePermission), nameof(SysRolePermission.RoleId), nameof(SysRolePermission.PermissionId))]
     public virtual List<SysPermission>? Permissions { get; set; }
 
@@ -66,6 +71,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.RoleId), nameof(SysRoleMenu.MenuId))]
     public virtual List<SysMenu>? Menus { get; set; }
 
@@ -74,6 +80,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleDataScope.RoleId))]
     public virtual List<SysRoleDataScope>? DataScopes { get; set; }
 
@@ -82,6 +89,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.ParentRoleId))]
     public virtual List<SysRoleHierarchy>? ParentHierarchies { get; set; }
 
@@ -90,6 +98,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.ChildRoleId))]
     public virtual List<SysRoleHierarchy>? ChildHierarchies { get; set; }
 
@@ -98,6 +107,7 @@ public partial class SysRole
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysSessionRole.RoleId))]
     public virtual List<SysSessionRole>? SessionRoles { get; set; }
 }

@@ -26,6 +26,7 @@ public partial class SysDictItem
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(DictId))]
     public virtual SysDict? Dict { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysDictItem
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ParentId))]
     public virtual SysDictItem? ParentItem { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysDictItem
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysDictItem>? Children { get; set; }
 }

@@ -26,6 +26,7 @@ public partial class SysPermission
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ResourceId))]
     public virtual SysResource? Resource { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysPermission
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(OperationId))]
     public virtual SysOperation? Operation { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysPermission
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRolePermission.PermissionId))]
     public virtual List<SysRolePermission>? RolePermissions { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysPermission
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysRolePermission), nameof(SysRolePermission.PermissionId), nameof(SysRolePermission.RoleId))]
     public virtual List<SysRole>? Roles { get; set; }
 
@@ -58,6 +62,7 @@ public partial class SysPermission
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserPermission.PermissionId))]
     public virtual List<SysUserPermission>? UserPermissions { get; set; }
 
@@ -66,6 +71,7 @@ public partial class SysPermission
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserPermission), nameof(SysUserPermission.PermissionId), nameof(SysUserPermission.UserId))]
     public virtual List<SysUser>? Users { get; set; }
 }
