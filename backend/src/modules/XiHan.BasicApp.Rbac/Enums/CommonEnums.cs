@@ -202,6 +202,179 @@ public enum FileType
 }
 
 /// <summary>
+/// 文件状态枚举
+/// </summary>
+public enum FileStatus
+{
+    /// <summary>
+    /// 正常
+    /// </summary>
+    Normal = 0,
+
+    /// <summary>
+    /// 上传中
+    /// </summary>
+    Uploading = 1,
+
+    /// <summary>
+    /// 上传失败
+    /// </summary>
+    UploadFailed = 2,
+
+    /// <summary>
+    /// 处理中（转码、压缩等）
+    /// </summary>
+    Processing = 3,
+
+    /// <summary>
+    /// 已删除
+    /// </summary>
+    Deleted = 4,
+
+    /// <summary>
+    /// 已归档
+    /// </summary>
+    Archived = 5,
+
+    /// <summary>
+    /// 已过期
+    /// </summary>
+    Expired = 6,
+
+    /// <summary>
+    /// 损坏
+    /// </summary>
+    Corrupted = 7,
+
+    /// <summary>
+    /// 违规（审核不通过）
+    /// </summary>
+    Violation = 8
+}
+
+/// <summary>
+/// 存储类型枚举
+/// </summary>
+public enum StorageType
+{
+    /// <summary>
+    /// 本地存储
+    /// </summary>
+    Local = 0,
+
+    /// <summary>
+    /// 阿里云OSS
+    /// </summary>
+    AliyunOss = 1,
+
+    /// <summary>
+    /// 腾讯云COS
+    /// </summary>
+    TencentCos = 2,
+
+    /// <summary>
+    /// 华为云OBS
+    /// </summary>
+    HuaweiObs = 3,
+
+    /// <summary>
+    /// 七牛云Kodo
+    /// </summary>
+    QiniuKodo = 4,
+
+    /// <summary>
+    /// AWS S3
+    /// </summary>
+    AwsS3 = 5,
+
+    /// <summary>
+    /// MinIO
+    /// </summary>
+    Minio = 6,
+
+    /// <summary>
+    /// Azure Blob
+    /// </summary>
+    AzureBlob = 7,
+
+    /// <summary>
+    /// FTP
+    /// </summary>
+    Ftp = 8,
+
+    /// <summary>
+    /// SFTP
+    /// </summary>
+    Sftp = 9,
+
+    /// <summary>
+    /// WebDAV
+    /// </summary>
+    WebDav = 10,
+
+    /// <summary>
+    /// 自定义存储
+    /// </summary>
+    Custom = 99
+}
+
+/// <summary>
+/// 存储状态枚举
+/// </summary>
+public enum StorageStatus
+{
+    /// <summary>
+    /// 正常
+    /// </summary>
+    Normal = 0,
+
+    /// <summary>
+    /// 上传中
+    /// </summary>
+    Uploading = 1,
+
+    /// <summary>
+    /// 上传失败
+    /// </summary>
+    UploadFailed = 2,
+
+    /// <summary>
+    /// 同步中
+    /// </summary>
+    Syncing = 3,
+
+    /// <summary>
+    /// 同步失败
+    /// </summary>
+    SyncFailed = 4,
+
+    /// <summary>
+    /// 待验证
+    /// </summary>
+    PendingVerification = 5,
+
+    /// <summary>
+    /// 验证失败
+    /// </summary>
+    VerificationFailed = 6,
+
+    /// <summary>
+    /// 已过期
+    /// </summary>
+    Expired = 7,
+
+    /// <summary>
+    /// 已删除
+    /// </summary>
+    Deleted = 8,
+
+    /// <summary>
+    /// 不可用
+    /// </summary>
+    Unavailable = 9
+}
+
+/// <summary>
 /// 操作类型枚举
 /// </summary>
 public enum OperationType
