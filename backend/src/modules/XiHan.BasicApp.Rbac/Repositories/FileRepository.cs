@@ -57,7 +57,10 @@ public class FileRepository : SqlSugarAggregateRepository<SysFile, long>, IFileR
         cancellationToken.ThrowIfCancellationRequested();
 
         return await _dbClient.Queryable<SysFile>()
-            .FirstAsync(f => f.StoragePath == storagePath, cancellationToken);
+            .InnerJoin<SysFileStorage>((f, s) => f.BasicId == s.FileId)
+            .Where((f, s) => s.StoragePath == storagePath)
+            .Select((f, s) => f)
+            .FirstAsync(cancellationToken);
     }
 
     /// <summary>
