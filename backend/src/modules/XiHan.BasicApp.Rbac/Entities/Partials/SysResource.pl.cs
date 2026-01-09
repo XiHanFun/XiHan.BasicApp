@@ -26,6 +26,7 @@ public partial class SysResource
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ParentId))]
     public virtual SysResource? ParentResource { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysResource
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysResource>? ChildResources { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysResource
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysMenu.ResourceId))]
     public virtual List<SysMenu>? Menus { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysResource
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysPermission.ResourceId))]
     public virtual List<SysPermission>? Permissions { get; set; }
 }

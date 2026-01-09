@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
+
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
@@ -19,6 +21,15 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 public partial class SysFileStorage
 {
+    /// <summary>
+    /// 所属文件（多对一）
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(FileId))]
+    public virtual SysFile? File { get; set; }
+
     /// <summary>
     /// 获取最优访问URL
     /// </summary>
@@ -225,23 +236,6 @@ public partial class SysFileStorage
     }
 
     /// <summary>
-    /// 计算存储成本
-    /// </summary>
-    /// <param name="pricePerGB">每GB价格（元/月）</param>
-    public void CalculateStorageCost(decimal pricePerGB)
-    {
-        if (ActualSize.HasValue && ActualSize.Value > 0)
-        {
-            var sizeInGB = ActualSize.Value / (1024.0m * 1024.0m * 1024.0m);
-            StorageCost = sizeInGB * pricePerGB;
-        }
-        else
-        {
-            StorageCost = null;
-        }
-    }
-
-    /// <summary>
     /// 检查是否为本地存储
     /// </summary>
     /// <returns></returns>
@@ -258,10 +252,7 @@ public partial class SysFileStorage
     {
         return StorageType is Enums.StorageType.AliyunOss
             or Enums.StorageType.TencentCos
-            or Enums.StorageType.HuaweiObs
-            or Enums.StorageType.QiniuKodo
-            or Enums.StorageType.AwsS3
-            or Enums.StorageType.AzureBlob;
+            or Enums.StorageType.Minio;
     }
 
     /// <summary>
@@ -275,11 +266,7 @@ public partial class SysFileStorage
             Enums.StorageType.Local => "本地存储",
             Enums.StorageType.AliyunOss => "阿里云OSS",
             Enums.StorageType.TencentCos => "腾讯云COS",
-            Enums.StorageType.HuaweiObs => "华为云OBS",
-            Enums.StorageType.QiniuKodo => "七牛云Kodo",
-            Enums.StorageType.AwsS3 => "AWS S3",
             Enums.StorageType.Minio => "MinIO",
-            Enums.StorageType.AzureBlob => "Azure Blob",
             Enums.StorageType.Ftp => "FTP",
             Enums.StorageType.Sftp => "SFTP",
             Enums.StorageType.WebDav => "WebDAV",

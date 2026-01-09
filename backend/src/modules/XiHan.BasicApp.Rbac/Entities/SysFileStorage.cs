@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
+using StorageType = XiHan.BasicApp.Rbac.Enums.StorageType;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -29,7 +30,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysFileStorage_FileId", nameof(FileId), OrderByType.Asc)]
 [SugarIndex("IX_SysFileStorage_StorageType", nameof(StorageType), OrderByType.Asc)]
 [SugarIndex("IX_SysFileStorage_IsPrimary", nameof(IsPrimary), OrderByType.Desc)]
-[SugarIndex("IX_SysFileStorage_FileId_StorageType", $"{nameof(FileId)},{nameof(StorageType)}", OrderByType.Asc)]
+[SugarIndex("IX_SysFileStorage_FileId_StorageType", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
 public partial class SysFileStorage : RbacFullAuditedEntity<long>
 {
     #region 关联信息
@@ -48,7 +49,7 @@ public partial class SysFileStorage : RbacFullAuditedEntity<long>
     /// 存储类型
     /// </summary>
     [SugarColumn(ColumnDescription = "存储类型")]
-    public virtual Enums.StorageType StorageType { get; set; } = Enums.StorageType.Local;
+    public virtual StorageType StorageType { get; set; } = StorageType.Local;
 
     /// <summary>
     /// 存储提供商（Aliyun、Tencent、AWS、Minio等）
@@ -271,28 +272,6 @@ public partial class SysFileStorage : RbacFullAuditedEntity<long>
 
     #endregion
 
-    #region 成本统计
-
-    /// <summary>
-    /// 实际占用空间（字节）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "实际占用空间（字节）", IsNullable = true)]
-    public virtual long? ActualSize { get; set; }
-
-    /// <summary>
-    /// 存储成本（元/月）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "存储成本（元/月）", IsNullable = true)]
-    public virtual decimal? StorageCost { get; set; }
-
-    /// <summary>
-    /// 流量成本（元）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "流量成本（元）", IsNullable = true)]
-    public virtual decimal? TrafficCost { get; set; }
-
-    #endregion
-
     #region 其他
 
     /// <summary>
@@ -310,19 +289,8 @@ public partial class SysFileStorage : RbacFullAuditedEntity<long>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true, ColumnDataType = "json")]
+    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
     public virtual string? ExtensionData { get; set; }
-
-    #endregion
-
-    #region 导航属性
-
-    /// <summary>
-    /// 所属文件（多对一）
-    /// </summary>
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(FileId))]
-    public virtual SysFile? File { get; set; }
 
     #endregion
 }

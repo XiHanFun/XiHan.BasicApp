@@ -19,7 +19,7 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 系统文件实体（聚合根）
+/// 系统文件实体
 /// </summary>
 /// <remarks>
 /// 文件元数据的聚合根，负责管理文件的基本信息、业务关联和统计信息
@@ -30,7 +30,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_BusinessType_BusinessId", $"{nameof(BusinessType)},{nameof(BusinessId)}", OrderByType.Asc)]
 public partial class SysFile : RbacAggregateRoot<long>
 {
     #region 基本信息
@@ -125,62 +124,16 @@ public partial class SysFile : RbacAggregateRoot<long>
     #region 上传信息
 
     /// <summary>
-    /// 上传者ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "上传者ID", IsNullable = true)]
-    public virtual long? UploaderId { get; set; }
-
-    /// <summary>
-    /// 上传者姓名（冗余字段，便于查询）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "上传者姓名", Length = 50, IsNullable = true)]
-    public virtual string? UploaderName { get; set; }
-
-    /// <summary>
     /// 上传IP
     /// </summary>
     [SugarColumn(ColumnDescription = "上传IP", Length = 50, IsNullable = true)]
     public virtual string? UploadIp { get; set; }
 
     /// <summary>
-    /// 上传时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "上传时间", IsNullable = true)]
-    public virtual DateTimeOffset? UploadTime { get; set; }
-
-    /// <summary>
     /// 上传来源（Web、App、API等）
     /// </summary>
     [SugarColumn(ColumnDescription = "上传来源", Length = 50, IsNullable = true)]
     public virtual string? UploadSource { get; set; }
-
-    #endregion
-
-    #region 业务关联
-
-    /// <summary>
-    /// 业务类型（如：Avatar、Product、Article等）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
-    public virtual string? BusinessType { get; set; }
-
-    /// <summary>
-    /// 业务ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
-    public virtual long? BusinessId { get; set; }
-
-    /// <summary>
-    /// 业务模块
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务模块", Length = 50, IsNullable = true)]
-    public virtual string? BusinessModule { get; set; }
-
-    /// <summary>
-    /// 分组标识（用于文件分组管理）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "分组标识", Length = 100, IsNullable = true)]
-    public virtual string? GroupKey { get; set; }
 
     #endregion
 
@@ -229,7 +182,7 @@ public partial class SysFile : RbacAggregateRoot<long>
     /// <summary>
     /// 访问权限（角色、用户等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问权限", Length = 500, IsNullable = true, ColumnDataType = "json")]
+    [SugarColumn(ColumnDescription = "访问权限", Length = 500, IsNullable = true)]
     public virtual string? AccessPermissions { get; set; }
 
     /// <summary>
@@ -253,12 +206,6 @@ public partial class SysFile : RbacAggregateRoot<long>
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpiresAt { get; set; }
-
-    /// <summary>
-    /// 是否已过期
-    /// </summary>
-    [SugarColumn(IsIgnore = true)]
-    public virtual bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < DateTimeOffset.Now;
 
     /// <summary>
     /// 是否为临时文件
@@ -297,19 +244,8 @@ public partial class SysFile : RbacAggregateRoot<long>
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true, ColumnDataType = "json")]
+    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
     public virtual string? ExtensionData { get; set; }
-
-    #endregion
-
-    #region 导航属性
-
-    /// <summary>
-    /// 文件存储列表（一对多）
-    /// </summary>
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysFileStorage.FileId))]
-    public virtual List<SysFileStorage>? Storages { get; set; }
 
     #endregion
 }

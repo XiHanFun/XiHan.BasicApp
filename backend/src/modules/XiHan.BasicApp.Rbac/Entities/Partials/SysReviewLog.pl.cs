@@ -26,6 +26,7 @@ public partial class SysReviewLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysReviewLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(ReviewId))]
     public virtual SysReview? Review { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysReviewLog
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(ReviewerId))]
     public virtual SysUser? Reviewer { get; set; }
 }

@@ -26,6 +26,7 @@ public partial class SysMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ResourceId))]
     public virtual SysResource? Resource { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ParentId))]
     public virtual SysMenu? ParentMenu { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysMenu>? Children { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysRoleMenu.MenuId))]
     public virtual List<SysRoleMenu>? RoleMenus { get; set; }
 
@@ -58,6 +62,7 @@ public partial class SysMenu
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.MenuId), nameof(SysRoleMenu.RoleId))]
     public virtual List<SysRole>? Roles { get; set; }
 }

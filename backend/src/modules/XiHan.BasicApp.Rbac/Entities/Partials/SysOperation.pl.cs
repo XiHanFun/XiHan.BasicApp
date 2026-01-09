@@ -26,6 +26,7 @@ public partial class SysOperation
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysPermission.OperationId))]
     public virtual List<SysPermission>? Permissions { get; set; }
 }

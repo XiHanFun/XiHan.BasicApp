@@ -26,6 +26,7 @@ public partial class SysRoleHierarchy
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ParentRoleId))]
     public virtual SysRole? ParentRole { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysRoleHierarchy
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ChildRoleId))]
     public virtual SysRole? ChildRole { get; set; }
 }

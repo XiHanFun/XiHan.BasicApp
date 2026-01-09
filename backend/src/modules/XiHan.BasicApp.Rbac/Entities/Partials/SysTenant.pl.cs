@@ -26,6 +26,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysConfig.TenantId))]
     public virtual List<SysConfig>? Configs { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUser.BasicId))]
     public virtual List<SysUser>? Users { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysFile.TenantId))]
     public virtual List<SysFile>? Files { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysNotification.TenantId))]
     public virtual List<SysNotification>? Notifications { get; set; }
 
@@ -58,6 +62,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysOperationLog.TenantId))]
     public virtual List<SysOperationLog>? OperationLogs { get; set; }
 
@@ -66,6 +71,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysEmail.TenantId))]
     public virtual List<SysEmail>? Emails { get; set; }
 
@@ -74,6 +80,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysSms.TenantId))]
     public virtual List<SysSms>? SmsMessages { get; set; }
 
@@ -82,6 +89,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserStatistics.TenantId))]
     public virtual List<SysUserStatistics>? UserStatistics { get; set; }
 
@@ -90,6 +98,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysReview.TenantId))]
     public virtual List<SysReview>? Reviews { get; set; }
 
@@ -98,6 +107,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysReviewLog.TenantId))]
     public virtual List<SysReviewLog>? ReviewLogs { get; set; }
 
@@ -106,6 +116,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.TenantId))]
     public virtual List<SysAuditLog>? AuditLogs { get; set; }
 
@@ -114,6 +125,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysAccessLog.TenantId))]
     public virtual List<SysAccessLog>? AccessLogs { get; set; }
 
@@ -122,6 +134,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysTask.TenantId))]
     public virtual List<SysTask>? Tasks { get; set; }
 
@@ -130,6 +143,7 @@ public partial class SysTenant
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysApiLog.TenantId))]
     public virtual List<SysApiLog>? ApiLogs { get; set; }
 }

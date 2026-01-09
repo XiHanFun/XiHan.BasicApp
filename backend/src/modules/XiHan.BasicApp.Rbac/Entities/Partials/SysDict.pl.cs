@@ -26,6 +26,7 @@ public partial class SysDict
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysDictItem.DictId))]
     public virtual List<SysDictItem>? DictItems { get; set; }
 }

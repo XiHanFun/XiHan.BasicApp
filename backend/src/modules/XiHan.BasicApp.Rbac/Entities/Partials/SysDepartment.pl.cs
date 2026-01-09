@@ -26,6 +26,7 @@ public partial class SysDepartment
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ParentId))]
     public virtual SysDepartment? ParentDepartment { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysDepartment
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysDepartment>? Children { get; set; }
 
@@ -42,6 +44,7 @@ public partial class SysDepartment
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(LeaderId))]
     public virtual SysUser? Leader { get; set; }
 
@@ -50,6 +53,7 @@ public partial class SysDepartment
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysUserDepartment.DepartmentId))]
     public virtual List<SysUserDepartment>? UserDepartments { get; set; }
 
@@ -58,6 +62,7 @@ public partial class SysDepartment
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserDepartment), nameof(SysUserDepartment.DepartmentId), nameof(SysUserDepartment.UserId))]
     public virtual List<SysUser>? Users { get; set; }
 
@@ -66,6 +71,7 @@ public partial class SysDepartment
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.DepartmentId))]
     public virtual List<SysAuditLog>? AuditLogs { get; set; }
 }

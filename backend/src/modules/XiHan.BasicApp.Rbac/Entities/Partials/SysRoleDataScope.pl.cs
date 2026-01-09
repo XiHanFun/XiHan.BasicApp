@@ -26,6 +26,7 @@ public partial class SysRoleDataScope
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysRoleDataScope
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(DepartmentId))]
     public virtual SysDepartment? Department { get; set; }
 }

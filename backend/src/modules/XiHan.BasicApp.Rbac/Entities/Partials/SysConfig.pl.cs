@@ -26,6 +26,7 @@ public partial class SysConfig
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
 }

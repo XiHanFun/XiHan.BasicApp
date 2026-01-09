@@ -26,6 +26,7 @@ public partial class SysOAuthCode
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(ClientId), nameof(SysOAuthApp.ClientId))]
     public virtual SysOAuthApp? OAuthApp { get; set; }
 
@@ -34,6 +35,7 @@ public partial class SysOAuthCode
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
 }
