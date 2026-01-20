@@ -21,10 +21,10 @@ using XiHan.Framework.Authorization;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Core.Threading;
 using XiHan.Framework.Data.SqlSugar.Options;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Utils.Reflections;
-using XiHan.Framework.Utils.Threading;
 using XiHan.Framework.Web.Core.Extensions;
 
 namespace XiHan.BasicApp.Rbac;
