@@ -36,7 +36,7 @@ public class SysMenuSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 25;
+    public override int Order => 14;
 
     /// <summary>
     /// 种子数据名称
@@ -86,7 +86,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 1
             },
-            
+
             // 系统管理（目录）
             new()
             {
@@ -107,7 +107,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 100
             },
-            
+
             // 用户管理
             new()
             {
@@ -128,7 +128,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 101
             },
-            
+
             // 角色管理
             new()
             {
@@ -149,7 +149,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 102
             },
-            
+
             // 权限管理
             new()
             {
@@ -170,7 +170,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 103
             },
-            
+
             // 菜单管理
             new()
             {
@@ -191,7 +191,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 104
             },
-            
+
             // 部门管理
             new()
             {
@@ -212,7 +212,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 105
             },
-            
+
             // 租户管理
             new()
             {
@@ -233,7 +233,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 106
             },
-            
+
             // 日志管理（目录）
             new()
             {
@@ -254,7 +254,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 200
             },
-            
+
             // 登录日志
             new()
             {
@@ -275,7 +275,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 201
             },
-            
+
             // 操作日志
             new()
             {
@@ -296,7 +296,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 202
             },
-            
+
             // 系统监控
             new()
             {
@@ -317,7 +317,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 300
             },
-            
+
             // 配置管理
             new()
             {
@@ -338,7 +338,7 @@ public class SysMenuSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 Sort = 400
             },
-            
+
             // 字典管理
             new()
             {

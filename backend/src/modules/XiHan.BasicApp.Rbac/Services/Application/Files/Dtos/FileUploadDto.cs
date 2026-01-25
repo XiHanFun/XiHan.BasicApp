@@ -22,12 +22,12 @@ public class FileUploadDto
     /// <summary>
     /// 文件流
     /// </summary>
-    public Stream FileStream { get; set; }
+    public Stream FileStream { get; set; } = null!;
 
     /// <summary>
     /// 文件名
     /// </summary>
-    public string FileName { get; set; }
+    public string FileName { get; set; } = null!;
 
     /// <summary>
     /// 文件大小
