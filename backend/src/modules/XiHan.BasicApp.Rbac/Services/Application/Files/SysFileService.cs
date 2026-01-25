@@ -17,10 +17,9 @@ using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Abstracts;
 using XiHan.BasicApp.Rbac.Services.Application.Files.Dtos;
-using XiHan.Framework.Application.Services;
+using XiHan.Framework.ObjectStorage;
+using XiHan.Framework.ObjectStorage.Models;
 using XiHan.Framework.VirtualFileSystem.Processing;
-using XiHan.Framework.VirtualFileSystem.Storage;
-using XiHan.Framework.VirtualFileSystem.Storage.Models;
 
 namespace XiHan.BasicApp.Rbac.Services.Application.Files;
 

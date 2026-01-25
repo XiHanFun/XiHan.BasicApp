@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Repositories;
 using XiHan.BasicApp.Rbac.Repositories.Abstracts;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.BasicApp.Rbac.Services.Domain;
-using XiHan.Framework.Data.SqlSugar.Extensions;
+using XiHan.Framework.Data.Extensions.DependencyInjection;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
