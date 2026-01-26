@@ -16,6 +16,7 @@ using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Rbac;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.WebHost;
@@ -36,6 +37,8 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        var services = context.Services;
+        var config = services.GetConfiguration();
     }
 
     /// <summary>
