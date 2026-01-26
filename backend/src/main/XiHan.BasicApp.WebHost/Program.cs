@@ -15,6 +15,7 @@
 using Serilog;
 using XiHan.BasicApp.WebHost;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
+using XiHan.Framework.Utils.Logging;
 using XiHan.Framework.Web.Core.Extensions.DependencyInjection;
 
 try
@@ -33,6 +34,7 @@ try
 }
 catch (Exception ex)
 {
+    LogHelper.Error(ex, "应用异常");
     Log.Fatal(ex, "应用关闭");
 }
 finally
