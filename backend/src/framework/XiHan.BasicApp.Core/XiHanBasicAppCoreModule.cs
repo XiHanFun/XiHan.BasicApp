@@ -18,7 +18,6 @@ using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.Bot;
 using XiHan.Framework.Caching;
-using XiHan.Framework.CodeGeneration;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
@@ -56,7 +55,6 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanTasksModule),
     typeof(XiHanBotModule),
     typeof(XiHanCachingModule),
-    typeof(XiHanCodeGenerationModule),
     typeof(XiHanDataModule),
     typeof(XiHanDomainModule),
     typeof(XiHanDistributedIdsModule),
