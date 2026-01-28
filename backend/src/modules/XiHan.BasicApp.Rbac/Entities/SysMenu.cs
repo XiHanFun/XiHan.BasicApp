@@ -27,8 +27,18 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_ResourceId", nameof(ResourceId), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_MenuType", nameof(MenuType), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_IsVisible", nameof(IsVisible), OrderByType.Asc)]
 public partial class SysMenu : RbacAggregateRoot<long>
 {
+    /// <summary>
+    /// 租户ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
+    public virtual long? TenantId { get; set; }
+
     /// <summary>
     /// 关联资源ID（每个菜单对应一个资源，可为空表示纯展示菜单）
     /// </summary>

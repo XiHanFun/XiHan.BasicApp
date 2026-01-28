@@ -29,7 +29,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysExceptionLog_IsHandled", nameof(IsHandled), OrderByType.Asc)]
 [SugarIndex("IX_SysExceptionLog_ExceptionTime", nameof(ExceptionTime), OrderByType.Desc)]
 [SugarIndex("IX_SysExceptionLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysExceptionLog : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysExceptionLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
+[SugarIndex("IX_SysExceptionLog_BusinessModule", nameof(BusinessModule), OrderByType.Asc)]
+public partial class SysExceptionLog : RbacCreationEntity<long>
 {
     /// <summary>
     /// 租户ID

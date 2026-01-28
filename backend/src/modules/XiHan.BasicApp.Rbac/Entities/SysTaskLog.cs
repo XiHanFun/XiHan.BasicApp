@@ -26,7 +26,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTaskLog_TaskId", nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_StartTime", nameof(StartTime), OrderByType.Desc)]
-public partial class SysTaskLog : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysTaskLog_TaskCode", nameof(TaskCode), OrderByType.Asc)]
+[SugarIndex("IX_SysTaskLog_BatchNumber", nameof(BatchNumber), OrderByType.Asc)]
+public partial class SysTaskLog : RbacCreationEntity<long>
 {
     /// <summary>
     /// 任务ID

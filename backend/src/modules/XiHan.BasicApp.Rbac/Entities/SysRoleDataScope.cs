@@ -23,8 +23,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 用于配置角色的自定义数据权限规则（当DataScope=Custom时使用）
 /// </summary>
 [SugarTable("Sys_Role_DataScope", "系统角色自定义数据权限范围表")]
+[SugarIndex("UX_SysRoleDataScope_Role_Department", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysRoleDataScope_RoleId", nameof(RoleId), OrderByType.Asc)]
-public partial class SysRoleDataScope : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysRoleDataScope_DepartmentId", nameof(DepartmentId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleDataScope_Status", nameof(Status), OrderByType.Asc)]
+public partial class SysRoleDataScope : RbacCreationEntity<long>
 {
     /// <summary>
     /// 角色ID
