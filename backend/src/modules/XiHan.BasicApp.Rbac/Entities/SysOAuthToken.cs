@@ -22,21 +22,27 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统 OAuth 令牌实体
 /// </summary>
 [SugarTable("Sys_OAuth_Token", "系统 OAuth 令牌表")]
-[SugarIndex("IX_SysOAuthToken_AccessToken", nameof(AccessToken), OrderByType.Asc, true)]
+[SugarIndex("UX_SysOAuthToken_AccessToken", nameof(AccessToken), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthToken_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_ClientId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_UserId", nameof(UserId), OrderByType.Asc)]
-public partial class SysOAuthToken : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysOAuthToken_IsRevoked", nameof(IsRevoked), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_AccessTokenExpiresAt", nameof(AccessTokenExpiresAt), OrderByType.Asc)]
+public partial class SysOAuthToken : RbacCreationEntity<long>
 {
     /// <summary>
-    /// 访问令牌
+    /// 访问令牌（敏感信息）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "访问令牌", Length = 1000, IsNullable = false)]
     public virtual string AccessToken { get; set; } = string.Empty;
 
     /// <summary>
-    /// 刷新令牌
+    /// 刷新令牌（敏感信息）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "刷新令牌", Length = 1000, IsNullable = true)]
     public virtual string? RefreshToken { get; set; }
 

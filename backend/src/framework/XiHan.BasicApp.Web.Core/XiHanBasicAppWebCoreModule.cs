@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Api;
 using XiHan.Framework.Web.Core;
@@ -42,6 +43,8 @@ public class XiHanBasicAppWebCoreModule : XiHanModule
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        var services = context.Services;
+        var config = services.GetConfiguration();
     }
 
     /// <summary>

@@ -19,44 +19,63 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 系统角色继承关系实体
-/// 支持角色多继承，子角色继承父角色的所有权限
+/// 系统角色层级关系实体
+/// 使用闭包表模式存储角色之间的所有继承关系（包括直接和传递继承）
 /// </summary>
-[SugarTable("Sys_Role_Hierarchy", "系统角色继承关系表")]
-[SugarIndex("IX_SysRoleHierarchy_Parent_Child", nameof(ParentRoleId), OrderByType.Asc, nameof(ChildRoleId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRoleHierarchy_ChildRoleId", nameof(ChildRoleId), OrderByType.Asc)]
+/// <remarks>
+/// 支持角色多继承，后代角色继承祖先角色的所有权限
+/// 闭包表优点：
+/// 1. 查询所有子角色：O(1) 单次查询
+/// 2. 查询继承链：O(1) 单次查询
+/// 3. 避免递归查询的性能问题
+/// </remarks>
+[SugarTable("Sys_Role_Hierarchy", "系统角色层级关系表")]
+[SugarIndex("UX_SysRoleHierarchy_Ancestor_Descendant", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRoleHierarchy_DescendantId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_SysRoleHierarchy_Depth", nameof(Depth), OrderByType.Asc)]
-public partial class SysRoleHierarchy : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysRoleHierarchy_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleHierarchy_AncestorId_Depth", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
+public partial class SysRoleHierarchy : RbacCreationEntity<long>
 {
     /// <summary>
-    /// 父角色ID
+    /// 祖先角色ID（被继承的角色）
     /// </summary>
-    [SugarColumn(ColumnDescription = "父角色ID", IsNullable = false)]
-    public virtual long ParentRoleId { get; set; }
+    /// <remarks>
+    /// 包含所有被继承的角色，包括自己（Depth=0）
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "祖先角色ID", IsNullable = false)]
+    public virtual long AncestorId { get; set; }
 
     /// <summary>
-    /// 子角色ID
+    /// 后代角色ID（继承者角色）
     /// </summary>
-    [SugarColumn(ColumnDescription = "子角色ID", IsNullable = false)]
-    public virtual long ChildRoleId { get; set; }
+    /// <remarks>
+    /// 包含所有继承者角色，包括自己（Depth=0）
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "后代角色ID", IsNullable = false)]
+    public virtual long DescendantId { get; set; }
 
     /// <summary>
-    /// 继承深度（0=直接继承，>0=间接继承的层级数）
+    /// 继承深度
     /// </summary>
+    /// <remarks>
+    /// - 0: 自己（自关联记录）
+    /// - 1: 直接继承
+    /// - n: n级间接继承
+    /// </remarks>
     [SugarColumn(ColumnDescription = "继承深度")]
     public virtual int Depth { get; set; } = 0;
 
     /// <summary>
-    /// 是否直接继承（true=直接，false=通过中间角色间接继承）
+    /// 继承路径（从祖先到后代的完整路径）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否直接继承")]
-    public virtual bool IsDirect { get; set; } = true;
-
-    /// <summary>
-    /// 继承路径（如：1 > 3 > 5，从父到子的完整路径）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "继承路径", Length = 500, IsNullable = true)]
-    public virtual string? InheritancePath { get; set; }
+    /// <remarks>
+    /// 格式：祖先ID/...中间ID.../后代ID
+    /// 例如：1/3/5 表示角色5继承自角色3，角色3继承自角色1
+    /// 用于快速显示角色继承链和权限追溯
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "继承路径", Length = 1000, IsNullable = true)]
+    public virtual string? Path { get; set; }
 
     /// <summary>
     /// 状态

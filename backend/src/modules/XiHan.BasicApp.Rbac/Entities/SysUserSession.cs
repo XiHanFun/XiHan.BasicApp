@@ -25,6 +25,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserSession_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_Token", nameof(Token), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserSession_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_SessionId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_IsOnline", nameof(IsOnline), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_TokenExpiresAt", nameof(TokenExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_IsRevoked", nameof(IsRevoked), OrderByType.Asc)]
 public partial class SysUserSession : RbacAggregateRoot<long>
 {
     /// <summary>

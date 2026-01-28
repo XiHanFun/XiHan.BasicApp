@@ -29,7 +29,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysAuditLog_OperationType", nameof(OperationType), OrderByType.Asc)]
 [SugarIndex("IX_SysAuditLog_AuditTime", nameof(AuditTime), OrderByType.Desc)]
 [SugarIndex("IX_SysAuditLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysAuditLog : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysAuditLog_IsSuccess", nameof(IsSuccess), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_RiskLevel", nameof(RiskLevel), OrderByType.Desc)]
+[SugarIndex("IX_SysAuditLog_EntityId", nameof(EntityId), OrderByType.Asc)]
+public partial class SysAuditLog : RbacCreationEntity<long>
 {
     /// <summary>
     /// 租户ID

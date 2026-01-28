@@ -18,8 +18,8 @@ using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.Bot;
 using XiHan.Framework.Caching;
-using XiHan.Framework.CodeGeneration;
 using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Data;
 using XiHan.Framework.DistributedIds;
@@ -55,7 +55,6 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanTasksModule),
     typeof(XiHanBotModule),
     typeof(XiHanCachingModule),
-    typeof(XiHanCodeGenerationModule),
     typeof(XiHanDataModule),
     typeof(XiHanDomainModule),
     typeof(XiHanDistributedIdsModule),
@@ -86,6 +85,8 @@ public class XiHanBasicAppCoreModule : XiHanModule
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        var services = context.Services;
+        var config = services.GetConfiguration();
     }
 
     /// <summary>

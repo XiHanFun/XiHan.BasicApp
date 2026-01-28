@@ -1,4 +1,4 @@
-﻿#region <<版权版本注释>>
+#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -26,6 +26,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUser_Email", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Phone", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysUser_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUser_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUser : RbacAggregateRoot<long>
 {
     /// <summary>
@@ -41,9 +43,11 @@ public partial class SysUser : RbacAggregateRoot<long>
     public virtual string UserName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 密码
+    /// 密码（已加密）
     /// </summary>
-    [SugarColumn(ColumnDescription = "密码", Length = 100, IsNullable = false)]
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(ColumnDescription = "密码", Length = 200, IsNullable = false)]
     public virtual string Password { get; set; } = string.Empty;
 
     /// <summary>
