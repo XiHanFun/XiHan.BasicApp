@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Repositories;
 using XiHan.BasicApp.Rbac.Repositories.Abstracts;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.BasicApp.Rbac.Services.Domain;
-using XiHan.Framework.Data.SqlSugar.Extensions;
+using XiHan.Framework.Data.Extensions.DependencyInjection;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
@@ -123,15 +123,16 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRbacDataSeeders(this IServiceCollection services)
     {
         // 按执行顺序注册
-        services.AddDataSeeder<SysOperationSeeder>();        // Order = 1
-        services.AddDataSeeder<SysResourceSeeder>();          // Order = 2
-        services.AddDataSeeder<SysPermissionSeeder>();        // Order = 3
-        services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 4
-        services.AddDataSeeder<SysRoleSeeder>();              // Order = 10
-        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 15
-        services.AddDataSeeder<SysUserSeeder>();              // Order = 20
-        services.AddDataSeeder<SysMenuSeeder>();              // Order = 25
-        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 30
+        services.AddDataSeeder<SysOperationSeeder>();        // Order = 0
+        services.AddDataSeeder<SysResourceSeeder>();          // Order = 1
+        services.AddDataSeeder<SysPermissionSeeder>();        // Order = 2
+
+        services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 10
+        services.AddDataSeeder<SysRoleSeeder>();              // Order = 11
+        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 12
+        services.AddDataSeeder<SysUserSeeder>();              // Order = 13
+        services.AddDataSeeder<SysMenuSeeder>();              // Order = 14
+        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 15
         return services;
     }
 

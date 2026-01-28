@@ -17,25 +17,25 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 系统角色继承关系实体扩展
+/// 系统角色层级关系实体扩展
 /// </summary>
 public partial class SysRoleHierarchy
 {
     /// <summary>
-    /// 父角色
+    /// 祖先角色
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(ParentRoleId))]
-    public virtual SysRole? ParentRole { get; set; }
+    [Navigate(NavigateType.OneToOne, nameof(AncestorId))]
+    public virtual SysRole? Ancestor { get; set; }
 
     /// <summary>
-    /// 子角色
+    /// 后代角色
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(ChildRoleId))]
-    public virtual SysRole? ChildRole { get; set; }
+    [Navigate(NavigateType.OneToOne, nameof(DescendantId))]
+    public virtual SysRole? Descendant { get; set; }
 }

@@ -23,9 +23,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 记录会话中激活的角色，支持动态职责分离（DSD）
 /// </summary>
 [SugarTable("Sys_Session_Role", "系统会话角色映射表")]
-[SugarIndex("IX_SysSessionRole_SessionId_RoleId", nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("UX_SysSessionRole_Session_Role", nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysSessionRole_SessionId", nameof(SessionId), OrderByType.Asc)]
 [SugarIndex("IX_SysSessionRole_RoleId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_SysSessionRole_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysSessionRole_ExpiresAt", nameof(ExpiresAt), OrderByType.Asc)]
 public partial class SysSessionRole : RbacEntity<long>
 {
     /// <summary>

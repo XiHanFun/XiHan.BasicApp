@@ -124,12 +124,12 @@ public class RoleDomainService : DomainService
             allPermissions.Add(permission);
         }
 
-        // 获取父角色的权限（角色继承）
-        var parentRoles = await _roleRepository.GetParentRolesAsync(roleId, cancellationToken);
-        foreach (var parentRole in parentRoles)
+        // 获取祖先角色的权限（角色继承）
+        var ancestorRoles = await _roleRepository.GetAncestorRolesAsync(roleId, cancellationToken);
+        foreach (var ancestorRole in ancestorRoles)
         {
-            var parentPermissions = await _permissionRepository.GetByRoleIdAsync(parentRole.BasicId, cancellationToken);
-            foreach (var permission in parentPermissions)
+            var ancestorPermissions = await _permissionRepository.GetByRoleIdAsync(ancestorRole.BasicId, cancellationToken);
+            foreach (var permission in ancestorPermissions)
             {
                 allPermissions.Add(permission);
             }
@@ -158,12 +158,12 @@ public class RoleDomainService : DomainService
             allMenus.Add(menu);
         }
 
-        // 获取父角色的菜单（角色继承）
-        var parentRoles = await _roleRepository.GetParentRolesAsync(roleId, cancellationToken);
-        foreach (var parentRole in parentRoles)
+        // 获取祖先角色的菜单（角色继承）
+        var ancestorRoles = await _roleRepository.GetAncestorRolesAsync(roleId, cancellationToken);
+        foreach (var ancestorRole in ancestorRoles)
         {
-            var parentMenus = await _menuRepository.GetByRoleIdAsync(parentRole.BasicId, cancellationToken);
-            foreach (var menu in parentMenus)
+            var ancestorMenus = await _menuRepository.GetByRoleIdAsync(ancestorRole.BasicId, cancellationToken);
+            foreach (var menu in ancestorMenus)
             {
                 allMenus.Add(menu);
             }
@@ -203,11 +203,11 @@ public class RoleDomainService : DomainService
             throw new InvalidOperationException($"角色正在被 {users.Count} 个用户使用，无法删除");
         }
 
-        // 检查是否有子角色（角色继承）
-        var childRoles = await _roleRepository.GetChildRolesAsync(roleId, cancellationToken);
-        if (childRoles.Count > 0)
+        // 检查是否有后代角色（角色继承）
+        var descendantRoles = await _roleRepository.GetDescendantRolesAsync(roleId, cancellationToken);
+        if (descendantRoles.Count > 0)
         {
-            throw new InvalidOperationException($"角色有 {childRoles.Count} 个子角色，无法删除");
+            throw new InvalidOperationException($"角色有 {descendantRoles.Count} 个后代角色，无法删除");
         }
 
         Logger.LogInformation("角色 {RoleId} 可以删除", roleId);
@@ -218,7 +218,7 @@ public class RoleDomainService : DomainService
     /// 验证角色继承关系是否合法（避免循环继承）
     /// </summary>
     /// <param name="roleId">角色ID</param>
-    /// <param name="parentRoleId">父角色ID</param>
+    /// <param name="parentRoleId">祖先角色ID（要继承的角色）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>是否可以设置父角色</returns>
     public async Task<bool> CanSetParentRoleAsync(long roleId, long parentRoleId, CancellationToken cancellationToken = default)
@@ -238,7 +238,7 @@ public class RoleDomainService : DomainService
             throw new InvalidOperationException("设置该父角色会形成循环继承关系");
         }
 
-        Logger.LogInformation("角色 {RoleId} 可以设置父角色 {ParentRoleId}", roleId, parentRoleId);
+        Logger.LogInformation("角色 {RoleId} 可以继承角色 {AncestorRoleId}", roleId, parentRoleId);
         return true;
     }
 

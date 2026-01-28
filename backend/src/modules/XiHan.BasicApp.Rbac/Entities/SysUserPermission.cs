@@ -22,9 +22,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户权限关联实体（直授）
 /// </summary>
 [SugarTable("Sys_User_Permission", "系统用户权限关联表")]
+[SugarIndex("UX_SysUserPermission_User_Permission", nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserPermission_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserPermission_PermissionId", nameof(PermissionId), OrderByType.Asc)]
-public partial class SysUserPermission : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysUserPermission_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_EffectiveTime", nameof(EffectiveTime), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_ExpirationTime", nameof(ExpirationTime), OrderByType.Asc)]
+public partial class SysUserPermission : RbacCreationEntity<long>
 {
     /// <summary>
     /// 用户ID

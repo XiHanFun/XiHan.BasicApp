@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:MenuEnums
-// Guid:bd28152c-d6e9-4396-addb-b479254bad31
+// FileName:PermissionType
+// Guid:ad28152c-d6e9-4396-addb-b479254bad30
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 4:30:00
+// CreateTime:2025/8/14 4:25:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -15,22 +15,27 @@
 namespace XiHan.BasicApp.Rbac.Enums;
 
 /// <summary>
-/// 菜单类型枚举
+/// 权限类型枚举
 /// </summary>
-public enum MenuType
+public enum PermissionType
 {
     /// <summary>
-    /// 目录
+    /// 菜单权限
     /// </summary>
-    Directory = 0,
+    Menu = 0,
 
     /// <summary>
-    /// 菜单
+    /// 按钮权限
     /// </summary>
-    Menu = 1,
+    Button = 1,
 
     /// <summary>
-    /// 按钮
+    /// API权限
     /// </summary>
-    Button = 2
+    Api = 2,
+
+    /// <summary>
+    /// 数据权限
+    /// </summary>
+    Data = 3
 }

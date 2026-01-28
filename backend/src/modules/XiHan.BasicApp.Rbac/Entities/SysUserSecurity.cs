@@ -21,7 +21,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户安全状态实体
 /// </summary>
 [SugarTable("Sys_User_Security", "系统用户安全状态表")]
-[SugarIndex("IX_SysUserSecurity_UserId", nameof(UserId), OrderByType.Asc, true)]
+[SugarIndex("UX_SysUserSecurity_UserId", nameof(UserId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserSecurity_IsLocked", nameof(IsLocked), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSecurity_TwoFactorEnabled", nameof(TwoFactorEnabled), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSecurity_LockoutEndTime", nameof(LockoutEndTime), OrderByType.Asc)]
 public partial class SysUserSecurity : RbacFullAuditedEntity<long>
 {
     /// <summary>
@@ -79,14 +82,18 @@ public partial class SysUserSecurity : RbacFullAuditedEntity<long>
     public virtual bool TwoFactorEnabled { get; set; } = false;
 
     /// <summary>
-    /// 双因素认证密钥
+    /// 双因素认证密钥（敏感信息）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "双因素认证密钥", Length = 200, IsNullable = true)]
     public virtual string? TwoFactorSecret { get; set; }
 
     /// <summary>
     /// 安全戳（用于强制重新登录）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "安全戳", Length = 100, IsNullable = true)]
     public virtual string? SecurityStamp { get; set; }
 

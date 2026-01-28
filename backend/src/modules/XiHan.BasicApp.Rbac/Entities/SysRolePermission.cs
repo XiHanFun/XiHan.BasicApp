@@ -23,7 +23,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统角色权限关联实体
 /// </summary>
 [SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
-public partial class SysRolePermission : RbacFullAuditedEntity<long>
+[SugarIndex("UX_SysRolePermission_Role_Permission", nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRolePermission_RoleId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRolePermission_PermissionId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_SysRolePermission_Status", nameof(Status), OrderByType.Asc)]
+public partial class SysRolePermission : RbacCreationEntity<long>
 {
     /// <summary>
     /// 角色ID

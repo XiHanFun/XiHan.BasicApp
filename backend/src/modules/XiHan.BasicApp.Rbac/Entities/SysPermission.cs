@@ -24,8 +24,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Permission", "系统权限表")]
 [SugarIndex("IX_SysPermission_PermissionCode", nameof(PermissionCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysPermission_Resource_Operation", nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
+[SugarIndex("UX_SysPermission_Resource_Operation", nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysPermission_ResourceId", nameof(ResourceId), OrderByType.Asc)]
+[SugarIndex("IX_SysPermission_Status", nameof(Status), OrderByType.Asc)]
 public partial class SysPermission : RbacAggregateRoot<long>
 {
     /// <summary>
@@ -43,7 +44,7 @@ public partial class SysPermission : RbacAggregateRoot<long>
     /// <summary>
     /// 权限编码（唯一标识，格式：资源编码:操作编码，如：user:create, order:view）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限编码", Length = 150, IsNullable = false)]
+    [SugarColumn(ColumnDescription = "权限编码", Length = 200, IsNullable = false)]
     public virtual string PermissionCode { get; set; } = string.Empty;
 
     /// <summary>

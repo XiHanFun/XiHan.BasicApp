@@ -64,20 +64,20 @@ public interface IRoleRepository : IAggregateRootRepository<SysRole, long>
     Task<List<SysUser>> GetUsersByRoleIdAsync(long roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取角色的父角色（用于角色继承）
+    /// 获取角色的祖先角色（被继承的角色）
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>父角色列表</returns>
-    Task<List<SysRole>> GetParentRolesAsync(long roleId, CancellationToken cancellationToken = default);
+    /// <returns>祖先角色列表</returns>
+    Task<List<SysRole>> GetAncestorRolesAsync(long roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取角色的子角色（用于角色继承）
+    /// 获取角色的后代角色（继承此角色的角色）
     /// </summary>
     /// <param name="roleId">角色ID</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>子角色列表</returns>
-    Task<List<SysRole>> GetChildRolesAsync(long roleId, CancellationToken cancellationToken = default);
+    /// <returns>后代角色列表</returns>
+    Task<List<SysRole>> GetDescendantRolesAsync(long roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 根据用户ID获取角色列表

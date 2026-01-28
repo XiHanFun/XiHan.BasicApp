@@ -25,7 +25,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysLoginLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoginTime", nameof(LoginTime), OrderByType.Desc)]
-public partial class SysLoginLog : RbacFullAuditedEntity<long>
+[SugarIndex("IX_SysLoginLog_Result", nameof(Result), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_UserName", nameof(UserName), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_LoginIp", nameof(LoginIp), OrderByType.Asc)]
+public partial class SysLoginLog : RbacCreationEntity<long>
 {
     /// <summary>
     /// 用户ID

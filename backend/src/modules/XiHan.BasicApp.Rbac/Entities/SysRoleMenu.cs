@@ -22,7 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统角色菜单关联实体
 /// </summary>
 [SugarTable("Sys_Role_Menu", "系统角色菜单关联表")]
-public partial class SysRoleMenu : RbacFullAuditedEntity<long>
+[SugarIndex("UX_SysRoleMenu_Role_Menu", nameof(RoleId), OrderByType.Asc, nameof(MenuId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRoleMenu_RoleId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_MenuId", nameof(MenuId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_Status", nameof(Status), OrderByType.Asc)]
+public partial class SysRoleMenu : RbacCreationEntity<long>
 {
     /// <summary>
     /// 角色ID

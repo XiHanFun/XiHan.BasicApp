@@ -24,6 +24,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Tenant", "系统租户表")]
 [SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_TenantStatus", nameof(TenantStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_ConfigStatus", nameof(ConfigStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_ExpireTime", nameof(ExpireTime), OrderByType.Asc)]
 public partial class SysTenant : RbacAggregateRoot<long>
 {
     /// <summary>
@@ -125,12 +129,16 @@ public partial class SysTenant : RbacAggregateRoot<long>
     /// <summary>
     /// 数据库密码（加密存储）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "数据库密码", Length = 200, IsNullable = true)]
     public virtual string? DatabasePassword { get; set; }
 
     /// <summary>
-    /// 数据库连接字符串
+    /// 数据库连接字符串（敏感信息）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "数据库连接字符串", Length = 1000, IsNullable = true)]
     public virtual string? ConnectionString { get; set; }
 

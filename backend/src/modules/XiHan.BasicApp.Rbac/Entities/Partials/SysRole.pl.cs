@@ -85,22 +85,22 @@ public partial class SysRole
     public virtual List<SysRoleDataScope>? DataScopes { get; set; }
 
     /// <summary>
-    /// 作为父角色的继承关系列表
+    /// 作为祖先角色的层级关系列表（此角色被哪些角色继承）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.ParentRoleId))]
-    public virtual List<SysRoleHierarchy>? ParentHierarchies { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.AncestorId))]
+    public virtual List<SysRoleHierarchy>? AncestorHierarchies { get; set; }
 
     /// <summary>
-    /// 作为子角色的继承关系列表
+    /// 作为后代角色的层级关系列表（此角色继承了哪些角色）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.ChildRoleId))]
-    public virtual List<SysRoleHierarchy>? ChildHierarchies { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysRoleHierarchy.DescendantId))]
+    public virtual List<SysRoleHierarchy>? DescendantHierarchies { get; set; }
 
     /// <summary>
     /// 会话角色映射列表
