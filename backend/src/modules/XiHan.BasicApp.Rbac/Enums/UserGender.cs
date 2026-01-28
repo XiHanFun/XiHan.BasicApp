@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:PermissionEnums
-// Guid:ad28152c-d6e9-4396-addb-b479254bad30
+// FileName:UserGender
+// Guid:8d28152c-d6e9-4396-addb-b479254bad28
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 4:25:00
+// CreateTime:2025/8/14 4:15:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -15,43 +15,22 @@
 namespace XiHan.BasicApp.Rbac.Enums;
 
 /// <summary>
-/// 权限类型枚举
+/// 用户性别枚举
 /// </summary>
-public enum PermissionType
+public enum UserGender
 {
     /// <summary>
-    /// 菜单权限
+    /// 未知
     /// </summary>
-    Menu = 0,
+    Unknown = 0,
 
     /// <summary>
-    /// 按钮权限
+    /// 男
     /// </summary>
-    Button = 1,
+    Male = 1,
 
     /// <summary>
-    /// API权限
+    /// 女
     /// </summary>
-    Api = 2,
-
-    /// <summary>
-    /// 数据权限
-    /// </summary>
-    Data = 3
-}
-
-/// <summary>
-/// 权限操作枚举
-/// </summary>
-public enum PermissionAction
-{
-    /// <summary>
-    /// 授予权限
-    /// </summary>
-    Grant = 0,
-
-    /// <summary>
-    /// 禁用权限
-    /// </summary>
-    Deny = 1
+    Female = 2
 }

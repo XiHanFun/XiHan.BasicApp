@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:UserEnums
-// Guid:8d28152c-d6e9-4396-addb-b479254bad28
+// FileName:OAuthAppType
+// Guid:ed28152c-d6e9-4396-addb-b479254bad34
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 4:15:00
+// CreateTime:2025/8/14 4:45:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -15,22 +15,27 @@
 namespace XiHan.BasicApp.Rbac.Enums;
 
 /// <summary>
-/// 用户性别枚举
+/// OAuth应用类型枚举
 /// </summary>
-public enum UserGender
+public enum OAuthAppType
 {
     /// <summary>
-    /// 未知
+    /// Web应用
     /// </summary>
-    Unknown = 0,
+    Web = 0,
 
     /// <summary>
-    /// 男
+    /// 移动应用
     /// </summary>
-    Male = 1,
+    Mobile = 1,
 
     /// <summary>
-    /// 女
+    /// 桌面应用
     /// </summary>
-    Female = 2
+    Desktop = 2,
+
+    /// <summary>
+    /// 服务应用
+    /// </summary>
+    Service = 3
 }
