@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RoleEnums
-// Guid:9d28152c-d6e9-4396-addb-b479254bad29
+// FileName:SmsStatus
+// Guid:ed28152c-d6e9-4396-addb-b479254bad34
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 4:20:00
+// CreateTime:2025/8/14 4:45:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -15,22 +15,32 @@
 namespace XiHan.BasicApp.Rbac.Enums;
 
 /// <summary>
-/// 角色类型枚举
+/// 短信状态枚举
 /// </summary>
-public enum RoleType
+public enum SmsStatus
 {
     /// <summary>
-    /// 系统角色
+    /// 待发送
     /// </summary>
-    System = 0,
+    Pending = 0,
 
     /// <summary>
-    /// 业务角色
+    /// 发送中
     /// </summary>
-    Business = 1,
+    Sending = 1,
 
     /// <summary>
-    /// 自定义角色
+    /// 发送成功
     /// </summary>
-    Custom = 2
+    Success = 2,
+
+    /// <summary>
+    /// 发送失败
+    /// </summary>
+    Failed = 3,
+
+    /// <summary>
+    /// 已取消
+    /// </summary>
+    Cancelled = 4
 }
