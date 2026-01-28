@@ -24,8 +24,18 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Department", "系统部门表")]
 [SugarIndex("IX_SysDepartment_DepartmentCode", nameof(DepartmentCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDepartment_ParentId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartment_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartment_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartment_DepartmentType", nameof(DepartmentType), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartment_LeaderId", nameof(LeaderId), OrderByType.Asc)]
 public partial class SysDepartment : RbacAggregateRoot<long>
 {
+    /// <summary>
+    /// 租户ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
+    public virtual long? TenantId { get; set; }
+
     /// <summary>
     /// 父级部门ID
     /// </summary>

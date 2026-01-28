@@ -103,29 +103,29 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     }
 
     /// <summary>
-    /// 获取角色的父角色（用于角色继承）
+    /// 获取角色的祖先角色（被继承的角色）
     /// </summary>
-    public async Task<List<SysRole>> GetParentRolesAsync(long roleId, CancellationToken cancellationToken = default)
+    public async Task<List<SysRole>> GetAncestorRolesAsync(long roleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         return await _dbClient.Queryable<SysRole>()
-            .LeftJoin<SysRoleHierarchy>((r, rh) => r.BasicId == rh.ParentRoleId)
-            .Where((r, rh) => rh.ChildRoleId == roleId)
+            .LeftJoin<SysRoleHierarchy>((r, rh) => r.BasicId == rh.AncestorId)
+            .Where((r, rh) => rh.DescendantId == roleId && rh.Depth > 0)
             .Select((r, rh) => r)
             .ToListAsync(cancellationToken);
     }
 
     /// <summary>
-    /// 获取角色的子角色（用于角色继承）
+    /// 获取角色的后代角色（继承此角色的角色）
     /// </summary>
-    public async Task<List<SysRole>> GetChildRolesAsync(long roleId, CancellationToken cancellationToken = default)
+    public async Task<List<SysRole>> GetDescendantRolesAsync(long roleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         return await _dbClient.Queryable<SysRole>()
-            .LeftJoin<SysRoleHierarchy>((r, rh) => r.BasicId == rh.ChildRoleId)
-            .Where((r, rh) => rh.ParentRoleId == roleId)
+            .LeftJoin<SysRoleHierarchy>((r, rh) => r.BasicId == rh.DescendantId)
+            .Where((r, rh) => rh.AncestorId == roleId && rh.Depth > 0)
             .Select((r, rh) => r)
             .ToListAsync(cancellationToken);
     }
@@ -147,35 +147,14 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     /// <summary>
     /// 检查设置父角色是否会形成循环继承
     /// </summary>
-    public async Task<bool> WouldCreateCycleAsync(long roleId, long parentRoleId, CancellationToken cancellationToken = default)
+    public async Task<bool> WouldCreateCycleAsync(long roleId, long ancestorId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 简单检查：如果父角色的父级链中包含当前角色，则会形成循环
-        var currentId = parentRoleId;
-        var visited = new HashSet<long> { roleId };
-
-        while (currentId != 0)
-        {
-            if (visited.Contains(currentId))
-            {
-                return true; // 检测到循环
-            }
-
-            visited.Add(currentId);
-
-            var parent = await _dbClient.Queryable<SysRoleHierarchy>()
-                .Where(rh => rh.ChildRoleId == currentId)
-                .FirstAsync(cancellationToken);
-
-            if (parent == null)
-            {
-                break;
-            }
-
-            currentId = parent.ParentRoleId;
-        }
-
-        return false;
+        // 使用闭包表检查：如果祖先角色的祖先链中包含当前角色，则会形成循环
+        // 即：roleId 是 ancestorId 的祖先吗？
+        return await _dbClient.Queryable<SysRoleHierarchy>()
+            .Where(rh => rh.DescendantId == ancestorId && rh.AncestorId == roleId)
+            .AnyAsync(cancellationToken);
     }
 }

@@ -257,19 +257,19 @@ public class SysUserSessionGetDto : RbacFullAuditedDtoBase
 #region 角色继承关系
 
 /// <summary>
-/// 系统角色继承关系创建 DTO
+/// 系统角色层级关系创建 DTO
 /// </summary>
 public class SysRoleHierarchyCreateDto : RbacCreationDtoBase
 {
     /// <summary>
-    /// 父角色ID
+    /// 祖先角色ID（被继承的角色）
     /// </summary>
-    public long ParentRoleId { get; set; }
+    public long AncestorId { get; set; }
 
     /// <summary>
-    /// 子角色ID
+    /// 后代角色ID（继承者角色）
     /// </summary>
-    public long ChildRoleId { get; set; }
+    public long DescendantId { get; set; }
 
     /// <summary>
     /// 继承深度
@@ -284,7 +284,7 @@ public class SysRoleHierarchyCreateDto : RbacCreationDtoBase
     /// <summary>
     /// 继承路径
     /// </summary>
-    public string? InheritancePath { get; set; }
+    public string? Path { get; set; }
 
     /// <summary>
     /// 状态
@@ -298,19 +298,19 @@ public class SysRoleHierarchyCreateDto : RbacCreationDtoBase
 }
 
 /// <summary>
-/// 系统角色继承关系查询 DTO
+/// 系统角色层级关系查询 DTO
 /// </summary>
 public class SysRoleHierarchyGetDto : RbacFullAuditedDtoBase
 {
     /// <summary>
-    /// 父角色ID
+    /// 祖先角色ID（被继承的角色）
     /// </summary>
-    public long ParentRoleId { get; set; }
+    public long AncestorId { get; set; }
 
     /// <summary>
-    /// 子角色ID
+    /// 后代角色ID（继承者角色）
     /// </summary>
-    public long ChildRoleId { get; set; }
+    public long DescendantId { get; set; }
 
     /// <summary>
     /// 继承深度
@@ -325,7 +325,7 @@ public class SysRoleHierarchyGetDto : RbacFullAuditedDtoBase
     /// <summary>
     /// 继承路径
     /// </summary>
-    public string? InheritancePath { get; set; }
+    public string? Path { get; set; }
 
     /// <summary>
     /// 状态

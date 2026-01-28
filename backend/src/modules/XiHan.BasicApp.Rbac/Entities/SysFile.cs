@@ -30,6 +30,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_CreatedTime", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_SysFile_IsTemporary", nameof(IsTemporary), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_ExpiresAt", nameof(ExpiresAt), OrderByType.Asc)]
 public partial class SysFile : RbacAggregateRoot<long>
 {
     #region 基本信息

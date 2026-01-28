@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysRoleHierarchy.pl
-// Guid:90123456-7890-1234-5678-789012345678
+// FileName:SysDepartmentHierarchy.pl
+// Guid:8g9h0i1j-2345-6789-klmn-456789012345
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2026/1/7 10:44:00
+// CreateTime:2026/1/28 0:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -17,25 +17,25 @@ using SqlSugar;
 namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
-/// 系统角色层级关系实体扩展
+/// 系统部门继承关系实体扩展
 /// </summary>
-public partial class SysRoleHierarchy
+public partial class SysDepartmentHierarchy
 {
     /// <summary>
-    /// 祖先角色
+    /// 祖先部门
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(AncestorId))]
-    public virtual SysRole? Ancestor { get; set; }
+    public virtual SysDepartment? Ancestor { get; set; }
 
     /// <summary>
-    /// 后代角色
+    /// 后代部门
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(DescendantId))]
-    public virtual SysRole? Descendant { get; set; }
+    public virtual SysDepartment? Descendant { get; set; }
 }

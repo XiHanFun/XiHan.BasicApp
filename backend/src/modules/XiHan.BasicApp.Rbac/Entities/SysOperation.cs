@@ -25,6 +25,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Operation", "系统操作表")]
 [SugarIndex("IX_SysOperation_OperationCode", nameof(OperationCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOperation_Category", nameof(Category), OrderByType.Asc)]
+[SugarIndex("IX_SysOperation_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysOperation_OperationTypeCode", nameof(OperationTypeCode), OrderByType.Asc)]
 public partial class SysOperation : RbacFullAuditedEntity<long>
 {
     /// <summary>

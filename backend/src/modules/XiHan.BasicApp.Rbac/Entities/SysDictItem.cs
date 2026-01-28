@@ -22,8 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统字典项实体
 /// </summary>
 [SugarTable("Sys_Dict_Item", "系统字典项表")]
+[SugarIndex("UX_SysDictItem_Dict_ItemCode", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDictItem_DictId", nameof(DictId), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_ItemCode", nameof(ItemCode), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_DictCode", nameof(DictCode), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_ParentId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_Status", nameof(Status), OrderByType.Asc)]
 public partial class SysDictItem : RbacFullAuditedEntity<long>
 {
     /// <summary>
