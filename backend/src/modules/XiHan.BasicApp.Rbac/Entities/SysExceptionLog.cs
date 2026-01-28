@@ -21,8 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统异常日志实体
 /// </summary>
-[SugarTable("Sys_Exception_Log_{year}{month}{day}", "系统异常日志表")]
-[SplitTable(SplitType.Month)]
+[SugarTable("Sys_Exception_Log_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysExceptionLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysExceptionLog_ExceptionType", nameof(ExceptionType), OrderByType.Asc)]
 [SugarIndex("IX_SysExceptionLog_SeverityLevel", nameof(SeverityLevel), OrderByType.Desc)]

@@ -20,8 +20,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统接口日志实体
 /// </summary>
-[SugarTable("Sys_Api_Log_{year}{month}{day}", "系统接口日志表")]
-[SplitTable(SplitType.Month)]
+[SugarTable("Sys_Api_Log_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysApiLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_ApiPath", nameof(ApiPath), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_Method", nameof(Method), OrderByType.Asc)]

@@ -21,8 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统访问日志实体
 /// </summary>
-[SugarTable("Sys_Access_Log_{year}{month}{day}", "系统访问日志表")]
-[SplitTable(SplitType.Month)]
+[SugarTable("Sys_Access_Log_{year}{month}{day}", "系统访问日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysAccessLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysAccessLog_AccessResult", nameof(AccessResult), OrderByType.Asc)]
 [SugarIndex("IX_SysAccessLog_AccessTime", nameof(AccessTime), OrderByType.Desc)]

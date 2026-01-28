@@ -21,8 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统审查日志实体
 /// </summary>
-[SugarTable("Sys_Review_Log_{year}{month}{day}", "系统审查日志表")]
-[SplitTable(SplitType.Month)]
+[SugarTable("Sys_Review_Log_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysReviewLog_ReviewId", nameof(ReviewId), OrderByType.Asc)]
 [SugarIndex("IX_SysReviewLog_ReviewerId", nameof(ReviewerId), OrderByType.Asc)]
 [SugarIndex("IX_SysReviewLog_ReviewResult", nameof(ReviewResult), OrderByType.Asc)]

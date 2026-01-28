@@ -21,8 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// <summary>
 /// 系统操作日志实体
 /// </summary>
-[SugarTable("Sys_Operation_Log_{year}{month}{day}", "系统操作日志表")]
-[SplitTable(SplitType.Month)]
+[SugarTable("Sys_Operation_Log_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysOperationLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysOperationLog_OperationType", nameof(OperationType), OrderByType.Asc)]
 [SugarIndex("IX_SysOperationLog_OperationTime", nameof(OperationTime), OrderByType.Desc)]
