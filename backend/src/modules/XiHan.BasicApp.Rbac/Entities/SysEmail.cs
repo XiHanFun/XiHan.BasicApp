@@ -39,13 +39,13 @@ public partial class SysEmail : RbacAggregateRoot<long>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual long? SenderId { get; set; }
+    public virtual long? SendUserId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual long? ReceiverId { get; set; }
+    public virtual long? ReceiveUserId { get; set; }
 
     /// <summary>
     /// 邮件类型

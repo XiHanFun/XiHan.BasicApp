@@ -90,7 +90,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysNotification.UserId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysNotification.RecipientUserId))]
     public virtual List<SysNotification>? ReceivedNotifications { get; set; }
 
     /// <summary>
@@ -99,7 +99,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysNotification.SenderId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysNotification.SendUserId))]
     public virtual List<SysNotification>? SentNotifications { get; set; }
 
     /// <summary>
@@ -126,7 +126,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysEmail.SenderId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysEmail.SendUserId))]
     public virtual List<SysEmail>? SentEmails { get; set; }
 
     /// <summary>
@@ -135,7 +135,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysEmail.ReceiverId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysEmail.ReceiveUserId))]
     public virtual List<SysEmail>? ReceivedEmails { get; set; }
 
     /// <summary>
@@ -171,7 +171,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysReview.SubmitterId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysReview.SubmitUserId))]
     public virtual List<SysReview>? SubmittedReviews { get; set; }
 
     /// <summary>
@@ -180,7 +180,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysReview.CurrentReviewerId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysReview.CurrentReviewUserId))]
     public virtual List<SysReview>? CurrentReviews { get; set; }
 
     /// <summary>
@@ -189,7 +189,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysReviewLog.ReviewerId))]
+    [Navigate(NavigateType.OneToMany, nameof(SysReviewLog.ReviewUserId))]
     public virtual List<SysReviewLog>? ReviewLogs { get; set; }
 
     /// <summary>

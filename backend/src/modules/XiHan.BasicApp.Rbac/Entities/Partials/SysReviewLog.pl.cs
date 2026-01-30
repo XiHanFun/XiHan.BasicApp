@@ -45,6 +45,6 @@ public partial class SysReviewLog
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(ReviewerId))]
+    [Navigate(NavigateType.ManyToOne, nameof(ReviewUserId))]
     public virtual SysUser? Reviewer { get; set; }
 }

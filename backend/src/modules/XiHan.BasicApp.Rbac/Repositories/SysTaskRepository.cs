@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Abstracts;
@@ -66,7 +65,7 @@ public class SysTaskRepository : SqlSugarAggregateRepository<SysTask, long>, ISy
         return await _dbContext.GetClient().Queryable<SysTask>()
             .Where(t => t.Status == YesOrNo.Yes
                 && t.RunTaskStatus == RunTaskStatus.Running
-                && (t.NextExecuteTime == null || t.NextExecuteTime <= currentTime))
+                && (t.NextRunTime == null || t.NextRunTime <= currentTime))
             .ToListAsync(cancellationToken);
     }
 
@@ -78,8 +77,8 @@ public class SysTaskRepository : SqlSugarAggregateRepository<SysTask, long>, ISy
         await _dbContext.GetClient().Updateable<SysTask>()
             .SetColumns(t => new SysTask
             {
-                LastExecuteTime = lastExecuteTime,
-                NextExecuteTime = nextExecuteTime
+                LastRunTime = lastExecuteTime,
+                NextRunTime = nextExecuteTime
             })
             .Where(t => t.BasicId == taskId)
             .ExecuteCommandAsync(cancellationToken);
@@ -92,7 +91,7 @@ public class SysTaskRepository : SqlSugarAggregateRepository<SysTask, long>, ISy
     /// </summary>
     public async Task<SysTaskLog> AddTaskLogAsync(SysTaskLog log, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.GetClient().Insertable(log).ExecuteReturnEntityAsync(cancellationToken);
+        return await _dbContext.GetClient().Insertable(log).ExecuteReturnEntityAsync();
     }
 
     /// <summary>
@@ -102,7 +101,7 @@ public class SysTaskRepository : SqlSugarAggregateRepository<SysTask, long>, ISy
     {
         return await _dbContext.GetClient().Queryable<SysTaskLog>()
             .Where(log => log.TaskId == taskId)
-            .OrderByDescending(log => log.ExecuteTime)
+            .OrderByDescending(log => log.StartTime)
             .ToPageListAsync(pageIndex, pageSize, cancellationToken);
     }
 
@@ -113,7 +112,7 @@ public class SysTaskRepository : SqlSugarAggregateRepository<SysTask, long>, ISy
     {
         return await _dbContext.GetClient().Queryable<SysTaskLog>()
             .Where(log => log.TaskId == taskId)
-            .OrderByDescending(log => log.ExecuteTime)
+            .OrderByDescending(log => log.StartTime)
             .FirstAsync(cancellationToken);
     }
 
@@ -123,7 +122,7 @@ public class SysTaskRepository : SqlSugarAggregateRepository<SysTask, long>, ISy
     public async Task CleanExpiredLogsAsync(DateTime beforeDate, CancellationToken cancellationToken = default)
     {
         await _dbContext.GetClient().Deleteable<SysTaskLog>()
-            .Where(log => log.ExecuteTime < beforeDate)
+            .Where(log => log.StartTime < beforeDate)
             .ExecuteCommandAsync(cancellationToken);
     }
 }

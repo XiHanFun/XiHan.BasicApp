@@ -36,7 +36,7 @@ public partial class SysNotification
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(UserId))]
+    [Navigate(NavigateType.ManyToOne, nameof(RecipientUserId))]
     public virtual SysUser? User { get; set; }
 
     /// <summary>
@@ -45,6 +45,6 @@ public partial class SysNotification
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(SenderId))]
+    [Navigate(NavigateType.ManyToOne, nameof(SendUserId))]
     public virtual SysUser? Sender { get; set; }
 }

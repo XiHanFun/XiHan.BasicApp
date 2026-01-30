@@ -104,13 +104,13 @@ public partial class SysReview : RbacAggregateRoot<long>
     /// 提交人ID
     /// </summary>
     [SugarColumn(ColumnDescription = "提交人ID", IsNullable = true)]
-    public virtual long? SubmitterId { get; set; }
+    public virtual long? SubmitUserId { get; set; }
 
     /// <summary>
     /// 提交人名称
     /// </summary>
     [SugarColumn(ColumnDescription = "提交人名称", Length = 50, IsNullable = true)]
-    public virtual string? SubmitterName { get; set; }
+    public virtual string? SubmitUserName { get; set; }
 
     /// <summary>
     /// 提交时间
@@ -122,19 +122,19 @@ public partial class SysReview : RbacAggregateRoot<long>
     /// 当前审查人ID
     /// </summary>
     [SugarColumn(ColumnDescription = "当前审查人ID", IsNullable = true)]
-    public virtual long? CurrentReviewerId { get; set; }
+    public virtual long? CurrentReviewUserId { get; set; }
 
     /// <summary>
     /// 当前审查人名称
     /// </summary>
     [SugarColumn(ColumnDescription = "当前审查人名称", Length = 50, IsNullable = true)]
-    public virtual string? CurrentReviewerName { get; set; }
+    public virtual string? CurrentReviewUserName { get; set; }
 
     /// <summary>
     /// 审查人ID列表（JSON格式）
     /// </summary>
     [SugarColumn(ColumnDescription = "审查人ID列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? ReviewerIds { get; set; }
+    public virtual string? ReviewUserIds { get; set; }
 
     /// <summary>
     /// 审查级别

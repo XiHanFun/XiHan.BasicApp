@@ -87,7 +87,7 @@ public class SysPermissionSeeder : DataSeederBase
                         PermissionCode = $"{resource.ResourceCode}:{operation.OperationCode}",
                         PermissionName = $"{resource.ResourceName}-{operation.OperationName}",
                         PermissionDescription = $"对{resource.ResourceName}执行{operation.OperationName}操作",
-                        RequireAudit = operation.RequireAudit,
+                        IsRequireAudit = operation.IsRequireAudit,
                         Tags = GetPermissionTags(resource.ResourceCode, operation.OperationCode),
                         Status = YesOrNo.Yes,
                         Sort = permissionId

@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统通知实体
 /// </summary>
 [SugarTable("Sys_Notification", "系统通知表")]
-[SugarIndex("IX_SysNotification_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysNotification_RecipientUserId", nameof(RecipientUserId), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NotificationType", nameof(NotificationType), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NotificationStatus", nameof(NotificationStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SendTime", nameof(SendTime), OrderByType.Desc)]

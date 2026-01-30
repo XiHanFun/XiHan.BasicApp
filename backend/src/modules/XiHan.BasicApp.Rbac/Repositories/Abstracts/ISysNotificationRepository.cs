@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Domain.Repositories;
 
 namespace XiHan.BasicApp.Rbac.Repositories.Abstracts;
@@ -62,7 +63,7 @@ public interface ISysNotificationRepository : IAggregateRootRepository<SysNotifi
     /// <summary>
     /// 更新邮件状态
     /// </summary>
-    Task UpdateEmailStatusAsync(long emailId, string status, string? errorMessage = null, CancellationToken cancellationToken = default);
+    Task UpdateEmailStatusAsync(long emailId, EmailStatus status, string? errorMessage = null, CancellationToken cancellationToken = default);
 
     // ========== 短信 ==========
 
@@ -84,5 +85,5 @@ public interface ISysNotificationRepository : IAggregateRootRepository<SysNotifi
     /// <summary>
     /// 更新短信状态
     /// </summary>
-    Task UpdateSmsStatusAsync(long smsId, string status, string? errorMessage = null, CancellationToken cancellationToken = default);
+    Task UpdateSmsStatusAsync(long smsId, SmsStatus status, string? errorMessage = null, CancellationToken cancellationToken = default);
 }

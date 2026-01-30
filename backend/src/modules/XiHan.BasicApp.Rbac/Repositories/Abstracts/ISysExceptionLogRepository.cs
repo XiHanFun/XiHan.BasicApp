@@ -38,11 +38,6 @@ public interface ISysExceptionLogRepository : IRepositoryBase<SysExceptionLog, l
     Task<List<SysExceptionLog>> GetRecentExceptionsAsync(int count, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取异常统计
-    /// </summary>
-    Task<Dictionary<string, int>> GetExceptionStatisticsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 按异常类型统计
     /// </summary>
     Task<Dictionary<string, int>> GetExceptionTypeStatisticsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
