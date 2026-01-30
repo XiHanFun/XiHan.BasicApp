@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysDepartmentHierarchy_DescendantId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartmentHierarchy_Depth", nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartmentHierarchy_AncestorId_Depth", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
-public partial class SysDepartmentHierarchy : RbacEntity<long>
+public partial class SysDepartmentHierarchy : RbacCreationEntity<long>
 {
     /// <summary>
     /// 祖先部门ID
@@ -79,12 +79,6 @@ public partial class SysDepartmentHierarchy : RbacEntity<long>
     /// </remarks>
     [SugarColumn(ColumnDescription = "路径名称", Length = 1000, IsNullable = true)]
     public virtual string? PathName { get; set; }
-
-    /// <summary>
-    /// 创建时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "创建时间")]
-    public virtual DateTimeOffset CreatedTime { get; set; } = DateTimeOffset.Now;
 
     /// <summary>
     /// 备注

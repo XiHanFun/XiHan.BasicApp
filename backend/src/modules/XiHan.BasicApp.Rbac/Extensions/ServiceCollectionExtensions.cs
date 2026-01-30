@@ -33,56 +33,55 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacRepositories(this IServiceCollection services)
     {
-        // 访问日志仓储
-        services.AddScoped<IAccessLogRepository, AccessLogRepository>();
-        // API日志仓储
-        services.AddScoped<IApiLogRepository, ApiLogRepository>();
-        // 审计日志仓储
-        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-        // 配置仓储
-        services.AddScoped<IConfigRepository, ConfigRepository>();
-        // 部门仓储
-        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-        // 字典仓储
-        services.AddScoped<IDictRepository, DictRepository>();
-        // 邮件仓储
-        services.AddScoped<IEmailRepository, EmailRepository>();
-        // 文件仓储
-        services.AddScoped<IFileRepository, FileRepository>();
-        // 登录日志仓储
-        services.AddScoped<ILoginLogRepository, LoginLogRepository>();
+        // ========== 核心聚合仓储 ==========
+        // 用户聚合仓储
+        services.AddScoped<ISysUserRepository, SysUserRepository>();
+        // 角色聚合仓储
+        services.AddScoped<ISysRoleRepository, SysRoleRepository>();
+        // 权限聚合仓储
+        services.AddScoped<ISysPermissionRepository, SysPermissionRepository>();
         // 菜单仓储
-        services.AddScoped<IMenuRepository, MenuRepository>();
-        // 通知仓储
-        services.AddScoped<INotificationRepository, NotificationRepository>();
-        // OAuth应用仓储
-        services.AddScoped<IOAuthAppRepository, OAuthAppRepository>();
-        // OAuth授权码仓储
-        services.AddScoped<IOAuthCodeRepository, OAuthCodeRepository>();
-        // OAuth令牌仓储
-        services.AddScoped<IOAuthTokenRepository, OAuthTokenRepository>();
-        // 操作日志仓储
-        services.AddScoped<IOperationLogRepository, OperationLogRepository>();
-        // 权限仓储
-        services.AddScoped<IPermissionRepository, PermissionRepository>();
-        // 资源仓储
-        services.AddScoped<IResourceRepository, ResourceRepository>();
-        // 审核日志仓储
-        services.AddScoped<IReviewLogRepository, ReviewLogRepository>();
-        // 审核仓储
-        services.AddScoped<IReviewRepository, ReviewRepository>();
-        // 角色仓储
-        services.AddScoped<IRoleRepository, RoleRepository>();
-        // 短信仓储
-        services.AddScoped<ISmsRepository, SmsRepository>();
-        // 任务仓储
-        services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<ISysMenuRepository, SysMenuRepository>();
+        // 部门聚合仓储
+        services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
         // 租户仓储
-        services.AddScoped<ITenantRepository, TenantRepository>();
-        // 用户仓储
-        services.AddScoped<IUserRepository, UserRepository>();
-        // 用户会话仓储
-        services.AddScoped<IUserSessionRepository, UserSessionRepository>();
+        services.AddScoped<ISysTenantRepository, SysTenantRepository>();
+
+        // ========== 关系映射仓储 ==========
+        // 用户关系映射仓储
+        services.AddScoped<ISysUserRelationRepository, SysUserRelationRepository>();
+        // 角色关系映射仓储
+        services.AddScoped<ISysRoleRelationRepository, SysRoleRelationRepository>();
+
+        // ========== 日志仓储 ==========
+        // 访问与安全日志仓储
+        services.AddScoped<ISysAccessLogRepository, SysAccessLogRepository>();
+        // 审计日志仓储
+        services.AddScoped<ISysAuditLogRepository, SysAuditLogRepository>();
+        // 异常日志仓储
+        services.AddScoped<ISysExceptionLogRepository, SysExceptionLogRepository>();
+
+        // ========== 系统支撑仓储 ==========
+        // 配置仓储
+        services.AddScoped<ISysConfigRepository, SysConfigRepository>();
+        // 字典仓储
+        services.AddScoped<ISysDictRepository, SysDictRepository>();
+        // 文件仓储
+        services.AddScoped<ISysFileRepository, SysFileRepository>();
+        // 通知仓储
+        services.AddScoped<ISysNotificationRepository, SysNotificationRepository>();
+
+        // ========== 任务调度仓储 ==========
+        // 任务仓储
+        services.AddScoped<ISysTaskRepository, SysTaskRepository>();
+
+        // ========== OAuth仓储 ==========
+        // OAuth仓储
+        services.AddScoped<ISysOAuthRepository, SysOAuthRepository>();
+
+        // ========== 审批评审仓储 ==========
+        // 审批仓储
+        services.AddScoped<ISysReviewRepository, SysReviewRepository>();
 
         return services;
     }

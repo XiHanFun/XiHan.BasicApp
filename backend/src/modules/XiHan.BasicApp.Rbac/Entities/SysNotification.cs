@@ -39,13 +39,13 @@ public partial class SysNotification : RbacAggregateRoot<long>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual long? UserId { get; set; }
+    public virtual long? RecipientUserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
-    public virtual long? SenderId { get; set; }
+    public virtual long? SendUserId { get; set; }
 
     /// <summary>
     /// 通知类型
