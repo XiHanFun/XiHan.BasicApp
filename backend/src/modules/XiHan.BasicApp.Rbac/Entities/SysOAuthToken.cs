@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOAuthToken_ClientId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_IsRevoked", nameof(IsRevoked), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_AccessTokenExpiresAt", nameof(AccessTokenExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_AccessTokenExpiresTime", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
 public partial class SysOAuthToken : RbacCreationEntity<long>
 {
     /// <summary>
@@ -77,16 +77,22 @@ public partial class SysOAuthToken : RbacCreationEntity<long>
     public virtual string? Scopes { get; set; }
 
     /// <summary>
+    /// 状态
+    /// </summary>
+    [SugarColumn(ColumnDescription = "状态", IsNullable = true)]
+    public virtual YesOrNo? State { get; set; }
+
+    /// <summary>
     /// 访问令牌过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "访问令牌过期时间")]
-    public virtual DateTimeOffset AccessTokenExpiresAt { get; set; }
+    public virtual DateTimeOffset AccessTokenExpiresTime { get; set; }
 
     /// <summary>
     /// 刷新令牌过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "刷新令牌过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? RefreshTokenExpiresAt { get; set; }
+    public virtual DateTimeOffset? RefreshTokenExpiresTime { get; set; }
 
     /// <summary>
     /// 是否已撤销
@@ -98,5 +104,5 @@ public partial class SysOAuthToken : RbacCreationEntity<long>
     /// 撤销时间
     /// </summary>
     [SugarColumn(ColumnDescription = "撤销时间", IsNullable = true)]
-    public virtual DateTimeOffset? RevokedAt { get; set; }
+    public virtual DateTimeOffset? RevokedTime { get; set; }
 }

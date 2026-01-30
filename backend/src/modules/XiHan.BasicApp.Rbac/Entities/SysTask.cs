@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using TaskStatus = XiHan.BasicApp.Rbac.Enums.TaskStatus;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -142,7 +141,7 @@ public partial class SysTask : RbacAggregateRoot<long>
     /// 任务状态
     /// </summary>
     [SugarColumn(ColumnDescription = "任务状态")]
-    public virtual TaskStatus TaskStatus { get; set; } = TaskStatus.Pending;
+    public virtual RunTaskStatus RunTaskStatus { get; set; } = RunTaskStatus.Pending;
 
     /// <summary>
     /// 优先级（1-5，数字越小优先级越高）

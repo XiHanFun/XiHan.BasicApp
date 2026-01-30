@@ -14,6 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -59,8 +60,8 @@ public partial class SysOAuthCode : RbacFullAuditedEntity<long>
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态", Length = 20, IsNullable = true)]
-    public virtual string? State { get; set; }
+    [SugarColumn(ColumnDescription = "状态", IsNullable = true)]
+    public virtual YesOrNo? State { get; set; }
 
     /// <summary>
     /// 质询码
@@ -78,7 +79,7 @@ public partial class SysOAuthCode : RbacFullAuditedEntity<long>
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间")]
-    public virtual DateTimeOffset ExpiresAt { get; set; }
+    public virtual DateTimeOffset ExpiresTime { get; set; }
 
     /// <summary>
     /// 是否已使用
