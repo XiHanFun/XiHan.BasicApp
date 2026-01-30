@@ -84,7 +84,7 @@ public partial class SysResource : RbacCreationEntity<long>
     /// 是否需要认证
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要认证")]
-    public virtual bool RequireAuth { get; set; } = true;
+    public virtual bool IsRequireAuth { get; set; } = true;
 
     /// <summary>
     /// 是否公开资源（无需授权即可访问）

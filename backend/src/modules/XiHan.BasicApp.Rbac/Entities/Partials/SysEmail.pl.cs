@@ -36,7 +36,7 @@ public partial class SysEmail
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(SenderId))]
+    [Navigate(NavigateType.ManyToOne, nameof(SendUserId))]
     public virtual SysUser? Sender { get; set; }
 
     /// <summary>
@@ -45,6 +45,6 @@ public partial class SysEmail
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(ReceiverId))]
+    [Navigate(NavigateType.ManyToOne, nameof(ReceiveUserId))]
     public virtual SysUser? Receiver { get; set; }
 }

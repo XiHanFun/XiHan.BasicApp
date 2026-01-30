@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories.Abstracts;
@@ -44,7 +43,7 @@ public class SysReviewRepository : SqlSugarAggregateRepository<SysReview, long>,
     public async Task<List<SysReview>> GetPendingReviewsAsync(long reviewerId, int pageIndex, int pageSize, CancellationToken cancellationToken = default)
     {
         return await _dbContext.GetClient().Queryable<SysReview>()
-            .Where(r => r.ReviewerId == reviewerId && r.ReviewStatus == AuditStatus.Pending)
+            .Where(r => r.CurrentReviewUserId == reviewerId && r.ReviewStatus == AuditStatus.Pending)
             .OrderByDescending(r => r.CreatedTime)
             .ToPageListAsync(pageIndex, pageSize, cancellationToken);
     }
@@ -55,7 +54,7 @@ public class SysReviewRepository : SqlSugarAggregateRepository<SysReview, long>,
     public async Task<List<SysReview>> GetByUserIdAsync(long userId, int pageIndex, int pageSize, CancellationToken cancellationToken = default)
     {
         return await _dbContext.GetClient().Queryable<SysReview>()
-            .Where(r => r.ApplicantUserId == userId)
+            .Where(r => r.CurrentReviewUserId == userId)
             .OrderByDescending(r => r.CreatedTime)
             .ToPageListAsync(pageIndex, pageSize, cancellationToken);
     }

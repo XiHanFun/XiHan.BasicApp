@@ -96,7 +96,7 @@ public class SysUserRepository : SqlSugarAggregateRepository<SysUser, long>, ISy
             .Where(u => u.BasicId == userId)
             .Select((u, s) => new SysUser
             {
-                BasicId = u.BasicId,
+                //BasicId = u.BasicId,
                 UserName = u.UserName,
                 Password = u.Password,
                 // 其他用户字段...

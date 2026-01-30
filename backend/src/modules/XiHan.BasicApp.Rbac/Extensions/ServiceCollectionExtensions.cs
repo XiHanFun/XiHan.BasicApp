@@ -16,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Rbac.Repositories;
 using XiHan.BasicApp.Rbac.Repositories.Abstracts;
 using XiHan.BasicApp.Rbac.Seeders;
-using XiHan.BasicApp.Rbac.Services.Domain;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
@@ -93,13 +92,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDomainServices(this IServiceCollection services)
     {
-        services.AddScoped<UserDomainService>();
-        services.AddScoped<RoleDomainService>();
-        services.AddScoped<PermissionDomainService>();
-        services.AddScoped<MenuDomainService>();
-        services.AddScoped<DepartmentDomainService>();
-        services.AddScoped<TenantDomainService>();
-        services.AddScoped<AuthorizationDomainService>();
+        //services.AddScoped<UserDomainService>();
 
         return services;
     }

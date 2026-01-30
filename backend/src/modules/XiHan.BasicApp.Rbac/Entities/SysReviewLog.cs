@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Review_Log_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysReviewLog_ReviewId", nameof(ReviewId), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReviewerId", nameof(ReviewerId), OrderByType.Asc)]
+[SugarIndex("IX_SysReviewLog_ReviewUserId", nameof(ReviewUserId), OrderByType.Asc)]
 [SugarIndex("IX_SysReviewLog_ReviewResult", nameof(ReviewResult), OrderByType.Asc)]
 [SugarIndex("IX_SysReviewLog_ReviewTime", nameof(ReviewTime), OrderByType.Desc)]
 [SugarIndex("IX_SysReviewLog_TenantId", nameof(TenantId), OrderByType.Asc)]
@@ -69,19 +69,19 @@ public partial class SysReviewLog : RbacFullAuditedEntity<long>
     /// 审查人ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审查人ID", IsNullable = true)]
-    public virtual long? ReviewerId { get; set; }
+    public virtual long? ReviewUserId { get; set; }
 
     /// <summary>
     /// 审查人名称
     /// </summary>
     [SugarColumn(ColumnDescription = "审查人名称", Length = 50, IsNullable = true)]
-    public virtual string? ReviewerName { get; set; }
+    public virtual string? ReviewUserName { get; set; }
 
     /// <summary>
     /// 审查人部门
     /// </summary>
     [SugarColumn(ColumnDescription = "审查人部门", Length = 100, IsNullable = true)]
-    public virtual string? ReviewerDepartment { get; set; }
+    public virtual string? ReviewUserDepartment { get; set; }
 
     /// <summary>
     /// 原审查状态

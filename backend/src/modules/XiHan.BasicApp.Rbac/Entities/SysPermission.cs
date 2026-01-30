@@ -70,7 +70,7 @@ public partial class SysPermission : RbacAggregateRoot<long>
     /// 是否需要审计（操作此权限是否需要记录审计日志）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
-    public virtual bool RequireAudit { get; set; } = false;
+    public virtual bool IsRequireAudit { get; set; } = false;
 
     /// <summary>
     /// 优先级（数字越大优先级越高，用于权限冲突时的决策）

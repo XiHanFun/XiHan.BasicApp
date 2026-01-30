@@ -87,7 +87,7 @@ public partial class SysOperation : RbacCreationEntity<long>
     /// 是否需要审计日志
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
-    public virtual bool RequireAudit { get; set; } = false;
+    public virtual bool IsRequireAudit { get; set; } = false;
 
     /// <summary>
     /// 状态
