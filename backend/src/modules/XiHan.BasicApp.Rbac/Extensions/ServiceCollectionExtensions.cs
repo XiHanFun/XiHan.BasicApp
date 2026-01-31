@@ -13,8 +13,10 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Rbac.Repositories;
-using XiHan.BasicApp.Rbac.Repositories.Abstracts;
+using XiHan.BasicApp.Rbac.Domain.Repositories;
+using XiHan.BasicApp.Rbac.Domain.Repositories.Implementations;
+using XiHan.BasicApp.Rbac.Domain.Services;
+using XiHan.BasicApp.Rbac.Domain.Services.Implementations;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -32,55 +34,15 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacRepositories(this IServiceCollection services)
     {
-        // ========== 核心聚合仓储 ==========
-        // 用户聚合仓储
+        // 聚合根仓储
         services.AddScoped<ISysUserRepository, SysUserRepository>();
-        // 角色聚合仓储
         services.AddScoped<ISysRoleRepository, SysRoleRepository>();
-        // 权限聚合仓储
         services.AddScoped<ISysPermissionRepository, SysPermissionRepository>();
-        // 菜单仓储
-        services.AddScoped<ISysMenuRepository, SysMenuRepository>();
-        // 部门聚合仓储
-        services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
-        // 租户仓储
         services.AddScoped<ISysTenantRepository, SysTenantRepository>();
-
-        // ========== 关系映射仓储 ==========
-        // 用户关系映射仓储
-        services.AddScoped<ISysUserRelationRepository, SysUserRelationRepository>();
-        // 角色关系映射仓储
-        services.AddScoped<ISysRoleRelationRepository, SysRoleRelationRepository>();
-
-        // ========== 日志仓储 ==========
-        // 访问与安全日志仓储
-        services.AddScoped<ISysAccessLogRepository, SysAccessLogRepository>();
-        // 审计日志仓储
-        services.AddScoped<ISysAuditLogRepository, SysAuditLogRepository>();
-        // 异常日志仓储
-        services.AddScoped<ISysExceptionLogRepository, SysExceptionLogRepository>();
-
-        // ========== 系统支撑仓储 ==========
-        // 配置仓储
+        services.AddScoped<ISysMenuRepository, SysMenuRepository>();
+        services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
         services.AddScoped<ISysConfigRepository, SysConfigRepository>();
-        // 字典仓储
         services.AddScoped<ISysDictRepository, SysDictRepository>();
-        // 文件仓储
-        services.AddScoped<ISysFileRepository, SysFileRepository>();
-        // 通知仓储
-        services.AddScoped<ISysNotificationRepository, SysNotificationRepository>();
-
-        // ========== 任务调度仓储 ==========
-        // 任务仓储
-        services.AddScoped<ISysTaskRepository, SysTaskRepository>();
-
-        // ========== OAuth仓储 ==========
-        // OAuth仓储
-        services.AddScoped<ISysOAuthRepository, SysOAuthRepository>();
-
-        // ========== 审批评审仓储 ==========
-        // 审批仓储
-        services.AddScoped<ISysReviewRepository, SysReviewRepository>();
 
         return services;
     }
@@ -92,7 +54,14 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDomainServices(this IServiceCollection services)
     {
-        //services.AddScoped<UserDomainService>();
+        // Domain Services
+        services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+        services.AddScoped<IPermissionAuthorizationService, PermissionAuthorizationService>();
+        services.AddScoped<IRoleManagementService, RoleManagementService>();
+        services.AddScoped<ITenantManagementService, TenantManagementService>();
+        services.AddScoped<IDataPermissionService, DataPermissionService>();
+        services.AddScoped<IMenuNavigationService, MenuNavigationService>();
+        services.AddScoped<IDepartmentHierarchyService, DepartmentHierarchyService>();
 
         return services;
     }

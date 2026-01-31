@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// </summary>
 [SugarTable("Sys_Task", "系统任务表")]
 [SugarIndex("IX_SysTask_TaskCode", nameof(TaskCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTask_TaskStatus", nameof(TaskStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_RunTaskStatus", nameof(RunTaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]

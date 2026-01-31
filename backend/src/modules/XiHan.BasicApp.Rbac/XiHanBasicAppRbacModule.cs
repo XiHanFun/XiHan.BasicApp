@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using SqlSugar;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Extensions;
 using XiHan.BasicApp.Web.Core;
@@ -48,21 +47,21 @@ public class XiHanBasicAppRbacModule : XiHanModule
         var config = services.GetConfiguration();
 
         // 配置SqlSugar选项
-        var configSqlSugar = config.GetSection("XiHan:Data:SqlSugarCore");
+        var configSqlSugar = config.GetSection(XiHanSqlSugarCoreOptions.SectionName);
 
         // 从配置文件绑定基础配置
         Configure<XiHanSqlSugarCoreOptions>(configSqlSugar);
 
-        // 1. 注册基础设施（Repositories）
+        // 1. 注册领域仓储（Domain Repositories）
         services.AddRbacRepositories();
 
-        // 2. 注册领域服务（Domain Layer）
+        // 2. 注册领域服务（Domain Services）
         services.AddRbacDomainServices();
 
-        // 3. 注册应用服务（Application Layer）
+        // 3. 注册应用服务（Application Services）
         services.AddRbacApplicationServices();
 
-        // 4. 注册基础设施适配器（Infrastructure Layer）
+        // 4. 注册基础设施适配器（Infrastructure Adapters）
         services.AddRbacInfrastructureAdapters();
 
         // 5. 注册数据种子提供者

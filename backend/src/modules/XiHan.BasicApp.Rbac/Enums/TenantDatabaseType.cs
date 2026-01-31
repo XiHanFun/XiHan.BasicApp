@@ -25,14 +25,14 @@ public enum TenantDatabaseType
     SqlServer = 0,
 
     /// <summary>
-    /// MySQL
+    /// MySql
     /// </summary>
-    MySQL = 1,
+    MySql = 1,
 
     /// <summary>
-    /// PostgreSQL
+    /// PostgreSql
     /// </summary>
-    PostgreSQL = 2,
+    PostgreSql = 2,
 
     /// <summary>
     /// SQLite
