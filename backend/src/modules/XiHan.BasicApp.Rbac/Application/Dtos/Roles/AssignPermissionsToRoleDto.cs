@@ -3,44 +3,29 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:TenantDatabaseType
-// Guid:1a28152c-d6e9-4396-addb-b479254bad90
+// FileName:AssignPermissionsToRoleDto
+// Guid:b2c3d4e5-f6a7-8901-2345-67890abcdef1
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 9:00:00
+// CreateTime:2026/1/31 0:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
-namespace XiHan.BasicApp.Rbac.Enums;
+namespace XiHan.BasicApp.Rbac.Application.Dtos.Roles;
 
 /// <summary>
-/// 租户数据库类型
+/// 角色分配权限DTO
 /// </summary>
-public enum TenantDatabaseType
+public class AssignPermissionsToRoleDto
 {
     /// <summary>
-    /// SQL Server
+    /// 角色ID
     /// </summary>
-    SqlServer = 0,
+    public long RoleId { get; set; }
 
     /// <summary>
-    /// MySql
+    /// 权限ID列表
     /// </summary>
-    MySql = 1,
-
-    /// <summary>
-    /// PostgreSql
-    /// </summary>
-    PostgreSql = 2,
-
-    /// <summary>
-    /// SQLite
-    /// </summary>
-    SQLite = 3,
-
-    /// <summary>
-    /// Oracle
-    /// </summary>
-    Oracle = 4
+    public List<long> PermissionIds { get; set; } = [];
 }

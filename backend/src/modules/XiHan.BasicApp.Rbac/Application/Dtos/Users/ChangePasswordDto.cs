@@ -3,44 +3,34 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:TenantDatabaseType
-// Guid:1a28152c-d6e9-4396-addb-b479254bad90
+// FileName:ChangePasswordDto
+// Guid:a1b2c3d4-e5f6-7890-1234-567890abcdef
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 9:00:00
+// CreateTime:2026/1/31 0:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
-namespace XiHan.BasicApp.Rbac.Enums;
+namespace XiHan.BasicApp.Rbac.Application.Dtos.Users;
 
 /// <summary>
-/// 租户数据库类型
+/// 修改密码DTO
 /// </summary>
-public enum TenantDatabaseType
+public class ChangePasswordDto
 {
     /// <summary>
-    /// SQL Server
+    /// 旧密码
     /// </summary>
-    SqlServer = 0,
+    public string OldPassword { get; set; } = string.Empty;
 
     /// <summary>
-    /// MySql
+    /// 新密码
     /// </summary>
-    MySql = 1,
+    public string NewPassword { get; set; } = string.Empty;
 
     /// <summary>
-    /// PostgreSql
+    /// 确认密码
     /// </summary>
-    PostgreSql = 2,
-
-    /// <summary>
-    /// SQLite
-    /// </summary>
-    SQLite = 3,
-
-    /// <summary>
-    /// Oracle
-    /// </summary>
-    Oracle = 4
+    public string ConfirmPassword { get; set; } = string.Empty;
 }

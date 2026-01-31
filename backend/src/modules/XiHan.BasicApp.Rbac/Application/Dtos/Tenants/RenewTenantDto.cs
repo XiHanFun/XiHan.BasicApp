@@ -3,44 +3,29 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:TenantDatabaseType
-// Guid:1a28152c-d6e9-4396-addb-b479254bad90
+// FileName:RenewTenantDto
+// Guid:f6a7b8c9-d0e1-2345-6789-0abcdef12345
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 9:00:00
+// CreateTime:2026/1/31 0:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
-namespace XiHan.BasicApp.Rbac.Enums;
+namespace XiHan.BasicApp.Rbac.Application.Dtos.Tenants;
 
 /// <summary>
-/// 租户数据库类型
+/// 租户续期DTO
 /// </summary>
-public enum TenantDatabaseType
+public class RenewTenantDto
 {
     /// <summary>
-    /// SQL Server
+    /// 租户ID
     /// </summary>
-    SqlServer = 0,
+    public long TenantId { get; set; }
 
     /// <summary>
-    /// MySql
+    /// 续期天数
     /// </summary>
-    MySql = 1,
-
-    /// <summary>
-    /// PostgreSql
-    /// </summary>
-    PostgreSql = 2,
-
-    /// <summary>
-    /// SQLite
-    /// </summary>
-    SQLite = 3,
-
-    /// <summary>
-    /// Oracle
-    /// </summary>
-    Oracle = 4
+    public int Days { get; set; }
 }
