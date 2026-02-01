@@ -1,13 +1,13 @@
-#region <<版权版本注释>>
+﻿#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysDepartmentHierarchy
-// Guid:7f8g9h0i-1234-5678-jklm-345678901234
+// Guid:5889aba2-71e8-48e2-8c6c-2cc2f403ed0a
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2026/1/28 0:00:00
+// CreateTime:2026/01/28 00:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
