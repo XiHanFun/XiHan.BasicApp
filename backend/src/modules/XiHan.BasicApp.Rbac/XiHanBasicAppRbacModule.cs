@@ -47,10 +47,7 @@ public class XiHanBasicAppRbacModule : XiHanModule
         var config = services.GetConfiguration();
 
         // 配置SqlSugar选项
-        var configSqlSugar = config.GetSection(XiHanSqlSugarCoreOptions.SectionName);
-
-        // 从配置文件绑定基础配置
-        Configure<XiHanSqlSugarCoreOptions>(configSqlSugar);
+        Configure<XiHanSqlSugarCoreOptions>(config.GetSection(XiHanSqlSugarCoreOptions.SectionName));
 
         // 1. 注册领域仓储（Domain Repositories）
         services.AddRbacRepositories();
