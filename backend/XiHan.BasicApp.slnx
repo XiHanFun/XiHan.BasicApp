@@ -1,4 +1,5 @@
 <Solution>
+  <Folder Name="/0.docs/" />
   <Folder Name="/1.src/" />
   <Folder Name="/1.src/1.Framework/" Id="fc7b4289-5a6e-4dbc-8e33-0a05f6165c25">
     <Project Path="src/framework/XiHan.BasicApp.Core/XiHan.BasicApp.Core.csproj" Id="d91f1216-6bff-4c66-b806-599ff979f3cf" />
@@ -17,35 +18,34 @@
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>
   <Folder Name="/2.test/" />
-  <Folder Name="/3.docs/" />
-  <Folder Name="/4.others/" />
-  <Folder Name="/4.others/1.Props/">
+  <Folder Name="/3.others/" />
+  <Folder Name="/3.others/1.Props/">
     <File Path="props/common.props" />
     <File Path="props/netcore.props" />
     <File Path="props/nuget.props" />
     <File Path="props/version.props" />
   </Folder>
-  <Folder Name="/4.others/2.Scripts/" />
-  <Folder Name="/4.others/2.Scripts/editor/">
+  <Folder Name="/3.others/2.Scripts/" />
+  <Folder Name="/3.others/2.Scripts/editor/">
     <File Path="scripts/editor/Class.cs" />
     <File Path="scripts/editor/Controller.cs" />
     <File Path="scripts/editor/CopyFile.ps1" />
     <File Path="scripts/editor/FilePath.txt" />
     <File Path="scripts/editor/Interface.cs" />
   </Folder>
-  <Folder Name="/4.others/2.Scripts/nuget/">
+  <Folder Name="/3.others/2.Scripts/nuget/">
     <File Path="scripts/nuget/1.SaveNugetApiKey.ps1" />
     <File Path="scripts/nuget/2.VersionUpgrade.ps1" />
     <File Path="scripts/nuget/3.PushNugetPackages.ps1" />
   </Folder>
-  <Folder Name="/4.others/2.Scripts/project/">
+  <Folder Name="/3.others/2.Scripts/project/">
     <File Path="scripts/project/ClearProjecBinObj.ps1" />
   </Folder>
-  <Folder Name="/4.others/2.Scripts/service/">
+  <Folder Name="/3.others/2.Scripts/service/">
     <File Path="scripts/service/XiHan.BasicApp.bat" />
     <File Path="scripts/service/XiHan.BasicApp.service" />
   </Folder>
-  <Folder Name="/4.others/3.Root/">
+  <Folder Name="/3.others/3.Root/">
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
