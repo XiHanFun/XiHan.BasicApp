@@ -1,4 +1,4 @@
-#region <<版权版本注释>>
+﻿#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -7,7 +7,7 @@
 // Guid:6c28152c-d6e9-4396-addb-b479254bad10
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/8/14 2:45:00
+// CreateTime:2025/08/14 02:45:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
