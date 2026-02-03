@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Application.Services;
@@ -27,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services;
 /// <summary>
 /// 用户应用服务
 /// </summary>
-public class UserApplicationService : CrudApplicationServiceBase<SysUser, SysUserDto, long, CreateSysUserDto, UpdateSysUserDto>
+public class UserApplicationService : CrudApplicationServiceBase<SysUser, SysUserDto, long, SysUserCreateDto, SysUserUpdateDto>
 {
     private readonly ISysUserRepository _userRepository;
     private readonly IUserAuthenticationService _authenticationService;
@@ -53,7 +54,7 @@ public class UserApplicationService : CrudApplicationServiceBase<SysUser, SysUse
     /// <summary>
     /// 创建用户
     /// </summary>
-    public override async Task<SysUserDto> CreateAsync(CreateSysUserDto input)
+    public override async Task<SysUserDto> CreateAsync(SysUserCreateDto input)
     {
         //using var uow = _unitOfWorkManager.Begin();
 
@@ -83,7 +84,7 @@ public class UserApplicationService : CrudApplicationServiceBase<SysUser, SysUse
     /// <summary>
     /// 更新用户
     /// </summary>
-    public override async Task<SysUserDto> UpdateAsync(long id, UpdateSysUserDto input)
+    public override async Task<SysUserDto> UpdateAsync(long id, SysUserUpdateDto input)
     {
         //using var uow = _unitOfWorkManager.Begin();
 
@@ -214,13 +215,13 @@ public class UserApplicationService : CrudApplicationServiceBase<SysUser, SysUse
     /// <summary>
     /// 获取租户下的用户列表
     /// </summary>
-    public async Task<PageResponse<SysUserDto>> GetUsersByTenantAsync(long tenantId, PageQuery input)
+    public async Task<BasePageResultDto<SysUserDto>> GetUsersByTenantAsync(long tenantId, BasePageRequestDto input)
     {
         // 构建租户过滤条件
         var users = await _userRepository.GetUsersByTenantAsync(tenantId);
         var dtos = users.Adapt<List<SysUserDto>>();
 
-        return new PageResponse<SysUserDto>(dtos, new PageData
+        return new BasePageResultDto<SysUserDto>(dtos, new PageResultMetadata
         {
             PageIndex = 1,
             PageSize = dtos.Count,
