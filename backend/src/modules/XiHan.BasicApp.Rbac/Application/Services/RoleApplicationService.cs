@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Application.Services;
@@ -165,12 +166,12 @@ public class RoleApplicationService : CrudApplicationServiceBase<SysRole, SysRol
     /// <summary>
     /// 获取租户下的角色列表
     /// </summary>
-    public async Task<PageResponse<SysRoleDto>> GetRolesByTenantAsync(long tenantId, PageQuery input)
+    public async Task<BasePageResultDto<SysRoleDto>> GetRolesByTenantAsync(long tenantId, BasePageRequestDto input)
     {
         var roles = await _roleRepository.GetRolesByTenantAsync(tenantId);
         var dtos = roles.Adapt<List<SysRoleDto>>();
 
-        return new PageResponse<SysRoleDto>(dtos, new PageData
+        return new BasePageResultDto<SysRoleDto>(dtos, new PageResultMetadata
         {
             PageIndex = 1,
             PageSize = dtos.Count,

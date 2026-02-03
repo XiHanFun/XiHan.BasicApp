@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:CreateSysUserDto
+// FileName:SysUserUpdateDto
 // Guid:a1b2c3d4-e5f6-7890-1234-567890abcdef
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,25 +18,10 @@ using XiHan.BasicApp.Rbac.Enums;
 namespace XiHan.BasicApp.Rbac.Application.Dtos.Users;
 
 /// <summary>
-/// 创建用户DTO
+/// 用户更新DTO
 /// </summary>
-public class CreateSysUserDto : RbacCreationDtoBase
+public class SysUserUpdateDto : RbacUpdateDtoBase
 {
-    /// <summary>
-    /// 租户ID
-    /// </summary>
-    public long? TenantId { get; set; }
-
-    /// <summary>
-    /// 用户名
-    /// </summary>
-    public string UserName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 密码
-    /// </summary>
-    public string Password { get; set; } = string.Empty;
-
     /// <summary>
     /// 真实姓名
     /// </summary>
@@ -65,7 +50,7 @@ public class CreateSysUserDto : RbacCreationDtoBase
     /// <summary>
     /// 性别
     /// </summary>
-    public UserGender Gender { get; set; } = UserGender.Unknown;
+    public UserGender? Gender { get; set; }
 
     /// <summary>
     /// 生日
@@ -80,7 +65,7 @@ public class CreateSysUserDto : RbacCreationDtoBase
     /// <summary>
     /// 语言
     /// </summary>
-    public string? Language { get; set; } = "zh-CN";
+    public string? Language { get; set; }
 
     /// <summary>
     /// 国家/地区

@@ -15,12 +15,8 @@
 namespace XiHan.BasicApp.Rbac.Dtos.Base;
 
 /// <summary>
-/// RBAC DTO 基类
+/// RBAC 更新 DTO 基类
 /// </summary>
-public abstract class RbacDtoBase
+public abstract class RbacUpdateDtoBase : RbacDtoBase
 {
-    /// <summary>
-    /// 主键ID
-    /// </summary>
-    public long BasicId { get; set; }
 }
