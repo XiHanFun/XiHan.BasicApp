@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using SqlSugar;
 using System.Text;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Entities;
