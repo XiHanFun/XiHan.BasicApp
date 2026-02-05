@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Menus.Dtos;
 /// <summary>
 /// 系统菜单DTO
 /// </summary>
-public class SysMenuDto : FullAuditedDtoBase
+public class SysMenuDto
 {
     /// <summary>
     /// 租户ID
