@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Roles.Dtos;
 /// <summary>
 /// 系统角色DTO
 /// </summary>
-public class SysRoleDto
+public class SysRoleDto : DtoBase<long>
 {
     /// <summary>
     /// 租户ID

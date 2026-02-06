@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Permissions.Dtos;
 /// <summary>
 /// 更新权限DTO
 /// </summary>
-public class UpdateSysPermissionDto : UpdateDtoBase
+public class UpdateSysPermissionDto : UpdateDtoBase<long>
 {
     /// <summary>
     /// 权限名称

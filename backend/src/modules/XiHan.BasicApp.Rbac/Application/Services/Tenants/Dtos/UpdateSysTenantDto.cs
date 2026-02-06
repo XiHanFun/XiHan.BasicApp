@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Tenants.Dtos;
 /// <summary>
 /// 更新租户DTO
 /// </summary>
-public class UpdateSysTenantDto : UpdateDtoBase
+public class UpdateSysTenantDto : UpdateDtoBase<long>
 {
     /// <summary>
     /// 租户名称
