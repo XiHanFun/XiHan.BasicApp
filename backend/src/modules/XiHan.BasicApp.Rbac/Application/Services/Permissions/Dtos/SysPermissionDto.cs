@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Permissions.Dtos;
 /// <summary>
 /// 系统权限DTO
 /// </summary>
-public class SysPermissionDto
+public class SysPermissionDto : DtoBase<long>
 {
     /// <summary>
     /// 资源ID

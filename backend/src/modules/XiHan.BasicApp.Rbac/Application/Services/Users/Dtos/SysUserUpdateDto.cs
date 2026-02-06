@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Users.Dtos;
 /// <summary>
 /// 用户更新DTO
 /// </summary>
-public class SysUserUpdateDto : UpdateDtoBase
+public class SysUserUpdateDto : UpdateDtoBase<long>
 {
     /// <summary>
     /// 真实姓名

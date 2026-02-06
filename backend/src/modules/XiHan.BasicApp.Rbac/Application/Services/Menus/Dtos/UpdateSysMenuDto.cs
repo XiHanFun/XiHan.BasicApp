@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Menus.Dtos;
 /// <summary>
 /// 更新菜单DTO
 /// </summary>
-public class UpdateSysMenuDto : UpdateDtoBase
+public class UpdateSysMenuDto : UpdateDtoBase<long>
 {
     /// <summary>
     /// 父级菜单ID

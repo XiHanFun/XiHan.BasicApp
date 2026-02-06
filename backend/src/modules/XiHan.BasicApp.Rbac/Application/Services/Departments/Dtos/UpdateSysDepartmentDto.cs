@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Departments.Dtos;
 /// <summary>
 /// 更新部门DTO
 /// </summary>
-public class UpdateSysDepartmentDto : UpdateDtoBase
+public class UpdateSysDepartmentDto : UpdateDtoBase<long>
 {
     /// <summary>
     /// 父级部门ID

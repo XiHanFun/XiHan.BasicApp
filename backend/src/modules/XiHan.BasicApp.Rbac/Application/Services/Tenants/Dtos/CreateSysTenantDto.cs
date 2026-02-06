@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Tenants.Dtos;
 /// <summary>
 /// 创建租户DTO
 /// </summary>
-public class CreateSysTenantDto : CreationDtoBase
+public class CreateSysTenantDto : CreationDtoBase<long>
 {
     /// <summary>
     /// 租户编码

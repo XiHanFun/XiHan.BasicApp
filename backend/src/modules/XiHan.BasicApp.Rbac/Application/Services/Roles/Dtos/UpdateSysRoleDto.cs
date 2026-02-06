@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Rbac.Application.Services.Roles.Dtos;
 /// <summary>
 /// 更新角色DTO
 /// </summary>
-public class UpdateSysRoleDto : UpdateDtoBase
+public class UpdateSysRoleDto : UpdateDtoBase<long>
 {
     /// <summary>
     /// 角色名称
