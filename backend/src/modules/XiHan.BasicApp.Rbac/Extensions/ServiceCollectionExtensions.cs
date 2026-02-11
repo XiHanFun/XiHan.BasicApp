@@ -103,6 +103,9 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysUserSeeder>();              // Order = 13
         services.AddDataSeeder<SysMenuSeeder>();              // Order = 14
         services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 15
+        services.AddDataSeeder<SysDictSeeder>();              // Order = 16
+        services.AddDataSeeder<SysDictItemSeeder>();          // Order = 17
+        services.AddDataSeeder<SysConfigSeeder>();            // Order = 18
         return services;
     }
 
