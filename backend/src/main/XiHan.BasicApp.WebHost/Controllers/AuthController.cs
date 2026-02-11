@@ -179,7 +179,7 @@ public class AuthController : ControllerBase
             // 记录登录成功
             loginResult = LoginResult.Success;
 
-            // 构建响应（前端 defaultResponseInterceptor 期望 { code: 0, data: ... }）
+            // 构建响应（前端 defaultResponseInterceptor 期望 { code: 200, data: ... }）
             var response = new UserLoginResponseDto
             {
                 AccessToken = tokenResult.AccessToken,
@@ -193,7 +193,7 @@ public class AuthController : ControllerBase
                 Permissions = permissions
             };
 
-            return Ok(new { code = 0, data = response });
+            return Ok(new { code = 200, data = response });
         }
         catch (Exception ex)
         {
@@ -248,7 +248,7 @@ public class AuthController : ControllerBase
                 ExpiresAt = tokenResult.ExpiresAt
             };
 
-            return Ok(new { code = 0, data = response });
+            return Ok(new { code = 200, data = response });
         }
         catch (Exception)
         {
@@ -305,7 +305,7 @@ public class AuthController : ControllerBase
                 return NotFound(new { message = "用户不存在" });
             }
 
-            return Ok(new { code = 0, data = user });
+            return Ok(new { code = 200, data = user });
         }
         catch (Exception ex)
         {
