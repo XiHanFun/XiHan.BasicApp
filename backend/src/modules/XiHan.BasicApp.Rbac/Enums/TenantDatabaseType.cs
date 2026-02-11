@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:TenantDatabaseType
-// Guid:1a28152c-d6e9-4396-addb-b479254bad90
+// Guid:0e0cb202-b08a-46a5-8aae-b03063c550d9
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2025/08/14 09:00:00

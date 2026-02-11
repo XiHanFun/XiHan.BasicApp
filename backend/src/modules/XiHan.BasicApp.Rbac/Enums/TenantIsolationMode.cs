@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:TenantIsolationMode
-// Guid:1a28152c-d6e9-4396-addb-b479254bad90
+// Guid:f174d32b-1151-4bc8-8845-4d61fea9c20b
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2025/08/14 09:00:00

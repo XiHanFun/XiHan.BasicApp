@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysMenuRepository
-// Guid:b8c9d0e1-f2a3-4567-89ab-cdef12345678
+// Guid:b868154b-b826-482d-b62a-84ba9956fa4e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/31 00:00:00

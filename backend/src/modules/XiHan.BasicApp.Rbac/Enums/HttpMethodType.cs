@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:HttpMethodType
-// Guid:1a2b3c4d-5e6f-7890-abcd-ef1234567890
+// Guid:33231943-de2a-413d-8cad-3af0fca6d009
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/07 10:00:00

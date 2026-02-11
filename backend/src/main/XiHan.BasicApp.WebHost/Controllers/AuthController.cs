@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AuthController
-// Guid:a1b2c3d4-e5f6-7890-1234-567890abcdef
+// Guid:bfc2ad43-0451-4b4c-8043-3ac6c8851df2
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/02/11 00:00:00
@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Services;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
 using System.Security.Claims;
 using XiHan.BasicApp.Rbac.Enums;
@@ -158,6 +159,7 @@ public class AuthController : ControllerBase
 
             if (userDto.TenantId.HasValue)
             {
+                claims.Add(new Claim(XiHanClaimTypes.TenantId, userDto.TenantId.Value.ToString()));
                 claims.Add(new Claim("TenantId", userDto.TenantId.Value.ToString()));
             }
 

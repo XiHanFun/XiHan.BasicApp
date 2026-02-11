@@ -31,12 +31,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysDepartment : RbacAggregateRoot<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 父级部门ID
     /// </summary>
     [SugarColumn(ColumnDescription = "父级部门ID", IsNullable = true)]
