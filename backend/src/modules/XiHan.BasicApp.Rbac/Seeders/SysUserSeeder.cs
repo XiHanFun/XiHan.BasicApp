@@ -43,7 +43,7 @@ public class SysUserSeeder : DataSeederBase
     /// <summary>
     /// 种子数据名称
     /// </summary>
-    public override string Name => "系统用户种子数据";
+    public override string Name => "[Rbac]系统用户种子数据";
 
     /// <summary>
     /// 种子数据实现
@@ -65,7 +65,7 @@ public class SysUserSeeder : DataSeederBase
             new()
             {
                 TenantId = null,
-                UserName = "admin",
+                UserName = "superadmin",
                 Password = passwordHasher.HashPassword("Admin@123"),
                 RealName = "超级管理员",
                 NickName = "Admin",
@@ -80,7 +80,7 @@ public class SysUserSeeder : DataSeederBase
             new()
             {
                 TenantId = null,
-                UserName = "system",
+                UserName = "systemadmin",
                 Password = passwordHasher.HashPassword("System@123"),
                 RealName = "系统管理员",
                 NickName = "System",

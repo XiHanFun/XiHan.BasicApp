@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <Folder Include="Options\" />
+      <Folder Include="OpenApi\" />
     </ItemGroup>
 
 </Project>

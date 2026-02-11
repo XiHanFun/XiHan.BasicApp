@@ -41,7 +41,7 @@ public class SysPermissionSeeder : DataSeederBase
     /// <summary>
     /// 种子数据名称
     /// </summary>
-    public override string Name => "系统权限种子数据";
+    public override string Name => "[Rbac]系统权限种子数据";
 
     /// <summary>
     /// 种子数据实现

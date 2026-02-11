@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac;
-using XiHan.Framework.Core.Extensions.DependencyInjection;
+using XiHan.BasicApp.CodeGeneration.Extensions;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.CodeGeneration;
@@ -33,6 +33,8 @@ public class XiHanBasicAppCodeGenerationModule : XiHanModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
-        var config = services.GetConfiguration();
+
+        // 注册代码生成模块种子数据
+        services.AddCodeGenerationDataSeeders();
     }
 }

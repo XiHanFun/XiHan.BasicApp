@@ -40,7 +40,7 @@ public class SysUserRoleSeeder : DataSeederBase
     /// <summary>
     /// 种子数据名称
     /// </summary>
-    public override string Name => "系统用户角色关系种子数据";
+    public override string Name => "[Rbac]系统用户角色关系种子数据";
 
     /// <summary>
     /// 种子数据实现
@@ -70,10 +70,10 @@ public class SysUserRoleSeeder : DataSeederBase
         var userRoles = new List<SysUserRole>();
 
         // admin -> super_admin
-        AddUserRole(userRoles, userMap, roleMap, "admin", "super_admin");
+        AddUserRole(userRoles, userMap, roleMap, "superadmin", "super_admin");
 
         // system -> admin
-        AddUserRole(userRoles, userMap, roleMap, "system", "admin");
+        AddUserRole(userRoles, userMap, roleMap, "systemadmin", "admin");
 
         // test -> employee
         AddUserRole(userRoles, userMap, roleMap, "test", "employee");

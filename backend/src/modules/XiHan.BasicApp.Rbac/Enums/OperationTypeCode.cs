@@ -40,69 +40,69 @@ public enum OperationTypeCode
     Delete = 3,
 
     /// <summary>
-    /// 执行/操作
+    /// 查看详情
     /// </summary>
-    Execute = 4,
+    View = 4,
 
     /// <summary>
     /// 审批
     /// </summary>
-    Approve = 5,
+    Approve = 10,
+
+    /// <summary>
+    /// 执行/操作
+    /// </summary>
+    Execute = 11,
 
     /// <summary>
     /// 导入
     /// </summary>
-    Import = 6,
+    Import = 20,
 
     /// <summary>
     /// 导出
     /// </summary>
-    Export = 7,
-
-    /// <summary>
-    /// 下载
-    /// </summary>
-    Download = 8,
+    Export = 21,
 
     /// <summary>
     /// 上传
     /// </summary>
-    Upload = 9,
+    Upload = 22,
+
+    /// <summary>
+    /// 下载
+    /// </summary>
+    Download = 23,
 
     /// <summary>
     /// 打印
     /// </summary>
-    Print = 10,
+    Print = 24,
 
     /// <summary>
     /// 分享
     /// </summary>
-    Share = 11,
+    Share = 25,
 
     /// <summary>
     /// 授权/授予
     /// </summary>
-    Grant = 12,
+    Grant = 30,
 
     /// <summary>
     /// 撤销/收回
     /// </summary>
-    Revoke = 13,
-
-    /// <summary>
-    /// 查看详情
-    /// </summary>
-    View = 14,
+    Revoke = 31,
 
     /// <summary>
     /// 启用
     /// </summary>
-    Enable = 15,
+    Enable = 32,
 
     /// <summary>
     /// 禁用
     /// </summary>
-    Disable = 16,
+    Disable = 33,
 
     /// <summary>
     /// 自定义操作
