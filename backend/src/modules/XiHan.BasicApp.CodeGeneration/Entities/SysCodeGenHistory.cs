@@ -25,6 +25,8 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarIndex("IX_SysCodeGenHistory_TableId", nameof(TableId), OrderByType.Asc)]
 [SugarIndex("IX_SysCodeGenHistory_GenTime", nameof(GenTime), OrderByType.Desc)]
 [SugarIndex("IX_SysCodeGenHistory_GenStatus", nameof(GenStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenHistory_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenHistory_TenantId_TableId", nameof(TenantId), OrderByType.Asc, nameof(TableId), OrderByType.Asc)]
 public partial class SysCodeGenHistory : RbacFullAuditedEntity<long>
 {
     /// <summary>

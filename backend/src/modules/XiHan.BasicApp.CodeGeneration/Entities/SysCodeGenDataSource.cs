@@ -25,6 +25,8 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarTable("Sys_Code_Gen_Data_Source", "系统代码生成数据源表")]
 [SugarIndex("IX_SysCodeGenDataSource_SourceName", nameof(SourceName), OrderByType.Asc, true)]
 [SugarIndex("IX_SysCodeGenDataSource_DatabaseType", nameof(DatabaseType), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenDataSource_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenDataSource_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysCodeGenDataSource : RbacFullAuditedEntity<long>
 {
     /// <summary>
