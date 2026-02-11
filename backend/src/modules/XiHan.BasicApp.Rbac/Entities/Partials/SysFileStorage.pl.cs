@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -77,7 +78,7 @@ public partial class SysFileStorage
     /// </summary>
     public void MarkUploadSuccess()
     {
-        Status = Enums.StorageStatus.Normal;
+        Status = FileStorageStatus.Normal;
         UploadedAt = DateTimeOffset.Now;
         IsSynced = true;
         SyncedAt = DateTimeOffset.Now;
@@ -89,7 +90,7 @@ public partial class SysFileStorage
     /// <param name="reason">失败原因</param>
     public void MarkUploadFailed(string reason)
     {
-        Status = Enums.StorageStatus.UploadFailed;
+        Status = FileStorageStatus.UploadFailed;
         UploadFailureReason = reason;
         RetryCount++;
     }
@@ -99,7 +100,7 @@ public partial class SysFileStorage
     /// </summary>
     public void MarkSyncing()
     {
-        Status = Enums.StorageStatus.Syncing;
+        Status = FileStorageStatus.Syncing;
         IsSynced = false;
     }
 
@@ -108,7 +109,7 @@ public partial class SysFileStorage
     /// </summary>
     public void MarkSyncSuccess()
     {
-        Status = Enums.StorageStatus.Normal;
+        Status = FileStorageStatus.Normal;
         IsSynced = true;
         SyncedAt = DateTimeOffset.Now;
     }
@@ -118,7 +119,7 @@ public partial class SysFileStorage
     /// </summary>
     public void MarkSyncFailed()
     {
-        Status = Enums.StorageStatus.SyncFailed;
+        Status = FileStorageStatus.SyncFailed;
         IsSynced = false;
         RetryCount++;
     }
@@ -130,7 +131,7 @@ public partial class SysFileStorage
     {
         IsVerified = true;
         LastVerifiedAt = DateTimeOffset.Now;
-        Status = Enums.StorageStatus.Normal;
+        Status = FileStorageStatus.Normal;
     }
 
     /// <summary>
@@ -139,7 +140,7 @@ public partial class SysFileStorage
     public void MarkVerificationFailed()
     {
         IsVerified = false;
-        Status = Enums.StorageStatus.VerificationFailed;
+        Status = FileStorageStatus.VerificationFailed;
     }
 
     /// <summary>
@@ -206,7 +207,7 @@ public partial class SysFileStorage
     /// <returns></returns>
     public bool IsAvailable()
     {
-        return Status == Enums.StorageStatus.Normal && IsSynced;
+        return Status == FileStorageStatus.Normal && IsSynced;
     }
 
     /// <summary>
@@ -241,7 +242,7 @@ public partial class SysFileStorage
     /// <returns></returns>
     public bool IsLocalStorage()
     {
-        return StorageType == Enums.StorageType.Local;
+        return StorageType == FileStorageType.Local;
     }
 
     /// <summary>
@@ -250,9 +251,9 @@ public partial class SysFileStorage
     /// <returns></returns>
     public bool IsCloudStorage()
     {
-        return StorageType is Enums.StorageType.AliyunOss
-            or Enums.StorageType.TencentCos
-            or Enums.StorageType.Minio;
+        return StorageType is FileStorageType.AliyunOss
+            or FileStorageType.TencentCos
+            or FileStorageType.Minio;
     }
 
     /// <summary>
@@ -263,14 +264,14 @@ public partial class SysFileStorage
     {
         return StorageType switch
         {
-            Enums.StorageType.Local => "本地存储",
-            Enums.StorageType.AliyunOss => "阿里云OSS",
-            Enums.StorageType.TencentCos => "腾讯云COS",
-            Enums.StorageType.Minio => "MinIO",
-            Enums.StorageType.Ftp => "FTP",
-            Enums.StorageType.Sftp => "SFTP",
-            Enums.StorageType.WebDav => "WebDAV",
-            Enums.StorageType.Custom => "自定义存储",
+            FileStorageType.Local => "本地存储",
+            FileStorageType.AliyunOss => "阿里云OSS",
+            FileStorageType.TencentCos => "腾讯云COS",
+            FileStorageType.Minio => "MinIO",
+            FileStorageType.Ftp => "FTP",
+            FileStorageType.Sftp => "SFTP",
+            FileStorageType.WebDav => "WebDAV",
+            FileStorageType.Custom => "自定义存储",
             _ => "未知"
         };
     }

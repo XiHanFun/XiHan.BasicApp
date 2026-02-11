@@ -1,4 +1,4 @@
-﻿#region <<版权版本注释>>
+#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -43,6 +43,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
         services.AddScoped<ISysConfigRepository, SysConfigRepository>();
         services.AddScoped<ISysDictRepository, SysDictRepository>();
+        
+        // 关联关系仓储
+        services.AddScoped<ISysUserRoleRepository, SysUserRoleRepository>();
+        services.AddScoped<ISysRolePermissionRepository, SysRolePermissionRepository>();
+        services.AddScoped<ISysLoginLogRepository, SysLoginLogRepository>();
+        services.AddScoped<ISysUserSecurityRepository, SysUserSecurityRepository>();
 
         return services;
     }
@@ -73,6 +79,9 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacApplicationServices(this IServiceCollection services)
     {
+        // 应用服务
+        services.AddScoped<Application.Services.Users.UserApplicationService>();
+        
         return services;
     }
 

@@ -1,4 +1,4 @@
-﻿#region <<版权版本注释>>
+#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -26,14 +26,29 @@ namespace XiHan.BasicApp.Rbac.Domain.Services.Implementations;
 public class UserAuthenticationService : DomainService, IUserAuthenticationService
 {
     private readonly ISysUserRepository _userRepository;
+    private readonly ISysUserSecurityRepository _userSecurityRepository;
     private readonly IPasswordHasher _passwordHasher;
+    
+    /// <summary>
+    /// 最大失败登录次数（超过此次数将锁定账户）
+    /// </summary>
+    private const int MaxFailedLoginAttempts = 5;
+    
+    /// <summary>
+    /// 账户锁定时长（分钟）
+    /// </summary>
+    private const int LockoutDurationMinutes = 30;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public UserAuthenticationService(ISysUserRepository userRepository, IPasswordHasher passwordHasher)
+    public UserAuthenticationService(
+        ISysUserRepository userRepository,
+        ISysUserSecurityRepository userSecurityRepository,
+        IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
+        _userSecurityRepository = userSecurityRepository;
         _passwordHasher = passwordHasher;
     }
 
@@ -95,9 +110,55 @@ public class UserAuthenticationService : DomainService, IUserAuthenticationServi
     /// </summary>
     public bool IsUserLocked(SysUser user)
     {
-        // TODO: 实现用户锁定逻辑（如：登录失败次数过多、管理员锁定等）
-        // 这里需要根据实际业务需求实现
-        return false;
+        var userSecurity = _userSecurityRepository.GetByUserIdAsync(user.BasicId).GetAwaiter().GetResult();
+        
+        if (userSecurity == null)
+        {
+            return false;
+        }
+
+        // 检查是否被标记为锁定
+        if (!userSecurity.IsLocked)
+        {
+            return false;
+        }
+
+        // 检查锁定是否已过期
+        if (userSecurity.LockoutEndTime.HasValue && userSecurity.LockoutEndTime.Value <= DateTimeOffset.Now)
+        {
+            // 锁定已过期，自动解锁
+            _userSecurityRepository.UnlockUserAsync(user.BasicId).GetAwaiter().GetResult();
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 记录登录失败并检查是否需要锁定账户
+    /// </summary>
+    public async Task<bool> RecordFailedLoginAttemptAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        await _userSecurityRepository.IncrementFailedLoginAttemptsAsync(userId, cancellationToken);
+        
+        var userSecurity = await _userSecurityRepository.GetByUserIdAsync(userId, cancellationToken);
+        if (userSecurity != null && userSecurity.FailedLoginAttempts >= MaxFailedLoginAttempts)
+        {
+            // 失败次数超过限制，锁定账户
+            var lockoutEndTime = DateTimeOffset.Now.AddMinutes(LockoutDurationMinutes);
+            await _userSecurityRepository.LockUserAsync(userId, lockoutEndTime, cancellationToken);
+            return true; // 已锁定
+        }
+
+        return false; // 未锁定
+    }
+
+    /// <summary>
+    /// 重置登录失败次数
+    /// </summary>
+    public async Task ResetFailedLoginAttemptsAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        await _userSecurityRepository.ResetFailedLoginAttemptsAsync(userId, cancellationToken);
     }
 
     /// <summary>

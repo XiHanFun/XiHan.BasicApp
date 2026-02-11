@@ -15,7 +15,6 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Entities.Base;
 using XiHan.BasicApp.Rbac.Enums;
-using StorageType = XiHan.BasicApp.Rbac.Enums.StorageType;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -49,7 +48,7 @@ public partial class SysFileStorage : RbacFullAuditedEntity<long>
     /// 存储类型
     /// </summary>
     [SugarColumn(ColumnDescription = "存储类型")]
-    public virtual StorageType StorageType { get; set; } = StorageType.Local;
+    public virtual FileStorageType StorageType { get; set; } = FileStorageType.Local;
 
     /// <summary>
     /// 存储提供商（Aliyun、Tencent、AWS、Minio等）
@@ -188,7 +187,7 @@ public partial class SysFileStorage : RbacFullAuditedEntity<long>
     /// 存储状态
     /// </summary>
     [SugarColumn(ColumnDescription = "存储状态")]
-    public virtual StorageStatus Status { get; set; } = StorageStatus.Normal;
+    public virtual FileStorageStatus Status { get; set; } = FileStorageStatus.Normal;
 
     /// <summary>
     /// 上传时间

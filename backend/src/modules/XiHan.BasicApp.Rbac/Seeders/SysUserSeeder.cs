@@ -1,4 +1,4 @@
-﻿#region <<版权版本注释>>
+#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -12,12 +12,13 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
+using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Seeders;
-using XiHan.Framework.Utils.Security.Cryptography;
 
 namespace XiHan.BasicApp.Rbac.Seeders;
 
@@ -56,6 +57,8 @@ public class SysUserSeeder : DataSeederBase
             return;
         }
 
+        var passwordHasher = ServiceProvider.GetRequiredService<IPasswordHasher>();
+
         var users = new List<SysUser>
         {
             // 超级管理员
@@ -63,7 +66,7 @@ public class SysUserSeeder : DataSeederBase
             {
                 TenantId = null,
                 UserName = "admin",
-                Password = HashHelper.Sha256("Admin@123"),
+                Password = passwordHasher.HashPassword("Admin@123"),
                 RealName = "超级管理员",
                 NickName = "Admin",
                 Gender = UserGender.Male,
@@ -78,7 +81,7 @@ public class SysUserSeeder : DataSeederBase
             {
                 TenantId = null,
                 UserName = "system",
-                Password = HashHelper.Sha256("System@123"),
+                Password = passwordHasher.HashPassword("System@123"),
                 RealName = "系统管理员",
                 NickName = "System",
                 Gender = UserGender.Male,
@@ -93,7 +96,7 @@ public class SysUserSeeder : DataSeederBase
             {
                 TenantId = null,
                 UserName = "test",
-                Password = HashHelper.Sha256("Test@123"),
+                Password = passwordHasher.HashPassword("Test@123"),
                 RealName = "测试用户",
                 NickName = "Test",
                 Gender = UserGender.Unknown,
@@ -108,7 +111,7 @@ public class SysUserSeeder : DataSeederBase
             {
                 TenantId = null,
                 UserName = "demo",
-                Password = HashHelper.Sha256("Demo@123"),
+                Password = passwordHasher.HashPassword("Demo@123"),
                 RealName = "演示用户",
                 NickName = "Demo",
                 Gender = UserGender.Unknown,

@@ -1,4 +1,4 @@
-﻿#region <<版权版本注释>>
+#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -68,4 +68,19 @@ public interface IUserAuthenticationService : IDomainService
     /// <param name="tenantId">租户ID</param>
     /// <returns>是否属于该租户</returns>
     bool BelongsToTenant(SysUser user, long tenantId);
+
+    /// <summary>
+    /// 记录登录失败并检查是否需要锁定账户
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否已锁定账户</returns>
+    Task<bool> RecordFailedLoginAttemptAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 重置登录失败次数
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task ResetFailedLoginAttemptsAsync(long userId, CancellationToken cancellationToken = default);
 }
