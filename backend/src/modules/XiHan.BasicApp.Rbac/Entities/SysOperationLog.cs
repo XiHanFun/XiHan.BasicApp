@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysOperationLog
-// Guid:9c28152c-d6e9-4396-addb-b479254bad33
+// Guid:7c81aea1-5298-46e8-b83b-7bcee87b103e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2025/08/14 05:40:00
@@ -30,12 +30,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOperationLog_Module", nameof(Module), OrderByType.Asc)]
 public partial class SysOperationLog : RbacCreationEntity<long>
 {
-    /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
     /// <summary>
     /// 用户ID
     /// </summary>

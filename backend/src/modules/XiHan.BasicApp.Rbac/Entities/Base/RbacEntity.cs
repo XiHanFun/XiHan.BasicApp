@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Rbac.Entities.Base;
 /// Rbac 实体基类（泛型主键）
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacEntity<TKey> : SugarEntity<TKey>
+public abstract class RbacEntity<TKey> : SugarMultiTenantEntity<TKey>
     where TKey : IEquatable<TKey>
 {
     /// <summary>
@@ -45,7 +45,7 @@ public abstract class RbacEntity<TKey> : SugarEntity<TKey>
 /// Rbac 实体基类（自增主键）
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacEntityWithIdentity<TKey> : SugarEntityWithIdentity<TKey>
+public abstract class RbacEntityWithIdentity<TKey> : SugarMultiTenantEntityWithIdentity<TKey>
     where TKey : IEquatable<TKey>
 {
 }
@@ -54,7 +54,7 @@ public abstract class RbacEntityWithIdentity<TKey> : SugarEntityWithIdentity<TKe
 /// Rbac 创建审计实体基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacCreationEntity<TKey> : SugarCreationEntity<TKey>
+public abstract class RbacCreationEntity<TKey> : SugarMultiTenantCreationEntity<TKey>
     where TKey : IEquatable<TKey>
 {
 }
@@ -63,7 +63,7 @@ public abstract class RbacCreationEntity<TKey> : SugarCreationEntity<TKey>
 /// Rbac 修改审计实体基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacModificationEntity<TKey> : SugarModificationEntity<TKey>
+public abstract class RbacModificationEntity<TKey> : SugarMultiTenantModificationEntity<TKey>
     where TKey : IEquatable<TKey>
 {
 }
@@ -72,7 +72,7 @@ public abstract class RbacModificationEntity<TKey> : SugarModificationEntity<TKe
 /// Rbac 删除审计实体基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacDeletionEntity<TKey> : SugarDeletionEntity<TKey>
+public abstract class RbacDeletionEntity<TKey> : SugarMultiTenantDeletionEntity<TKey>
     where TKey : IEquatable<TKey>
 {
 }
@@ -81,7 +81,7 @@ public abstract class RbacDeletionEntity<TKey> : SugarDeletionEntity<TKey>
 /// Rbac 完整审计实体基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacFullAuditedEntity<TKey> : SugarFullAuditedEntity<TKey>
+public abstract class RbacFullAuditedEntity<TKey> : SugarMultiTenantFullAuditedEntity<TKey>
     where TKey : IEquatable<TKey>
 {
     /// <summary>
@@ -105,7 +105,7 @@ public abstract class RbacFullAuditedEntity<TKey> : SugarFullAuditedEntity<TKey>
 /// Rbac 聚合根基类
 /// </summary>
 /// <typeparam name="TKey">主键类型</typeparam>
-public abstract class RbacAggregateRoot<TKey> : SugarAggregateRoot<TKey>
+public abstract class RbacAggregateRoot<TKey> : SugarMultiTenantAggregateRoot<TKey>
     where TKey : IEquatable<TKey>
 {
     /// <summary>

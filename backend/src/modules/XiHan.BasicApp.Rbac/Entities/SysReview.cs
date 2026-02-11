@@ -29,12 +29,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysReview : RbacAggregateRoot<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 审查编码
     /// </summary>
     [SugarColumn(ColumnDescription = "审查编码", Length = 100, IsNullable = false)]

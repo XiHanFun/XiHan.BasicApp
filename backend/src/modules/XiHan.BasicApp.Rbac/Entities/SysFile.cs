@@ -39,12 +39,6 @@ public partial class SysFile : RbacAggregateRoot<long>
     #region 基本信息
 
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 文件名（系统生成的唯一文件名）
     /// </summary>
     [SugarColumn(ColumnDescription = "文件名", Length = 200, IsNullable = false)]

@@ -33,12 +33,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysExceptionLog : RbacCreationEntity<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]

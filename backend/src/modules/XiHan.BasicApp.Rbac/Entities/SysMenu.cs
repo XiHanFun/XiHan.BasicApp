@@ -34,12 +34,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysMenu : RbacAggregateRoot<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 关联资源ID（每个菜单对应一个资源，可为空表示纯展示菜单）
     /// </summary>
     [SugarColumn(ColumnDescription = "关联资源ID", IsNullable = true)]

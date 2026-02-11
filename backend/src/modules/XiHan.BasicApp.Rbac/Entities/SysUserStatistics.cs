@@ -29,12 +29,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysUserStatistics : RbacFullAuditedEntity<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 用户ID（为空表示全体用户统计）
     /// </summary>
     [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]

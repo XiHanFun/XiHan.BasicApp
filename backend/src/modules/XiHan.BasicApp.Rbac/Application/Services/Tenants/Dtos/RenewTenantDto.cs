@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:RenewTenantDto
-// Guid:f6a7b8c9-d0e1-2345-6789-0abcdef12345
+// Guid:7761c7af-040e-4d0d-971f-af720f4b20a6
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/31 00:00:00

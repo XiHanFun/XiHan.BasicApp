@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:DepartmentHierarchyService
-// Guid:bcdef123-4567-890a-bcde-f12345678901
+// Guid:0cda05ea-a6ca-4bed-b586-66d48da724a6
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/31 00:00:00

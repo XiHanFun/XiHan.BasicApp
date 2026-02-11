@@ -30,12 +30,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysNotification : RbacAggregateRoot<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 接收用户ID（为空表示全体用户）
     /// </summary>
     [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]

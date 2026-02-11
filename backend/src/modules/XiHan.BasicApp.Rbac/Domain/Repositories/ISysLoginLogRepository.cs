@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:ISysLoginLogRepository
-// Guid:a1b2c3d4-e5f6-7890-1234-567890abcdef
+// Guid:c1c24565-abe6-4377-a349-5c39b4bd1b1e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/02/11 00:00:00

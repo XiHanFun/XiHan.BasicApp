@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:RoleApplicationService
-// Guid:b2c3d4e5-f6a7-8901-2345-67890abcdef1
+// Guid:d2e9b5aa-a5e2-4e35-95d0-0eff3ba6f20c
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/31 00:00:00

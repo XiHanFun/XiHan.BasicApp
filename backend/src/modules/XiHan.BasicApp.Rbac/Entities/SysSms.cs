@@ -30,12 +30,6 @@ namespace XiHan.BasicApp.Rbac.Entities;
 public partial class SysSms : RbacAggregateRoot<long>
 {
     /// <summary>
-    /// 租户ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "租户ID", IsNullable = true)]
-    public virtual long? TenantId { get; set; }
-
-    /// <summary>
     /// 发送用户ID
     /// </summary>
     [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]

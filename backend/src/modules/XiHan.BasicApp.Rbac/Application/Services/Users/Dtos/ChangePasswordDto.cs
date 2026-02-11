@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:ChangePasswordDto
-// Guid:a1b2c3d4-e5f6-7890-1234-567890abcdef
+// Guid:a56277cb-08a0-4d27-bb00-1fada87cc72b
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/31 00:00:00

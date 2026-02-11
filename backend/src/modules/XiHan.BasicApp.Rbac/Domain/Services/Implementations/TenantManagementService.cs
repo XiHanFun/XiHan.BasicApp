@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:TenantManagementService
-// Guid:e7f8a9bc-def1-2345-6789-0abcdef12345
+// Guid:74b08a92-5d25-4583-aa27-4171785d23a5
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/31 00:00:00

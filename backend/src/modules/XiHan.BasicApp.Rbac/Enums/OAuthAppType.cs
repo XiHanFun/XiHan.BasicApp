@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:OAuthAppType
-// Guid:ed28152c-d6e9-4396-addb-b479254bad34
+// Guid:26d266c7-7e7e-48a4-8cf8-b03b068d676a
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2025/08/14 04:45:00
