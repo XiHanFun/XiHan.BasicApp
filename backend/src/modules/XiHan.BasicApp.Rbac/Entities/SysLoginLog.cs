@@ -27,6 +27,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysLoginLog_LoginResult", nameof(LoginResult), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_UserName", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoginIp", nameof(LoginIp), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_TenantId_LoginTime", nameof(TenantId), OrderByType.Asc, nameof(LoginTime), OrderByType.Desc)]
 public partial class SysLoginLog : RbacCreationEntity<long>
 {
     /// <summary>

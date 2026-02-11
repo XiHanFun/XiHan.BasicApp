@@ -28,7 +28,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysResource_ResourceType", nameof(ResourceType), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_Status", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_ResourceType_Status", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_IsPublic", nameof(IsPublic), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_TenantId_ResourceType_Status", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysResource : RbacCreationEntity<long>
 {
     /// <summary>

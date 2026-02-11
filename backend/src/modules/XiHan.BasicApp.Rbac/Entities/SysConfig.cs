@@ -25,6 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysConfig_ConfigKey", nameof(ConfigKey), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConfig_ConfigType", nameof(ConfigType), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_TenantId_ConfigKey", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_Status", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_ConfigGroup", nameof(ConfigGroup), OrderByType.Asc)]
 public partial class SysConfig : RbacAggregateRoot<long>

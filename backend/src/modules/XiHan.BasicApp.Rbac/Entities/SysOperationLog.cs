@@ -26,8 +26,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOperationLog_OperationType", nameof(OperationType), OrderByType.Asc)]
 [SugarIndex("IX_SysOperationLog_OperationTime", nameof(OperationTime), OrderByType.Desc)]
 [SugarIndex("IX_SysOperationLog_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_TenantId_OperationTime", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
 [SugarIndex("IX_SysOperationLog_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_Module", nameof(Module), OrderByType.Asc)]
 public partial class SysOperationLog : RbacCreationEntity<long>
 {
     /// <summary>

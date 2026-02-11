@@ -26,6 +26,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTaskLog_StartTime", nameof(StartTime), OrderByType.Desc)]
 [SugarIndex("IX_SysTaskLog_TaskCode", nameof(TaskCode), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_BatchNumber", nameof(BatchNumber), OrderByType.Asc)]
+[SugarIndex("IX_SysTaskLog_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysTaskLog_TenantId_TaskId", nameof(TenantId), OrderByType.Asc, nameof(TaskId), OrderByType.Asc)]
+[SugarIndex("IX_SysTaskLog_TenantId_StartTime", nameof(TenantId), OrderByType.Asc, nameof(StartTime), OrderByType.Desc)]
 public partial class SysTaskLog : RbacCreationEntity<long>
 {
     /// <summary>

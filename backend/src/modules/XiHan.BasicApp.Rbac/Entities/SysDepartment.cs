@@ -26,6 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysDepartment_ParentId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_TenantId", nameof(TenantId), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartment_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_DepartmentType", nameof(DepartmentType), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_LeaderId", nameof(LeaderId), OrderByType.Asc)]
 public partial class SysDepartment : RbacAggregateRoot<long>
