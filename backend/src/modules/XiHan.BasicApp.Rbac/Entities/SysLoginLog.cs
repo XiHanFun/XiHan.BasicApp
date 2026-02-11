@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_Login_Log_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_SysLoginLog_UserId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoginTime", nameof(LoginTime), OrderByType.Desc)]
-[SugarIndex("IX_SysLoginLog_Result", nameof(Result), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_LoginResult", nameof(LoginResult), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_UserName", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoginIp", nameof(LoginIp), OrderByType.Asc)]
 public partial class SysLoginLog : RbacCreationEntity<long>
@@ -69,7 +69,7 @@ public partial class SysLoginLog : RbacCreationEntity<long>
     /// 登录状态
     /// </summary>
     [SugarColumn(ColumnDescription = "登录状态")]
-    public virtual LoginResult Result { get; set; } = LoginResult.Success;
+    public virtual LoginResult LoginResult { get; set; } = LoginResult.Success;
 
     /// <summary>
     /// 登录消息

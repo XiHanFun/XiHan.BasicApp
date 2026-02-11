@@ -1,4 +1,4 @@
-﻿#region <<版权版本注释>>
+#region <<版权版本注释>>
 
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
@@ -12,12 +12,17 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Rbac;
 using XiHan.BasicApp.Web.Core;
+using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Web.Core.Extensions;
 
 namespace XiHan.BasicApp.WebHost;
 
@@ -39,6 +44,63 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     {
         var services = context.Services;
         var config = services.GetConfiguration();
+
+        // 配置JWT认证
+        var jwtOptions = config.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
+        if (jwtOptions != null && !string.IsNullOrEmpty(jwtOptions.SecretKey))
+        {
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = jwtOptions.ValidateIssuer,
+                    ValidateAudience = jwtOptions.ValidateAudience,
+                    ValidateLifetime = jwtOptions.ValidateLifetime,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+                    ClockSkew = TimeSpan.FromMinutes(jwtOptions.ClockSkewMinutes)
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                        {
+                            context.Response.Headers["Token-Expired"] = "true";
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+            // 添加授权
+            services.AddAuthorization();
+        }
+
+        // 配置 CORS（允许前端开发地址跨域）
+        services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.WithOrigins(
+                        "http://localhost:5888",
+                        "http://127.0.0.1:5888")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
+        // 添加控制器
+        services.AddControllers();
     }
 
     /// <summary>
@@ -48,5 +110,6 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// <returns></returns>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
+        var app = context.GetApplicationBuilder();
     }
 }

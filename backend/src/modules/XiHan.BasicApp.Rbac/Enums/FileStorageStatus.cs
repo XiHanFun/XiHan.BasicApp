@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:StorageType
+// FileName:FileStorageStatus
 // Guid:ed28152c-d6e9-4396-addb-b479254bad34
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -15,47 +15,57 @@
 namespace XiHan.BasicApp.Rbac.Enums;
 
 /// <summary>
-/// 存储类型枚举
+/// 文件存储状态枚举
 /// </summary>
-public enum StorageType
+public enum FileStorageStatus
 {
     /// <summary>
-    /// 本地存储
+    /// 正常
     /// </summary>
-    Local = 0,
+    Normal = 0,
 
     /// <summary>
-    /// 阿里云OSS
+    /// 上传中
     /// </summary>
-    AliyunOss = 1,
+    Uploading = 1,
 
     /// <summary>
-    /// 腾讯云COS
+    /// 上传失败
     /// </summary>
-    TencentCos = 2,
+    UploadFailed = 2,
 
     /// <summary>
-    /// MinIO
+    /// 同步中
     /// </summary>
-    Minio = 3,
+    Syncing = 3,
 
     /// <summary>
-    /// FTP
+    /// 同步失败
     /// </summary>
-    Ftp = 10,
+    SyncFailed = 4,
 
     /// <summary>
-    /// SFTP
+    /// 待验证
     /// </summary>
-    Sftp = 11,
+    PendingVerification = 5,
 
     /// <summary>
-    /// WebDAV
+    /// 验证失败
     /// </summary>
-    WebDav = 12,
+    VerificationFailed = 6,
 
     /// <summary>
-    /// 自定义存储
+    /// 已过期
     /// </summary>
-    Custom = 99
+    Expired = 7,
+
+    /// <summary>
+    /// 已删除
+    /// </summary>
+    Deleted = 8,
+
+    /// <summary>
+    /// 不可用
+    /// </summary>
+    Unavailable = 9
 }
