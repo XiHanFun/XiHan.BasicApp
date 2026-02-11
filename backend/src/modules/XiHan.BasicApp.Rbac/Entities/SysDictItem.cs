@@ -28,6 +28,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysDictItem_DictCode", nameof(DictCode), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_ParentId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_TenantId_DictId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
 public partial class SysDictItem : RbacFullAuditedEntity<long>
 {
     /// <summary>

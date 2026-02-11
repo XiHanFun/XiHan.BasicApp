@@ -28,6 +28,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserPermission_Status", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysUserPermission_EffectiveTime", nameof(EffectiveTime), OrderByType.Asc)]
 [SugarIndex("IX_SysUserPermission_ExpirationTime", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserPermission : RbacCreationEntity<long>
 {
     /// <summary>

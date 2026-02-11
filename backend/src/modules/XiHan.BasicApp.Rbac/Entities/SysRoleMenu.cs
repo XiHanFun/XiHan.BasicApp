@@ -26,6 +26,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysRoleMenu_RoleId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_SysRoleMenu_MenuId", nameof(MenuId), OrderByType.Asc)]
 [SugarIndex("IX_SysRoleMenu_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_TenantId_RoleId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRoleMenu : RbacCreationEntity<long>
 {
     /// <summary>

@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysApiLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_SysApiLog_RequestTime", nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_SysApiLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_IsSuccess", nameof(IsSuccess), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_TenantId_RequestTime", nameof(TenantId), OrderByType.Asc, nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_SysApiLog_ExecutionTime", nameof(ExecutionTime), OrderByType.Desc)]
 public partial class SysApiLog : RbacCreationEntity<long>
 {

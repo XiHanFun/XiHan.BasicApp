@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysMenu_TenantId", nameof(TenantId), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_Status", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_MenuType", nameof(MenuType), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_IsVisible", nameof(IsVisible), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysMenu : RbacAggregateRoot<long>
 {
     /// <summary>

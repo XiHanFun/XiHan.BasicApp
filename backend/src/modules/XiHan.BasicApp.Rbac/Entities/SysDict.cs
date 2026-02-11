@@ -25,6 +25,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysDict_DictCode", nameof(DictCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDict_DictType", nameof(DictType), OrderByType.Asc)]
 [SugarIndex("IX_SysDict_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysDict_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysDict_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysDict : RbacAggregateRoot<long>
 {
     /// <summary>
