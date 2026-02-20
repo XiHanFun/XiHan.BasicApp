@@ -53,7 +53,7 @@ public class SysPermissionSeeder : DataSeederBase
         var operations = await client.Queryable<SysOperation>().ToListAsync();
         if (resources.Count == 0 || operations.Count == 0)
         {
-            Logger.LogWarning("代码生成资源或操作不存在，跳过权限种子数据"); return;
+            Logger.LogWarning("系统资源或操作不存在，跳过系统权限种子数据"); return;
         }
 
         var operationMap = operations.ToDictionary(o => o.OperationCode, o => o);
@@ -84,9 +84,9 @@ public class SysPermissionSeeder : DataSeederBase
 
         if (addList.Count == 0)
         {
-            Logger.LogInformation("代码生成权限数据已存在，跳过种子数据"); return;
+            Logger.LogInformation("系统权限数据已存在，跳过种子数据"); return;
         }
         await BulkInsertAsync(addList);
-        Logger.LogInformation("成功初始化 {Count} 个代码生成权限", addList.Count);
+        Logger.LogInformation("成功初始化 {Count} 个系统权限", addList.Count);
     }
 }

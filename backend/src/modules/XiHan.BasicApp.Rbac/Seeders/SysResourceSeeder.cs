@@ -91,7 +91,11 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "menu_api", ResourceName = "菜单API", ResourceType = ResourceType.Api, ResourcePath = "/api/menus", Description = "菜单管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 505 },
             new() { ParentId = null, ResourceCode = "dict_api", ResourceName = "字典API", ResourceType = ResourceType.Api, ResourcePath = "/api/dicts", Description = "字典管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 506 },
             new() { ParentId = null, ResourceCode = "config_api", ResourceName = "配置API", ResourceType = ResourceType.Api, ResourcePath = "/api/configs", Description = "参数配置API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 507 },
-            new() { ParentId = null, ResourceCode = "file_api", ResourceName = "文件API", ResourceType = ResourceType.Api, ResourcePath = "/api/files", Description = "文件管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 508 }
+            new() { ParentId = null, ResourceCode = "file_api", ResourceName = "文件API", ResourceType = ResourceType.Api, ResourcePath = "/api/files", Description = "文件管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 508 },
+            new() { ParentId = null, ResourceCode = "access_log_api", ResourceName = "访问日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/access-logs", Description = "访问日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 600 },
+            new() { ParentId = null, ResourceCode = "operation_log_api", ResourceName = "操作日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/operation-logs", Description = "操作日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 601 },
+            new() { ParentId = null, ResourceCode = "exception_log_api", ResourceName = "异常日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/exception-logs", Description = "异常日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 602 },
+            new() { ParentId = null, ResourceCode = "audit_log_api", ResourceName = "差异日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/audit-logs", Description = "差异日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 603 }
         };
 
         await BulkInsertAsync(resources);

@@ -49,6 +49,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISysRolePermissionRepository, SysRolePermissionRepository>();
         services.AddScoped<ISysLoginLogRepository, SysLoginLogRepository>();
         services.AddScoped<ISysUserSecurityRepository, SysUserSecurityRepository>();
+        services.AddScoped<ISysAccessLogRepository, SysAccessLogRepository>();
+        services.AddScoped<ISysOperationLogRepository, SysOperationLogRepository>();
+        services.AddScoped<ISysExceptionLogRepository, SysExceptionLogRepository>();
+        services.AddScoped<ISysAuditLogRepository, SysAuditLogRepository>();
 
         return services;
     }
@@ -81,6 +85,7 @@ public static class ServiceCollectionExtensions
     {
         // 应用服务
         services.AddScoped<Application.Services.Users.UserApplicationService>();
+        services.AddScoped<Application.Services.Logs.LogApplicationService>();
         
         return services;
     }

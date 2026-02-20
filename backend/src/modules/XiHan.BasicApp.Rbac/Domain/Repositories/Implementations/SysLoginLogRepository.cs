@@ -55,12 +55,12 @@ public class SysLoginLogRepository : SqlSugarReadOnlyRepository<SysLoginLog, lon
         if (loginLog.BasicId == 0)
         {
             // 新增
-            await _dbContext.GetClient().Insertable(loginLog).ExecuteCommandAsync(cancellationToken);
+            await _dbContext.GetClient().Insertable(loginLog).SplitTable().ExecuteReturnSnowflakeIdAsync();
         }
         else
         {
             // 更新
-            await _dbContext.GetClient().Updateable(loginLog).ExecuteCommandAsync(cancellationToken);
+            await _dbContext.GetClient().Updateable(loginLog).SplitTable().ExecuteCommandAsync();
         }
 
         return loginLog;
