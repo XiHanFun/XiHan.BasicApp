@@ -50,7 +50,7 @@ public class SysMenuSeeder : DataSeederBase
         var resourceMap = resources.ToDictionary(r => r.ResourceCode, r => r.BasicId);
         if (!resourceMap.ContainsKey("develop") || !resourceMap.ContainsKey("code_gen"))
         {
-            Logger.LogWarning("代码生成资源不存在，跳过菜单种子数据");
+            Logger.LogWarning("系统资源不存在，跳过系统菜单种子数据");
             return;
         }
 
@@ -69,7 +69,7 @@ public class SysMenuSeeder : DataSeederBase
 
         if (addList.Count == 0)
         {
-            Logger.LogInformation("代码生成菜单数据已存在，跳过种子数据");
+            Logger.LogInformation("系统菜单数据已存在，跳过种子数据");
             return;
         }
 
@@ -80,6 +80,6 @@ public class SysMenuSeeder : DataSeederBase
             await client.Updateable<SysMenu>().SetColumns(m => m.ParentId == parentMenu.BasicId).Where(m => m.MenuCode == "code_gen").ExecuteCommandAsync();
         }
 
-        Logger.LogInformation("成功初始化 {Count} 个代码生成菜单", addList.Count);
+        Logger.LogInformation("成功初始化 {Count} 个系统菜单", addList.Count);
     }
 }

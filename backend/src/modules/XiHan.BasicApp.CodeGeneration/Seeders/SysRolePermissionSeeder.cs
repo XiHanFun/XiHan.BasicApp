@@ -50,7 +50,10 @@ public class SysRolePermissionSeeder : DataSeederBase
         var client = DbContext.GetClient();
         var roles = await client.Queryable<SysRole>().Where(r => r.RoleCode == "super_admin" || r.RoleCode == "admin").ToListAsync();
         var permissions = await client.Queryable<SysPermission>().Where(p => p.PermissionCode.StartsWith("code_gen:") || p.PermissionCode.StartsWith("code_gen_api:")).ToListAsync();
-        if (roles.Count == 0 || permissions.Count == 0) { Logger.LogWarning("代码生成角色或权限数据不存在，跳过角色权限种子数据"); return; }
+        if (roles.Count == 0 || permissions.Count == 0)
+        {
+            Logger.LogWarning("系统角色或权限数据不存在，跳过系统角色权限种子数据"); return;
+        }
 
         var pairs = roles.SelectMany(r => permissions
             .Select(p => new
@@ -73,9 +76,9 @@ public class SysRolePermissionSeeder : DataSeederBase
 
         if (addList.Count == 0)
         {
-            Logger.LogInformation("代码生成角色权限数据已存在，跳过种子数据"); return;
+            Logger.LogInformation("系统角色权限数据已存在，跳过种子数据"); return;
         }
         await BulkInsertAsync(addList);
-        Logger.LogInformation("成功初始化 {Count} 个代码生成角色权限关系", addList.Count);
+        Logger.LogInformation("成功初始化 {Count} 个系统角色权限关系", addList.Count);
     }
 }

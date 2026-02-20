@@ -54,7 +54,7 @@ public class SysResourceSeeder : DataSeederBase
         var addList = new List<SysResource>();
         if (!existsCodes.Contains("develop"))
         {
-            addList.Add(new SysResource { ParentId = null, ResourceCode = "develop", ResourceName = "开发工具", ResourceType = ResourceType.Menu, ResourcePath = "/develop", Icon = "tool", Description = "开发工具目录（代码生成模块）", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 400 });
+            addList.Add(new SysResource { ParentId = null, ResourceCode = "develop", ResourceName = "开发工具", ResourceType = ResourceType.Menu, ResourcePath = "/develop", Icon = "tool", Description = "开发工具目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 400 });
         }
 
         if (!existsCodes.Contains("code_gen"))
@@ -69,7 +69,7 @@ public class SysResourceSeeder : DataSeederBase
 
         if (addList.Count == 0)
         {
-            Logger.LogInformation("代码生成资源数据已存在，跳过种子数据"); return;
+            Logger.LogInformation("系统资源数据已存在，跳过种子数据"); return;
         }
         await BulkInsertAsync(addList);
         var parent = await client.Queryable<SysResource>().FirstAsync(r => r.ResourceCode == "develop");
@@ -78,6 +78,6 @@ public class SysResourceSeeder : DataSeederBase
             await client.Updateable<SysResource>().SetColumns(r => r.ParentId == parent.BasicId).Where(r => r.ResourceCode == "code_gen").ExecuteCommandAsync();
         }
 
-        Logger.LogInformation("成功初始化 {Count} 个代码生成资源", addList.Count);
+        Logger.LogInformation("成功初始化 {Count} 个系统资源", addList.Count);
     }
 }

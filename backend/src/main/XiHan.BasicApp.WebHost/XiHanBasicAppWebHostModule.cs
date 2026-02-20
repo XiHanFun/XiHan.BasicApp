@@ -17,12 +17,16 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Rbac;
+using XiHan.BasicApp.WebHost.Logging;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Data.Auditing;
+using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Core.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace XiHan.BasicApp.WebHost;
 
@@ -101,6 +105,15 @@ public class XiHanBasicAppWebHostModule : XiHanModule
 
         // 添加控制器
         services.AddControllers();
+
+        // 覆盖框架默认日志写入器
+        services.AddScoped<IAccessLogWriter, RbacAccessLogWriter>();
+        services.AddScoped<IOperationLogWriter, RbacOperationLogWriter>();
+        services.AddScoped<IExceptionLogWriter, RbacExceptionLogWriter>();
+
+        // 注册实体审计上下文与写入器
+        services.AddScoped<IEntityAuditContextProvider, RbacEntityAuditContextProvider>();
+        services.AddScoped<IEntityAuditLogWriter, RbacEntityAuditLogWriter>();
     }
 
     /// <summary>
