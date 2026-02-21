@@ -1,0 +1,72 @@
+/* 路由切换过渡 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-fast) ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滑动过渡 */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.slide-left-enter-from {
+  transform: translateX(30px);
+  opacity: 0;
+}
+
+.slide-left-leave-to {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+
+/* 展开收起过渡 */
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: height var(--transition-normal) ease, opacity var(--transition-fast) ease;
+  overflow: hidden;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  height: 0;
+  opacity: 0;
+}
+
+/* 侧边栏过渡 */
+.sidebar-enter-active,
+.sidebar-leave-active {
+  transition: width var(--transition-normal) ease;
+}
+
+/* 缩放过渡 */
+.zoom-enter-active,
+.zoom-leave-active {
+  transition: all var(--transition-fast) ease;
+}
+
+.zoom-enter-from,
+.zoom-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* 主题切换动画（ViewTransition） */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
