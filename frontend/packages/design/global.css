@@ -1,0 +1,73 @@
+/* CSS 变量 */
+@import './variables.css';
+@import './transition.css';
+@import './scrollbar.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 重置 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 14px;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* 工具类 */
+@layer components {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-col-center {
+    @apply flex flex-col items-center justify-center;
+  }
+
+  .absolute-full {
+    @apply absolute inset-0;
+  }
+
+  .fixed-full {
+    @apply fixed inset-0;
+  }
+
+  .text-ellipsis {
+    @apply overflow-hidden whitespace-nowrap text-ellipsis;
+  }
+
+  .hover-card {
+    @apply transition-shadow duration-200 hover:shadow-md;
+  }
+}
