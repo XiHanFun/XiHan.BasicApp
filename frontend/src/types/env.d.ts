@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string
+  readonly VITE_APP_LOGO: string
   readonly VITE_APP_NAMESPACE: string
   readonly VITE_APP_VERSION: string
   readonly VITE_PORT: number

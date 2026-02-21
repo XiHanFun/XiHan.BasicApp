@@ -1,6 +1,6 @@
-import { computed } from 'vue'
-import { darkTheme, lightTheme, useOsTheme } from 'naive-ui'
 import type { GlobalThemeOverrides } from 'naive-ui'
+import { darkTheme, lightTheme, useOsTheme } from 'naive-ui'
+import { computed } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { useAppStore } from '~/stores'
 
@@ -17,24 +17,27 @@ export function useTheme() {
 
   const naiveTheme = computed(() => (isDark.value ? darkTheme : lightTheme))
 
-  const themeOverrides = computed((): GlobalThemeOverrides => ({
-    common: {
-      primaryColor: appStore.themeColor,
-      primaryColorHover: appStore.themeColor,
-      primaryColorPressed: appStore.themeColor,
-      primaryColorSuppl: appStore.themeColor,
-      borderRadius: '6px',
-    },
-    Button: {
-      borderRadiusMedium: '6px',
-    },
-    Card: {
-      borderRadius: '8px',
-    },
-    DataTable: {
-      borderRadius: '8px',
-    },
-  }))
+  const themeOverrides = computed((): GlobalThemeOverrides => {
+    const radius = `${Math.round(4 + appStore.uiRadius * 12)}px`
+    return {
+      common: {
+        primaryColor: appStore.themeColor,
+        primaryColorHover: appStore.themeColor,
+        primaryColorPressed: appStore.themeColor,
+        primaryColorSuppl: appStore.themeColor,
+        borderRadius: radius,
+      },
+      Button: {
+        borderRadiusMedium: radius,
+      },
+      Card: {
+        borderRadius: `${Math.round(6 + appStore.uiRadius * 10)}px`,
+      },
+      DataTable: {
+        borderRadius: `${Math.round(6 + appStore.uiRadius * 10)}px`,
+      },
+    }
+  })
 
   function toggleTheme() {
     appStore.toggleTheme()
