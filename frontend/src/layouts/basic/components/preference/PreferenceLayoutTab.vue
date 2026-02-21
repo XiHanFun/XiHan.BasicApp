@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { Icon } from '@iconify/vue'
 import { NCard, NInputNumber, NRadioButton, NRadioGroup, NSlider, NSpace, NSwitch } from 'naive-ui'
+import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
 
 defineOptions({ name: 'PreferenceLayoutTab' })
 
@@ -15,7 +15,6 @@ const emit = defineEmits<{
 interface LayoutPreset {
   key: string
   label: string
-  icon: string
 }
 
 interface PreferenceLayoutTabProps {
@@ -31,10 +30,10 @@ const appStore = props.appStore
 <template>
   <div class="space-y-4">
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         布局
       </div>
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-3 gap-2">
         <button
           v-for="item in props.layoutPresets"
           :key="item.key"
@@ -44,9 +43,9 @@ const appStore = props.appStore
           @click="emit('layoutModeChange', item.key)"
         >
           <div class="layout-preset-preview">
-            <Icon :icon="item.icon" width="26" />
+            <LayoutPreviewSvg :type="item.key" />
           </div>
-          <div class="mt-2 text-xs">
+          <div class="mt-1.5 text-xs">
             {{ item.label }}
           </div>
         </button>
@@ -54,10 +53,10 @@ const appStore = props.appStore
     </NCard>
 
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         内容
       </div>
-      <div class="mb-3 grid grid-cols-2 gap-3">
+      <div class="mb-3 grid grid-cols-2 gap-2">
         <button
           type="button"
           class="layout-preset-card"
@@ -65,9 +64,9 @@ const appStore = props.appStore
           @click="emit('contentModeChange', 'fluid')"
         >
           <div class="layout-preset-preview">
-            <Icon icon="ph:arrows-out-cardinal-bold" width="24" />
+            <LayoutPreviewSvg type="content-fluid" />
           </div>
-          <div class="mt-2 text-xs">
+          <div class="mt-1.5 text-xs">
             流式
           </div>
         </button>
@@ -78,21 +77,21 @@ const appStore = props.appStore
           @click="emit('contentModeChange', 'fixed')"
         >
           <div class="layout-preset-preview">
-            <Icon icon="ph:bounding-box-bold" width="24" />
+            <LayoutPreviewSvg type="content-fixed" />
           </div>
-          <div class="mt-2 text-xs">
+          <div class="mt-1.5 text-xs">
             定宽
           </div>
         </button>
       </div>
-      <div class="text-xs text-gray-500">
+      <div class="mb-1 text-xs font-medium text-[hsl(var(--muted-foreground))]">
         内容最大宽度
       </div>
       <NSlider v-model:value="appStore.contentMaxWidth" :min="960" :max="1600" :step="10" />
     </NCard>
 
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         顶栏
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -127,7 +126,7 @@ const appStore = props.appStore
     </NCard>
 
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         导航菜单
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -150,7 +149,7 @@ const appStore = props.appStore
     </NCard>
 
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         侧边栏
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -188,7 +187,7 @@ const appStore = props.appStore
     </NCard>
 
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         面包屑导航
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -210,7 +209,7 @@ const appStore = props.appStore
     </NCard>
 
     <NCard size="small">
-      <div class="mb-2 font-medium">
+      <div class="section-title">
         标签栏
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -246,8 +245,15 @@ const appStore = props.appStore
 </template>
 
 <style scoped>
+.section-title {
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+}
+
 .layout-preset-card {
-  border: 1px solid hsl(var(--border));
+  border: 1.5px solid hsl(var(--border));
   border-radius: 10px;
   background: hsl(var(--card));
   color: hsl(var(--foreground));
@@ -269,11 +275,11 @@ const appStore = props.appStore
 
 .layout-preset-preview {
   display: flex;
-  height: 54px;
+  height: 64px;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 6px;
+  overflow: hidden;
   background: hsl(var(--background));
-  color: hsl(var(--primary));
 }
 </style>

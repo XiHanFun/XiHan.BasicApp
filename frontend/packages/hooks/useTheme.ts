@@ -70,6 +70,7 @@ export function useTheme() {
       Math.max(y, window.innerHeight - y),
     )
 
+    document.documentElement.setAttribute('data-theme-to', mode)
     const transition = (
       document as Document & {
         startViewTransition: (callback: () => void) => { ready: Promise<void> }
@@ -80,18 +81,22 @@ export function useTheme() {
       })
     })
 
+    const isDarkMode = appStore.themeMode === 'dark' || mode === 'dark'
+    // 切暗色：新主题从点击处扩散展开；切亮色：旧主题从点击处收缩消退
     transition.ready.then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
-        },
-        {
-          duration: 380,
-          easing: 'ease-out',
-          pseudoElement: '::view-transition-new(root)',
-        } as KeyframeAnimationOptions,
-      )
-    })
+      if (isDarkMode) {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
+          { duration: 420, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' } as KeyframeAnimationOptions,
+        )
+      }
+      else {
+        document.documentElement.animate(
+          { clipPath: [`circle(${endRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`] },
+          { duration: 420, easing: 'ease-in', pseudoElement: '::view-transition-old(root)' } as KeyframeAnimationOptions,
+        )
+      }
+    }).catch(() => { /* ViewTransition 被中断，无需处理 */ })
   }
 
   function toggleThemeWithTransition(e?: MouseEvent) {
