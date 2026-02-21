@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import {
-  BREADCRUMB_ENABLED_KEY,
-  BREADCRUMB_HIDE_ONLY_ONE_KEY,
   BRAND_LOGO_KEY,
   BRAND_TITLE_KEY,
+  BREADCRUMB_ENABLED_KEY,
+  BREADCRUMB_HIDE_ONLY_ONE_KEY,
   BREADCRUMB_SHOW_HOME_KEY,
   BREADCRUMB_SHOW_ICON_KEY,
   BREADCRUMB_STYLE_KEY,
@@ -45,13 +45,13 @@ import {
   SIDEBAR_FIXED_BUTTON_KEY,
   SIDEBAR_SHOW_KEY,
   SIDEBAR_WIDTH_KEY,
-  TAGS_BAR_KEY,
   TABBAR_DRAGGABLE_KEY,
   TABBAR_MAX_COUNT_KEY,
   TABBAR_PERSIST_KEY,
   TABBAR_SHOW_MAXIMIZE_KEY,
   TABBAR_SHOW_MORE_KEY,
   TABBAR_VISIT_HISTORY_KEY,
+  TAGS_BAR_KEY,
   THEME_ANIMATION_ENABLED_KEY,
   THEME_AUTO,
   THEME_COLOR_KEY,
@@ -115,7 +115,7 @@ export const useAppStore = defineStore('app', () => {
   const tabbarEnabled = ref<boolean>(storage.get<boolean>(TAGS_BAR_KEY) ?? true)
   const tabbarPersist = ref<boolean>(storage.get<boolean>(TABBAR_PERSIST_KEY) ?? true)
   const tabbarVisitHistory = ref<boolean>(storage.get<boolean>(TABBAR_VISIT_HISTORY_KEY) ?? true)
-  const tabbarDraggable = ref<boolean>(storage.get<boolean>(TABBAR_DRAGGABLE_KEY) ?? false)
+  const tabbarDraggable = ref<boolean>(storage.get<boolean>(TABBAR_DRAGGABLE_KEY) ?? true)
   const tabbarShowMore = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_MORE_KEY) ?? true)
   const tabbarShowMaximize = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_MAXIMIZE_KEY) ?? true)
   const tabbarMaxCount = ref<number>(storage.get<number>(TABBAR_MAX_COUNT_KEY) ?? 0)
@@ -268,7 +268,7 @@ export const useAppStore = defineStore('app', () => {
   function setBrandLogo(logo: string) {
     save(BRAND_LOGO_KEY, brandLogo, logo)
   }
-  function setBranding(branding: { title?: string; logo?: string }) {
+  function setBranding(branding: { title?: string, logo?: string }) {
     if (branding.title) {
       setBrandTitle(branding.title)
     }

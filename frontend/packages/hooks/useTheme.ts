@@ -43,10 +43,23 @@ export function useTheme() {
     appStore.toggleTheme()
   }
 
-  function toggleThemeWithTransition(e?: MouseEvent) {
+  function withoutColorTransition(callback: () => void) {
+    document.documentElement.classList.add('theme-switching')
+    callback()
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('theme-switching')
+    })
+  }
+
+  function animateThemeTransition(mode: 'light' | 'dark', e?: MouseEvent) {
+    if (appStore.themeMode === mode) {
+      return
+    }
     const canAnimate = appStore.themeAnimationEnabled && 'startViewTransition' in document
     if (!canAnimate) {
-      toggleTheme()
+      withoutColorTransition(() => {
+        appStore.setTheme(mode)
+      })
       return
     }
 
@@ -62,7 +75,9 @@ export function useTheme() {
         startViewTransition: (callback: () => void) => { ready: Promise<void> }
       }
     ).startViewTransition(() => {
-      toggleTheme()
+      withoutColorTransition(() => {
+        appStore.setTheme(mode)
+      })
     })
 
     transition.ready.then(() => {
@@ -71,12 +86,16 @@ export function useTheme() {
           clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
         },
         {
-          duration: 420,
-          easing: 'ease-in-out',
+          duration: 380,
+          easing: 'ease-out',
           pseudoElement: '::view-transition-new(root)',
         } as KeyframeAnimationOptions,
       )
     })
+  }
+
+  function toggleThemeWithTransition(e?: MouseEvent) {
+    animateThemeTransition(isDark.value ? 'light' : 'dark', e)
   }
 
   function followSystem() {
@@ -93,6 +112,7 @@ export function useTheme() {
     themeOverrides,
     toggleTheme,
     toggleThemeWithTransition,
+    animateThemeTransition,
     followSystem,
     setThemeColor,
   }

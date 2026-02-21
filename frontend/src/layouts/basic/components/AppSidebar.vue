@@ -1,13 +1,18 @@
 <script lang="ts" setup>
 import type { MenuOption } from 'naive-ui'
+import type { RouteRecordRaw } from 'vue-router'
+import type { MenuRoute } from '~/types'
 import { Icon } from '@iconify/vue'
-import { NIcon, NMenu } from 'naive-ui'
+import { NIcon } from 'naive-ui'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { routes } from '@/router/routes'
 import { HOME_PATH } from '~/constants'
 import { useAccessStore, useAppStore } from '~/stores'
+import SidebarActions from './sidebar/SidebarActions.vue'
+import SidebarBrand from './sidebar/SidebarBrand.vue'
+import SidebarMenu from './sidebar/SidebarMenu.vue'
 
 interface AppSidebarProps {
   collapsed?: boolean
@@ -37,46 +42,82 @@ const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
 )
 
-interface SidebarRouteItem {
-  name?: string
-  meta?: {
-    hidden?: boolean
-    title?: string
-    icon?: string
-  }
-  children?: SidebarRouteItem[]
+interface SidebarRouteMeta {
+  hidden?: boolean
+  title?: string
+  icon?: string
+}
+
+type SidebarRouteRecord = RouteRecordRaw & {
+  redirect?: RouteRecordRaw['redirect']
+  children?: SidebarRouteRecord[]
+}
+type SidebarRouteRecordBase = Pick<RouteRecordRaw, 'path' | 'name' | 'meta'> & {
+  redirect?: RouteRecordRaw['redirect']
+  children?: SidebarRouteRecord[]
 }
 
 const collapsed = computed(() => props.collapsed ?? appStore.sidebarCollapsed)
 
-const activeKey = computed(() => route.name as string)
+const activeKey = computed(() => (route.name ? String(route.name) : ''))
 
 function renderIcon(icon: string) {
   return () => h(NIcon, null, { default: () => h(Icon, { icon }) })
 }
 
-function buildMenuOptions(routeList: SidebarRouteItem[]): MenuOption[] {
+function toRouteNameKey(name: RouteRecordRaw['name']) {
+  return typeof name === 'string' || typeof name === 'number' ? String(name) : undefined
+}
+
+function toSidebarMeta(record: RouteRecordRaw): SidebarRouteMeta {
+  return (record.meta ?? {}) as SidebarRouteMeta
+}
+
+function normalizeMenuRoutes(menuRoutes: MenuRoute[]): SidebarRouteRecord[] {
+  return menuRoutes.map((route) => {
+    const normalized: SidebarRouteRecordBase = {
+      path: route.path,
+      name: route.name,
+      meta: route.meta as unknown as RouteRecordRaw['meta'],
+    }
+    if (route.redirect) {
+      normalized.redirect = route.redirect
+    }
+    if (route.children?.length) {
+      normalized.children = normalizeMenuRoutes(route.children)
+    }
+    return normalized as SidebarRouteRecord
+  })
+}
+
+function buildMenuOptions(routeList: SidebarRouteRecord[]): MenuOption[] {
   const result: MenuOption[] = []
   for (const r of routeList) {
-    if (r.meta?.hidden) {
+    const meta = toSidebarMeta(r)
+    if (meta.hidden) {
       continue
     }
-    const firstVisibleChild = r.children?.find((child) => !child.meta?.hidden)
-    const key = (props.compactMenu ? firstVisibleChild?.name : r.name) as string
+    const firstVisibleChild = r.children?.find(child => !toSidebarMeta(child).hidden)
+    const keySource = props.compactMenu || appStore.sidebarAutoActivateChild
+      ? firstVisibleChild?.name
+      : r.name
+    const key = toRouteNameKey(keySource)
     if (!key) {
       continue
     }
-    const label = r.meta?.title ? t(r.meta.title, r.meta.title) : r.name
-    const icon = r.meta?.icon
+    const fallbackName = toRouteNameKey(r.name) ?? key
+    const label = meta.title ? t(meta.title, meta.title) : fallbackName
+    const icon = meta.icon
 
-    if (!props.compactMenu && r.children?.some((c) => !c.meta?.hidden)) {
+    if (!props.compactMenu && r.children?.some(c => !toSidebarMeta(c).hidden)) {
       result.push({
         key,
         label,
         icon: icon ? renderIcon(icon) : undefined,
         children: buildMenuOptions(r.children),
       })
-    } else {
+    }
+    else {
       result.push({
         key,
         label,
@@ -87,17 +128,19 @@ function buildMenuOptions(routeList: SidebarRouteItem[]): MenuOption[] {
   return result
 }
 
-const appRoutes = routes.find((r) => r.path === '/')?.children ?? []
-const menuSource = computed(() => {
-  return (
-    accessStore.accessRoutes.length ? accessStore.accessRoutes : appRoutes
-  ) as SidebarRouteItem[]
+const appRoutes = (routes.find(r => r.path === '/')?.children ?? []) as SidebarRouteRecord[]
+const menuSource = computed<SidebarRouteRecord[]>(() => {
+  if (accessStore.accessRoutes.length) {
+    return normalizeMenuRoutes(accessStore.accessRoutes)
+  }
+  return appRoutes
 })
 const menuOptions = computed(() => buildMenuOptions(menuSource.value))
 const sidebarPinned = computed(() => !appStore.sidebarExpandOnHover)
 const sidebarCurrentWidth = computed(() => (collapsed.value ? 64 : appStore.sidebarWidth))
 const floatingSidebarStyle = computed(() => {
-  if (!props.floatingMode) return undefined
+  if (!props.floatingMode)
+    return undefined
   return {
     width: `${props.floatingExpand ? props.expandedWidth : 64}px`,
   }
@@ -114,6 +157,10 @@ function handleBrandClick() {
 }
 
 function handleToggleCollapse() {
+  if (typeof window !== 'undefined' && window.innerWidth < 960) {
+    window.dispatchEvent(new CustomEvent('xihan-toggle-sidebar-request'))
+    return
+  }
   appStore.toggleSidebar()
 }
 
@@ -128,80 +175,48 @@ function handleTogglePin() {
     :class="props.floatingMode ? 'absolute left-0 top-0 z-40' : ''"
     :style="floatingSidebarStyle"
   >
-    <!-- Logo 区域 -->
-    <div
-      class="app-sidebar-brand flex h-16 shrink-0 cursor-pointer items-center overflow-hidden px-3 transition-colors hover:bg-[hsl(var(--accent))]"
+    <SidebarBrand
+      :collapsed="collapsed"
+      :app-title="appTitle"
+      :app-logo="appLogo"
+      :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
       @click="handleBrandClick"
-    >
-      <div class="relative h-12 w-full overflow-hidden">
-        <div
-          class="absolute left-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl bg-[hsl(var(--card)/0.92)] p-1.5 shadow-sm transition-transform duration-300"
-          :class="collapsed ? 'scale-100' : 'scale-90'"
-        >
-          <img :src="appLogo" :alt="appTitle" class="h-8 w-8 object-contain" />
-        </div>
-        <span
-          class="absolute left-[52px] top-1/2 block -translate-y-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold leading-none text-[hsl(var(--foreground))] transition-all duration-300"
-          :class="collapsed ? 'max-w-0 opacity-0 delay-0' : 'max-w-[220px] opacity-100 delay-100'"
-        >
-          {{ appTitle }}
-        </span>
-      </div>
-    </div>
+    />
 
-    <!-- 菜单 -->
-    <div class="app-sidebar-menu flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 pb-12">
-      <NMenu
-        :value="activeKey"
-        :collapsed="collapsed"
-        :collapsed-width="64"
-        :indent="18"
-        :options="menuOptions"
-        accordion
-        @update:value="handleMenuUpdate"
-      />
-    </div>
+    <SidebarMenu
+      :active-key="activeKey"
+      :collapsed="collapsed"
+      :menu-options="menuOptions"
+      :navigation-style="appStore.navigationStyle"
+      @menu-update="handleMenuUpdate"
+    />
 
-    <button
-      v-if="appStore.sidebarCollapseButton"
-      type="button"
-      class="fixed bottom-2 left-3 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-[hsl(var(--muted))] p-1 text-[hsl(var(--muted-foreground))] outline-none transition-all duration-300 hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] focus:outline-none"
-      :title="collapsed ? '展开侧边栏' : '收起侧边栏'"
-      @click.stop="handleToggleCollapse"
-    >
-      <NIcon size="15">
-        <Icon :icon="collapsed ? 'lucide:chevrons-right' : 'lucide:chevrons-left'" />
-      </NIcon>
-    </button>
-
-    <Transition
-      enter-active-class="transition-all duration-300 delay-100"
-      enter-from-class="-translate-x-2 opacity-0"
-      enter-to-class="translate-x-0 opacity-100"
-      leave-active-class="transition-all duration-200"
-      leave-from-class="translate-x-0 opacity-100"
-      leave-to-class="-translate-x-1 opacity-0"
-    >
-      <button
-        v-if="
-          appStore.sidebarFixedButton && !collapsed && (!props.floatingMode || props.floatingExpand)
-        "
-        type="button"
-        :style="{ left: `${Math.max(12, sidebarCurrentWidth - 40)}px` }"
-        class="fixed bottom-2 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-[hsl(var(--muted))] p-[5px] text-[hsl(var(--muted-foreground))] outline-none transition-all duration-300 hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] focus:outline-none"
-        :title="sidebarPinned ? '主体不跟随侧边栏' : '主体跟随侧边栏'"
-        @click.stop="handleTogglePin"
-      >
-        <NIcon size="14">
-          <Icon :icon="sidebarPinned ? 'lucide:pin-off' : 'lucide:pin'" />
-        </NIcon>
-      </button>
-    </Transition>
+    <SidebarActions
+      :collapsed="collapsed"
+      :sidebar-collapse-button="appStore.sidebarCollapseButton"
+      :sidebar-fixed-button="appStore.sidebarFixedButton"
+      :floating-mode="props.floatingMode"
+      :floating-expand="props.floatingExpand"
+      :sidebar-pinned="sidebarPinned"
+      :sidebar-current-width="sidebarCurrentWidth"
+      @toggle-collapse="handleToggleCollapse"
+      @toggle-pin="handleTogglePin"
+    />
   </div>
 </template>
 
 <style scoped>
 .app-sidebar-brand {
   border-bottom: 1px solid var(--border-color);
+}
+
+:deep(.sidebar-menu-rounded .n-menu-item-content) {
+  border-radius: 8px;
+  margin: 2px 8px;
+}
+
+:deep(.sidebar-menu-plain .n-menu-item-content) {
+  border-radius: 0;
+  margin: 0;
 }
 </style>

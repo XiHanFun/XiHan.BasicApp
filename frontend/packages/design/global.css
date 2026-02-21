@@ -121,3 +121,9 @@ html.invert-mode {
 html.grayscale-mode {
   @apply grayscale;
 }
+
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
