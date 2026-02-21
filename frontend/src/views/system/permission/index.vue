@@ -14,7 +14,8 @@ const columns: DataTableColumns<SysPermission> = [
   {
     title: '权限编码',
     key: 'permissionCode',
-    render: (row) => h(NTag, { type: 'info', bordered: false }, { default: () => row.permissionCode }),
+    render: (row) =>
+      h(NTag, { type: 'info', bordered: false }, { default: () => row.permissionCode }),
   },
   { title: '分组', key: 'groupName', width: 180 },
   { title: '描述', key: 'description' },

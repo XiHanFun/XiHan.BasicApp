@@ -22,12 +22,7 @@ import { Icon } from '@iconify/vue'
 import type { SysRole } from '~/types'
 import { STATUS_OPTIONS, DEFAULT_PAGE_SIZE } from '~/constants'
 import { formatDate, getStatusType } from '~/utils'
-import {
-  getRolePageApi,
-  createRoleApi,
-  updateRoleApi,
-  deleteRoleApi,
-} from '@/api'
+import { getRolePageApi, createRoleApi, updateRoleApi, deleteRoleApi } from '@/api'
 
 defineOptions({ name: 'SystemRolePage' })
 
@@ -120,11 +115,7 @@ const columns: DataTableColumns<SysRole> = [
     key: 'code',
     width: 150,
     render: (row) =>
-      h(
-        NTag,
-        { type: 'info', size: 'small', bordered: false },
-        { default: () => row.code },
-      ),
+      h(NTag, { type: 'info', size: 'small', bordered: false }, { default: () => row.code }),
   },
   {
     title: '描述',
@@ -160,23 +151,39 @@ const columns: DataTableColumns<SysRole> = [
     width: 160,
     fixed: 'right',
     render: (row) =>
-      h(NSpace, { size: 'small' }, {
-        default: () => [
-          h(NButton, {
-            size: 'small',
-            type: 'primary',
-            ghost: true,
-            onClick: () => handleEdit(row),
-          }, { default: () => '编辑' }),
-          h(NPopconfirm, {
-            onPositiveClick: () => handleDelete(row.id),
-          }, {
-            default: () => '确认删除该角色？',
-            trigger: () =>
-              h(NButton, { size: 'small', type: 'error', ghost: true }, { default: () => '删除' }),
-          }),
-        ],
-      }),
+      h(
+        NSpace,
+        { size: 'small' },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'primary',
+                ghost: true,
+                onClick: () => handleEdit(row),
+              },
+              { default: () => '编辑' },
+            ),
+            h(
+              NPopconfirm,
+              {
+                onPositiveClick: () => handleDelete(row.id),
+              },
+              {
+                default: () => '确认删除该角色？',
+                trigger: () =>
+                  h(
+                    NButton,
+                    { size: 'small', type: 'error', ghost: true },
+                    { default: () => '删除' },
+                  ),
+              },
+            ),
+          ],
+        },
+      ),
   },
 ]
 
@@ -202,9 +209,21 @@ onMounted(fetchData)
           clearable
         />
         <NButton type="primary" @click="fetchData">搜索</NButton>
-        <NButton @click="() => { queryParams.keyword = ''; queryParams.status = undefined; fetchData() }">重置</NButton>
+        <NButton
+          @click="
+            () => {
+              queryParams.keyword = ''
+              queryParams.status = undefined
+              fetchData()
+            }
+          "
+        >
+          重置
+        </NButton>
         <NButton class="ml-auto" type="primary" @click="handleAdd">
-          <template #icon><NIcon><Icon icon="lucide:plus" width="14" /></NIcon></template>
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
+          </template>
           新增角色
         </NButton>
       </div>
@@ -229,7 +248,12 @@ onMounted(fetchData)
           :page-sizes="[10, 20, 50]"
           show-size-picker
           @update:page="fetchData"
-          @update:page-size="() => { queryParams.page = 1; fetchData() }"
+          @update:page-size="
+            () => {
+              queryParams.page = 1
+              fetchData()
+            }
+          "
         />
       </div>
     </NCard>

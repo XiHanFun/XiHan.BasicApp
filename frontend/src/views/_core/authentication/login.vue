@@ -15,17 +15,23 @@ import {
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { useAppStore } from '~/stores'
 
 defineOptions({ name: 'LoginPage' })
 
 const route = useRoute()
 const authStore = useAuthStore()
+const appStore = useAppStore()
 const message = useMessage()
 const formRef = ref<FormInst | null>(null)
 const rememberMe = ref(true)
 const showPassword = ref(false)
-const appTitle = import.meta.env.VITE_APP_TITLE || 'XiHan Admin'
-const appLogo = import.meta.env.VITE_APP_LOGO || '/favicon.png'
+const appTitle = computed(
+  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
+)
+const appLogo = computed(
+  () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
+)
 
 const accountOptions = [
   { label: 'Super', value: 'superadmin' },
@@ -64,8 +70,7 @@ async function handleLogin() {
       },
       redirect.value,
     )
-  }
-  catch (err: unknown) {
+  } catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
@@ -167,13 +172,19 @@ function handleKeydown(e: KeyboardEvent) {
           <NDivider class="!my-5 !border-white/10">第三方登录</NDivider>
           <div class="flex items-center justify-center gap-3">
             <NButton circle quaternary>
-              <template #icon><Icon icon="logos:github-icon" /></template>
+              <template #icon>
+                <Icon icon="logos:github-icon" />
+              </template>
             </NButton>
             <NButton circle quaternary>
-              <template #icon><Icon icon="logos:wechat" /></template>
+              <template #icon>
+                <Icon icon="logos:wechat" />
+              </template>
             </NButton>
             <NButton circle quaternary>
-              <template #icon><Icon icon="logos:google-icon" /></template>
+              <template #icon>
+                <Icon icon="logos:google-icon" />
+              </template>
             </NButton>
           </div>
 

@@ -184,9 +184,7 @@ export class RequestClient {
   }
 
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const normalizedData = config?.data
-      ? this.normalizeRequestData(config.data)
-      : undefined
+    const normalizedData = config?.data ? this.normalizeRequestData(config.data) : undefined
 
     return this.request<T>({
       ...config,

@@ -16,12 +16,20 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <NModal v-model:show="show" :title="props.title" preset="card" style="width: 560px" :auto-focus="false">
+  <NModal
+    v-model:show="show"
+    :title="props.title"
+    preset="card"
+    style="width: 560px"
+    :auto-focus="false"
+  >
     <slot />
     <template #footer>
       <NSpace justify="end">
         <NButton @click="show = false">取消</NButton>
-        <NButton type="primary" :loading="props.submitLoading" @click="emit('submit')">确认</NButton>
+        <NButton type="primary" :loading="props.submitLoading" @click="emit('submit')">
+          确认
+        </NButton>
       </NSpace>
     </template>
   </NModal>

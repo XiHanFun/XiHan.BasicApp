@@ -1,6 +1,16 @@
 <script lang="ts" setup>
 import { ref, h } from 'vue'
-import { NCard, NGrid, NGridItem, NStatistic, NNumberAnimation, NAvatar, NTag, NSpace, NSkeleton } from 'naive-ui'
+import {
+  NCard,
+  NGrid,
+  NGridItem,
+  NStatistic,
+  NNumberAnimation,
+  NAvatar,
+  NTag,
+  NSpace,
+  NSkeleton,
+} from 'naive-ui'
 import { Icon } from '@iconify/vue'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
@@ -51,10 +61,30 @@ const stats = ref([
 
 const recentActivities = ref([
   { user: '张三', action: '登录了系统', time: dayjs().subtract(5, 'minute').toDate(), avatar: '' },
-  { user: '李四', action: '新增了一个用户', time: dayjs().subtract(18, 'minute').toDate(), avatar: '' },
-  { user: '王五', action: '修改了角色权限', time: dayjs().subtract(35, 'minute').toDate(), avatar: '' },
-  { user: '赵六', action: '导出了报表数据', time: dayjs().subtract(1, 'hour').toDate(), avatar: '' },
-  { user: 'Admin', action: '更新了系统配置', time: dayjs().subtract(2, 'hour').toDate(), avatar: '' },
+  {
+    user: '李四',
+    action: '新增了一个用户',
+    time: dayjs().subtract(18, 'minute').toDate(),
+    avatar: '',
+  },
+  {
+    user: '王五',
+    action: '修改了角色权限',
+    time: dayjs().subtract(35, 'minute').toDate(),
+    avatar: '',
+  },
+  {
+    user: '赵六',
+    action: '导出了报表数据',
+    time: dayjs().subtract(1, 'hour').toDate(),
+    avatar: '',
+  },
+  {
+    user: 'Admin',
+    action: '更新了系统配置',
+    time: dayjs().subtract(2, 'hour').toDate(),
+    avatar: '',
+  },
 ])
 
 const quickLinks = [
@@ -86,11 +116,7 @@ const quickLinks = [
 
     <!-- 统计数据 -->
     <NGrid :x-gap="16" :y-gap="16" :cols="2" responsive="screen" :item-responsive="true">
-      <NGridItem
-        v-for="stat in stats"
-        :key="stat.label"
-        span="2 s:1 m:1 l:1"
-      >
+      <NGridItem v-for="stat in stats" :key="stat.label" span="2 s:1 m:1 l:1">
         <NCard :bordered="false" class="hover-card">
           <div class="flex items-center justify-between">
             <div>
@@ -164,7 +190,7 @@ const quickLinks = [
               <div class="flex-1">
                 <p class="text-sm">
                   <span class="font-medium">{{ activity.user }}</span>
-                  <span class="text-gray-500"> {{ activity.action }}</span>
+                  <span class="text-gray-500">{{ activity.action }}</span>
                 </p>
                 <p class="mt-0.5 text-xs text-gray-400">
                   {{ formatDate(activity.time, 'HH:mm') }}

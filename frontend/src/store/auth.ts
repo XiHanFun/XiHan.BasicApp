@@ -2,11 +2,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { LoginParams } from '~/types'
 import { LOGIN_PATH, HOME_PATH } from '~/constants'
-import { useAccessStore, useUserStore } from '~/stores'
+import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 import { loginApi, logoutApi } from '@/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()
+  const appStore = useAppStore()
   const userStore = useUserStore()
 
   const loginLoading = ref(false)
@@ -25,6 +26,10 @@ export const useAuthStore = defineStore('auth', () => {
         ...result.user,
         roles: result.roles,
         permissions: result.permissions,
+      })
+      appStore.setBranding({
+        title: result.user.appTitle,
+        logo: result.user.appLogo,
       })
       accessStore.setAccessCodes(result.permissions)
       accessStore.isRoutesLoaded = false

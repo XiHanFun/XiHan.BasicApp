@@ -1,35 +1,63 @@
 <script lang="ts" setup>
+import { NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { NLayout, NLayoutSider, NLayoutHeader, NLayoutContent } from 'naive-ui'
-import { useAppStore } from '~/stores'
-import AppSidebar from './components/AppSidebar.vue'
+import { useAppStore, useTabbarStore } from '~/stores'
 import AppHeader from './components/AppHeader.vue'
+import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
 
 defineOptions({ name: 'BasicLayout' })
 
 const appStore = useAppStore()
+const tabbarStore = useTabbarStore()
 const collapsed = computed(() => appStore.sidebarCollapsed)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const responsiveCollapse = computed(() => viewportWidth.value < 960)
 const sidebarHoverExpand = ref(false)
+const contentMaximized = ref(false)
+const isTopOnlyLayout = computed(() => appStore.layoutMode === 'top')
+const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
+const compactSidebarLayout = computed(() =>
+  ['side-mixed', 'header-mix'].includes(appStore.layoutMode),
+)
 const canHoverExpand = computed(() => {
   return appStore.sidebarExpandOnHover && (collapsed.value || responsiveCollapse.value)
 })
 const effectiveCollapsed = computed(() => {
+  if (compactSidebarLayout.value) {
+    return true
+  }
   if (canHoverExpand.value) {
     return !sidebarHoverExpand.value
   }
   return collapsed.value || responsiveCollapse.value
 })
-const showSider = computed(() => appStore.layoutMode !== 'top' && appStore.sidebarShow)
+const showSider = computed(
+  () => !contentMaximized.value
+    && !isFullContentLayout.value
+    && !isTopOnlyLayout.value
+    && appStore.sidebarShow,
+)
+const siderFollowContent = computed(() => !appStore.sidebarExpandOnHover)
+const floatingSidebarMode = computed(() => !siderFollowContent.value && canHoverExpand.value)
+const floatingSidebarExpand = computed(() => canHoverExpand.value && sidebarHoverExpand.value)
 const siderWidth = computed(() => {
-  if (effectiveCollapsed.value) return 64
+  if (compactSidebarLayout.value) {
+    return 80
+  }
+  if (!siderFollowContent.value && canHoverExpand.value)
+    return 64
+  if (effectiveCollapsed.value)
+    return 64
   return appStore.layoutMode === 'mix' ? 208 : appStore.sidebarWidth
 })
 const transitionName = computed(() => (appStore.transitionEnable ? appStore.transitionName : ''))
 const contentStyle = computed(() => {
-  if (!appStore.contentCompact) return {}
+  if (isFullContentLayout.value) {
+    return { maxWidth: '100%', margin: '0' }
+  }
+  if (!appStore.contentCompact)
+    return {}
   return {
     maxWidth: `${appStore.contentMaxWidth}px`,
     margin: '0 auto',
@@ -40,13 +68,32 @@ function updateViewportWidth() {
   viewportWidth.value = window.innerWidth
 }
 
+function emitContentMaximizeState() {
+  window.dispatchEvent(
+    new CustomEvent('xihan-content-maximized-change', { detail: contentMaximized.value }),
+  )
+}
+
+function handleContentMaximizeToggle() {
+  contentMaximized.value = !contentMaximized.value
+  emitContentMaximizeState()
+}
+
+function handleContentMaximizeSync() {
+  emitContentMaximizeState()
+}
+
 onMounted(() => {
   updateViewportWidth()
   window.addEventListener('resize', updateViewportWidth)
+  window.addEventListener('xihan-toggle-content-maximize', handleContentMaximizeToggle)
+  window.addEventListener('xihan-sync-content-maximize-state', handleContentMaximizeSync)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportWidth)
+  window.removeEventListener('xihan-toggle-content-maximize', handleContentMaximizeToggle)
+  window.removeEventListener('xihan-sync-content-maximize-state', handleContentMaximizeSync)
 })
 
 function handleSiderMouseEnter() {
@@ -73,20 +120,34 @@ function handleSiderMouseLeave() {
       collapse-mode="width"
       bordered
       :native-scrollbar="false"
-      class="transition-all duration-300"
+      class="relative overflow-visible transition-all duration-300"
+      :class="floatingSidebarMode ? 'z-30' : ''"
       @mouseenter="handleSiderMouseEnter"
       @mouseleave="handleSiderMouseLeave"
     >
-      <AppSidebar :collapsed="effectiveCollapsed" />
+      <AppSidebar
+        :collapsed="effectiveCollapsed"
+        :floating-mode="floatingSidebarMode"
+        :floating-expand="floatingSidebarExpand"
+        :compact-menu="compactSidebarLayout"
+      />
     </NLayoutSider>
 
     <!-- 主内容区 -->
     <NLayout class="flex flex-col bg-[var(--bg-base)]">
       <!-- 顶部导航 -->
-      <NLayoutHeader bordered class="shrink-0 bg-[var(--header-bg)]" :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-10' : ''">
+      <NLayoutHeader
+        v-if="!contentMaximized && !isFullContentLayout"
+        bordered
+        class="shrink-0 bg-[var(--header-bg)]"
+        :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-10' : ''"
+      >
         <AppHeader />
       </NLayoutHeader>
-      <AppTabbar />
+      <AppTabbar
+        class="sticky z-10"
+        :class="contentMaximized ? 'top-0' : 'top-14'"
+      />
 
       <!-- 页面内容 -->
       <NLayoutContent
@@ -98,7 +159,10 @@ function handleSiderMouseLeave() {
           <RouterView v-slot="{ Component, route }">
             <Transition :name="transitionName" mode="out-in">
               <KeepAlive :include="route.meta?.keepAlive ? [route.name as string] : []">
-                <component :is="Component" :key="route.fullPath" />
+                <component
+                  :is="Component"
+                  :key="`${route.fullPath}_${tabbarStore.getRefreshSeed(route.fullPath)}`"
+                />
               </KeepAlive>
             </Transition>
           </RouterView>
@@ -111,7 +175,9 @@ function handleSiderMouseLeave() {
       >
         <span v-if="appStore.copyrightEnable">
           Copyright © {{ new Date().getFullYear() }}
-          <a :href="appStore.copyrightSite" target="_blank" class="ml-1 hover:underline">{{ appStore.copyrightCompany }}</a>
+          <a :href="appStore.copyrightSite" target="_blank" class="ml-1 hover:underline">
+            {{ appStore.copyrightCompany }}
+          </a>
         </span>
       </div>
     </NLayout>

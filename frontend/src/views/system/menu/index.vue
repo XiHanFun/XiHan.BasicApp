@@ -139,7 +139,10 @@ const columns: DataTableColumns<SysMenu> = [
     width: 80,
     align: 'center',
     render: (row) => {
-      const typeMap: Record<number, { label: string; type: 'default' | 'info' | 'success' | 'warning' | 'error' }> = {
+      const typeMap: Record<
+        number,
+        { label: string; type: 'default' | 'info' | 'success' | 'warning' | 'error' }
+      > = {
         [MENU_TYPE.DIR]: { label: '目录', type: 'default' },
         [MENU_TYPE.MENU]: { label: '菜单', type: 'info' },
         [MENU_TYPE.BUTTON]: { label: '按钮', type: 'success' },
@@ -161,7 +164,11 @@ const columns: DataTableColumns<SysMenu> = [
     ellipsis: { tooltip: true },
     render: (row) =>
       row.permission
-        ? h(NTag, { type: 'warning', size: 'small', bordered: false }, { default: () => row.permission })
+        ? h(
+            NTag,
+            { type: 'warning', size: 'small', bordered: false },
+            { default: () => row.permission },
+          )
         : h('span', { class: 'text-gray-300' }, '-'),
   },
   {
@@ -175,9 +182,13 @@ const columns: DataTableColumns<SysMenu> = [
     key: 'status',
     width: 80,
     render: (row) =>
-      h(NTag, { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true }, {
-        default: () => (row.status === 1 ? '启用' : '禁用'),
-      }),
+      h(
+        NTag,
+        { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
+        {
+          default: () => (row.status === 1 ? '启用' : '禁用'),
+        },
+      ),
   },
   {
     title: '操作',
@@ -185,29 +196,50 @@ const columns: DataTableColumns<SysMenu> = [
     width: 200,
     fixed: 'right',
     render: (row) =>
-      h(NSpace, { size: 'small' }, {
-        default: () => [
-          row.type !== MENU_TYPE.BUTTON &&
-            h(NButton, {
-              size: 'small',
-              ghost: true,
-              onClick: () => handleAdd(row.id),
-            }, { default: () => '添加子项' }),
-          h(NButton, {
-            size: 'small',
-            type: 'primary',
-            ghost: true,
-            onClick: () => handleEdit(row),
-          }, { default: () => '编辑' }),
-          h(NPopconfirm, {
-            onPositiveClick: () => handleDelete(row.id),
-          }, {
-            default: () => '确认删除该菜单？',
-            trigger: () =>
-              h(NButton, { size: 'small', type: 'error', ghost: true }, { default: () => '删除' }),
-          }),
-        ].filter(Boolean),
-      }),
+      h(
+        NSpace,
+        { size: 'small' },
+        {
+          default: () =>
+            [
+              row.type !== MENU_TYPE.BUTTON &&
+                h(
+                  NButton,
+                  {
+                    size: 'small',
+                    ghost: true,
+                    onClick: () => handleAdd(row.id),
+                  },
+                  { default: () => '添加子项' },
+                ),
+              h(
+                NButton,
+                {
+                  size: 'small',
+                  type: 'primary',
+                  ghost: true,
+                  onClick: () => handleEdit(row),
+                },
+                { default: () => '编辑' },
+              ),
+              h(
+                NPopconfirm,
+                {
+                  onPositiveClick: () => handleDelete(row.id),
+                },
+                {
+                  default: () => '确认删除该菜单？',
+                  trigger: () =>
+                    h(
+                      NButton,
+                      { size: 'small', type: 'error', ghost: true },
+                      { default: () => '删除' },
+                    ),
+                },
+              ),
+            ].filter(Boolean),
+        },
+      ),
   },
 ]
 
@@ -219,11 +251,15 @@ onMounted(fetchData)
     <NCard :bordered="false">
       <div class="flex items-center gap-3">
         <NButton type="primary" @click="() => handleAdd()">
-          <template #icon><NIcon><Icon icon="lucide:plus" width="14" /></NIcon></template>
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
+          </template>
           新增菜单
         </NButton>
         <NButton @click="fetchData">
-          <template #icon><NIcon><Icon icon="lucide:refresh-cw" width="14" /></NIcon></template>
+          <template #icon>
+            <NIcon><Icon icon="lucide:refresh-cw" width="14" /></NIcon>
+          </template>
           刷新
         </NButton>
       </div>

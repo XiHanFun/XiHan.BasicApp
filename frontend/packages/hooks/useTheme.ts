@@ -57,9 +57,11 @@ export function useTheme() {
       Math.max(y, window.innerHeight - y),
     )
 
-    const transition = (document as Document & {
-      startViewTransition: (callback: () => void) => { ready: Promise<void> }
-    }).startViewTransition(() => {
+    const transition = (
+      document as Document & {
+        startViewTransition: (callback: () => void) => { ready: Promise<void> }
+      }
+    ).startViewTransition(() => {
       toggleTheme()
     })
 

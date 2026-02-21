@@ -12,7 +12,6 @@ import {
   NMenu,
   NSpace,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
@@ -38,8 +37,12 @@ const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { setLocale } = useLocale()
 const isFullscreen = ref(false)
+const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+const showMoreMenu = computed(() => viewportWidth.value < 960)
 
-const showTopMenu = computed(() => appStore.layoutMode === 'top')
+const showTopMenu = computed(() =>
+  ['top', 'header-sidebar', 'header-mix'].includes(appStore.layoutMode),
+)
 
 const topMenuSource = computed(() => {
   if (accessStore.accessRoutes.length) {
@@ -131,6 +134,44 @@ const localeOptions = [
   { label: 'English', key: 'en-US' },
 ]
 
+const moreOptions = computed<DropdownOption[]>(() => {
+  const options: DropdownOption[] = []
+  if (appStore.widgetLanguageToggle) {
+    options.push({
+      key: 'locale',
+      label: '语言',
+      icon: () => h(Icon, { icon: 'lucide:languages' }),
+    })
+  }
+  if (appStore.widgetRefresh) {
+    options.push({
+      key: 'refresh',
+      label: '刷新',
+      icon: () => h(Icon, { icon: 'lucide:refresh-cw' }),
+    })
+  }
+  if (appStore.widgetNotification) {
+    options.push({
+      key: 'notification',
+      label: '通知',
+      icon: () => h(Icon, { icon: 'lucide:bell' }),
+    })
+  }
+  if (appStore.widgetFullscreen) {
+    options.push({
+      key: 'fullscreen',
+      label: isFullscreen.value ? '退出全屏' : '全屏',
+      icon: () => h(Icon, { icon: isFullscreen.value ? 'lucide:minimize-2' : 'lucide:maximize-2' }),
+    })
+  }
+  options.push({
+    key: 'preferences',
+    label: '偏好设置',
+    icon: () => h(Icon, { icon: 'lucide:settings-2' }),
+  })
+  return options
+})
+
 function handleUserAction(key: string) {
   if (key === 'logout') {
     authStore.logout()
@@ -145,6 +186,24 @@ function handleUserAction(key: string) {
 
 function handleLocaleChange(key: string) {
   setLocale(key)
+}
+
+function handleMoreAction(key: string) {
+  if (key === 'locale') {
+    setLocale(appStore.locale === 'zh-CN' ? 'en-US' : 'zh-CN')
+  }
+  else if (key === 'refresh') {
+    router.go(0)
+  }
+  else if (key === 'fullscreen') {
+    toggleFullscreen()
+  }
+  else if (key === 'notification') {
+    message.info('通知功能待接入')
+  }
+  else if (key === 'preferences') {
+    window.dispatchEvent(new CustomEvent('xihan-open-preference-drawer'))
+  }
 }
 
 function handleThemeToggle(e: MouseEvent) {
@@ -183,11 +242,17 @@ function toggleFullscreen() {
 onMounted(() => {
   syncFullscreenState()
   document.addEventListener('fullscreenchange', syncFullscreenState)
+  window.addEventListener('resize', syncViewport)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
+  window.removeEventListener('resize', syncViewport)
 })
+
+function syncViewport() {
+  viewportWidth.value = window.innerWidth
+}
 </script>
 
 <template>
@@ -199,23 +264,24 @@ onBeforeUnmount(() => {
       class="flex min-w-0 flex-1 items-center gap-2"
       :class="appStore.headerMenuAlign === 'center' ? 'mx-auto' : ''"
     >
-      <NTooltip v-if="!showTopMenu && appStore.widgetSidebarToggle" placement="bottom" :delay="500">
-        <template #trigger>
-          <NButton quaternary circle size="small" @click="appStore.toggleSidebar">
-            <template #icon>
-              <NIcon>
-                <Icon
-                  :icon="
-                    appStore.sidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'
-                  "
-                  width="18"
-                />
-              </NIcon>
-            </template>
-          </NButton>
+      <NButton
+        v-if="!showTopMenu && appStore.widgetSidebarToggle"
+        quaternary
+        circle
+        size="small"
+        @click="appStore.toggleSidebar"
+      >
+        <template #icon>
+          <NIcon>
+            <Icon
+              :icon="
+                appStore.sidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'
+              "
+              width="18"
+            />
+          </NIcon>
         </template>
-        {{ appStore.sidebarCollapsed ? '展开侧边栏' : '收起侧边栏' }}
-      </NTooltip>
+      </NButton>
 
       <NBreadcrumb
         v-if="appStore.breadcrumbEnabled && !showTopMenu"
@@ -277,77 +343,73 @@ onBeforeUnmount(() => {
       <!-- 语言切换 -->
       <div v-if="appStore.widgetLanguageToggle" class="hidden md:block">
         <NDropdown :options="localeOptions" @select="handleLocaleChange">
-          <NTooltip placement="bottom" :delay="500">
-            <template #trigger>
-              <NButton quaternary circle size="small">
-                <template #icon>
-                  <NIcon>
-                    <Icon icon="lucide:languages" width="18" />
-                  </NIcon>
-                </template>
-              </NButton>
+          <NButton quaternary circle size="small">
+            <template #icon>
+              <NIcon>
+                <Icon icon="lucide:languages" width="18" />
+              </NIcon>
             </template>
-            切换语言
-          </NTooltip>
+          </NButton>
         </NDropdown>
       </div>
 
       <!-- 主题切换 -->
-      <NTooltip v-if="appStore.widgetThemeToggle" placement="bottom" :delay="500">
-        <template #trigger>
-          <NButton quaternary circle size="small" @click="handleThemeToggle">
-            <template #icon>
-              <NIcon>
-                <Icon :icon="isDark ? 'lucide:sun' : 'lucide:moon'" width="18" />
-              </NIcon>
-            </template>
-          </NButton>
+      <NButton
+        v-if="appStore.widgetThemeToggle"
+        quaternary
+        circle
+        size="small"
+        @click="handleThemeToggle"
+      >
+        <template #icon>
+          <NIcon>
+            <Icon :icon="isDark ? 'lucide:sun' : 'lucide:moon'" width="18" />
+          </NIcon>
         </template>
-        {{ isDark ? '切换亮色模式' : '切换暗色模式' }}
-      </NTooltip>
+      </NButton>
 
       <div v-if="appStore.widgetRefresh" class="hidden md:block">
-        <NTooltip placement="bottom" :delay="500">
-          <template #trigger>
-            <NButton quaternary circle size="small" @click="router.go(0)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:refresh-cw" width="16" /></NIcon>
-              </template>
-            </NButton>
+        <NButton quaternary circle size="small" @click="router.go(0)">
+          <template #icon>
+            <NIcon><Icon icon="lucide:refresh-cw" width="16" /></NIcon>
           </template>
-          刷新
-        </NTooltip>
+        </NButton>
       </div>
 
       <div v-if="appStore.widgetNotification" class="hidden lg:block">
-        <NTooltip placement="bottom" :delay="500">
-          <template #trigger>
-            <NButton quaternary circle size="small">
-              <template #icon>
-                <NIcon><Icon icon="lucide:bell" width="16" /></NIcon>
-              </template>
-            </NButton>
+        <NButton quaternary circle size="small">
+          <template #icon>
+            <NIcon><Icon icon="lucide:bell" width="16" /></NIcon>
           </template>
-          通知
-        </NTooltip>
+        </NButton>
       </div>
 
       <div v-if="appStore.widgetFullscreen" class="hidden sm:block">
-        <NTooltip placement="bottom" :delay="500">
-          <template #trigger>
-            <NButton quaternary circle size="small" @click="toggleFullscreen">
-              <template #icon>
-                <NIcon>
-                  <Icon :icon="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" width="16" />
-                </NIcon>
-              </template>
-            </NButton>
+        <NButton quaternary circle size="small" @click="toggleFullscreen">
+          <template #icon>
+            <NIcon>
+              <Icon
+                :icon="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+                width="16"
+              />
+            </NIcon>
           </template>
-          {{ isFullscreen ? '退出全屏' : '全屏' }}
-        </NTooltip>
+        </NButton>
       </div>
 
-      <AppPreferenceDrawer />
+      <AppPreferenceDrawer v-if="!showMoreMenu" />
+
+      <NDropdown
+        v-if="showMoreMenu"
+        :options="moreOptions"
+        @select="(key) => handleMoreAction(String(key))"
+      >
+        <NButton quaternary circle size="small">
+          <template #icon>
+            <NIcon><Icon icon="lucide:ellipsis" width="16" /></NIcon>
+          </template>
+        </NButton>
+      </NDropdown>
 
       <!-- 用户头像 -->
       <NDropdown :options="userOptions" @select="handleUserAction">

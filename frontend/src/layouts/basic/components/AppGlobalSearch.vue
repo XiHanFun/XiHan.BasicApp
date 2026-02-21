@@ -27,9 +27,9 @@ const routeItems = computed(() => {
   if (!text) return routes.slice(0, 20)
   return routes.filter(
     (item) =>
-      item.title.toLowerCase().includes(text)
-      || item.path.toLowerCase().includes(text)
-      || item.name.toLowerCase().includes(text),
+      item.title.toLowerCase().includes(text) ||
+      item.path.toLowerCase().includes(text) ||
+      item.name.toLowerCase().includes(text),
   )
 })
 
@@ -61,7 +61,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <NButton quaternary size="small" class="justify-center sm:min-w-[180px] sm:justify-start" @click="openSearch">
+  <NButton
+    quaternary
+    size="small"
+    class="justify-center sm:min-w-[180px] sm:justify-start"
+    @click="openSearch"
+  >
     <template #icon>
       <Icon icon="lucide:search" width="16" />
     </template>

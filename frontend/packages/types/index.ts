@@ -30,6 +30,8 @@ export interface UserInfo {
   basicId: number
   userName: string
   nickName?: string
+  appTitle?: string
+  appLogo?: string
   avatar?: string
   email?: string
   phone?: string
