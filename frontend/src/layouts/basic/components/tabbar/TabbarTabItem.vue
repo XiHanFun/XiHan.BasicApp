@@ -41,7 +41,8 @@ function onAuxClick(event: MouseEvent) {
     role="button"
     tabindex="0"
     @click="emit('jump', item.path)"
-    @auxclick="onAuxClick"
+    @mousedown.middle.prevent
+    @auxclick.prevent="onAuxClick"
     @contextmenu.prevent="emit('contextmenu', $event, item)"
     @keydown.enter.prevent="emit('jump', item.path)"
   >
@@ -91,42 +92,17 @@ function onAuxClick(event: MouseEvent) {
 </template>
 
 <style scoped>
-/* TransitionGroup 的过渡类直接加在本组件根元素上，scoped 可正确匹配 */
-
-/* 新标签从右侧滑入 */
-.chrome-tab.tabs-slide-enter-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-/* 关闭标签向左滑出 */
-.chrome-tab.tabs-slide-leave-active {
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s cubic-bezier(0.55, 0, 1, 0.45);
-}
-
-/* 其余标签位移填位（FLIP） */
+/* tabs-slide-move：Vue TransitionGroup FLIP 位移动画（拖拽结束后其余标签平滑归位）
+   注意：不能在基础 .chrome-tab 上加 transition:transform，否则 SortableJS 的 FLIP 反转步骤
+   会变成动画而非瞬间跳变，导致拖拽位移动画失效。此类只在 Vue 需要 move 时生效。 */
 .chrome-tab.tabs-slide-move {
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.chrome-tab.tabs-slide-enter-from {
-  opacity: 0;
-  transform: translateX(40px);
-}
-
-.chrome-tab.tabs-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .chrome-tab {
   font-size: 13px;
-  transition:
-    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.18s ease;
+  /* 只保留颜色过渡，transform 交由 SortableJS（拖拽）和 JS hooks（入场/离场）各自管理 */
+  transition: color 0.18s ease;
 }
 
 .chrome-tab:not(.chrome-tab--dragging) {
