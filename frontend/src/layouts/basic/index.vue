@@ -21,14 +21,15 @@ const compactSidebarLayout = computed(() =>
   ['side-mixed', 'header-mix'].includes(appStore.layoutMode),
 )
 const canHoverExpand = computed(() => {
-  return appStore.sidebarExpandOnHover && (collapsed.value || responsiveCollapse.value)
+  return appStore.sidebarExpandOnHover
+    && (collapsed.value || responsiveCollapse.value || compactSidebarLayout.value)
 })
 const effectiveCollapsed = computed(() => {
-  if (compactSidebarLayout.value) {
-    return true
-  }
   if (canHoverExpand.value) {
     return !sidebarHoverExpand.value
+  }
+  if (compactSidebarLayout.value) {
+    return true
   }
   return collapsed.value || responsiveCollapse.value
 })
@@ -41,7 +42,11 @@ const showSider = computed(
 const siderFollowContent = computed(() => !appStore.sidebarExpandOnHover)
 const floatingSidebarMode = computed(() => !siderFollowContent.value && canHoverExpand.value)
 const floatingSidebarExpand = computed(() => canHoverExpand.value && sidebarHoverExpand.value)
+const expandedSidebarWidth = computed(() => (appStore.layoutMode === 'mix' ? 208 : appStore.sidebarWidth))
 const siderWidth = computed(() => {
+  if (floatingSidebarMode.value && floatingSidebarExpand.value) {
+    return expandedSidebarWidth.value
+  }
   if (compactSidebarLayout.value) {
     return 80
   }
@@ -130,6 +135,7 @@ function handleSiderMouseLeave() {
         :floating-mode="floatingSidebarMode"
         :floating-expand="floatingSidebarExpand"
         :compact-menu="compactSidebarLayout"
+        :expanded-width="expandedSidebarWidth"
       />
     </NLayoutSider>
 
