@@ -1,6 +1,7 @@
 import type { Router } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { useAccessStore, useTabbarStore, useUserStore } from '~/stores'
+import { i18n } from '~/locales'
+import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { LOGIN_PATH, HOME_PATH } from '~/constants'
 import { getUserInfoApi, getUserMenuRoutesApi } from '@/api'
 import { mapMenuToRoutes } from './dynamic'
@@ -19,6 +20,7 @@ export function setupRouterGuard(router: Router) {
 
   router.beforeEach(async (to, _from, next) => {
     const accessStore = useAccessStore()
+    const appStore = useAppStore()
     const userStore = useUserStore()
     const tabbarStore = useTabbarStore()
 
@@ -83,20 +85,33 @@ export function setupRouterGuard(router: Router) {
     }
 
     const routeTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
+    const pinned = to.path === HOME_PATH || Boolean(to.meta?.affixTab)
     tabbarStore.ensureTab({
       key: to.fullPath,
       title: routeTitle,
       path: to.fullPath,
-      closable: to.path !== HOME_PATH,
+      pinned,
+      closable: !pinned,
     })
+    if (appStore.tabbarMaxCount > 0 && tabbarStore.tabs.length > appStore.tabbarMaxCount) {
+      const removable = tabbarStore.tabs.find((tab) => tab.closable && tab.path !== to.fullPath)
+      if (removable) {
+        tabbarStore.removeTab(removable.path)
+      }
+    }
 
     next()
   })
 
   router.afterEach((to) => {
+    const appStore = useAppStore()
+    if (!appStore.dynamicTitle) {
+      document.title = 'XiHan BasicApp'
+      return
+    }
     const title = to.meta?.title as string | undefined
     if (title) {
-      document.title = `${title} - XiHan BasicApp`
+      document.title = `${i18n.global.t(title, title)} - XiHan BasicApp`
     }
   })
 }

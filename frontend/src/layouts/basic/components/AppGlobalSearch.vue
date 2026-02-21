@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import { NButton, NEmpty, NInput, NModal, NScrollbar } from 'naive-ui'
 import { useRouter } from 'vue-router'
@@ -46,14 +46,26 @@ function jumpTo(path: string) {
   keyword.value = ''
   router.push(path)
 }
+
+function handleOpenEvent() {
+  openSearch()
+}
+
+onMounted(() => {
+  window.addEventListener('xihan-open-global-search', handleOpenEvent)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('xihan-open-global-search', handleOpenEvent)
+})
 </script>
 
 <template>
-  <NButton quaternary size="small" class="min-w-[180px] justify-start" @click="openSearch">
+  <NButton quaternary size="small" class="justify-center sm:min-w-[180px] sm:justify-start" @click="openSearch">
     <template #icon>
       <Icon icon="lucide:search" width="16" />
     </template>
-    搜索菜单...
+    <span class="hidden sm:inline">搜索菜单...</span>
   </NButton>
 
   <NModal v-model:show="visible" preset="card" :bordered="false" class="w-[620px]">

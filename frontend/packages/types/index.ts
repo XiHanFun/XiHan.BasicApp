@@ -175,6 +175,7 @@ export interface TabItem {
   key: string
   title: string
   path: string
+  pinned?: boolean
   closable: boolean
 }
 
