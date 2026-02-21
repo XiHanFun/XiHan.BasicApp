@@ -64,7 +64,9 @@ a {
   }
 
   .text-ellipsis {
-    @apply overflow-hidden whitespace-nowrap text-ellipsis;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .hover-card {

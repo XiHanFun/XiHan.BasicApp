@@ -14,6 +14,7 @@ interface AppSidebarProps {
   floatingMode?: boolean
   floatingExpand?: boolean
   compactMenu?: boolean
+  expandedWidth?: number
 }
 
 defineOptions({ name: 'AppSidebar' })
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<AppSidebarProps>(), {
   floatingMode: false,
   floatingExpand: false,
   compactMenu: false,
+  expandedWidth: 224,
 })
 const router = useRouter()
 const route = useRoute()
@@ -97,7 +99,7 @@ const sidebarCurrentWidth = computed(() => (collapsed.value ? 64 : appStore.side
 const floatingSidebarStyle = computed(() => {
   if (!props.floatingMode) return undefined
   return {
-    width: `${props.floatingExpand ? appStore.sidebarWidth : 64}px`,
+    width: `${props.floatingExpand ? props.expandedWidth : 64}px`,
   }
 })
 
@@ -128,20 +130,22 @@ function handleTogglePin() {
   >
     <!-- Logo 区域 -->
     <div
-      class="flex h-16 shrink-0 cursor-pointer items-center overflow-hidden border-b border-gray-100 px-4 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/60"
-      :class="collapsed ? 'justify-center' : 'gap-2'"
+      class="flex h-16 shrink-0 cursor-pointer items-center overflow-hidden border-b border-gray-100 px-3 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/60"
       @click="handleBrandClick"
     >
-      <div
-        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/90 p-1.5 shadow-sm"
-      >
-        <img :src="appLogo" :alt="appTitle" class="h-8 w-8 object-contain" />
-      </div>
-      <Transition name="fade">
-        <span v-if="!collapsed" class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+      <div class="relative h-11 w-full overflow-hidden">
+        <div
+          class="absolute left-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl bg-white/90 p-1.5 shadow-sm"
+        >
+          <img :src="appLogo" :alt="appTitle" class="h-8 w-8 object-contain">
+        </div>
+        <span
+          class="absolute left-[52px] top-1/2 block -translate-y-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold leading-none text-gray-800 transition-all duration-200 dark:text-gray-100"
+          :class="collapsed ? 'max-w-0 opacity-0' : 'max-w-[220px] opacity-100'"
+        >
           {{ appTitle }}
         </span>
-      </Transition>
+      </div>
     </div>
 
     <!-- 菜单 -->
@@ -169,17 +173,26 @@ function handleTogglePin() {
       </NIcon>
     </button>
 
-    <button
-      v-if="appStore.sidebarFixedButton && !collapsed && !props.floatingMode"
-      type="button"
-      :style="{ left: `${Math.max(12, sidebarCurrentWidth - 40)}px` }"
-      class="fixed bottom-2 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-gray-100 p-[5px] text-gray-500 outline-none transition-all duration-300 hover:bg-gray-200 hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
-      :title="sidebarPinned ? '主体不跟随侧边栏' : '主体跟随侧边栏'"
-      @click.stop="handleTogglePin"
+    <Transition
+      enter-active-class="transition-all duration-300 delay-100"
+      enter-from-class="-translate-x-2 opacity-0"
+      enter-to-class="translate-x-0 opacity-100"
+      leave-active-class="transition-all duration-200"
+      leave-from-class="translate-x-0 opacity-100"
+      leave-to-class="-translate-x-1 opacity-0"
     >
-      <NIcon size="14">
-        <Icon :icon="sidebarPinned ? 'lucide:pin-off' : 'lucide:pin'" />
-      </NIcon>
-    </button>
+      <button
+        v-if="appStore.sidebarFixedButton && !collapsed && (!props.floatingMode || props.floatingExpand)"
+        type="button"
+        :style="{ left: `${Math.max(12, sidebarCurrentWidth - 40)}px` }"
+        class="fixed bottom-2 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-gray-100 p-[5px] text-gray-500 outline-none transition-all duration-300 hover:bg-gray-200 hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+        :title="sidebarPinned ? '主体不跟随侧边栏' : '主体跟随侧边栏'"
+        @click.stop="handleTogglePin"
+      >
+        <NIcon size="14">
+          <Icon :icon="sidebarPinned ? 'lucide:pin-off' : 'lucide:pin'" />
+        </NIcon>
+      </button>
+    </Transition>
   </div>
 </template>
