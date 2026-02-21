@@ -12,17 +12,17 @@ defineOptions({ name: 'AppTabbar' })
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, te } = useI18n()
 const appStore = useAppStore()
 const tabbarStore = useTabbarStore()
 
 const visibleTabs = computed(() => tabbarStore.tabs)
 const localizedTabs = computed(() => {
   return visibleTabs.value.map((tab) => {
-    const translated = t(tab.title)
+    const translated = te(tab.title) ? t(tab.title) : tab.title
     return {
       ...tab,
-      displayTitle: translated === tab.title ? tab.title : translated,
+      displayTitle: translated,
     }
   })
 })
@@ -38,8 +38,7 @@ const tabThemeVars = computed(() => {
   const color = appStore.themeColor
   return {
     '--tab-active-color': color,
-    '--tab-active-bg': `color-mix(in srgb, ${color} 14%, white)`,
-    '--tab-active-bg-dark': `color-mix(in srgb, ${color} 24%, transparent)`,
+    '--tab-active-bg': `color-mix(in srgb, ${color} 18%, hsl(var(--background)))`,
   }
 })
 
@@ -343,19 +342,19 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tabbar-root {
-  border-bottom-width: 1px !important;
-  border-bottom-style: solid !important;
-  border-bottom-color: var(--border-color) !important;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--border-color);
 }
 
 .chrome-tab {
   min-width: 110px;
   max-width: 180px;
   border-radius: 6px 6px 0 0;
-  border: 1px solid rgb(229 231 235 / 0);
+  border: 1px solid transparent;
   border-bottom-color: transparent;
   padding: 0 10px;
-  color: rgb(75 85 99);
+  color: hsl(var(--muted-foreground));
   font-size: 13px;
   transition: all 0.2s ease;
 }
@@ -366,7 +365,7 @@ onBeforeUnmount(() => {
   right: -1px;
   height: 14px;
   width: 1px;
-  background: rgb(209 213 219);
+  background: hsl(var(--border));
   content: '';
 }
 
@@ -380,11 +379,11 @@ onBeforeUnmount(() => {
 }
 
 .chrome-tab:hover {
-  background: rgb(243 244 246);
+  background: hsl(var(--accent));
 }
 
 .chrome-tab.is-active {
-  border-color: rgb(229 231 235);
+  border-color: hsl(var(--border));
   background: var(--tab-active-bg);
   color: var(--tab-active-color);
   font-weight: 500;
@@ -420,38 +419,7 @@ onBeforeUnmount(() => {
 }
 
 .chrome-tab__close:hover {
-  background: rgb(209 213 219 / 80%);
-  color: rgb(17 24 39);
-}
-
-:global(.dark) .chrome-tab {
-  color: rgb(209 213 219);
-}
-
-:global(.dark) .chrome-tab:hover {
-  background: rgb(31 41 55);
-}
-
-:global(.dark) .chrome-tab.is-active {
-  border-color: rgb(55 65 81);
-  background: var(--tab-active-bg-dark);
-  color: var(--tab-active-color);
-}
-
-:global(.dark) .chrome-tab::after {
-  background: rgb(75 85 99);
-}
-
-:global(.dark) .chrome-tab__close {
-  color: rgb(156 163 175);
-}
-
-:global(.dark) .chrome-tab__close:hover {
-  background: rgb(55 65 81);
-  color: rgb(243 244 246);
-}
-
-:global(.dark) .chrome-tab__pin {
-  color: var(--tab-active-color);
+  background: hsl(var(--heavy));
+  color: hsl(var(--accent-foreground));
 }
 </style>

@@ -124,24 +124,24 @@ function handleTogglePin() {
 
 <template>
   <div
-    class="relative flex h-full min-h-0 flex-col bg-[var(--sidebar-bg)] transition-[transform,width] duration-300"
+    class="app-sidebar-root relative flex h-full min-h-0 flex-col bg-[var(--sidebar-bg)] transition-[transform,width] duration-300"
     :class="props.floatingMode ? 'absolute left-0 top-0 z-40' : ''"
     :style="floatingSidebarStyle"
   >
     <!-- Logo 区域 -->
     <div
-      class="app-sidebar-brand flex h-16 shrink-0 cursor-pointer items-center overflow-hidden px-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
+      class="app-sidebar-brand flex h-16 shrink-0 cursor-pointer items-center overflow-hidden px-3 transition-colors hover:bg-[hsl(var(--accent))]"
       @click="handleBrandClick"
     >
       <div class="relative h-12 w-full overflow-hidden">
         <div
-          class="absolute left-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl bg-white/90 p-1.5 shadow-sm transition-transform duration-300"
+          class="absolute left-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl bg-[hsl(var(--card)/0.92)] p-1.5 shadow-sm transition-transform duration-300"
           :class="collapsed ? 'scale-100' : 'scale-90'"
         >
           <img :src="appLogo" :alt="appTitle" class="h-8 w-8 object-contain" />
         </div>
         <span
-          class="absolute left-[52px] top-1/2 block -translate-y-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold leading-none text-gray-800 transition-all duration-300 dark:text-gray-100"
+          class="absolute left-[52px] top-1/2 block -translate-y-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold leading-none text-[hsl(var(--foreground))] transition-all duration-300"
           :class="collapsed ? 'max-w-0 opacity-0 delay-0' : 'max-w-[220px] opacity-100 delay-100'"
         >
           {{ appTitle }}
@@ -150,7 +150,7 @@ function handleTogglePin() {
     </div>
 
     <!-- 菜单 -->
-    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 pb-12">
+    <div class="app-sidebar-menu flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 pb-12">
       <NMenu
         :value="activeKey"
         :collapsed="collapsed"
@@ -165,7 +165,7 @@ function handleTogglePin() {
     <button
       v-if="appStore.sidebarCollapseButton"
       type="button"
-      class="fixed bottom-2 left-3 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-gray-100 p-1 text-gray-500 outline-none transition-all duration-300 hover:bg-gray-200 hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+      class="fixed bottom-2 left-3 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-[hsl(var(--muted))] p-1 text-[hsl(var(--muted-foreground))] outline-none transition-all duration-300 hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] focus:outline-none"
       :title="collapsed ? '展开侧边栏' : '收起侧边栏'"
       @click.stop="handleToggleCollapse"
     >
@@ -188,7 +188,7 @@ function handleTogglePin() {
         "
         type="button"
         :style="{ left: `${Math.max(12, sidebarCurrentWidth - 40)}px` }"
-        class="fixed bottom-2 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-gray-100 p-[5px] text-gray-500 outline-none transition-all duration-300 hover:bg-gray-200 hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+        class="fixed bottom-2 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-[hsl(var(--muted))] p-[5px] text-[hsl(var(--muted-foreground))] outline-none transition-all duration-300 hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] focus:outline-none"
         :title="sidebarPinned ? '主体不跟随侧边栏' : '主体跟随侧边栏'"
         @click.stop="handleTogglePin"
       >

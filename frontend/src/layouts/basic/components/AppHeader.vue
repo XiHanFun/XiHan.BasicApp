@@ -287,7 +287,7 @@ function syncViewport() {
         class="hidden sm:flex"
         :class="
           appStore.breadcrumbStyle === 'background'
-            ? 'rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-800'
+            ? 'rounded-md bg-[hsl(var(--muted))] px-2 py-1'
             : ''
         "
       >
@@ -412,7 +412,7 @@ function syncViewport() {
       <!-- 用户头像 -->
       <NDropdown :options="userOptions" @select="handleUserAction">
         <div
-          class="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 hover:bg-[hsl(var(--accent))]"
         >
           <NAvatar
             round
@@ -420,10 +420,10 @@ function syncViewport() {
             :src="userStore.avatar"
             :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
           />
-          <span class="hidden text-sm text-gray-700 sm:block dark:text-gray-300">
+          <span class="hidden text-sm text-[hsl(var(--foreground))] sm:block">
             {{ userStore.nickname || userStore.username }}
           </span>
-          <NIcon size="14" class="text-gray-400">
+          <NIcon size="14" class="text-[hsl(var(--muted-foreground))]">
             <Icon icon="lucide:chevron-down" />
           </NIcon>
         </div>
@@ -434,6 +434,6 @@ function syncViewport() {
 
 <style scoped>
 .app-header-root {
-  border-bottom: 1px solid var(--border-color) !important;
+  border-bottom: 1px solid var(--border-color);
 }
 </style>
