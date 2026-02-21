@@ -256,9 +256,7 @@ function syncViewport() {
 </script>
 
 <template>
-  <div
-    class="flex h-14 min-w-0 items-center justify-between gap-2 border-b border-gray-100 bg-white px-3 dark:border-gray-800 dark:bg-gray-900"
-  >
+  <div class="app-header-root flex h-14 min-w-0 items-center justify-between gap-2 bg-[var(--header-bg)] px-3">
     <!-- 左侧：折叠按钮 + 面包屑 -->
     <div
       class="flex min-w-0 flex-1 items-center gap-2"
@@ -433,3 +431,9 @@ function syncViewport() {
     </NSpace>
   </div>
 </template>
+
+<style scoped>
+.app-header-root {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+</style>

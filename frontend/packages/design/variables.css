@@ -38,29 +38,39 @@
   --z-loading: 3000;
 }
 
-/* 浅色主题 */
+/* 浅色主题（对齐 vben design tokens） */
 .light,
 :root {
-  --bg-base: #f5f5f5;
-  --bg-surface: #ffffff;
-  --bg-elevated: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #666666;
-  --text-disabled: #bbb;
-  --border-color: #e5e7eb;
-  --sidebar-bg: #ffffff;
-  --header-bg: #ffffff;
+  --background: 0 0% 100%;
+  --background-deep: 216 20.11% 95.47%;
+  --foreground: 210 6% 21%;
+  --border: 240 5.9% 90%;
+  --header: 0 0% 100%;
+  --sidebar: 0 0% 100%;
 }
 
-/* 深色主题 */
+/* 深色主题（对齐 vben default dark token） */
 .dark {
-  --bg-base: #101014;
-  --bg-surface: #1a1a1f;
-  --bg-elevated: #232329;
-  --text-primary: #ffffffd1;
-  --text-secondary: #ffffffa3;
-  --text-disabled: #ffffff52;
-  --border-color: #ffffff1f;
-  --sidebar-bg: #1a1a1f;
-  --header-bg: #1a1a1f;
+  --background: 222.34deg 10.43% 12.27%;
+  --background-deep: 220deg 13.06% 9%;
+  --foreground: 0 0% 95%;
+  --border: 240 3.7% 22%;
+  --header: 222.34deg 10.43% 12.27%;
+  --sidebar: 222.34deg 10.43% 12.27%;
+}
+
+/* 兼容当前项目既有变量 */
+:root,
+.light,
+.dark {
+  --bg-base: hsl(var(--background-deep));
+  --bg-surface: hsl(var(--background));
+  --bg-elevated: hsl(var(--background));
+  --text-primary: hsl(var(--foreground));
+  --text-secondary: hsl(var(--foreground) / 72%);
+  --text-disabled: hsl(var(--foreground) / 45%);
+  --border-color: hsl(var(--border));
+  --sidebar-bg: hsl(var(--sidebar));
+  --header-bg: hsl(var(--header));
+  --tabbar-bg: hsl(var(--header));
 }

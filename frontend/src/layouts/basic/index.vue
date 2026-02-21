@@ -21,8 +21,10 @@ const compactSidebarLayout = computed(() =>
   ['side-mixed', 'header-mix'].includes(appStore.layoutMode),
 )
 const canHoverExpand = computed(() => {
-  return appStore.sidebarExpandOnHover
-    && (collapsed.value || responsiveCollapse.value || compactSidebarLayout.value)
+  return (
+    appStore.sidebarExpandOnHover &&
+    (collapsed.value || responsiveCollapse.value || compactSidebarLayout.value)
+  )
 })
 const effectiveCollapsed = computed(() => {
   if (canHoverExpand.value) {
@@ -34,15 +36,18 @@ const effectiveCollapsed = computed(() => {
   return collapsed.value || responsiveCollapse.value
 })
 const showSider = computed(
-  () => !contentMaximized.value
-    && !isFullContentLayout.value
-    && !isTopOnlyLayout.value
-    && appStore.sidebarShow,
+  () =>
+    !contentMaximized.value &&
+    !isFullContentLayout.value &&
+    !isTopOnlyLayout.value &&
+    appStore.sidebarShow,
 )
 const siderFollowContent = computed(() => !appStore.sidebarExpandOnHover)
 const floatingSidebarMode = computed(() => !siderFollowContent.value && canHoverExpand.value)
 const floatingSidebarExpand = computed(() => canHoverExpand.value && sidebarHoverExpand.value)
-const expandedSidebarWidth = computed(() => (appStore.layoutMode === 'mix' ? 208 : appStore.sidebarWidth))
+const expandedSidebarWidth = computed(() =>
+  appStore.layoutMode === 'mix' ? 208 : appStore.sidebarWidth,
+)
 const siderWidth = computed(() => {
   if (floatingSidebarMode.value && floatingSidebarExpand.value) {
     return expandedSidebarWidth.value
@@ -50,10 +55,8 @@ const siderWidth = computed(() => {
   if (compactSidebarLayout.value) {
     return 80
   }
-  if (!siderFollowContent.value && canHoverExpand.value)
-    return 64
-  if (effectiveCollapsed.value)
-    return 64
+  if (!siderFollowContent.value && canHoverExpand.value) return 64
+  if (effectiveCollapsed.value) return 64
   return appStore.layoutMode === 'mix' ? 208 : appStore.sidebarWidth
 })
 const transitionName = computed(() => (appStore.transitionEnable ? appStore.transitionName : ''))
@@ -61,8 +64,7 @@ const contentStyle = computed(() => {
   if (isFullContentLayout.value) {
     return { maxWidth: '100%', margin: '0' }
   }
-  if (!appStore.contentCompact)
-    return {}
+  if (!appStore.contentCompact) return {}
   return {
     maxWidth: `${appStore.contentMaxWidth}px`,
     margin: '0 auto',
@@ -123,9 +125,9 @@ function handleSiderMouseLeave() {
       :collapsed-width="64"
       :collapsed="effectiveCollapsed"
       collapse-mode="width"
-      bordered
       :native-scrollbar="false"
-      class="relative overflow-visible transition-all duration-300"
+      :style="{ backgroundColor: 'var(--sidebar-bg)' }"
+      class="layout-sider-root relative overflow-visible transition-all duration-300"
       :class="floatingSidebarMode ? 'z-30' : ''"
       @mouseenter="handleSiderMouseEnter"
       @mouseleave="handleSiderMouseLeave"
@@ -144,16 +146,12 @@ function handleSiderMouseLeave() {
       <!-- 顶部导航 -->
       <NLayoutHeader
         v-if="!contentMaximized && !isFullContentLayout"
-        bordered
         class="shrink-0 bg-[var(--header-bg)]"
         :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-10' : ''"
       >
         <AppHeader />
       </NLayoutHeader>
-      <AppTabbar
-        class="sticky z-10"
-        :class="contentMaximized ? 'top-0' : 'top-14'"
-      />
+      <AppTabbar class="sticky z-10" :class="contentMaximized ? 'top-0' : 'top-14'" />
 
       <!-- 页面内容 -->
       <NLayoutContent
@@ -189,3 +187,9 @@ function handleSiderMouseLeave() {
     </NLayout>
   </NLayout>
 </template>
+
+<style scoped>
+.layout-sider-root {
+  border-right: 1px solid var(--border-color) !important;
+}
+</style>

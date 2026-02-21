@@ -124,24 +124,25 @@ function handleTogglePin() {
 
 <template>
   <div
-    class="relative flex h-full min-h-0 flex-col transition-[transform,width] duration-300"
+    class="relative flex h-full min-h-0 flex-col bg-[var(--sidebar-bg)] transition-[transform,width] duration-300"
     :class="props.floatingMode ? 'absolute left-0 top-0 z-40' : ''"
     :style="floatingSidebarStyle"
   >
     <!-- Logo 区域 -->
     <div
-      class="flex h-16 shrink-0 cursor-pointer items-center overflow-hidden border-b border-gray-100 px-3 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/60"
+      class="app-sidebar-brand flex h-16 shrink-0 cursor-pointer items-center overflow-hidden px-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
       @click="handleBrandClick"
     >
-      <div class="relative h-11 w-full overflow-hidden">
+      <div class="relative h-12 w-full overflow-hidden">
         <div
-          class="absolute left-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl bg-white/90 p-1.5 shadow-sm"
+          class="absolute left-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl bg-white/90 p-1.5 shadow-sm transition-transform duration-300"
+          :class="collapsed ? 'scale-100' : 'scale-90'"
         >
-          <img :src="appLogo" :alt="appTitle" class="h-8 w-8 object-contain">
+          <img :src="appLogo" :alt="appTitle" class="h-8 w-8 object-contain" />
         </div>
         <span
-          class="absolute left-[52px] top-1/2 block -translate-y-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold leading-none text-gray-800 transition-all duration-200 dark:text-gray-100"
-          :class="collapsed ? 'max-w-0 opacity-0' : 'max-w-[220px] opacity-100'"
+          class="absolute left-[52px] top-1/2 block -translate-y-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold leading-none text-gray-800 transition-all duration-300 dark:text-gray-100"
+          :class="collapsed ? 'max-w-0 opacity-0 delay-0' : 'max-w-[220px] opacity-100 delay-100'"
         >
           {{ appTitle }}
         </span>
@@ -182,7 +183,9 @@ function handleTogglePin() {
       leave-to-class="-translate-x-1 opacity-0"
     >
       <button
-        v-if="appStore.sidebarFixedButton && !collapsed && (!props.floatingMode || props.floatingExpand)"
+        v-if="
+          appStore.sidebarFixedButton && !collapsed && (!props.floatingMode || props.floatingExpand)
+        "
         type="button"
         :style="{ left: `${Math.max(12, sidebarCurrentWidth - 40)}px` }"
         class="fixed bottom-2 z-40 flex h-7 w-7 items-center justify-center rounded-sm border-0 bg-gray-100 p-[5px] text-gray-500 outline-none transition-all duration-300 hover:bg-gray-200 hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
@@ -196,3 +199,9 @@ function handleTogglePin() {
     </Transition>
   </div>
 </template>
+
+<style scoped>
+.app-sidebar-brand {
+  border-bottom: 1px solid var(--border-color);
+}
+</style>
