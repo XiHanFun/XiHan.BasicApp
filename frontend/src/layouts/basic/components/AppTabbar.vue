@@ -257,7 +257,7 @@ onBeforeUnmount(() => {
   <div
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
-    class="tabbar-root flex items-center gap-1 overflow-x-auto border-b border-gray-100 bg-white px-3 py-1 dark:border-gray-800 dark:bg-gray-900"
+    class="tabbar-root flex items-center gap-1 overflow-x-auto bg-[var(--tabbar-bg)] px-3 py-1"
   >
     <div
       v-for="(item, index) in localizedTabs"
@@ -342,6 +342,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.tabbar-root {
+  border-bottom-width: 1px !important;
+  border-bottom-style: solid !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
 .chrome-tab {
   min-width: 110px;
   max-width: 180px;
