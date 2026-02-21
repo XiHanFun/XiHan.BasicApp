@@ -1,36 +1,50 @@
 :root {
-  /* 品牌色 */
-  --color-primary: #18a058;
-  --color-primary-hover: #36ad6a;
-  --color-primary-active: #0c7a43;
+  --popup-z-index: 2000;
+  --font-family:
+    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue',
+    arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
 
-  /* 布局尺寸 */
+  /* core design tokens (light default) */
+  --background: 0 0% 100%;
+  --background-deep: 216 20.11% 95.47%;
+  --foreground: 210 6% 21%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --primary: 212 100% 45%;
+  --primary-foreground: 0 0% 98%;
+  --destructive: 359.33 100% 65.1%;
+  --destructive-foreground: 0 0% 98%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 240 6% 10%;
+  --accent: 240 5% 96%;
+  --accent-foreground: 240 6% 10%;
+  --heavy: 192deg 9.43% 89.61%;
+  --heavy-foreground: var(--accent-foreground);
+  --border: 240 5.9% 90%;
+  --input: 240deg 5.88% 90%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+  --overlay: 0 0% 0% / 45%;
+  --overlay-content: 0 0% 95% / 45%;
+  --font-size-base: 14px;
+  --menu-font-size: calc(var(--font-size-base) * 0.875);
+  --sidebar: 0 0% 100%;
+  --sidebar-deep: 0 0% 100%;
+  --menu: var(--sidebar);
+  --header: 0 0% 100%;
+
+  /* legacy app sizes/z-index */
   --layout-sidebar-width: 240px;
   --layout-sidebar-collapsed-width: 64px;
   --layout-header-height: 56px;
   --layout-footer-height: 48px;
   --layout-tags-height: 40px;
-
-  /* 内容区域 */
   --layout-content-padding: 16px;
-
-  /* 圆角 */
-  --border-radius-sm: 4px;
-  --border-radius-md: 6px;
-  --border-radius-lg: 8px;
-  --border-radius-xl: 12px;
-
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-
-  /* 过渡时间 */
-  --transition-fast: 0.15s;
-  --transition-normal: 0.25s;
-  --transition-slow: 0.35s;
-
-  /* z-index 层级 */
   --z-sidebar: 100;
   --z-header: 200;
   --z-modal: 1000;
@@ -38,34 +52,44 @@
   --z-loading: 3000;
 }
 
-/* 浅色主题（对齐 vben design tokens） */
-.light,
-:root {
-  --background: 0 0% 100%;
-  --background-deep: 216 20.11% 95.47%;
-  --foreground: 210 6% 21%;
-  --border: 240 5.9% 90%;
-  --header: 0 0% 100%;
-  --sidebar: 0 0% 100%;
-}
-
-/* 深色主题（对齐 vben default dark token） */
 .dark {
   --background: 222.34deg 10.43% 12.27%;
   --background-deep: 220deg 13.06% 9%;
   --foreground: 0 0% 95%;
+  --card: 222.34deg 10.43% 12.27%;
+  --card-foreground: 210 40% 98%;
+  --popover: 0 0% 14.2%;
+  --popover-foreground: 210 40% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --primary-foreground: 0 0% 98%;
+  --destructive: 359.21 68.47% 56.47%;
+  --destructive-foreground: 0 0% 98%;
+  --secondary: 240 5% 17%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 216 5% 19%;
+  --accent-foreground: 0 0% 98%;
+  --heavy: 216 5% 24%;
+  --heavy-foreground: var(--accent-foreground);
   --border: 240 3.7% 22%;
-  --header: 222.34deg 10.43% 12.27%;
+  --input: 0deg 0% 100% / 10%;
+  --ring: 222.2 84% 4.9%;
+  --overlay: 0deg 0% 0% / 40%;
+  --overlay-content: 0deg 0% 0% / 40%;
   --sidebar: 222.34deg 10.43% 12.27%;
+  --sidebar-deep: 220deg 13.06% 9%;
+  --menu: var(--sidebar);
+  --header: 222.34deg 10.43% 12.27%;
+
+  color-scheme: dark;
 }
 
-/* 兼容当前项目既有变量 */
+/* Compatibility aliases for current components */
 :root,
-.light,
 .dark {
   --bg-base: hsl(var(--background-deep));
   --bg-surface: hsl(var(--background));
-  --bg-elevated: hsl(var(--background));
+  --bg-elevated: hsl(var(--card));
   --text-primary: hsl(var(--foreground));
   --text-secondary: hsl(var(--foreground) / 72%);
   --text-disabled: hsl(var(--foreground) / 45%);

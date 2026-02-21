@@ -1,51 +1,80 @@
-/* CSS 变量 */
 @import './variables.css';
 @import './transition.css';
 @import './scrollbar.css';
+@import './ui.css';
+@import './naive.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 重置 */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@layer base {
+  *,
+  ::before,
+  ::after {
+    @apply border-border;
+
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: 0;
+  }
+
+  html {
+    @apply bg-background text-foreground;
+
+    scroll-behavior: smooth;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #app,
+  body,
+  html {
+    @apply size-full;
+  }
+
+  a,
+  a:active,
+  a:hover,
+  a:link,
+  a:visited {
+    @apply no-underline;
+  }
+
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
+    @apply animate-none mix-blend-normal;
+  }
+
+  ::view-transition-old(root) {
+    @apply z-[1];
+  }
+
+  ::view-transition-new(root) {
+    @apply z-[2147483646];
+  }
+
+  html.dark::view-transition-old(root) {
+    @apply z-[2147483646];
+  }
+
+  html.dark::view-transition-new(root) {
+    @apply z-[1];
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply opacity-100;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    @apply m-0 appearance-none;
+  }
 }
 
-html,
-body,
-#app {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  font-size: 14px;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    'Noto Sans',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-/* 工具类 */
 @layer components {
   .flex-center {
     @apply flex items-center justify-center;
@@ -72,4 +101,23 @@ a {
   .hover-card {
     @apply transition-shadow duration-200 hover:shadow-md;
   }
+
+  /* prevent text selection on key interactive layout areas */
+  .app-header-root,
+  .tabbar-root,
+  .chrome-tab,
+  .app-sidebar-root,
+  .app-sidebar-brand,
+  .app-sidebar-menu {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+html.invert-mode {
+  @apply invert;
+}
+
+html.grayscale-mode {
+  @apply grayscale;
 }

@@ -143,15 +143,19 @@ function handleSiderMouseLeave() {
 
     <!-- 主内容区 -->
     <NLayout class="flex flex-col bg-[var(--bg-base)]">
-      <!-- 顶部导航 -->
-      <NLayoutHeader
-        v-if="!contentMaximized && !isFullContentLayout"
-        class="shrink-0 bg-[var(--header-bg)]"
-        :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-10' : ''"
+      <div
+        class="layout-header-shell shrink-0"
+        :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
       >
-        <AppHeader />
-      </NLayoutHeader>
-      <AppTabbar class="sticky z-10" :class="contentMaximized ? 'top-0' : 'top-14'" />
+        <!-- 顶部导航 -->
+        <NLayoutHeader
+          v-if="!contentMaximized && !isFullContentLayout"
+          class="bg-[var(--header-bg)]"
+        >
+          <AppHeader />
+        </NLayoutHeader>
+        <AppTabbar />
+      </div>
 
       <!-- 页面内容 -->
       <NLayoutContent
@@ -190,6 +194,10 @@ function handleSiderMouseLeave() {
 
 <style scoped>
 .layout-sider-root {
-  border-right: 1px solid var(--border-color) !important;
+  border-right: 1px solid var(--border-color);
+}
+
+.layout-header-shell {
+  background: var(--header-bg);
 }
 </style>
