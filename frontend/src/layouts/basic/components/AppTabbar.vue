@@ -248,6 +248,70 @@ function handleMiddleClose(path: string) {
   }
 }
 
+// ---- 标签入场 / 离场动画（JS hooks + 内联 transition，绕开 scoped CSS 跨组件边界问题） ----
+// 流程：@before-enter 设初始态 → @enter 强制 reflow + 设 transition 动到终态
+const TAB_ENTER_DURATION = 320
+const TAB_LEAVE_DURATION = 260
+const TAB_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
+
+function setTabStyle(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
+  Object.assign(el.style, styles)
+}
+
+function clearTabTransition(el: HTMLElement) {
+  setTabStyle(el, { transition: '', opacity: '', transform: '' })
+}
+
+function onTabBeforeEnter(el: Element) {
+  setTabStyle(el as HTMLElement, { opacity: '0', transform: 'translateX(-18px)' })
+}
+
+function onTabEnter(el: Element, done: () => void) {
+  const htmlEl = el as HTMLElement
+  void htmlEl.offsetHeight
+  setTabStyle(htmlEl, {
+    transition: `opacity ${TAB_ENTER_DURATION}ms ${TAB_EASING}, transform ${TAB_ENTER_DURATION}ms ${TAB_EASING}`,
+    opacity: '1',
+    transform: 'translateX(0px)',
+  })
+  const cleanup = () => {
+    clearTabTransition(htmlEl)
+    done()
+  }
+  const timer = setTimeout(cleanup, TAB_ENTER_DURATION + 40)
+  htmlEl.addEventListener('transitionend', () => {
+    clearTimeout(timer)
+    cleanup()
+  }, { once: true })
+}
+
+function onTabBeforeLeave(el: Element) {
+  setTabStyle(el as HTMLElement, { opacity: '1', transform: 'translateX(0px)' })
+}
+
+function onTabLeave(el: Element, done: () => void) {
+  const htmlEl = el as HTMLElement
+  void htmlEl.offsetHeight
+  setTabStyle(htmlEl, {
+    transition: `opacity ${TAB_LEAVE_DURATION}ms ${TAB_EASING}, transform ${TAB_LEAVE_DURATION}ms ${TAB_EASING}`,
+    opacity: '0',
+    transform: 'translateX(-18px)',
+  })
+  const timer = setTimeout(done, TAB_LEAVE_DURATION + 40)
+  htmlEl.addEventListener('transitionend', () => {
+    clearTimeout(timer)
+    done()
+  }, { once: true })
+}
+
+function onTabEnterCancelled(el: Element) {
+  clearTabTransition(el as HTMLElement)
+}
+
+function onTabLeaveCancelled(el: Element) {
+  clearTabTransition(el as HTMLElement)
+}
+
 function destroySortable() {
   sortableInstance.value?.destroy()
   sortableInstance.value = null
@@ -277,49 +341,40 @@ async function initSortable() {
   }
 
   sortableInstance.value = Sortable.create(el, {
-    animation: 300,
-    delay: 400,
-    delayOnTouchOnly: true,
+    animation: 380,
+    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
     ghostClass: 'chrome-tab--ghost',
     chosenClass: 'chrome-tab--chosen',
-    // filter 而非 draggable 选择器：所有子元素均参与 FLIP 动画和索引计数
-    // filter 返回 true 表示阻止从该元素发起拖拽（相当于 affix 标签不可拖动）
-    filter: (_evt, target: HTMLElement) => {
-      const parent = findTabElement(target)
-      const isDraggable = parent?.classList.contains('draggable')
-      return !isDraggable || !tabbarPreferences.tabbarDraggable.value
-    },
+    dragClass: 'chrome-tab--dragging',
+    draggable: '.chrome-tab.draggable',
     onMove: (evt) => {
-      const parent = findTabElement(evt.related as HTMLElement)
-      if (parent?.classList.contains('draggable') && tabbarPreferences.tabbarDraggable.value) {
-        const isCurrentAffix = (evt.dragged as HTMLElement).classList.contains('affix-tab')
-        const isRelatedAffix = (evt.related as HTMLElement).classList.contains('affix-tab')
-        return isCurrentAffix === isRelatedAffix
+      if (!tabbarPreferences.tabbarDraggable.value) {
+        return false
       }
-      return false
+      const dragged = findTabElement(evt.dragged as HTMLElement)
+      const related = findTabElement(evt.related as HTMLElement)
+      if (!dragged || !related) {
+        return false
+      }
+      // 固定标签和非固定标签不允许跨区交换
+      const draggedPinned = dragged.classList.contains('affix-tab')
+      const relatedPinned = related.classList.contains('affix-tab')
+      return draggedPinned === relatedPinned
     },
-    onStart: () => {
+    onStart: (evt) => {
       el.style.cursor = 'grabbing'
-      el.querySelector('.draggable')?.classList.add('dragging')
+      ;(evt.item as HTMLElement).classList.add('dragging')
     },
     onEnd: (evt) => {
-      const { newIndex, oldIndex } = evt
-      // eslint-disable-next-line ts/no-explicit-any
-      const srcElement = ((evt as any).originalEvent as MouseEvent | undefined)?.target as HTMLElement | undefined
+      const { newIndex, oldIndex, item } = evt
+      resetElState()
 
-      if (!srcElement) {
-        resetElState()
+      if (!tabbarPreferences.tabbarDraggable.value) {
         return
       }
 
-      const srcParent = findTabElement(srcElement)
-      if (!srcParent) {
-        resetElState()
-        return
-      }
-
-      if (!srcParent.classList.contains('draggable')) {
-        resetElState()
+      const srcParent = findTabElement(item as HTMLElement)
+      if (!srcParent || !srcParent.classList.contains('draggable')) {
         return
       }
 
@@ -332,13 +387,10 @@ async function initSortable() {
       ) {
         const from = localizedTabs.value[oldIndex]
         const to = localizedTabs.value[newIndex]
-        if (!from || !to || from.path === to.path) {
-          resetElState()
-          return
+        if (from && to && from.path !== to.path) {
+          tabbarStore.moveTab(from.path, to.path)
         }
-        tabbarStore.moveTab(from.path, to.path)
       }
-      resetElState()
     },
   })
 }
@@ -379,7 +431,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('xihan-refresh-current-tab', refreshCurrentTab as EventListener)
 })
 
-watch([() => tabbarPreferences.tabbarDraggable.value, () => localizedTabs.value.length], () => {
+watch(() => tabbarPreferences.tabbarDraggable.value, () => {
   initSortable()
 })
 </script>
@@ -392,7 +444,16 @@ watch([() => tabbarPreferences.tabbarDraggable.value, () => localizedTabs.value.
   >
     <div class="tabbar-list min-w-0 flex-1 overflow-x-auto">
       <div ref="tabsContainerRef" class="flex min-w-max items-center pr-4">
-        <TransitionGroup name="tabs-slide">
+        <TransitionGroup
+          name="tabs-slide"
+          :css="false"
+          @before-enter="onTabBeforeEnter"
+          @enter="onTabEnter"
+          @before-leave="onTabBeforeLeave"
+          @leave="onTabLeave"
+          @enter-cancelled="onTabEnterCancelled"
+          @leave-cancelled="onTabLeaveCancelled"
+        >
           <TabbarTabItem
             v-for="(item, index) in localizedTabs"
             :key="item.key"
