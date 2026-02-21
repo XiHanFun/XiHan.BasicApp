@@ -19,10 +19,10 @@ export const useTabbarStore = defineStore('tabbar', () => {
   const activeTab = ref(HOME_PATH)
   const refreshSeeds = ref<Record<string, number>>({})
 
-  const tabKeys = computed(() => tabs.value.map((item) => item.key))
+  const tabKeys = computed(() => tabs.value.map(item => item.key))
 
   function ensureTab(tab: TabItem) {
-    const exists = tabs.value.some((item) => item.key === tab.key)
+    const exists = tabs.value.some(item => item.key === tab.key)
     if (!exists) {
       tabs.value.push(tab)
       if (appStore.tabbarPersist) {
@@ -33,7 +33,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   function togglePin(key: string) {
-    const tab = tabs.value.find((item) => item.key === key)
+    const tab = tabs.value.find(item => item.key === key)
     if (!tab || tab.path === HOME_PATH) {
       return
     }
@@ -57,7 +57,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   function removeTab(key: string) {
-    const index = tabs.value.findIndex((item) => item.key === key)
+    const index = tabs.value.findIndex(item => item.key === key)
     if (index < 0) {
       return
     }
@@ -75,7 +75,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   function closeOthers(key: string) {
-    tabs.value = tabs.value.filter((tab) => !tab.closable || tab.key === key)
+    tabs.value = tabs.value.filter(tab => !tab.closable || tab.key === key)
     if (appStore.tabbarPersist) {
       storage.set(TABS_LIST_KEY, tabs.value)
     }
@@ -83,7 +83,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   function closeLeft(key: string) {
-    const currentIndex = tabs.value.findIndex((tab) => tab.key === key)
+    const currentIndex = tabs.value.findIndex(tab => tab.key === key)
     if (currentIndex < 0) {
       return
     }
@@ -94,7 +94,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   function closeRight(key: string) {
-    const currentIndex = tabs.value.findIndex((tab) => tab.key === key)
+    const currentIndex = tabs.value.findIndex(tab => tab.key === key)
     if (currentIndex < 0) {
       return
     }
@@ -105,8 +105,24 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   function closeAll() {
-    tabs.value = tabs.value.filter((tab) => !tab.closable)
+    tabs.value = tabs.value.filter(tab => !tab.closable)
     activeTab.value = tabs.value[0]?.key ?? HOME_PATH
+    if (appStore.tabbarPersist) {
+      storage.set(TABS_LIST_KEY, tabs.value)
+    }
+  }
+
+  function moveTab(sourcePath: string, targetPath: string) {
+    if (!sourcePath || !targetPath || sourcePath === targetPath) {
+      return
+    }
+    const sourceIndex = tabs.value.findIndex(tab => tab.path === sourcePath)
+    const targetIndex = tabs.value.findIndex(tab => tab.path === targetPath)
+    if (sourceIndex < 0 || targetIndex < 0) {
+      return
+    }
+    const [source] = tabs.value.splice(sourceIndex, 1)
+    tabs.value.splice(targetIndex, 0, source)
     if (appStore.tabbarPersist) {
       storage.set(TABS_LIST_KEY, tabs.value)
     }
@@ -123,6 +139,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     closeLeft,
     closeRight,
     closeAll,
+    moveTab,
     togglePin,
     refreshTab,
     getRefreshSeed,
