@@ -58,13 +58,13 @@ const contentMode = computed({
 })
 
 const layoutPresets = [
-  { key: 'side', label: '垂直', icon: 'ph:layout-bold' },
-  { key: 'side-mixed', label: '双列菜单', icon: 'ph:columns-plus-left-bold' },
-  { key: 'top', label: '水平', icon: 'ph:rows-bold' },
-  { key: 'header-sidebar', label: '侧边导航', icon: 'ph:split-horizontal-bold' },
-  { key: 'mix', label: '混合垂直', icon: 'ph:layout-bold' },
-  { key: 'header-mix', label: '混合双列', icon: 'ph:columns-bold' },
-  { key: 'full', label: '内容全屏', icon: 'ph:arrows-out-simple-bold' },
+  { key: 'side', label: '垂直' },
+  { key: 'side-mixed', label: '双列菜单' },
+  { key: 'top', label: '水平' },
+  { key: 'header-sidebar', label: '侧边导航' },
+  { key: 'mix', label: '混合垂直' },
+  { key: 'header-mix', label: '混合双列' },
+  { key: 'full', label: '内容全屏' },
 ] as const
 
 function clearAndLogout() {
