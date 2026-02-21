@@ -19,6 +19,8 @@ export const TAGS_BAR_KEY = `${STORAGE_PREFIX}tags_bar`
 export const TABS_LIST_KEY = `${STORAGE_PREFIX}tabs_list`
 export const LAYOUT_MODE_KEY = `${STORAGE_PREFIX}layout_mode`
 export const THEME_COLOR_KEY = `${STORAGE_PREFIX}theme_color`
+export const BRAND_TITLE_KEY = `${STORAGE_PREFIX}brand_title`
+export const BRAND_LOGO_KEY = `${STORAGE_PREFIX}brand_logo`
 export const BREADCRUMB_ENABLED_KEY = `${STORAGE_PREFIX}breadcrumb_enabled`
 export const SEARCH_ENABLED_KEY = `${STORAGE_PREFIX}search_enabled`
 export const THEME_ANIMATION_ENABLED_KEY = `${STORAGE_PREFIX}theme_animation_enabled`
@@ -89,9 +91,13 @@ export const DEFAULT_LAYOUT_MODE = 'side'
 export const DEFAULT_UI_RADIUS = 0.5
 export const DEFAULT_FONT_SIZE = 14
 export const LAYOUT_MODE_OPTIONS = [
-  { label: '侧边布局', value: 'side' },
-  { label: '混合布局', value: 'mix' },
-  { label: '顶部布局', value: 'top' },
+  { label: '垂直', value: 'side' },
+  { label: '双列菜单', value: 'side-mixed' },
+  { label: '水平', value: 'top' },
+  { label: '侧边导航', value: 'header-sidebar' },
+  { label: '混合垂直', value: 'mix' },
+  { label: '混合双列', value: 'header-mix' },
+  { label: '内容全屏', value: 'full' },
 ]
 
 // ==================== HTTP 状态码 ====================

@@ -28,7 +28,9 @@
 /* 展开收起过渡 */
 .collapse-enter-active,
 .collapse-leave-active {
-  transition: height var(--transition-normal) ease, opacity var(--transition-fast) ease;
+  transition:
+    height var(--transition-normal) ease,
+    opacity var(--transition-fast) ease;
   overflow: hidden;
 }
 

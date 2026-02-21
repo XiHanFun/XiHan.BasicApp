@@ -1,11 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, watchEffect } from 'vue'
-import {
-  NConfigProvider,
-  NDialogProvider,
-  NMessageProvider,
-  NNotificationProvider,
-} from 'naive-ui'
+import { NConfigProvider, NDialogProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { useTheme, useNaiveLocale } from '~/hooks'
 import { useAppStore } from '~/stores'
 import { useAuthStore } from '@/store/auth'

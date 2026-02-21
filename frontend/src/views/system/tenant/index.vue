@@ -20,7 +20,12 @@ const columns: DataTableColumns<SysTenant> = [
     title: '状态',
     key: 'status',
     width: 100,
-    render: (row) => h(NTag, { type: row.status === 1 ? 'success' : 'error' }, { default: () => (row.status === 1 ? '启用' : '禁用') }),
+    render: (row) =>
+      h(
+        NTag,
+        { type: row.status === 1 ? 'success' : 'error' },
+        { default: () => (row.status === 1 ? '启用' : '禁用') },
+      ),
   },
   { title: '到期时间', key: 'expiredTime', width: 180 },
 ]
@@ -45,19 +50,35 @@ onMounted(fetchData)
   <div class="space-y-4">
     <NCard :bordered="false">
       <NSpace>
-        <NInput v-model:value="query.keyword" placeholder="搜索租户名称/编码" clearable @keydown.enter="fetchData" />
+        <NInput
+          v-model:value="query.keyword"
+          placeholder="搜索租户名称/编码"
+          clearable
+          @keydown.enter="fetchData"
+        />
         <NButton type="primary" @click="fetchData">搜索</NButton>
       </NSpace>
     </NCard>
     <NCard title="租户管理" :bordered="false">
-      <NDataTable :columns="columns" :data="rows" :loading="loading" :pagination="false" :row-key="(row) => row.id" />
+      <NDataTable
+        :columns="columns"
+        :data="rows"
+        :loading="loading"
+        :pagination="false"
+        :row-key="(row) => row.id"
+      />
       <div class="mt-4 flex justify-end">
         <NPagination
           v-model:page="query.page"
           v-model:page-size="query.pageSize"
           :item-count="total"
           @update:page="fetchData"
-          @update:page-size="() => { query.page = 1; fetchData() }"
+          @update:page-size="
+            () => {
+              query.page = 1
+              fetchData()
+            }
+          "
         />
       </div>
     </NCard>

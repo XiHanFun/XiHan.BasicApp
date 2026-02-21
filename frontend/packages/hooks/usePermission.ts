@@ -8,9 +8,7 @@ export function usePermission() {
   function hasPermission(permission: string | string[]): boolean {
     if (!permission) return true
     const permissions = Array.isArray(permission) ? permission : [permission]
-    return permissions.some(
-      (p) => userStore.hasPermission(p) || accessStore.hasCode(p),
-    )
+    return permissions.some((p) => userStore.hasPermission(p) || accessStore.hasCode(p))
   }
 
   function hasRole(role: string | string[]): boolean {

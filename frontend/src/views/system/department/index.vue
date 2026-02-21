@@ -19,7 +19,11 @@ const columns: DataTableColumns<SysDepartment> = [
     key: 'status',
     width: 100,
     render: (row) =>
-      h(NTag, { type: row.status === 1 ? 'success' : 'warning', round: true }, { default: () => (row.status === 1 ? '启用' : '停用') }),
+      h(
+        NTag,
+        { type: row.status === 1 ? 'success' : 'warning', round: true },
+        { default: () => (row.status === 1 ? '启用' : '停用') },
+      ),
   },
 ]
 

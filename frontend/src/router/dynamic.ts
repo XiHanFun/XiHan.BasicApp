@@ -9,10 +9,7 @@ function resolveView(component?: string) {
     .replace(/^\/+/, '')
     .replace(/^views\//, '')
     .replace(/\.vue$/, '')
-  const keys = [
-    `/src/views/${normalized}.vue`,
-    `/src/views/${normalized}/index.vue`,
-  ]
+  const keys = [`/src/views/${normalized}.vue`, `/src/views/${normalized}/index.vue`]
 
   for (const key of keys) {
     const matched = viewModules[key]

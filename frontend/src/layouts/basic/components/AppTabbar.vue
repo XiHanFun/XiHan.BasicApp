@@ -32,10 +32,10 @@ const contextMenuY = ref(0)
 const contextTabPath = ref('')
 const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
-const isFullscreen = ref(false)
+const isContentMaximized = ref(false)
 
 const tabThemeVars = computed(() => {
-  const color = appStore.themeColor || '#18a058'
+  const color = appStore.themeColor
   return {
     '--tab-active-color': color,
     '--tab-active-bg': `color-mix(in srgb, ${color} 14%, white)`,
@@ -93,7 +93,10 @@ function handleContextMenuSelect(key: string, tabPath: string) {
       toggleMaximize()
       break
     case 'reload':
-      router.go(0)
+      tabbarStore.refreshTab(tabPath)
+      if (route.fullPath !== tabPath) {
+        router.push(tabPath)
+      }
       break
     case 'open':
       window.open(
@@ -120,19 +123,19 @@ function getDropdownIcon(icon: string) {
 }
 
 function getTabByPath(path: string) {
-  return visibleTabs.value.find(item => item.path === path)
+  return visibleTabs.value.find((item) => item.path === path)
 }
 
 function getTabDisableState(path: string, closable: boolean) {
-  const currentIndex = visibleTabs.value.findIndex(item => item.path === path)
+  const currentIndex = visibleTabs.value.findIndex((item) => item.path === path)
   const leftTabs = visibleTabs.value.slice(0, currentIndex)
   const rightTabs = visibleTabs.value.slice(currentIndex + 1)
   const currentTab = getTabByPath(path)
 
-  const hasLeftClosable = leftTabs.some(item => item.closable)
-  const hasRightClosable = rightTabs.some(item => item.closable)
-  const hasOtherClosable = visibleTabs.value.some(item => item.closable && item.path !== path)
-  const hasAnyClosable = visibleTabs.value.some(item => item.closable)
+  const hasLeftClosable = leftTabs.some((item) => item.closable)
+  const hasRightClosable = rightTabs.some((item) => item.closable)
+  const hasOtherClosable = visibleTabs.value.some((item) => item.closable && item.path !== path)
+  const hasAnyClosable = visibleTabs.value.some((item) => item.closable)
 
   return {
     closeAllDisabled: !hasAnyClosable,
@@ -165,8 +168,8 @@ function getContextOptions(path: string, closable: boolean, pinned: boolean): Dr
     },
     {
       key: 'maximize',
-      label: isFullscreen.value ? '退出最大化' : '最大化',
-      icon: getDropdownIcon(isFullscreen.value ? 'lucide:minimize-2' : 'lucide:maximize-2'),
+      label: isContentMaximized.value ? '退出最大化' : '最大化',
+      icon: getDropdownIcon(isContentMaximized.value ? 'lucide:minimize-2' : 'lucide:maximize-2'),
     },
     { key: 'divider-1', type: 'divider' },
     {
@@ -221,25 +224,32 @@ function handleDropdownSelect(key: string) {
   contextMenuVisible.value = false
 }
 
-function syncFullscreenState() {
-  isFullscreen.value = Boolean(document.fullscreenElement)
+function syncContentMaximizeState(e: Event) {
+  const customEvent = e as CustomEvent<boolean>
+  isContentMaximized.value = Boolean(customEvent.detail)
 }
 
 function toggleMaximize() {
-  if (document.fullscreenElement) {
-    document.exitFullscreen()
-  } else {
-    document.documentElement.requestFullscreen()
-  }
+  window.dispatchEvent(new CustomEvent('xihan-toggle-content-maximize'))
+}
+
+function refreshCurrentTab() {
+  tabbarStore.refreshTab(route.fullPath)
 }
 
 onMounted(() => {
-  syncFullscreenState()
-  document.addEventListener('fullscreenchange', syncFullscreenState)
+  window.addEventListener(
+    'xihan-content-maximized-change',
+    syncContentMaximizeState as EventListener,
+  )
+  window.dispatchEvent(new CustomEvent('xihan-sync-content-maximize-state'))
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('fullscreenchange', syncFullscreenState)
+  window.removeEventListener(
+    'xihan-content-maximized-change',
+    syncContentMaximizeState as EventListener,
+  )
 })
 </script>
 
@@ -250,10 +260,13 @@ onBeforeUnmount(() => {
     class="tabbar-root flex items-center gap-1 overflow-x-auto border-b border-gray-100 bg-white px-3 py-1 dark:border-gray-800 dark:bg-gray-900"
   >
     <div
-      v-for="item in localizedTabs"
+      v-for="(item, index) in localizedTabs"
       :key="item.key"
       class="chrome-tab group relative flex h-8 shrink-0 cursor-pointer items-center"
-      :class="{ 'is-active': route.fullPath === item.path }"
+      :class="{
+        'is-active': route.fullPath === item.path,
+        'is-last-tab': index === localizedTabs.length - 1,
+      }"
       role="button"
       tabindex="0"
       @click="handleJump(item.path)"
@@ -265,9 +278,12 @@ onBeforeUnmount(() => {
         v-if="item.closable"
         class="chrome-tab__close flex h-4 w-4 items-center justify-center rounded-full"
         type="button"
+        aria-label="关闭标签页"
         @click.stop="handleClose(item.path, $event)"
       >
-        <Icon icon="mdi:close" width="12" />
+        <NIcon size="12">
+          <Icon icon="lucide:x" />
+        </NIcon>
       </button>
       <button
         v-else-if="item.pinned"
@@ -287,23 +303,18 @@ onBeforeUnmount(() => {
       :options="getContextOptions(contextTabPath, contextTabClosable, contextTabPinned)"
       @clickoutside="contextMenuVisible = false"
       @select="(key) => handleDropdownSelect(String(key))"
-    />
+    >
+      <span class="sr-only" />
+    </NDropdown>
 
     <div class="ml-auto flex items-center gap-1">
       <NButton
-        v-if="appStore.tabbarShowMore"
+        v-if="appStore.widgetRefresh"
         quaternary
         circle
         size="tiny"
-        @click="handleContextMenuSelect('closeOthers', route.fullPath)"
+        @click="refreshCurrentTab"
       >
-        <template #icon>
-          <NIcon>
-            <Icon icon="lucide:ellipsis" width="14" />
-          </NIcon>
-        </template>
-      </NButton>
-      <NButton v-if="appStore.widgetRefresh" quaternary circle size="tiny" @click="router.go(0)">
         <template #icon>
           <NIcon>
             <Icon icon="lucide:refresh-cw" width="14" />
@@ -319,7 +330,10 @@ onBeforeUnmount(() => {
       >
         <template #icon>
           <NIcon>
-            <Icon :icon="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" width="14" />
+            <Icon
+              :icon="isContentMaximized ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+              width="14"
+            />
           </NIcon>
         </template>
       </NButton>
@@ -338,6 +352,25 @@ onBeforeUnmount(() => {
   color: rgb(75 85 99);
   font-size: 13px;
   transition: all 0.2s ease;
+}
+
+.chrome-tab::after {
+  position: absolute;
+  top: 7px;
+  right: -1px;
+  height: 14px;
+  width: 1px;
+  background: rgb(209 213 219);
+  content: '';
+}
+
+.chrome-tab.is-last-tab::after {
+  display: none;
+}
+
+.chrome-tab.is-active::after,
+.chrome-tab:hover::after {
+  opacity: 0;
 }
 
 .chrome-tab:hover {
@@ -360,6 +393,9 @@ onBeforeUnmount(() => {
 
 .chrome-tab__close {
   margin-left: 6px;
+  border: 0;
+  background: transparent;
+  padding: 0;
   color: currentcolor;
   opacity: 0.65;
   transition: all 0.2s ease;
@@ -394,6 +430,10 @@ onBeforeUnmount(() => {
   border-color: rgb(55 65 81);
   background: var(--tab-active-bg-dark);
   color: var(--tab-active-color);
+}
+
+:global(.dark) .chrome-tab::after {
+  background: rgb(75 85 99);
 }
 
 :global(.dark) .chrome-tab__close {

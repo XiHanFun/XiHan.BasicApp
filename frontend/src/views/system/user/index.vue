@@ -79,7 +79,16 @@ async function fetchData() {
 
 function handleAdd() {
   modalTitle.value = '新增用户'
-  formData.value = { username: '', nickname: '', email: '', phone: '', gender: 0, status: 1, roles: [], password: '' }
+  formData.value = {
+    username: '',
+    nickname: '',
+    email: '',
+    phone: '',
+    gender: 0,
+    status: 1,
+    roles: [],
+    password: '',
+  }
   modalVisible.value = true
 }
 
@@ -196,23 +205,39 @@ const columns: DataTableColumns<SysUser> = [
     width: 160,
     fixed: 'right',
     render: (row) =>
-      h(NSpace, { size: 'small' }, {
-        default: () => [
-          h(NButton, {
-            size: 'small',
-            type: 'primary',
-            ghost: true,
-            onClick: () => handleEdit(row),
-          }, { default: () => '编辑' }),
-          h(NPopconfirm, {
-            onPositiveClick: () => handleDelete(row.id),
-          }, {
-            default: () => '确认删除该用户？',
-            trigger: () =>
-              h(NButton, { size: 'small', type: 'error', ghost: true }, { default: () => '删除' }),
-          }),
-        ],
-      }),
+      h(
+        NSpace,
+        { size: 'small' },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'primary',
+                ghost: true,
+                onClick: () => handleEdit(row),
+              },
+              { default: () => '编辑' },
+            ),
+            h(
+              NPopconfirm,
+              {
+                onPositiveClick: () => handleDelete(row.id),
+              },
+              {
+                default: () => '确认删除该用户？',
+                trigger: () =>
+                  h(
+                    NButton,
+                    { size: 'small', type: 'error', ghost: true },
+                    { default: () => '删除' },
+                  ),
+              },
+            ),
+          ],
+        },
+      ),
   },
 ]
 
@@ -243,16 +268,22 @@ onMounted(fetchData)
           clearable
         />
         <NButton type="primary" @click="handleSearch">
-          <template #icon><NIcon><Icon icon="lucide:search" width="14" /></NIcon></template>
+          <template #icon>
+            <NIcon><Icon icon="lucide:search" width="14" /></NIcon>
+          </template>
           搜索
         </NButton>
         <NButton @click="handleReset">
-          <template #icon><NIcon><Icon icon="lucide:rotate-ccw" width="14" /></NIcon></template>
+          <template #icon>
+            <NIcon><Icon icon="lucide:rotate-ccw" width="14" /></NIcon>
+          </template>
           重置
         </NButton>
         <div class="ml-auto flex gap-2">
           <NButton type="primary" @click="handleAdd">
-            <template #icon><NIcon><Icon icon="lucide:plus" width="14" /></NIcon></template>
+            <template #icon>
+              <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
+            </template>
             新增用户
           </NButton>
         </div>
@@ -281,7 +312,12 @@ onMounted(fetchData)
           show-size-picker
           show-quick-jumper
           @update:page="fetchData"
-          @update:page-size="() => { queryParams.page = 1; fetchData() }"
+          @update:page-size="
+            () => {
+              queryParams.page = 1
+              fetchData()
+            }
+          "
         />
       </div>
     </NCard>
@@ -294,17 +330,21 @@ onMounted(fetchData)
       style="width: 520px"
       :auto-focus="false"
     >
-      <NForm
-        ref="formRef"
-        :model="formData"
-        label-placement="left"
-        label-width="80px"
-      >
+      <NForm ref="formRef" :model="formData" label-placement="left" label-width="80px">
         <NFormItem label="用户名" path="username">
-          <NInput v-model:value="formData.username" :disabled="!!formData.id" placeholder="请输入用户名" />
+          <NInput
+            v-model:value="formData.username"
+            :disabled="!!formData.id"
+            placeholder="请输入用户名"
+          />
         </NFormItem>
         <NFormItem v-if="!formData.id" label="密码" path="password">
-          <NInput v-model:value="formData.password" type="password" show-password-on="click" placeholder="请输入初始密码" />
+          <NInput
+            v-model:value="formData.password"
+            type="password"
+            show-password-on="click"
+            placeholder="请输入初始密码"
+          />
         </NFormItem>
         <NFormItem label="昵称" path="nickname">
           <NInput v-model:value="formData.nickname" placeholder="请输入昵称" />
