@@ -65,6 +65,19 @@
   mix-blend-mode: normal;
 }
 
+/*
+ * backdrop-filter 会创建独立的 GPU 合成层，在某些 Chrome 版本中会
+ * 浮到 ViewTransition 伪元素之上导致动画被遮挡。
+ * :active-view-transition 在过渡进行期间自动应用于 html 元素，
+ * 此期间临时禁用所有 backdrop-filter 以保证扩散动画完整可见。
+ */
+html:active-view-transition *,
+html:active-view-transition *::before,
+html:active-view-transition *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* 切暗色：新（暗）在上层展开覆盖 */
 :root[data-theme-to='dark']::view-transition-old(root) { z-index: 1; }
 :root[data-theme-to='dark']::view-transition-new(root) { z-index: 2; }
