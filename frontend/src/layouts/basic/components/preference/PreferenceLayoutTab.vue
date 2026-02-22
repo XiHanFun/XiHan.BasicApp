@@ -180,10 +180,20 @@ const appStore = props.appStore
         <span>固定按钮</span>
         <NSwitch v-model:value="appStore.sidebarFixedButton" />
       </div>
-      <div class="text-xs text-gray-500">
-        宽度
+      <div class="flex items-center justify-between">
+        <span>侧边栏宽度</span>
+        <div class="flex items-center gap-1.5">
+          <NInputNumber
+            v-model:value="appStore.sidebarWidth"
+            :min="180"
+            :max="320"
+            button-placement="both"
+            :input-props="{ style: 'text-align: center' }"
+            style="width: 130px"
+          />
+          <span class="unit-label">px</span>
+        </div>
       </div>
-      <NInputNumber v-model:value="appStore.sidebarWidth" :min="180" :max="320" />
     </NCard>
 
     <NCard size="small" :bordered="false">
@@ -226,7 +236,17 @@ const appStore = props.appStore
       </div>
       <div class="mb-2 flex items-center justify-between">
         <span>最大标签数</span>
-        <NInputNumber v-model:value="appStore.tabbarMaxCount" :min="0" :max="30" />
+        <div class="flex items-center gap-1.5">
+          <NInputNumber
+            v-model:value="appStore.tabbarMaxCount"
+            :min="0"
+            :max="30"
+            button-placement="both"
+            :input-props="{ style: 'text-align: center' }"
+            style="width: 120px"
+          />
+          <span class="unit-label">个</span>
+        </div>
       </div>
       <div class="mb-2 flex items-center justify-between">
         <span>启用拖拽排序</span>
@@ -250,6 +270,12 @@ const appStore = props.appStore
   font-weight: 600;
   font-size: 13px;
   color: hsl(var(--foreground));
+}
+
+.unit-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
 }
 
 .layout-preset-card {
