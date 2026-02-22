@@ -142,17 +142,17 @@ const themePresetItems: ThemePresetItem[] = [
     <!-- 导航 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">导航</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>深色侧边栏</span>
         <NSwitch v-model:value="appStore.sidebarDark" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarDark }">
           深色侧边栏子栏
         </span>
         <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="!appStore.sidebarDark" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>深色顶栏</span>
         <NSwitch v-model:value="appStore.headerDark" />
       </div>
@@ -161,7 +161,7 @@ const themePresetItems: ThemePresetItem[] = [
     <!-- 字体 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">字体</div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>大小</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
@@ -169,6 +169,7 @@ const themePresetItems: ThemePresetItem[] = [
             :min="12"
             :max="20"
             :step="1"
+            size="small"
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 130px"
@@ -182,11 +183,11 @@ const themePresetItems: ThemePresetItem[] = [
     <!-- 其它 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">其它</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>色弱模式</span>
         <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>灰色模式</span>
         <NSwitch v-model:value="appStore.grayscaleEnabled" />
       </div>
@@ -196,7 +197,8 @@ const themePresetItems: ThemePresetItem[] = [
 
 <style scoped>
 .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+  padding: 0 6px;
   font-weight: 600;
   font-size: 13px;
   color: hsl(var(--foreground));

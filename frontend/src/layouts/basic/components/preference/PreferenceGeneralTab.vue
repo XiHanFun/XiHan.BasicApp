@@ -25,20 +25,21 @@ const localeOptions = [
       <div class="section-title">
         通用
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>语言</span>
         <NSelect
           v-model:value="appStore.locale"
           :options="localeOptions"
+          size="small"
           style="width: 110px"
           @update:value="v => appStore.setLocale(String(v))"
         />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>动态标题</span>
         <NSwitch v-model:value="appStore.dynamicTitle" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>水印</span>
         <NSwitch v-model:value="appStore.watermarkEnabled" />
       </div>
@@ -48,7 +49,7 @@ const localeOptions = [
         class="mb-2"
         placeholder="水印文案"
       />
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>定时检查更新</span>
         <NSwitch v-model:value="appStore.enableCheckUpdates" />
       </div>
@@ -58,19 +59,19 @@ const localeOptions = [
       <div class="section-title">
         动画
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>页面切换进度条</span>
         <NSwitch v-model:value="appStore.transitionProgress" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>页面切换 Loading</span>
         <NSwitch v-model:value="appStore.transitionLoading" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>主题切换动画</span>
         <NSwitch v-model:value="appStore.themeAnimationEnabled" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>页面切换动画</span>
         <NSwitch v-model:value="appStore.transitionEnable" />
       </div>
@@ -94,7 +95,8 @@ const localeOptions = [
 
 <style scoped>
 .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+  padding: 0 6px;
   font-weight: 600;
   font-size: 13px;
   color: hsl(var(--foreground));
