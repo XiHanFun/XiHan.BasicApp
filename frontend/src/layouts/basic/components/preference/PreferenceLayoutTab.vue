@@ -104,15 +104,15 @@ const preferencePositionOptions = [
     <!-- 侧边栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">侧边栏</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示侧边栏</span>
         <NSwitch v-model:value="appStore.sidebarShow" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>折叠菜单</span>
         <NSwitch v-model:value="appStore.sidebarCollapsed" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
           鼠标悬停展开
         </span>
@@ -121,11 +121,11 @@ const preferencePositionOptions = [
           :disabled="!appStore.sidebarCollapsed"
         />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>折叠显示菜单名</span>
         <NSwitch v-model:value="appStore.sidebarCollapsedShowTitle" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
           自动激活子菜单
         </span>
@@ -134,7 +134,7 @@ const preferencePositionOptions = [
           :disabled="!appStore.sidebarCollapsed"
         />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示按钮</span>
         <div class="flex gap-1">
           <button
@@ -155,13 +155,14 @@ const preferencePositionOptions = [
           </button>
         </div>
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>宽度</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
             v-model:value="appStore.sidebarWidth"
             :min="180"
             :max="320"
+            size="small"
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 130px"
@@ -174,23 +175,23 @@ const preferencePositionOptions = [
     <!-- 顶栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">顶栏</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示顶栏</span>
         <NSwitch v-model:value="appStore.headerShow" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>模式</span>
-        <NRadioGroup v-model:value="appStore.headerMode">
-          <NSpace>
+        <NRadioGroup v-model:value="appStore.headerMode" size="small">
+          <NSpace :size="0">
             <NRadioButton value="fixed">固定</NRadioButton>
             <NRadioButton value="static">静态</NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>菜单位置</span>
-        <NRadioGroup v-model:value="appStore.headerMenuAlign">
-          <NSpace>
+        <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small">
+          <NSpace :size="0">
             <NRadioButton value="left">左侧</NRadioButton>
             <NRadioButton value="center">居中</NRadioButton>
             <NRadioButton value="right">右侧</NRadioButton>
@@ -202,20 +203,20 @@ const preferencePositionOptions = [
     <!-- 导航菜单 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">导航菜单</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>导航菜单风格</span>
-        <NRadioGroup v-model:value="appStore.navigationStyle">
-          <NSpace>
+        <NRadioGroup v-model:value="appStore.navigationStyle" size="small">
+          <NSpace :size="0">
             <NRadioButton value="rounded">圆润</NRadioButton>
             <NRadioButton value="plain">朴素</NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>导航菜单分离</span>
         <NSwitch v-model:value="appStore.navigationSplit" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>侧边导航菜单手风琴模式</span>
         <NSwitch v-model:value="appStore.navigationAccordion" />
       </div>
@@ -224,26 +225,26 @@ const preferencePositionOptions = [
     <!-- 面包屑导航 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">面包屑导航</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>开启面包屑导航</span>
         <NSwitch v-model:value="appStore.breadcrumbEnabled" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>仅有一个时隐藏</span>
         <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示面包屑图标</span>
         <NSwitch v-model:value="appStore.breadcrumbShowIcon" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示首页按钮</span>
         <NSwitch v-model:value="appStore.breadcrumbShowHome" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>面包屑风格</span>
-        <NRadioGroup v-model:value="appStore.breadcrumbStyle">
-          <NSpace>
+        <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small">
+          <NSpace :size="0">
             <NRadioButton value="normal">常规</NRadioButton>
             <NRadioButton value="background">背景</NRadioButton>
           </NSpace>
@@ -254,25 +255,26 @@ const preferencePositionOptions = [
     <!-- 标签栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">标签栏</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用标签栏</span>
         <NSwitch v-model:value="appStore.tabbarEnabled" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>持久化标签页</span>
         <NSwitch v-model:value="appStore.tabbarPersist" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>访问历史记录</span>
         <NSwitch v-model:value="appStore.tabbarVisitHistory" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>最大标签数</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
             v-model:value="appStore.tabbarMaxCount"
             :min="0"
             :max="30"
+            size="small"
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 120px"
@@ -280,35 +282,36 @@ const preferencePositionOptions = [
           <span class="unit-label">个</span>
         </div>
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用拖拽排序</span>
         <NSwitch v-model:value="appStore.tabbarDraggable" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用纵向滚轮响应</span>
         <NSwitch v-model:value="appStore.tabbarScrollResponse" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>点击鼠标中键关闭标签页</span>
         <NSwitch v-model:value="appStore.tabbarMiddleClickClose" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示标签栏图标</span>
         <NSwitch v-model:value="appStore.tabbarShowIcon" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示更多按钮</span>
         <NSwitch v-model:value="appStore.tabbarShowMore" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示最大化按钮</span>
         <NSwitch v-model:value="appStore.tabbarShowMaximize" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>标签页风格</span>
         <NSelect
           v-model:value="appStore.tabbarStyle"
           :options="tabbarStyleOptions"
+          size="small"
           style="width: 100px"
         />
       </div>
@@ -317,43 +320,44 @@ const preferencePositionOptions = [
     <!-- 小部件 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">小部件</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用全局搜索</span>
         <NSwitch v-model:value="appStore.searchEnabled" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用主题切换</span>
         <NSwitch v-model:value="appStore.widgetThemeToggle" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用语言切换</span>
         <NSwitch v-model:value="appStore.widgetLanguageToggle" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用全屏</span>
         <NSwitch v-model:value="appStore.widgetFullscreen" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用通知</span>
         <NSwitch v-model:value="appStore.widgetNotification" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用锁屏</span>
         <NSwitch v-model:value="appStore.widgetLockScreen" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用侧栏切换</span>
         <NSwitch v-model:value="appStore.widgetSidebarToggle" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用刷新</span>
         <NSwitch v-model:value="appStore.widgetRefresh" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>偏好设置位置</span>
         <NSelect
           v-model:value="appStore.widgetPreferencePosition"
           :options="preferencePositionOptions"
+          size="small"
           style="width: 110px"
         />
       </div>
@@ -362,11 +366,11 @@ const preferencePositionOptions = [
     <!-- 底栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">底栏</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>显示底栏</span>
         <NSwitch v-model:value="appStore.footerEnable" />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>固定在底部</span>
         <NSwitch v-model:value="appStore.footerFixed" />
       </div>
@@ -375,21 +379,21 @@ const preferencePositionOptions = [
     <!-- 版权 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">版权</div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>启用版权</span>
         <NSwitch v-model:value="appStore.copyrightEnable" />
       </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>名称</span>
+      <div class="pref-row">
+        <span>公司名</span>
         <NInput
-          v-model:value="appStore.copyrightName"
+          v-model:value="appStore.copyrightCompany"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
         />
       </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>网址</span>
+      <div class="pref-row">
+        <span>公司主页</span>
         <NInput
           v-model:value="appStore.copyrightSite"
           size="small"
@@ -397,7 +401,7 @@ const preferencePositionOptions = [
           :input-props="{ style: 'text-align: right' }"
         />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>日期</span>
         <NInput
           v-model:value="appStore.copyrightDate"
@@ -406,7 +410,7 @@ const preferencePositionOptions = [
           :input-props="{ style: 'text-align: right' }"
         />
       </div>
-      <div class="mb-2 flex items-center justify-between">
+      <div class="pref-row">
         <span>ICP 备案号</span>
         <NInput
           v-model:value="appStore.copyrightIcp"
@@ -416,7 +420,7 @@ const preferencePositionOptions = [
           placeholder="选填"
         />
       </div>
-      <div class="flex items-center justify-between">
+      <div class="pref-row">
         <span>ICP 网站链接</span>
         <NInput
           v-model:value="appStore.copyrightIcpUrl"
@@ -432,7 +436,8 @@ const preferencePositionOptions = [
 
 <style scoped>
 .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+  padding: 0 6px;
   font-weight: 600;
   font-size: 13px;
   color: hsl(var(--foreground));

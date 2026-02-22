@@ -85,3 +85,28 @@
 .z-popup {
   z-index: var(--popup-z-index);
 }
+
+/* 偏好设置通用行：等高等间距 + hover 背景 */
+.pref-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+  padding: 0 6px;
+  margin: 1px 0;
+  height: 38px;
+  transition: background-color 0.15s ease;
+}
+
+.pref-row:hover {
+  background-color: hsl(var(--accent));
+}
+
+.pref-row > span:first-child,
+.pref-row > label:first-child {
+  font-size: 13px;
+  line-height: 1.4;
+  flex-shrink: 1;
+  min-width: 0;
+}

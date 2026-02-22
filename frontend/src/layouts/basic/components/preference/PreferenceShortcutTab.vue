@@ -12,25 +12,25 @@ const appStore = props.appStore
     <div class="section-title">
       全局
     </div>
-    <div class="mb-2 flex items-center justify-between">
+    <div class="pref-row">
       <span>快捷键</span>
       <NSwitch v-model:value="appStore.shortcutEnable" />
     </div>
-    <div class="mb-2 flex items-center justify-between">
+    <div class="pref-row">
       <span>全局搜索</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Ctrl K</span>
         <NSwitch v-model:value="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
       </div>
     </div>
-    <div class="mb-2 flex items-center justify-between">
+    <div class="pref-row">
       <span>退出登录</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Alt Q</span>
         <NSwitch v-model:value="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
       </div>
     </div>
-    <div class="flex items-center justify-between">
+    <div class="pref-row">
       <span>锁定屏幕</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Alt L</span>
@@ -42,7 +42,8 @@ const appStore = props.appStore
 
 <style scoped>
 .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+  padding: 0 6px;
   font-weight: 600;
   font-size: 13px;
   color: hsl(var(--foreground));
