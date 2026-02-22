@@ -187,7 +187,7 @@ function handleTopMenuSelect(path: string) {
 }
 
 function handleLockScreen() {
-  message.info('锁屏功能待接入')
+  window.dispatchEvent(new CustomEvent('xihan-lock-screen'))
 }
 
 function handleSidebarToggle() {
@@ -254,6 +254,7 @@ onBeforeUnmount(() => {
       @locale-change="handleLocaleChange"
       @timezone-change="handleTimezoneChange"
       @theme-toggle="handleThemeToggle"
+      @lock-screen="handleLockScreen"
       @refresh="handleRefreshCurrentTab"
       @notification="message.info('通知功能待接入')"
       @fullscreen-toggle="toggleFullscreen"

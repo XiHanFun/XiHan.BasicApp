@@ -177,7 +177,10 @@ watch(
       collapse-mode="width"
       :native-scrollbar="false"
       :style="{ backgroundColor: 'var(--sidebar-bg)' }"
-      class="layout-sider-root relative overflow-visible transition-all duration-300"
+      :class="[
+        'layout-sider-root relative overflow-visible transition-all duration-300',
+        appStore.sidebarDark ? 'sidebar-dark-overlay' : '',
+      ]"
       :class="
         isNarrowScreen
           ? 'fixed left-0 top-0 z-50 h-full shadow-xl'
@@ -205,8 +208,11 @@ watch(
       >
         <!-- 顶部导航 -->
         <NLayoutHeader
-          v-if="!contentMaximized && !isFullContentLayout"
-          class="bg-[var(--header-bg)]"
+          v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
+          :class="[
+            'bg-[var(--header-bg)]',
+            appStore.headerDark ? 'header-dark-overlay' : '',
+          ]"
         >
           <AppHeader />
         </NLayoutHeader>
@@ -234,15 +240,29 @@ watch(
       </NLayoutContent>
       <div
         v-if="appStore.footerEnable"
-        class="border-t border-gray-100 px-4 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400"
+        class="flex flex-wrap items-center justify-center gap-x-3 border-t border-[hsl(var(--border))] px-4 py-2 text-xs text-[hsl(var(--muted-foreground))]"
         :class="appStore.footerFixed ? 'sticky bottom-0 bg-[var(--header-bg)]' : ''"
       >
         <span v-if="appStore.copyrightEnable">
-          Copyright © {{ new Date().getFullYear() }}
-          <a :href="appStore.copyrightSite" target="_blank" class="ml-1 hover:underline">
+          Copyright © {{ appStore.copyrightDate || new Date().getFullYear() }}
+          <a
+            v-if="appStore.copyrightSite"
+            :href="appStore.copyrightSite"
+            target="_blank"
+            class="ml-1 hover:underline"
+          >
             {{ appStore.copyrightCompany }}
           </a>
+          <span v-else class="ml-1">{{ appStore.copyrightCompany }}</span>
         </span>
+        <a
+          v-if="appStore.copyrightIcp"
+          :href="appStore.copyrightIcpUrl || '#'"
+          target="_blank"
+          class="hover:underline"
+        >
+          {{ appStore.copyrightIcp }}
+        </a>
       </div>
     </NLayout>
   </NLayout>
@@ -256,5 +276,24 @@ watch(
 
 .layout-header-shell {
   background: var(--header-bg);
+}
+
+/* 深色侧边栏/顶栏：在浅色主题下强制深色背景 */
+.sidebar-dark-overlay :deep(*) {
+  --sidebar-bg: hsl(220 16% 16%);
+  --n-item-color-active: hsl(0 0% 100% / 0.15);
+  color-scheme: dark;
+}
+.sidebar-dark-overlay {
+  background-color: hsl(220 16% 16%) !important;
+}
+
+.header-dark-overlay {
+  background-color: hsl(220 16% 16%) !important;
+  color-scheme: dark;
+}
+.header-dark-overlay :deep(*) {
+  --header-bg: hsl(220 16% 16%);
+  color-scheme: dark;
 }
 </style>

@@ -56,7 +56,11 @@ interface HeaderNavProps {
     </NButton>
 
     <NBreadcrumb
-      v-if="props.appStore.breadcrumbEnabled && !props.showTopMenu"
+      v-if="
+        props.appStore.breadcrumbEnabled
+          && !props.showTopMenu
+          && !(props.appStore.breadcrumbHideOnlyOne && props.breadcrumbs.length <= 1 && !props.appStore.breadcrumbShowHome)
+      "
       separator=">"
       class="hidden sm:flex"
       :class="
@@ -79,13 +83,13 @@ interface HeaderNavProps {
         >
           <NTag size="small" round :bordered="false" class="cursor-pointer">
             <NFlex align="center" :size="6">
-              <Icon v-if="item.icon" :icon="item.icon" width="14" />
+              <Icon v-if="props.appStore.breadcrumbShowIcon && item.icon" :icon="item.icon" width="14" />
               <span>{{ item.title }}</span>
             </NFlex>
           </NTag>
         </NDropdown>
         <NFlex v-else align="center" :size="6" class="rounded px-1.5 py-0.5">
-          <Icon v-if="item.icon" :icon="item.icon" width="14" />
+          <Icon v-if="props.appStore.breadcrumbShowIcon && item.icon" :icon="item.icon" width="14" />
           <span>{{ item.title }}</span>
         </NFlex>
       </NBreadcrumbItem>
