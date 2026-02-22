@@ -98,14 +98,7 @@ html:active-view-transition *::after {
   -webkit-backdrop-filter: none !important;
 }
 
-/* 切暗色：新（暗）在上层展开覆盖 */
-:root[data-theme-to='dark']::view-transition-old(root) { z-index: 1; }
-:root[data-theme-to='dark']::view-transition-new(root) { z-index: 2; }
-
-/* 切亮色：旧（暗）在上层收缩消退，新（亮）在下方 */
-:root[data-theme-to='light']::view-transition-old(root) { z-index: 2; }
-:root[data-theme-to='light']::view-transition-new(root) { z-index: 1; }
-
-/* 默认兜底 */
-::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; }
+/* z-index 由 global.css 中的 html.dark 选择器自动控制：
+ *   亮色模式：new 在上（z-2147483646），old 在下（z-1）→ 新（亮）层扩散覆盖
+ *   暗色模式：old 在上（z-2147483646），new 在下（z-1）→ 旧（亮）层收缩消退
+ * 不再需要 data-theme-to 属性手动管理 z-index */
