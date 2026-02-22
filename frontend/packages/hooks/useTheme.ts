@@ -18,8 +18,12 @@ function hexToHslVars(hex: string): string {
     const d = max - min
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
     switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
-      case g: h = ((b - r) / d + 2) / 6; break
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+        break
+      case g:
+        h = ((b - r) / d + 2) / 6
+        break
       default: h = ((r - g) / d + 4) / 6
     }
   }
@@ -57,6 +61,12 @@ export function useTheme() {
       },
       DataTable: {
         borderRadius: `${Math.round(6 + appStore.uiRadius * 10)}px`,
+      },
+      // NMenu 背景始终透明，由侧边栏容器的 --sidebar-bg 统一控制背景色。
+      // 对齐 vben-admin 的方式：菜单背景用设计系统 CSS 变量而非 Naive UI 自身的 cardColor。
+      Menu: {
+        color: 'transparent',
+        colorInverted: 'transparent',
       },
     }
   })

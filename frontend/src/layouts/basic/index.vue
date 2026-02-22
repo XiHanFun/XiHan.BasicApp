@@ -2,6 +2,7 @@
 import { NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useTheme } from '~/hooks'
 import { useAppStore, useLayoutPreferences, useTabbarStore } from '~/stores'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
@@ -11,6 +12,11 @@ import AppTabbar from './components/AppTabbar.vue'
 defineOptions({ name: 'BasicLayout' })
 
 const appStore = useAppStore()
+const { isDark } = useTheme()
+
+// 深色侧边栏/顶栏 —— 只有在浅色主题下才需要局部深色，暗色主题下已经全局深色
+const sidebarForceDark = computed(() => appStore.sidebarDark && !isDark.value)
+const headerForceDark = computed(() => appStore.headerDark && !isDark.value)
 const layoutPreferences = useLayoutPreferences()
 const tabbarStore = useTabbarStore()
 const route = useRoute()
@@ -169,6 +175,9 @@ watch(
       @click="closeMobileSidebar"
     />
     <!-- 侧边栏 -->
+    <!-- sidebarForceDark: 浅色主题下开启深色侧边栏
+         1. 加 .dark class → 让所有自定义 CSS 变量(--sidebar-bg/--foreground 等)切换到暗色值
+         2. NConfigProvider + darkTheme → 让 Naive UI 组件(NMenu/NButton 等)切换到暗色主题 -->
     <NLayoutSider
       v-if="showSider"
       :width="siderWidth"
@@ -177,17 +186,14 @@ watch(
       collapse-mode="width"
       :native-scrollbar="false"
       :style="{ backgroundColor: 'var(--sidebar-bg)' }"
-      :class="[
-        'layout-sider-root relative overflow-visible transition-all duration-300',
-        appStore.sidebarDark ? 'sidebar-dark-overlay' : '',
-      ]"
-      :class="
+      class="layout-sider-root relative overflow-visible transition-[transform] duration-300" :class="[
+        sidebarForceDark ? 'dark' : '',
         isNarrowScreen
           ? 'fixed left-0 top-0 z-50 h-full shadow-xl'
           : floatingSidebarMode
             ? 'z-30'
-            : ''
-      "
+            : '',
+      ]"
       @mouseenter="handleSiderMouseEnter"
       @mouseleave="handleSiderMouseLeave"
     >
@@ -207,12 +213,11 @@ watch(
         :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
       >
         <!-- 顶部导航 -->
+        <!-- headerForceDark: 同侧边栏逻辑，.dark class + NConfigProvider darkTheme -->
         <NLayoutHeader
           v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
-          :class="[
-            'bg-[var(--header-bg)]',
-            appStore.headerDark ? 'header-dark-overlay' : '',
-          ]"
+          :style="{ backgroundColor: 'var(--header-bg)' }"
+          :class="headerForceDark ? 'dark' : ''"
         >
           <AppHeader />
         </NLayoutHeader>
@@ -251,9 +256,9 @@ watch(
             target="_blank"
             class="ml-1 hover:underline"
           >
-            {{ appStore.copyrightCompany }}
+            {{ appStore.copyrightName }}
           </a>
-          <span v-else class="ml-1">{{ appStore.copyrightCompany }}</span>
+          <span v-else class="ml-1">{{ appStore.copyrightName }}</span>
         </span>
         <a
           v-if="appStore.copyrightIcp"
@@ -276,24 +281,5 @@ watch(
 
 .layout-header-shell {
   background: var(--header-bg);
-}
-
-/* 深色侧边栏/顶栏：在浅色主题下强制深色背景 */
-.sidebar-dark-overlay :deep(*) {
-  --sidebar-bg: hsl(220 16% 16%);
-  --n-item-color-active: hsl(0 0% 100% / 0.15);
-  color-scheme: dark;
-}
-.sidebar-dark-overlay {
-  background-color: hsl(220 16% 16%) !important;
-}
-
-.header-dark-overlay {
-  background-color: hsl(220 16% 16%) !important;
-  color-scheme: dark;
-}
-.header-dark-overlay :deep(*) {
-  --header-bg: hsl(220 16% 16%);
-  color-scheme: dark;
 }
 </style>

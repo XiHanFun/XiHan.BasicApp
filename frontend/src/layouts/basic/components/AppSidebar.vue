@@ -171,8 +171,8 @@ function handleTogglePin() {
 
 <template>
   <div
-    class="app-sidebar-root relative flex h-full min-h-0 flex-col bg-[var(--sidebar-bg)] transition-[transform,width] duration-300"
-    :class="props.floatingMode ? 'absolute left-0 top-0 z-40' : ''"
+    class="app-sidebar-root relative flex h-full min-h-0 flex-col transition-[transform,width] duration-300"
+    :class="props.floatingMode ? 'absolute left-0 top-0 z-40 bg-[var(--sidebar-bg)]' : ''"
     :style="floatingSidebarStyle"
   >
     <SidebarBrand

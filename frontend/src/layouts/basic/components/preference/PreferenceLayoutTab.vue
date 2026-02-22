@@ -52,7 +52,9 @@ const preferencePositionOptions = [
   <div class="space-y-4">
     <!-- 布局 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">布局</div>
+      <div class="section-title">
+        布局
+      </div>
       <div class="grid grid-cols-3 gap-2">
         <button
           v-for="item in props.layoutPresets"
@@ -74,7 +76,9 @@ const preferencePositionOptions = [
 
     <!-- 内容 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">内容</div>
+      <div class="section-title">
+        内容
+      </div>
       <div class="grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -85,7 +89,9 @@ const preferencePositionOptions = [
           <div class="layout-preset-preview">
             <LayoutPreviewSvg type="content-fluid" />
           </div>
-          <div class="mt-1.5 text-xs">流式</div>
+          <div class="mt-1.5 text-xs">
+            流式
+          </div>
         </button>
         <button
           type="button"
@@ -96,14 +102,18 @@ const preferencePositionOptions = [
           <div class="layout-preset-preview">
             <LayoutPreviewSvg type="content-fixed" />
           </div>
-          <div class="mt-1.5 text-xs">定宽</div>
+          <div class="mt-1.5 text-xs">
+            定宽
+          </div>
         </button>
       </div>
     </NCard>
 
     <!-- 侧边栏 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">侧边栏</div>
+      <div class="section-title">
+        侧边栏
+      </div>
       <div class="pref-row">
         <span>显示侧边栏</span>
         <NSwitch v-model:value="appStore.sidebarShow" />
@@ -174,7 +184,9 @@ const preferencePositionOptions = [
 
     <!-- 顶栏 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">顶栏</div>
+      <div class="section-title">
+        顶栏
+      </div>
       <div class="pref-row">
         <span>显示顶栏</span>
         <NSwitch v-model:value="appStore.headerShow" />
@@ -183,8 +195,12 @@ const preferencePositionOptions = [
         <span>模式</span>
         <NRadioGroup v-model:value="appStore.headerMode" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
-            <NRadioButton value="fixed">固定</NRadioButton>
-            <NRadioButton value="static">静态</NRadioButton>
+            <NRadioButton value="fixed">
+              固定
+            </NRadioButton>
+            <NRadioButton value="static">
+              静态
+            </NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
@@ -192,9 +208,15 @@ const preferencePositionOptions = [
         <span>菜单位置</span>
         <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
-            <NRadioButton value="left">左侧</NRadioButton>
-            <NRadioButton value="center">居中</NRadioButton>
-            <NRadioButton value="right">右侧</NRadioButton>
+            <NRadioButton value="left">
+              左侧
+            </NRadioButton>
+            <NRadioButton value="center">
+              居中
+            </NRadioButton>
+            <NRadioButton value="right">
+              右侧
+            </NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
@@ -202,13 +224,19 @@ const preferencePositionOptions = [
 
     <!-- 导航菜单 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">导航菜单</div>
+      <div class="section-title">
+        导航菜单
+      </div>
       <div class="pref-row">
         <span>导航菜单风格</span>
         <NRadioGroup v-model:value="appStore.navigationStyle" size="small">
           <NSpace :size="0">
-            <NRadioButton value="rounded">圆润</NRadioButton>
-            <NRadioButton value="plain">朴素</NRadioButton>
+            <NRadioButton value="rounded">
+              圆润
+            </NRadioButton>
+            <NRadioButton value="plain">
+              朴素
+            </NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
@@ -224,7 +252,9 @@ const preferencePositionOptions = [
 
     <!-- 面包屑导航 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">面包屑导航</div>
+      <div class="section-title">
+        面包屑导航
+      </div>
       <div class="pref-row">
         <span>开启面包屑导航</span>
         <NSwitch v-model:value="appStore.breadcrumbEnabled" />
@@ -245,8 +275,12 @@ const preferencePositionOptions = [
         <span>面包屑风格</span>
         <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small" :disabled="!appStore.breadcrumbEnabled">
           <NSpace :size="0">
-            <NRadioButton value="normal">常规</NRadioButton>
-            <NRadioButton value="background">背景</NRadioButton>
+            <NRadioButton value="normal">
+              常规
+            </NRadioButton>
+            <NRadioButton value="background">
+              背景
+            </NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
@@ -254,7 +288,9 @@ const preferencePositionOptions = [
 
     <!-- 标签栏 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">标签栏</div>
+      <div class="section-title">
+        标签栏
+      </div>
       <div class="pref-row">
         <span>启用标签栏</span>
         <NSwitch v-model:value="appStore.tabbarEnabled" />
@@ -321,7 +357,9 @@ const preferencePositionOptions = [
 
     <!-- 小部件 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">小部件</div>
+      <div class="section-title">
+        小部件
+      </div>
       <div class="pref-row">
         <span>启用全局搜索</span>
         <NSwitch v-model:value="appStore.searchEnabled" />
@@ -367,7 +405,9 @@ const preferencePositionOptions = [
 
     <!-- 底栏 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">底栏</div>
+      <div class="section-title">
+        底栏
+      </div>
       <div class="pref-row">
         <span>显示底栏</span>
         <NSwitch v-model:value="appStore.footerEnable" />
@@ -380,7 +420,9 @@ const preferencePositionOptions = [
 
     <!-- 版权 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">版权</div>
+      <div class="section-title">
+        版权
+      </div>
       <div class="pref-row">
         <span>启用版权</span>
         <NSwitch v-model:value="appStore.copyrightEnable" />
@@ -388,7 +430,7 @@ const preferencePositionOptions = [
       <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
         <span>公司名</span>
         <NInput
-          v-model:value="appStore.copyrightCompany"
+          v-model:value="appStore.copyrightName"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
