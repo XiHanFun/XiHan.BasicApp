@@ -50,7 +50,7 @@ const themePresetItems: ThemePresetItem[] = [
 <template>
   <div class="space-y-4">
     <!-- 主题 -->
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         主题
       </div>
@@ -81,7 +81,7 @@ const themePresetItems: ThemePresetItem[] = [
     </NCard>
 
     <!-- 内置主题 -->
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         内置主题
       </div>
@@ -131,7 +131,7 @@ const themePresetItems: ThemePresetItem[] = [
     </NCard>
 
     <!-- 圆角 -->
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         圆角
       </div>
@@ -150,7 +150,7 @@ const themePresetItems: ThemePresetItem[] = [
     </NCard>
 
     <!-- 字体大小 -->
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         字体大小
       </div>

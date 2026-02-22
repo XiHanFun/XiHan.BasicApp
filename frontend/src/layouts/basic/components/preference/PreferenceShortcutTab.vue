@@ -8,8 +8,8 @@ const appStore = props.appStore
 </script>
 
 <template>
-  <NCard size="small">
-    <div class="mb-2 font-medium">
+  <NCard size="small" :bordered="false">
+    <div class="section-title">
       全局快捷键
     </div>
     <div class="mb-2 flex items-center justify-between">
@@ -30,3 +30,12 @@ const appStore = props.appStore
     </div>
   </NCard>
 </template>
+
+<style scoped>
+.section-title {
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+}
+</style>

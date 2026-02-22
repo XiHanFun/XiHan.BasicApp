@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NInput, NRadioButton, NRadioGroup, NSpace, NSwitch } from 'naive-ui'
+import { NCard, NInput, NSwitch } from 'naive-ui'
 
 defineOptions({ name: 'PreferenceGeneralTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()
 const appStore = props.appStore
+
+const transitionItems = [
+  { value: 'fade', label: '淡入淡出' },
+  { value: 'slide-left', label: '左右滑动' },
+  { value: 'zoom', label: '缩放淡入' },
+  { value: 'none', label: '无动画' },
+]
 </script>
 
 <template>
   <div class="space-y-4">
-    <NCard size="small">
-      <div class="mb-2 font-medium">
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
         通用
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -37,8 +44,8 @@ const appStore = props.appStore
       </div>
     </NCard>
 
-    <NCard size="small">
-      <div class="mb-2 font-medium">
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
         动画
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -49,23 +56,24 @@ const appStore = props.appStore
         <span>主题切换动画</span>
         <NSwitch v-model:value="appStore.themeAnimationEnabled" />
       </div>
-      <NRadioGroup v-model:value="appStore.transitionName">
-        <NSpace>
-          <NRadioButton value="fade">
-            淡入淡出
-          </NRadioButton>
-          <NRadioButton value="slide-left">
-            左右滑动
-          </NRadioButton>
-          <NRadioButton value="zoom">
-            缩放
-          </NRadioButton>
-        </NSpace>
-      </NRadioGroup>
+      <div class="transition-grid">
+        <div
+          v-for="item in transitionItems"
+          :key="item.value"
+          class="transition-item"
+          :class="{ 'is-active': appStore.transitionName === item.value }"
+          @click="appStore.transitionName = item.value"
+        >
+          <div class="transition-preview">
+            <div class="preview-block" :class="`anim-${item.value}`" />
+          </div>
+          <span class="item-label">{{ item.label }}</span>
+        </div>
+      </div>
     </NCard>
 
-    <NCard size="small">
-      <div class="mb-2 font-medium">
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
         小部件
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -94,8 +102,8 @@ const appStore = props.appStore
       </div>
     </NCard>
 
-    <NCard size="small">
-      <div class="mb-2 font-medium">
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
         底栏 & 版权
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -114,8 +122,8 @@ const appStore = props.appStore
       <NInput v-model:value="appStore.copyrightSite" placeholder="公司主页" />
     </NCard>
 
-    <NCard size="small">
-      <div class="mb-2 font-medium">
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
         辅助模式
       </div>
       <div class="mb-2 flex items-center justify-between">
@@ -129,3 +137,98 @@ const appStore = props.appStore
     </NCard>
   </div>
 </template>
+
+<style scoped>
+.section-title {
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+}
+
+/* 过渡动画预览选择器 */
+.transition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.transition-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.transition-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  border: 2px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.18s ease;
+}
+
+.transition-item.is-active .transition-preview {
+  border-color: hsl(var(--primary));
+}
+
+.item-label {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  white-space: nowrap;
+}
+
+.transition-item.is-active .item-label {
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
+
+/* 预览内部的小方块 */
+.preview-block {
+  width: 40%;
+  height: 40%;
+  border-radius: 4px;
+  background: hsl(var(--primary) / 0.7);
+}
+
+/* 淡入淡出 */
+@keyframes anim-fade {
+  0%, 100% { opacity: 0; }
+  40%, 60% { opacity: 1; }
+}
+.anim-fade {
+  animation: anim-fade 2s ease-in-out infinite;
+}
+
+/* 左右滑动 */
+@keyframes anim-slide-left {
+  0% { transform: translateX(120%); opacity: 0; }
+  30%, 70% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-120%); opacity: 0; }
+}
+.anim-slide-left {
+  animation: anim-slide-left 2.2s ease-in-out infinite;
+}
+
+/* 缩放淡入 */
+@keyframes anim-zoom {
+  0%, 100% { transform: scale(0.4); opacity: 0; }
+  40%, 60% { transform: scale(1); opacity: 1; }
+}
+.anim-zoom {
+  animation: anim-zoom 2s ease-in-out infinite;
+}
+
+/* 无动画 */
+.anim-none {
+  opacity: 0.35;
+}
+</style>

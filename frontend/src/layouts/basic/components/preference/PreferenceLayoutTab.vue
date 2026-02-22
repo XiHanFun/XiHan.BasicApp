@@ -29,7 +29,7 @@ const appStore = props.appStore
 
 <template>
   <div class="space-y-4">
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         布局
       </div>
@@ -52,7 +52,7 @@ const appStore = props.appStore
       </div>
     </NCard>
 
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         内容
       </div>
@@ -90,7 +90,7 @@ const appStore = props.appStore
       <NSlider v-model:value="appStore.contentMaxWidth" :min="960" :max="1600" :step="10" />
     </NCard>
 
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         顶栏
       </div>
@@ -125,7 +125,7 @@ const appStore = props.appStore
       </div>
     </NCard>
 
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         导航菜单
       </div>
@@ -148,7 +148,7 @@ const appStore = props.appStore
       </div>
     </NCard>
 
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         侧边栏
       </div>
@@ -186,7 +186,7 @@ const appStore = props.appStore
       <NInputNumber v-model:value="appStore.sidebarWidth" :min="180" :max="320" />
     </NCard>
 
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         面包屑导航
       </div>
@@ -208,7 +208,7 @@ const appStore = props.appStore
       </div>
     </NCard>
 
-    <NCard size="small">
+    <NCard size="small" :bordered="false">
       <div class="section-title">
         标签栏
       </div>
