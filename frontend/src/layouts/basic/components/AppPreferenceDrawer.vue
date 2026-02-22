@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import {
-  NButton,
-  NDrawer,
-  NDrawerContent,
-  NSpace,
-  NTabPane,
-  NTabs,
-  useMessage,
-} from 'naive-ui'
+import { NButton, NDrawer, NDrawerContent, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { STORAGE_PREFIX } from '~/constants'
@@ -50,7 +42,7 @@ const themePresets = [
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
   get: () => appStore.layoutMode,
-  set: v => appStore.setLayoutMode(v),
+  set: (v) => appStore.setLayoutMode(v),
 })
 const contentMode = computed({
   get: () => (appStore.contentCompact ? 'fixed' : 'fluid'),
@@ -59,11 +51,11 @@ const contentMode = computed({
 
 const layoutPresets = [
   { key: 'side', label: '垂直' },
-  { key: 'side-mixed', label: '双列菜单' },
+  { key: 'side-mixed', label: '双列' },
   { key: 'top', label: '水平' },
-  { key: 'header-sidebar', label: '侧边导航' },
   { key: 'mix', label: '混合垂直' },
   { key: 'header-mix', label: '混合双列' },
+  { key: 'header-sidebar', label: '侧边' },
   { key: 'full', label: '内容全屏' },
 ] as const
 
@@ -77,14 +69,13 @@ async function copyPreferences() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
     message.success('偏好设置已复制')
-  }
-  catch {
+  } catch {
     message.error('复制失败')
   }
 }
 
 function resetPreferences() {
-  const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX))
+  const keys = Object.keys(localStorage).filter((key) => key.startsWith(STORAGE_PREFIX))
   for (const key of keys) {
     localStorage.removeItem(key)
   }
