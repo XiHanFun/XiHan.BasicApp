@@ -95,11 +95,13 @@ function handleKeydown(e: KeyboardEvent) {
 <template>
   <div
     class="relative min-h-screen"
-    :class="isDark
-      ? 'bg-[#0b1220] text-white'
-      : 'bg-[hsl(var(--background-deep))] text-[hsl(var(--foreground))]'"
+    :class="
+      isDark
+        ? 'bg-[#0b1220] text-white'
+        : 'bg-[hsl(var(--background-deep))] text-[hsl(var(--foreground))]'
+    "
   >
-    <LoginToolbar @layout-change="align => formAlign = align" />
+    <LoginToolbar @layout-change="(align) => (formAlign = align)" />
     <div
       class="grid min-h-screen grid-cols-1"
       :class="{
@@ -116,9 +118,11 @@ function handleKeydown(e: KeyboardEvent) {
         <!-- 暗色：星空感径向渐变；亮色：柔和蓝紫渐变 -->
         <div
           class="pointer-events-none absolute inset-0 opacity-40"
-          :class="isDark
-            ? 'bg-[radial-gradient(circle_at_30%_30%,#1d4ed8_0%,transparent_38%),radial-gradient(circle_at_80%_65%,#0ea5e9_0%,transparent_28%)]'
-            : 'bg-[radial-gradient(circle_at_30%_30%,#93c5fd_0%,transparent_45%),radial-gradient(circle_at_75%_70%,#a5f3fc_0%,transparent_35%)]'"
+          :class="
+            isDark
+              ? 'bg-[radial-gradient(circle_at_30%_30%,#1d4ed8_0%,transparent_38%),radial-gradient(circle_at_80%_65%,#0ea5e9_0%,transparent_28%)]'
+              : 'bg-[radial-gradient(circle_at_30%_30%,#93c5fd_0%,transparent_45%),radial-gradient(circle_at_75%_70%,#a5f3fc_0%,transparent_35%)]'
+          "
         />
         <div class="relative text-center">
           <div
@@ -148,77 +152,76 @@ function handleKeydown(e: KeyboardEvent) {
           'lg:bg-[hsl(var(--card))]': !isDark,
         }"
       >
-        <div
-          class="w-full"
-          :class="formAlign === 'center' ? 'max-w-[400px]' : 'max-w-[340px]'"
-        >
-          <h1 class="mb-1 text-3xl font-bold">
+        <div class="w-full" :class="formAlign === 'center' ? 'max-w-[400px]' : 'max-w-[340px]'">
+          <!-- 标题区 -->
+          <h1 class="mb-1 text-2xl font-bold">
             欢迎回来 👋🏻
           </h1>
           <p
-            class="mb-6 text-sm"
+            class="mb-5 text-sm"
             :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
           >
-            <NForm
-              ref="formRef"
-              :model="formData"
-              :rules="rules"
-              label-placement="top"
-              size="large"
-              @keydown="handleKeydown"
-            >
-              <NFormItem path="selectAccount">
-                <NSelect
-                  v-model:value="formData.selectAccount"
-                  :options="accountOptions"
-                  placeholder="选择账号"
-                  @update:value="handleSelectAccount"
-                />
-              </NFormItem>
-              <NFormItem path="username">
-                <NInput
-                  v-model:value="formData.username"
-                  placeholder="请输入用户名"
-                  :input-props="{ autocomplete: 'username' }"
-                />
-              </NFormItem>
-              <NFormItem path="password">
-                <NInput
-                  v-model:value="formData.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  placeholder="请输入密码"
-                  :input-props="{ autocomplete: 'current-password' }"
-                >
-                  <template #suffix>
-                    <NIcon
-                      class="cursor-pointer"
-                      :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-                      @click="showPassword = !showPassword"
-                    >
-                      <Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" />
-                    </NIcon>
-                  </template>
-                </NInput>
-              </NFormItem>
+            请输入您的账号密码以登录管理系统
+          </p>
 
-              <div class="mb-4 flex items-center justify-between text-sm">
-                <NCheckbox v-model:checked="rememberMe">
-                  记住账号
-                </NCheckbox>
-                <a href="#" class="text-sky-400 hover:underline">忘记密码?</a>
-              </div>
-
-              <NButton
-                type="primary"
-                block
-                secondary
-                :loading="authStore.loginLoading"
-                @click="handleLogin"
+          <!-- 登录表单 -->
+          <NForm
+            ref="formRef"
+            :model="formData"
+            :rules="rules"
+            label-placement="top"
+            size="medium"
+            :show-label="false"
+            @keydown="handleKeydown"
+          >
+            <NFormItem path="selectAccount" :show-feedback="false" class="!mb-5">
+              <NSelect
+                v-model:value="formData.selectAccount"
+                :options="accountOptions"
+                placeholder="选择演示账号"
+                @update:value="handleSelectAccount"
+              />
+            </NFormItem>
+            <NFormItem path="username" :show-feedback="false" class="!mb-5">
+              <NInput
+                v-model:value="formData.username"
+                placeholder="请输入用户名"
+                :input-props="{ autocomplete: 'username' }"
+              />
+            </NFormItem>
+            <NFormItem path="password" :show-feedback="false" class="!mb-5">
+              <NInput
+                v-model:value="formData.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="请输入密码"
+                :input-props="{ autocomplete: 'current-password' }"
               >
-                立即登录
-              </NButton>
-            </NForm>
-          </p><div class="mt-4 grid grid-cols-2 gap-2">
+                <template #suffix>
+                  <NIcon
+                    class="cursor-pointer"
+                    :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
+                    @click="showPassword = !showPassword"
+                  >
+                    <Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" />
+                  </NIcon>
+                </template>
+              </NInput>
+            </NFormItem>
+
+            <div class="mb-4 flex items-center justify-between text-sm">
+              <NCheckbox v-model:checked="rememberMe">
+                记住账号
+              </NCheckbox>
+              <a href="#" class="link-primary">忘记密码?</a>
+            </div>
+
+            <NButton type="primary" block :loading="authStore.loginLoading" @click="handleLogin">
+              立即登录
+            </NButton>
+          </NForm>
+
+          <!-- 其他登录方式 -->
+          <div class="mt-4 grid grid-cols-2 gap-2">
             <NButton quaternary>
               手机登录
             </NButton>
@@ -251,14 +254,25 @@ function handleKeydown(e: KeyboardEvent) {
           </div>
 
           <p
-            class="mt-8 text-center text-xs"
+            class="mt-5 text-center text-xs"
             :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
           >
             还没有账号?
-            <a class="text-sky-400 hover:underline" href="#">立即注册</a>
+            <a class="link-primary" href="#">立即注册</a>
           </p>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.link-primary {
+  color: hsl(var(--primary));
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+</style>
+
