@@ -9,8 +9,8 @@ const appStore = props.appStore
 const transitionItems = [
   { value: 'fade', label: '淡入淡出' },
   { value: 'slide-left', label: '左右滑动' },
-  { value: 'zoom', label: '缩放淡入' },
-  { value: 'none', label: '无动画' },
+  { value: 'slide-up', label: '向上滑入' },
+  { value: 'slide-down', label: '向下滑入' },
 ]
 </script>
 
@@ -49,12 +49,12 @@ const transitionItems = [
         动画
       </div>
       <div class="mb-2 flex items-center justify-between">
-        <span>页面切换动画</span>
-        <NSwitch v-model:value="appStore.transitionEnable" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
         <span>主题切换动画</span>
         <NSwitch v-model:value="appStore.themeAnimationEnabled" />
+      </div>
+      <div class="mb-2 flex items-center justify-between">
+        <span>页面切换动画</span>
+        <NSwitch v-model:value="appStore.transitionEnable" />
       </div>
       <div class="transition-grid">
         <div
@@ -218,17 +218,23 @@ const transitionItems = [
   animation: anim-slide-left 2.2s ease-in-out infinite;
 }
 
-/* 缩放淡入 */
-@keyframes anim-zoom {
-  0%, 100% { transform: scale(0.4); opacity: 0; }
-  40%, 60% { transform: scale(1); opacity: 1; }
+/* 向上滑入 */
+@keyframes anim-slide-up {
+  0% { transform: translateY(120%); opacity: 0; }
+  30%, 70% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-120%); opacity: 0; }
 }
-.anim-zoom {
-  animation: anim-zoom 2s ease-in-out infinite;
+.anim-slide-up {
+  animation: anim-slide-up 2.2s ease-in-out infinite;
 }
 
-/* 无动画 */
-.anim-none {
-  opacity: 0.35;
+/* 向下滑入 */
+@keyframes anim-slide-down {
+  0% { transform: translateY(-120%); opacity: 0; }
+  30%, 70% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+.anim-slide-down {
+  animation: anim-slide-down 2.2s ease-in-out infinite;
 }
 </style>

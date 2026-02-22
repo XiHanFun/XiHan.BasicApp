@@ -160,10 +160,12 @@ const themePresetItems: ThemePresetItem[] = [
           :min="12"
           :max="20"
           :step="1"
+          button-placement="both"
+          :input-props="{ style: 'text-align: center' }"
           class="flex-1"
           @update:value="value => value !== null && appStore.setFontSize(value)"
         />
-        <span class="text-sm text-[hsl(var(--muted-foreground))]">px</span>
+        <span class="unit-label">px</span>
       </div>
     </NCard>
   </div>
@@ -175,6 +177,12 @@ const themePresetItems: ThemePresetItem[] = [
   font-weight: 600;
   font-size: 13px;
   color: hsl(var(--foreground));
+}
+
+.unit-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
 }
 
 /* 主题模式卡片 */
