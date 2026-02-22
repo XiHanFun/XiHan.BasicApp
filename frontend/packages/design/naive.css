@@ -19,66 +19,6 @@
   }
 }
 
-/**
- * 深色侧边栏 / 深色顶栏
- *
- * 场景：全局浅色主题下，用户单独开启"深色侧边栏"或"深色顶栏"。
- * 做法：在 NLayoutSider / NLayoutHeader 上加 .dark class，触发设计系统 CSS 变量切换。
- * 问题：Naive UI 通过 JS 运行时注入 .n-menu { --n-item-text-color: <浅色值>; } 等
- *       （specificity 0-1-0），此时 Naive UI 仍使用浅色主题变量，文字/图标会在深色
- *       背景上不可见。
- * 方案：用 .dark .n-menu（0-2-0）+ !important 强制覆盖文字/图标/箭头/hover 颜色。
- *       背景色（--n-color）不在此处覆盖，由 useTheme.ts 的
- *       themeOverrides.Menu.color = 'transparent' 统一设为透明，
- *       实际背景由 NLayoutSider 容器的 background: var(--sidebar-bg) 单一来源提供。
- */
-
-/* NMenu —— 文字、图标、箭头、hover/active 背景（浅色主题下深色侧边栏专用） */
-.dark .n-menu {
-  --n-item-text-color: rgba(255, 255, 255, 0.82) !important;
-  --n-item-text-color-hover: rgba(255, 255, 255, 1) !important;
-  --n-item-text-color-active: rgba(255, 255, 255, 1) !important;
-  --n-item-text-color-active-hover: rgba(255, 255, 255, 1) !important;
-  --n-item-text-color-child-active: rgba(255, 255, 255, 1) !important;
-  --n-item-text-color-child-active-hover: rgba(255, 255, 255, 1) !important;
-  --n-item-icon-color: rgba(255, 255, 255, 0.38) !important;
-  --n-item-icon-color-hover: rgba(255, 255, 255, 1) !important;
-  --n-item-icon-color-active: rgba(255, 255, 255, 1) !important;
-  --n-item-icon-color-active-hover: rgba(255, 255, 255, 1) !important;
-  --n-item-icon-color-collapsed: rgba(255, 255, 255, 0.38) !important;
-  --n-item-icon-color-child-active: rgba(255, 255, 255, 1) !important;
-  --n-item-icon-color-child-active-hover: rgba(255, 255, 255, 1) !important;
-  --n-arrow-color: rgba(255, 255, 255, 0.38) !important;
-  --n-arrow-color-hover: rgba(255, 255, 255, 1) !important;
-  --n-arrow-color-active: rgba(255, 255, 255, 1) !important;
-  --n-arrow-color-active-hover: rgba(255, 255, 255, 1) !important;
-  --n-arrow-color-child-active: rgba(255, 255, 255, 1) !important;
-  --n-group-text-color: rgba(255, 255, 255, 0.5) !important;
-  --n-item-color-hover: rgba(255, 255, 255, 0.09) !important;
-  --n-item-color-active: rgba(255, 255, 255, 0.15) !important;
-  --n-item-color-active-hover: rgba(255, 255, 255, 0.2) !important;
-  --n-divider-color: rgba(255, 255, 255, 0.12) !important;
-  --n-border-color-node: rgba(255, 255, 255, 0.12) !important;
-}
-
-/* NButton（侧边栏操作按钮） */
-.dark .n-button {
-  --n-text-color: rgba(255, 255, 255, 0.82) !important;
-  --n-text-color-hover: rgba(255, 255, 255, 1) !important;
-  --n-text-color-pressed: rgba(255, 255, 255, 1) !important;
-  --n-text-color-focus: rgba(255, 255, 255, 1) !important;
-  --n-text-color-disabled: rgba(255, 255, 255, 0.38) !important;
-  --n-icon-color: rgba(255, 255, 255, 0.82) !important;
-  --n-icon-color-hover: rgba(255, 255, 255, 1) !important;
-  --n-icon-color-pressed: rgba(255, 255, 255, 1) !important;
-  --n-icon-color-focus: rgba(255, 255, 255, 1) !important;
-  --n-color-hover: rgba(255, 255, 255, 0.09) !important;
-  --n-color-pressed: rgba(255, 255, 255, 0.13) !important;
-  --n-color-focus: rgba(255, 255, 255, 0.09) !important;
-  --n-border: 1px solid rgba(255, 255, 255, 0.24) !important;
-  --n-border-hover: 1px solid rgba(255, 255, 255, 0.48) !important;
-}
-
 /* NLayoutSider 内部的 NScrollbar：让 scrollbar-content 撑满完整高度。
  * Naive UI 默认 n-scrollbar-content 高度为 auto（仅包裹内容），
  * 导致 app-sidebar-root h-full 失效，空白区域会露出 n-layout-sider 的背景，

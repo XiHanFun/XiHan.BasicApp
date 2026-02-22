@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
+import { darkTheme, NConfigProvider, NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '~/hooks'
@@ -12,7 +12,7 @@ import AppTabbar from './components/AppTabbar.vue'
 defineOptions({ name: 'BasicLayout' })
 
 const appStore = useAppStore()
-const { isDark } = useTheme()
+const { isDark, themeOverrides } = useTheme()
 
 // 深色侧边栏/顶栏 —— 只有在浅色主题下才需要局部深色，暗色主题下已经全局深色
 const sidebarForceDark = computed(() => appStore.sidebarDark && !isDark.value)
@@ -176,8 +176,8 @@ watch(
     />
     <!-- 侧边栏 -->
     <!-- sidebarForceDark: 浅色主题下开启深色侧边栏
-         1. 加 .dark class → 让所有自定义 CSS 变量(--sidebar-bg/--foreground 等)切换到暗色值
-         2. NConfigProvider + darkTheme → 让 Naive UI 组件(NMenu/NButton 等)切换到暗色主题 -->
+         .dark class → CSS 变量(--sidebar-bg 等)切换到暗色值
+         NConfigProvider darkTheme → Naive UI 组件(NMenu/NButton 等)复用暗色主题，无需任何 !important 覆盖 -->
     <NLayoutSider
       v-if="showSider"
       :width="siderWidth"
@@ -186,7 +186,8 @@ watch(
       collapse-mode="width"
       :native-scrollbar="false"
       :style="{ backgroundColor: 'var(--sidebar-bg)' }"
-      class="layout-sider-root relative overflow-visible transition-[transform] duration-300" :class="[
+      class="layout-sider-root relative overflow-visible transition-[transform] duration-300"
+      :class="[
         sidebarForceDark ? 'dark' : '',
         isNarrowScreen
           ? 'fixed left-0 top-0 z-50 h-full shadow-xl'
@@ -197,13 +198,15 @@ watch(
       @mouseenter="handleSiderMouseEnter"
       @mouseleave="handleSiderMouseLeave"
     >
-      <AppSidebar
-        :collapsed="effectiveCollapsed"
-        :floating-mode="isNarrowScreen ? false : floatingSidebarMode"
-        :floating-expand="floatingSidebarExpand"
-        :compact-menu="compactSidebarLayout"
-        :expanded-width="expandedSidebarWidth"
-      />
+      <NConfigProvider :theme="sidebarForceDark ? darkTheme : undefined" :theme-overrides="themeOverrides">
+        <AppSidebar
+          :collapsed="effectiveCollapsed"
+          :floating-mode="isNarrowScreen ? false : floatingSidebarMode"
+          :floating-expand="floatingSidebarExpand"
+          :compact-menu="compactSidebarLayout"
+          :expanded-width="expandedSidebarWidth"
+        />
+      </NConfigProvider>
     </NLayoutSider>
 
     <!-- 主内容区 -->
@@ -213,13 +216,15 @@ watch(
         :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
       >
         <!-- 顶部导航 -->
-        <!-- headerForceDark: 同侧边栏逻辑，.dark class + NConfigProvider darkTheme -->
+        <!-- headerForceDark: 同侧边栏逻辑，复用 darkTheme -->
         <NLayoutHeader
           v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
           :style="{ backgroundColor: 'var(--header-bg)' }"
           :class="headerForceDark ? 'dark' : ''"
         >
-          <AppHeader />
+          <NConfigProvider :theme="headerForceDark ? darkTheme : undefined" :theme-overrides="themeOverrides">
+            <AppHeader />
+          </NConfigProvider>
         </NLayoutHeader>
         <AppTabbar />
       </div>
