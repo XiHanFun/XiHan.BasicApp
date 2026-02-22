@@ -188,6 +188,7 @@ function handleTogglePin() {
       :collapsed="collapsed"
       :menu-options="menuOptions"
       :navigation-style="appStore.navigationStyle"
+      :accordion="appStore.navigationAccordion"
       @menu-update="handleMenuUpdate"
     />
 

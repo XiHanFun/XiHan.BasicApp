@@ -179,6 +179,10 @@ export interface TabItem {
   path: string
   pinned?: boolean
   closable: boolean
+  meta?: {
+    icon?: string
+    [key: string]: unknown
+  }
 }
 
 // ==================== 分页查询参数 ====================

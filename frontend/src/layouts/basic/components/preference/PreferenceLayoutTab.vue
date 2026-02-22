@@ -179,18 +179,18 @@ const preferencePositionOptions = [
         <span>显示顶栏</span>
         <NSwitch v-model:value="appStore.headerShow" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.headerShow }">
         <span>模式</span>
-        <NRadioGroup v-model:value="appStore.headerMode" size="small">
+        <NRadioGroup v-model:value="appStore.headerMode" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
             <NRadioButton value="fixed">固定</NRadioButton>
             <NRadioButton value="static">静态</NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.headerShow }">
         <span>菜单位置</span>
-        <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small">
+        <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
             <NRadioButton value="left">左侧</NRadioButton>
             <NRadioButton value="center">居中</NRadioButton>
@@ -229,21 +229,21 @@ const preferencePositionOptions = [
         <span>开启面包屑导航</span>
         <NSwitch v-model:value="appStore.breadcrumbEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
         <span>仅有一个时隐藏</span>
-        <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" />
+        <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" :disabled="!appStore.breadcrumbEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
         <span>显示面包屑图标</span>
-        <NSwitch v-model:value="appStore.breadcrumbShowIcon" />
+        <NSwitch v-model:value="appStore.breadcrumbShowIcon" :disabled="!appStore.breadcrumbEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
         <span>显示首页按钮</span>
-        <NSwitch v-model:value="appStore.breadcrumbShowHome" />
+        <NSwitch v-model:value="appStore.breadcrumbShowHome" :disabled="!appStore.breadcrumbEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
         <span>面包屑风格</span>
-        <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small">
+        <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small" :disabled="!appStore.breadcrumbEnabled">
           <NSpace :size="0">
             <NRadioButton value="normal">常规</NRadioButton>
             <NRadioButton value="background">背景</NRadioButton>
@@ -259,15 +259,15 @@ const preferencePositionOptions = [
         <span>启用标签栏</span>
         <NSwitch v-model:value="appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>持久化标签页</span>
-        <NSwitch v-model:value="appStore.tabbarPersist" />
+        <NSwitch v-model:value="appStore.tabbarPersist" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>访问历史记录</span>
-        <NSwitch v-model:value="appStore.tabbarVisitHistory" />
+        <NSwitch v-model:value="appStore.tabbarVisitHistory" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>最大标签数</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
@@ -278,41 +278,43 @@ const preferencePositionOptions = [
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 120px"
+            :disabled="!appStore.tabbarEnabled"
           />
           <span class="unit-label">个</span>
         </div>
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>启用拖拽排序</span>
-        <NSwitch v-model:value="appStore.tabbarDraggable" />
+        <NSwitch v-model:value="appStore.tabbarDraggable" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>启用纵向滚轮响应</span>
-        <NSwitch v-model:value="appStore.tabbarScrollResponse" />
+        <NSwitch v-model:value="appStore.tabbarScrollResponse" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>点击鼠标中键关闭标签页</span>
-        <NSwitch v-model:value="appStore.tabbarMiddleClickClose" />
+        <NSwitch v-model:value="appStore.tabbarMiddleClickClose" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>显示标签栏图标</span>
-        <NSwitch v-model:value="appStore.tabbarShowIcon" />
+        <NSwitch v-model:value="appStore.tabbarShowIcon" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>显示更多按钮</span>
-        <NSwitch v-model:value="appStore.tabbarShowMore" />
+        <NSwitch v-model:value="appStore.tabbarShowMore" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>显示最大化按钮</span>
-        <NSwitch v-model:value="appStore.tabbarShowMaximize" />
+        <NSwitch v-model:value="appStore.tabbarShowMaximize" :disabled="!appStore.tabbarEnabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>标签页风格</span>
         <NSelect
           v-model:value="appStore.tabbarStyle"
           :options="tabbarStyleOptions"
           size="small"
           style="width: 100px"
+          :disabled="!appStore.tabbarEnabled"
         />
       </div>
     </NCard>
@@ -370,9 +372,9 @@ const preferencePositionOptions = [
         <span>显示底栏</span>
         <NSwitch v-model:value="appStore.footerEnable" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.footerEnable }">
         <span>固定在底部</span>
-        <NSwitch v-model:value="appStore.footerFixed" />
+        <NSwitch v-model:value="appStore.footerFixed" :disabled="!appStore.footerEnable" />
       </div>
     </NCard>
 
@@ -383,34 +385,37 @@ const preferencePositionOptions = [
         <span>启用版权</span>
         <NSwitch v-model:value="appStore.copyrightEnable" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
         <span>公司名</span>
         <NInput
           v-model:value="appStore.copyrightCompany"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
+          :disabled="!appStore.copyrightEnable"
         />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
         <span>公司主页</span>
         <NInput
           v-model:value="appStore.copyrightSite"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
+          :disabled="!appStore.copyrightEnable"
         />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
         <span>日期</span>
         <NInput
           v-model:value="appStore.copyrightDate"
           size="small"
           style="width: 90px"
           :input-props="{ style: 'text-align: right' }"
+          :disabled="!appStore.copyrightEnable"
         />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
         <span>ICP 备案号</span>
         <NInput
           v-model:value="appStore.copyrightIcp"
@@ -418,9 +423,10 @@ const preferencePositionOptions = [
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
           placeholder="选填"
+          :disabled="!appStore.copyrightEnable"
         />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
         <span>ICP 网站链接</span>
         <NInput
           v-model:value="appStore.copyrightIcpUrl"
@@ -428,6 +434,7 @@ const preferencePositionOptions = [
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
           placeholder="选填"
+          :disabled="!appStore.copyrightEnable"
         />
       </div>
     </NCard>

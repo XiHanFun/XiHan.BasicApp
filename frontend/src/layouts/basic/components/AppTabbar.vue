@@ -412,6 +412,16 @@ function handleMoreTabSelect(path: string) {
   handleJump(path)
 }
 
+function handleTabsWheel(e: WheelEvent) {
+  if (!appStore.tabbarScrollResponse)
+    return
+  const container = tabsContainerRef.value?.parentElement
+  if (!container)
+    return
+  e.preventDefault()
+  container.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX
+}
+
 onMounted(() => {
   initSortable()
   window.addEventListener(
@@ -420,6 +430,7 @@ onMounted(() => {
   )
   window.addEventListener('xihan-refresh-current-tab', refreshCurrentTab as EventListener)
   window.dispatchEvent(new CustomEvent('xihan-sync-content-maximize-state'))
+  tabsContainerRef.value?.parentElement?.addEventListener('wheel', handleTabsWheel, { passive: false })
 })
 
 onBeforeUnmount(() => {
@@ -429,6 +440,7 @@ onBeforeUnmount(() => {
     syncContentMaximizeState as EventListener,
   )
   window.removeEventListener('xihan-refresh-current-tab', refreshCurrentTab as EventListener)
+  tabsContainerRef.value?.parentElement?.removeEventListener('wheel', handleTabsWheel)
 })
 
 watch(() => tabbarPreferences.tabbarDraggable.value, () => {
@@ -462,6 +474,8 @@ watch(() => tabbarPreferences.tabbarDraggable.value, () => {
             :active="route.fullPath === item.path"
             :is-last="index === localizedTabs.length - 1"
             :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
+            :show-icon="appStore.tabbarShowIcon"
+            :middle-close-enabled="appStore.tabbarMiddleClickClose"
             @jump="handleJump"
             @contextmenu="openContextMenu"
             @close="handleClose"

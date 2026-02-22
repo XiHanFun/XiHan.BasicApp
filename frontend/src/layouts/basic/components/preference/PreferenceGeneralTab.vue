@@ -75,13 +75,13 @@ const localeOptions = [
         <span>页面切换动画</span>
         <NSwitch v-model:value="appStore.transitionEnable" />
       </div>
-      <div class="transition-grid">
+      <div class="transition-grid" :class="{ 'pointer-events-none opacity-40': !appStore.transitionEnable }">
         <div
           v-for="item in transitionItems"
           :key="item.value"
           class="transition-item"
           :class="{ 'is-active': appStore.transitionName === item.value }"
-          @click="appStore.transitionName = item.value"
+          @click="appStore.transitionEnable && (appStore.transitionName = item.value)"
         >
           <div class="transition-preview">
             <div class="preview-block" :class="`anim-${item.value}`" />

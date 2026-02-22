@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { NConfigProvider, NDialogProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
-import { computed, onMounted, onUnmounted, watchEffect } from 'vue'
+import { NConfigProvider, NDialogProvider, NLoadingBarProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useNaiveLocale, useTheme } from '~/hooks'
 import { useAppStore } from '~/stores'
@@ -38,32 +38,47 @@ watchEffect(() => {
   document.documentElement.style.fontSize = `${appStore.fontSize}px`
 })
 
+const lockScreenVisible = ref(false)
+
 function handleGlobalShortcuts(e: KeyboardEvent) {
   if (!appStore.shortcutEnable)
     return
 
+  // Ctrl/Cmd + K：全局搜索
   if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
     window.dispatchEvent(new Event('xihan-open-global-search'))
+    return
   }
 
-  if (appStore.shortcutLogout && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'q') {
+  // Alt + Q：退出登录
+  if (appStore.shortcutLogout && e.altKey && e.key.toLowerCase() === 'q') {
     e.preventDefault()
     authStore.logout()
+    return
   }
 
-  if (appStore.shortcutLock && e.ctrlKey && e.key.toLowerCase() === 'l') {
+  // Alt + L：锁屏
+  if (appStore.shortcutLock && e.altKey && e.key.toLowerCase() === 'l') {
     e.preventDefault()
-    // TODO: 锁屏功能待接入
+    lockScreenVisible.value = true
+  }
+}
+
+function handleLockScreenRequest() {
+  if (appStore.widgetLockScreen) {
+    lockScreenVisible.value = true
   }
 }
 
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalShortcuts)
+  window.addEventListener('xihan-lock-screen', handleLockScreenRequest)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalShortcuts)
+  window.removeEventListener('xihan-lock-screen', handleLockScreenRequest)
 })
 </script>
 
@@ -75,35 +90,90 @@ onUnmounted(() => {
     :theme-overrides="themeOverrides"
     class="h-full"
   >
-    <NMessageProvider placement="top" :duration="3000" :max="5">
-      <NNotificationProvider placement="top-right">
-        <NDialogProvider>
-          <RouterView />
-          <!-- 水印：SVG data URI repeat 平铺，全屏均匀分布 -->
-          <div
-            v-if="appStore.watermarkEnabled"
-            class="watermark-layer"
-            :style="watermarkStyle"
-          />
-        </NDialogProvider>
-      </NNotificationProvider>
-    </NMessageProvider>
+    <NLoadingBarProvider>
+      <NMessageProvider placement="top" :duration="3000" :max="5">
+        <NNotificationProvider placement="top-right">
+          <NDialogProvider>
+            <RouterView />
+            <!-- 水印：SVG data URI repeat 平铺，全屏均匀分布 -->
+            <div
+              v-if="appStore.watermarkEnabled"
+              class="watermark-layer"
+              :style="watermarkStyle"
+            />
+            <!-- 锁屏遮罩 -->
+            <Teleport to="body">
+              <div
+                v-if="lockScreenVisible"
+                class="lock-screen-mask"
+                @click.self="lockScreenVisible = false"
+              >
+                <div class="lock-screen-card">
+                  <div class="mb-4 text-base font-semibold text-[hsl(var(--foreground))]">
+                    屏幕已锁定
+                  </div>
+                  <p class="mb-4 text-sm text-[hsl(var(--muted-foreground))]">
+                    点击空白处或按 Esc 解锁
+                  </p>
+                  <button
+                    class="unlock-btn"
+                    @click="lockScreenVisible = false"
+                  >
+                    解锁
+                  </button>
+                </div>
+              </div>
+            </Teleport>
+          </NDialogProvider>
+        </NNotificationProvider>
+      </NMessageProvider>
+    </NLoadingBarProvider>
   </NConfigProvider>
 </template>
 
 <style>
-/**
- * 水印：使用 CSS background-image + repeating-linear-gradient 实现全屏均匀分布。
- * 通过 SVG data URI 生成单格水印，然后 repeat 平铺到整个视口。
- * 优势：不依赖 JS 循环，不受内容区域影响，真正覆盖整个 fixed 层。
- */
 .watermark-layer {
   pointer-events: none;
   position: fixed;
   inset: 0;
   z-index: 1999;
-  /* backgroundImage 和 backgroundSize 由 computed watermarkStyle 动态注入 */
   background-repeat: repeat;
   user-select: none;
+}
+
+.lock-screen-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(220 16% 6% / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.lock-screen-card {
+  padding: 32px 40px;
+  border-radius: 16px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  text-align: center;
+  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.3);
+}
+
+.unlock-btn {
+  padding: 8px 28px;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.unlock-btn:hover {
+  opacity: 0.88;
 }
 </style>

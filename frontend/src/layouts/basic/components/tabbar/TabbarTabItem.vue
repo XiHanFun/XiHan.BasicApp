@@ -10,6 +10,8 @@ interface Props {
   active: boolean
   isLast: boolean
   draggable: boolean
+  showIcon?: boolean
+  middleCloseEnabled?: boolean
 }
 
 const props = defineProps<Props>()
@@ -23,7 +25,7 @@ const emit = defineEmits<{
 }>()
 
 function onAuxClick(event: MouseEvent) {
-  if (event.button === 1 && props.item.closable) {
+  if (event.button === 1 && props.item.closable && props.middleCloseEnabled !== false) {
     emit('middleClose', props.item.path)
   }
 }
@@ -63,6 +65,9 @@ function onAuxClick(event: MouseEvent) {
       </div>
 
       <div class="chrome-tab__main relative z-[2] mx-[14px] flex h-full min-w-[96px] items-center gap-1 pr-1">
+        <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
+          <Icon :icon="(item.meta.icon as string)" />
+        </NIcon>
         <span class="chrome-tab__title">{{ item.displayTitle }}</span>
         <button
           v-if="item.closable && !item.pinned"

@@ -16,21 +16,21 @@ const appStore = props.appStore
       <span>快捷键</span>
       <NSwitch v-model:value="appStore.shortcutEnable" />
     </div>
-    <div class="pref-row">
+    <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <span>全局搜索</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Ctrl K</span>
         <NSwitch v-model:value="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
       </div>
     </div>
-    <div class="pref-row">
+    <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <span>退出登录</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Alt Q</span>
         <NSwitch v-model:value="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
       </div>
     </div>
-    <div class="pref-row">
+    <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <span>锁定屏幕</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Alt L</span>

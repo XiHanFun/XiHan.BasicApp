@@ -13,6 +13,7 @@ interface SidebarMenuProps {
   collapsed: boolean
   menuOptions: MenuOption[]
   navigationStyle: 'rounded' | 'plain'
+  accordion?: boolean
 }
 </script>
 
@@ -25,7 +26,7 @@ interface SidebarMenuProps {
       :indent="18"
       :options="props.menuOptions"
       :class="props.navigationStyle === 'rounded' ? 'sidebar-menu-rounded' : 'sidebar-menu-plain'"
-      accordion
+      :accordion="props.accordion ?? true"
       @update:value="key => emit('menuUpdate', String(key))"
     />
   </div>

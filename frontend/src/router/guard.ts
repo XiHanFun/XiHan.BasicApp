@@ -1,9 +1,12 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
+import { createDiscreteApi } from 'naive-ui'
 import { getUserInfoApi, getUserMenuRoutesApi } from '@/api'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { mapMenuToRoutes } from './dynamic'
+
+const { loadingBar } = createDiscreteApi(['loadingBar'])
 
 const WHITE_LIST = [LOGIN_PATH, '/403', '/404', '/500']
 
@@ -22,6 +25,13 @@ export function setupRouterGuard(router: Router) {
     const appStore = useAppStore()
     const userStore = useUserStore()
     const tabbarStore = useTabbarStore()
+
+    if (appStore.transitionProgress) {
+      loadingBar.start()
+    }
+    if (appStore.transitionLoading) {
+      appStore.setPageLoading(true)
+    }
 
     const isWhiteListed = WHITE_LIST.includes(to.path)
 
@@ -110,6 +120,14 @@ export function setupRouterGuard(router: Router) {
 
   router.afterEach((to) => {
     const appStore = useAppStore()
+
+    if (appStore.transitionProgress) {
+      loadingBar.finish()
+    }
+    if (appStore.transitionLoading) {
+      appStore.setPageLoading(false)
+    }
+
     if (!appStore.dynamicTitle) {
       document.title = 'XiHan BasicApp'
       return
@@ -117,6 +135,16 @@ export function setupRouterGuard(router: Router) {
     const title = to.meta?.title as string | undefined
     if (title) {
       document.title = `${i18n.global.t(title, title)} - XiHan BasicApp`
+    }
+  })
+
+  router.onError(() => {
+    const appStore = useAppStore()
+    if (appStore.transitionProgress) {
+      loadingBar.error()
+    }
+    if (appStore.transitionLoading) {
+      appStore.setPageLoading(false)
     }
   })
 }
