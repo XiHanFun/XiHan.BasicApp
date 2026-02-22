@@ -35,6 +35,14 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: Number(env.VITE_PORT) || 9000,
+      proxy: {
+        // 将 /api/* 请求转发给后端，绕过浏览器 CORS 限制
+        // VITE_API_BASE_URL 开发环境留空，生产环境填写实际地址
+        [env.VITE_API_PREFIX || '/api']: {
+          target: 'http://localhost:9708',
+          changeOrigin: true,
+        },
+      },
     },
     build: {
       target: 'es2022',
