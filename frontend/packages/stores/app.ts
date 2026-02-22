@@ -12,8 +12,11 @@ import {
   COLOR_WEAKNESS_ENABLED_KEY,
   CONTENT_COMPACT_KEY,
   CONTENT_MAX_WIDTH_KEY,
-  COPYRIGHT_COMPANY_KEY,
+  COPYRIGHT_NAME_KEY,
+  COPYRIGHT_DATE_KEY,
   COPYRIGHT_ENABLE_KEY,
+  COPYRIGHT_ICP_KEY,
+  COPYRIGHT_ICP_URL_KEY,
   COPYRIGHT_SITE_KEY,
   DEFAULT_FONT_SIZE,
   DEFAULT_LAYOUT_MODE,
@@ -26,10 +29,13 @@ import {
   FOOTER_ENABLE_KEY,
   FOOTER_FIXED_KEY,
   GRAYSCALE_ENABLED_KEY,
+  HEADER_DARK_KEY,
   HEADER_MENU_ALIGN_KEY,
   HEADER_MODE_KEY,
+  HEADER_SHOW_KEY,
   LAYOUT_MODE_KEY,
   LOCALE_KEY,
+  NAV_ACCORDION_KEY,
   NAV_SPLIT_KEY,
   NAV_STYLE_KEY,
   SEARCH_ENABLED_KEY,
@@ -41,15 +47,21 @@ import {
   SIDEBAR_COLLAPSE_BUTTON_KEY,
   SIDEBAR_COLLAPSED_KEY,
   SIDEBAR_COLLAPSED_SHOW_TITLE_KEY,
+  SIDEBAR_DARK_KEY,
   SIDEBAR_EXPAND_HOVER_KEY,
   SIDEBAR_FIXED_BUTTON_KEY,
   SIDEBAR_SHOW_KEY,
+  SIDEBAR_SUB_DARK_KEY,
   SIDEBAR_WIDTH_KEY,
   TABBAR_DRAGGABLE_KEY,
   TABBAR_MAX_COUNT_KEY,
+  TABBAR_MIDDLE_CLICK_CLOSE_KEY,
   TABBAR_PERSIST_KEY,
+  TABBAR_SCROLL_RESPONSE_KEY,
+  TABBAR_SHOW_ICON_KEY,
   TABBAR_SHOW_MAXIMIZE_KEY,
   TABBAR_SHOW_MORE_KEY,
+  TABBAR_STYLE_KEY,
   TABBAR_VISIT_HISTORY_KEY,
   TAGS_BAR_KEY,
   THEME_ANIMATION_ENABLED_KEY,
@@ -57,7 +69,9 @@ import {
   THEME_COLOR_KEY,
   THEME_MODE_KEY,
   TRANSITION_ENABLE_KEY,
+  TRANSITION_LOADING_KEY,
   TRANSITION_NAME_KEY,
+  TRANSITION_PROGRESS_KEY,
   UI_RADIUS_KEY,
   WATERMARK_ENABLED_KEY,
   WATERMARK_TEXT_KEY,
@@ -65,6 +79,7 @@ import {
   WIDGET_LANGUAGE_TOGGLE_KEY,
   WIDGET_LOCKSCREEN_KEY,
   WIDGET_NOTIFICATION_KEY,
+  WIDGET_PREFERENCE_POSITION_KEY,
   WIDGET_REFRESH_KEY,
   WIDGET_SIDEBAR_TOGGLE_KEY,
   WIDGET_THEME_TOGGLE_KEY,
@@ -103,12 +118,17 @@ export const useAppStore = defineStore('app', () => {
     storage.get<boolean>(SIDEBAR_COLLAPSED_SHOW_TITLE_KEY) ?? false,
   )
 
+  const headerShow = ref<boolean>(storage.get<boolean>(HEADER_SHOW_KEY) ?? true)
   const headerMenuAlign = ref<'left' | 'center' | 'right'>(
     storage.get(HEADER_MENU_ALIGN_KEY) ?? 'left',
   )
   const headerMode = ref<'fixed' | 'static'>(storage.get(HEADER_MODE_KEY) ?? 'fixed')
+  const sidebarDark = ref<boolean>(storage.get<boolean>(SIDEBAR_DARK_KEY) ?? false)
+  const sidebarSubDark = ref<boolean>(storage.get<boolean>(SIDEBAR_SUB_DARK_KEY) ?? false)
+  const headerDark = ref<boolean>(storage.get<boolean>(HEADER_DARK_KEY) ?? false)
   const navigationStyle = ref<'rounded' | 'plain'>(storage.get(NAV_STYLE_KEY) ?? 'rounded')
   const navigationSplit = ref<boolean>(storage.get<boolean>(NAV_SPLIT_KEY) ?? true)
+  const navigationAccordion = ref<boolean>(storage.get<boolean>(NAV_ACCORDION_KEY) ?? true)
   const contentCompact = ref<boolean>(storage.get<boolean>(CONTENT_COMPACT_KEY) ?? false)
   const contentMaxWidth = ref<number>(storage.get<number>(CONTENT_MAX_WIDTH_KEY) ?? 1280)
 
@@ -119,6 +139,14 @@ export const useAppStore = defineStore('app', () => {
   const tabbarShowMore = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_MORE_KEY) ?? true)
   const tabbarShowMaximize = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_MAXIMIZE_KEY) ?? true)
   const tabbarMaxCount = ref<number>(storage.get<number>(TABBAR_MAX_COUNT_KEY) ?? 0)
+  const tabbarScrollResponse = ref<boolean>(
+    storage.get<boolean>(TABBAR_SCROLL_RESPONSE_KEY) ?? true,
+  )
+  const tabbarMiddleClickClose = ref<boolean>(
+    storage.get<boolean>(TABBAR_MIDDLE_CLICK_CLOSE_KEY) ?? true,
+  )
+  const tabbarShowIcon = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_ICON_KEY) ?? true)
+  const tabbarStyle = ref<string>(storage.get<string>(TABBAR_STYLE_KEY) ?? 'chrome')
 
   const breadcrumbEnabled = ref<boolean>(storage.get<boolean>(BREADCRUMB_ENABLED_KEY) ?? true)
   const breadcrumbShowHome = ref<boolean>(storage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? true)
@@ -138,6 +166,8 @@ export const useAppStore = defineStore('app', () => {
   )
   const transitionEnable = ref<boolean>(storage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
   const transitionName = ref<string>(storage.get<string>(TRANSITION_NAME_KEY) ?? 'fade')
+  const transitionProgress = ref<boolean>(storage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true)
+  const transitionLoading = ref<boolean>(storage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
   const grayscaleEnabled = ref<boolean>(storage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
@@ -155,14 +185,22 @@ export const useAppStore = defineStore('app', () => {
   const widgetLockScreen = ref<boolean>(storage.get<boolean>(WIDGET_LOCKSCREEN_KEY) ?? true)
   const widgetSidebarToggle = ref<boolean>(storage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true)
   const widgetRefresh = ref<boolean>(storage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
+  const widgetPreferencePosition = ref<string>(
+    storage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
+  )
 
   const footerEnable = ref<boolean>(storage.get<boolean>(FOOTER_ENABLE_KEY) ?? false)
   const footerFixed = ref<boolean>(storage.get<boolean>(FOOTER_FIXED_KEY) ?? false)
   const copyrightEnable = ref<boolean>(storage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
-  const copyrightCompany = ref<string>(storage.get<string>(COPYRIGHT_COMPANY_KEY) ?? 'XiHan')
+  const copyrightName = ref<string>(storage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHan')
   const copyrightSite = ref<string>(
     storage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://xihanfun.com',
   )
+  const copyrightDate = ref<string>(
+    storage.get<string>(COPYRIGHT_DATE_KEY) ?? String(new Date().getFullYear()),
+  )
+  const copyrightIcp = ref<string>(storage.get<string>(COPYRIGHT_ICP_KEY) ?? '')
+  const copyrightIcpUrl = ref<string>(storage.get<string>(COPYRIGHT_ICP_URL_KEY) ?? '')
 
   const shortcutEnable = ref<boolean>(storage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
   const shortcutSearch = ref<boolean>(storage.get<boolean>(SHORTCUT_SEARCH_KEY) ?? true)
@@ -193,10 +231,15 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(SIDEBAR_EXPAND_HOVER_KEY, sidebarExpandOnHover)
   bindPersist(SIDEBAR_AUTO_ACTIVATE_CHILD_KEY, sidebarAutoActivateChild)
   bindPersist(SIDEBAR_COLLAPSED_SHOW_TITLE_KEY, sidebarCollapsedShowTitle)
+  bindPersist(HEADER_SHOW_KEY, headerShow)
   bindPersist(HEADER_MENU_ALIGN_KEY, headerMenuAlign)
   bindPersist(HEADER_MODE_KEY, headerMode)
+  bindPersist(HEADER_DARK_KEY, headerDark)
+  bindPersist(SIDEBAR_DARK_KEY, sidebarDark)
+  bindPersist(SIDEBAR_SUB_DARK_KEY, sidebarSubDark)
   bindPersist(NAV_STYLE_KEY, navigationStyle)
   bindPersist(NAV_SPLIT_KEY, navigationSplit)
+  bindPersist(NAV_ACCORDION_KEY, navigationAccordion)
   bindPersist(CONTENT_COMPACT_KEY, contentCompact)
   bindPersist(CONTENT_MAX_WIDTH_KEY, contentMaxWidth)
   bindPersist(TAGS_BAR_KEY, tabbarEnabled)
@@ -206,6 +249,10 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(TABBAR_SHOW_MORE_KEY, tabbarShowMore)
   bindPersist(TABBAR_SHOW_MAXIMIZE_KEY, tabbarShowMaximize)
   bindPersist(TABBAR_MAX_COUNT_KEY, tabbarMaxCount)
+  bindPersist(TABBAR_SCROLL_RESPONSE_KEY, tabbarScrollResponse)
+  bindPersist(TABBAR_MIDDLE_CLICK_CLOSE_KEY, tabbarMiddleClickClose)
+  bindPersist(TABBAR_SHOW_ICON_KEY, tabbarShowIcon)
+  bindPersist(TABBAR_STYLE_KEY, tabbarStyle)
   bindPersist(BREADCRUMB_ENABLED_KEY, breadcrumbEnabled)
   bindPersist(BREADCRUMB_SHOW_HOME_KEY, breadcrumbShowHome)
   bindPersist(BREADCRUMB_SHOW_ICON_KEY, breadcrumbShowIcon)
@@ -217,6 +264,8 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled)
   bindPersist(TRANSITION_ENABLE_KEY, transitionEnable)
   bindPersist(TRANSITION_NAME_KEY, transitionName)
+  bindPersist(TRANSITION_PROGRESS_KEY, transitionProgress)
+  bindPersist(TRANSITION_LOADING_KEY, transitionLoading)
   bindPersist(GRAYSCALE_ENABLED_KEY, grayscaleEnabled)
   bindPersist(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled)
   bindPersist(WATERMARK_ENABLED_KEY, watermarkEnabled)
@@ -228,11 +277,15 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(WIDGET_LOCKSCREEN_KEY, widgetLockScreen)
   bindPersist(WIDGET_SIDEBAR_TOGGLE_KEY, widgetSidebarToggle)
   bindPersist(WIDGET_REFRESH_KEY, widgetRefresh)
+  bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition)
   bindPersist(FOOTER_ENABLE_KEY, footerEnable)
   bindPersist(FOOTER_FIXED_KEY, footerFixed)
   bindPersist(COPYRIGHT_ENABLE_KEY, copyrightEnable)
-  bindPersist(COPYRIGHT_COMPANY_KEY, copyrightCompany)
+  bindPersist(COPYRIGHT_NAME_KEY, copyrightName)
   bindPersist(COPYRIGHT_SITE_KEY, copyrightSite)
+  bindPersist(COPYRIGHT_DATE_KEY, copyrightDate)
+  bindPersist(COPYRIGHT_ICP_KEY, copyrightIcp)
+  bindPersist(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl)
   bindPersist(SHORTCUT_ENABLE_KEY, shortcutEnable)
   bindPersist(SHORTCUT_SEARCH_KEY, shortcutSearch)
   bindPersist(SHORTCUT_LOGOUT_KEY, shortcutLogout)
@@ -268,7 +321,7 @@ export const useAppStore = defineStore('app', () => {
   function setBrandLogo(logo: string) {
     save(BRAND_LOGO_KEY, brandLogo, logo)
   }
-  function setBranding(branding: { title?: string, logo?: string }) {
+  function setBranding(branding: { title?: string; logo?: string }) {
     if (branding.title) {
       setBrandTitle(branding.title)
     }
@@ -313,6 +366,18 @@ export const useAppStore = defineStore('app', () => {
   function setTabbarMaxCount(v: number) {
     save(TABBAR_MAX_COUNT_KEY, tabbarMaxCount, v)
   }
+  function setTabbarScrollResponse(v: boolean) {
+    save(TABBAR_SCROLL_RESPONSE_KEY, tabbarScrollResponse, v)
+  }
+  function setTabbarMiddleClickClose(v: boolean) {
+    save(TABBAR_MIDDLE_CLICK_CLOSE_KEY, tabbarMiddleClickClose, v)
+  }
+  function setTabbarShowIcon(v: boolean) {
+    save(TABBAR_SHOW_ICON_KEY, tabbarShowIcon, v)
+  }
+  function setTabbarStyle(v: string) {
+    save(TABBAR_STYLE_KEY, tabbarStyle, v)
+  }
 
   function setBreadcrumbEnabled(v: boolean) {
     save(BREADCRUMB_ENABLED_KEY, breadcrumbEnabled, v)
@@ -348,6 +413,12 @@ export const useAppStore = defineStore('app', () => {
   function setTransitionName(v: string) {
     save(TRANSITION_NAME_KEY, transitionName, v)
   }
+  function setTransitionProgress(v: boolean) {
+    save(TRANSITION_PROGRESS_KEY, transitionProgress, v)
+  }
+  function setTransitionLoading(v: boolean) {
+    save(TRANSITION_LOADING_KEY, transitionLoading, v)
+  }
 
   function setGrayscaleEnabled(v: boolean) {
     save(GRAYSCALE_ENABLED_KEY, grayscaleEnabled, v)
@@ -368,17 +439,32 @@ export const useAppStore = defineStore('app', () => {
   function setContentMaxWidth(v: number) {
     save(CONTENT_MAX_WIDTH_KEY, contentMaxWidth, v)
   }
+  function setHeaderShow(v: boolean) {
+    save(HEADER_SHOW_KEY, headerShow, v)
+  }
   function setHeaderMenuAlign(v: 'left' | 'center' | 'right') {
     save(HEADER_MENU_ALIGN_KEY, headerMenuAlign, v)
   }
   function setHeaderMode(v: 'fixed' | 'static') {
     save(HEADER_MODE_KEY, headerMode, v)
   }
+  function setSidebarDark(v: boolean) {
+    save(SIDEBAR_DARK_KEY, sidebarDark, v)
+  }
+  function setSidebarSubDark(v: boolean) {
+    save(SIDEBAR_SUB_DARK_KEY, sidebarSubDark, v)
+  }
+  function setHeaderDark(v: boolean) {
+    save(HEADER_DARK_KEY, headerDark, v)
+  }
   function setNavigationStyle(v: 'rounded' | 'plain') {
     save(NAV_STYLE_KEY, navigationStyle, v)
   }
   function setNavigationSplit(v: boolean) {
     save(NAV_SPLIT_KEY, navigationSplit, v)
+  }
+  function setNavigationAccordion(v: boolean) {
+    save(NAV_ACCORDION_KEY, navigationAccordion, v)
   }
   function setSidebarWidth(v: number) {
     save(SIDEBAR_WIDTH_KEY, sidebarWidth, v)
@@ -423,6 +509,9 @@ export const useAppStore = defineStore('app', () => {
   function setWidgetRefresh(v: boolean) {
     save(WIDGET_REFRESH_KEY, widgetRefresh, v)
   }
+  function setWidgetPreferencePosition(v: string) {
+    save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
+  }
 
   function setFooterEnable(v: boolean) {
     save(FOOTER_ENABLE_KEY, footerEnable, v)
@@ -433,11 +522,20 @@ export const useAppStore = defineStore('app', () => {
   function setCopyrightEnable(v: boolean) {
     save(COPYRIGHT_ENABLE_KEY, copyrightEnable, v)
   }
-  function setCopyrightCompany(v: string) {
-    save(COPYRIGHT_COMPANY_KEY, copyrightCompany, v)
+  function setCopyrightName(v: string) {
+    save(COPYRIGHT_NAME_KEY, copyrightName, v)
   }
   function setCopyrightSite(v: string) {
     save(COPYRIGHT_SITE_KEY, copyrightSite, v)
+  }
+  function setCopyrightDate(v: string) {
+    save(COPYRIGHT_DATE_KEY, copyrightDate, v)
+  }
+  function setCopyrightIcp(v: string) {
+    save(COPYRIGHT_ICP_KEY, copyrightIcp, v)
+  }
+  function setCopyrightIcpUrl(v: string) {
+    save(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl, v)
   }
 
   function setShortcutEnable(v: boolean) {
@@ -472,10 +570,15 @@ export const useAppStore = defineStore('app', () => {
     sidebarExpandOnHover,
     sidebarAutoActivateChild,
     sidebarCollapsedShowTitle,
+    headerShow,
     headerMenuAlign,
     headerMode,
+    sidebarDark,
+    sidebarSubDark,
+    headerDark,
     navigationStyle,
     navigationSplit,
+    navigationAccordion,
     contentCompact,
     contentMaxWidth,
     tabbarEnabled,
@@ -485,6 +588,10 @@ export const useAppStore = defineStore('app', () => {
     tabbarShowMore,
     tabbarShowMaximize,
     tabbarMaxCount,
+    tabbarScrollResponse,
+    tabbarMiddleClickClose,
+    tabbarShowIcon,
+    tabbarStyle,
     breadcrumbEnabled,
     breadcrumbShowHome,
     breadcrumbShowIcon,
@@ -496,6 +603,8 @@ export const useAppStore = defineStore('app', () => {
     themeAnimationEnabled,
     transitionEnable,
     transitionName,
+    transitionProgress,
+    transitionLoading,
     grayscaleEnabled,
     colorWeaknessEnabled,
     watermarkEnabled,
@@ -507,11 +616,15 @@ export const useAppStore = defineStore('app', () => {
     widgetLockScreen,
     widgetSidebarToggle,
     widgetRefresh,
+    widgetPreferencePosition,
     footerEnable,
     footerFixed,
     copyrightEnable,
-    copyrightCompany,
+    copyrightName,
     copyrightSite,
+    copyrightDate,
+    copyrightIcp,
+    copyrightIcpUrl,
     shortcutEnable,
     shortcutSearch,
     shortcutLogout,
@@ -537,6 +650,10 @@ export const useAppStore = defineStore('app', () => {
     setTabbarShowMore,
     setTabbarShowMaximize,
     setTabbarMaxCount,
+    setTabbarScrollResponse,
+    setTabbarMiddleClickClose,
+    setTabbarShowIcon,
+    setTabbarStyle,
     setBreadcrumbEnabled,
     setBreadcrumbShowHome,
     setBreadcrumbShowIcon,
@@ -548,16 +665,23 @@ export const useAppStore = defineStore('app', () => {
     setThemeAnimationEnabled,
     setTransitionEnable,
     setTransitionName,
+    setTransitionProgress,
+    setTransitionLoading,
     setGrayscaleEnabled,
     setColorWeaknessEnabled,
     setWatermarkEnabled,
     setWatermarkText,
     setContentCompact,
     setContentMaxWidth,
+    setHeaderShow,
     setHeaderMenuAlign,
     setHeaderMode,
+    setSidebarDark,
+    setSidebarSubDark,
+    setHeaderDark,
     setNavigationStyle,
     setNavigationSplit,
+    setNavigationAccordion,
     setSidebarWidth,
     setSidebarShow,
     setSidebarCollapseButton,
@@ -572,11 +696,15 @@ export const useAppStore = defineStore('app', () => {
     setWidgetLockScreen,
     setWidgetSidebarToggle,
     setWidgetRefresh,
+    setWidgetPreferencePosition,
     setFooterEnable,
     setFooterFixed,
     setCopyrightEnable,
-    setCopyrightCompany,
+    setCopyrightName,
     setCopyrightSite,
+    setCopyrightDate,
+    setCopyrightIcp,
+    setCopyrightIcpUrl,
     setShortcutEnable,
     setShortcutSearch,
     setShortcutLogout,

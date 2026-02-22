@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NInput, NSwitch } from 'naive-ui'
+import { NCard, NInput, NSelect, NSwitch } from 'naive-ui'
 
 defineOptions({ name: 'PreferenceGeneralTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()
@@ -12,6 +12,11 @@ const transitionItems = [
   { value: 'slide-up', label: '向上滑入' },
   { value: 'slide-down', label: '向下滑入' },
 ]
+
+const localeOptions = [
+  { label: '简体中文', value: 'zh-CN' },
+  { label: 'English', value: 'en-US' },
+]
 </script>
 
 <template>
@@ -21,8 +26,13 @@ const transitionItems = [
         通用
       </div>
       <div class="mb-2 flex items-center justify-between">
-        <span>启用全局搜索</span>
-        <NSwitch v-model:value="appStore.searchEnabled" />
+        <span>语言</span>
+        <NSelect
+          v-model:value="appStore.locale"
+          :options="localeOptions"
+          style="width: 110px"
+          @update:value="v => appStore.setLocale(String(v))"
+        />
       </div>
       <div class="mb-2 flex items-center justify-between">
         <span>动态标题</span>
@@ -38,7 +48,7 @@ const transitionItems = [
         class="mb-2"
         placeholder="水印文案"
       />
-      <div class="mb-2 flex items-center justify-between">
+      <div class="flex items-center justify-between">
         <span>定时检查更新</span>
         <NSwitch v-model:value="appStore.enableCheckUpdates" />
       </div>
@@ -47,6 +57,14 @@ const transitionItems = [
     <NCard size="small" :bordered="false">
       <div class="section-title">
         动画
+      </div>
+      <div class="mb-2 flex items-center justify-between">
+        <span>页面切换进度条</span>
+        <NSwitch v-model:value="appStore.transitionProgress" />
+      </div>
+      <div class="mb-2 flex items-center justify-between">
+        <span>页面切换 Loading</span>
+        <NSwitch v-model:value="appStore.transitionLoading" />
       </div>
       <div class="mb-2 flex items-center justify-between">
         <span>主题切换动画</span>
@@ -69,70 +87,6 @@ const transitionItems = [
           </div>
           <span class="item-label">{{ item.label }}</span>
         </div>
-      </div>
-    </NCard>
-
-    <NCard size="small" :bordered="false">
-      <div class="section-title">
-        小部件
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用主题切换</span>
-        <NSwitch v-model:value="appStore.widgetThemeToggle" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用语言切换</span>
-        <NSwitch v-model:value="appStore.widgetLanguageToggle" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用全屏</span>
-        <NSwitch v-model:value="appStore.widgetFullscreen" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用通知</span>
-        <NSwitch v-model:value="appStore.widgetNotification" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用刷新</span>
-        <NSwitch v-model:value="appStore.widgetRefresh" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用侧栏切换</span>
-        <NSwitch v-model:value="appStore.widgetSidebarToggle" />
-      </div>
-    </NCard>
-
-    <NCard size="small" :bordered="false">
-      <div class="section-title">
-        底栏 & 版权
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>显示底栏</span>
-        <NSwitch v-model:value="appStore.footerEnable" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>固定在底部</span>
-        <NSwitch v-model:value="appStore.footerFixed" />
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>启用版权</span>
-        <NSwitch v-model:value="appStore.copyrightEnable" />
-      </div>
-      <NInput v-model:value="appStore.copyrightCompany" class="mb-2" placeholder="公司名" />
-      <NInput v-model:value="appStore.copyrightSite" placeholder="公司主页" />
-    </NCard>
-
-    <NCard size="small" :bordered="false">
-      <div class="section-title">
-        辅助模式
-      </div>
-      <div class="mb-2 flex items-center justify-between">
-        <span>灰色模式</span>
-        <NSwitch v-model:value="appStore.grayscaleEnabled" />
-      </div>
-      <div class="flex items-center justify-between">
-        <span>色弱模式</span>
-        <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
       </div>
     </NCard>
   </div>
@@ -201,8 +155,14 @@ const transitionItems = [
 
 /* 淡入淡出 */
 @keyframes anim-fade {
-  0%, 100% { opacity: 0; }
-  40%, 60% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0;
+  }
+  40%,
+  60% {
+    opacity: 1;
+  }
 }
 .anim-fade {
   animation: anim-fade 2s ease-in-out infinite;
@@ -210,9 +170,19 @@ const transitionItems = [
 
 /* 左右滑动 */
 @keyframes anim-slide-left {
-  0% { transform: translateX(120%); opacity: 0; }
-  30%, 70% { transform: translateX(0); opacity: 1; }
-  100% { transform: translateX(-120%); opacity: 0; }
+  0% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  30%,
+  70% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
 }
 .anim-slide-left {
   animation: anim-slide-left 2.2s ease-in-out infinite;
@@ -220,9 +190,19 @@ const transitionItems = [
 
 /* 向上滑入 */
 @keyframes anim-slide-up {
-  0% { transform: translateY(120%); opacity: 0; }
-  30%, 70% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-120%); opacity: 0; }
+  0% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+  30%,
+  70% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
 }
 .anim-slide-up {
   animation: anim-slide-up 2.2s ease-in-out infinite;
@@ -230,9 +210,19 @@ const transitionItems = [
 
 /* 向下滑入 */
 @keyframes anim-slide-down {
-  0% { transform: translateY(-120%); opacity: 0; }
-  30%, 70% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(120%); opacity: 0; }
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  30%,
+  70% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
 }
 .anim-slide-down {
   animation: anim-slide-down 2.2s ease-in-out infinite;

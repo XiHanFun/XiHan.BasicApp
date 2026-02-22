@@ -65,7 +65,7 @@ export const WIDGET_REFRESH_KEY = `${STORAGE_PREFIX}widget_refresh`
 export const FOOTER_ENABLE_KEY = `${STORAGE_PREFIX}footer_enable`
 export const FOOTER_FIXED_KEY = `${STORAGE_PREFIX}footer_fixed`
 export const COPYRIGHT_ENABLE_KEY = `${STORAGE_PREFIX}copyright_enable`
-export const COPYRIGHT_COMPANY_KEY = `${STORAGE_PREFIX}copyright_company`
+export const COPYRIGHT_NAME_KEY = `${STORAGE_PREFIX}copyright_name`
 export const COPYRIGHT_SITE_KEY = `${STORAGE_PREFIX}copyright_site`
 export const SHORTCUT_ENABLE_KEY = `${STORAGE_PREFIX}shortcut_enable`
 export const SHORTCUT_SEARCH_KEY = `${STORAGE_PREFIX}shortcut_search`
@@ -73,6 +73,21 @@ export const SHORTCUT_LOGOUT_KEY = `${STORAGE_PREFIX}shortcut_logout`
 export const SHORTCUT_LOCK_KEY = `${STORAGE_PREFIX}shortcut_lock`
 export const TRANSITION_ENABLE_KEY = `${STORAGE_PREFIX}transition_enable`
 export const TRANSITION_NAME_KEY = `${STORAGE_PREFIX}transition_name`
+export const TRANSITION_PROGRESS_KEY = `${STORAGE_PREFIX}transition_progress`
+export const TRANSITION_LOADING_KEY = `${STORAGE_PREFIX}transition_loading`
+export const HEADER_SHOW_KEY = `${STORAGE_PREFIX}header_show`
+export const SIDEBAR_DARK_KEY = `${STORAGE_PREFIX}sidebar_dark`
+export const SIDEBAR_SUB_DARK_KEY = `${STORAGE_PREFIX}sidebar_sub_dark`
+export const HEADER_DARK_KEY = `${STORAGE_PREFIX}header_dark`
+export const NAV_ACCORDION_KEY = `${STORAGE_PREFIX}nav_accordion`
+export const TABBAR_SCROLL_RESPONSE_KEY = `${STORAGE_PREFIX}tabbar_scroll_response`
+export const TABBAR_MIDDLE_CLICK_CLOSE_KEY = `${STORAGE_PREFIX}tabbar_middle_click_close`
+export const TABBAR_SHOW_ICON_KEY = `${STORAGE_PREFIX}tabbar_show_icon`
+export const TABBAR_STYLE_KEY = `${STORAGE_PREFIX}tabbar_style`
+export const WIDGET_PREFERENCE_POSITION_KEY = `${STORAGE_PREFIX}widget_preference_position`
+export const COPYRIGHT_DATE_KEY = `${STORAGE_PREFIX}copyright_date`
+export const COPYRIGHT_ICP_KEY = `${STORAGE_PREFIX}copyright_icp`
+export const COPYRIGHT_ICP_URL_KEY = `${STORAGE_PREFIX}copyright_icp_url`
 
 // ==================== 主题模式 ====================
 

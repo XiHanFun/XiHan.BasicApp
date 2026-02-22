@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
-import { NCard, NColorPicker, NInputNumber, NRadioGroup } from 'naive-ui'
+import { NCard, NColorPicker, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
 
@@ -49,15 +49,13 @@ const themePresetItems: ThemePresetItem[] = [
 
 <template>
   <div class="space-y-4">
-    <!-- 主题 -->
+    <!-- 模式 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">
-        主题
-      </div>
+      <div class="section-title">模式</div>
       <NRadioGroup
         :value="props.themeMode"
         class="w-full"
-        @update:value="value => emit('themeModeChange', value as 'light' | 'dark' | 'auto')"
+        @update:value="(value) => emit('themeModeChange', value as 'light' | 'dark' | 'auto')"
       >
         <div class="grid grid-cols-3 gap-2">
           <label
@@ -72,7 +70,7 @@ const themePresetItems: ThemePresetItem[] = [
               class="sr-only"
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
-            >
+            />
             <Icon :icon="mode.icon" width="20" class="mb-1" />
             <span class="text-xs">{{ mode.label }}</span>
           </label>
@@ -80,18 +78,12 @@ const themePresetItems: ThemePresetItem[] = [
       </NRadioGroup>
     </NCard>
 
-    <!-- 内置主题 -->
+    <!-- 颜色 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">
-        内置主题
-      </div>
+      <div class="section-title">颜色</div>
       <div class="grid grid-cols-3 gap-x-2 gap-y-3">
         <!-- 预设颜色：标签在卡片外面 -->
-        <div
-          v-for="preset in themePresetItems"
-          :key="preset.color"
-          class="color-item"
-        >
+        <div v-for="preset in themePresetItems" :key="preset.color" class="color-item">
           <button
             type="button"
             class="theme-color-card"
@@ -107,7 +99,7 @@ const themePresetItems: ThemePresetItem[] = [
         <div class="color-item">
           <div
             class="theme-color-card custom-color-card"
-            :class="{ 'is-active': !themePresetItems.some(p => p.color === appStore.themeColor) }"
+            :class="{ 'is-active': !themePresetItems.some((p) => p.color === appStore.themeColor) }"
           >
             <div class="theme-color-dot custom-dot">
               <Icon icon="lucide:pipette" width="16" />
@@ -118,7 +110,7 @@ const themePresetItems: ThemePresetItem[] = [
               :show-alpha="false"
               :actions="['confirm']"
               class="custom-color-overlay"
-              @update:value="value => appStore.setThemeColor(value)"
+              @update:value="(value) => appStore.setThemeColor(value)"
             >
               <template #label>
                 <span />
@@ -132,9 +124,7 @@ const themePresetItems: ThemePresetItem[] = [
 
     <!-- 圆角 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">
-        圆角
-      </div>
+      <div class="section-title">圆角</div>
       <div class="grid grid-cols-5 gap-1.5">
         <button
           v-for="r in [0, 0.25, 0.5, 0.75, 1]"
@@ -149,23 +139,56 @@ const themePresetItems: ThemePresetItem[] = [
       </div>
     </NCard>
 
-    <!-- 字体大小 -->
+    <!-- 导航 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">
-        字体大小
+      <div class="section-title">导航</div>
+      <div class="mb-2 flex items-center justify-between">
+        <span>深色侧边栏</span>
+        <NSwitch v-model:value="appStore.sidebarDark" />
       </div>
-      <div class="flex items-center gap-2">
-        <NInputNumber
-          :value="appStore.fontSize"
-          :min="12"
-          :max="20"
-          :step="1"
-          button-placement="both"
-          :input-props="{ style: 'text-align: center' }"
-          class="flex-1"
-          @update:value="value => value !== null && appStore.setFontSize(value)"
-        />
-        <span class="unit-label">px</span>
+      <div class="mb-2 flex items-center justify-between">
+        <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarDark }">
+          深色侧边栏子栏
+        </span>
+        <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="!appStore.sidebarDark" />
+      </div>
+      <div class="flex items-center justify-between">
+        <span>深色顶栏</span>
+        <NSwitch v-model:value="appStore.headerDark" />
+      </div>
+    </NCard>
+
+    <!-- 字体 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">字体</div>
+      <div class="flex items-center justify-between">
+        <span>大小</span>
+        <div class="flex items-center gap-1.5">
+          <NInputNumber
+            :value="appStore.fontSize"
+            :min="12"
+            :max="20"
+            :step="1"
+            button-placement="both"
+            :input-props="{ style: 'text-align: center' }"
+            style="width: 130px"
+            @update:value="(value) => value !== null && appStore.setFontSize(value)"
+          />
+          <span class="unit-label">px</span>
+        </div>
+      </div>
+    </NCard>
+
+    <!-- 其它 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">其它</div>
+      <div class="mb-2 flex items-center justify-between">
+        <span>色弱模式</span>
+        <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
+      </div>
+      <div class="flex items-center justify-between">
+        <span>灰色模式</span>
+        <NSwitch v-model:value="appStore.grayscaleEnabled" />
       </div>
     </NCard>
   </div>
