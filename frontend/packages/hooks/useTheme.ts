@@ -1,6 +1,6 @@
 import type { GlobalThemeOverrides } from 'naive-ui'
 import { darkTheme, lightTheme, useOsTheme } from 'naive-ui'
-import { computed, watch } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { useAppStore } from '~/stores'
 
@@ -75,23 +75,17 @@ export function useTheme() {
     appStore.toggleTheme()
   }
 
-  function withoutColorTransition(callback: () => void) {
-    document.documentElement.classList.add('theme-switching')
-    callback()
-    requestAnimationFrame(() => {
-      document.documentElement.classList.remove('theme-switching')
-    })
-  }
+  interface VTResult { ready: Promise<void>, finished: Promise<void>, skipTransition?: () => void }
 
   function animateThemeTransition(mode: 'light' | 'dark', e?: MouseEvent) {
-    if (appStore.themeMode === mode) {
+    if (appStore.themeMode === mode)
       return
-    }
-    const canAnimate = appStore.themeAnimationEnabled && 'startViewTransition' in document
-    if (!canAnimate) {
-      withoutColorTransition(() => {
-        appStore.setTheme(mode)
-      })
+
+    // 无动画或浏览器不支持：直接切换，抑制 CSS 过渡一帧
+    if (!appStore.themeAnimationEnabled || !('startViewTransition' in document)) {
+      document.documentElement.classList.add('theme-switching')
+      appStore.setTheme(mode)
+      requestAnimationFrame(() => document.documentElement.classList.remove('theme-switching'))
       return
     }
 
@@ -102,33 +96,45 @@ export function useTheme() {
       Math.max(y, window.innerHeight - y),
     )
 
-    document.documentElement.setAttribute('data-theme-to', mode)
+    // clipPath 起止：从点击处 0 → 全屏
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`,
+    ]
+
+    // 全程抑制 CSS transition，防止截图期间元素颜色渐变产生残影
+    document.documentElement.classList.add('theme-switching')
+
     const transition = (
-      document as Document & {
-        startViewTransition: (callback: () => void) => { ready: Promise<void> }
-      }
-    ).startViewTransition(() => {
-      withoutColorTransition(() => {
-        appStore.setTheme(mode)
-      })
+      document as Document & { startViewTransition: (cb: () => Promise<void>) => VTResult }
+    ).startViewTransition(async () => {
+      appStore.setTheme(mode)
+      // 等 Vue 全部 DOM 更新完毕，浏览器才截"新主题"快照
+      // 缺少此步时截图不完整，是切亮色闪烁的根因（参照 vben 实现）
+      await nextTick()
     })
 
-    const isDarkMode = appStore.themeMode === 'dark' || mode === 'dark'
-    // 切暗色：新主题从点击处扩散展开；切亮色：旧主题从点击处收缩消退
+    const toDark = mode === 'dark'
     transition.ready.then(() => {
-      if (isDarkMode) {
-        document.documentElement.animate(
-          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
-          { duration: 420, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' } as KeyframeAnimationOptions,
-        )
+      // 对齐 vben：
+      //   切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
+      //   切亮色 → 新层（亮）在上，0 → 全屏 扩散
+      const anim = document.documentElement.animate(
+        { clipPath: toDark ? [...clipPath].reverse() : clipPath },
+        {
+          duration: 450,
+          easing: 'ease-in',
+          pseudoElement: toDark ? '::view-transition-old(root)' : '::view-transition-new(root)',
+        } as KeyframeAnimationOptions,
+      )
+      anim.onfinish = () => {
+        // 动画结束后立即跳过剩余 ViewTransition，消除尾帧闪烁（vben 同款做法）
+        transition.skipTransition?.()
+        document.documentElement.classList.remove('theme-switching')
       }
-      else {
-        document.documentElement.animate(
-          { clipPath: [`circle(${endRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`] },
-          { duration: 420, easing: 'ease-in', pseudoElement: '::view-transition-old(root)' } as KeyframeAnimationOptions,
-        )
-      }
-    }).catch(() => { /* ViewTransition 被中断，无需处理 */ })
+    }).catch(() => {
+      document.documentElement.classList.remove('theme-switching')
+    })
   }
 
   function toggleThemeWithTransition(e?: MouseEvent) {

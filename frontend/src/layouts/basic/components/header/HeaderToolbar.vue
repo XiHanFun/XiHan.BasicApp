@@ -13,7 +13,6 @@ const emit = defineEmits<{
   localeChange: [key: string]
   timezoneChange: [key: string]
   themeToggle: [event: MouseEvent]
-  lockScreen: []
   refresh: []
   notification: []
   fullscreenToggle: []
@@ -77,14 +76,6 @@ interface HeaderToolbarProps {
           </NIcon>
         </template>
       </NButton>
-
-      <div v-if="props.appStore.widgetLockScreen">
-        <NButton quaternary circle size="small" @click="emit('lockScreen')">
-          <template #icon>
-            <NIcon><Icon icon="lucide:lock" width="16" /></NIcon>
-          </template>
-        </NButton>
-      </div>
 
       <div v-if="props.appStore.widgetRefresh">
         <NButton quaternary circle size="small" @click="emit('refresh')">
