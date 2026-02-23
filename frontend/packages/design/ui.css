@@ -92,7 +92,7 @@
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  border-radius: 6px;
+  border-radius: var(--radius);
   padding: 0 6px;
   margin: 1px 0;
   height: 38px;

@@ -253,7 +253,7 @@ const localizedModes = computed(() =>
   gap: 4px;
   padding: 10px 6px;
   border: 1.5px solid hsl(var(--border));
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
   cursor: pointer;
@@ -289,7 +289,7 @@ const localizedModes = computed(() =>
   padding: 10px;
   width: 100%;
   border: 1.5px solid hsl(var(--border));
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   background: hsl(var(--card));
   cursor: pointer;
   transition: all 0.16s ease;
@@ -308,7 +308,7 @@ const localizedModes = computed(() =>
 .theme-color-dot {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   flex-shrink: 0;
 }
 
@@ -344,7 +344,7 @@ const localizedModes = computed(() =>
 .radius-btn {
   padding: 6px 4px;
   border: 1.5px solid hsl(var(--border));
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
   font-size: 12px;
