@@ -181,6 +181,7 @@ function handleTogglePin() {
     <SidebarMenu
       :active-key="activeKey"
       :collapsed="collapsed"
+      :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
       :menu-options="menuOptions"
       :navigation-style="appStore.navigationStyle"
       :accordion="appStore.navigationAccordion"
