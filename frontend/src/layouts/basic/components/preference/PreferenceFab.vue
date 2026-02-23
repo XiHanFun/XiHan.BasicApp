@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { NButton } from 'naive-ui'
+import { NButton, NIcon } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'PreferenceFab' })
@@ -16,9 +16,18 @@ const { t } = useI18n()
     class="preference-fab fixed z-[80]"
     style="right: 12px; bottom: 88px"
   >
-    <NButton quaternary circle size="large" :title="t('preference.drawer.title')" @click="emit('click')">
+    <NButton
+      circle
+      size="large"
+      type="primary"
+      :title="t('preference.drawer.title')"
+      @click="emit('click')"
+      @mousedown.prevent
+    >
       <template #icon>
-        <Icon icon="lucide:settings-2" width="20" />
+        <NIcon size="20">
+          <Icon icon="lucide:settings-2" />
+        </NIcon>
       </template>
     </NButton>
   </div>
@@ -26,8 +35,6 @@ const { t } = useI18n()
 
 <style scoped>
 .preference-fab {
-  border-radius: 9999px;
-  background: color-mix(in srgb, hsl(var(--background)) 88%, transparent);
-  backdrop-filter: blur(8px);
+  filter: drop-shadow(0 4px 12px hsl(var(--primary) / 0.35));
 }
 </style>
