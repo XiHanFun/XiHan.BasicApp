@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { NButton, NDrawer, NDrawerContent, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
+import { NButton, NDrawer, NDrawerContent, NIcon, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/store/auth'
@@ -144,10 +144,23 @@ onUnmounted(() => {
   <NDrawer v-model:show="visible" :width="396" placement="right">
     <NDrawerContent
       class="preference-drawer-content"
-      :title="t('preference.drawer.title')"
-      closable
       :body-content-style="{ paddingTop: '0px' }"
     >
+      <template #header>
+        <div class="drawer-header">
+          <span class="drawer-title">{{ t('preference.drawer.title') }}</span>
+          <button
+            tabindex="-1"
+            class="close-btn"
+            :aria-label="t('common.close')"
+            @click="visible = false"
+          >
+            <NIcon size="16">
+              <Icon icon="lucide:x" />
+            </NIcon>
+          </button>
+        </div>
+      </template>
       <NTabs class="preference-tabs" type="segment" animated>
         <NTabPane name="appearance" :tab="t('preference.drawer.tab.appearance')">
           <PreferenceAppearanceTab
@@ -209,12 +222,51 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  margin-top: 0;
-  padding-top: 0;
+  padding-top: 12px;
+  padding-bottom: 4px;
   background: var(--n-color);
 }
 
 :deep(.preference-tabs > .n-tabs-nav .n-tabs-rail) {
   margin-top: 0;
+}
+
+/* 自定义头部 */
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* 自定义关闭按钮 */
+.close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  outline: none;
+}
+
+.close-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+.close-btn:active {
+  background: hsl(var(--accent) / 0.7);
 }
 </style>
