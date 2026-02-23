@@ -217,7 +217,7 @@ watch(
             <AppHeader />
           </NConfigProvider>
         </NLayoutHeader>
-        <AppTabbar />
+        <AppTabbar v-if="appStore.tabbarEnabled && !contentMaximized && !isFullContentLayout" />
       </div>
 
       <!-- 页面内容 -->
