@@ -24,7 +24,8 @@ function hexToHsl(hex: string): [number, number, number] {
       case g:
         h = ((b - r) / d + 2) / 6
         break
-      default: h = ((r - g) / d + 4) / 6
+      default:
+        h = ((r - g) / d + 4) / 6
     }
   }
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)]
@@ -38,7 +39,9 @@ function hslToHex(h: number, s: number, l: number): string {
   const f = (n: number) => {
     const k = (n + h / 30) % 12
     const color = ll - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
-    return Math.round(255 * color).toString(16).padStart(2, '0')
+    return Math.round(255 * color)
+      .toString(16)
+      .padStart(2, '0')
   }
   return `#${f(0)}${f(8)}${f(4)}`
 }
@@ -81,11 +84,9 @@ function generatePrimaryScale(hex: string) {
  * 而 Naive UI 内部的 TinyColor 只支持老式逗号语法 "hsl(H, S%, L%)"。
  */
 function getCssColorVar(varName: string, fallback = ''): string {
-  if (typeof document === 'undefined')
-    return fallback
+  if (typeof document === 'undefined') return fallback
   const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
-  if (!raw)
-    return fallback
+  if (!raw) return fallback
   // "142 71% 45%" → "hsl(142, 71%, 45%)"
   const parts = raw.split(/\s+/)
   if (parts.length >= 3) {
@@ -110,19 +111,33 @@ export function useTheme() {
 
   const naiveTheme = computed(() => (isDark.value ? darkTheme : lightTheme))
 
+  /** 计算圆角像素值（供 CSS 变量同步及 Naive UI themeOverrides 共用） */
+  function calcRadius(r: number) {
+    return {
+      radius: `${Math.round(4 + r * 12)}px`,
+      cardRadius: `${Math.round(6 + r * 10)}px`,
+    }
+  }
+
+  /** 将当前 uiRadius 同步到根元素 CSS 变量，供非 Naive UI 的自定义元素使用 */
+  function syncRadiusCssVars(r: number) {
+    if (typeof document === 'undefined') return
+    const { radius, cardRadius } = calcRadius(r)
+    document.documentElement.style.setProperty('--radius', radius)
+    document.documentElement.style.setProperty('--radius-card', cardRadius)
+  }
+
+  watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
+
   const themeOverrides = computed((): GlobalThemeOverrides => {
-    const radius = `${Math.round(4 + appStore.uiRadius * 12)}px`
-    const cardRadius = `${Math.round(6 + appStore.uiRadius * 10)}px`
+    const { radius, cardRadius } = calcRadius(appStore.uiRadius)
     const scale = generatePrimaryScale(appStore.themeColor)
     return {
       common: {
-        // primary color with proper hover/active/suppl variants
         primaryColor: scale.base,
         primaryColorHover: scale.hover,
         primaryColorPressed: scale.active,
         primaryColorSuppl: scale.suppl,
-        // functional semantic colors sourced from CSS variables (single source of truth)
-        // fallback hex ensures Naive UI never receives an empty string
         successColor: getCssColorVar('--success', '#18a058'),
         successColorHover: getCssColorVar('--success', '#18a058'),
         successColorPressed: getCssColorVar('--success', '#18a058'),
@@ -141,17 +156,6 @@ export function useTheme() {
         infoColorSuppl: getCssColorVar('--info', '#2080f0'),
         borderRadius: radius,
       },
-      Button: {
-        borderRadiusMedium: radius,
-      },
-      Card: {
-        borderRadius: cardRadius,
-      },
-      DataTable: {
-        borderRadius: cardRadius,
-      },
-      // NMenu 背景始终透明，由侧边栏容器的 --sidebar-bg 统一控制背景色。
-      // 对齐 vben-admin 的方式：菜单背景用设计系统 CSS 变量而非 Naive UI 自身的 cardColor。
       Menu: {
         color: 'transparent',
         colorInverted: 'transparent',
@@ -163,11 +167,14 @@ export function useTheme() {
     appStore.toggleTheme()
   }
 
-  interface VTResult { ready: Promise<void>, finished: Promise<void>, skipTransition?: () => void }
+  interface VTResult {
+    ready: Promise<void>
+    finished: Promise<void>
+    skipTransition?: () => void
+  }
 
   function animateThemeTransition(mode: 'light' | 'dark', e?: MouseEvent) {
-    if (appStore.themeMode === mode)
-      return
+    if (appStore.themeMode === mode) return
 
     // 无动画或浏览器不支持：直接切换，抑制 CSS 过渡一帧
     if (!appStore.themeAnimationEnabled || !('startViewTransition' in document)) {
@@ -185,10 +192,7 @@ export function useTheme() {
     )
 
     // clipPath 起止：从点击处 0 → 全屏
-    const clipPath = [
-      `circle(0px at ${x}px ${y}px)`,
-      `circle(${endRadius}px at ${x}px ${y}px)`,
-    ]
+    const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
 
     // 全程抑制 CSS transition，防止截图期间元素颜色渐变产生残影
     document.documentElement.classList.add('theme-switching')
@@ -203,26 +207,28 @@ export function useTheme() {
     })
 
     const toDark = mode === 'dark'
-    transition.ready.then(() => {
-      // 对齐 vben：
-      //   切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
-      //   切亮色 → 新层（亮）在上，0 → 全屏 扩散
-      const anim = document.documentElement.animate(
-        { clipPath: toDark ? [...clipPath].reverse() : clipPath },
-        {
-          duration: 450,
-          easing: 'ease-in',
-          pseudoElement: toDark ? '::view-transition-old(root)' : '::view-transition-new(root)',
-        } as KeyframeAnimationOptions,
-      )
-      anim.onfinish = () => {
-        // 动画结束后立即跳过剩余 ViewTransition，消除尾帧闪烁（vben 同款做法）
-        transition.skipTransition?.()
+    transition.ready
+      .then(() => {
+        // 对齐 vben：
+        //   切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
+        //   切亮色 → 新层（亮）在上，0 → 全屏 扩散
+        const anim = document.documentElement.animate(
+          { clipPath: toDark ? [...clipPath].reverse() : clipPath },
+          {
+            duration: 450,
+            easing: 'ease-in',
+            pseudoElement: toDark ? '::view-transition-old(root)' : '::view-transition-new(root)',
+          } as KeyframeAnimationOptions,
+        )
+        anim.onfinish = () => {
+          // 动画结束后立即跳过剩余 ViewTransition，消除尾帧闪烁（vben 同款做法）
+          transition.skipTransition?.()
+          document.documentElement.classList.remove('theme-switching')
+        }
+      })
+      .catch(() => {
         document.documentElement.classList.remove('theme-switching')
-      }
-    }).catch(() => {
-      document.documentElement.classList.remove('theme-switching')
-    })
+      })
   }
 
   function toggleThemeWithTransition(e?: MouseEvent) {
