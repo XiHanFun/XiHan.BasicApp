@@ -26,20 +26,6 @@ const contentMaximized = ref(false)
 const showFloatingFab = computed(() => isNarrowScreen.value || contentMaximized.value)
 const { animateThemeTransition, followSystem } = useTheme()
 
-const themePresets = [
-  '#18a058',
-  '#1677ff',
-  '#6366f1',
-  '#ec4899',
-  '#f59e0b',
-  '#4f46e5',
-  '#10b981',
-  '#334155',
-  '#c2410c',
-  '#b91c1c',
-  '#3f3f46',
-  '#1f2937',
-]
 
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
@@ -166,7 +152,6 @@ onUnmounted(() => {
           <PreferenceAppearanceTab
             :app-store="appStore"
             :theme-mode="themeMode"
-            :theme-presets="themePresets"
             @theme-mode-change="handleThemeModeChange"
           />
         </NTabPane>

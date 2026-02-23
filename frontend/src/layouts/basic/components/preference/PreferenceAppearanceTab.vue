@@ -17,13 +17,12 @@ const { t } = useI18n()
 
 interface ThemePresetItem {
   color: string
-  labelKey: string
+  name: string
 }
 
 interface PreferenceAppearanceTabProps {
   appStore: ReturnType<typeof useAppStore>
   themeMode: string
-  themePresets: string[]
 }
 
 const themeModes = [
@@ -33,28 +32,25 @@ const themeModes = [
 ] as const
 
 const themePresetItems: ThemePresetItem[] = [
-  { color: '#4080FF', labelKey: 'preference.appearance.color.blue' },
-  { color: '#7C3AED', labelKey: 'preference.appearance.color.violet' },
-  { color: '#E91E8C', labelKey: 'preference.appearance.color.crimson' },
-  { color: '#F59E0B', labelKey: 'preference.appearance.color.amber' },
-  { color: '#0EA5E9', labelKey: 'preference.appearance.color.sky' },
-  { color: '#10B981', labelKey: 'preference.appearance.color.emerald' },
-  { color: '#6B7280', labelKey: 'preference.appearance.color.slate' },
-  { color: '#059669', labelKey: 'preference.appearance.color.teal' },
-  { color: '#1D4ED8', labelKey: 'preference.appearance.color.indigo' },
-  { color: '#EA580C', labelKey: 'preference.appearance.color.orange' },
-  { color: '#DC2626', labelKey: 'preference.appearance.color.red' },
-  { color: '#374151', labelKey: 'preference.appearance.color.dark_gray' },
-  { color: '#334155', labelKey: 'preference.appearance.color.dark_blue' },
-  { color: '#4B5563', labelKey: 'preference.appearance.color.gray' },
+  { color: '#feba07', name: '琥珀黄' },
+  { color: '#5bae23', name: '鹦鹉绿' },
+  { color: '#20a162', name: '孔雀绿' },
+  { color: '#2c9678', name: '青矾绿' },
+  { color: '#12aa9c', name: '美蝶绿' },
+  { color: '#0eb0c9', name: '孔雀蓝' },
+  { color: '#1772b4', name: '景泰蓝' },
+  { color: '#61649f', name: '山梗紫' },
+  { color: '#813c85', name: '桔梗紫' },
+  { color: '#8b2671', name: '青莲' },
+  { color: '#d2357d', name: '玫瑰红' },
+  { color: '#f04a3a', name: '珊瑚红' },
+  { color: '#c21f30', name: '枫叶红' },
+  { color: '#f86b1d', name: '燕颔红' },
+  { color: '#142334', name: '燕颔蓝' },
 ]
 
 const localizedModes = computed(() =>
   themeModes.map(m => ({ ...m, label: t(m.labelKey) })),
-)
-
-const localizedPresets = computed(() =>
-  themePresetItems.map(p => ({ ...p, label: t(p.labelKey) })),
 )
 </script>
 
@@ -98,7 +94,7 @@ const localizedPresets = computed(() =>
       </div>
       <div class="grid grid-cols-3 gap-x-2 gap-y-3">
         <!-- 预设颜色 -->
-        <div v-for="preset in localizedPresets" :key="preset.color" class="color-item">
+        <div v-for="preset in themePresetItems" :key="preset.color" class="color-item">
           <button
             type="button"
             class="theme-color-card"
@@ -107,7 +103,7 @@ const localizedPresets = computed(() =>
           >
             <div class="theme-color-dot" :style="{ backgroundColor: preset.color }" />
           </button>
-          <span class="theme-color-label">{{ preset.label }}</span>
+          <span class="theme-color-label">{{ preset.name }}</span>
         </div>
 
         <!-- 自定义颜色 -->
@@ -117,7 +113,9 @@ const localizedPresets = computed(() =>
             :class="{ 'is-active': !themePresetItems.some((p) => p.color === appStore.themeColor) }"
           >
             <div class="theme-color-dot custom-dot">
-              <NIcon size="16"><Icon icon="lucide:pipette" /></NIcon>
+              <NIcon size="16">
+                <Icon icon="lucide:pipette" />
+              </NIcon>
             </div>
             <NColorPicker
               :value="appStore.themeColor"

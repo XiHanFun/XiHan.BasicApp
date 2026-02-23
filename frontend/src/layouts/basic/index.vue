@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { darkTheme, NConfigProvider, NLayout, NLayoutContent, NLayoutHeader, NLayoutSider } from 'naive-ui'
+import {
+  darkTheme,
+  NConfigProvider,
+  NLayout,
+  NLayoutContent,
+  NLayoutHeader,
+  NLayoutSider,
+} from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from '~/hooks'
@@ -33,9 +40,9 @@ const compactSidebarLayout = computed(() =>
 )
 const canHoverExpand = computed(() => {
   return (
-    !isNarrowScreen.value
-    && layoutPreferences.sidebarExpandOnHover
-    && (collapsed.value || compactSidebarLayout.value)
+    !isNarrowScreen.value &&
+    layoutPreferences.sidebarExpandOnHover &&
+    (collapsed.value || compactSidebarLayout.value)
   )
 })
 const effectiveCollapsed = computed(() => {
@@ -52,11 +59,11 @@ const effectiveCollapsed = computed(() => {
 })
 const showSider = computed(
   () =>
-    !contentMaximized.value
-    && !isFullContentLayout.value
-    && !isTopOnlyLayout.value
-    && appStore.sidebarShow
-    && (isNarrowScreen.value ? mobileSidebarOpen.value : true),
+    !contentMaximized.value &&
+    !isFullContentLayout.value &&
+    !isTopOnlyLayout.value &&
+    appStore.sidebarShow &&
+    (isNarrowScreen.value ? mobileSidebarOpen.value : true),
 )
 const siderFollowContent = computed(() => !layoutPreferences.sidebarExpandOnHover)
 const floatingSidebarMode = computed(() => !siderFollowContent.value && canHoverExpand.value)
@@ -175,9 +182,6 @@ watch(
       @click="closeMobileSidebar"
     />
     <!-- 侧边栏 -->
-    <!-- sidebarForceDark: 浅色主题下开启深色侧边栏
-         .dark class → CSS 变量(--sidebar-bg 等)切换到暗色值
-         NConfigProvider darkTheme → Naive UI 组件(NMenu/NButton 等)复用暗色主题，无需任何 !important 覆盖 -->
     <NLayoutSider
       v-if="showSider"
       :width="siderWidth"
@@ -198,7 +202,10 @@ watch(
       @mouseenter="handleSiderMouseEnter"
       @mouseleave="handleSiderMouseLeave"
     >
-      <NConfigProvider :theme="sidebarForceDark ? darkTheme : undefined" :theme-overrides="themeOverrides">
+      <NConfigProvider
+        :theme="sidebarForceDark ? darkTheme : undefined"
+        :theme-overrides="themeOverrides"
+      >
         <AppSidebar
           :collapsed="effectiveCollapsed"
           :floating-mode="isNarrowScreen ? false : floatingSidebarMode"
@@ -222,7 +229,10 @@ watch(
           :style="{ backgroundColor: 'var(--header-bg)' }"
           :class="headerForceDark ? 'dark' : ''"
         >
-          <NConfigProvider :theme="headerForceDark ? darkTheme : undefined" :theme-overrides="themeOverrides">
+          <NConfigProvider
+            :theme="headerForceDark ? darkTheme : undefined"
+            :theme-overrides="themeOverrides"
+          >
             <AppHeader />
           </NConfigProvider>
         </NLayoutHeader>
@@ -238,7 +248,9 @@ watch(
         <div class="min-h-full rounded-lg" :style="contentStyle">
           <RouterView v-slot="{ Component, route: currentRoute }">
             <Transition :name="transitionName" mode="out-in">
-              <KeepAlive :include="currentRoute.meta?.keepAlive ? [currentRoute.name as string] : []">
+              <KeepAlive
+                :include="currentRoute.meta?.keepAlive ? [currentRoute.name as string] : []"
+              >
                 <component
                   :is="Component"
                   :key="`${currentRoute.fullPath}_${tabbarStore.getRefreshSeed(currentRoute.fullPath)}`"

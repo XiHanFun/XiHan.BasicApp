@@ -19,6 +19,7 @@
   --primary-foreground: 0 0% 98%;
   --destructive: 359.33 100% 65.1%;
   --destructive-foreground: 0 0% 98%;
+  --destructive-surface: 359 80% 96%;
   --secondary: 240 5% 96%;
   --secondary-foreground: 240 6% 10%;
   --accent: 240 5% 96%;
@@ -37,6 +38,22 @@
   --sidebar-deep: 0 0% 100%;
   --menu: var(--sidebar);
   --header: 0 0% 100%;
+
+  /* functional semantic colors */
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 98%;
+  --success-surface: 142 60% 95%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 10%;
+  --warning-surface: 38 90% 95%;
+  --info: 210 90% 52%;
+  --info-foreground: 0 0% 98%;
+  --info-surface: 210 80% 95%;
+
+  /* state layer tokens (transparent overlays for interaction) */
+  --state-hover: 0 0% 0% / 4%;
+  --state-active: 0 0% 0% / 8%;
+  --state-disabled: 0 0% 0% / 38%;
 
   /* legacy app sizes/z-index */
   --layout-sidebar-width: 240px;
@@ -65,6 +82,7 @@
   --primary-foreground: 0 0% 98%;
   --destructive: 359.21 68.47% 56.47%;
   --destructive-foreground: 0 0% 98%;
+  --destructive-surface: 359 50% 18%;
   --secondary: 240 5% 17%;
   --secondary-foreground: 0 0% 98%;
   --accent: 216 5% 19%;
@@ -80,6 +98,22 @@
   --sidebar-deep: 220deg 13.06% 9%;
   --menu: var(--sidebar);
   --header: 222.34deg 10.43% 12.27%;
+
+  /* functional semantic colors (dark) */
+  --success: 142 60% 40%;
+  --success-foreground: 0 0% 98%;
+  --success-surface: 142 30% 15%;
+  --warning: 38 85% 45%;
+  --warning-foreground: 0 0% 10%;
+  --warning-surface: 38 40% 15%;
+  --info: 210 80% 45%;
+  --info-foreground: 0 0% 98%;
+  --info-surface: 210 30% 15%;
+
+  /* state layer tokens (dark mode — lighter overlays on dark bg) */
+  --state-hover: 0 0% 100% / 6%;
+  --state-active: 0 0% 100% / 10%;
+  --state-disabled: 0 0% 100% / 30%;
 
   color-scheme: dark;
 }
@@ -97,4 +131,10 @@
   --sidebar-bg: hsl(var(--sidebar));
   --header-bg: hsl(var(--header));
   --tabbar-bg: hsl(var(--header));
+
+  /* functional color aliases */
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-info: hsl(var(--info));
+  --color-error: hsl(var(--destructive));
 }

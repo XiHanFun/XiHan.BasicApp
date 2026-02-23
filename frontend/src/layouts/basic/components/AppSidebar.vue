@@ -97,10 +97,9 @@ function buildMenuOptions(routeList: SidebarRouteRecord[]): MenuOption[] {
     if (meta.hidden) {
       continue
     }
-    const firstVisibleChild = r.children?.find(child => !toSidebarMeta(child).hidden)
-    const keySource = props.compactMenu || appStore.sidebarAutoActivateChild
-      ? firstVisibleChild?.name
-      : r.name
+    const firstVisibleChild = r.children?.find((child) => !toSidebarMeta(child).hidden)
+    const keySource =
+      props.compactMenu || appStore.sidebarAutoActivateChild ? firstVisibleChild?.name : r.name
     const key = toRouteNameKey(keySource)
     if (!key) {
       continue
@@ -109,15 +108,14 @@ function buildMenuOptions(routeList: SidebarRouteRecord[]): MenuOption[] {
     const label = meta.title ? t(meta.title, meta.title) : fallbackName
     const icon = meta.icon
 
-    if (!props.compactMenu && r.children?.some(c => !toSidebarMeta(c).hidden)) {
+    if (!props.compactMenu && r.children?.some((c) => !toSidebarMeta(c).hidden)) {
       result.push({
         key,
         label,
         icon: icon ? renderIcon(icon) : undefined,
         children: buildMenuOptions(r.children),
       })
-    }
-    else {
+    } else {
       result.push({
         key,
         label,
@@ -128,7 +126,7 @@ function buildMenuOptions(routeList: SidebarRouteRecord[]): MenuOption[] {
   return result
 }
 
-const appRoutes = (routes.find(r => r.path === '/')?.children ?? []) as SidebarRouteRecord[]
+const appRoutes = (routes.find((r) => r.path === '/')?.children ?? []) as SidebarRouteRecord[]
 const menuSource = computed<SidebarRouteRecord[]>(() => {
   if (accessStore.accessRoutes.length) {
     return normalizeMenuRoutes(accessStore.accessRoutes)
@@ -139,8 +137,7 @@ const menuOptions = computed(() => buildMenuOptions(menuSource.value))
 const sidebarPinned = computed(() => !appStore.sidebarExpandOnHover)
 const sidebarCurrentWidth = computed(() => (collapsed.value ? 64 : appStore.sidebarWidth))
 const floatingSidebarStyle = computed(() => {
-  if (!props.floatingMode)
-    return undefined
+  if (!props.floatingMode) return undefined
   return {
     width: `${props.floatingExpand ? props.expandedWidth : 64}px`,
   }
@@ -207,10 +204,6 @@ function handleTogglePin() {
 </template>
 
 <style scoped>
-.app-sidebar-brand {
-  border-bottom: 1px solid var(--border-color);
-}
-
 :deep(.sidebar-menu-rounded .n-menu-item-content) {
   border-radius: 8px;
   margin: 2px 8px;
