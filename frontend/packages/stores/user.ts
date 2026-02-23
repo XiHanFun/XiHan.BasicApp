@@ -2,10 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { UserInfo } from '~/types'
 import { USER_INFO_KEY } from '~/constants'
-import { storage } from '~/utils'
+import { LocalStorage } from '~/utils'
 
 export const useUserStore = defineStore('user', () => {
-  const userInfo = ref<UserInfo | null>(storage.get<UserInfo>(USER_INFO_KEY))
+  const userInfo = ref<UserInfo | null>(LocalStorage.get<UserInfo>(USER_INFO_KEY))
 
   const isLoggedIn = computed(() => userInfo.value !== null)
   const username = computed(() => userInfo.value?.userName ?? '')
@@ -17,9 +17,9 @@ export const useUserStore = defineStore('user', () => {
   function setUserInfo(info: UserInfo | null) {
     userInfo.value = info
     if (info) {
-      storage.set(USER_INFO_KEY, info)
+      LocalStorage.set(USER_INFO_KEY, info)
     } else {
-      storage.remove(USER_INFO_KEY)
+      LocalStorage.remove(USER_INFO_KEY)
     }
   }
 
@@ -37,7 +37,7 @@ export const useUserStore = defineStore('user', () => {
 
   function $reset() {
     userInfo.value = null
-    storage.remove(USER_INFO_KEY)
+    LocalStorage.remove(USER_INFO_KEY)
   }
 
   return {
