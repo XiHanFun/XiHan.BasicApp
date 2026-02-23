@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { DropdownOption, MenuOption } from 'naive-ui'
+import type { DropdownOption } from 'naive-ui'
 import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
-import { NBreadcrumb, NBreadcrumbItem, NButton, NDropdown, NIcon, NMenu } from 'naive-ui'
+import { NBreadcrumb, NBreadcrumbItem, NDropdown } from 'naive-ui'
 import { computed } from 'vue'
 import AppBrand from '../AppBrand.vue'
+import XihanIconButton from '../XihanIconButton.vue'
 
 defineOptions({ name: 'HeaderNav' })
 
@@ -14,7 +15,6 @@ const emit = defineEmits<{
   sidebarToggle: []
   refresh: []
   breadcrumbSelect: [path: string]
-  topMenuSelect: [path: string]
   homeClick: []
 }>()
 
@@ -32,8 +32,6 @@ interface HeaderNavProps {
   appLogo: string
   showTopMenu: boolean
   breadcrumbs: BreadcrumbItem[]
-  topMenuActive?: string
-  topMenuOptions: MenuOption[]
 }
 
 /** 面包屑完整列表（含 Home），用于判断哪个 item 是"最后一项（当前页）" */
@@ -53,10 +51,7 @@ function isLast(isHome: boolean, index?: number): boolean {
 </script>
 
 <template>
-  <div
-    class="flex min-w-0 flex-1 items-center gap-2"
-    :class="props.appStore.headerMenuAlign === 'center' ? 'mx-auto' : ''"
-  >
+  <div class="flex min-w-0 shrink-0 items-center gap-2">
     <div class="flex min-w-0 items-center gap-2">
       <AppBrand
         v-if="['mix', 'header-sidebar', 'top'].includes(props.layoutMode)"
@@ -67,39 +62,28 @@ function isLast(isHome: boolean, index?: number): boolean {
       />
 
       <!-- 侧边栏折叠切换 -->
-      <NButton
+      <XihanIconButton
         v-if="!props.showTopMenu && props.appStore.widgetSidebarToggle"
-        quaternary
-        circle
-        size="small"
+        :tooltip="props.appStore.sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         @mousedown.prevent
         @click="emit('sidebarToggle')"
       >
-        <template #icon>
-          <NIcon>
-            <Icon
-              :icon="props.appStore.sidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'"
-              width="18"
-            />
-          </NIcon>
-        </template>
-      </NButton>
+        <Icon
+          :icon="props.appStore.sidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'"
+          width="18"
+          height="18"
+        />
+      </XihanIconButton>
 
       <!-- 刷新当前页 -->
-      <NButton
+      <XihanIconButton
         v-if="props.appStore.widgetRefresh"
-        quaternary
-        circle
-        size="small"
+        tooltip="刷新"
         @mousedown.prevent
         @click="emit('refresh')"
       >
-        <template #icon>
-          <NIcon size="16">
-            <Icon icon="lucide:refresh-cw" />
-          </NIcon>
-        </template>
-      </NButton>
+        <Icon icon="lucide:refresh-cw" width="16" height="16" />
+      </XihanIconButton>
 
       <!-- 面包屑导航（lg 以下隐藏） -->
       <NBreadcrumb
@@ -110,7 +94,7 @@ function isLast(isHome: boolean, index?: number): boolean {
         "
         class="hidden lg:flex items-center"
         :class="props.appStore.breadcrumbStyle === 'background'
-          ? 'rounded-md bg-[hsl(var(--muted))] px-2 py-1'
+          ? 'rounded-md bg-muted px-2 py-1'
           : ''"
       >
         <!-- Home 项 -->
@@ -183,16 +167,6 @@ function isLast(isHome: boolean, index?: number): boolean {
         </NBreadcrumbItem>
       </NBreadcrumb>
     </div>
-
-    <!-- 顶部水平菜单 -->
-    <NMenu
-      v-if="props.showTopMenu"
-      class="ml-auto hidden min-w-0 lg:block"
-      mode="horizontal"
-      :value="props.topMenuActive"
-      :options="props.topMenuOptions"
-      @update:value="key => emit('topMenuSelect', String(key))"
-    />
   </div>
 </template>
 

@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import type { DropdownOption, MenuOption } from 'naive-ui'
 import { Icon } from '@iconify/vue'
-import {
-  useMessage,
-} from 'naive-ui'
+import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -49,8 +47,8 @@ const currentTimezone = ref(
 const isTopNavLayout = computed(() => appStore.layoutMode === 'top')
 const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
 const isHeaderMixedLayout = computed(() => appStore.layoutMode === 'header-mix')
-const showTopMenu = computed(() =>
-  isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
+const showTopMenu = computed(
+  () => isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
 )
 const headerBrandTitle = computed(
   () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
@@ -61,12 +59,14 @@ const headerBrandLogo = computed(
 
 const topMenuSource = computed<HeaderRouteItem[]>(() => {
   if (isTopNavLayout.value) {
-    return (router.options.routes.find(item => item.path === '/')?.children ?? []) as HeaderRouteItem[]
+    return (router.options.routes.find((item) => item.path === '/')?.children ??
+      []) as HeaderRouteItem[]
   }
   if (accessStore.accessRoutes.length) {
     return accessStore.accessRoutes as unknown as HeaderRouteItem[]
   }
-  return (router.options.routes.find(item => item.path === '/')?.children ?? []) as HeaderRouteItem[]
+  return (router.options.routes.find((item) => item.path === '/')?.children ??
+    []) as HeaderRouteItem[]
 })
 
 function toRouteNameKey(name: string | number | symbol | null | undefined) {
@@ -74,7 +74,7 @@ function toRouteNameKey(name: string | number | symbol | null | undefined) {
 }
 
 function findVisibleChild(routeItem: HeaderRouteItem) {
-  return routeItem.children?.find(child => !child.meta?.hidden)
+  return routeItem.children?.find((child) => !child.meta?.hidden)
 }
 
 function resolveFullPath(path: string, parentPath = '') {
@@ -89,17 +89,33 @@ function resolveFullPath(path: string, parentPath = '') {
 
 function buildTopTreeOptions(routeList: HeaderRouteItem[], parentPath = ''): MenuOption[] {
   return routeList
-    .filter(item => !item.meta?.hidden)
+    .filter((item) => !item.meta?.hidden)
     .map((item) => {
       const fullPath = resolveFullPath(item.path, parentPath)
       const iconName = item.meta?.icon
       const titleKey = String(item.meta?.title ?? toRouteNameKey(item.name) ?? fullPath)
-      const visibleChildren = item.children?.filter(child => !child.meta?.hidden) ?? []
+      const displayText = te(titleKey) ? t(titleKey) : titleKey
+      const visibleChildren = item.children?.filter((child) => !child.meta?.hidden) ?? []
       return {
         key: fullPath,
-        label: te(titleKey) ? t(titleKey) : titleKey,
+        // 有子菜单的一级项追加 chevron-down 图标
+        label:
+          visibleChildren.length > 0
+            ? () =>
+                h('span', { class: 'top-menu-label' }, [
+                  h('span', displayText),
+                  h(Icon, {
+                    icon: 'lucide:chevron-down',
+                    width: '12',
+                    height: '12',
+                    class: 'top-menu-chevron',
+                  }),
+                ])
+            : displayText,
         icon: iconName ? () => h(Icon, { icon: iconName }) : undefined,
-        children: visibleChildren.length ? buildTopTreeOptions(visibleChildren, fullPath) : undefined,
+        children: visibleChildren.length
+          ? buildTopTreeOptions(visibleChildren, fullPath)
+          : undefined,
       } as MenuOption
     })
     .filter(Boolean) as MenuOption[]
@@ -110,7 +126,7 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     return buildTopTreeOptions(topMenuSource.value, '')
   }
   return topMenuSource.value
-    .filter(item => !item.meta?.hidden)
+    .filter((item) => !item.meta?.hidden)
     .map((item) => {
       const key = toRouteNameKey(item.name)
       if (!key) {
@@ -134,26 +150,29 @@ const topMenuActive = computed(() => {
   const routeMatched = route.matched.find((matchedRoute) => {
     const matchedName = toRouteNameKey(matchedRoute.name)
     return Boolean(
-      matchedName
-      && topMenuSource.value.some(item => toRouteNameKey(item.name) === matchedName),
+      matchedName && topMenuSource.value.some((item) => toRouteNameKey(item.name) === matchedName),
     )
   })
-  return toRouteNameKey(routeMatched?.name)
-    ?? toRouteNameKey(topMenuSource.value.find(item => !item.meta?.hidden)?.name)
+  return (
+    toRouteNameKey(routeMatched?.name) ??
+    toRouteNameKey(topMenuSource.value.find((item) => !item.meta?.hidden)?.name)
+  )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter(r => r.meta?.title && !r.meta?.hidden)
+  const matched = route.matched.filter((r) => r.meta?.title && !r.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
   return matched.map((r, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter(item => item.meta?.title && !item.meta?.hidden)
-      .map(item => ({
+      .filter((item) => item.meta?.title && !item.meta?.hidden)
+      .map((item) => ({
         key: item.path.startsWith('/') ? item.path : `${parent?.path ?? ''}/${item.path}`,
-        label: te(String(item.meta?.title)) ? t(String(item.meta?.title)) : String(item.meta?.title),
+        label: te(String(item.meta?.title))
+          ? t(String(item.meta?.title))
+          : String(item.meta?.title),
         icon: item.meta?.icon ? () => h(Icon, { icon: item.meta?.icon as string }) : undefined,
       }))
 
@@ -177,17 +196,25 @@ const userOptions = computed<DropdownOption[]>(() => {
     ...(appStore.widgetLockScreen
       ? [
           {
-            label: () => h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
-              h('span', t('header.user.lock')),
-              ...(appStore.shortcutEnable && appStore.shortcutLock
-                ? [h('kbd', {
-                    style: 'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;'
-                      + 'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));'
-                      + 'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;'
-                      + 'line-height:1.6;white-space:nowrap;',
-                  }, 'Alt L')]
-                : []),
-            ]),
+            label: () =>
+              h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+                h('span', t('header.user.lock')),
+                ...(appStore.shortcutEnable && appStore.shortcutLock
+                  ? [
+                      h(
+                        'kbd',
+                        {
+                          style:
+                            'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;' +
+                            'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));' +
+                            'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;' +
+                            'line-height:1.6;white-space:nowrap;',
+                        },
+                        'Alt L',
+                      ),
+                    ]
+                  : []),
+              ]),
             key: 'lock',
             icon: () => h(Icon, { icon: 'lucide:lock' }),
           } as DropdownOption,
@@ -198,17 +225,25 @@ const userOptions = computed<DropdownOption[]>(() => {
       key: 'divider',
     },
     {
-      label: () => h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
-        h('span', t('header.user.logout')),
-        ...(appStore.shortcutEnable && appStore.shortcutLogout
-          ? [h('kbd', {
-              style: 'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;'
-                + 'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));'
-                + 'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;'
-                + 'line-height:1.6;white-space:nowrap;',
-            }, 'Alt Q')]
-          : []),
-      ]),
+      label: () =>
+        h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+          h('span', t('header.user.logout')),
+          ...(appStore.shortcutEnable && appStore.shortcutLogout
+            ? [
+                h(
+                  'kbd',
+                  {
+                    style:
+                      'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;' +
+                      'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));' +
+                      'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;' +
+                      'line-height:1.6;white-space:nowrap;',
+                  },
+                  'Alt Q',
+                ),
+              ]
+            : []),
+        ]),
       key: 'logout',
       icon: () => h(Icon, { icon: 'lucide:log-out' }),
     },
@@ -234,11 +269,9 @@ const timezoneOptions = computed<DropdownOption[]>(() => {
 function handleUserAction(key: string) {
   if (key === 'logout') {
     authStore.logout()
-  }
-  else if (key === 'profile') {
+  } else if (key === 'profile') {
     router.push('/profile')
-  }
-  else if (key === 'lock') {
+  } else if (key === 'lock') {
     handleLockScreen()
   }
 }
@@ -270,7 +303,7 @@ function handleTopMenuSelect(path: string) {
     }
     return
   }
-  const rootMenu = topMenuSource.value.find(item => toRouteNameKey(item.name) === path)
+  const rootMenu = topMenuSource.value.find((item) => toRouteNameKey(item.name) === path)
   if (!rootMenu) {
     return
   }
@@ -304,8 +337,7 @@ function syncFullscreenState() {
 function toggleFullscreen() {
   if (document.fullscreenElement) {
     document.exitFullscreen()
-  }
-  else {
+  } else {
     document.documentElement.requestFullscreen()
   }
 }
@@ -331,7 +363,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-14 min-w-0 items-center justify-between gap-2 border-b border-border bg-header px-3">
+  <div class="flex h-14 min-w-0 items-center gap-2 border-b border-border bg-header px-3">
+    <!-- 左侧：品牌 + 切换 + 刷新 + 面包屑（shrink-0） -->
     <HeaderNav
       :app-store="appStore"
       :layout-mode="appStore.layoutMode"
@@ -339,14 +372,23 @@ onBeforeUnmount(() => {
       :app-logo="headerBrandLogo"
       :show-top-menu="showTopMenu"
       :breadcrumbs="breadcrumbs"
-      :top-menu-active="topMenuActive"
-      :top-menu-options="topMenuOptions"
       @sidebar-toggle="handleSidebarToggle"
       @refresh="handleRefreshCurrentTab"
       @breadcrumb-select="handleBreadcrumbSelect"
-      @top-menu-select="handleTopMenuSelect"
       @home-click="router.push('/')"
     />
+
+    <!-- 中间 flex-1 容器：有菜单时放 NMenu，无菜单时作弹性空白 -->
+    <div class="flex h-full min-w-0 flex-1 items-center justify-end">
+      <div v-if="showTopMenu" class="xihan-top-menu hidden h-full items-center lg:flex">
+        <NMenu
+          mode="horizontal"
+          :value="topMenuActive"
+          :options="topMenuOptions"
+          @update:value="(key) => handleTopMenuSelect(String(key))"
+        />
+      </div>
+    </div>
 
     <HeaderToolbar
       :app-store="appStore"
@@ -368,3 +410,17 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+<style>
+/* 顶部水平菜单：一级项 label 含 chevron */
+.top-menu-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.top-menu-chevron {
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+</style>

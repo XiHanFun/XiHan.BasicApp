@@ -83,6 +83,7 @@ import {
   WIDGET_REFRESH_KEY,
   WIDGET_SIDEBAR_TOGGLE_KEY,
   WIDGET_THEME_TOGGLE_KEY,
+  WIDGET_TIMEZONE_KEY,
 } from '~/constants'
 import { LocalStorage } from '~/utils'
 
@@ -196,6 +197,7 @@ export const useAppStore = defineStore('app', () => {
   const widgetLanguageToggle = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_LANGUAGE_TOGGLE_KEY) ?? true,
   )
+  const widgetTimezone = ref<boolean>(LocalStorage.get<boolean>(WIDGET_TIMEZONE_KEY) ?? false)
   const widgetFullscreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FULLSCREEN_KEY) ?? true)
   const widgetNotification = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true,
@@ -292,6 +294,7 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(WATERMARK_TEXT_KEY, watermarkText)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle)
   bindPersist(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle)
+  bindPersist(WIDGET_TIMEZONE_KEY, widgetTimezone)
   bindPersist(WIDGET_FULLSCREEN_KEY, widgetFullscreen)
   bindPersist(WIDGET_NOTIFICATION_KEY, widgetNotification)
   bindPersist(WIDGET_LOCKSCREEN_KEY, widgetLockScreen)
@@ -514,6 +517,9 @@ export const useAppStore = defineStore('app', () => {
   function setWidgetLanguageToggle(v: boolean) {
     save(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, v)
   }
+  function setWidgetTimezone(v: boolean) {
+    save(WIDGET_TIMEZONE_KEY, widgetTimezone, v)
+  }
   function setWidgetFullscreen(v: boolean) {
     save(WIDGET_FULLSCREEN_KEY, widgetFullscreen, v)
   }
@@ -631,6 +637,7 @@ export const useAppStore = defineStore('app', () => {
     watermarkText,
     widgetThemeToggle,
     widgetLanguageToggle,
+    widgetTimezone,
     widgetFullscreen,
     widgetNotification,
     widgetLockScreen,
@@ -711,6 +718,7 @@ export const useAppStore = defineStore('app', () => {
     setSidebarCollapsedShowTitle,
     setWidgetThemeToggle,
     setWidgetLanguageToggle,
+    setWidgetTimezone,
     setWidgetFullscreen,
     setWidgetNotification,
     setWidgetLockScreen,
