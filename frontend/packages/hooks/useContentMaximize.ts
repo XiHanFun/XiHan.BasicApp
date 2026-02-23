@@ -6,7 +6,6 @@ import { readonly, ref } from 'vue'
  * 使用模块级单例 ref，所有调用方共享同一份状态，
  * 无需事件总线即可实现跨组件（Header、Tabbar、页面）同步。
  *
- * 对标 vben-admin 的 `use-content-maximize`。
  */
 const _contentMaximized = ref(false)
 

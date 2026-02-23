@@ -6,8 +6,6 @@ import { type MaybeRefOrGetter, computed, ref, toValue } from 'vue'
  * 接受响应式或普通数组，自动计算分页数据。
  * 适用于前端本地分页（数据量较小且一次性加载的场景）。
  *
- * 对标 vben-admin 的 `use-pagination`。
- *
  * @param list 源数组（支持 ref / computed / 普通数组）
  * @param initialPageSize 初始每页条数，默认 10
  */

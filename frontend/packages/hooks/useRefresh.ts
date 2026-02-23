@@ -7,7 +7,6 @@ import { useTabbarStore } from '~/stores'
  * 通过递增 tabbarStore 中对应路径的 refreshSeed，
  * BasicLayout 中监听该值并销毁/重建页面组件，实现无刷新重载。
  *
- * 对标 vben-admin 的 `use-refresh`。
  */
 export function useRefresh() {
   const route = useRoute()

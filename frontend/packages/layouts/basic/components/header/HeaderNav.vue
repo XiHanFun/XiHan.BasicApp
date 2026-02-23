@@ -32,10 +32,7 @@ interface HeaderNavProps {
   topMenuOptions: MenuOption[]
 }
 
-/**
- * 面包屑完整列表（含 Home），用于判断哪个 item 是"最后一项（当前页）"。
- * 与 vben 的 breadcrumbs computed 对齐：统一处理 Home，统一判断 isLast。
- */
+/** 面包屑完整列表（含 Home），用于判断哪个 item 是"最后一项（当前页）" */
 const allCrumbs = computed(() => {
   const result: Array<{ key: string, isHome?: boolean, index?: number }> = []
   if (props.appStore.breadcrumbShowHome)
@@ -90,14 +87,7 @@ function isLast(isHome: boolean, index?: number): boolean {
       </template>
     </NButton>
 
-    <!--
-      面包屑导航
-      显示条件对标 vben：
-        - breadcrumbEnabled
-        - 非顶部菜单模式
-        - hideWhenOnlyOne：只有一项（且无 home）时隐藏
-        - 响应式：lg 以下隐藏（vben 用 hidden lg:block）
-    -->
+    <!-- 面包屑导航（lg 以下隐藏） -->
     <NBreadcrumb
       v-if="
         props.appStore.breadcrumbEnabled
@@ -111,7 +101,6 @@ function isLast(isHome: boolean, index?: number): boolean {
     >
       <!-- Home 项 -->
       <NBreadcrumbItem v-if="props.appStore.breadcrumbShowHome">
-        <!-- 分隔符：lucide chevron-right，对标 vben ChevronRight -->
         <template v-if="!isLast(true)" #separator>
           <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
         </template>
@@ -120,10 +109,6 @@ function isLast(isHome: boolean, index?: number): boolean {
           :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
           @click="!isLast(true) && emit('homeClick')"
         >
-          <!--
-            图标受 breadcrumbShowIcon 控制（vben 同款行为）
-            Home 使用 lucide:house，vben 使用 mdi:home-outline
-          -->
           <Icon
             v-if="props.appStore.breadcrumbShowIcon"
             icon="lucide:house"
@@ -144,7 +129,7 @@ function isLast(isHome: boolean, index?: number): boolean {
           <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
         </template>
 
-        <!-- 有同级兄弟页面 → 下拉选择（对标 vben DropdownMenu） -->
+        <!-- 有同级兄弟页面 → 下拉选择 -->
         <NDropdown
           v-if="item.siblings.length > 1"
           :options="item.siblings"
@@ -165,7 +150,7 @@ function isLast(isHome: boolean, index?: number): boolean {
           </div>
         </NDropdown>
 
-        <!-- 无兄弟页面 → 普通链接（对标 vben BreadcrumbLink / BreadcrumbPage） -->
+        <!-- 无兄弟页面 → 普通链接 -->
         <div
           v-else
           class="crumb-item"
@@ -198,8 +183,8 @@ function isLast(isHome: boolean, index?: number): boolean {
 
 <style scoped>
 /**
- * 面包屑条目：与 vben BreadcrumbLink / BreadcrumbPage 对齐
- * - inline-flex + items-center 替代 NFlex 组件，行为更可预期
+ * 面包屑条目
+ * - inline-flex + items-center，行为可预期
  * - 不设 height，由 line-height + padding 自然撑开，避免 icon 开关引起高度抖动
  * - gap 设在容器上，icon v-if 时 gap 仍为 0（flex 单子节点无 gap）
  */
@@ -235,14 +220,14 @@ function isLast(isHome: boolean, index?: number): boolean {
   flex-shrink: 0;
 }
 
-/** 分隔符图标：低透明度，对标 vben ChevronRight */
+/** 分隔符图标：低透明度 */
 .crumb-sep {
   display: block;
   flex-shrink: 0;
   opacity: 0.4;
 }
 
-/** 进入动画：对标 vben breadcrumb-transition（translateX + skewX）*/
+/** 进入动画 */
 @keyframes crumb-enter {
   from {
     opacity: 0;
