@@ -7,7 +7,6 @@ import { NIcon } from 'naive-ui'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { routes } from '@/router/routes'
 import { HOME_PATH } from '~/constants'
 import { useAccessStore, useAppStore } from '~/stores'
 import SidebarActions from './sidebar/SidebarActions.vue'
@@ -126,7 +125,7 @@ function buildMenuOptions(routeList: SidebarRouteRecord[]): MenuOption[] {
   return result
 }
 
-const appRoutes = (routes.find((r) => r.path === '/')?.children ?? []) as SidebarRouteRecord[]
+const appRoutes = (router.options.routes.find((r) => r.path === '/')?.children ?? []) as SidebarRouteRecord[]
 const menuSource = computed<SidebarRouteRecord[]>(() => {
   if (accessStore.accessRoutes.length) {
     return normalizeMenuRoutes(accessStore.accessRoutes)

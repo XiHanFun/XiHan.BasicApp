@@ -3,7 +3,7 @@ import { h, onMounted, ref } from 'vue'
 import { NCard, NDataTable, NTag, useMessage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import type { SysPermission } from '~/types'
-import { getPermissionListApi } from '@/api'
+import { getPermissionListApi } from '~/api'
 
 const message = useMessage()
 const loading = ref(false)

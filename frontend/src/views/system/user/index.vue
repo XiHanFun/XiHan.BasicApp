@@ -29,7 +29,7 @@ import {
   updateUserApi,
   deleteUserApi,
   updateUserStatusApi,
-} from '@/api'
+} from '~/api'
 
 defineOptions({ name: 'SystemUserPage' })
 

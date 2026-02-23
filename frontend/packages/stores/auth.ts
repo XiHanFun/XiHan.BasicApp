@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import type { LoginParams } from '~/types'
 import { LOGIN_PATH, HOME_PATH } from '~/constants'
 import { useAccessStore, useAppStore, useUserStore } from '~/stores'
-import { loginApi, logoutApi } from '@/api'
+import { loginApi, logoutApi } from '~/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()

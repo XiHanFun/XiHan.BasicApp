@@ -7,8 +7,7 @@ import {
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { routes } from '@/router/routes'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '~/stores'
 import { useLocale, useTheme } from '~/hooks'
 import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 import HeaderNav from './header/HeaderNav.vue'
@@ -55,7 +54,7 @@ const topMenuSource = computed<HeaderRouteItem[]>(() => {
   if (accessStore.accessRoutes.length) {
     return accessStore.accessRoutes as unknown as HeaderRouteItem[]
   }
-  return (routes.find(item => item.path === '/')?.children ?? []) as HeaderRouteItem[]
+  return (router.options.routes.find(item => item.path === '/')?.children ?? []) as HeaderRouteItem[]
 })
 
 const topMenuOptions = computed<MenuOption[]>(() => {

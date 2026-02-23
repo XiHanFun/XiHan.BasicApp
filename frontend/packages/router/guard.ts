@@ -1,6 +1,6 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
-import { getUserInfoApi, getUserMenuRoutesApi } from '@/api'
+import { getUserInfoApi, getUserMenuRoutesApi } from '~/api'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
