@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
-import { NCard, NColorPicker, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
+import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -84,7 +84,7 @@ const localizedPresets = computed(() =>
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
             >
-            <Icon :icon="mode.icon" width="20" class="mb-1" />
+            <NIcon size="20" class="mb-1"><Icon :icon="mode.icon" /></NIcon>
             <span class="text-xs">{{ mode.label }}</span>
           </label>
         </div>
@@ -117,7 +117,7 @@ const localizedPresets = computed(() =>
             :class="{ 'is-active': !themePresetItems.some((p) => p.color === appStore.themeColor) }"
           >
             <div class="theme-color-dot custom-dot">
-              <Icon icon="lucide:pipette" width="16" />
+              <NIcon size="16"><Icon icon="lucide:pipette" /></NIcon>
             </div>
             <NColorPicker
               :value="appStore.themeColor"

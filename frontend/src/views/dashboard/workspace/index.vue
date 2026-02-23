@@ -7,6 +7,7 @@ import {
   NStatistic,
   NNumberAnimation,
   NAvatar,
+  NIcon,
   NTag,
   NSpace,
   NSkeleton,
@@ -109,7 +110,9 @@ const quickLinks = [
           </p>
         </div>
         <div class="hidden opacity-80 sm:block">
-          <Icon icon="lucide:layout-dashboard" class="text-white" width="64" />
+          <NIcon size="64" class="text-white">
+            <Icon icon="lucide:layout-dashboard" />
+          </NIcon>
         </div>
       </div>
     </NCard>
@@ -129,11 +132,9 @@ const quickLinks = [
                 </NStatistic>
               </div>
               <p class="mt-1 text-xs" :class="stat.up ? 'text-green-500' : 'text-red-500'">
-                <Icon
-                  :icon="stat.up ? 'lucide:trending-up' : 'lucide:trending-down'"
-                  class="mr-1 inline-block"
-                  width="12"
-                />
+                <NIcon size="12" class="mr-1 inline-block align-middle">
+                  <Icon :icon="stat.up ? 'lucide:trending-up' : 'lucide:trending-down'" />
+                </NIcon>
                 {{ stat.trend }} 较昨日
               </p>
             </div>
@@ -141,7 +142,9 @@ const quickLinks = [
               class="flex h-12 w-12 items-center justify-center rounded-xl"
               :style="{ backgroundColor: stat.bgColor }"
             >
-              <Icon :icon="stat.icon" :style="{ color: stat.color }" width="24" />
+              <NIcon size="24" :style="{ color: stat.color }">
+                <Icon :icon="stat.icon" />
+              </NIcon>
             </div>
           </div>
         </NCard>
@@ -163,7 +166,9 @@ const quickLinks = [
                     class="flex h-10 w-10 items-center justify-center rounded-lg"
                     :style="{ backgroundColor: link.color }"
                   >
-                    <Icon :icon="link.icon" class="text-white" width="20" />
+                    <NIcon size="20" class="text-white">
+                      <Icon :icon="link.icon" />
+                    </NIcon>
                   </div>
                   <span class="text-sm font-medium">{{ link.label }}</span>
                 </div>
