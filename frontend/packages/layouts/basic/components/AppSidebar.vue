@@ -97,8 +97,7 @@ function buildMenuOptions(routeList: SidebarRouteRecord[]): MenuOption[] {
       continue
     }
     const firstVisibleChild = r.children?.find((child) => !toSidebarMeta(child).hidden)
-    const keySource =
-      props.compactMenu || appStore.sidebarAutoActivateChild ? firstVisibleChild?.name : r.name
+    const keySource = props.compactMenu ? (firstVisibleChild?.name ?? r.name) : r.name
     const key = toRouteNameKey(keySource)
     if (!key) {
       continue
