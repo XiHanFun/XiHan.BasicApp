@@ -19,25 +19,25 @@ const { t } = useI18n()
       <NSwitch v-model:value="appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
-      <span>{{ t('preference.shortcut.search') }}</span>
-      <div class="flex items-center gap-2">
-        <span class="kbd">Ctrl K</span>
-        <NSwitch v-model:value="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
+      <div class="flex items-center gap-1.5">
+        <span>{{ t('preference.shortcut.search') }}</span>
+        <kbd class="kbd">Ctrl K</kbd>
       </div>
+      <NSwitch v-model:value="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
-      <span>{{ t('preference.shortcut.logout') }}</span>
-      <div class="flex items-center gap-2">
-        <span class="kbd">Alt Q</span>
-        <NSwitch v-model:value="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
+      <div class="flex items-center gap-1.5">
+        <span>{{ t('preference.shortcut.lock') }}</span>
+        <kbd class="kbd">Alt L</kbd>
       </div>
+      <NSwitch v-model:value="appStore.shortcutLock" :disabled="!appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
-      <span>{{ t('preference.shortcut.lock') }}</span>
-      <div class="flex items-center gap-2">
-        <span class="kbd">Alt L</span>
-        <NSwitch v-model:value="appStore.shortcutLock" :disabled="!appStore.shortcutEnable" />
+      <div class="flex items-center gap-1.5">
+        <span>{{ t('preference.shortcut.logout') }}</span>
+        <kbd class="kbd">Alt Q</kbd>
       </div>
+      <NSwitch v-model:value="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
     </div>
   </NCard>
 </template>
@@ -51,7 +51,7 @@ const { t } = useI18n()
   color: hsl(var(--foreground));
 }
 
-.kbd {
+kbd.kbd {
   display: inline-flex;
   align-items: center;
   padding: 1px 6px;

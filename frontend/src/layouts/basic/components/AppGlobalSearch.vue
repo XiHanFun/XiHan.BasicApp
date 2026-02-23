@@ -4,11 +4,14 @@ import { NEmpty, NIcon, NInput, NModal, NScrollbar } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useAppStore } from '~/stores'
 
 defineOptions({ name: 'AppGlobalSearch' })
 
 const router = useRouter()
 const { t } = useI18n()
+const appStore = useAppStore()
+const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcutSearch)
 const visible = ref(false)
 const keyword = ref('')
 
@@ -65,7 +68,7 @@ onUnmounted(() => {
         <Icon icon="lucide:search" />
       </NIcon>
       <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
-      <kbd class="search-kbd">Ctrl K</kbd>
+      <kbd v-if="showShortcut" class="search-kbd">Ctrl K</kbd>
     </button>
   </div>
   <!-- 移动端：只显示图标按钮 -->
