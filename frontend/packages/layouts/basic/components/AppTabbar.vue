@@ -2,6 +2,7 @@
 import type { DropdownOption } from 'naive-ui'
 import type { TabItem } from '~/types'
 import { Icon } from '@iconify/vue'
+import { useDebounceFn } from '@vueuse/core'
 import { NButton, NDropdown, NIcon } from 'naive-ui'
 import Sortable from 'sortablejs'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -41,7 +42,15 @@ const contextTabPath = ref('')
 const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
 const tabsContainerRef = ref<HTMLElement | null>(null)
+const scrollViewportRef = ref<HTMLElement | null>(null)
 const sortableInstance = ref<null | Sortable>(null)
+
+// ---- 溢出滚动按钮 ----
+const showScrollBtn = ref(false)
+const scrollAtLeft = ref(true)
+const scrollAtRight = ref(false)
+let resizeObserver: null | ResizeObserver = null
+let mutationObserver: null | MutationObserver = null
 
 const tabThemeVars = computed(() => {
   const color = appStore.themeColor
@@ -404,24 +413,102 @@ function handleMoreTabSelect(path: string) {
   handleJump(path)
 }
 
-function handleTabsWheel(e: WheelEvent) {
-  if (!appStore.tabbarScrollResponse)
+// ---- 滚动按钮逻辑（对标 vben use-tabs-view-scroll）----
+
+function calcShowScrollBtn() {
+  const vp = scrollViewportRef.value
+  if (!vp)
     return
-  const container = tabsContainerRef.value?.parentElement
-  if (!container)
-    return
-  e.preventDefault()
-  container.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX
+  showScrollBtn.value = vp.scrollWidth > vp.clientWidth
 }
 
-onMounted(() => {
+function updateScrollEdge() {
+  const vp = scrollViewportRef.value
+  if (!vp)
+    return
+  scrollAtLeft.value = vp.scrollLeft <= 0
+  scrollAtRight.value = vp.scrollLeft + vp.clientWidth >= vp.scrollWidth - 1
+}
+
+const debouncedCalc = useDebounceFn(() => {
+  calcShowScrollBtn()
+  scrollToActive()
+}, 80)
+
+const debouncedEdge = useDebounceFn(updateScrollEdge, 80)
+
+function scrollDirection(dir: 'left' | 'right', distance = 150) {
+  const vp = scrollViewportRef.value
+  if (!vp)
+    return
+  vp.scrollBy({
+    behavior: 'smooth',
+    left: dir === 'left' ? -(vp.clientWidth - distance) : +(vp.clientWidth - distance),
+  })
+}
+
+async function scrollToActive() {
+  const vp = scrollViewportRef.value
+  if (!vp)
+    return
+  await nextTick()
+  if (vp.clientWidth >= vp.scrollWidth)
+    return
+  requestAnimationFrame(() => {
+    const activeEl = vp.querySelector('.is-active') as HTMLElement | null
+    activeEl?.scrollIntoView({ behavior: 'smooth', inline: 'nearest' })
+  })
+}
+
+function handleTabsWheel(e: WheelEvent) {
+  const vp = scrollViewportRef.value
+  if (!vp)
+    return
+  if (appStore.tabbarScrollResponse) {
+    e.preventDefault()
+    vp.scrollBy({ left: e.deltaY !== 0 ? e.deltaY * 3 : e.deltaX * 3 })
+  }
+}
+
+function initScrollObservers() {
+  const vp = scrollViewportRef.value
+  if (!vp)
+    return
+
+  calcShowScrollBtn()
+  updateScrollEdge()
+
+  resizeObserver?.disconnect()
+  resizeObserver = new ResizeObserver(debouncedCalc)
+  resizeObserver.observe(vp)
+
+  let prevCount = vp.querySelectorAll('[data-tab-item]').length
+  mutationObserver?.disconnect()
+  mutationObserver = new MutationObserver(() => {
+    const count = vp.querySelectorAll('[data-tab-item]').length
+    if (count > prevCount)
+      scrollToActive()
+    if (count !== prevCount)
+      calcShowScrollBtn()
+    prevCount = count
+  })
+  mutationObserver.observe(vp, { childList: true, subtree: true })
+}
+
+onMounted(async () => {
   initSortable()
-  tabsContainerRef.value?.parentElement?.addEventListener('wheel', handleTabsWheel, { passive: false })
+  await nextTick()
+  initScrollObservers()
+  scrollViewportRef.value?.addEventListener('scroll', debouncedEdge, { passive: true })
+  scrollViewportRef.value?.addEventListener('wheel', handleTabsWheel, { passive: false })
 })
 
 onBeforeUnmount(() => {
   destroySortable()
-  tabsContainerRef.value?.parentElement?.removeEventListener('wheel', handleTabsWheel)
+  resizeObserver?.disconnect()
+  mutationObserver?.disconnect()
+  scrollViewportRef.value?.removeEventListener('scroll', debouncedEdge)
+  scrollViewportRef.value?.removeEventListener('wheel', handleTabsWheel)
 })
 
 watch(() => tabbarPreferences.tabbarDraggable.value, () => {
@@ -429,7 +516,14 @@ watch(() => tabbarPreferences.tabbarDraggable.value, () => {
 })
 
 watch(() => appStore.tabbarStyle, () => {
-  nextTick(() => initSortable())
+  nextTick(() => {
+    initSortable()
+    initScrollObservers()
+  })
+})
+
+watch(() => route.fullPath, () => {
+  nextTick(scrollToActive)
 })
 </script>
 
@@ -440,47 +534,90 @@ watch(() => appStore.tabbarStyle, () => {
     class="tabbar-root flex items-center bg-[var(--tabbar-bg)] px-3"
     :class="appStore.tabbarStyle === 'chrome' ? 'pt-[3px] pb-0' : 'py-0'"
   >
+    <!-- 左侧滚动箭头 -->
+    <NButton
+      v-show="showScrollBtn"
+      quaternary
+      circle
+      size="tiny"
+      :focusable="false"
+      :disabled="scrollAtLeft"
+      @click="scrollDirection('left')"
+    >
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:chevrons-left" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
+    <span v-show="showScrollBtn" class="tab-divider" />
+
+    <!-- 标签列表（无滚动条，通过箭头控制） -->
     <div
-      class="tabbar-list min-w-0 flex-1 overflow-x-auto"
+      class="tabbar-list min-w-0 flex-1 overflow-hidden"
       :class="appStore.tabbarStyle !== 'chrome' ? 'h-9' : ''"
     >
       <div
-        ref="tabsContainerRef"
-        class="pr-4"
-        :class="appStore.tabbarStyle === 'chrome'
-          ? 'flex min-w-max items-center'
-          : 'flex h-full min-w-max items-stretch'"
+        ref="scrollViewportRef"
+        class="tabbar-viewport h-full overflow-x-auto"
       >
-        <TransitionGroup
-          name="tabs-slide"
-          :css="false"
-          @before-enter="onTabBeforeEnter"
-          @enter="onTabEnter"
-          @before-leave="onTabBeforeLeave"
-          @leave="onTabLeave"
-          @enter-cancelled="onTabEnterCancelled"
-          @leave-cancelled="onTabLeaveCancelled"
+        <div
+          ref="tabsContainerRef"
+          class="pr-2"
+          :class="appStore.tabbarStyle === 'chrome'
+            ? 'flex min-w-max items-center'
+            : 'flex h-full min-w-max items-stretch'"
         >
-          <TabbarTabItem
-            v-for="(item, index) in localizedTabs"
-            :key="item.key"
-            :item="item"
-            :index="index"
-            :active="route.fullPath === item.path"
-            :is-last="index === localizedTabs.length - 1"
-            :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
-            :show-icon="appStore.tabbarShowIcon"
-            :middle-close-enabled="appStore.tabbarMiddleClickClose"
-            :style-type="appStore.tabbarStyle"
-            @jump="handleJump"
-            @contextmenu="openContextMenu"
-            @close="handleClose"
-            @toggle-pin="tabbarStore.togglePin"
-            @middle-close="handleMiddleClose"
-          />
-        </TransitionGroup>
+          <TransitionGroup
+            name="tabs-slide"
+            :css="false"
+            @before-enter="onTabBeforeEnter"
+            @enter="onTabEnter"
+            @before-leave="onTabBeforeLeave"
+            @leave="onTabLeave"
+            @enter-cancelled="onTabEnterCancelled"
+            @leave-cancelled="onTabLeaveCancelled"
+          >
+            <TabbarTabItem
+              v-for="(item, index) in localizedTabs"
+              :key="item.key"
+              :item="item"
+              :index="index"
+              :active="route.fullPath === item.path"
+              :is-last="index === localizedTabs.length - 1"
+              :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
+              :show-icon="appStore.tabbarShowIcon"
+              :middle-close-enabled="appStore.tabbarMiddleClickClose"
+              :style-type="appStore.tabbarStyle"
+              data-tab-item="true"
+              @jump="handleJump"
+              @contextmenu="openContextMenu"
+              @close="handleClose"
+              @toggle-pin="tabbarStore.togglePin"
+              @middle-close="handleMiddleClose"
+            />
+          </TransitionGroup>
+        </div>
       </div>
     </div>
+
+    <!-- 右侧滚动箭头 -->
+    <span v-show="showScrollBtn" class="tab-divider" />
+    <NButton
+      v-show="showScrollBtn"
+      quaternary
+      circle
+      size="tiny"
+      :focusable="false"
+      :disabled="scrollAtRight"
+      @click="scrollDirection('right')"
+    >
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:chevrons-right" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
 
     <TabbarContextMenu
       :show="contextMenuVisible"
@@ -490,6 +627,7 @@ watch(() => appStore.tabbarStyle, () => {
       @close="contextMenuVisible = false"
       @select="handleDropdownSelect"
     />
+    <span class="tab-divider" />
     <NDropdown
       v-if="tabbarPreferences.tabbarShowMore.value"
       :options="moreTabOptions"
@@ -498,13 +636,12 @@ watch(() => appStore.tabbarStyle, () => {
       <NButton quaternary circle size="tiny">
         <template #icon>
           <NIcon>
-            <Icon icon="lucide:ellipsis" width="14" />
+            <Icon icon="lucide:layout-grid" width="14" />
           </NIcon>
         </template>
       </NButton>
     </NDropdown>
     <TabbarActions
-      class="ml-2"
       :show-refresh="appStore.widgetRefresh"
       :show-maximize="tabbarPreferences.tabbarShowMaximize.value"
       :is-content-maximized="isContentMaximized"
@@ -521,8 +658,24 @@ watch(() => appStore.tabbarStyle, () => {
   border-bottom-color: var(--border-color);
 }
 
-.tabbar-list {
-  scrollbar-width: thin;
+/* 按钮间竖杠分隔线 */
+.tab-divider {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--border-color);
+  vertical-align: middle;
+}
+
+/* 隐藏内部滚动条，由左右箭头代替 */
+.tabbar-viewport {
+  scrollbar-width: none;
+}
+
+.tabbar-viewport::-webkit-scrollbar {
+  display: none;
 }
 
 :deep(.chrome-tab--chosen),

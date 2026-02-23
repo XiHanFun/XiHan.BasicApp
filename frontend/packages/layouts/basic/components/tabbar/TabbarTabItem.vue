@@ -46,7 +46,12 @@ function onAuxClick(event: MouseEvent) {
       styleType === 'chrome'
         ? [
             'chrome-tab -mr-3 h-8 items-center',
-            { 'is-active': active, 'is-last-tab': isLast, 'affix-tab': Boolean(item.pinned), draggable },
+            {
+              'is-active': active,
+              'is-last-tab': isLast,
+              'affix-tab': Boolean(item.pinned),
+              draggable,
+            },
           ]
         : [
             `flat-tab flat-tab--${styleType}`,
@@ -76,16 +81,26 @@ function onAuxClick(event: MouseEvent) {
         />
         <div class="chrome-tab__background absolute inset-0 z-[-1] px-[6px] py-0">
           <div class="chrome-tab__background-content h-full rounded-tl-[7px] rounded-tr-[7px]" />
-          <svg class="chrome-tab__background-before absolute bottom-0 left-[-1px]" height="7" width="7">
+          <svg
+            class="chrome-tab__background-before absolute bottom-0 left-[-1px]"
+            height="7"
+            width="7"
+          >
             <path d="M 0 7 A 7 7 0 0 0 7 0 L 7 7 Z" />
           </svg>
-          <svg class="chrome-tab__background-after absolute bottom-0 right-[-1px]" height="7" width="7">
+          <svg
+            class="chrome-tab__background-after absolute bottom-0 right-[-1px]"
+            height="7"
+            width="7"
+          >
             <path d="M 0 0 A 7 7 0 0 0 7 7 L 0 7 Z" />
           </svg>
         </div>
-        <div class="chrome-tab__main relative z-[2] mx-[14px] flex h-full min-w-[96px] items-center gap-1 pr-1">
+        <div
+          class="chrome-tab__main relative z-[2] mx-[14px] flex h-full min-w-[96px] items-center gap-1 pr-1"
+        >
           <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
-            <Icon :icon="(item.meta.icon as string)" />
+            <Icon :icon="item.meta.icon as string" />
           </NIcon>
           <span class="chrome-tab__title">{{ item.displayTitle }}</span>
           <button
@@ -114,7 +129,7 @@ function onAuxClick(event: MouseEvent) {
     <template v-else>
       <div class="flat-tab__inner relative flex h-full items-center gap-1 px-4">
         <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
-          <Icon :icon="(item.meta.icon as string)" />
+          <Icon :icon="item.meta.icon as string" />
         </NIcon>
         <span class="flat-tab__title">{{ item.displayTitle }}</span>
         <button
