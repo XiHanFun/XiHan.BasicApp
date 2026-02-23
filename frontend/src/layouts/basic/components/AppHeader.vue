@@ -38,6 +38,11 @@ const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { setLocale } = useLocale()
 const isFullscreen = ref(false)
+const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+const isNarrowScreen = computed(() => viewportWidth.value < 960)
+const contentMaximized = ref(false)
+// 与 FAB 互斥：窄屏或内容最大化时 FAB 显示，头部按钮隐藏
+const showPreferencesInHeader = computed(() => !isNarrowScreen.value && !contentMaximized.value)
 const currentTimezone = ref(
   typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC',
 )
@@ -237,6 +242,14 @@ function toggleFullscreen() {
   }
 }
 
+function updateViewportWidth() {
+  viewportWidth.value = window.innerWidth
+}
+
+function handleContentMaximizedChange(e: Event) {
+  contentMaximized.value = (e as CustomEvent<boolean>).detail
+}
+
 onMounted(() => {
   const savedTimezone = localStorage.getItem('xihan_app_timezone')
   if (savedTimezone) {
@@ -244,10 +257,14 @@ onMounted(() => {
   }
   syncFullscreenState()
   document.addEventListener('fullscreenchange', syncFullscreenState)
+  window.addEventListener('resize', updateViewportWidth)
+  window.addEventListener('xihan-content-maximized-change', handleContentMaximizedChange)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
+  window.removeEventListener('resize', updateViewportWidth)
+  window.removeEventListener('xihan-content-maximized-change', handleContentMaximizedChange)
 })
 </script>
 
@@ -270,6 +287,7 @@ onBeforeUnmount(() => {
       :user-store="userStore"
       :is-dark="isDark"
       :is-fullscreen="isFullscreen"
+      :show-preferences-in-header="showPreferencesInHeader"
       :timezone-options="timezoneOptions"
       :locale-options="localeOptions"
       :user-options="userOptions"

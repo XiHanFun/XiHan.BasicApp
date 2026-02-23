@@ -25,6 +25,7 @@ interface HeaderToolbarProps {
   userStore: ReturnType<typeof useUserStore>
   isDark: boolean
   isFullscreen: boolean
+  showPreferencesInHeader?: boolean
   timezoneOptions: DropdownOption[]
   localeOptions: Array<{ label: string, key: string }>
   userOptions: DropdownOption[]
@@ -106,7 +107,14 @@ interface HeaderToolbarProps {
         </NButton>
       </div>
 
-      <NButton quaternary circle size="small" @mousedown.prevent @click="emit('preferencesOpen')">
+      <NButton
+        v-if="props.showPreferencesInHeader !== false"
+        quaternary
+        circle
+        size="small"
+        @mousedown.prevent
+        @click="emit('preferencesOpen')"
+      >
         <template #icon>
           <NIcon size="16">
             <Icon icon="lucide:settings-2" />
