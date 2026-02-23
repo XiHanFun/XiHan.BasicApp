@@ -71,7 +71,7 @@ interface HeaderNavProps {
     >
       <NBreadcrumbItem v-if="props.appStore.breadcrumbShowHome">
         <NFlex align="center" :size="6" class="cursor-pointer" @click="emit('homeClick')">
-          <Icon icon="lucide:house" width="14" />
+          <NIcon size="14"><Icon icon="lucide:house" /></NIcon>
           <span>Home</span>
         </NFlex>
       </NBreadcrumbItem>
@@ -83,13 +83,17 @@ interface HeaderNavProps {
         >
           <NTag size="small" round :bordered="false" class="cursor-pointer">
             <NFlex align="center" :size="6">
-              <Icon v-if="props.appStore.breadcrumbShowIcon && item.icon" :icon="item.icon" width="14" />
+              <NIcon v-if="props.appStore.breadcrumbShowIcon && item.icon" size="14">
+                <Icon :icon="item.icon!" />
+              </NIcon>
               <span>{{ item.title }}</span>
             </NFlex>
           </NTag>
         </NDropdown>
         <NFlex v-else align="center" :size="6" class="rounded px-1.5 py-0.5">
-          <Icon v-if="props.appStore.breadcrumbShowIcon && item.icon" :icon="item.icon" width="14" />
+          <NIcon v-if="props.appStore.breadcrumbShowIcon && item.icon" size="14">
+            <Icon :icon="item.icon!" />
+          </NIcon>
           <span>{{ item.title }}</span>
         </NFlex>
       </NBreadcrumbItem>

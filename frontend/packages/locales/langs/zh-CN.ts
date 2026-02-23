@@ -76,6 +76,11 @@ export default {
     notification: {
       pending: '通知功能待接入',
     },
+    search: {
+      placeholder: '搜索',
+      input_hint: '输入菜单名称、路径或路由名',
+      empty: '未找到匹配菜单',
+    },
   },
   tabbar: {
     reload: '重新加载',

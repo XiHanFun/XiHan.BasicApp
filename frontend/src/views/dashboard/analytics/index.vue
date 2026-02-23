@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NCard, NGrid, NGridItem, NStatistic, NNumberAnimation, NSelect } from 'naive-ui'
+import { NCard, NGrid, NGridItem, NIcon, NNumberAnimation, NSelect, NStatistic } from 'naive-ui'
 import { Icon } from '@iconify/vue'
 import { ref } from 'vue'
 
@@ -37,7 +37,9 @@ const summaryCards = ref([
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
               :style="{ backgroundColor: card.color + '20' }"
             >
-              <Icon :icon="card.icon" :style="{ color: card.color }" width="20" />
+              <NIcon size="20" :style="{ color: card.color }">
+                <Icon :icon="card.icon" />
+              </NIcon>
             </div>
             <div>
               <p class="text-xs text-gray-500">{{ card.label }}</p>
@@ -57,7 +59,7 @@ const summaryCards = ref([
         <NCard title="访问趋势" :bordered="false">
           <div class="flex h-48 items-center justify-center text-gray-400">
             <div class="text-center">
-              <Icon icon="lucide:bar-chart-2" width="48" class="mb-2 opacity-30" />
+              <NIcon size="48" class="mb-2 opacity-30"><Icon icon="lucide:bar-chart-2" /></NIcon>
               <p class="text-sm">可集成 ECharts 等图表库</p>
             </div>
           </div>
@@ -67,7 +69,7 @@ const summaryCards = ref([
         <NCard title="访问来源" :bordered="false">
           <div class="flex h-48 items-center justify-center text-gray-400">
             <div class="text-center">
-              <Icon icon="lucide:pie-chart" width="48" class="mb-2 opacity-30" />
+              <NIcon size="48" class="mb-2 opacity-30"><Icon icon="lucide:pie-chart" /></NIcon>
               <p class="text-sm">可集成 ECharts 等图表库</p>
             </div>
           </div>
