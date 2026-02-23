@@ -55,12 +55,15 @@ const localeOptions = [
         </div>
         <NSwitch v-model:value="appStore.watermarkEnabled" />
       </div>
-      <NInput
-        v-if="appStore.watermarkEnabled"
-        v-model:value="appStore.watermarkText"
-        class="mb-2"
-        :placeholder="t('preference.general.watermark_text')"
-      />
+      <div v-if="appStore.watermarkEnabled" class="pref-row mb-2">
+        <span>{{ t('preference.general.watermark_content') }}</span>
+        <NInput
+          v-model:value="appStore.watermarkText"
+          size="small"
+          style="width: 150px"
+          :placeholder="t('preference.general.watermark_text')"
+        />
+      </div>
       <div class="pref-row">
         <div class="flex items-center gap-1">
           <span>{{ t('preference.general.check_updates') }}</span>

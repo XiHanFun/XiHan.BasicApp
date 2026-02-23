@@ -5,7 +5,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '~/stores'
 import { STORAGE_PREFIX } from '~/constants'
-import { useTheme } from '~/hooks'
+import { useContentMaximize, useTheme } from '~/hooks'
 import { useAppStore } from '~/stores'
 import PreferenceAppearanceTab from './preference/PreferenceAppearanceTab.vue'
 import PreferenceFab from './preference/PreferenceFab.vue'
@@ -19,10 +19,10 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const message = useMessage()
 const { t } = useI18n()
+const { contentIsMaximize: contentMaximized } = useContentMaximize()
 const visible = ref(false)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
-const contentMaximized = ref(false)
 const showFloatingFab = computed(
   () => isNarrowScreen.value || contentMaximized.value || !appStore.headerShow,
 )
@@ -105,22 +105,14 @@ function handleViewportResize() {
   viewportWidth.value = window.innerWidth
 }
 
-function handleContentMaximizedChange(event: Event) {
-  const customEvent = event as CustomEvent<boolean>
-  contentMaximized.value = Boolean(customEvent.detail)
-}
-
 onMounted(() => {
   handleViewportResize()
   window.addEventListener('resize', handleViewportResize)
-  window.addEventListener('xihan-content-maximized-change', handleContentMaximizedChange)
   window.addEventListener('xihan-open-preference-drawer', handleOpenPreferenceDrawer)
-  window.dispatchEvent(new CustomEvent('xihan-sync-content-maximize-state'))
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleViewportResize)
-  window.removeEventListener('xihan-content-maximized-change', handleContentMaximizedChange)
   window.removeEventListener('xihan-open-preference-drawer', handleOpenPreferenceDrawer)
 })
 </script>

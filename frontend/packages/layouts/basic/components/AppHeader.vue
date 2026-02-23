@@ -8,7 +8,7 @@ import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores'
-import { useLocale, useTheme } from '~/hooks'
+import { useContentMaximize, useLocale, useRefresh, useTheme } from '~/hooks'
 import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
@@ -36,10 +36,11 @@ const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { setLocale } = useLocale()
+const { contentIsMaximize: contentMaximized } = useContentMaximize()
+const { refresh: doRefresh } = useRefresh()
 const isFullscreen = ref(false)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
-const contentMaximized = ref(false)
 // 与 FAB 互斥：窄屏或内容最大化时 FAB 显示，头部按钮隐藏
 const showPreferencesInHeader = computed(() => !isNarrowScreen.value && !contentMaximized.value)
 const currentTimezone = ref(
@@ -221,7 +222,7 @@ function handleSidebarToggle() {
 }
 
 function handleRefreshCurrentTab() {
-  window.dispatchEvent(new CustomEvent('xihan-refresh-current-tab'))
+  doRefresh()
 }
 
 function openPreferenceDrawer() {
@@ -245,10 +246,6 @@ function updateViewportWidth() {
   viewportWidth.value = window.innerWidth
 }
 
-function handleContentMaximizedChange(e: Event) {
-  contentMaximized.value = (e as CustomEvent<boolean>).detail
-}
-
 onMounted(() => {
   const savedTimezone = localStorage.getItem('xihan_app_timezone')
   if (savedTimezone) {
@@ -257,13 +254,11 @@ onMounted(() => {
   syncFullscreenState()
   document.addEventListener('fullscreenchange', syncFullscreenState)
   window.addEventListener('resize', updateViewportWidth)
-  window.addEventListener('xihan-content-maximized-change', handleContentMaximizedChange)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
   window.removeEventListener('resize', updateViewportWidth)
-  window.removeEventListener('xihan-content-maximized-change', handleContentMaximizedChange)
 })
 </script>
 

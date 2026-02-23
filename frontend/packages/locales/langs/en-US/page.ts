@@ -57,6 +57,16 @@ export default {
     edit_role: 'Edit Role',
     assign_permissions: 'Assign Permissions',
   },
+  about: {
+    title: 'About',
+    description: 'A modern admin framework based on Vue 3 + Naive UI',
+    version: 'Version',
+    license: 'License',
+    author: 'Author',
+    tech_stack: 'Tech Stack',
+    open_source: 'Open Source',
+    open_source_desc: 'This project is open source on GitHub, feel free to star and contribute',
+  },
   menu: {
     title: 'Menu Management',
     name: 'Menu Name',
