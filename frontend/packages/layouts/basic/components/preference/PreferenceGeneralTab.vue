@@ -146,10 +146,10 @@ const localeOptions = [
   border-radius: var(--radius);
   border: 2px solid hsl(var(--border));
   background: hsl(var(--muted));
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* overflow: visible + clip-path 让色块可从边框外穿入，同时不影响相邻元素 */
+  overflow: visible;
+  clip-path: inset(-7px round calc(var(--radius) + 5px));
+  position: relative;
   transition: border-color 0.18s ease;
 }
 
@@ -169,22 +169,22 @@ const localeOptions = [
   font-weight: 500;
 }
 
-/* 预览内部的小方块 */
+/* 带间隙的动画色块 */
 .preview-block {
-  width: 40%;
-  height: 40%;
-  border-radius: var(--radius);
-  background: hsl(var(--primary) / 0.7);
+  position: absolute;
+  inset: 5px;
+  border-radius: calc(var(--radius) - 1px);
+  background: hsl(var(--primary) / 0.72);
 }
 
-/* 淡入淡出 */
+/* 淡入淡出：原地渐变，无位移 */
 @keyframes anim-fade {
   0%,
   100% {
     opacity: 0;
   }
-  40%,
-  60% {
+  35%,
+  65% {
     opacity: 1;
   }
 }
@@ -192,19 +192,20 @@ const localeOptions = [
   animation: anim-fade 2s ease-in-out infinite;
 }
 
-/* 左右滑动 */
+/* 左滑入：从右侧边框外穿入，刚出现/消失时淡入淡出 */
 @keyframes anim-slide-left {
   0% {
-    transform: translateX(120%);
+    transform: translateX(115%);
     opacity: 0;
   }
-  30%,
-  70% {
-    transform: translateX(0);
+  25% {
+    opacity: 1;
+  }
+  75% {
     opacity: 1;
   }
   100% {
-    transform: translateX(-120%);
+    transform: translateX(-115%);
     opacity: 0;
   }
 }
@@ -212,19 +213,20 @@ const localeOptions = [
   animation: anim-slide-left 2.2s ease-in-out infinite;
 }
 
-/* 向上滑入 */
+/* 上滑入：从下方边框外穿入 */
 @keyframes anim-slide-up {
   0% {
-    transform: translateY(120%);
+    transform: translateY(115%);
     opacity: 0;
   }
-  30%,
-  70% {
-    transform: translateY(0);
+  25% {
+    opacity: 1;
+  }
+  75% {
     opacity: 1;
   }
   100% {
-    transform: translateY(-120%);
+    transform: translateY(-115%);
     opacity: 0;
   }
 }
@@ -232,19 +234,20 @@ const localeOptions = [
   animation: anim-slide-up 2.2s ease-in-out infinite;
 }
 
-/* 向下滑入 */
+/* 下滑入：从上方边框外穿入 */
 @keyframes anim-slide-down {
   0% {
-    transform: translateY(-120%);
+    transform: translateY(-115%);
     opacity: 0;
   }
-  30%,
-  70% {
-    transform: translateY(0);
+  25% {
+    opacity: 1;
+  }
+  75% {
     opacity: 1;
   }
   100% {
-    transform: translateY(120%);
+    transform: translateY(115%);
     opacity: 0;
   }
 }

@@ -94,10 +94,21 @@ export default {
       header_sidebar: 'Sidebar',
       full: 'Full Content',
     },
+    preset_tip: {
+      side: 'Fixed sidebar on the left with content on the right, ideal for deep multi-level menus',
+      side_mixed: 'Icon-only primary sidebar + text secondary menu, saves horizontal space',
+      top: 'Horizontal top navigation, suitable for flat structures with fewer menu items',
+      mix: 'Top primary menu + left secondary menu, great for large multi-module apps',
+      header_mix: 'Top primary + double-column secondary sidebar, balances width and hierarchy',
+      header_sidebar: 'Top brand bar + full left sidebar, classic admin style',
+      full: 'All navigation hidden, content fills the screen, ideal for focused workflows',
+    },
     content: {
       title: 'Content',
       fluid: 'Fluid',
       fixed: 'Fixed',
+      fluid_tip: 'Content area stretches freely with the window width, maximizing screen usage',
+      fixed_tip: 'Content area has a max width and is centered, suitable for wide-screen reading',
     },
     sidebar: {
       title: 'Sidebar',

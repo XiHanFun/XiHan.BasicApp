@@ -122,8 +122,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
           <label
             v-for="mode in localizedModes"
             :key="mode.value"
-            class="theme-mode-card"
-            :class="{ 'is-active': props.themeMode === mode.value }"
+            class="mode-item"
           >
             <input
               type="radio"
@@ -132,10 +131,15 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
             >
-            <NIcon size="20" class="mb-1">
-              <Icon :icon="mode.icon" />
-            </NIcon>
-            <span class="text-xs">{{ mode.label }}</span>
+            <div
+              class="theme-mode-card"
+              :class="{ 'is-active': props.themeMode === mode.value }"
+            >
+              <NIcon size="20">
+                <Icon :icon="mode.icon" />
+              </NIcon>
+            </div>
+            <span class="mode-label">{{ mode.label }}</span>
           </label>
         </div>
       </NRadioGroup>
@@ -316,23 +320,30 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
 </template>
 
 <style scoped>
-/* 主题模式卡片 */
-.theme-mode-card {
+/* 模式选项外层容器 */
+.mode-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+/* 主题模式卡片（仅图标，无文字） */
+.theme-mode-card {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 4px;
   padding: 10px 6px;
+  width: 100%;
   border: 1.5px solid hsl(var(--border));
   border-radius: var(--radius);
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
-  cursor: pointer;
   transition: all 0.18s ease;
 }
 
-.theme-mode-card:hover {
+.mode-item:hover .theme-mode-card {
   border-color: hsl(var(--primary) / 0.5);
   color: hsl(var(--foreground));
   background: hsl(var(--accent));
@@ -343,6 +354,19 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
   color: hsl(var(--primary));
   background: hsl(var(--primary) / 0.08);
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}
+
+/* 模式文字标签 */
+.mode-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  line-height: 1.2;
+  transition: color 0.15s ease;
+}
+
+.mode-item:hover .mode-label {
+  color: hsl(var(--foreground));
 }
 
 /* 色系分组行 */
@@ -378,10 +402,12 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
 /* 内置主题颜色卡片 */
 .theme-color-card {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 8px;
+  padding: 0;
   width: 100%;
+  min-height: 42px;
+  overflow: hidden;
   border: 1.5px solid hsl(var(--border));
   border-radius: var(--radius-card);
   background: hsl(var(--card));
@@ -390,8 +416,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
 }
 
 .theme-color-card:hover {
-  border-color: hsl(var(--primary) / 0.45);
-  background: hsl(var(--accent));
+  border-color: hsl(var(--primary) / 0.55);
 }
 
 .theme-color-card.is-active {
@@ -399,20 +424,45 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.22);
 }
 
+/* 色块充满整个卡片 */
 .theme-color-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--radius);
+  width: 100%;
+  min-height: 42px;
   flex-shrink: 0;
+  position: relative;
 }
 
+/* 粗粒底层：低频 fractalNoise + overlay，模拟大颗粒涂料 */
+.theme-color-dot:not(.custom-dot)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.38' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* 细粒表层：高频 turbulence + soft-light，叠加细腻砂砾感 */
+.theme-color-dot:not(.custom-dot)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.85' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 72px 72px;
+  mix-blend-mode: soft-light;
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+/* 取色器占位 */
 .custom-dot {
   display: flex;
   align-items: center;
   justify-content: center;
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
-  border: 1.5px dashed hsl(var(--border));
 }
 
 .theme-color-label {
@@ -422,9 +472,10 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
   white-space: nowrap;
 }
 
-/* 自定义卡片：relative 以便遮罩定位 */
+/* 自定义卡片：relative 以便遮罩定位；虚线边框区分"非预设" */
 .custom-color-card {
   position: relative;
+  border-style: dashed;
 }
 
 /* NColorPicker 透明遮罩：绝对覆盖整张卡片，点击即弹出取色器 */

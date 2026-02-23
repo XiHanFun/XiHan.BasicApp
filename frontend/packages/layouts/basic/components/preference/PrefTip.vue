@@ -7,7 +7,7 @@ defineProps<{ content: string }>()
 </script>
 
 <template>
-  <NTooltip trigger="hover" :max-width="240" placement="top">
+  <NTooltip trigger="hover" :style="{ maxWidth: '240px' }" placement="top">
     <template #trigger>
       <NIcon size="13" class="tip-icon">
         <Icon icon="lucide:circle-help" />
