@@ -1,4 +1,4 @@
-import '~/design/global.css'
+import '~/@core/design/global.css'
 
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
