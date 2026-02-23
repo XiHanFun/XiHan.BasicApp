@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '~/stores'
 
-defineOptions({ name: 'AppGlobalSearch' })
+defineOptions({ name: 'AppGlobalSearch', inheritAttrs: false })
 
 const router = useRouter()
 const { t } = useI18n()
@@ -61,25 +61,24 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- 触发按钮：胶囊样式，含搜索图标 + 文字 + kbd 徽标（桌面端） -->
-  <div class="hidden sm:block">
-    <button type="button" class="search-trigger" @click="openSearch">
-      <NIcon size="14" class="shrink-0 text-[hsl(var(--muted-foreground))]">
-        <Icon icon="lucide:search" />
-      </NIcon>
-      <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
-      <kbd v-if="showShortcut" class="search-kbd">Ctrl K</kbd>
-    </button>
-  </div>
-  <!-- 移动端：只显示图标按钮 -->
-  <div class="sm:hidden">
-    <button
-      type="button"
-      class="search-trigger-icon"
-      @click="openSearch"
-    >
-      <NIcon size="16"><Icon icon="lucide:search" /></NIcon>
-    </button>
+  <!-- 触发按钮容器：$attrs 挂到此处（如外部传 class="mr-1"） -->
+  <div v-bind="$attrs">
+    <!-- 桌面端：胶囊样式，含搜索图标 + 文字 + kbd 徽标 -->
+    <div class="hidden sm:block">
+      <button type="button" class="search-trigger" @click="openSearch">
+        <NIcon size="14" class="shrink-0 text-[hsl(var(--muted-foreground))]">
+          <Icon icon="lucide:search" />
+        </NIcon>
+        <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
+        <kbd v-if="showShortcut" class="search-kbd">Ctrl K</kbd>
+      </button>
+    </div>
+    <!-- 移动端：只显示图标按钮 -->
+    <div class="sm:hidden">
+      <button type="button" class="search-trigger-icon" @click="openSearch">
+        <NIcon size="16"><Icon icon="lucide:search" /></NIcon>
+      </button>
+    </div>
   </div>
 
   <NModal v-model:show="visible" preset="card" :bordered="false" class="w-[580px]" :on-after-leave="() => keyword = ''">
