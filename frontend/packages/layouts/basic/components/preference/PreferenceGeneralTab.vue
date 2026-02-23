@@ -121,14 +121,6 @@ const localeOptions = [
 </template>
 
 <style scoped>
-.section-title {
-  margin-bottom: 4px;
-  padding: 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: hsl(var(--foreground));
-}
-
 /* 过渡动画预览选择器 */
 .transition-grid {
   display: grid;
@@ -148,7 +140,7 @@ const localeOptions = [
 .transition-preview {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: 6px;
+  border-radius: var(--radius);
   border: 2px solid hsl(var(--border));
   background: hsl(var(--muted));
   overflow: hidden;
@@ -178,7 +170,7 @@ const localeOptions = [
 .preview-block {
   width: 40%;
   height: 40%;
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: hsl(var(--primary) / 0.7);
 }
 

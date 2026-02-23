@@ -520,23 +520,9 @@ const preferencePositionOptions = computed(() => [
 </template>
 
 <style scoped>
-.section-title {
-  margin-bottom: 4px;
-  padding: 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: hsl(var(--foreground));
-}
-
-.unit-label {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-  flex-shrink: 0;
-}
-
 .layout-preset-card {
   border: 1.5px solid hsl(var(--border));
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   padding: 8px;
@@ -560,7 +546,7 @@ const preferencePositionOptions = computed(() => [
   height: 64px;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: hsl(var(--background));
 }
@@ -569,7 +555,7 @@ const preferencePositionOptions = computed(() => [
 .btn-toggle {
   padding: 3px 10px;
   font-size: 12px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   border: 1.5px solid hsl(var(--border));
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));

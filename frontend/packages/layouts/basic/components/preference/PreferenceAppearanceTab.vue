@@ -230,20 +230,6 @@ const localizedModes = computed(() =>
 </template>
 
 <style scoped>
-.section-title {
-  margin-bottom: 4px;
-  padding: 0 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: hsl(var(--foreground));
-}
-
-.unit-label {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-  flex-shrink: 0;
-}
-
 /* 主题模式卡片 */
 .theme-mode-card {
   display: flex;
