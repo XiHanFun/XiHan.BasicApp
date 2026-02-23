@@ -12,6 +12,7 @@ interface SidebarMenuProps {
   activeKey: string
   collapsed: boolean
   sidebarCollapsedShowTitle?: boolean
+  noTopPadding?: boolean
   menuOptions: MenuOption[]
   navigationStyle: 'rounded' | 'plain'
   accordion?: boolean
@@ -19,7 +20,10 @@ interface SidebarMenuProps {
 </script>
 
 <template>
-  <div class="app-sidebar-menu flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 pb-12">
+  <div
+    class="app-sidebar-menu flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-12"
+    :class="props.noTopPadding ? 'py-0' : 'py-2'"
+  >
     <NMenu
       :value="props.activeKey"
       :collapsed="props.collapsed"

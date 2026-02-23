@@ -26,6 +26,9 @@ interface BreadcrumbItem {
 
 interface HeaderNavProps {
   appStore: ReturnType<typeof useAppStore>
+  layoutMode: string
+  appTitle: string
+  appLogo: string
   showTopMenu: boolean
   breadcrumbs: BreadcrumbItem[]
   topMenuActive?: string
@@ -53,92 +56,123 @@ function isLast(isHome: boolean, index?: number): boolean {
     class="flex min-w-0 flex-1 items-center gap-2"
     :class="props.appStore.headerMenuAlign === 'center' ? 'mx-auto' : ''"
   >
-    <!-- 侧边栏折叠切换 -->
-    <NButton
-      v-if="!props.showTopMenu && props.appStore.widgetSidebarToggle"
-      quaternary
-      circle
-      size="small"
-      @mousedown.prevent
-      @click="emit('sidebarToggle')"
-    >
-      <template #icon>
-        <NIcon>
-          <Icon
-            :icon="props.appStore.sidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'"
-            width="18"
-          />
-        </NIcon>
-      </template>
-    </NButton>
-
-    <!-- 刷新当前页 -->
-    <NButton
-      v-if="props.appStore.widgetRefresh"
-      quaternary
-      circle
-      size="small"
-      @mousedown.prevent
-      @click="emit('refresh')"
-    >
-      <template #icon>
-        <NIcon size="16">
-          <Icon icon="lucide:refresh-cw" />
-        </NIcon>
-      </template>
-    </NButton>
-
-    <!-- 面包屑导航（lg 以下隐藏） -->
-    <NBreadcrumb
-      v-if="
-        props.appStore.breadcrumbEnabled
-          && !props.showTopMenu
-          && !(props.appStore.breadcrumbHideOnlyOne && allCrumbs.length <= 1)
-      "
-      class="hidden lg:flex items-center"
-      :class="props.appStore.breadcrumbStyle === 'background'
-        ? 'rounded-md bg-[hsl(var(--muted))] px-2 py-1'
-        : ''"
-    >
-      <!-- Home 项 -->
-      <NBreadcrumbItem v-if="props.appStore.breadcrumbShowHome">
-        <template v-if="!isLast(true)" #separator>
-          <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
-        </template>
-        <div
-          class="crumb-item"
-          :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
-          @click="!isLast(true) && emit('homeClick')"
-        >
-          <Icon
-            v-if="props.appStore.breadcrumbShowIcon"
-            icon="lucide:house"
-            width="14"
-            height="14"
-            class="crumb-icon"
-          />
-          <span>Home</span>
-        </div>
-      </NBreadcrumbItem>
-
-      <!-- 路由层级各项 -->
-      <NBreadcrumbItem
-        v-for="(item, index) in props.breadcrumbs"
-        :key="item.path"
+    <div class="flex min-w-0 items-center gap-2">
+      <div
+        v-if="['mix', 'header-sidebar', 'top'].includes(props.layoutMode)"
+        class="site-brand-inline mr-1 hidden min-w-0 items-center gap-2 lg:flex"
       >
-        <template v-if="!isLast(false, index)" #separator>
-          <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
-        </template>
+        <span class="site-brand-logo-wrap">
+          <img :src="props.appLogo" :alt="props.appTitle" class="site-brand-logo">
+        </span>
+        <span class="site-brand-title">
+          {{ props.appTitle }}
+        </span>
+      </div>
 
-        <!-- 有同级兄弟页面 → 下拉选择 -->
-        <NDropdown
-          v-if="item.siblings.length > 1"
-          :options="item.siblings"
-          @select="key => emit('breadcrumbSelect', String(key))"
-        >
+      <!-- 侧边栏折叠切换 -->
+      <NButton
+        v-if="!props.showTopMenu && props.appStore.widgetSidebarToggle"
+        quaternary
+        circle
+        size="small"
+        @mousedown.prevent
+        @click="emit('sidebarToggle')"
+      >
+        <template #icon>
+          <NIcon>
+            <Icon
+              :icon="props.appStore.sidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'"
+              width="18"
+            />
+          </NIcon>
+        </template>
+      </NButton>
+
+      <!-- 刷新当前页 -->
+      <NButton
+        v-if="props.appStore.widgetRefresh"
+        quaternary
+        circle
+        size="small"
+        @mousedown.prevent
+        @click="emit('refresh')"
+      >
+        <template #icon>
+          <NIcon size="16">
+            <Icon icon="lucide:refresh-cw" />
+          </NIcon>
+        </template>
+      </NButton>
+
+      <!-- 面包屑导航（lg 以下隐藏） -->
+      <NBreadcrumb
+        v-if="
+          props.appStore.breadcrumbEnabled
+            && !props.showTopMenu
+            && !(props.appStore.breadcrumbHideOnlyOne && allCrumbs.length <= 1)
+        "
+        class="hidden lg:flex items-center"
+        :class="props.appStore.breadcrumbStyle === 'background'
+          ? 'rounded-md bg-[hsl(var(--muted))] px-2 py-1'
+          : ''"
+      >
+        <!-- Home 项 -->
+        <NBreadcrumbItem v-if="props.appStore.breadcrumbShowHome">
+          <template v-if="!isLast(true)" #separator>
+            <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
+          </template>
           <div
             class="crumb-item"
+            :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
+            @click="!isLast(true) && emit('homeClick')"
+          >
+            <Icon
+              v-if="props.appStore.breadcrumbShowIcon"
+              icon="lucide:house"
+              width="14"
+              height="14"
+              class="crumb-icon"
+            />
+            <span>Home</span>
+          </div>
+        </NBreadcrumbItem>
+
+        <!-- 路由层级各项 -->
+        <NBreadcrumbItem
+          v-for="(item, index) in props.breadcrumbs"
+          :key="item.path"
+        >
+          <template v-if="!isLast(false, index)" #separator>
+            <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
+          </template>
+
+          <!-- 有同级兄弟页面 → 下拉选择 -->
+          <NDropdown
+            v-if="item.siblings.length > 1"
+            :options="item.siblings"
+            @select="key => emit('breadcrumbSelect', String(key))"
+          >
+            <div
+              class="crumb-item"
+              :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+            >
+              <Icon
+                v-if="props.appStore.breadcrumbShowIcon && item.icon"
+                :icon="item.icon!"
+                width="14"
+                height="14"
+                class="crumb-icon"
+              />
+              <span>{{ item.title }}</span>
+            </div>
+          </NDropdown>
+
+          <!-- 无兄弟页面 → 普通链接 -->
+          <div
+            v-else
+            class="crumb-item"
             :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+            @click="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
           >
             <Icon
               v-if="props.appStore.breadcrumbShowIcon && item.icon"
@@ -149,31 +183,14 @@ function isLast(isHome: boolean, index?: number): boolean {
             />
             <span>{{ item.title }}</span>
           </div>
-        </NDropdown>
-
-        <!-- 无兄弟页面 → 普通链接 -->
-        <div
-          v-else
-          class="crumb-item"
-          :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
-          @click="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
-        >
-          <Icon
-            v-if="props.appStore.breadcrumbShowIcon && item.icon"
-            :icon="item.icon!"
-            width="14"
-            height="14"
-            class="crumb-icon"
-          />
-          <span>{{ item.title }}</span>
-        </div>
-      </NBreadcrumbItem>
-    </NBreadcrumb>
+        </NBreadcrumbItem>
+      </NBreadcrumb>
+    </div>
 
     <!-- 顶部水平菜单 -->
     <NMenu
       v-if="props.showTopMenu"
-      class="hidden lg:block"
+      class="ml-auto hidden min-w-0 lg:block"
       mode="horizontal"
       :value="props.topMenuActive"
       :options="props.topMenuOptions"
@@ -183,6 +200,43 @@ function isLast(isHome: boolean, index?: number): boolean {
 </template>
 
 <style scoped>
+.site-brand-inline {
+  --brand-shell-max-width: 220px;
+  --brand-logo-wrap-size: 24px;
+  --brand-logo-size: 16px;
+  --brand-title-max-width: 180px;
+  max-width: var(--brand-shell-max-width);
+}
+
+.site-brand-logo-wrap {
+  display: inline-flex;
+  height: var(--brand-logo-wrap-size);
+  width: var(--brand-logo-wrap-size);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border) / 0.7);
+  background: hsl(var(--card) / 0.92);
+}
+
+.site-brand-logo {
+  height: var(--brand-logo-size);
+  width: var(--brand-logo-size);
+  object-fit: contain;
+}
+
+.site-brand-title {
+  max-width: var(--brand-title-max-width);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: hsl(var(--foreground));
+}
+
 /**
  * 面包屑条目
  * - inline-flex + items-center，行为可预期
