@@ -13,6 +13,7 @@ import {
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
+import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceLayoutTab' })
 
@@ -126,22 +127,27 @@ const preferencePositionOptions = computed(() => [
         <NSwitch v-model:value="appStore.sidebarCollapsed" />
       </div>
       <div class="pref-row">
-        <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
-          {{ t('preference.layout.sidebar.hover_expand') }}
-        </span>
+        <div class="flex items-center gap-1" :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
+          <span>{{ t('preference.layout.sidebar.hover_expand') }}</span>
+          <PrefTip :content="t('preference.layout.sidebar.hover_expand_tip')" />
+        </div>
         <NSwitch
           v-model:value="appStore.sidebarExpandOnHover"
           :disabled="!appStore.sidebarCollapsed"
         />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.layout.sidebar.collapsed_show_title') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.sidebar.collapsed_show_title') }}</span>
+          <PrefTip :content="t('preference.layout.sidebar.collapsed_show_title_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.sidebarCollapsedShowTitle" />
       </div>
       <div class="pref-row">
-        <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
-          {{ t('preference.layout.sidebar.auto_activate_child') }}
-        </span>
+        <div class="flex items-center gap-1" :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
+          <span>{{ t('preference.layout.sidebar.auto_activate_child') }}</span>
+          <PrefTip :content="t('preference.layout.sidebar.auto_activate_child_tip')" />
+        </div>
         <NSwitch
           v-model:value="appStore.sidebarAutoActivateChild"
           :disabled="!appStore.sidebarCollapsed"
@@ -244,11 +250,17 @@ const preferencePositionOptions = computed(() => [
         </NRadioGroup>
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.layout.navigation.split') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.navigation.split') }}</span>
+          <PrefTip :content="t('preference.layout.navigation.split_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.navigationSplit" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.layout.navigation.accordion') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.navigation.accordion') }}</span>
+          <PrefTip :content="t('preference.layout.navigation.accordion_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.navigationAccordion" />
       </div>
     </NCard>
@@ -263,7 +275,10 @@ const preferencePositionOptions = computed(() => [
         <NSwitch v-model:value="appStore.breadcrumbEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
-        <span>{{ t('preference.layout.breadcrumb.hide_only_one') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.breadcrumb.hide_only_one') }}</span>
+          <PrefTip :content="t('preference.layout.breadcrumb.hide_only_one_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" :disabled="!appStore.breadcrumbEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
@@ -299,15 +314,24 @@ const preferencePositionOptions = computed(() => [
         <NSwitch v-model:value="appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>{{ t('preference.layout.tabbar.persist') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.tabbar.persist') }}</span>
+          <PrefTip :content="t('preference.layout.tabbar.persist_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.tabbarPersist" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>{{ t('preference.layout.tabbar.visit_history') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.tabbar.visit_history') }}</span>
+          <PrefTip :content="t('preference.layout.tabbar.visit_history_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.tabbarVisitHistory" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>{{ t('preference.layout.tabbar.max_count') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.tabbar.max_count') }}</span>
+          <PrefTip :content="t('preference.layout.tabbar.max_count_tip')" />
+        </div>
         <div class="flex items-center gap-1.5">
           <NInputNumber
             v-model:value="appStore.tabbarMaxCount"
@@ -323,15 +347,24 @@ const preferencePositionOptions = computed(() => [
         </div>
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>{{ t('preference.layout.tabbar.draggable') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.tabbar.draggable') }}</span>
+          <PrefTip :content="t('preference.layout.tabbar.draggable_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.tabbarDraggable" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>{{ t('preference.layout.tabbar.scroll_response') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.tabbar.scroll_response') }}</span>
+          <PrefTip :content="t('preference.layout.tabbar.scroll_response_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.tabbarScrollResponse" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>{{ t('preference.layout.tabbar.middle_click_close') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.tabbar.middle_click_close') }}</span>
+          <PrefTip :content="t('preference.layout.tabbar.middle_click_close_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.tabbarMiddleClickClose" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">

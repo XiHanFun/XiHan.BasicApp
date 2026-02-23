@@ -144,6 +144,8 @@ export default {
         sidebar_dark: 'Dark Sidebar',
         sidebar_sub_dark: 'Dark Sidebar Sub',
         header_dark: 'Dark Header',
+        sidebar_dark_tip: 'Switch the sidebar to dark style independently in light theme',
+        header_dark_tip: 'Switch the header to dark style independently in light theme',
       },
       font: {
         title: 'Font',
@@ -153,6 +155,8 @@ export default {
         title: 'Other',
         color_weakness: 'Color Weakness',
         grayscale: 'Grayscale',
+        color_weakness_tip: 'Color accessibility mode for users with red-green color vision deficiency',
+        grayscale_tip: 'Render the entire page in grayscale, commonly used on memorial days',
       },
     },
     layout: {
@@ -182,6 +186,9 @@ export default {
         collapse_button: 'Collapse Button',
         fixed_button: 'Fixed Button',
         width: 'Width',
+        hover_expand_tip: 'Requires "Collapse Menu" enabled. Sidebar expands temporarily on hover and collapses when the mouse leaves',
+        collapsed_show_title_tip: 'Display menu item names below their icons when the sidebar is collapsed',
+        auto_activate_child_tip: 'Automatically highlight the first available child menu item when the collapsed sidebar expands on hover',
       },
       header: {
         title: 'Header',
@@ -201,6 +208,8 @@ export default {
         style_plain: 'Plain',
         split: 'Split Navigation',
         accordion: 'Sidebar Accordion',
+        split_tip: 'Display the sidebar navigation and content area as separate independent panels',
+        accordion_tip: 'Automatically collapse other sibling menu items when expanding one',
       },
       breadcrumb: {
         title: 'Breadcrumb',
@@ -211,6 +220,7 @@ export default {
         style: 'Style',
         style_normal: 'Normal',
         style_background: 'Background',
+        hide_only_one_tip: 'Automatically hide the breadcrumb when the current path has only one level',
       },
       tabbar: {
         title: 'Tabbar',
@@ -228,6 +238,12 @@ export default {
         style_chrome: 'Chrome',
         style_plain: 'Plain',
         style_rounded: 'Rounded',
+        persist_tip: 'Automatically restore the previous tab state when reopening the browser',
+        visit_history_tip: 'Record tab visit history to support forward/backward navigation between visited tabs',
+        max_count_tip: 'The oldest tab will be auto-closed when the limit is exceeded. Set to 0 for unlimited',
+        draggable_tip: 'Hold and drag a tab to reorder it',
+        scroll_response_tip: 'When on, the tabbar responds to vertical scroll wheel.\nWhen off, use Shift + scroll for horizontal scrolling',
+        middle_click_close_tip: 'Click a tab with the middle mouse button to close it quickly',
       },
       widget: {
         title: 'Widgets',
@@ -267,6 +283,9 @@ export default {
       watermark: 'Watermark',
       watermark_text: 'Watermark Text',
       check_updates: 'Auto Check Updates',
+      dynamic_title_tip: 'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
+      watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
+      check_updates_tip: 'Periodically check for new versions and show a notification when an update is available',
       animation: {
         title: 'Animation',
         transition_progress: 'Page Progress Bar',
@@ -277,6 +296,10 @@ export default {
         slide_left: 'Slide',
         slide_up: 'Slide Up',
         slide_down: 'Slide Down',
+        transition_progress_tip: 'Show a thin progress bar at the top during page navigation',
+        transition_loading_tip: 'Show a loading overlay in the content area during page navigation',
+        theme_animation_tip: 'A circular ripple animation that expands from the click position during theme switch.\nOnly triggers when switching to dark theme',
+        transition_enable_tip: 'Enable smooth animated transitions between pages. Disable for instant switching',
       },
     },
     shortcut: {
@@ -285,6 +308,10 @@ export default {
       search: 'Global Search',
       logout: 'Sign Out',
       lock: 'Lock Screen',
+      enabled_tip: 'When enabled, all shortcuts below will be active globally',
+      search_tip: 'Press the shortcut to open the global search panel from any page',
+      lock_tip: 'Press the shortcut to immediately lock the screen, requiring a password to resume',
+      logout_tip: 'Press the shortcut to sign out immediately and redirect to the login page',
     },
   },
   page: {

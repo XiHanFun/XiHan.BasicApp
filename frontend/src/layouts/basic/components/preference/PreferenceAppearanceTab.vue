@@ -4,6 +4,7 @@ import { Icon } from '@iconify/vue'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
 
@@ -160,7 +161,10 @@ const localizedModes = computed(() =>
         {{ t('preference.appearance.navigation.title') }}
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.appearance.navigation.sidebar_dark') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.appearance.navigation.sidebar_dark') }}</span>
+          <PrefTip :content="t('preference.appearance.navigation.sidebar_dark_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.sidebarDark" />
       </div>
       <div class="pref-row">
@@ -170,7 +174,10 @@ const localizedModes = computed(() =>
         <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="!appStore.sidebarDark" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.appearance.navigation.header_dark') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.appearance.navigation.header_dark') }}</span>
+          <PrefTip :content="t('preference.appearance.navigation.header_dark_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.headerDark" />
       </div>
     </NCard>
@@ -205,11 +212,17 @@ const localizedModes = computed(() =>
         {{ t('preference.appearance.other.title') }}
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.appearance.other.color_weakness') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.appearance.other.color_weakness') }}</span>
+          <PrefTip :content="t('preference.appearance.other.color_weakness_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.appearance.other.grayscale') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.appearance.other.grayscale') }}</span>
+          <PrefTip :content="t('preference.appearance.other.grayscale_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.grayscaleEnabled" />
       </div>
     </NCard>

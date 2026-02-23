@@ -4,6 +4,7 @@ import { NCard, NInput, NSelect, NSwitch } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale } from '~/hooks'
+import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceGeneralTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()
@@ -41,11 +42,17 @@ const localeOptions = [
         />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.general.dynamic_title') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.dynamic_title') }}</span>
+          <PrefTip :content="t('preference.general.dynamic_title_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.dynamicTitle" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.general.watermark') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.watermark') }}</span>
+          <PrefTip :content="t('preference.general.watermark_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.watermarkEnabled" />
       </div>
       <NInput
@@ -55,7 +62,10 @@ const localeOptions = [
         :placeholder="t('preference.general.watermark_text')"
       />
       <div class="pref-row">
-        <span>{{ t('preference.general.check_updates') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.check_updates') }}</span>
+          <PrefTip :content="t('preference.general.check_updates_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.enableCheckUpdates" />
       </div>
     </NCard>
@@ -65,19 +75,31 @@ const localeOptions = [
         {{ t('preference.general.animation.title') }}
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.general.animation.transition_progress') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.animation.transition_progress') }}</span>
+          <PrefTip :content="t('preference.general.animation.transition_progress_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.transitionProgress" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.general.animation.transition_loading') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.animation.transition_loading') }}</span>
+          <PrefTip :content="t('preference.general.animation.transition_loading_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.transitionLoading" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.general.animation.theme_animation') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.animation.theme_animation') }}</span>
+          <PrefTip :content="t('preference.general.animation.theme_animation_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.themeAnimationEnabled" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.general.animation.transition_enable') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.general.animation.transition_enable') }}</span>
+          <PrefTip :content="t('preference.general.animation.transition_enable_tip')" />
+        </div>
         <NSwitch v-model:value="appStore.transitionEnable" />
       </div>
       <div class="transition-grid" :class="{ 'pointer-events-none opacity-40': !appStore.transitionEnable }">
