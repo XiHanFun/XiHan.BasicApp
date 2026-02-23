@@ -4,6 +4,7 @@ import { Icon } from '@iconify/vue'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { DEFAULT_THEME_COLOR } from '~/constants'
 import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
@@ -18,7 +19,12 @@ const { t } = useI18n()
 
 interface ThemePresetItem {
   color: string
-  name: string
+  nameKey: string
+}
+
+interface ThemeColorGroup {
+  familyKey: string
+  items: ThemePresetItem[]
 }
 
 interface PreferenceAppearanceTabProps {
@@ -32,27 +38,72 @@ const themeModes = [
   { value: 'auto', labelKey: 'preference.appearance.mode.auto', icon: 'lucide:monitor' },
 ] as const
 
-const themePresetItems: ThemePresetItem[] = [
-  { color: '#feba07', name: '琥珀黄' },
-  { color: '#5bae23', name: '鹦鹉绿' },
-  { color: '#20a162', name: '孔雀绿' },
-  { color: '#2c9678', name: '青矾绿' },
-  { color: '#12aa9c', name: '美蝶绿' },
-  { color: '#0eb0c9', name: '孔雀蓝' },
-  { color: '#1772b4', name: '景泰蓝' },
-  { color: '#61649f', name: '山梗紫' },
-  { color: '#813c85', name: '桔梗紫' },
-  { color: '#8b2671', name: '青莲' },
-  { color: '#d2357d', name: '玫瑰红' },
-  { color: '#f04a3a', name: '珊瑚红' },
-  { color: '#c21f30', name: '枫叶红' },
-  { color: '#f86b1d', name: '燕颔红' },
-  { color: '#142334', name: '燕颔蓝' },
+const themeColorGroups: ThemeColorGroup[] = [
+  {
+    familyKey: 'preference.appearance.color.family.red',
+    items: [
+      { color: '#C0446A', nameKey: 'preference.appearance.color.preset.yan_zhi_hong' },
+      { color: '#C0392B', nameKey: 'preference.appearance.color.preset.zhu_sha_hong' },
+      { color: '#8B1A3A', nameKey: 'preference.appearance.color.preset.jiang_zi_hong' },
+    ],
+  },
+  {
+    familyKey: 'preference.appearance.color.family.orange',
+    items: [
+      { color: '#A0522D', nameKey: 'preference.appearance.color.preset.zhe_shi_zong' },
+      { color: '#C45C26', nameKey: 'preference.appearance.color.preset.zhuan_wa_cheng' },
+      { color: '#D4751A', nameKey: 'preference.appearance.color.preset.hu_po_cheng' },
+    ],
+  },
+  {
+    familyKey: 'preference.appearance.color.family.yellow',
+    items: [
+      { color: '#D4A017', nameKey: 'preference.appearance.color.preset.jiang_huang_cheng' },
+      { color: '#E8C97E', nameKey: 'preference.appearance.color.preset.xiang_ye_huang' },
+      { color: '#F0C040', nameKey: 'preference.appearance.color.preset.teng_huang_se' },
+    ],
+  },
+  {
+    familyKey: 'preference.appearance.color.family.green',
+    items: [
+      { color: '#7AB648', nameKey: 'preference.appearance.color.preset.song_hua_lv' },
+      { color: '#5C8A6F', nameKey: 'preference.appearance.color.preset.zhu_qing_lv' },
+      { color: '#2E8B57', nameKey: 'preference.appearance.color.preset.bi_yu_lv' },
+    ],
+  },
+  {
+    familyKey: 'preference.appearance.color.family.cyan',
+    items: [
+      { color: '#48C0A3', nameKey: 'preference.appearance.color.preset.bi_bo_qing' },
+      { color: '#1A6B56', nameKey: 'preference.appearance.color.preset.shi_qing_se' },
+      { color: '#3DAA8A', nameKey: 'preference.appearance.color.preset.fei_cui_qing' },
+    ],
+  },
+  {
+    familyKey: 'preference.appearance.color.family.blue',
+    items: [
+      { color: '#3A5A8C', nameKey: 'preference.appearance.color.preset.cang_qing_lan' },
+      { color: '#5A7FA0', nameKey: 'preference.appearance.color.preset.shi_ban_lan' },
+      { color: '#2A5CAA', nameKey: 'preference.appearance.color.preset.ji_lan_se' },
+    ],
+  },
+  {
+    familyKey: 'preference.appearance.color.family.purple',
+    items: [
+      { color: '#8B7BA8', nameKey: 'preference.appearance.color.preset.ding_xiang_zi' },
+      { color: '#9C7B9A', nameKey: 'preference.appearance.color.preset.ou_he_zi' },
+      { color: '#6A4C8C', nameKey: 'preference.appearance.color.preset.qing_lian_zi' },
+    ],
+  },
 ]
 
-const localizedModes = computed(() =>
-  themeModes.map(m => ({ ...m, label: t(m.labelKey) })),
-)
+/** 所有预设色值（含默认色），用于判断当前色是否为自定义 */
+const allPresetColors = [
+  DEFAULT_THEME_COLOR,
+  ...themeColorGroups.flatMap(g => g.items.map(i => i.color)),
+]
+
+const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
 </script>
 
 <template>
@@ -81,7 +132,9 @@ const localizedModes = computed(() =>
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
             >
-            <NIcon size="20" class="mb-1"><Icon :icon="mode.icon" /></NIcon>
+            <NIcon size="20" class="mb-1">
+              <Icon :icon="mode.icon" />
+            </NIcon>
             <span class="text-xs">{{ mode.label }}</span>
           </label>
         </div>
@@ -93,45 +146,78 @@ const localizedModes = computed(() =>
       <div class="section-title">
         {{ t('preference.appearance.color.title') }}
       </div>
-      <div class="grid grid-cols-3 gap-x-2 gap-y-3">
-        <!-- 预设颜色 -->
-        <div v-for="preset in themePresetItems" :key="preset.color" class="color-item">
-          <button
-            type="button"
-            class="theme-color-card"
-            :class="{ 'is-active': appStore.themeColor === preset.color }"
-            @click="appStore.setThemeColor(preset.color)"
-          >
-            <div class="theme-color-dot" :style="{ backgroundColor: preset.color }" />
-          </button>
-          <span class="theme-color-label">{{ preset.name }}</span>
+      <div class="space-y-1.5">
+        <!-- 自定义分组（默认色 + 取色器），置于所有色系上方 -->
+        <div class="color-group-row">
+          <span class="color-group-label">{{ t('preference.appearance.color.custom') }}</span>
+          <div class="color-group-swatches w-full">
+            <!-- 默认色 -->
+            <div class="color-item">
+              <button
+                type="button"
+                class="theme-color-card"
+                :class="{ 'is-active': appStore.themeColor === DEFAULT_THEME_COLOR }"
+                :title="t('preference.appearance.color.default')"
+                @click="appStore.setThemeColor(DEFAULT_THEME_COLOR)"
+              >
+                <div class="theme-color-dot" :style="{ backgroundColor: DEFAULT_THEME_COLOR }" />
+              </button>
+              <span class="theme-color-label">{{ t('preference.appearance.color.default') }}</span>
+            </div>
+            <!-- 取色器 -->
+            <div class="color-item">
+              <div
+                class="theme-color-card custom-color-card"
+                :class="{ 'is-active': !allPresetColors.includes(appStore.themeColor) }"
+              >
+                <div class="theme-color-dot custom-dot">
+                  <NIcon size="16">
+                    <Icon icon="lucide:pipette" />
+                  </NIcon>
+                </div>
+                <NColorPicker
+                  :value="appStore.themeColor"
+                  :modes="['hex']"
+                  :show-alpha="false"
+                  :actions="['confirm']"
+                  class="custom-color-overlay"
+                  @update:value="value => appStore.setThemeColor(value)"
+                >
+                  <template #label>
+                    <span />
+                  </template>
+                </NColorPicker>
+              </div>
+              <span class="theme-color-label">{{ t('preference.appearance.color.picker') }}</span>
+            </div>
+          </div>
         </div>
 
-        <!-- 自定义颜色 -->
-        <div class="color-item">
-          <div
-            class="theme-color-card custom-color-card"
-            :class="{ 'is-active': !themePresetItems.some((p) => p.color === appStore.themeColor) }"
-          >
-            <div class="theme-color-dot custom-dot">
-              <NIcon size="16">
-                <Icon icon="lucide:pipette" />
-              </NIcon>
-            </div>
-            <NColorPicker
-              :value="appStore.themeColor"
-              :modes="['hex']"
-              :show-alpha="false"
-              :actions="['confirm']"
-              class="custom-color-overlay"
-              @update:value="(value) => appStore.setThemeColor(value)"
+        <!-- 每行一个色系 + 三个色块 -->
+        <div
+          v-for="group in themeColorGroups"
+          :key="group.familyKey"
+          class="color-group-row"
+        >
+          <span class="color-group-label">{{ t(group.familyKey) }}</span>
+          <div class="color-group-swatches w-full">
+            <div
+              v-for="item in group.items"
+              :key="item.color"
+              class="color-item"
             >
-              <template #label>
-                <span />
-              </template>
-            </NColorPicker>
+              <button
+                type="button"
+                class="theme-color-card"
+                :class="{ 'is-active': appStore.themeColor === item.color }"
+                :title="t(item.nameKey)"
+                @click="appStore.setThemeColor(item.color)"
+              >
+                <div class="theme-color-dot" :style="{ backgroundColor: item.color }" />
+              </button>
+              <span class="theme-color-label">{{ t(item.nameKey) }}</span>
+            </div>
           </div>
-          <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
         </div>
       </div>
     </NCard>
@@ -199,7 +285,7 @@ const localizedModes = computed(() =>
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 130px"
-            @update:value="(value) => value !== null && appStore.setFontSize(value)"
+            @update:value="value => value !== null && appStore.setFontSize(value)"
           />
           <span class="unit-label">px</span>
         </div>
@@ -259,12 +345,34 @@ const localizedModes = computed(() =>
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
 }
 
+/* 色系分组行 */
+.color-group-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 色系名标签 */
+.color-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: hsl(var(--muted-foreground));
+  line-height: 1;
+}
+
+/* 一行三个色块 */
+.color-group-swatches {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
 /* 每个色块 + 标签的包裹层 */
 .color-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 /* 内置主题颜色卡片 */
@@ -272,7 +380,7 @@ const localizedModes = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 8px;
   width: 100%;
   border: 1.5px solid hsl(var(--border));
   border-radius: var(--radius-card);
@@ -292,8 +400,8 @@ const localizedModes = computed(() =>
 }
 
 .theme-color-dot {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius);
   flex-shrink: 0;
 }
@@ -308,9 +416,10 @@ const localizedModes = computed(() =>
 }
 
 .theme-color-label {
-  font-size: 11px;
+  font-size: 10px;
   color: hsl(var(--muted-foreground));
   line-height: 1;
+  white-space: nowrap;
 }
 
 /* 自定义卡片：relative 以便遮罩定位 */
