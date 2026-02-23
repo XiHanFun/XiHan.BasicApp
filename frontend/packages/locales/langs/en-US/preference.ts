@@ -58,7 +58,8 @@ export default {
       title: 'Other',
       color_weakness: 'Color Weakness',
       grayscale: 'Grayscale',
-      color_weakness_tip: 'Color accessibility mode for users with red-green color vision deficiency',
+      color_weakness_tip:
+        'Color accessibility mode for users with red-green color vision deficiency',
       grayscale_tip: 'Render the entire page in grayscale, commonly used on memorial days',
     },
   },
@@ -89,9 +90,12 @@ export default {
       collapse_button: 'Collapse Button',
       fixed_button: 'Fixed Button',
       width: 'Width',
-      hover_expand_tip: 'Requires "Collapse Menu" enabled. Sidebar expands temporarily on hover and collapses when the mouse leaves',
-      collapsed_show_title_tip: 'Display menu item names below their icons when the sidebar is collapsed',
-      auto_activate_child_tip: 'Automatically highlight the first available child menu item when the collapsed sidebar expands on hover',
+      hover_expand_tip:
+        'Requires "Collapse Menu" enabled. Sidebar expands temporarily on hover and collapses when the mouse leaves',
+      collapsed_show_title_tip:
+        'Display menu item names below their icons when the sidebar is collapsed',
+      auto_activate_child_tip:
+        'Automatically highlight the first available child menu item when the collapsed sidebar expands on hover',
     },
     header: {
       title: 'Header',
@@ -123,7 +127,8 @@ export default {
       style: 'Style',
       style_normal: 'Normal',
       style_background: 'Background',
-      hide_only_one_tip: 'Automatically hide the breadcrumb when the current path has only one level',
+      hide_only_one_tip:
+        'Automatically hide the breadcrumb when the current path has only one level',
     },
     tabbar: {
       title: 'Tabbar',
@@ -142,10 +147,13 @@ export default {
       style_plain: 'Plain',
       style_rounded: 'Rounded',
       persist_tip: 'Automatically restore the previous tab state when reopening the browser',
-      visit_history_tip: 'Record tab visit history to support forward/backward navigation between visited tabs',
-      max_count_tip: 'The oldest tab will be auto-closed when the limit is exceeded. Set to 0 for unlimited',
+      visit_history_tip:
+        'Record tab visit history to support forward/backward navigation between visited tabs',
+      max_count_tip:
+        'The oldest tab will be auto-closed when the limit is exceeded. Set to 0 for unlimited',
       draggable_tip: 'Hold and drag a tab to reorder it',
-      scroll_response_tip: 'When on, the tabbar responds to vertical scroll wheel.\nWhen off, use Shift + scroll for horizontal scrolling',
+      scroll_response_tip:
+        'When on, the tabbar responds to vertical scroll wheel.\nWhen off, use Shift + scroll for horizontal scrolling',
       middle_click_close_tip: 'Click a tab with the middle mouse button to close it quickly',
     },
     widget: {
@@ -171,8 +179,8 @@ export default {
     copyright: {
       title: 'Copyright',
       enabled: 'Enable Copyright',
-      name: 'Company Name',
-      site: 'Company Website',
+      name: 'Name',
+      site: 'Website',
       date: 'Date',
       icp: 'ICP Filing',
       icp_url: 'ICP URL',
@@ -184,11 +192,14 @@ export default {
     language: 'Language',
     dynamic_title: 'Dynamic Title',
     watermark: 'Watermark',
+    watermark_content: 'Content',
     watermark_text: 'Watermark Text',
     check_updates: 'Auto Check Updates',
-    dynamic_title_tip: 'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
+    dynamic_title_tip:
+      'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
-    check_updates_tip: 'Periodically check for new versions and show a notification when an update is available',
+    check_updates_tip:
+      'Periodically check for new versions and show a notification when an update is available',
     animation: {
       title: 'Animation',
       transition_progress: 'Page Progress Bar',
@@ -201,8 +212,10 @@ export default {
       slide_down: 'Slide Down',
       transition_progress_tip: 'Show a thin progress bar at the top during page navigation',
       transition_loading_tip: 'Show a loading overlay in the content area during page navigation',
-      theme_animation_tip: 'A circular ripple animation that expands from the click position during theme switch.\nOnly triggers when switching to dark theme',
-      transition_enable_tip: 'Enable smooth animated transitions between pages. Disable for instant switching',
+      theme_animation_tip:
+        'A circular ripple animation that expands from the click position during theme switch.\nOnly triggers when switching to dark theme',
+      transition_enable_tip:
+        'Enable smooth animated transitions between pages. Disable for instant switching',
     },
   },
   shortcut: {

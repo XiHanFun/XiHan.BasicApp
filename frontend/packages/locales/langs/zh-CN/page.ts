@@ -57,6 +57,16 @@ export default {
     edit_role: '编辑角色',
     assign_permissions: '分配权限',
   },
+  about: {
+    title: '关于',
+    description: '基于 Vue 3 + Naive UI 的现代化后台管理框架',
+    version: '版本',
+    license: '许可证',
+    author: '作者',
+    tech_stack: '技术栈',
+    open_source: '开源地址',
+    open_source_desc: '项目已在 GitHub 开源，欢迎 Star 与贡献',
+  },
   menu: {
     title: '菜单管理',
     name: '菜单名称',

@@ -171,8 +171,8 @@ export default {
     copyright: {
       title: '版权',
       enabled: '启用版权',
-      name: '公司名',
-      site: '公司主页',
+      name: '名称',
+      site: '主页',
       date: '日期',
       icp: 'ICP 备案号',
       icp_url: 'ICP 网站链接',
@@ -184,6 +184,7 @@ export default {
     language: '语言',
     dynamic_title: '动态标题',
     watermark: '水印',
+    watermark_content: '内容',
     watermark_text: '水印文案',
     check_updates: '定时检查更新',
     dynamic_title_tip: '页面标题随当前路由名称动态更新，便于在多个浏览器标签页中区分',

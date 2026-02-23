@@ -5,7 +5,12 @@ export default {
   forbidden_desc: "Sorry, you don't have permission to access this page",
   server_error: 'Server Error',
   server_error_desc: 'Sorry, the server encountered an error, please try again later',
+  offline: 'Network Disconnected',
+  offline_desc: 'Please check your network connection and try again',
+  coming_soon: 'Coming Soon',
+  coming_soon_desc: 'This feature is under development, stay tuned',
   back_home: 'Back to Home',
   back_prev: 'Go Back',
   refresh: 'Retry',
+  retry: 'Reconnect',
 }

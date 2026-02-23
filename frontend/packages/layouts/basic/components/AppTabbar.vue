@@ -7,6 +7,7 @@ import Sortable from 'sortablejs'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { useContentMaximize, useRefresh } from '~/hooks'
 import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import TabbarActions from './tabbar/TabbarActions.vue'
 import TabbarContextMenu from './tabbar/TabbarContextMenu.vue'
@@ -31,13 +32,14 @@ const localizedTabs = computed(() => {
     }
   })
 })
+const { contentIsMaximize: isContentMaximized, toggleMaximize } = useContentMaximize()
+const { refresh: refreshCurrentTab } = useRefresh()
 const contextMenuVisible = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 const contextTabPath = ref('')
 const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
-const isContentMaximized = ref(false)
 const tabsContainerRef = ref<HTMLElement | null>(null)
 const sortableInstance = ref<null | Sortable>(null)
 
@@ -395,19 +397,6 @@ async function initSortable() {
   })
 }
 
-function syncContentMaximizeState(e: Event) {
-  const customEvent = e as CustomEvent<boolean>
-  isContentMaximized.value = Boolean(customEvent.detail)
-}
-
-function toggleMaximize() {
-  window.dispatchEvent(new CustomEvent('xihan-toggle-content-maximize'))
-}
-
-function refreshCurrentTab() {
-  tabbarStore.refreshTab(route.fullPath)
-}
-
 function handleMoreTabSelect(path: string) {
   handleJump(path)
 }
@@ -424,22 +413,11 @@ function handleTabsWheel(e: WheelEvent) {
 
 onMounted(() => {
   initSortable()
-  window.addEventListener(
-    'xihan-content-maximized-change',
-    syncContentMaximizeState as EventListener,
-  )
-  window.addEventListener('xihan-refresh-current-tab', refreshCurrentTab as EventListener)
-  window.dispatchEvent(new CustomEvent('xihan-sync-content-maximize-state'))
   tabsContainerRef.value?.parentElement?.addEventListener('wheel', handleTabsWheel, { passive: false })
 })
 
 onBeforeUnmount(() => {
   destroySortable()
-  window.removeEventListener(
-    'xihan-content-maximized-change',
-    syncContentMaximizeState as EventListener,
-  )
-  window.removeEventListener('xihan-refresh-current-tab', refreshCurrentTab as EventListener)
   tabsContainerRef.value?.parentElement?.removeEventListener('wheel', handleTabsWheel)
 })
 

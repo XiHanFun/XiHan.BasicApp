@@ -9,7 +9,7 @@ import {
 } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useTheme } from '~/hooks'
+import { useContentMaximize, useTheme } from '~/hooks'
 import { useAppStore, useLayoutPreferences, useTabbarStore } from '~/stores'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
@@ -27,12 +27,12 @@ const headerForceDark = computed(() => appStore.headerDark && !isDark.value)
 const layoutPreferences = useLayoutPreferences()
 const tabbarStore = useTabbarStore()
 const route = useRoute()
+const { contentIsMaximize: contentMaximized, toggleMaximize } = useContentMaximize()
 const collapsed = computed(() => layoutPreferences.sidebarCollapsed.value)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
 const mobileSidebarOpen = ref(false)
 const sidebarHoverExpand = ref(false)
-const contentMaximized = ref(false)
 const isTopOnlyLayout = computed(() => layoutPreferences.layoutMode.value === 'top')
 const isFullContentLayout = computed(() => layoutPreferences.layoutMode.value === 'full')
 const compactSidebarLayout = computed(() =>
@@ -110,33 +110,14 @@ function updateViewportWidth() {
   }
 }
 
-function emitContentMaximizeState() {
-  window.dispatchEvent(
-    new CustomEvent('xihan-content-maximized-change', { detail: contentMaximized.value }),
-  )
-}
-
-function handleContentMaximizeToggle() {
-  contentMaximized.value = !contentMaximized.value
-  emitContentMaximizeState()
-}
-
-function handleContentMaximizeSync() {
-  emitContentMaximizeState()
-}
-
 onMounted(() => {
   updateViewportWidth()
   window.addEventListener('resize', updateViewportWidth)
-  window.addEventListener('xihan-toggle-content-maximize', handleContentMaximizeToggle)
-  window.addEventListener('xihan-sync-content-maximize-state', handleContentMaximizeSync)
   window.addEventListener('xihan-toggle-sidebar-request', handleSidebarToggleRequest)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportWidth)
-  window.removeEventListener('xihan-toggle-content-maximize', handleContentMaximizeToggle)
-  window.removeEventListener('xihan-sync-content-maximize-state', handleContentMaximizeSync)
   window.removeEventListener('xihan-toggle-sidebar-request', handleSidebarToggleRequest)
 })
 
