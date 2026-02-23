@@ -59,6 +59,7 @@ function isLast(isHome: boolean, index?: number): boolean {
       quaternary
       circle
       size="small"
+      @mousedown.prevent
       @click="emit('sidebarToggle')"
     >
       <template #icon>
