@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="app-header-root flex h-14 min-w-0 items-center justify-between gap-2 bg-[var(--header-bg)] px-3">
+  <div class="flex h-14 min-w-0 items-center justify-between gap-2 border-b border-border bg-header px-3">
     <HeaderNav
       :app-store="appStore"
       :layout-mode="appStore.layoutMode"
@@ -368,8 +368,3 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-<style scoped>
-.app-header-root {
-  border-bottom: 1px solid var(--border-color);
-}
-</style>
