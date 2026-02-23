@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { NButton } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'PreferenceFab' })
 defineProps<{ show: boolean }>()
 const emit = defineEmits<{ click: [] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -13,7 +16,7 @@ const emit = defineEmits<{ click: [] }>()
     class="preference-fab fixed z-[80]"
     style="right: 12px; bottom: 88px"
   >
-    <NButton quaternary circle size="large" title="偏好设置" @click="emit('click')">
+    <NButton quaternary circle size="large" :title="t('preference.drawer.title')" @click="emit('click')">
       <template #icon>
         <Icon icon="lucide:settings-2" width="20" />
       </template>

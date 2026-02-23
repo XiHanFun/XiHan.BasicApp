@@ -2,6 +2,8 @@
 import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
 import { NCard, NColorPicker, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
 
@@ -11,10 +13,11 @@ const emit = defineEmits<{
 }>()
 
 const appStore = props.appStore
+const { t } = useI18n()
 
 interface ThemePresetItem {
   color: string
-  label: string
+  labelKey: string
 }
 
 interface PreferenceAppearanceTabProps {
@@ -24,34 +27,44 @@ interface PreferenceAppearanceTabProps {
 }
 
 const themeModes = [
-  { value: 'light', label: '浅色', icon: 'lucide:sun' },
-  { value: 'dark', label: '深色', icon: 'lucide:moon' },
-  { value: 'auto', label: '跟随系统', icon: 'lucide:monitor' },
+  { value: 'light', labelKey: 'preference.appearance.mode.light', icon: 'lucide:sun' },
+  { value: 'dark', labelKey: 'preference.appearance.mode.dark', icon: 'lucide:moon' },
+  { value: 'auto', labelKey: 'preference.appearance.mode.auto', icon: 'lucide:monitor' },
 ] as const
 
 const themePresetItems: ThemePresetItem[] = [
-  { color: '#4080FF', label: '品蓝' },
-  { color: '#7C3AED', label: '青莲' },
-  { color: '#E91E8C', label: '胭脂' },
-  { color: '#F59E0B', label: '杏黄' },
-  { color: '#0EA5E9', label: '天青' },
-  { color: '#10B981', label: '翡翠' },
-  { color: '#6B7280', label: '苍灰' },
-  { color: '#059669', label: '松绿' },
-  { color: '#1D4ED8', label: '宝蓝' },
-  { color: '#EA580C', label: '橘红' },
-  { color: '#DC2626', label: '朱红' },
-  { color: '#374151', label: '玄灰' },
-  { color: '#334155', label: '青黛' },
-  { color: '#4B5563', label: '素灰' },
+  { color: '#4080FF', labelKey: 'preference.appearance.color.blue' },
+  { color: '#7C3AED', labelKey: 'preference.appearance.color.violet' },
+  { color: '#E91E8C', labelKey: 'preference.appearance.color.crimson' },
+  { color: '#F59E0B', labelKey: 'preference.appearance.color.amber' },
+  { color: '#0EA5E9', labelKey: 'preference.appearance.color.sky' },
+  { color: '#10B981', labelKey: 'preference.appearance.color.emerald' },
+  { color: '#6B7280', labelKey: 'preference.appearance.color.slate' },
+  { color: '#059669', labelKey: 'preference.appearance.color.teal' },
+  { color: '#1D4ED8', labelKey: 'preference.appearance.color.indigo' },
+  { color: '#EA580C', labelKey: 'preference.appearance.color.orange' },
+  { color: '#DC2626', labelKey: 'preference.appearance.color.red' },
+  { color: '#374151', labelKey: 'preference.appearance.color.dark_gray' },
+  { color: '#334155', labelKey: 'preference.appearance.color.dark_blue' },
+  { color: '#4B5563', labelKey: 'preference.appearance.color.gray' },
 ]
+
+const localizedModes = computed(() =>
+  themeModes.map(m => ({ ...m, label: t(m.labelKey) })),
+)
+
+const localizedPresets = computed(() =>
+  themePresetItems.map(p => ({ ...p, label: t(p.labelKey) })),
+)
 </script>
 
 <template>
   <div class="space-y-4">
     <!-- 模式 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">模式</div>
+      <div class="section-title">
+        {{ t('preference.appearance.mode.title') }}
+      </div>
       <NRadioGroup
         :value="props.themeMode"
         class="w-full"
@@ -59,7 +72,7 @@ const themePresetItems: ThemePresetItem[] = [
       >
         <div class="grid grid-cols-3 gap-2">
           <label
-            v-for="mode in themeModes"
+            v-for="mode in localizedModes"
             :key="mode.value"
             class="theme-mode-card"
             :class="{ 'is-active': props.themeMode === mode.value }"
@@ -70,7 +83,7 @@ const themePresetItems: ThemePresetItem[] = [
               class="sr-only"
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
-            />
+            >
             <Icon :icon="mode.icon" width="20" class="mb-1" />
             <span class="text-xs">{{ mode.label }}</span>
           </label>
@@ -80,10 +93,12 @@ const themePresetItems: ThemePresetItem[] = [
 
     <!-- 颜色 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">颜色</div>
+      <div class="section-title">
+        {{ t('preference.appearance.color.title') }}
+      </div>
       <div class="grid grid-cols-3 gap-x-2 gap-y-3">
-        <!-- 预设颜色：标签在卡片外面 -->
-        <div v-for="preset in themePresetItems" :key="preset.color" class="color-item">
+        <!-- 预设颜色 -->
+        <div v-for="preset in localizedPresets" :key="preset.color" class="color-item">
           <button
             type="button"
             class="theme-color-card"
@@ -117,14 +132,16 @@ const themePresetItems: ThemePresetItem[] = [
               </template>
             </NColorPicker>
           </div>
-          <span class="theme-color-label">自定义</span>
+          <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
         </div>
       </div>
     </NCard>
 
     <!-- 圆角 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">圆角</div>
+      <div class="section-title">
+        {{ t('preference.appearance.radius.title') }}
+      </div>
       <div class="grid grid-cols-5 gap-1.5">
         <button
           v-for="r in [0, 0.25, 0.5, 0.75, 1]"
@@ -141,28 +158,32 @@ const themePresetItems: ThemePresetItem[] = [
 
     <!-- 导航 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">导航</div>
+      <div class="section-title">
+        {{ t('preference.appearance.navigation.title') }}
+      </div>
       <div class="pref-row">
-        <span>深色侧边栏</span>
+        <span>{{ t('preference.appearance.navigation.sidebar_dark') }}</span>
         <NSwitch v-model:value="appStore.sidebarDark" />
       </div>
       <div class="pref-row">
         <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarDark }">
-          深色侧边栏子栏
+          {{ t('preference.appearance.navigation.sidebar_sub_dark') }}
         </span>
         <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="!appStore.sidebarDark" />
       </div>
       <div class="pref-row">
-        <span>深色顶栏</span>
+        <span>{{ t('preference.appearance.navigation.header_dark') }}</span>
         <NSwitch v-model:value="appStore.headerDark" />
       </div>
     </NCard>
 
     <!-- 字体 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">字体</div>
+      <div class="section-title">
+        {{ t('preference.appearance.font.title') }}
+      </div>
       <div class="pref-row">
-        <span>大小</span>
+        <span>{{ t('preference.appearance.font.size') }}</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
             :value="appStore.fontSize"
@@ -182,13 +203,15 @@ const themePresetItems: ThemePresetItem[] = [
 
     <!-- 其它 -->
     <NCard size="small" :bordered="false">
-      <div class="section-title">其它</div>
+      <div class="section-title">
+        {{ t('preference.appearance.other.title') }}
+      </div>
       <div class="pref-row">
-        <span>色弱模式</span>
+        <span>{{ t('preference.appearance.other.color_weakness') }}</span>
         <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
       </div>
       <div class="pref-row">
-        <span>灰色模式</span>
+        <span>{{ t('preference.appearance.other.grayscale') }}</span>
         <NSwitch v-model:value="appStore.grayscaleEnabled" />
       </div>
     </NCard>
@@ -247,7 +270,7 @@ const themePresetItems: ThemePresetItem[] = [
   gap: 5px;
 }
 
-/* 内置主题颜色卡片（白底卡片 + 小圆角色块，标签在外面） */
+/* 内置主题颜色卡片 */
 .theme-color-card {
   display: flex;
   align-items: center;

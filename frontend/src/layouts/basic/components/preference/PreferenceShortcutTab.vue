@@ -1,37 +1,39 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
 import { NCard, NSwitch } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'PreferenceShortcutTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()
 const appStore = props.appStore
+const { t } = useI18n()
 </script>
 
 <template>
   <NCard size="small" :bordered="false">
     <div class="section-title">
-      全局
+      {{ t('preference.shortcut.global') }}
     </div>
     <div class="pref-row">
-      <span>快捷键</span>
+      <span>{{ t('preference.shortcut.enabled') }}</span>
       <NSwitch v-model:value="appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
-      <span>全局搜索</span>
+      <span>{{ t('preference.shortcut.search') }}</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Ctrl K</span>
         <NSwitch v-model:value="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
       </div>
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
-      <span>退出登录</span>
+      <span>{{ t('preference.shortcut.logout') }}</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Alt Q</span>
         <NSwitch v-model:value="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
       </div>
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
-      <span>锁定屏幕</span>
+      <span>{{ t('preference.shortcut.lock') }}</span>
       <div class="flex items-center gap-2">
         <span class="kbd">Alt L</span>
         <NSwitch v-model:value="appStore.shortcutLock" :disabled="!appStore.shortcutEnable" />

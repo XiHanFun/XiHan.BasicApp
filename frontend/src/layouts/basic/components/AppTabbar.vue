@@ -171,48 +171,48 @@ function getContextOptions(path: string, closable: boolean, pinned: boolean): Dr
   } = getTabDisableState(path, closable)
 
   return [
-    { key: 'reload', label: '重新加载', icon: getDropdownIcon('lucide:refresh-cw') },
-    { key: 'open', label: '新窗口打开', icon: getDropdownIcon('lucide:external-link') },
+    { key: 'reload', label: t('tabbar.reload'), icon: getDropdownIcon('lucide:refresh-cw') },
+    { key: 'open', label: t('tabbar.open'), icon: getDropdownIcon('lucide:external-link') },
     {
       key: 'pin',
-      label: pinned ? '取消固定' : '固定',
+      label: pinned ? t('tabbar.unpin') : t('tabbar.pin'),
       disabled: pinDisabled,
       icon: getDropdownIcon(pinned ? 'lucide:pin-off' : 'lucide:pin'),
     },
     {
       key: 'maximize',
-      label: isContentMaximized.value ? '退出最大化' : '最大化',
+      label: isContentMaximized.value ? t('tabbar.unmaximize') : t('tabbar.maximize'),
       icon: getDropdownIcon(isContentMaximized.value ? 'lucide:minimize-2' : 'lucide:maximize-2'),
     },
     { key: 'divider-1', type: 'divider' },
     {
       key: 'close',
-      label: '关闭',
+      label: t('tabbar.close'),
       disabled: closeCurrentDisabled,
       icon: getDropdownIcon('lucide:x'),
     },
     { key: 'divider-2', type: 'divider' },
     {
       key: 'closeLeft',
-      label: '关闭左侧标签页',
+      label: t('tabbar.close_left'),
       disabled: closeLeftDisabled,
       icon: getDropdownIcon('lucide:panel-left-close'),
     },
     {
       key: 'closeRight',
-      label: '关闭右侧标签页',
+      label: t('tabbar.close_right'),
       disabled: closeRightDisabled,
       icon: getDropdownIcon('lucide:panel-right-close'),
     },
     {
       key: 'closeOthers',
-      label: '关闭其他标签页',
+      label: t('tabbar.close_others'),
       disabled: closeOthersDisabled,
       icon: getDropdownIcon('lucide:circle-off'),
     },
     {
       key: 'closeAll',
-      label: '关闭全部标签页',
+      label: t('tabbar.close_all'),
       disabled: closeAllDisabled,
       icon: getDropdownIcon('lucide:rows-3'),
     },

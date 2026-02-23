@@ -10,6 +10,8 @@ import {
   NSpace,
   NSwitch,
 } from 'naive-ui'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
 
 defineOptions({ name: 'PreferenceLayoutTab' })
@@ -30,22 +32,23 @@ interface PreferenceLayoutTabProps {
   appStore: ReturnType<typeof useAppStore>
   layoutMode: string
   contentMode: 'fixed' | 'fluid'
-  layoutPresets: ReadonlyArray<LayoutPreset>
+  layoutPresets: ReadonlyArray<LayoutPreset> | LayoutPreset[]
 }
 
 const appStore = props.appStore
+const { t } = useI18n()
 
-const tabbarStyleOptions = [
-  { label: '谷歌', value: 'chrome' },
-  { label: '简约', value: 'plain' },
-  { label: '圆润', value: 'rounded' },
-]
+const tabbarStyleOptions = computed(() => [
+  { label: t('preference.layout.tabbar.style_chrome'), value: 'chrome' },
+  { label: t('preference.layout.tabbar.style_plain'), value: 'plain' },
+  { label: t('preference.layout.tabbar.style_rounded'), value: 'rounded' },
+])
 
-const preferencePositionOptions = [
-  { label: '自动', value: 'auto' },
-  { label: '左侧固定', value: 'fixed-left' },
-  { label: '右侧固定', value: 'fixed-right' },
-]
+const preferencePositionOptions = computed(() => [
+  { label: t('preference.layout.widget.preference_position_auto'), value: 'auto' },
+  { label: t('preference.layout.widget.preference_position_fixed_left'), value: 'fixed-left' },
+  { label: t('preference.layout.widget.preference_position_fixed_right'), value: 'fixed-right' },
+])
 </script>
 
 <template>
@@ -53,7 +56,7 @@ const preferencePositionOptions = [
     <!-- 布局 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        布局
+        {{ t('preference.layout.title') }}
       </div>
       <div class="grid grid-cols-3 gap-2">
         <button
@@ -77,7 +80,7 @@ const preferencePositionOptions = [
     <!-- 内容 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        内容
+        {{ t('preference.layout.content.title') }}
       </div>
       <div class="grid grid-cols-2 gap-2">
         <button
@@ -90,7 +93,7 @@ const preferencePositionOptions = [
             <LayoutPreviewSvg type="content-fluid" />
           </div>
           <div class="mt-1.5 text-xs">
-            流式
+            {{ t('preference.layout.content.fluid') }}
           </div>
         </button>
         <button
@@ -103,7 +106,7 @@ const preferencePositionOptions = [
             <LayoutPreviewSvg type="content-fixed" />
           </div>
           <div class="mt-1.5 text-xs">
-            定宽
+            {{ t('preference.layout.content.fixed') }}
           </div>
         </button>
       </div>
@@ -112,19 +115,19 @@ const preferencePositionOptions = [
     <!-- 侧边栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        侧边栏
+        {{ t('preference.layout.sidebar.title') }}
       </div>
       <div class="pref-row">
-        <span>显示侧边栏</span>
+        <span>{{ t('preference.layout.sidebar.show') }}</span>
         <NSwitch v-model:value="appStore.sidebarShow" />
       </div>
       <div class="pref-row">
-        <span>折叠菜单</span>
+        <span>{{ t('preference.layout.sidebar.collapse') }}</span>
         <NSwitch v-model:value="appStore.sidebarCollapsed" />
       </div>
       <div class="pref-row">
         <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
-          鼠标悬停展开
+          {{ t('preference.layout.sidebar.hover_expand') }}
         </span>
         <NSwitch
           v-model:value="appStore.sidebarExpandOnHover"
@@ -132,12 +135,12 @@ const preferencePositionOptions = [
         />
       </div>
       <div class="pref-row">
-        <span>折叠显示菜单名</span>
+        <span>{{ t('preference.layout.sidebar.collapsed_show_title') }}</span>
         <NSwitch v-model:value="appStore.sidebarCollapsedShowTitle" />
       </div>
       <div class="pref-row">
         <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
-          自动激活子菜单
+          {{ t('preference.layout.sidebar.auto_activate_child') }}
         </span>
         <NSwitch
           v-model:value="appStore.sidebarAutoActivateChild"
@@ -145,7 +148,7 @@ const preferencePositionOptions = [
         />
       </div>
       <div class="pref-row">
-        <span>显示按钮</span>
+        <span>{{ t('preference.layout.sidebar.show_buttons') }}</span>
         <div class="flex gap-1">
           <button
             type="button"
@@ -153,7 +156,7 @@ const preferencePositionOptions = [
             :class="{ 'is-active': appStore.sidebarCollapseButton }"
             @click="appStore.sidebarCollapseButton = !appStore.sidebarCollapseButton"
           >
-            折叠按钮
+            {{ t('preference.layout.sidebar.collapse_button') }}
           </button>
           <button
             type="button"
@@ -161,12 +164,12 @@ const preferencePositionOptions = [
             :class="{ 'is-active': appStore.sidebarFixedButton }"
             @click="appStore.sidebarFixedButton = !appStore.sidebarFixedButton"
           >
-            固定按钮
+            {{ t('preference.layout.sidebar.fixed_button') }}
           </button>
         </div>
       </div>
       <div class="pref-row">
-        <span>宽度</span>
+        <span>{{ t('preference.layout.sidebar.width') }}</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
             v-model:value="appStore.sidebarWidth"
@@ -185,37 +188,37 @@ const preferencePositionOptions = [
     <!-- 顶栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        顶栏
+        {{ t('preference.layout.header.title') }}
       </div>
       <div class="pref-row">
-        <span>显示顶栏</span>
+        <span>{{ t('preference.layout.header.show') }}</span>
         <NSwitch v-model:value="appStore.headerShow" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.headerShow }">
-        <span>模式</span>
+        <span>{{ t('preference.layout.header.mode') }}</span>
         <NRadioGroup v-model:value="appStore.headerMode" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
             <NRadioButton value="fixed">
-              固定
+              {{ t('preference.layout.header.mode_fixed') }}
             </NRadioButton>
             <NRadioButton value="static">
-              静态
+              {{ t('preference.layout.header.mode_static') }}
             </NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.headerShow }">
-        <span>菜单位置</span>
+        <span>{{ t('preference.layout.header.menu_align') }}</span>
         <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
             <NRadioButton value="left">
-              左侧
+              {{ t('preference.layout.header.menu_align_left') }}
             </NRadioButton>
             <NRadioButton value="center">
-              居中
+              {{ t('preference.layout.header.menu_align_center') }}
             </NRadioButton>
             <NRadioButton value="right">
-              右侧
+              {{ t('preference.layout.header.menu_align_right') }}
             </NRadioButton>
           </NSpace>
         </NRadioGroup>
@@ -225,27 +228,27 @@ const preferencePositionOptions = [
     <!-- 导航菜单 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        导航菜单
+        {{ t('preference.layout.navigation.title') }}
       </div>
       <div class="pref-row">
-        <span>导航菜单风格</span>
+        <span>{{ t('preference.layout.navigation.style') }}</span>
         <NRadioGroup v-model:value="appStore.navigationStyle" size="small">
           <NSpace :size="0">
             <NRadioButton value="rounded">
-              圆润
+              {{ t('preference.layout.navigation.style_rounded') }}
             </NRadioButton>
             <NRadioButton value="plain">
-              朴素
+              {{ t('preference.layout.navigation.style_plain') }}
             </NRadioButton>
           </NSpace>
         </NRadioGroup>
       </div>
       <div class="pref-row">
-        <span>导航菜单分离</span>
+        <span>{{ t('preference.layout.navigation.split') }}</span>
         <NSwitch v-model:value="appStore.navigationSplit" />
       </div>
       <div class="pref-row">
-        <span>侧边导航菜单手风琴模式</span>
+        <span>{{ t('preference.layout.navigation.accordion') }}</span>
         <NSwitch v-model:value="appStore.navigationAccordion" />
       </div>
     </NCard>
@@ -253,33 +256,33 @@ const preferencePositionOptions = [
     <!-- 面包屑导航 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        面包屑导航
+        {{ t('preference.layout.breadcrumb.title') }}
       </div>
       <div class="pref-row">
-        <span>开启面包屑导航</span>
+        <span>{{ t('preference.layout.breadcrumb.enabled') }}</span>
         <NSwitch v-model:value="appStore.breadcrumbEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
-        <span>仅有一个时隐藏</span>
+        <span>{{ t('preference.layout.breadcrumb.hide_only_one') }}</span>
         <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" :disabled="!appStore.breadcrumbEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
-        <span>显示面包屑图标</span>
+        <span>{{ t('preference.layout.breadcrumb.show_icon') }}</span>
         <NSwitch v-model:value="appStore.breadcrumbShowIcon" :disabled="!appStore.breadcrumbEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
-        <span>显示首页按钮</span>
+        <span>{{ t('preference.layout.breadcrumb.show_home') }}</span>
         <NSwitch v-model:value="appStore.breadcrumbShowHome" :disabled="!appStore.breadcrumbEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
-        <span>面包屑风格</span>
+        <span>{{ t('preference.layout.breadcrumb.style') }}</span>
         <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small" :disabled="!appStore.breadcrumbEnabled">
           <NSpace :size="0">
             <NRadioButton value="normal">
-              常规
+              {{ t('preference.layout.breadcrumb.style_normal') }}
             </NRadioButton>
             <NRadioButton value="background">
-              背景
+              {{ t('preference.layout.breadcrumb.style_background') }}
             </NRadioButton>
           </NSpace>
         </NRadioGroup>
@@ -289,22 +292,22 @@ const preferencePositionOptions = [
     <!-- 标签栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        标签栏
+        {{ t('preference.layout.tabbar.title') }}
       </div>
       <div class="pref-row">
-        <span>启用标签栏</span>
+        <span>{{ t('preference.layout.tabbar.enabled') }}</span>
         <NSwitch v-model:value="appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>持久化标签页</span>
+        <span>{{ t('preference.layout.tabbar.persist') }}</span>
         <NSwitch v-model:value="appStore.tabbarPersist" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>访问历史记录</span>
+        <span>{{ t('preference.layout.tabbar.visit_history') }}</span>
         <NSwitch v-model:value="appStore.tabbarVisitHistory" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>最大标签数</span>
+        <span>{{ t('preference.layout.tabbar.max_count') }}</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
             v-model:value="appStore.tabbarMaxCount"
@@ -320,31 +323,31 @@ const preferencePositionOptions = [
         </div>
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>启用拖拽排序</span>
+        <span>{{ t('preference.layout.tabbar.draggable') }}</span>
         <NSwitch v-model:value="appStore.tabbarDraggable" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>启用纵向滚轮响应</span>
+        <span>{{ t('preference.layout.tabbar.scroll_response') }}</span>
         <NSwitch v-model:value="appStore.tabbarScrollResponse" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>点击鼠标中键关闭标签页</span>
+        <span>{{ t('preference.layout.tabbar.middle_click_close') }}</span>
         <NSwitch v-model:value="appStore.tabbarMiddleClickClose" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>显示标签栏图标</span>
+        <span>{{ t('preference.layout.tabbar.show_icon') }}</span>
         <NSwitch v-model:value="appStore.tabbarShowIcon" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>显示更多按钮</span>
+        <span>{{ t('preference.layout.tabbar.show_more') }}</span>
         <NSwitch v-model:value="appStore.tabbarShowMore" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>显示最大化按钮</span>
+        <span>{{ t('preference.layout.tabbar.show_maximize') }}</span>
         <NSwitch v-model:value="appStore.tabbarShowMaximize" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
-        <span>标签页风格</span>
+        <span>{{ t('preference.layout.tabbar.style') }}</span>
         <NSelect
           v-model:value="appStore.tabbarStyle"
           :options="tabbarStyleOptions"
@@ -358,42 +361,42 @@ const preferencePositionOptions = [
     <!-- 小部件 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        小部件
+        {{ t('preference.layout.widget.title') }}
       </div>
       <div class="pref-row">
-        <span>启用全局搜索</span>
+        <span>{{ t('preference.layout.widget.global_search') }}</span>
         <NSwitch v-model:value="appStore.searchEnabled" />
       </div>
       <div class="pref-row">
-        <span>启用主题切换</span>
+        <span>{{ t('preference.layout.widget.theme_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetThemeToggle" />
       </div>
       <div class="pref-row">
-        <span>启用语言切换</span>
+        <span>{{ t('preference.layout.widget.language_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetLanguageToggle" />
       </div>
       <div class="pref-row">
-        <span>启用全屏</span>
+        <span>{{ t('preference.layout.widget.fullscreen') }}</span>
         <NSwitch v-model:value="appStore.widgetFullscreen" />
       </div>
       <div class="pref-row">
-        <span>启用通知</span>
+        <span>{{ t('preference.layout.widget.notification') }}</span>
         <NSwitch v-model:value="appStore.widgetNotification" />
       </div>
       <div class="pref-row">
-        <span>启用锁屏</span>
+        <span>{{ t('preference.layout.widget.lock_screen') }}</span>
         <NSwitch v-model:value="appStore.widgetLockScreen" />
       </div>
       <div class="pref-row">
-        <span>启用侧栏切换</span>
+        <span>{{ t('preference.layout.widget.sidebar_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetSidebarToggle" />
       </div>
       <div class="pref-row">
-        <span>启用刷新</span>
+        <span>{{ t('preference.layout.widget.refresh') }}</span>
         <NSwitch v-model:value="appStore.widgetRefresh" />
       </div>
       <div class="pref-row">
-        <span>偏好设置位置</span>
+        <span>{{ t('preference.layout.widget.preference_position') }}</span>
         <NSelect
           v-model:value="appStore.widgetPreferencePosition"
           :options="preferencePositionOptions"
@@ -406,14 +409,14 @@ const preferencePositionOptions = [
     <!-- 底栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        底栏
+        {{ t('preference.layout.footer.title') }}
       </div>
       <div class="pref-row">
-        <span>显示底栏</span>
+        <span>{{ t('preference.layout.footer.show') }}</span>
         <NSwitch v-model:value="appStore.footerEnable" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.footerEnable }">
-        <span>固定在底部</span>
+        <span>{{ t('preference.layout.footer.fixed') }}</span>
         <NSwitch v-model:value="appStore.footerFixed" :disabled="!appStore.footerEnable" />
       </div>
     </NCard>
@@ -421,14 +424,14 @@ const preferencePositionOptions = [
     <!-- 版权 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        版权
+        {{ t('preference.layout.copyright.title') }}
       </div>
       <div class="pref-row">
-        <span>启用版权</span>
+        <span>{{ t('preference.layout.copyright.enabled') }}</span>
         <NSwitch v-model:value="appStore.copyrightEnable" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
-        <span>公司名</span>
+        <span>{{ t('preference.layout.copyright.name') }}</span>
         <NInput
           v-model:value="appStore.copyrightName"
           size="small"
@@ -438,7 +441,7 @@ const preferencePositionOptions = [
         />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
-        <span>公司主页</span>
+        <span>{{ t('preference.layout.copyright.site') }}</span>
         <NInput
           v-model:value="appStore.copyrightSite"
           size="small"
@@ -448,7 +451,7 @@ const preferencePositionOptions = [
         />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
-        <span>日期</span>
+        <span>{{ t('preference.layout.copyright.date') }}</span>
         <NInput
           v-model:value="appStore.copyrightDate"
           size="small"
@@ -458,24 +461,24 @@ const preferencePositionOptions = [
         />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
-        <span>ICP 备案号</span>
+        <span>{{ t('preference.layout.copyright.icp') }}</span>
         <NInput
           v-model:value="appStore.copyrightIcp"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
-          placeholder="选填"
+          :placeholder="t('preference.layout.copyright.optional')"
           :disabled="!appStore.copyrightEnable"
         />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
-        <span>ICP 网站链接</span>
+        <span>{{ t('preference.layout.copyright.icp_url') }}</span>
         <NInput
           v-model:value="appStore.copyrightIcpUrl"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
-          placeholder="选填"
+          :placeholder="t('preference.layout.copyright.optional')"
           :disabled="!appStore.copyrightEnable"
         />
       </div>
