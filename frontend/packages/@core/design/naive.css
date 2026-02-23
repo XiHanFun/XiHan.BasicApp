@@ -29,6 +29,13 @@
   flex-direction: column;
 }
 
+/* 顶部水平菜单：收窄一级项左右内边距（Naive UI CSSR 默认 20px，此处改为 8px） */
+.xihan-top-menu .n-menu--horizontal .n-menu-item-content,
+.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
 /* 禁用 Naive UI 交互式菜单覆盖的文本选择 */
 .n-dropdown-menu,
 .n-dropdown-option,

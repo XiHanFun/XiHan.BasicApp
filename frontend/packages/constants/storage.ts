@@ -50,6 +50,7 @@ export const CONTENT_COMPACT_KEY = `${STORAGE_PREFIX}content_compact`
 export const CONTENT_MAX_WIDTH_KEY = `${STORAGE_PREFIX}content_max_width`
 export const WIDGET_THEME_TOGGLE_KEY = `${STORAGE_PREFIX}widget_theme_toggle`
 export const WIDGET_LANGUAGE_TOGGLE_KEY = `${STORAGE_PREFIX}widget_language_toggle`
+export const WIDGET_TIMEZONE_KEY = `${STORAGE_PREFIX}widget_timezone`
 export const WIDGET_FULLSCREEN_KEY = `${STORAGE_PREFIX}widget_fullscreen`
 export const WIDGET_NOTIFICATION_KEY = `${STORAGE_PREFIX}widget_notification`
 export const WIDGET_LOCKSCREEN_KEY = `${STORAGE_PREFIX}widget_lockscreen`
