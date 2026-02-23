@@ -38,7 +38,7 @@ interface HeaderToolbarProps {
     class="min-w-0 flex-nowrap"
     :class="props.appStore.headerMenuAlign === 'right' ? 'ml-auto' : ''"
   >
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1" @mouseup="e => (e.target as HTMLElement)?.closest('button')?.blur()">
       <div v-if="props.appStore.searchEnabled">
         <AppGlobalSearch />
       </div>

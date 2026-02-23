@@ -15,7 +15,7 @@ interface SidebarBrandProps {
 
 <template>
   <div
-    class="app-sidebar-brand flex h-14 shrink-0 cursor-pointer items-center overflow-hidden px-3 transition-colors hover:bg-[hsl(var(--accent))]"
+    class="app-sidebar-brand flex h-14 shrink-0 cursor-pointer items-center overflow-hidden px-3"
     @click="emit('click')"
   >
     <div class="relative h-12 w-full overflow-hidden">

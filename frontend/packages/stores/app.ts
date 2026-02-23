@@ -109,8 +109,12 @@ export const useAppStore = defineStore('app', () => {
   const sidebarCollapseButton = ref<boolean>(
     LocalStorage.get<boolean>(SIDEBAR_COLLAPSE_BUTTON_KEY) ?? true,
   )
-  const sidebarFixedButton = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_FIXED_BUTTON_KEY) ?? true)
-  const sidebarExpandOnHover = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_EXPAND_HOVER_KEY) ?? true)
+  const sidebarFixedButton = ref<boolean>(
+    LocalStorage.get<boolean>(SIDEBAR_FIXED_BUTTON_KEY) ?? true,
+  )
+  const sidebarExpandOnHover = ref<boolean>(
+    LocalStorage.get<boolean>(SIDEBAR_EXPAND_HOVER_KEY) ?? true,
+  )
   const sidebarAutoActivateChild = ref<boolean>(
     LocalStorage.get<boolean>(SIDEBAR_AUTO_ACTIVATE_CHILD_KEY) ?? true,
   )
@@ -134,10 +138,14 @@ export const useAppStore = defineStore('app', () => {
 
   const tabbarEnabled = ref<boolean>(LocalStorage.get<boolean>(TAGS_BAR_KEY) ?? true)
   const tabbarPersist = ref<boolean>(LocalStorage.get<boolean>(TABBAR_PERSIST_KEY) ?? true)
-  const tabbarVisitHistory = ref<boolean>(LocalStorage.get<boolean>(TABBAR_VISIT_HISTORY_KEY) ?? true)
+  const tabbarVisitHistory = ref<boolean>(
+    LocalStorage.get<boolean>(TABBAR_VISIT_HISTORY_KEY) ?? true,
+  )
   const tabbarDraggable = ref<boolean>(LocalStorage.get<boolean>(TABBAR_DRAGGABLE_KEY) ?? true)
   const tabbarShowMore = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_MORE_KEY) ?? true)
-  const tabbarShowMaximize = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_MAXIMIZE_KEY) ?? true)
+  const tabbarShowMaximize = ref<boolean>(
+    LocalStorage.get<boolean>(TABBAR_SHOW_MAXIMIZE_KEY) ?? true,
+  )
   const tabbarMaxCount = ref<number>(LocalStorage.get<number>(TABBAR_MAX_COUNT_KEY) ?? 0)
   const tabbarScrollResponse = ref<boolean>(
     LocalStorage.get<boolean>(TABBAR_SCROLL_RESPONSE_KEY) ?? true,
@@ -149,8 +157,12 @@ export const useAppStore = defineStore('app', () => {
   const tabbarStyle = ref<string>(LocalStorage.get<string>(TABBAR_STYLE_KEY) ?? 'chrome')
 
   const breadcrumbEnabled = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_ENABLED_KEY) ?? true)
-  const breadcrumbShowHome = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? true)
-  const breadcrumbShowIcon = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_SHOW_ICON_KEY) ?? true)
+  const breadcrumbShowHome = ref<boolean>(
+    LocalStorage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? true,
+  )
+  const breadcrumbShowIcon = ref<boolean>(
+    LocalStorage.get<boolean>(BREADCRUMB_SHOW_ICON_KEY) ?? true,
+  )
   const breadcrumbHideOnlyOne = ref<boolean>(
     LocalStorage.get<boolean>(BREADCRUMB_HIDE_ONLY_ONE_KEY) ?? false,
   )
@@ -166,7 +178,9 @@ export const useAppStore = defineStore('app', () => {
   )
   const transitionEnable = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
   const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'fade')
-  const transitionProgress = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true)
+  const transitionProgress = ref<boolean>(
+    LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true,
+  )
   const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
   const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
@@ -174,16 +188,22 @@ export const useAppStore = defineStore('app', () => {
     LocalStorage.get<boolean>(COLOR_WEAKNESS_ENABLED_KEY) ?? false,
   )
   const watermarkEnabled = ref<boolean>(LocalStorage.get<boolean>(WATERMARK_ENABLED_KEY) ?? false)
-  const watermarkText = ref<string>(LocalStorage.get<string>(WATERMARK_TEXT_KEY) ?? 'XiHan BasicApp')
+  const watermarkText = ref<string>(
+    LocalStorage.get<string>(WATERMARK_TEXT_KEY) ?? 'XiHan BasicApp',
+  )
 
   const widgetThemeToggle = ref<boolean>(LocalStorage.get<boolean>(WIDGET_THEME_TOGGLE_KEY) ?? true)
   const widgetLanguageToggle = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_LANGUAGE_TOGGLE_KEY) ?? true,
   )
   const widgetFullscreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FULLSCREEN_KEY) ?? true)
-  const widgetNotification = ref<boolean>(LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true)
+  const widgetNotification = ref<boolean>(
+    LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true,
+  )
   const widgetLockScreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_LOCKSCREEN_KEY) ?? true)
-  const widgetSidebarToggle = ref<boolean>(LocalStorage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true)
+  const widgetSidebarToggle = ref<boolean>(
+    LocalStorage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true,
+  )
   const widgetRefresh = ref<boolean>(LocalStorage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
   const widgetPreferencePosition = ref<string>(
     LocalStorage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
