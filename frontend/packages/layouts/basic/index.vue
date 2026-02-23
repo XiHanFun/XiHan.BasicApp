@@ -27,7 +27,7 @@ const headerForceDark = computed(() => appStore.headerDark && !isDark.value)
 const layoutPreferences = useLayoutPreferences()
 const tabbarStore = useTabbarStore()
 const route = useRoute()
-const { contentIsMaximize: contentMaximized, toggleMaximize } = useContentMaximize()
+const { contentIsMaximize: contentMaximized } = useContentMaximize()
 const collapsed = computed(() => layoutPreferences.sidebarCollapsed.value)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
@@ -35,35 +35,36 @@ const mobileSidebarOpen = ref(false)
 const sidebarHoverExpand = ref(false)
 const isTopOnlyLayout = computed(() => layoutPreferences.layoutMode.value === 'top')
 const isFullContentLayout = computed(() => layoutPreferences.layoutMode.value === 'full')
-const compactSidebarLayout = computed(() =>
-  ['side-mixed', 'header-mix'].includes(appStore.layoutMode),
-)
+const isMixLayout = computed(() => layoutPreferences.layoutMode.value === 'mix')
+const isSideMixedLayout = computed(() => appStore.layoutMode === 'side-mixed')
+const isHeaderMixLayout = computed(() => appStore.layoutMode === 'header-mix')
+const isMultiColumnLayout = computed(() => isSideMixedLayout.value || isHeaderMixLayout.value)
 const canHoverExpand = computed(() => {
   return (
-    !isNarrowScreen.value &&
-    layoutPreferences.sidebarExpandOnHover &&
-    (collapsed.value || compactSidebarLayout.value)
+    !isNarrowScreen.value
+    && layoutPreferences.sidebarExpandOnHover
+    && collapsed.value
   )
 })
 const effectiveCollapsed = computed(() => {
   if (isNarrowScreen.value) {
     return false
   }
+  if (isMultiColumnLayout.value) {
+    return false
+  }
   if (canHoverExpand.value) {
     return !sidebarHoverExpand.value
-  }
-  if (compactSidebarLayout.value) {
-    return true
   }
   return collapsed.value
 })
 const showSider = computed(
   () =>
-    !contentMaximized.value &&
-    !isFullContentLayout.value &&
-    !isTopOnlyLayout.value &&
-    appStore.sidebarShow &&
-    (isNarrowScreen.value ? mobileSidebarOpen.value : true),
+    !contentMaximized.value
+    && !isFullContentLayout.value
+    && !isTopOnlyLayout.value
+    && appStore.sidebarShow
+    && (isNarrowScreen.value ? mobileSidebarOpen.value : true),
 )
 const siderFollowContent = computed(() => !layoutPreferences.sidebarExpandOnHover)
 const floatingSidebarMode = computed(() => !siderFollowContent.value && canHoverExpand.value)
@@ -75,11 +76,11 @@ const siderWidth = computed(() => {
   if (isNarrowScreen.value) {
     return expandedSidebarWidth.value
   }
+  if (isMultiColumnLayout.value) {
+    return 64 + appStore.sidebarWidth
+  }
   if (floatingSidebarMode.value && floatingSidebarExpand.value) {
     return expandedSidebarWidth.value
-  }
-  if (compactSidebarLayout.value) {
-    return 80
   }
   if (!siderFollowContent.value && canHoverExpand.value) {
     return 64
@@ -156,117 +157,138 @@ watch(
 </script>
 
 <template>
-  <NLayout :has-sider="showSider && !isNarrowScreen" class="relative h-full bg-[var(--bg-base)]">
+  <NLayout class="relative h-full bg-[var(--bg-base)]">
     <div
       v-if="isNarrowScreen && mobileSidebarOpen"
       class="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]"
       @click="closeMobileSidebar"
     />
-    <!-- 侧边栏 -->
-    <NLayoutSider
-      v-if="showSider"
-      :width="siderWidth"
-      :collapsed-width="64"
-      :collapsed="effectiveCollapsed"
-      collapse-mode="width"
-      :native-scrollbar="false"
-      :style="{ backgroundColor: 'var(--sidebar-bg)' }"
-      class="layout-sider-root relative overflow-visible transition-[transform] duration-300"
-      :class="[
-        sidebarForceDark ? 'dark' : '',
-        isNarrowScreen
-          ? 'fixed left-0 top-0 z-50 h-full shadow-xl'
-          : floatingSidebarMode
-            ? 'z-30'
-            : '',
-      ]"
-      @mouseenter="handleSiderMouseEnter"
-      @mouseleave="handleSiderMouseLeave"
+    <div
+      v-if="isMixLayout"
+      class="layout-header-shell shrink-0"
+      :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
     >
-      <NConfigProvider
-        :theme="sidebarForceDark ? darkTheme : undefined"
-        :theme-overrides="themeOverrides"
+      <NLayoutHeader
+        v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
+        :style="{ backgroundColor: 'var(--header-bg)' }"
+        :class="headerForceDark ? 'dark' : ''"
       >
-        <AppSidebar
-          :collapsed="effectiveCollapsed"
-          :floating-mode="isNarrowScreen ? false : floatingSidebarMode"
-          :floating-expand="floatingSidebarExpand"
-          :compact-menu="compactSidebarLayout"
-          :expanded-width="expandedSidebarWidth"
-        />
-      </NConfigProvider>
-    </NLayoutSider>
-
-    <!-- 主内容区 -->
-    <NLayout class="flex flex-col bg-[var(--bg-base)]">
-      <div
-        class="layout-header-shell shrink-0"
-        :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
-      >
-        <!-- 顶部导航 -->
-        <!-- headerForceDark: 同侧边栏逻辑，复用 darkTheme -->
-        <NLayoutHeader
-          v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
-          :style="{ backgroundColor: 'var(--header-bg)' }"
-          :class="headerForceDark ? 'dark' : ''"
+        <NConfigProvider
+          :theme="headerForceDark ? darkTheme : undefined"
+          :theme-overrides="themeOverrides"
         >
-          <NConfigProvider
-            :theme="headerForceDark ? darkTheme : undefined"
-            :theme-overrides="themeOverrides"
-          >
-            <AppHeader />
-          </NConfigProvider>
-        </NLayoutHeader>
-        <AppTabbar v-if="appStore.tabbarEnabled && !contentMaximized && !isFullContentLayout" />
-      </div>
+          <AppHeader />
+        </NConfigProvider>
+      </NLayoutHeader>
+    </div>
 
-      <!-- 页面内容 -->
-      <NLayoutContent
-        class="flex-1 overflow-auto"
+    <NLayout :has-sider="showSider && !isNarrowScreen" class="min-h-0 flex-1 bg-[var(--bg-base)]">
+      <!-- 侧边栏 -->
+      <NLayoutSider
+        v-if="showSider"
+        :width="siderWidth"
+        :collapsed-width="64"
+        :collapsed="effectiveCollapsed"
+        collapse-mode="width"
         :native-scrollbar="false"
-        :content-style="{ padding: '16px', minHeight: '100%' }"
+        :style="{ backgroundColor: 'var(--sidebar-bg)' }"
+        class="layout-sider-root relative overflow-visible transition-[transform] duration-300"
+        :class="[
+          sidebarForceDark ? 'dark' : '',
+          isNarrowScreen
+            ? 'fixed left-0 top-0 z-50 h-full shadow-xl'
+            : floatingSidebarMode
+              ? 'z-30'
+              : '',
+        ]"
+        @mouseenter="handleSiderMouseEnter"
+        @mouseleave="handleSiderMouseLeave"
       >
-        <div class="min-h-full rounded-lg" :style="contentStyle">
-          <RouterView v-slot="{ Component, route: currentRoute }">
-            <Transition :name="transitionName" mode="out-in">
-              <KeepAlive
-                :include="currentRoute.meta?.keepAlive ? [currentRoute.name as string] : []"
-              >
-                <component
-                  :is="Component"
-                  :key="`${currentRoute.fullPath}_${tabbarStore.getRefreshSeed(currentRoute.fullPath)}`"
-                />
-              </KeepAlive>
-            </Transition>
-          </RouterView>
-        </div>
-      </NLayoutContent>
-      <div
-        v-if="appStore.footerEnable"
-        class="flex flex-wrap items-center justify-center gap-x-3 border-t border-[hsl(var(--border))] px-4 py-2 text-xs text-[hsl(var(--muted-foreground))]"
-        :class="appStore.footerFixed ? 'sticky bottom-0 bg-[var(--header-bg)]' : ''"
-      >
-        <span v-if="appStore.copyrightEnable">
-          Copyright © {{ appStore.copyrightDate || new Date().getFullYear() }}
-          <a
-            v-if="appStore.copyrightSite"
-            :href="appStore.copyrightSite"
-            target="_blank"
-            class="ml-1 hover:underline"
-          >
-            {{ appStore.copyrightName }}
-          </a>
-          <span v-else class="ml-1">{{ appStore.copyrightName }}</span>
-        </span>
-        <a
-          v-if="appStore.copyrightIcp"
-          :href="appStore.copyrightIcpUrl || '#'"
-          target="_blank"
-          class="hover:underline"
+        <NConfigProvider
+          :theme="sidebarForceDark ? darkTheme : undefined"
+          :theme-overrides="themeOverrides"
         >
-          {{ appStore.copyrightIcp }}
-        </a>
-      </div>
+          <AppSidebar
+            :collapsed="effectiveCollapsed"
+            :floating-mode="isNarrowScreen ? false : floatingSidebarMode"
+            :floating-expand="floatingSidebarExpand"
+            :expanded-width="expandedSidebarWidth"
+          />
+        </NConfigProvider>
+      </NLayoutSider>
+
+      <!-- 主内容区 -->
+      <NLayout class="flex min-h-0 flex-col bg-[var(--bg-base)]">
+        <div
+          v-if="!isMixLayout"
+          class="layout-header-shell shrink-0"
+          :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
+        >
+          <!-- 顶部导航 -->
+          <!-- headerForceDark: 同侧边栏逻辑，复用 darkTheme -->
+          <NLayoutHeader
+            v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
+            :style="{ backgroundColor: 'var(--header-bg)' }"
+            :class="headerForceDark ? 'dark' : ''"
+          >
+            <NConfigProvider
+              :theme="headerForceDark ? darkTheme : undefined"
+              :theme-overrides="themeOverrides"
+            >
+              <AppHeader />
+            </NConfigProvider>
+          </NLayoutHeader>
+        </div>
+        <AppTabbar v-if="appStore.tabbarEnabled && !contentMaximized && !isFullContentLayout" />
+
+        <!-- 页面内容 -->
+        <NLayoutContent
+          class="flex-1 overflow-auto"
+          :native-scrollbar="false"
+          :content-style="{ padding: '16px', minHeight: '100%' }"
+        >
+          <div class="min-h-full rounded-lg" :style="contentStyle">
+            <RouterView v-slot="{ Component, route: currentRoute }">
+              <Transition :name="transitionName" mode="out-in">
+                <KeepAlive
+                  :include="currentRoute.meta?.keepAlive ? [currentRoute.name as string] : []"
+                >
+                  <component
+                    :is="Component"
+                    :key="`${currentRoute.fullPath}_${tabbarStore.getRefreshSeed(currentRoute.fullPath)}`"
+                  />
+                </KeepAlive>
+              </Transition>
+            </RouterView>
+          </div>
+        </NLayoutContent>
+        <div
+          v-if="appStore.footerEnable && !isFullContentLayout"
+          class="flex flex-wrap items-center justify-center gap-x-3 border-t border-[hsl(var(--border))] px-4 py-2 text-xs text-[hsl(var(--muted-foreground))]"
+          :class="appStore.footerFixed ? 'sticky bottom-0 bg-[var(--header-bg)]' : ''"
+        >
+          <span v-if="appStore.copyrightEnable">
+            Copyright © {{ appStore.copyrightDate || new Date().getFullYear() }}
+            <a
+              v-if="appStore.copyrightSite"
+              :href="appStore.copyrightSite"
+              target="_blank"
+              class="ml-1 hover:underline"
+            >
+              {{ appStore.copyrightName }}
+            </a>
+            <span v-else class="ml-1">{{ appStore.copyrightName }}</span>
+          </span>
+          <a
+            v-if="appStore.copyrightIcp"
+            :href="appStore.copyrightIcpUrl || '#'"
+            target="_blank"
+            class="hover:underline"
+          >
+            {{ appStore.copyrightIcp }}
+          </a>
+        </div>
+      </NLayout>
     </NLayout>
   </NLayout>
   <AppPreferenceDrawer />

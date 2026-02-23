@@ -7,9 +7,8 @@ import {
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '~/stores'
 import { useContentMaximize, useLocale, useRefresh, useTheme } from '~/hooks'
-import { useAccessStore, useAppStore, useUserStore } from '~/stores'
+import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
 
@@ -47,43 +46,100 @@ const currentTimezone = ref(
   typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC',
 )
 
+const isTopNavLayout = computed(() => appStore.layoutMode === 'top')
+const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
+const isHeaderMixedLayout = computed(() => appStore.layoutMode === 'header-mix')
 const showTopMenu = computed(() =>
-  ['top', 'header-sidebar', 'header-mix'].includes(appStore.layoutMode),
+  isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
+)
+const headerBrandTitle = computed(
+  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
+)
+const headerBrandLogo = computed(
+  () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
 )
 
 const topMenuSource = computed<HeaderRouteItem[]>(() => {
+  if (isTopNavLayout.value) {
+    return (router.options.routes.find(item => item.path === '/')?.children ?? []) as HeaderRouteItem[]
+  }
   if (accessStore.accessRoutes.length) {
     return accessStore.accessRoutes as unknown as HeaderRouteItem[]
   }
   return (router.options.routes.find(item => item.path === '/')?.children ?? []) as HeaderRouteItem[]
 })
 
+function toRouteNameKey(name: string | number | symbol | null | undefined) {
+  return typeof name === 'string' || typeof name === 'number' ? String(name) : undefined
+}
+
+function findVisibleChild(routeItem: HeaderRouteItem) {
+  return routeItem.children?.find(child => !child.meta?.hidden)
+}
+
+function resolveFullPath(path: string, parentPath = '') {
+  if (!path) {
+    return parentPath || '/'
+  }
+  if (path.startsWith('/')) {
+    return path
+  }
+  return `${parentPath.replace(/\/$/, '')}/${path}`.replace(/\/{2,}/g, '/')
+}
+
+function buildTopTreeOptions(routeList: HeaderRouteItem[], parentPath = ''): MenuOption[] {
+  return routeList
+    .filter(item => !item.meta?.hidden)
+    .map((item) => {
+      const fullPath = resolveFullPath(item.path, parentPath)
+      const iconName = item.meta?.icon
+      const titleKey = String(item.meta?.title ?? toRouteNameKey(item.name) ?? fullPath)
+      const visibleChildren = item.children?.filter(child => !child.meta?.hidden) ?? []
+      return {
+        key: fullPath,
+        label: te(titleKey) ? t(titleKey) : titleKey,
+        icon: iconName ? () => h(Icon, { icon: iconName }) : undefined,
+        children: visibleChildren.length ? buildTopTreeOptions(visibleChildren, fullPath) : undefined,
+      } as MenuOption
+    })
+    .filter(Boolean) as MenuOption[]
+}
+
 const topMenuOptions = computed<MenuOption[]>(() => {
+  if (isTopNavLayout.value) {
+    return buildTopTreeOptions(topMenuSource.value, '')
+  }
   return topMenuSource.value
     .filter(item => !item.meta?.hidden)
     .map((item) => {
-      const firstChild = item.children?.find(child => !child.meta?.hidden)
+      const key = toRouteNameKey(item.name)
+      if (!key) {
+        return undefined
+      }
       const iconName = item.meta?.icon
-      const menuPath = firstChild
-        ? firstChild.path.startsWith('/')
-          ? firstChild.path
-          : `${item.path}/${firstChild.path}`
-        : item.path
-      const titleKey = String(item.meta?.title ?? item.name)
+      const titleKey = String(item.meta?.title ?? key)
       return {
-        key: menuPath,
+        key,
         label: te(titleKey) ? t(titleKey) : titleKey,
         icon: iconName ? () => h(Icon, { icon: iconName }) : undefined,
       } as MenuOption
     })
+    .filter(Boolean) as MenuOption[]
 })
 
 const topMenuActive = computed(() => {
-  const path = route.path
-  const matched = topMenuOptions.value.find(
-    item => path === String(item.key) || path.startsWith(`${String(item.key)}/`),
-  )
-  return matched?.key as string | undefined
+  if (isTopNavLayout.value) {
+    return route.path
+  }
+  const routeMatched = route.matched.find((matchedRoute) => {
+    const matchedName = toRouteNameKey(matchedRoute.name)
+    return Boolean(
+      matchedName
+      && topMenuSource.value.some(item => toRouteNameKey(item.name) === matchedName),
+    )
+  })
+  return toRouteNameKey(routeMatched?.name)
+    ?? toRouteNameKey(topMenuSource.value.find(item => !item.meta?.hidden)?.name)
 })
 
 const breadcrumbs = computed(() => {
@@ -208,8 +264,20 @@ function handleBreadcrumbSelect(path: string) {
 }
 
 function handleTopMenuSelect(path: string) {
-  if (path && path !== route.path) {
-    router.push(path)
+  if (isTopNavLayout.value) {
+    if (path && path !== route.path) {
+      router.push(path)
+    }
+    return
+  }
+  const rootMenu = topMenuSource.value.find(item => toRouteNameKey(item.name) === path)
+  if (!rootMenu) {
+    return
+  }
+  const firstVisibleChild = findVisibleChild(rootMenu)
+  const targetName = toRouteNameKey(firstVisibleChild?.name ?? rootMenu.name)
+  if (targetName && targetName !== toRouteNameKey(route.name)) {
+    router.push({ name: targetName })
   }
 }
 
@@ -266,6 +334,9 @@ onBeforeUnmount(() => {
   <div class="app-header-root flex h-14 min-w-0 items-center justify-between gap-2 bg-[var(--header-bg)] px-3">
     <HeaderNav
       :app-store="appStore"
+      :layout-mode="appStore.layoutMode"
+      :app-title="headerBrandTitle"
+      :app-logo="headerBrandLogo"
       :show-top-menu="showTopMenu"
       :breadcrumbs="breadcrumbs"
       :top-menu-active="topMenuActive"
