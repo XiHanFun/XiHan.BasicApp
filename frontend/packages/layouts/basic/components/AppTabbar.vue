@@ -412,7 +412,7 @@ function handleMoreTabSelect(path: string) {
   handleJump(path)
 }
 
-// ---- 滚动按钮逻辑（对标 vben use-tabs-view-scroll）----
+// ---- 滚动按钮逻辑 ----
 
 function calcShowScrollBtn() {
   const vp = scrollViewportRef.value

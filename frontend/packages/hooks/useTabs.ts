@@ -9,7 +9,6 @@ import { useTabbarStore } from '~/stores'
  * 封装 tabbarStore 的全部操作，并自动关联当前路由，
  * 页面组件中直接调用即可，无需手动操作 store 和 router。
  *
- * 对标 vben-admin 的 `use-tabs`。
  */
 export function useTabs() {
   const route = useRoute()

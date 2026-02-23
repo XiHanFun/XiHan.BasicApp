@@ -202,16 +202,15 @@ export function useTheme() {
     ).startViewTransition(async () => {
       appStore.setTheme(mode)
       // 等 Vue 全部 DOM 更新完毕，浏览器才截"新主题"快照
-      // 缺少此步时截图不完整，是切亮色闪烁的根因（参照 vben 实现）
+      // 等 Vue 全部 DOM 更新完毕，浏览器才截"新主题"快照，缺少此步截图不完整
       await nextTick()
     })
 
     const toDark = mode === 'dark'
     transition.ready
       .then(() => {
-        // 对齐 vben：
-        //   切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
-        //   切亮色 → 新层（亮）在上，0 → 全屏 扩散
+        // 切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
+        // 切亮色 → 新层（亮）在上，0 → 全屏 扩散
         const anim = document.documentElement.animate(
           { clipPath: toDark ? [...clipPath].reverse() : clipPath },
           {
@@ -221,7 +220,7 @@ export function useTheme() {
           } as KeyframeAnimationOptions,
         )
         anim.onfinish = () => {
-          // 动画结束后立即跳过剩余 ViewTransition，消除尾帧闪烁（vben 同款做法）
+          // 动画结束后立即跳过剩余 ViewTransition，消除尾帧闪烁
           transition.skipTransition?.()
           document.documentElement.classList.remove('theme-switching')
         }
