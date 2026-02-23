@@ -39,13 +39,13 @@ const contentMode = computed({
 })
 
 const layoutPresets = computed(() => [
-  { key: 'side', label: t('preference.layout.preset.side') },
-  { key: 'side-mixed', label: t('preference.layout.preset.side_mixed') },
-  { key: 'top', label: t('preference.layout.preset.top') },
-  { key: 'mix', label: t('preference.layout.preset.mix') },
-  { key: 'header-mix', label: t('preference.layout.preset.header_mix') },
-  { key: 'header-sidebar', label: t('preference.layout.preset.header_sidebar') },
-  { key: 'full', label: t('preference.layout.preset.full') },
+  { key: 'side', label: t('preference.layout.preset.side'), tip: t('preference.layout.preset_tip.side') },
+  { key: 'side-mixed', label: t('preference.layout.preset.side_mixed'), tip: t('preference.layout.preset_tip.side_mixed') },
+  { key: 'top', label: t('preference.layout.preset.top'), tip: t('preference.layout.preset_tip.top') },
+  { key: 'mix', label: t('preference.layout.preset.mix'), tip: t('preference.layout.preset_tip.mix') },
+  { key: 'header-mix', label: t('preference.layout.preset.header_mix'), tip: t('preference.layout.preset_tip.header_mix') },
+  { key: 'header-sidebar', label: t('preference.layout.preset.header_sidebar'), tip: t('preference.layout.preset_tip.header_sidebar') },
+  { key: 'full', label: t('preference.layout.preset.full'), tip: t('preference.layout.preset_tip.full') },
 ])
 
 function clearAndLogout() {

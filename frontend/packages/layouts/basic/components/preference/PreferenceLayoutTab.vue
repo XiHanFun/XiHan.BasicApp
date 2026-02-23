@@ -27,6 +27,7 @@ const emit = defineEmits<{
 interface LayoutPreset {
   key: string
   label: string
+  tip?: string
 }
 
 interface PreferenceLayoutTabProps {
@@ -60,21 +61,26 @@ const preferencePositionOptions = computed(() => [
         {{ t('preference.layout.title') }}
       </div>
       <div class="grid grid-cols-3 gap-2">
-        <button
+        <div
           v-for="item in props.layoutPresets"
           :key="item.key"
-          type="button"
-          class="layout-preset-card"
-          :class="props.layoutMode === item.key ? 'is-active' : ''"
-          @click="emit('layoutModeChange', item.key)"
+          class="preset-item"
         >
-          <div class="layout-preset-preview">
-            <LayoutPreviewSvg :type="item.key" />
-          </div>
-          <div class="mt-1.5 text-xs">
+          <button
+            type="button"
+            class="layout-preset-card"
+            :class="props.layoutMode === item.key ? 'is-active' : ''"
+            @click="emit('layoutModeChange', item.key)"
+          >
+            <div class="layout-preset-preview">
+              <LayoutPreviewSvg :type="item.key" />
+            </div>
+          </button>
+          <div class="preset-label">
             {{ item.label }}
+            <PrefTip v-if="item.tip" :content="item.tip" />
           </div>
-        </button>
+        </div>
       </div>
     </NCard>
 
@@ -84,32 +90,38 @@ const preferencePositionOptions = computed(() => [
         {{ t('preference.layout.content.title') }}
       </div>
       <div class="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          class="layout-preset-card"
-          :class="props.contentMode === 'fluid' ? 'is-active' : ''"
-          @click="emit('contentModeChange', 'fluid')"
-        >
-          <div class="layout-preset-preview">
-            <LayoutPreviewSvg type="content-fluid" />
-          </div>
-          <div class="mt-1.5 text-xs">
+        <div class="preset-item">
+          <button
+            type="button"
+            class="layout-preset-card"
+            :class="props.contentMode === 'fluid' ? 'is-active' : ''"
+            @click="emit('contentModeChange', 'fluid')"
+          >
+            <div class="layout-preset-preview">
+              <LayoutPreviewSvg type="content-fluid" />
+            </div>
+          </button>
+          <div class="preset-label">
             {{ t('preference.layout.content.fluid') }}
+            <PrefTip :content="t('preference.layout.content.fluid_tip')" />
           </div>
-        </button>
-        <button
-          type="button"
-          class="layout-preset-card"
-          :class="props.contentMode === 'fixed' ? 'is-active' : ''"
-          @click="emit('contentModeChange', 'fixed')"
-        >
-          <div class="layout-preset-preview">
-            <LayoutPreviewSvg type="content-fixed" />
-          </div>
-          <div class="mt-1.5 text-xs">
+        </div>
+        <div class="preset-item">
+          <button
+            type="button"
+            class="layout-preset-card"
+            :class="props.contentMode === 'fixed' ? 'is-active' : ''"
+            @click="emit('contentModeChange', 'fixed')"
+          >
+            <div class="layout-preset-preview">
+              <LayoutPreviewSvg type="content-fixed" />
+            </div>
+          </button>
+          <div class="preset-label">
             {{ t('preference.layout.content.fixed') }}
+            <PrefTip :content="t('preference.layout.content.fixed_tip')" />
           </div>
-        </button>
+        </div>
       </div>
     </NCard>
 
@@ -520,12 +532,40 @@ const preferencePositionOptions = computed(() => [
 </template>
 
 <style scoped>
+/* 每个预设的外层容器（触发区） */
+.preset-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* 标签文字在边框外部 */
+.preset-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  line-height: 1.2;
+  transition: color 0.15s ease;
+}
+
+.preset-item:hover .preset-label {
+  color: hsl(var(--foreground));
+}
+
 .layout-preset-card {
   border: 1.5px solid hsl(var(--border));
   border-radius: var(--radius-card);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
-  padding: 8px;
+  padding: 0;
+  width: 100%;
+  overflow: hidden;
   text-align: center;
   transition: all 0.2s ease;
 }
@@ -533,7 +573,6 @@ const preferencePositionOptions = computed(() => [
 .layout-preset-card:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, hsl(var(--primary)) 45%, hsl(var(--border)));
-  background: hsl(var(--accent));
 }
 
 .layout-preset-card.is-active {
@@ -544,9 +583,9 @@ const preferencePositionOptions = computed(() => [
 .layout-preset-preview {
   display: flex;
   height: 64px;
+  width: 100%;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
   overflow: hidden;
   background: hsl(var(--background));
 }
