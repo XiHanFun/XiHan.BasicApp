@@ -43,7 +43,8 @@ const { t } = useI18n()
 const tabbarStyleOptions = computed(() => [
   { label: t('preference.layout.tabbar.style_chrome'), value: 'chrome' },
   { label: t('preference.layout.tabbar.style_plain'), value: 'plain' },
-  { label: t('preference.layout.tabbar.style_rounded'), value: 'rounded' },
+  { label: t('preference.layout.tabbar.style_card'), value: 'card' },
+  { label: t('preference.layout.tabbar.style_brisk'), value: 'brisk' },
 ])
 
 const preferencePositionOptions = computed(() => [

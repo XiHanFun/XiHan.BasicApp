@@ -23,8 +23,15 @@ const { contentIsMaximize: contentMaximized } = useContentMaximize()
 const visible = ref(false)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
+// full 布局模式下 header 被隐藏（通过 v-if 逻辑控制），但 appStore.headerShow 不变
+// 需单独判断 full 布局以便显示悬浮 FAB
+const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
 const showFloatingFab = computed(
-  () => isNarrowScreen.value || contentMaximized.value || !appStore.headerShow,
+  () =>
+    isNarrowScreen.value
+    || contentMaximized.value
+    || !appStore.headerShow
+    || isFullContentLayout.value,
 )
 const { animateThemeTransition, followSystem } = useTheme()
 
