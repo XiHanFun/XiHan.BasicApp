@@ -323,9 +323,10 @@ function findTabElement(element: HTMLElement | null) {
   if (!element) {
     return null
   }
-  return element.classList.contains('group')
-    ? element
-    : (element.closest('.group') as HTMLElement | null)
+  if (element.classList.contains('group') || element.classList.contains('flat-tab')) {
+    return element
+  }
+  return (element.closest('.group') || element.closest('.flat-tab')) as HTMLElement | null
 }
 
 async function initSortable() {
@@ -342,13 +343,15 @@ async function initSortable() {
     el!.querySelector('.draggable')?.classList.remove('dragging')
   }
 
+  const isChromeStyle = appStore.tabbarStyle === 'chrome'
+
   sortableInstance.value = Sortable.create(el, {
     animation: 380,
     easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    ghostClass: 'chrome-tab--ghost',
-    chosenClass: 'chrome-tab--chosen',
-    dragClass: 'chrome-tab--dragging',
-    draggable: '.chrome-tab.draggable',
+    ghostClass: isChromeStyle ? 'chrome-tab--ghost' : 'flat-tab--ghost',
+    chosenClass: isChromeStyle ? 'chrome-tab--chosen' : 'flat-tab--chosen',
+    dragClass: isChromeStyle ? 'chrome-tab--dragging' : 'flat-tab--dragging',
+    draggable: isChromeStyle ? '.chrome-tab.draggable' : '.flat-tab.draggable',
     onMove: (evt) => {
       if (!tabbarPreferences.tabbarDraggable.value) {
         return false
@@ -424,16 +427,30 @@ onBeforeUnmount(() => {
 watch(() => tabbarPreferences.tabbarDraggable.value, () => {
   initSortable()
 })
+
+watch(() => appStore.tabbarStyle, () => {
+  nextTick(() => initSortable())
+})
 </script>
 
 <template>
   <div
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
-    class="tabbar-root flex items-center bg-[var(--tabbar-bg)] px-3 py-1"
+    class="tabbar-root flex items-center bg-[var(--tabbar-bg)] px-3"
+    :class="appStore.tabbarStyle === 'chrome' ? 'pt-[3px] pb-0' : 'py-0'"
   >
-    <div class="tabbar-list min-w-0 flex-1 overflow-x-auto">
-      <div ref="tabsContainerRef" class="flex min-w-max items-center pr-4">
+    <div
+      class="tabbar-list min-w-0 flex-1 overflow-x-auto"
+      :class="appStore.tabbarStyle !== 'chrome' ? 'h-9' : ''"
+    >
+      <div
+        ref="tabsContainerRef"
+        class="pr-4"
+        :class="appStore.tabbarStyle === 'chrome'
+          ? 'flex min-w-max items-center'
+          : 'flex h-full min-w-max items-stretch'"
+      >
         <TransitionGroup
           name="tabs-slide"
           :css="false"
@@ -454,6 +471,7 @@ watch(() => tabbarPreferences.tabbarDraggable.value, () => {
             :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
             :show-icon="appStore.tabbarShowIcon"
             :middle-close-enabled="appStore.tabbarMiddleClickClose"
+            :style-type="appStore.tabbarStyle"
             @jump="handleJump"
             @contextmenu="openContextMenu"
             @close="handleClose"
@@ -507,18 +525,18 @@ watch(() => tabbarPreferences.tabbarDraggable.value, () => {
   scrollbar-width: thin;
 }
 
-:deep(.chrome-tab--chosen) {
+:deep(.chrome-tab--chosen),
+:deep(.flat-tab--chosen) {
   cursor: grabbing;
 }
 
-:deep(.chrome-tab--ghost) {
+:deep(.chrome-tab--ghost),
+:deep(.flat-tab--ghost) {
   opacity: 0.4;
 }
 
-:deep(.chrome-tab--dragging) {
+:deep(.chrome-tab--dragging),
+:deep(.flat-tab--dragging) {
   transform: scale(0.98);
 }
-
-/* 过渡类由 TransitionGroup 加到 TabbarTabItem 根元素上，
-   实际 CSS 定义在 TabbarTabItem.vue 的 scoped 样式中 */
 </style>

@@ -176,7 +176,8 @@ export default {
       style: 'Style',
       style_chrome: 'Chrome',
       style_plain: 'Plain',
-      style_rounded: 'Rounded',
+      style_card: 'Card',
+      style_brisk: 'Brisk',
       persist_tip: 'Automatically restore the previous tab state when reopening the browser',
       visit_history_tip:
         'Record tab visit history to support forward/backward navigation between visited tabs',
