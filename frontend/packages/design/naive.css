@@ -29,14 +29,6 @@
   flex-direction: column;
 }
 
-/* 鼠标点击后不保留焦点背景，仅键盘导航时显示（:focus-visible）。
- * Naive UI 通过内联 style 设置 --n-color-focus，CSS 变量覆盖无效，
- * 须直接用 !important 覆盖 background-color / box-shadow。 */
-.n-button:focus:not(:focus-visible) {
-  background-color: transparent !important;
-  box-shadow: none !important;
-}
-
 /* 禁用 Naive UI 交互式菜单覆盖的文本选择 */
 .n-dropdown-menu,
 .n-dropdown-option,

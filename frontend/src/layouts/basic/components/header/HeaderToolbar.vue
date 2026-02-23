@@ -38,27 +38,35 @@ interface HeaderToolbarProps {
     class="min-w-0 flex-nowrap"
     :class="props.appStore.headerMenuAlign === 'right' ? 'ml-auto' : ''"
   >
-    <div class="flex items-center gap-1" @mouseup="e => (e.target as HTMLElement)?.closest('button')?.blur()">
+    <div class="flex items-center gap-1">
       <div v-if="props.appStore.searchEnabled">
         <AppGlobalSearch />
       </div>
 
       <div v-if="props.appStore.widgetLanguageToggle">
-        <NDropdown :options="props.localeOptions" @select="key => emit('localeChange', String(key))">
-          <NButton quaternary circle size="small">
+        <NDropdown
+          :options="props.localeOptions"
+          @select="(key) => emit('localeChange', String(key))"
+        >
+          <NButton quaternary circle size="small" @mousedown.prevent>
             <template #icon>
-              <NIcon>
-                <Icon icon="lucide:languages" width="18" />
+              <NIcon size="16">
+                <Icon icon="lucide:languages" />
               </NIcon>
             </template>
           </NButton>
         </NDropdown>
       </div>
 
-      <NDropdown :options="props.timezoneOptions" @select="key => emit('timezoneChange', String(key))">
-        <NButton quaternary circle size="small">
+      <NDropdown
+        :options="props.timezoneOptions"
+        @select="(key) => emit('timezoneChange', String(key))"
+      >
+        <NButton quaternary circle size="small" @mousedown.prevent>
           <template #icon>
-            <NIcon><Icon icon="lucide:clock-3" width="16" /></NIcon>
+            <NIcon size="16">
+              <Icon icon="lucide:clock-3" />
+            </NIcon>
           </template>
         </NButton>
       </NDropdown>
@@ -68,53 +76,57 @@ interface HeaderToolbarProps {
         quaternary
         circle
         size="small"
-        @click="event => emit('themeToggle', event)"
+        @mousedown.prevent
+        @click="(event) => emit('themeToggle', event)"
       >
         <template #icon>
-          <NIcon>
-            <Icon :icon="props.isDark ? 'lucide:sun' : 'lucide:moon'" width="18" />
+          <NIcon size="16">
+            <Icon :icon="props.isDark ? 'lucide:sun' : 'lucide:moon'" />
           </NIcon>
         </template>
       </NButton>
 
       <div v-if="props.appStore.widgetRefresh">
-        <NButton quaternary circle size="small" @click="emit('refresh')">
+        <NButton quaternary circle size="small" @mousedown.prevent @click="emit('refresh')">
           <template #icon>
-            <NIcon><Icon icon="lucide:refresh-cw" width="16" /></NIcon>
-          </template>
-        </NButton>
-      </div>
-
-      <div v-if="props.appStore.widgetFullscreen">
-        <NButton quaternary circle size="small" @click="emit('fullscreenToggle')">
-          <template #icon>
-            <NIcon>
-              <Icon
-                :icon="props.isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
-                width="16"
-              />
+            <NIcon size="16">
+              <Icon icon="lucide:refresh-cw" />
             </NIcon>
           </template>
         </NButton>
       </div>
 
-      <NButton quaternary circle size="small" @click="emit('preferencesOpen')">
+      <div v-if="props.appStore.widgetFullscreen">
+        <NButton quaternary circle size="small" @mousedown.prevent @click="emit('fullscreenToggle')">
+          <template #icon>
+            <NIcon size="16">
+              <Icon :icon="props.isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" />
+            </NIcon>
+          </template>
+        </NButton>
+      </div>
+
+      <NButton quaternary circle size="small" @mousedown.prevent @click="emit('preferencesOpen')">
         <template #icon>
-          <NIcon><Icon icon="lucide:settings-2" width="16" /></NIcon>
+          <NIcon size="16">
+            <Icon icon="lucide:settings-2" />
+          </NIcon>
         </template>
       </NButton>
     </div>
 
     <div class="flex items-center gap-1 pl-1">
       <div v-if="props.appStore.widgetNotification">
-        <NButton quaternary circle size="small" @click="emit('notification')">
+        <NButton quaternary circle size="small" @mousedown.prevent @click="emit('notification')">
           <template #icon>
-            <NIcon><Icon icon="lucide:bell" width="16" /></NIcon>
+            <NIcon size="16">
+              <Icon icon="lucide:bell" />
+            </NIcon>
           </template>
         </NButton>
       </div>
 
-      <NDropdown :options="props.userOptions" @select="key => emit('userAction', String(key))">
+      <NDropdown :options="props.userOptions" @select="(key) => emit('userAction', String(key))">
         <div
           class="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 hover:bg-[hsl(var(--accent))]"
         >

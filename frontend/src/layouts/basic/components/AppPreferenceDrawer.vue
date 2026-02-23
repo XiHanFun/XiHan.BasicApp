@@ -23,9 +23,10 @@ const visible = ref(false)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
 const contentMaximized = ref(false)
-const showFloatingFab = computed(() => isNarrowScreen.value || contentMaximized.value)
+const showFloatingFab = computed(
+  () => isNarrowScreen.value || contentMaximized.value || !appStore.headerShow,
+)
 const { animateThemeTransition, followSystem } = useTheme()
-
 
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
@@ -242,7 +243,9 @@ onUnmounted(() => {
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   outline: none;
 }
 
