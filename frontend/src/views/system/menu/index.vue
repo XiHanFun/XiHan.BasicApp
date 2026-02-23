@@ -22,7 +22,7 @@ import type { DataTableColumns } from 'naive-ui'
 import { Icon } from '@iconify/vue'
 import type { SysMenu } from '~/types'
 import { MENU_TYPE, STATUS_OPTIONS } from '~/constants'
-import { getMenuListApi, createMenuApi, updateMenuApi, deleteMenuApi } from '@/api'
+import { getMenuListApi, createMenuApi, updateMenuApi, deleteMenuApi } from '~/api'
 import { listToTree } from '~/utils'
 
 defineOptions({ name: 'SystemMenuPage' })

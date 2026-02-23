@@ -3,7 +3,7 @@ import { h, onMounted, ref } from 'vue'
 import { NCard, NDataTable, NTag, useMessage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import type { SysDepartment } from '~/types'
-import { getDepartmentTreeApi } from '@/api'
+import { getDepartmentTreeApi } from '~/api'
 
 const message = useMessage()
 const loading = ref(false)

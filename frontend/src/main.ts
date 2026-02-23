@@ -3,7 +3,7 @@ import '~/design/global.css'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
-import App from './app.vue'
+import App from '~/app.vue'
 import { setupI18n } from '~/locales'
 import { router } from './router'
 

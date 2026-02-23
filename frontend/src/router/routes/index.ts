@@ -1,10 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { coreRoutes } from './core'
+import { coreRoutes } from '~/router/routes/core'
 import { dashboardRoutes } from './modules/dashboard'
 import { playgroundRoutes } from './modules/playground'
 import { systemRoutes } from './modules/system'
 
-const BasicLayout = () => import('@/layouts/basic/index.vue')
+const BasicLayout = () => import('~/layouts/basic/index.vue')
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -19,7 +19,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'profile',
         name: 'Profile',
-        component: () => import('@/views/_core/profile/index.vue'),
+        component: () => import('~/views/_core/profile/index.vue'),
         meta: {
           title: 'menu.profile',
           icon: 'lucide:user',

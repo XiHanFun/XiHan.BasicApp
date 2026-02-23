@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { NButton, NDrawer, NDrawerContent, NIcon, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
+import { NButton, NDrawer, NDrawerContent, NIcon, NScrollbar, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '~/stores'
 import { STORAGE_PREFIX } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppStore } from '~/stores'
@@ -131,7 +131,7 @@ onUnmounted(() => {
   <NDrawer v-model:show="visible" :width="396" placement="right">
     <NDrawerContent
       class="preference-drawer-content"
-      :body-content-style="{ paddingTop: '0px' }"
+      :body-content-style="{ padding: 0, overflow: 'hidden', height: '100%' }"
     >
       <template #header>
         <div class="drawer-header">
@@ -148,34 +148,36 @@ onUnmounted(() => {
           </button>
         </div>
       </template>
-      <NTabs class="preference-tabs" type="segment" animated>
-        <NTabPane name="appearance" :tab="t('preference.drawer.tab.appearance')">
-          <PreferenceAppearanceTab
-            :app-store="appStore"
-            :theme-mode="themeMode"
-            @theme-mode-change="handleThemeModeChange"
-          />
-        </NTabPane>
+      <NScrollbar class="preference-scrollbar">
+        <NTabs class="preference-tabs" type="segment" animated>
+          <NTabPane name="appearance" :tab="t('preference.drawer.tab.appearance')">
+            <PreferenceAppearanceTab
+              :app-store="appStore"
+              :theme-mode="themeMode"
+              @theme-mode-change="handleThemeModeChange"
+            />
+          </NTabPane>
 
-        <NTabPane name="layout" :tab="t('preference.drawer.tab.layout')">
-          <PreferenceLayoutTab
-            :app-store="appStore"
-            :layout-mode="layoutMode"
-            :content-mode="contentMode"
-            :layout-presets="layoutPresets"
-            @layout-mode-change="handleLayoutModeChange"
-            @content-mode-change="handleContentModeChange"
-          />
-        </NTabPane>
+          <NTabPane name="layout" :tab="t('preference.drawer.tab.layout')">
+            <PreferenceLayoutTab
+              :app-store="appStore"
+              :layout-mode="layoutMode"
+              :content-mode="contentMode"
+              :layout-presets="layoutPresets"
+              @layout-mode-change="handleLayoutModeChange"
+              @content-mode-change="handleContentModeChange"
+            />
+          </NTabPane>
 
-        <NTabPane name="shortcut" :tab="t('preference.drawer.tab.shortcut')">
-          <PreferenceShortcutTab :app-store="appStore" />
-        </NTabPane>
+          <NTabPane name="shortcut" :tab="t('preference.drawer.tab.shortcut')">
+            <PreferenceShortcutTab :app-store="appStore" />
+          </NTabPane>
 
-        <NTabPane name="general" :tab="t('preference.drawer.tab.general')">
-          <PreferenceGeneralTab :app-store="appStore" />
-        </NTabPane>
-      </NTabs>
+          <NTabPane name="general" :tab="t('preference.drawer.tab.general')">
+            <PreferenceGeneralTab :app-store="appStore" />
+          </NTabPane>
+        </NTabs>
+      </NScrollbar>
       <template #footer>
         <NSpace justify="end">
           <NButton circle type="primary" secondary :title="t('preference.drawer.copy')" @click="copyPreferences">
@@ -200,8 +202,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-:deep(.preference-drawer-content .n-drawer-body-content-wrapper) {
-  padding-top: 0 !important;
+:deep(.preference-scrollbar) {
+  height: 100%;
+}
+
+:deep(.preference-scrollbar .n-scrollbar-content) {
+  padding: 0 16px 16px;
 }
 
 :deep(.preference-tabs > .n-tabs-nav) {

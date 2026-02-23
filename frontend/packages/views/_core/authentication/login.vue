@@ -15,7 +15,7 @@ import {
 } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '~/stores'
 import { useTheme } from '~/hooks'
 import { useAppStore } from '~/stores'
 import LoginToolbar from './LoginToolbar.vue'

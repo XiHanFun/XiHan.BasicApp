@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import { routes } from './routes'
-import { setupRouterGuard } from './guard'
+import { setupRouterGuard } from '~/router/guard'
 
 export const router = createRouter({
   history:

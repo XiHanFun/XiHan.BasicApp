@@ -22,7 +22,7 @@ import { Icon } from '@iconify/vue'
 import type { SysRole } from '~/types'
 import { STATUS_OPTIONS, DEFAULT_PAGE_SIZE } from '~/constants'
 import { formatDate, getStatusType } from '~/utils'
-import { getRolePageApi, createRoleApi, updateRoleApi, deleteRoleApi } from '@/api'
+import { getRolePageApi, createRoleApi, updateRoleApi, deleteRoleApi } from '~/api'
 
 defineOptions({ name: 'SystemRolePage' })
 

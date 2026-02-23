@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue'
 import { NConfigProvider, NDialogProvider, NIcon, NInput, NLoadingBarProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '~/stores'
 import { useNaiveLocale, useTheme } from '~/hooks'
 import { useAppStore, useUserStore } from '~/stores'
 

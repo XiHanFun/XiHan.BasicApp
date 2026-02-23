@@ -3,7 +3,7 @@ import { h, onMounted, reactive, ref } from 'vue'
 import { NButton, NCard, NDataTable, NInput, NPagination, NSpace, NTag, useMessage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import type { SysTenant } from '~/types'
-import { getTenantPageApi } from '@/api'
+import { getTenantPageApi } from '~/api'
 
 const message = useMessage()
 const loading = ref(false)
