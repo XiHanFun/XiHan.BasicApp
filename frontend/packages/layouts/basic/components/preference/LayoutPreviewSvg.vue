@@ -69,14 +69,15 @@ defineProps<{ type: string }>()
     <rect x="47" y="43" width="81" height="43" rx="2" class="svg-block" />
   </svg>
 
-  <!-- 内容全屏：纯内容，无侧边和头部导航 -->
+  <!-- 内容全屏：纯内容，无侧边、头部、标签栏 -->
   <svg v-else-if="type === 'full'" viewBox="0 0 130 88" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="130" height="88" rx="4" class="svg-bg" />
-    <rect x="2" y="2" width="126" height="10" rx="2" class="svg-sub-header" />
-    <rect x="2" y="16" width="126" height="8" rx="2" class="svg-row" />
-    <rect x="2" y="28" width="126" height="8" rx="2" class="svg-row" />
-    <rect x="2" y="40" width="126" height="8" rx="2" class="svg-row" />
-    <rect x="2" y="52" width="126" height="34" rx="2" class="svg-block" />
+    <rect x="2" y="2" width="126" height="84" rx="3" class="svg-block-faint" />
+    <rect x="8" y="10" width="114" height="8" rx="2" class="svg-row" />
+    <rect x="8" y="22" width="114" height="8" rx="2" class="svg-row" />
+    <rect x="8" y="34" width="114" height="8" rx="2" class="svg-row" />
+    <rect x="8" y="46" width="114" height="8" rx="2" class="svg-row" />
+    <rect x="8" y="58" width="114" height="22" rx="2" class="svg-block" />
   </svg>
 
   <!-- 内容流式：等宽内容充满容器 -->
