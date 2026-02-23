@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { MenuRoute } from '~/types'
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '~/constants'
-import { storage } from '~/utils'
+import { LocalStorage } from '~/utils'
 
 export const useAccessStore = defineStore('access', () => {
-  const accessToken = ref<string | null>(storage.get<string>(TOKEN_KEY))
-  const refreshToken = ref<string | null>(storage.get<string>(REFRESH_TOKEN_KEY))
+  const accessToken = ref<string | null>(LocalStorage.get<string>(TOKEN_KEY))
+  const refreshToken = ref<string | null>(LocalStorage.get<string>(REFRESH_TOKEN_KEY))
   const accessRoutes = ref<MenuRoute[]>([])
   const accessCodes = ref<string[]>([])
   const isRoutesLoaded = ref(false)
@@ -15,18 +15,18 @@ export const useAccessStore = defineStore('access', () => {
   function setAccessToken(token: string | null) {
     accessToken.value = token
     if (token) {
-      storage.set(TOKEN_KEY, token)
+      LocalStorage.set(TOKEN_KEY, token)
     } else {
-      storage.remove(TOKEN_KEY)
+      LocalStorage.remove(TOKEN_KEY)
     }
   }
 
   function setRefreshToken(token: string | null) {
     refreshToken.value = token
     if (token) {
-      storage.set(REFRESH_TOKEN_KEY, token)
+      LocalStorage.set(REFRESH_TOKEN_KEY, token)
     } else {
-      storage.remove(REFRESH_TOKEN_KEY)
+      LocalStorage.remove(REFRESH_TOKEN_KEY)
     }
   }
 
@@ -54,8 +54,8 @@ export const useAccessStore = defineStore('access', () => {
     accessCodes.value = []
     isRoutesLoaded.value = false
     loginExpired.value = false
-    storage.remove(TOKEN_KEY)
-    storage.remove(REFRESH_TOKEN_KEY)
+    LocalStorage.remove(TOKEN_KEY)
+    LocalStorage.remove(REFRESH_TOKEN_KEY)
   }
 
   return {

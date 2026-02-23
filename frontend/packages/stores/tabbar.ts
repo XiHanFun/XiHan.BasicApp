@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { HOME_PATH, TABS_LIST_KEY } from '~/constants'
 import { useAppStore } from '~/stores/app'
-import { storage } from '~/utils'
+import { SessionStorage } from '~/utils'
 
 export const useTabbarStore = defineStore('tabbar', () => {
   const appStore = useAppStore()
@@ -14,7 +14,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     pinned: true,
     closable: false,
   }
-  const tabs = ref<TabItem[]>(storage.get<TabItem[]>(TABS_LIST_KEY) ?? [defaultTab])
+  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [defaultTab])
 
   const activeTab = ref(HOME_PATH)
   const refreshSeeds = ref<Record<string, number>>({})
@@ -26,7 +26,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     if (!exists) {
       tabs.value.push(tab)
       if (appStore.tabbarPersist) {
-        storage.set(TABS_LIST_KEY, tabs.value)
+        SessionStorage.set(TABS_LIST_KEY, tabs.value)
       }
     }
     activeTab.value = tab.key
@@ -40,7 +40,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tab.pinned = !tab.pinned
     tab.closable = !tab.pinned
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
   }
 
@@ -67,7 +67,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     }
     tabs.value.splice(index, 1)
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
     if (activeTab.value === key) {
       activeTab.value = tabs.value[Math.max(0, index - 1)]?.key ?? HOME_PATH
@@ -77,7 +77,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   function closeOthers(key: string) {
     tabs.value = tabs.value.filter(tab => !tab.closable || tab.key === key)
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
     activeTab.value = key
   }
@@ -89,7 +89,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     }
     tabs.value = tabs.value.filter((tab, index) => !tab.closable || index >= currentIndex)
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
   }
 
@@ -100,7 +100,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     }
     tabs.value = tabs.value.filter((tab, index) => !tab.closable || index <= currentIndex)
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
   }
 
@@ -108,7 +108,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tabs.value = tabs.value.filter(tab => !tab.closable)
     activeTab.value = tabs.value[0]?.key ?? HOME_PATH
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
   }
 
@@ -124,7 +124,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     const [source] = tabs.value.splice(sourceIndex, 1)
     tabs.value.splice(targetIndex, 0, source)
     if (appStore.tabbarPersist) {
-      storage.set(TABS_LIST_KEY, tabs.value)
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
   }
 

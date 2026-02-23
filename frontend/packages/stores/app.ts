@@ -84,134 +84,134 @@ import {
   WIDGET_SIDEBAR_TOGGLE_KEY,
   WIDGET_THEME_TOGGLE_KEY,
 } from '~/constants'
-import { storage } from '~/utils'
+import { LocalStorage } from '~/utils'
 
 export const useAppStore = defineStore('app', () => {
   const themeMode = ref<'light' | 'dark' | 'auto'>(
-    storage.get<'light' | 'dark' | 'auto'>(THEME_MODE_KEY) ?? DEFAULT_THEME,
+    LocalStorage.get<'light' | 'dark' | 'auto'>(THEME_MODE_KEY) ?? DEFAULT_THEME,
   )
-  const locale = ref<string>(storage.get<string>(LOCALE_KEY) ?? DEFAULT_LOCALE)
-  const layoutMode = ref<string>(storage.get<string>(LAYOUT_MODE_KEY) ?? DEFAULT_LAYOUT_MODE)
-  const themeColor = ref<string>(storage.get<string>(THEME_COLOR_KEY) ?? DEFAULT_THEME_COLOR)
+  const locale = ref<string>(LocalStorage.get<string>(LOCALE_KEY) ?? DEFAULT_LOCALE)
+  const layoutMode = ref<string>(LocalStorage.get<string>(LAYOUT_MODE_KEY) ?? DEFAULT_LAYOUT_MODE)
+  const themeColor = ref<string>(LocalStorage.get<string>(THEME_COLOR_KEY) ?? DEFAULT_THEME_COLOR)
   const brandTitle = ref<string>(
-    storage.get<string>(BRAND_TITLE_KEY) ?? import.meta.env.VITE_APP_TITLE,
+    LocalStorage.get<string>(BRAND_TITLE_KEY) ?? import.meta.env.VITE_APP_TITLE,
   )
   const brandLogo = ref<string>(
-    storage.get<string>(BRAND_LOGO_KEY) ?? (import.meta.env.VITE_APP_LOGO || '/favicon.png'),
+    LocalStorage.get<string>(BRAND_LOGO_KEY) ?? (import.meta.env.VITE_APP_LOGO || '/favicon.png'),
   )
-  const uiRadius = ref<number>(storage.get<number>(UI_RADIUS_KEY) ?? DEFAULT_UI_RADIUS)
-  const fontSize = ref<number>(storage.get<number>(FONT_SIZE_KEY) ?? DEFAULT_FONT_SIZE)
+  const uiRadius = ref<number>(LocalStorage.get<number>(UI_RADIUS_KEY) ?? DEFAULT_UI_RADIUS)
+  const fontSize = ref<number>(LocalStorage.get<number>(FONT_SIZE_KEY) ?? DEFAULT_FONT_SIZE)
   const pageLoading = ref(false)
 
-  const sidebarCollapsed = ref<boolean>(storage.get<boolean>(SIDEBAR_COLLAPSED_KEY) ?? false)
-  const sidebarWidth = ref<number>(storage.get<number>(SIDEBAR_WIDTH_KEY) ?? 224)
-  const sidebarShow = ref<boolean>(storage.get<boolean>(SIDEBAR_SHOW_KEY) ?? true)
+  const sidebarCollapsed = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_COLLAPSED_KEY) ?? false)
+  const sidebarWidth = ref<number>(LocalStorage.get<number>(SIDEBAR_WIDTH_KEY) ?? 224)
+  const sidebarShow = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_SHOW_KEY) ?? true)
   const sidebarCollapseButton = ref<boolean>(
-    storage.get<boolean>(SIDEBAR_COLLAPSE_BUTTON_KEY) ?? true,
+    LocalStorage.get<boolean>(SIDEBAR_COLLAPSE_BUTTON_KEY) ?? true,
   )
-  const sidebarFixedButton = ref<boolean>(storage.get<boolean>(SIDEBAR_FIXED_BUTTON_KEY) ?? true)
-  const sidebarExpandOnHover = ref<boolean>(storage.get<boolean>(SIDEBAR_EXPAND_HOVER_KEY) ?? true)
+  const sidebarFixedButton = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_FIXED_BUTTON_KEY) ?? true)
+  const sidebarExpandOnHover = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_EXPAND_HOVER_KEY) ?? true)
   const sidebarAutoActivateChild = ref<boolean>(
-    storage.get<boolean>(SIDEBAR_AUTO_ACTIVATE_CHILD_KEY) ?? true,
+    LocalStorage.get<boolean>(SIDEBAR_AUTO_ACTIVATE_CHILD_KEY) ?? true,
   )
   const sidebarCollapsedShowTitle = ref<boolean>(
-    storage.get<boolean>(SIDEBAR_COLLAPSED_SHOW_TITLE_KEY) ?? false,
+    LocalStorage.get<boolean>(SIDEBAR_COLLAPSED_SHOW_TITLE_KEY) ?? false,
   )
 
-  const headerShow = ref<boolean>(storage.get<boolean>(HEADER_SHOW_KEY) ?? true)
+  const headerShow = ref<boolean>(LocalStorage.get<boolean>(HEADER_SHOW_KEY) ?? true)
   const headerMenuAlign = ref<'left' | 'center' | 'right'>(
-    storage.get(HEADER_MENU_ALIGN_KEY) ?? 'left',
+    LocalStorage.get(HEADER_MENU_ALIGN_KEY) ?? 'left',
   )
-  const headerMode = ref<'fixed' | 'static'>(storage.get(HEADER_MODE_KEY) ?? 'fixed')
-  const sidebarDark = ref<boolean>(storage.get<boolean>(SIDEBAR_DARK_KEY) ?? false)
-  const sidebarSubDark = ref<boolean>(storage.get<boolean>(SIDEBAR_SUB_DARK_KEY) ?? false)
-  const headerDark = ref<boolean>(storage.get<boolean>(HEADER_DARK_KEY) ?? false)
-  const navigationStyle = ref<'rounded' | 'plain'>(storage.get(NAV_STYLE_KEY) ?? 'rounded')
-  const navigationSplit = ref<boolean>(storage.get<boolean>(NAV_SPLIT_KEY) ?? true)
-  const navigationAccordion = ref<boolean>(storage.get<boolean>(NAV_ACCORDION_KEY) ?? true)
-  const contentCompact = ref<boolean>(storage.get<boolean>(CONTENT_COMPACT_KEY) ?? false)
-  const contentMaxWidth = ref<number>(storage.get<number>(CONTENT_MAX_WIDTH_KEY) ?? 1280)
+  const headerMode = ref<'fixed' | 'static'>(LocalStorage.get(HEADER_MODE_KEY) ?? 'fixed')
+  const sidebarDark = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_DARK_KEY) ?? false)
+  const sidebarSubDark = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_SUB_DARK_KEY) ?? false)
+  const headerDark = ref<boolean>(LocalStorage.get<boolean>(HEADER_DARK_KEY) ?? false)
+  const navigationStyle = ref<'rounded' | 'plain'>(LocalStorage.get(NAV_STYLE_KEY) ?? 'rounded')
+  const navigationSplit = ref<boolean>(LocalStorage.get<boolean>(NAV_SPLIT_KEY) ?? true)
+  const navigationAccordion = ref<boolean>(LocalStorage.get<boolean>(NAV_ACCORDION_KEY) ?? true)
+  const contentCompact = ref<boolean>(LocalStorage.get<boolean>(CONTENT_COMPACT_KEY) ?? false)
+  const contentMaxWidth = ref<number>(LocalStorage.get<number>(CONTENT_MAX_WIDTH_KEY) ?? 1280)
 
-  const tabbarEnabled = ref<boolean>(storage.get<boolean>(TAGS_BAR_KEY) ?? true)
-  const tabbarPersist = ref<boolean>(storage.get<boolean>(TABBAR_PERSIST_KEY) ?? true)
-  const tabbarVisitHistory = ref<boolean>(storage.get<boolean>(TABBAR_VISIT_HISTORY_KEY) ?? true)
-  const tabbarDraggable = ref<boolean>(storage.get<boolean>(TABBAR_DRAGGABLE_KEY) ?? true)
-  const tabbarShowMore = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_MORE_KEY) ?? true)
-  const tabbarShowMaximize = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_MAXIMIZE_KEY) ?? true)
-  const tabbarMaxCount = ref<number>(storage.get<number>(TABBAR_MAX_COUNT_KEY) ?? 0)
+  const tabbarEnabled = ref<boolean>(LocalStorage.get<boolean>(TAGS_BAR_KEY) ?? true)
+  const tabbarPersist = ref<boolean>(LocalStorage.get<boolean>(TABBAR_PERSIST_KEY) ?? true)
+  const tabbarVisitHistory = ref<boolean>(LocalStorage.get<boolean>(TABBAR_VISIT_HISTORY_KEY) ?? true)
+  const tabbarDraggable = ref<boolean>(LocalStorage.get<boolean>(TABBAR_DRAGGABLE_KEY) ?? true)
+  const tabbarShowMore = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_MORE_KEY) ?? true)
+  const tabbarShowMaximize = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_MAXIMIZE_KEY) ?? true)
+  const tabbarMaxCount = ref<number>(LocalStorage.get<number>(TABBAR_MAX_COUNT_KEY) ?? 0)
   const tabbarScrollResponse = ref<boolean>(
-    storage.get<boolean>(TABBAR_SCROLL_RESPONSE_KEY) ?? true,
+    LocalStorage.get<boolean>(TABBAR_SCROLL_RESPONSE_KEY) ?? true,
   )
   const tabbarMiddleClickClose = ref<boolean>(
-    storage.get<boolean>(TABBAR_MIDDLE_CLICK_CLOSE_KEY) ?? true,
+    LocalStorage.get<boolean>(TABBAR_MIDDLE_CLICK_CLOSE_KEY) ?? true,
   )
-  const tabbarShowIcon = ref<boolean>(storage.get<boolean>(TABBAR_SHOW_ICON_KEY) ?? true)
-  const tabbarStyle = ref<string>(storage.get<string>(TABBAR_STYLE_KEY) ?? 'chrome')
+  const tabbarShowIcon = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_ICON_KEY) ?? true)
+  const tabbarStyle = ref<string>(LocalStorage.get<string>(TABBAR_STYLE_KEY) ?? 'chrome')
 
-  const breadcrumbEnabled = ref<boolean>(storage.get<boolean>(BREADCRUMB_ENABLED_KEY) ?? true)
-  const breadcrumbShowHome = ref<boolean>(storage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? true)
-  const breadcrumbShowIcon = ref<boolean>(storage.get<boolean>(BREADCRUMB_SHOW_ICON_KEY) ?? true)
+  const breadcrumbEnabled = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_ENABLED_KEY) ?? true)
+  const breadcrumbShowHome = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? true)
+  const breadcrumbShowIcon = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_SHOW_ICON_KEY) ?? true)
   const breadcrumbHideOnlyOne = ref<boolean>(
-    storage.get<boolean>(BREADCRUMB_HIDE_ONLY_ONE_KEY) ?? false,
+    LocalStorage.get<boolean>(BREADCRUMB_HIDE_ONLY_ONE_KEY) ?? false,
   )
   const breadcrumbStyle = ref<'normal' | 'background'>(
-    storage.get(BREADCRUMB_STYLE_KEY) ?? 'background',
+    LocalStorage.get(BREADCRUMB_STYLE_KEY) ?? 'background',
   )
 
-  const searchEnabled = ref<boolean>(storage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
-  const dynamicTitle = ref<boolean>(storage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
-  const enableCheckUpdates = ref<boolean>(storage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
+  const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
+  const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
+  const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const themeAnimationEnabled = ref<boolean>(
-    storage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
+    LocalStorage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
   )
-  const transitionEnable = ref<boolean>(storage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
-  const transitionName = ref<string>(storage.get<string>(TRANSITION_NAME_KEY) ?? 'fade')
-  const transitionProgress = ref<boolean>(storage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true)
-  const transitionLoading = ref<boolean>(storage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
+  const transitionEnable = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
+  const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'fade')
+  const transitionProgress = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true)
+  const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
-  const grayscaleEnabled = ref<boolean>(storage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
+  const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
-    storage.get<boolean>(COLOR_WEAKNESS_ENABLED_KEY) ?? false,
+    LocalStorage.get<boolean>(COLOR_WEAKNESS_ENABLED_KEY) ?? false,
   )
-  const watermarkEnabled = ref<boolean>(storage.get<boolean>(WATERMARK_ENABLED_KEY) ?? false)
-  const watermarkText = ref<string>(storage.get<string>(WATERMARK_TEXT_KEY) ?? 'XiHan BasicApp')
+  const watermarkEnabled = ref<boolean>(LocalStorage.get<boolean>(WATERMARK_ENABLED_KEY) ?? false)
+  const watermarkText = ref<string>(LocalStorage.get<string>(WATERMARK_TEXT_KEY) ?? 'XiHan BasicApp')
 
-  const widgetThemeToggle = ref<boolean>(storage.get<boolean>(WIDGET_THEME_TOGGLE_KEY) ?? true)
+  const widgetThemeToggle = ref<boolean>(LocalStorage.get<boolean>(WIDGET_THEME_TOGGLE_KEY) ?? true)
   const widgetLanguageToggle = ref<boolean>(
-    storage.get<boolean>(WIDGET_LANGUAGE_TOGGLE_KEY) ?? true,
+    LocalStorage.get<boolean>(WIDGET_LANGUAGE_TOGGLE_KEY) ?? true,
   )
-  const widgetFullscreen = ref<boolean>(storage.get<boolean>(WIDGET_FULLSCREEN_KEY) ?? true)
-  const widgetNotification = ref<boolean>(storage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true)
-  const widgetLockScreen = ref<boolean>(storage.get<boolean>(WIDGET_LOCKSCREEN_KEY) ?? true)
-  const widgetSidebarToggle = ref<boolean>(storage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true)
-  const widgetRefresh = ref<boolean>(storage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
+  const widgetFullscreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FULLSCREEN_KEY) ?? true)
+  const widgetNotification = ref<boolean>(LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true)
+  const widgetLockScreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_LOCKSCREEN_KEY) ?? true)
+  const widgetSidebarToggle = ref<boolean>(LocalStorage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true)
+  const widgetRefresh = ref<boolean>(LocalStorage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
   const widgetPreferencePosition = ref<string>(
-    storage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
+    LocalStorage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
 
-  const footerEnable = ref<boolean>(storage.get<boolean>(FOOTER_ENABLE_KEY) ?? false)
-  const footerFixed = ref<boolean>(storage.get<boolean>(FOOTER_FIXED_KEY) ?? false)
-  const copyrightEnable = ref<boolean>(storage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
-  const copyrightName = ref<string>(storage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHan')
+  const footerEnable = ref<boolean>(LocalStorage.get<boolean>(FOOTER_ENABLE_KEY) ?? false)
+  const footerFixed = ref<boolean>(LocalStorage.get<boolean>(FOOTER_FIXED_KEY) ?? false)
+  const copyrightEnable = ref<boolean>(LocalStorage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
+  const copyrightName = ref<string>(LocalStorage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHan')
   const copyrightSite = ref<string>(
-    storage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://xihanfun.com',
+    LocalStorage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://xihanfun.com',
   )
   const copyrightDate = ref<string>(
-    storage.get<string>(COPYRIGHT_DATE_KEY) ?? String(new Date().getFullYear()),
+    LocalStorage.get<string>(COPYRIGHT_DATE_KEY) ?? String(new Date().getFullYear()),
   )
-  const copyrightIcp = ref<string>(storage.get<string>(COPYRIGHT_ICP_KEY) ?? '')
-  const copyrightIcpUrl = ref<string>(storage.get<string>(COPYRIGHT_ICP_URL_KEY) ?? '')
+  const copyrightIcp = ref<string>(LocalStorage.get<string>(COPYRIGHT_ICP_KEY) ?? '')
+  const copyrightIcpUrl = ref<string>(LocalStorage.get<string>(COPYRIGHT_ICP_URL_KEY) ?? '')
 
-  const shortcutEnable = ref<boolean>(storage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
-  const shortcutSearch = ref<boolean>(storage.get<boolean>(SHORTCUT_SEARCH_KEY) ?? true)
-  const shortcutLogout = ref<boolean>(storage.get<boolean>(SHORTCUT_LOGOUT_KEY) ?? false)
-  const shortcutLock = ref<boolean>(storage.get<boolean>(SHORTCUT_LOCK_KEY) ?? false)
+  const shortcutEnable = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
+  const shortcutSearch = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_SEARCH_KEY) ?? true)
+  const shortcutLogout = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOGOUT_KEY) ?? false)
+  const shortcutLock = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOCK_KEY) ?? false)
 
   const isDark = computed(() => themeMode.value === 'dark')
 
   function bindPersist<T>(key: string, source: { value: T }) {
     watch(source, (value) => {
-      storage.set(key, value)
+      LocalStorage.set(key, value)
     })
   }
 
@@ -293,7 +293,7 @@ export const useAppStore = defineStore('app', () => {
 
   function save<T>(key: string, target: { value: T }, value: T) {
     target.value = value
-    storage.set(key, value)
+    LocalStorage.set(key, value)
   }
 
   function toggleTheme() {

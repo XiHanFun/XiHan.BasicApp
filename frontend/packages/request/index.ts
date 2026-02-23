@@ -6,7 +6,7 @@ import axios, {
 } from 'axios'
 import type { ApiResponse } from '~/types'
 import { BIZ_CODE, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
-import { storage } from '~/utils'
+import { LocalStorage } from '~/utils'
 
 type AnyRecord = Record<string, any>
 
@@ -64,7 +64,7 @@ export class RequestClient {
   private setupInterceptors() {
     this.instance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = storage.get<string>(TOKEN_KEY)
+        const token = LocalStorage.get<string>(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -90,8 +90,8 @@ export class RequestClient {
                 return this.instance(originalRequest)
               }
             }
-            storage.remove(TOKEN_KEY)
-            storage.remove(REFRESH_TOKEN_KEY)
+            LocalStorage.remove(TOKEN_KEY)
+            LocalStorage.remove(REFRESH_TOKEN_KEY)
             window.location.href = '/login'
           }
         }
@@ -101,7 +101,7 @@ export class RequestClient {
   }
 
   private async refreshAccessToken(): Promise<string | null> {
-    const refreshToken = storage.get<string>(REFRESH_TOKEN_KEY)
+    const refreshToken = LocalStorage.get<string>(REFRESH_TOKEN_KEY)
     if (!refreshToken) return null
 
     if (this.isRefreshing) {
@@ -123,10 +123,10 @@ export class RequestClient {
         return null
       }
 
-      storage.set(TOKEN_KEY, nextAccessToken)
+      LocalStorage.set(TOKEN_KEY, nextAccessToken)
       const nextRefreshToken = payload.refreshToken ?? (payload as any)?.RefreshToken
       if (nextRefreshToken) {
-        storage.set(REFRESH_TOKEN_KEY, nextRefreshToken)
+        LocalStorage.set(REFRESH_TOKEN_KEY, nextRefreshToken)
       }
 
       this.pendingRequests.forEach((cb) => cb(nextAccessToken))

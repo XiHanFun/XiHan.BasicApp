@@ -1,20 +1,22 @@
 /**
  * localStorage 封装
  */
-export const storage = {
-  get<T = any>(key: string): T | null {
+export const LocalStorage = {
+  get<T = unknown>(key: string): T | null {
     try {
       const value = localStorage.getItem(key)
       return value ? (JSON.parse(value) as T) : null
-    } catch {
+    }
+    catch {
       return null
     }
   },
 
-  set(key: string, value: any): void {
+  set(key: string, value: unknown): void {
     try {
       localStorage.setItem(key, JSON.stringify(value))
-    } catch {
+    }
+    catch {
       // storage full or unavailable
     }
   },
@@ -35,20 +37,22 @@ export const storage = {
 /**
  * sessionStorage 封装
  */
-export const sessionStorage_ = {
-  get<T = any>(key: string): T | null {
+export const SessionStorage = {
+  get<T = unknown>(key: string): T | null {
     try {
       const value = sessionStorage.getItem(key)
       return value ? (JSON.parse(value) as T) : null
-    } catch {
+    }
+    catch {
       return null
     }
   },
 
-  set(key: string, value: any): void {
+  set(key: string, value: unknown): void {
     try {
       sessionStorage.setItem(key, JSON.stringify(value))
-    } catch {
+    }
+    catch {
       // storage full or unavailable
     }
   },
