@@ -355,12 +355,12 @@ function handleTogglePin() {
 <template>
   <div
     class="app-sidebar-root relative flex h-full min-h-0 flex-col transition-[transform,width] duration-300"
-    :class="props.floatingMode ? 'absolute left-0 top-0 z-40 bg-[var(--sidebar-bg)]' : ''"
+    :class="props.floatingMode ? 'absolute left-0 top-0 z-40 bg-sidebar' : ''"
     :style="floatingSidebarStyle"
   >
     <template v-if="isSideMixedLayout">
       <div class="flex min-h-0 flex-1">
-        <div class="side-mixed-primary flex w-16 shrink-0 flex-col border-r border-[var(--border-color)]">
+        <div class="side-mixed-primary flex w-16 shrink-0 flex-col border-r border-border">
           <SidebarBrand
             :collapsed="true"
             :app-title="appTitle"
@@ -394,7 +394,7 @@ function handleTogglePin() {
     </template>
     <template v-else-if="isHeaderMixLayout">
       <div class="flex min-h-0 flex-1">
-        <div class="header-mix-primary flex w-16 shrink-0 flex-col border-r border-[var(--border-color)]">
+        <div class="header-mix-primary flex w-16 shrink-0 flex-col border-r border-border">
           <SidebarBrand
             :collapsed="true"
             :app-title="appTitle"

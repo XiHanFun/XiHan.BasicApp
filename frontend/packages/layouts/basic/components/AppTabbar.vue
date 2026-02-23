@@ -675,9 +675,7 @@ watch(() => route.fullPath, () => {
 
 <style scoped>
 .tabbar-root {
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  border-bottom-color: var(--border-color);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 /* 按钮间竖杠分隔线 */
@@ -687,7 +685,7 @@ watch(() => route.fullPath, () => {
   width: 1px;
   height: 16px;
   margin: 0 2px;
-  background: var(--border-color);
+  background: hsl(var(--border));
   vertical-align: middle;
 }
 

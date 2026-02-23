@@ -15,6 +15,7 @@ import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
+import XihanBackTop from './components/XihanBackTop.vue'
 
 defineOptions({ name: 'BasicLayout' })
 
@@ -91,6 +92,21 @@ const siderWidth = computed(() => {
   return layoutPreferences.layoutMode.value === 'mix' ? 208 : layoutPreferences.sidebarWidth.value
 })
 const transitionName = computed(() => (appStore.transitionEnable ? appStore.transitionName : ''))
+
+// 内容区滚动追踪，用于头部阴影
+const contentRef = ref<InstanceType<typeof NLayoutContent> | null>(null)
+const layoutScrollY = ref(0)
+const headerHasShadow = computed(() => layoutScrollY.value > 20)
+
+function attachContentScrollListener() {
+  const inst = contentRef.value as { $el?: Element } | null
+  const container = inst?.$el?.querySelector?.('.n-scrollbar-container')
+  if (container) {
+    container.addEventListener('scroll', () => {
+      layoutScrollY.value = container.scrollTop
+    }, { passive: true })
+  }
+}
 const contentStyle = computed(() => {
   if (isFullContentLayout.value) {
     return { maxWidth: '100%', margin: '0' }
@@ -113,6 +129,7 @@ function updateViewportWidth() {
 
 onMounted(() => {
   updateViewportWidth()
+  attachContentScrollListener()
   window.addEventListener('resize', updateViewportWidth)
   window.addEventListener('xihan-toggle-sidebar-request', handleSidebarToggleRequest)
 })
@@ -157,21 +174,24 @@ watch(
 </script>
 
 <template>
-  <NLayout class="relative h-full bg-[var(--bg-base)]">
+  <NLayout class="relative h-full bg-background-deep">
+    <!-- 移动端遮罩 -->
     <div
       v-if="isNarrowScreen && mobileSidebarOpen"
       class="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]"
       @click="closeMobileSidebar"
     />
+
+    <!-- mix 布局：头部打通全宽 -->
     <div
       v-if="isMixLayout"
-      class="layout-header-shell shrink-0"
+      class="shrink-0 bg-header"
       :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
     >
       <NLayoutHeader
         v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
-        :style="{ backgroundColor: 'var(--header-bg)' }"
-        :class="headerForceDark ? 'dark' : ''"
+        class="bg-header"
+        :class="[headerForceDark ? 'dark' : '', headerHasShadow ? 'layout-header-shadow' : '']"
       >
         <NConfigProvider
           :theme="headerForceDark ? darkTheme : undefined"
@@ -182,7 +202,7 @@ watch(
       </NLayoutHeader>
     </div>
 
-    <NLayout :has-sider="showSider && !isNarrowScreen" class="min-h-0 flex-1 bg-[var(--bg-base)]">
+    <NLayout :has-sider="showSider && !isNarrowScreen" class="min-h-0 flex-1 bg-background-deep">
       <!-- 侧边栏 -->
       <NLayoutSider
         v-if="showSider"
@@ -191,8 +211,7 @@ watch(
         :collapsed="effectiveCollapsed"
         collapse-mode="width"
         :native-scrollbar="false"
-        :style="{ backgroundColor: 'var(--sidebar-bg)' }"
-        class="layout-sider-root relative overflow-visible transition-[transform] duration-300"
+        class="layout-sider-root relative overflow-visible bg-sidebar transition-[transform] duration-300"
         :class="[
           sidebarForceDark ? 'dark' : '',
           isNarrowScreen
@@ -218,18 +237,17 @@ watch(
       </NLayoutSider>
 
       <!-- 主内容区 -->
-      <NLayout class="flex min-h-0 flex-col bg-[var(--bg-base)]">
+      <NLayout class="flex min-h-0 flex-col bg-background-deep">
+        <!-- 非 mix 布局头部 -->
         <div
           v-if="!isMixLayout"
-          class="layout-header-shell shrink-0"
+          class="shrink-0 bg-header"
           :class="appStore.headerMode === 'fixed' ? 'sticky top-0 z-20' : ''"
         >
-          <!-- 顶部导航 -->
-          <!-- headerForceDark: 同侧边栏逻辑，复用 darkTheme -->
           <NLayoutHeader
             v-if="appStore.headerShow && !contentMaximized && !isFullContentLayout"
-            :style="{ backgroundColor: 'var(--header-bg)' }"
-            :class="headerForceDark ? 'dark' : ''"
+            class="bg-header"
+            :class="[headerForceDark ? 'dark' : '', headerHasShadow ? 'layout-header-shadow' : '']"
           >
             <NConfigProvider
               :theme="headerForceDark ? darkTheme : undefined"
@@ -243,6 +261,7 @@ watch(
 
         <!-- 页面内容 -->
         <NLayoutContent
+          ref="contentRef"
           class="flex-1 overflow-auto"
           :native-scrollbar="false"
           :content-style="{ padding: '16px', minHeight: '100%' }"
@@ -262,10 +281,12 @@ watch(
             </RouterView>
           </div>
         </NLayoutContent>
+
+        <!-- 页脚 -->
         <div
           v-if="appStore.footerEnable && !isFullContentLayout"
-          class="flex flex-wrap items-center justify-center gap-x-3 border-t border-[hsl(var(--border))] px-4 py-2 text-xs text-[hsl(var(--muted-foreground))]"
-          :class="appStore.footerFixed ? 'sticky bottom-0 bg-[var(--header-bg)]' : ''"
+          class="flex flex-wrap items-center justify-center gap-x-3 border-t border-border px-4 py-2 text-xs text-muted-foreground"
+          :class="appStore.footerFixed ? 'sticky bottom-0 bg-header' : ''"
         >
           <span v-if="appStore.copyrightEnable">
             Copyright © {{ appStore.copyrightDate || new Date().getFullYear() }}
@@ -292,14 +313,16 @@ watch(
     </NLayout>
   </NLayout>
   <AppPreferenceDrawer />
+  <!-- 回到顶部 -->
+  <XihanBackTop :scroll-y="layoutScrollY" :content-ref="contentRef" />
 </template>
 
 <style scoped>
 .layout-sider-root {
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid hsl(var(--border));
 }
 
-.layout-header-shell {
-  background: var(--header-bg);
+.layout-header-shadow {
+  box-shadow: 0 8px 24px hsl(var(--background) / 70%);
 }
 </style>

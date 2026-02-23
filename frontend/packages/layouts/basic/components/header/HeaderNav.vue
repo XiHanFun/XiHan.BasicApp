@@ -4,6 +4,7 @@ import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
 import { NBreadcrumb, NBreadcrumbItem, NButton, NDropdown, NIcon, NMenu } from 'naive-ui'
 import { computed } from 'vue'
+import AppBrand from '../AppBrand.vue'
 
 defineOptions({ name: 'HeaderNav' })
 
@@ -57,17 +58,13 @@ function isLast(isHome: boolean, index?: number): boolean {
     :class="props.appStore.headerMenuAlign === 'center' ? 'mx-auto' : ''"
   >
     <div class="flex min-w-0 items-center gap-2">
-      <div
+      <AppBrand
         v-if="['mix', 'header-sidebar', 'top'].includes(props.layoutMode)"
-        class="site-brand-inline mr-1 hidden min-w-0 items-center gap-2 lg:flex"
-      >
-        <span class="site-brand-logo-wrap">
-          <img :src="props.appLogo" :alt="props.appTitle" class="site-brand-logo">
-        </span>
-        <span class="site-brand-title">
-          {{ props.appTitle }}
-        </span>
-      </div>
+        class="mr-1 hidden lg:flex"
+        :app-title="props.appTitle"
+        :app-logo="props.appLogo"
+        :collapsed="false"
+      />
 
       <!-- 侧边栏折叠切换 -->
       <NButton
@@ -200,43 +197,6 @@ function isLast(isHome: boolean, index?: number): boolean {
 </template>
 
 <style scoped>
-.site-brand-inline {
-  --brand-shell-max-width: 220px;
-  --brand-logo-wrap-size: 24px;
-  --brand-logo-size: 16px;
-  --brand-title-max-width: 180px;
-  max-width: var(--brand-shell-max-width);
-}
-
-.site-brand-logo-wrap {
-  display: inline-flex;
-  height: var(--brand-logo-wrap-size);
-  width: var(--brand-logo-wrap-size);
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: 1px solid hsl(var(--border) / 0.7);
-  background: hsl(var(--card) / 0.92);
-}
-
-.site-brand-logo {
-  height: var(--brand-logo-size);
-  width: var(--brand-logo-size);
-  object-fit: contain;
-}
-
-.site-brand-title {
-  max-width: var(--brand-title-max-width);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: hsl(var(--foreground));
-}
-
 /**
  * 面包屑条目
  * - inline-flex + items-center，行为可预期

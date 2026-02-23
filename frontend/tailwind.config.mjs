@@ -12,8 +12,18 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
+        background: {
+          DEFAULT: 'hsl(var(--background))',
+          deep: 'hsl(var(--background-deep))',
+        },
         foreground: 'hsl(var(--foreground))',
+        overlay: 'hsl(var(--overlay))',
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar))',
+          deep: 'hsl(var(--sidebar-deep))',
+        },
+        header: 'hsl(var(--header))',
+        menu: 'hsl(var(--menu))',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
