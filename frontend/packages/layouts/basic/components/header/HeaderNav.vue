@@ -2,7 +2,8 @@
 import type { DropdownOption, MenuOption } from 'naive-ui'
 import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
-import { NBreadcrumb, NBreadcrumbItem, NButton, NDropdown, NFlex, NIcon, NMenu } from 'naive-ui'
+import { NBreadcrumb, NBreadcrumbItem, NButton, NDropdown, NIcon, NMenu } from 'naive-ui'
+import { computed } from 'vue'
 
 defineOptions({ name: 'HeaderNav' })
 
@@ -31,8 +32,19 @@ interface HeaderNavProps {
   topMenuOptions: MenuOption[]
 }
 
-/** 最后一项（当前页）判断 */
-function isLastItem(isHome: boolean, index?: number): boolean {
+/**
+ * 面包屑完整列表（含 Home），用于判断哪个 item 是"最后一项（当前页）"。
+ * 与 vben 的 breadcrumbs computed 对齐：统一处理 Home，统一判断 isLast。
+ */
+const allCrumbs = computed(() => {
+  const result: Array<{ key: string, isHome?: boolean, index?: number }> = []
+  if (props.appStore.breadcrumbShowHome)
+    result.push({ key: 'home', isHome: true })
+  props.breadcrumbs.forEach((_, i) => result.push({ key: String(i), index: i }))
+  return result
+})
+
+function isLast(isHome: boolean, index?: number): boolean {
   if (isHome)
     return props.breadcrumbs.length === 0
   return index === props.breadcrumbs.length - 1
@@ -78,85 +90,97 @@ function isLastItem(isHome: boolean, index?: number): boolean {
       </template>
     </NButton>
 
-    <!-- 面包屑导航（对标 vben：lg 断点以上才显示） -->
+    <!--
+      面包屑导航
+      显示条件对标 vben：
+        - breadcrumbEnabled
+        - 非顶部菜单模式
+        - hideWhenOnlyOne：只有一项（且无 home）时隐藏
+        - 响应式：lg 以下隐藏（vben 用 hidden lg:block）
+    -->
     <NBreadcrumb
       v-if="
         props.appStore.breadcrumbEnabled
           && !props.showTopMenu
-          && !(props.appStore.breadcrumbHideOnlyOne
-            && props.breadcrumbs.length === 0
-            && !props.appStore.breadcrumbShowHome)
+          && !(props.appStore.breadcrumbHideOnlyOne && allCrumbs.length <= 1)
       "
-      class="hidden lg:flex"
+      class="hidden lg:flex items-center"
       :class="props.appStore.breadcrumbStyle === 'background'
         ? 'rounded-md bg-[hsl(var(--muted))] px-2 py-1'
         : ''"
     >
-      <!-- Home -->
+      <!-- Home 项 -->
       <NBreadcrumbItem v-if="props.appStore.breadcrumbShowHome">
-        <template #separator>
-          <NIcon size="12" class="crumb-sep">
-            <Icon icon="lucide:chevron-right" />
-          </NIcon>
+        <!-- 分隔符：lucide chevron-right，对标 vben ChevronRight -->
+        <template v-if="!isLast(true)" #separator>
+          <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
         </template>
-        <NFlex
-          align="center"
-          :size="4"
+        <div
           class="crumb-item"
-          :class="isLastItem(true) ? 'crumb-item--active' : 'crumb-item--link'"
-          @click="!isLastItem(true) && emit('homeClick')"
+          :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
+          @click="!isLast(true) && emit('homeClick')"
         >
-          <NIcon size="14">
-            <Icon icon="lucide:house" />
-          </NIcon>
+          <!--
+            图标受 breadcrumbShowIcon 控制（vben 同款行为）
+            Home 使用 lucide:house，vben 使用 mdi:home-outline
+          -->
+          <Icon
+            v-if="props.appStore.breadcrumbShowIcon"
+            icon="lucide:house"
+            width="14"
+            height="14"
+            class="crumb-icon"
+          />
           <span>Home</span>
-        </NFlex>
+        </div>
       </NBreadcrumbItem>
 
-      <!-- 路由层级 -->
+      <!-- 路由层级各项 -->
       <NBreadcrumbItem
         v-for="(item, index) in props.breadcrumbs"
         :key="item.path"
       >
-        <template #separator>
-          <NIcon size="12" class="crumb-sep">
-            <Icon icon="lucide:chevron-right" />
-          </NIcon>
+        <template v-if="!isLast(false, index)" #separator>
+          <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
         </template>
 
-        <!-- 有同级页面：可展开下拉 -->
+        <!-- 有同级兄弟页面 → 下拉选择（对标 vben DropdownMenu） -->
         <NDropdown
           v-if="item.siblings.length > 1"
           :options="item.siblings"
           @select="key => emit('breadcrumbSelect', String(key))"
         >
-          <NFlex
-            align="center"
-            :size="4"
+          <div
             class="crumb-item"
-            :class="isLastItem(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+            :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
           >
-            <NIcon v-if="props.appStore.breadcrumbShowIcon && item.icon" size="14">
-              <Icon :icon="item.icon!" />
-            </NIcon>
+            <Icon
+              v-if="props.appStore.breadcrumbShowIcon && item.icon"
+              :icon="item.icon!"
+              width="14"
+              height="14"
+              class="crumb-icon"
+            />
             <span>{{ item.title }}</span>
-          </NFlex>
+          </div>
         </NDropdown>
 
-        <!-- 无同级页面：纯展示 -->
-        <NFlex
+        <!-- 无兄弟页面 → 普通链接（对标 vben BreadcrumbLink / BreadcrumbPage） -->
+        <div
           v-else
-          align="center"
-          :size="4"
           class="crumb-item"
-          :class="isLastItem(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
-          @click="!isLastItem(false, index) && emit('breadcrumbSelect', item.path)"
+          :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+          @click="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
         >
-          <NIcon v-if="props.appStore.breadcrumbShowIcon && item.icon" size="14">
-            <Icon :icon="item.icon!" />
-          </NIcon>
+          <Icon
+            v-if="props.appStore.breadcrumbShowIcon && item.icon"
+            :icon="item.icon!"
+            width="14"
+            height="14"
+            class="crumb-icon"
+          />
           <span>{{ item.title }}</span>
-        </NFlex>
+        </div>
       </NBreadcrumbItem>
     </NBreadcrumb>
 
@@ -173,45 +197,52 @@ function isLastItem(isHome: boolean, index?: number): boolean {
 </template>
 
 <style scoped>
-/* 面包屑条目基础样式 */
+/**
+ * 面包屑条目：与 vben BreadcrumbLink / BreadcrumbPage 对齐
+ * - inline-flex + items-center 替代 NFlex 组件，行为更可预期
+ * - 不设 height，由 line-height + padding 自然撑开，避免 icon 开关引起高度抖动
+ * - gap 设在容器上，icon v-if 时 gap 仍为 0（flex 单子节点无 gap）
+ */
 .crumb-item {
-  height: 22px;
-  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-size: 13px;
-  line-height: 1;
+  line-height: 20px;
   white-space: nowrap;
-  animation: crumb-enter 0.3s cubic-bezier(0.76, 0, 0.24, 1);
+  animation: crumb-enter 0.3s cubic-bezier(0.76, 0, 0.24, 1) both;
   transition:
     color 0.2s ease,
     background 0.15s ease;
 }
 
-/* 可点击项：muted 色 + hover 效果 */
+/** 可点击项（非末尾）：交给 Naive UI NBreadcrumb 自带 hover 处理 */
 .crumb-item--link {
-  color: var(--n-item-text-color);
   cursor: pointer;
 }
 
-.crumb-item--link:hover {
-  color: var(--n-item-text-color-hover);
-  background: hsl(var(--accent) / 0.6);
-}
-
-/* 当前页（最后一项）：前景色，不可点击 */
+/** 当前页（末尾）：不可点击，颜色由 Naive UI --n-item-text-color-active 或默认文字色控制 */
 .crumb-item--active {
-  color: var(--n-text-color);
   font-weight: 500;
   cursor: default;
   pointer-events: none;
 }
 
-/* 分隔符图标 */
+/** 图标：flex-shrink:0 防止被文字压缩 */
+.crumb-icon {
+  flex-shrink: 0;
+}
+
+/** 分隔符图标：低透明度，对标 vben ChevronRight */
 .crumb-sep {
+  display: block;
+  flex-shrink: 0;
   opacity: 0.4;
 }
 
-/* 进入动画（对标 vben breadcrumb-transition） */
+/** 进入动画：对标 vben breadcrumb-transition（translateX + skewX）*/
 @keyframes crumb-enter {
   from {
     opacity: 0;

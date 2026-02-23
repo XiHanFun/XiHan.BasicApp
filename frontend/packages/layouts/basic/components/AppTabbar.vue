@@ -10,7 +10,6 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
-import TabbarActions from './tabbar/TabbarActions.vue'
 import TabbarContextMenu from './tabbar/TabbarContextMenu.vue'
 import TabbarTabItem from './tabbar/TabbarTabItem.vue'
 
@@ -538,7 +537,6 @@ watch(() => route.fullPath, () => {
     <NButton
       v-show="showScrollBtn"
       quaternary
-      circle
       size="tiny"
       :focusable="false"
       :disabled="scrollAtLeft"
@@ -606,7 +604,6 @@ watch(() => route.fullPath, () => {
     <NButton
       v-show="showScrollBtn"
       quaternary
-      circle
       size="tiny"
       :focusable="false"
       :disabled="scrollAtRight"
@@ -633,7 +630,7 @@ watch(() => route.fullPath, () => {
       :options="moreTabOptions"
       @select="(key) => handleMoreTabSelect(String(key))"
     >
-      <NButton quaternary circle size="tiny">
+      <NButton quaternary size="tiny">
         <template #icon>
           <NIcon>
             <Icon icon="lucide:layout-grid" width="14" />
@@ -641,13 +638,38 @@ watch(() => route.fullPath, () => {
         </template>
       </NButton>
     </NDropdown>
-    <TabbarActions
-      :show-refresh="appStore.widgetRefresh"
-      :show-maximize="tabbarPreferences.tabbarShowMaximize.value"
-      :is-content-maximized="isContentMaximized"
-      @refresh="refreshCurrentTab"
-      @maximize="toggleMaximize"
+    <span
+      v-if="tabbarPreferences.tabbarShowMore.value && (appStore.widgetRefresh || tabbarPreferences.tabbarShowMaximize.value)"
+      class="tab-divider"
     />
+    <NButton
+      v-if="appStore.widgetRefresh"
+      quaternary
+      size="tiny"
+      @click="refreshCurrentTab"
+    >
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:rotate-cw" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
+    <span v-if="appStore.widgetRefresh && tabbarPreferences.tabbarShowMaximize.value" class="tab-divider" />
+    <NButton
+      v-if="tabbarPreferences.tabbarShowMaximize.value"
+      quaternary
+      size="tiny"
+      @click="toggleMaximize"
+    >
+      <template #icon>
+        <NIcon>
+          <Icon
+            :icon="isContentMaximized ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+            width="14"
+          />
+        </NIcon>
+      </template>
+    </NButton>
   </div>
 </template>
 
