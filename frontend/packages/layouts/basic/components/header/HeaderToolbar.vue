@@ -87,16 +87,6 @@ interface HeaderToolbarProps {
         </template>
       </NButton>
 
-      <div v-if="props.appStore.widgetRefresh">
-        <NButton quaternary circle size="small" @mousedown.prevent @click="emit('refresh')">
-          <template #icon>
-            <NIcon size="16">
-              <Icon icon="lucide:refresh-cw" />
-            </NIcon>
-          </template>
-        </NButton>
-      </div>
-
       <div v-if="props.appStore.widgetFullscreen">
         <NButton quaternary circle size="small" @mousedown.prevent @click="emit('fullscreenToggle')">
           <template #icon>
