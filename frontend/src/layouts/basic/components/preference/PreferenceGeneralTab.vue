@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
 import { NCard, NInput, NSelect, NSwitch } from 'naive-ui'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useLocale } from '~/hooks'
 
 defineOptions({ name: 'PreferenceGeneralTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()
 const appStore = props.appStore
+const { t } = useI18n()
+const { setLocale } = useLocale()
 
-const transitionItems = [
-  { value: 'fade', label: '淡入淡出' },
-  { value: 'slide-left', label: '左右滑动' },
-  { value: 'slide-up', label: '向上滑入' },
-  { value: 'slide-down', label: '向下滑入' },
-]
+const transitionItems = computed(() => [
+  { value: 'fade', label: t('preference.general.animation.fade') },
+  { value: 'slide-left', label: t('preference.general.animation.slide_left') },
+  { value: 'slide-up', label: t('preference.general.animation.slide_up') },
+  { value: 'slide-down', label: t('preference.general.animation.slide_down') },
+])
 
 const localeOptions = [
   { label: '简体中文', value: 'zh-CN' },
@@ -23,56 +28,56 @@ const localeOptions = [
   <div class="space-y-4">
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        通用
+        {{ t('preference.general.title') }}
       </div>
       <div class="pref-row">
-        <span>语言</span>
+        <span>{{ t('preference.general.language') }}</span>
         <NSelect
           v-model:value="appStore.locale"
           :options="localeOptions"
           size="small"
           style="width: 110px"
-          @update:value="v => appStore.setLocale(String(v))"
+          @update:value="v => setLocale(String(v))"
         />
       </div>
       <div class="pref-row">
-        <span>动态标题</span>
+        <span>{{ t('preference.general.dynamic_title') }}</span>
         <NSwitch v-model:value="appStore.dynamicTitle" />
       </div>
       <div class="pref-row">
-        <span>水印</span>
+        <span>{{ t('preference.general.watermark') }}</span>
         <NSwitch v-model:value="appStore.watermarkEnabled" />
       </div>
       <NInput
         v-if="appStore.watermarkEnabled"
         v-model:value="appStore.watermarkText"
         class="mb-2"
-        placeholder="水印文案"
+        :placeholder="t('preference.general.watermark_text')"
       />
       <div class="pref-row">
-        <span>定时检查更新</span>
+        <span>{{ t('preference.general.check_updates') }}</span>
         <NSwitch v-model:value="appStore.enableCheckUpdates" />
       </div>
     </NCard>
 
     <NCard size="small" :bordered="false">
       <div class="section-title">
-        动画
+        {{ t('preference.general.animation.title') }}
       </div>
       <div class="pref-row">
-        <span>页面切换进度条</span>
+        <span>{{ t('preference.general.animation.transition_progress') }}</span>
         <NSwitch v-model:value="appStore.transitionProgress" />
       </div>
       <div class="pref-row">
-        <span>页面切换 Loading</span>
+        <span>{{ t('preference.general.animation.transition_loading') }}</span>
         <NSwitch v-model:value="appStore.transitionLoading" />
       </div>
       <div class="pref-row">
-        <span>主题切换动画</span>
+        <span>{{ t('preference.general.animation.theme_animation') }}</span>
         <NSwitch v-model:value="appStore.themeAnimationEnabled" />
       </div>
       <div class="pref-row">
-        <span>页面切换动画</span>
+        <span>{{ t('preference.general.animation.transition_enable') }}</span>
         <NSwitch v-model:value="appStore.transitionEnable" />
       </div>
       <div class="transition-grid" :class="{ 'pointer-events-none opacity-40': !appStore.transitionEnable }">

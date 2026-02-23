@@ -2,6 +2,7 @@
 import { Icon } from '@iconify/vue'
 import { NButton, NDrawer, NDrawerContent, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/store/auth'
 import { STORAGE_PREFIX } from '~/constants'
 import { useTheme } from '~/hooks'
@@ -17,6 +18,7 @@ defineOptions({ name: 'AppPreferenceDrawer' })
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const message = useMessage()
+const { t } = useI18n()
 const visible = ref(false)
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 const isNarrowScreen = computed(() => viewportWidth.value < 960)
@@ -42,22 +44,22 @@ const themePresets = [
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
   get: () => appStore.layoutMode,
-  set: (v) => appStore.setLayoutMode(v),
+  set: v => appStore.setLayoutMode(v),
 })
 const contentMode = computed({
   get: () => (appStore.contentCompact ? 'fixed' : 'fluid'),
   set: (value: 'fixed' | 'fluid') => appStore.setContentCompact(value === 'fixed'),
 })
 
-const layoutPresets = [
-  { key: 'side', label: '垂直' },
-  { key: 'side-mixed', label: '双列' },
-  { key: 'top', label: '水平' },
-  { key: 'mix', label: '混合垂直' },
-  { key: 'header-mix', label: '混合双列' },
-  { key: 'header-sidebar', label: '侧边' },
-  { key: 'full', label: '内容全屏' },
-] as const
+const layoutPresets = computed(() => [
+  { key: 'side', label: t('preference.layout.preset.side') },
+  { key: 'side-mixed', label: t('preference.layout.preset.side_mixed') },
+  { key: 'top', label: t('preference.layout.preset.top') },
+  { key: 'mix', label: t('preference.layout.preset.mix') },
+  { key: 'header-mix', label: t('preference.layout.preset.header_mix') },
+  { key: 'header-sidebar', label: t('preference.layout.preset.header_sidebar') },
+  { key: 'full', label: t('preference.layout.preset.full') },
+])
 
 function clearAndLogout() {
   localStorage.clear()
@@ -68,18 +70,19 @@ function clearAndLogout() {
 async function copyPreferences() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
-    message.success('偏好设置已复制')
-  } catch {
-    message.error('复制失败')
+    message.success(t('preference.drawer.copy_success'))
+  }
+  catch {
+    message.error(t('preference.drawer.copy_failed'))
   }
 }
 
 function resetPreferences() {
-  const keys = Object.keys(localStorage).filter((key) => key.startsWith(STORAGE_PREFIX))
+  const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX))
   for (const key of keys) {
     localStorage.removeItem(key)
   }
-  message.success('偏好设置已重置，正在刷新')
+  message.success(t('preference.drawer.reset_success'))
   window.location.reload()
 }
 
@@ -141,12 +144,12 @@ onUnmounted(() => {
   <NDrawer v-model:show="visible" :width="396" placement="right">
     <NDrawerContent
       class="preference-drawer-content"
-      title="偏好设置"
+      :title="t('preference.drawer.title')"
       closable
       :body-content-style="{ paddingTop: '0px' }"
     >
       <NTabs class="preference-tabs" type="segment" animated>
-        <NTabPane name="appearance" tab="外观">
+        <NTabPane name="appearance" :tab="t('preference.drawer.tab.appearance')">
           <PreferenceAppearanceTab
             :app-store="appStore"
             :theme-mode="themeMode"
@@ -155,7 +158,7 @@ onUnmounted(() => {
           />
         </NTabPane>
 
-        <NTabPane name="layout" tab="布局">
+        <NTabPane name="layout" :tab="t('preference.drawer.tab.layout')">
           <PreferenceLayoutTab
             :app-store="appStore"
             :layout-mode="layoutMode"
@@ -166,27 +169,27 @@ onUnmounted(() => {
           />
         </NTabPane>
 
-        <NTabPane name="shortcut" tab="快捷键">
+        <NTabPane name="shortcut" :tab="t('preference.drawer.tab.shortcut')">
           <PreferenceShortcutTab :app-store="appStore" />
         </NTabPane>
 
-        <NTabPane name="general" tab="通用">
+        <NTabPane name="general" :tab="t('preference.drawer.tab.general')">
           <PreferenceGeneralTab :app-store="appStore" />
         </NTabPane>
       </NTabs>
       <template #footer>
         <NSpace justify="end">
-          <NButton circle type="primary" secondary title="复制偏好设置" @click="copyPreferences">
+          <NButton circle type="primary" secondary :title="t('preference.drawer.copy')" @click="copyPreferences">
             <template #icon>
               <Icon icon="lucide:copy" width="16" />
             </template>
           </NButton>
-          <NButton circle title="重置偏好" @click="resetPreferences">
+          <NButton circle :title="t('preference.drawer.reset')" @click="resetPreferences">
             <template #icon>
               <Icon icon="lucide:rotate-ccw" width="16" />
             </template>
           </NButton>
-          <NButton circle title="清空缓存" @click="clearAndLogout">
+          <NButton circle :title="t('preference.drawer.clear_cache')" @click="clearAndLogout">
             <template #icon>
               <Icon icon="lucide:trash-2" width="16" />
             </template>

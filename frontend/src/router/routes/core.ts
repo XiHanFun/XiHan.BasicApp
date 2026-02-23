@@ -7,7 +7,7 @@ export const coreRoutes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/_core/authentication/login.vue'),
     meta: {
-      title: '登录',
+      title: 'page.login.title',
       hidden: true,
     },
   },
@@ -16,7 +16,7 @@ export const coreRoutes: RouteRecordRaw[] = [
     name: 'Forbidden',
     component: () => import('@/views/_core/fallback/forbidden.vue'),
     meta: {
-      title: '无权限',
+      title: 'error.forbidden',
       hidden: true,
     },
   },
@@ -25,7 +25,7 @@ export const coreRoutes: RouteRecordRaw[] = [
     name: 'ServerError',
     component: () => import('@/views/_core/fallback/server-error.vue'),
     meta: {
-      title: '服务器错误',
+      title: 'error.server_error',
       hidden: true,
     },
   },
@@ -34,7 +34,7 @@ export const coreRoutes: RouteRecordRaw[] = [
     name: 'NotFound',
     component: () => import('@/views/_core/fallback/not-found.vue'),
     meta: {
-      title: '页面不存在',
+      title: 'error.not_found',
       hidden: true,
     },
   },

@@ -96,7 +96,8 @@ export function setupRouterGuard(router: Router) {
       }
     }
 
-    const routeTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
+    const rawTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
+    const routeTitle = i18n.global.te(rawTitle) ? i18n.global.t(rawTitle) : rawTitle
     const pinned = to.path === HOME_PATH || Boolean(to.meta?.affixTab)
     tabbarStore.ensureTab({
       key: to.fullPath,
@@ -134,7 +135,8 @@ export function setupRouterGuard(router: Router) {
     }
     const title = to.meta?.title as string | undefined
     if (title) {
-      document.title = `${i18n.global.t(title, title)} - XiHan BasicApp`
+      const translated = i18n.global.te(title) ? i18n.global.t(title) : title
+      document.title = `${translated} - XiHan BasicApp`
     }
   })
 

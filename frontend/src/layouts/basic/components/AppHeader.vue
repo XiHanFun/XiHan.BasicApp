@@ -33,7 +33,7 @@ const accessStore = useAccessStore()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
-const { t } = useI18n()
+const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { setLocale } = useLocale()
@@ -64,9 +64,10 @@ const topMenuOptions = computed<MenuOption[]>(() => {
           ? firstChild.path
           : `${item.path}/${firstChild.path}`
         : item.path
+      const titleKey = String(item.meta?.title ?? item.name)
       return {
         key: menuPath,
-        label: t(String(item.meta?.title ?? item.name), String(item.meta?.title ?? item.name)),
+        label: te(titleKey) ? t(titleKey) : titleKey,
         icon: iconName ? () => h(Icon, { icon: iconName }) : undefined,
       } as MenuOption
     })
@@ -91,12 +92,13 @@ const breadcrumbs = computed(() => {
       .filter(item => item.meta?.title && !item.meta?.hidden)
       .map(item => ({
         key: item.path.startsWith('/') ? item.path : `${parent?.path ?? ''}/${item.path}`,
-        label: t(String(item.meta?.title), String(item.meta?.title)),
+        label: te(String(item.meta?.title)) ? t(String(item.meta?.title)) : String(item.meta?.title),
         icon: item.meta?.icon ? () => h(Icon, { icon: item.meta?.icon as string }) : undefined,
       }))
 
+    const titleKey = String(r.meta.title)
     return {
-      title: t(String(r.meta.title), String(r.meta.title)),
+      title: te(titleKey) ? t(titleKey) : titleKey,
       path: r.path,
       icon: appStore.breadcrumbShowIcon ? (r.meta.icon as string | undefined) : undefined,
       siblings,
@@ -107,14 +109,14 @@ const breadcrumbs = computed(() => {
 const userOptions = computed<DropdownOption[]>(() => {
   return [
     {
-      label: '个人中心',
+      label: t('header.user.profile'),
       key: 'profile',
       icon: () => h(Icon, { icon: 'lucide:user' }),
     },
     ...(appStore.widgetLockScreen
       ? [
           {
-            label: '锁屏',
+            label: t('header.user.lock'),
             key: 'lock',
             icon: () => h(Icon, { icon: 'lucide:lock' }),
           } as DropdownOption,
@@ -125,26 +127,26 @@ const userOptions = computed<DropdownOption[]>(() => {
       key: 'divider',
     },
     {
-      label: '退出登录',
+      label: t('header.user.logout'),
       key: 'logout',
       icon: () => h(Icon, { icon: 'lucide:log-out' }),
     },
   ]
 })
 
-const localeOptions = [
-  { label: '简体中文', key: 'zh-CN' },
-  { label: 'English', key: 'en-US' },
-]
+const localeOptions = computed(() => [
+  { label: t('header.locale.zh_cn'), key: 'zh-CN' },
+  { label: t('header.locale.en_us'), key: 'en-US' },
+])
 
 const timezoneOptions = computed<DropdownOption[]>(() => {
   return [
-    { label: 'UTC', key: 'UTC' },
-    { label: '北京时间 (Asia/Shanghai)', key: 'Asia/Shanghai' },
-    { label: '东京时间 (Asia/Tokyo)', key: 'Asia/Tokyo' },
-    { label: '伦敦时间 (Europe/London)', key: 'Europe/London' },
-    { label: '纽约时间 (America/New_York)', key: 'America/New_York' },
-    { label: '洛杉矶时间 (America/Los_Angeles)', key: 'America/Los_Angeles' },
+    { label: t('header.timezone.utc'), key: 'UTC' },
+    { label: t('header.timezone.shanghai'), key: 'Asia/Shanghai' },
+    { label: t('header.timezone.tokyo'), key: 'Asia/Tokyo' },
+    { label: t('header.timezone.london'), key: 'Europe/London' },
+    { label: t('header.timezone.new_york'), key: 'America/New_York' },
+    { label: t('header.timezone.los_angeles'), key: 'America/Los_Angeles' },
   ]
 })
 
@@ -167,7 +169,7 @@ function handleLocaleChange(key: string) {
 function handleTimezoneChange(timezone: string) {
   currentTimezone.value = timezone
   localStorage.setItem('xihan_app_timezone', timezone)
-  message.success(`已切换时区：${timezone}`)
+  message.success(t('header.timezone.switch_success', { timezone }))
 }
 
 function handleThemeToggle(e: MouseEvent) {
@@ -255,7 +257,7 @@ onBeforeUnmount(() => {
       @timezone-change="handleTimezoneChange"
       @theme-toggle="handleThemeToggle"
       @refresh="handleRefreshCurrentTab"
-      @notification="message.info('通知功能待接入')"
+      @notification="message.info(t('header.notification.pending'))"
       @fullscreen-toggle="toggleFullscreen"
       @preferences-open="openPreferenceDrawer"
       @user-action="handleUserAction"
