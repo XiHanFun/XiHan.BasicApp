@@ -116,7 +116,17 @@ const userOptions = computed<DropdownOption[]>(() => {
     ...(appStore.widgetLockScreen
       ? [
           {
-            label: t('header.user.lock'),
+            label: () => h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+              h('span', t('header.user.lock')),
+              ...(appStore.shortcutEnable && appStore.shortcutLock
+                ? [h('kbd', {
+                    style: 'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;'
+                      + 'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));'
+                      + 'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;'
+                      + 'line-height:1.6;white-space:nowrap;',
+                  }, 'Alt L')]
+                : []),
+            ]),
             key: 'lock',
             icon: () => h(Icon, { icon: 'lucide:lock' }),
           } as DropdownOption,
@@ -127,7 +137,17 @@ const userOptions = computed<DropdownOption[]>(() => {
       key: 'divider',
     },
     {
-      label: t('header.user.logout'),
+      label: () => h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+        h('span', t('header.user.logout')),
+        ...(appStore.shortcutEnable && appStore.shortcutLogout
+          ? [h('kbd', {
+              style: 'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;'
+                + 'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));'
+                + 'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;'
+                + 'line-height:1.6;white-space:nowrap;',
+            }, 'Alt Q')]
+          : []),
+      ]),
       key: 'logout',
       icon: () => h(Icon, { icon: 'lucide:log-out' }),
     },
