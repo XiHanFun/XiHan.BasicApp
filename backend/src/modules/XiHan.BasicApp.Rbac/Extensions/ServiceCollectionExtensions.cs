@@ -13,10 +13,12 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Rbac.Domain.Repositories;
-using XiHan.BasicApp.Rbac.Domain.Repositories.Implementations;
-using XiHan.BasicApp.Rbac.Domain.Services;
-using XiHan.BasicApp.Rbac.Domain.Services.Implementations;
+using XiHan.BasicApp.Rbac.ApplicationServices.Logs;
+using XiHan.BasicApp.Rbac.ApplicationServices.Users;
+using XiHan.BasicApp.Rbac.DomainServices;
+using XiHan.BasicApp.Rbac.DomainServices.Implementations;
+using XiHan.BasicApp.Rbac.Repositories;
+using XiHan.BasicApp.Rbac.Repositories.Implementations;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -43,7 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
         services.AddScoped<ISysConfigRepository, SysConfigRepository>();
         services.AddScoped<ISysDictRepository, SysDictRepository>();
-        
+
         // 关联关系仓储
         services.AddScoped<ISysUserRoleRepository, SysUserRoleRepository>();
         services.AddScoped<ISysRolePermissionRepository, SysRolePermissionRepository>();
@@ -84,9 +86,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRbacApplicationServices(this IServiceCollection services)
     {
         // 应用服务
-        services.AddScoped<Application.Services.Users.UserApplicationService>();
-        services.AddScoped<Application.Services.Logs.LogApplicationService>();
-        
+        services.AddScoped<UserApplicationService>();
+        services.AddScoped<LogApplicationService>();
+
         return services;
     }
 

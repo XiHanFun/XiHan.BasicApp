@@ -14,16 +14,16 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using XiHan.BasicApp.Rbac.Application.Services.Users;
-using XiHan.BasicApp.Rbac.Application.Services.Users.Dtos;
-using XiHan.BasicApp.Rbac.Domain.Repositories;
-using XiHan.BasicApp.Rbac.Domain.Services;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
 using System.Security.Claims;
 using XiHan.BasicApp.Rbac.Enums;
+using XiHan.BasicApp.Rbac.Repositories;
+using XiHan.BasicApp.Rbac.ApplicationServices.Users;
+using XiHan.BasicApp.Rbac.ApplicationServices.Users.Dtos;
+using XiHan.BasicApp.Rbac.DomainServices;
 
 namespace XiHan.BasicApp.WebHost.Controllers;
 
