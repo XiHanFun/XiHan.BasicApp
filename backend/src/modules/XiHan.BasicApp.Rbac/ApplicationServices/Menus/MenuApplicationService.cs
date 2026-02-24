@@ -13,15 +13,15 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Rbac.ApplicationServices.Menus.Dtos;
+using XiHan.BasicApp.Rbac.DomainServices;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 using XiHan.BasicApp.Rbac.Repositories;
-using XiHan.BasicApp.Rbac.Services.Application.Menus.Dtos;
-using XiHan.BasicApp.Rbac.Services.Domain;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Uow;
 
-namespace XiHan.BasicApp.Rbac.Services.Application.Menus;
+namespace XiHan.BasicApp.Rbac.ApplicationServices.Menus;
 
 /// <summary>
 /// 菜单应用服务
