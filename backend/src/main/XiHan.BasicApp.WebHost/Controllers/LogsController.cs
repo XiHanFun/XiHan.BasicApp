@@ -14,7 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using XiHan.BasicApp.Rbac.Application.Services.Logs;
+using XiHan.BasicApp.Rbac.ApplicationServices.Logs;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
 namespace XiHan.BasicApp.WebHost.Controllers;
