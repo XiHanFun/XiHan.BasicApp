@@ -181,7 +181,7 @@ export const useAppStore = defineStore('app', () => {
 
   const breadcrumbEnabled = ref<boolean>(LocalStorage.get<boolean>(BREADCRUMB_ENABLED_KEY) ?? true)
   const breadcrumbShowHome = ref<boolean>(
-    LocalStorage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? true,
+    LocalStorage.get<boolean>(BREADCRUMB_SHOW_HOME_KEY) ?? false,
   )
   const breadcrumbShowIcon = ref<boolean>(
     LocalStorage.get<boolean>(BREADCRUMB_SHOW_ICON_KEY) ?? true,
