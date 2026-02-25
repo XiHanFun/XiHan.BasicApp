@@ -85,23 +85,23 @@ defineProps<{ type: string }>()
     <rect x="6" y="64" width="90" height="2.5" rx="1.2" class="svg-row" />
   </svg>
 
-  <!-- 侧边导航：顶部主栏 + 左侧导航（侧边栏贯穿全高） -->
+  <!-- 侧边导航：全宽头部 + 左侧边栏（位于头部下方） -->
   <svg v-else-if="type === 'header-sidebar'" viewBox="0 0 130 88" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="130" height="88" rx="4" class="svg-bg" />
-    <!-- 侧边栏（贯穿全高，与垂直布局一致） -->
-    <rect x="2" y="2" width="24" height="84" rx="3" class="svg-sidebar" />
-    <rect x="6" y="6" width="16" height="5" rx="1.5" class="svg-brand" />
-    <rect x="6" y="18" width="16" height="2.5" rx="1.2" class="svg-on-dark" />
-    <rect x="6" y="26" width="16" height="2.5" rx="1.2" class="svg-on-dark-soft" />
-    <rect x="6" y="34" width="16" height="2.5" rx="1.2" class="svg-on-dark-soft" />
-    <rect x="6" y="42" width="16" height="2.5" rx="1.2" class="svg-on-dark-soft" />
-    <!-- 头部（强调，仅覆盖内容区宽度） -->
-    <rect x="29" y="2" width="99" height="10" rx="2" class="svg-header-strong" />
-    <rect x="32" y="5" width="9" height="2.5" rx="1.2" class="svg-on-dark" />
-    <rect x="44" y="5" width="9" height="2.5" rx="1.2" class="svg-on-dark-soft" />
-    <rect x="56" y="5" width="9" height="2.5" rx="1.2" class="svg-on-dark-soft" />
+    <!-- 头部（强调，全宽） -->
+    <rect x="2" y="2" width="126" height="10" rx="2" class="svg-header-strong" />
+    <rect x="4" y="4" width="7" height="6" rx="1.5" class="svg-brand" />
+    <rect x="16" y="5" width="9" height="2.5" rx="1.2" class="svg-on-dark-soft" />
+    <rect x="28" y="5" width="9" height="2.5" rx="1.2" class="svg-on-dark-soft" />
+    <rect x="40" y="5" width="9" height="2.5" rx="1.2" class="svg-on-dark-soft" />
     <rect x="114" y="4.2" width="3.5" height="3.5" rx="1" class="svg-on-dark-soft" />
     <rect x="120" y="4.2" width="3.5" height="3.5" rx="1" class="svg-on-dark-soft" />
+    <!-- 侧边栏（头部下方） -->
+    <rect x="2" y="15" width="24" height="71" rx="2.5" class="svg-sidebar-strong" />
+    <rect x="6" y="20" width="16" height="2.5" rx="1.2" class="svg-on-dark" />
+    <rect x="6" y="28" width="16" height="2.5" rx="1.2" class="svg-on-dark-soft" />
+    <rect x="6" y="36" width="16" height="2.5" rx="1.2" class="svg-on-dark-soft" />
+    <rect x="6" y="44" width="16" height="2.5" rx="1.2" class="svg-on-dark-soft" />
     <!-- 内容 -->
     <rect x="29" y="15" width="47" height="20" rx="2" class="svg-block" />
     <rect x="79" y="15" width="49" height="20" rx="2" class="svg-block" />
