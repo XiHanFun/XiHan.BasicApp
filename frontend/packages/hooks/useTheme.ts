@@ -132,6 +132,8 @@ export function useTheme() {
   const themeOverrides = computed((): GlobalThemeOverrides => {
     const { radius, cardRadius } = calcRadius(appStore.uiRadius)
     const scale = generatePrimaryScale(appStore.themeColor)
+    const [h, s, l] = hexToHsl(appStore.themeColor)
+    const primaryActive = `hsla(${h}, ${s}%, ${l}%, 0.15)`
     return {
       common: {
         primaryColor: scale.base,
@@ -159,6 +161,9 @@ export function useTheme() {
       Menu: {
         color: 'transparent',
         colorInverted: 'transparent',
+        itemColorActive: primaryActive,
+        itemColorActiveHover: primaryActive,
+        itemColorActiveCollapsed: primaryActive,
       },
     }
   })
