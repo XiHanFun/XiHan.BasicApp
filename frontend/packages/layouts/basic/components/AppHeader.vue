@@ -296,9 +296,9 @@ onBeforeUnmount(() => {
   <!-- Menu area -->
   <div
     :class="`menu-align-${appStore.headerMenuAlign}`"
-    class="flex h-full min-w-0 flex-1 items-center"
+    class="flex min-w-0 flex-1 items-center"
   >
-    <div v-if="showTopMenu" class="xihan-top-menu hidden h-full min-w-0 items-center lg:flex">
+    <div v-if="showTopMenu" class="xihan-top-menu hidden min-w-0 items-center lg:flex">
       <NMenu
         mode="horizontal"
         :value="topMenuActive"
@@ -329,22 +329,19 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-.menu-align-start > .xihan-top-menu,
-.menu-align-left > .xihan-top-menu {
-  margin-right: auto;
+.menu-align-start {
+  justify-content: flex-start;
 }
 
-.menu-align-center > .xihan-top-menu {
-  margin-left: auto;
-  margin-right: auto;
+.menu-align-center {
+  justify-content: center;
 }
 
-.menu-align-end > .xihan-top-menu,
-.menu-align-right > .xihan-top-menu {
-  margin-left: auto;
+.menu-align-end {
+  justify-content: flex-end;
 }
 
-:deep(.xihan-top-menu .n-menu.n-menu--horizontal) {
+.xihan-top-menu .n-menu.n-menu--horizontal {
   --n-item-height: 40px;
   --n-item-font-size-horizontal: 14px;
   --n-item-text-color-horizontal: hsl(var(--foreground) / 80%);
@@ -352,6 +349,20 @@ onBeforeUnmount(() => {
   --n-item-text-color-active-horizontal: hsl(var(--primary));
   --n-item-color-active-horizontal: hsl(var(--primary) / 15%);
   --n-item-color-hover-horizontal: hsl(var(--accent));
+  height: auto;
+  align-items: center;
   background: transparent;
+}
+
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu,
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item,
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu > .n-menu-item {
+  display: flex;
+  align-items: center;
+}
+
+.xihan-top-menu .n-menu.n-menu--horizontal .n-menu-item-content {
+  display: flex;
+  align-items: center;
 }
 </style>
