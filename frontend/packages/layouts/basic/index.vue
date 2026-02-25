@@ -24,7 +24,7 @@ const sidebarSubTheme = computed(() => (isDark.value || shell.appStore.sidebarSu
 const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark) ? 'dark' : 'light')
 
 const sidebarEnableState = computed(
-  () => !shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow,
+  () => shell.isMobile.value || (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow),
 )
 </script>
 
@@ -45,7 +45,7 @@ const sidebarEnableState = computed(
         :is-narrow-screen="shell.isNarrowScreen.value"
         :mobile-sidebar-open="shell.mobileSidebarOpen.value"
         :show-sidebar="shell.showSider.value"
-        :sidebar-width="shell.getSidebarWidth.value"
+        :sidebar-width="shell.isMobile.value ? shell.siderWidth.value : shell.getSidebarWidth.value"
         :sidebar-collapse-width="shell.getSideCollapseWidth.value"
         :sidebar-margin-top="shell.sidebarMarginTop.value"
         :sidebar-z-index="shell.sidebarZIndex.value"

@@ -299,8 +299,10 @@ const asideStyle = computed((): CSSProperties => {
     'maxWidth': `${totalW}px`,
     'minWidth': `${totalW}px`,
     'width': `${totalW}px`,
-    'height': `calc(100% - ${props.sidebarMarginTop}px)`,
-    'marginTop': `${props.sidebarMarginTop}px`,
+    'height': props.isMobile ? '100%' : `calc(100% - ${props.sidebarMarginTop}px)`,
+    'marginTop': props.isMobile ? '0' : `${props.sidebarMarginTop}px`,
+    'marginLeft': props.isMobile && !props.showSidebar ? `-${totalW}px` : '0',
+    'overflow': props.isMobile && !props.showSidebar ? 'hidden' : undefined,
     'zIndex': props.sidebarZIndex,
     ...(isMixed && props.extraVisible ? { transition: 'none' } : {}),
   }
@@ -520,9 +522,9 @@ watch(
         :class="[sidebarTheme, isDualColumn ? '' : 'border-r border-border']"
         :style="{ width: `${sidebarWidth}px` }"
       >
-        <!-- Fixed (pin) button -->
+        <!-- Fixed (pin) button, hidden on mobile -->
         <SidebarFixedButton
-          v-if="!collapse && !isDualColumn && appStore.sidebarFixedButton"
+          v-if="!isMobile && !collapse && !isDualColumn && appStore.sidebarFixedButton"
           v-model:expand-on-hover="appStore.sidebarExpandOnHover"
         />
 
@@ -619,13 +621,15 @@ watch(
             />
           </div>
 
-          <!-- Collapse button spacer + button -->
-          <div style="height: 42px" />
-          <SidebarCollapseButton
-            v-if="appStore.sidebarCollapseButton && !isDualColumn"
-            :collapsed="collapse"
-            @update:collapsed="(v: boolean) => emit('update:collapse', v)"
-          />
+          <!-- Collapse button spacer + button (hidden on mobile) -->
+          <template v-if="!isMobile">
+            <div style="height: 42px" />
+            <SidebarCollapseButton
+              v-if="appStore.sidebarCollapseButton && !isDualColumn"
+              :collapsed="collapse"
+              @update:collapsed="(v: boolean) => emit('update:collapse', v)"
+            />
+          </template>
         </template>
       </div>
 
