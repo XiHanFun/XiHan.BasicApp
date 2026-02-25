@@ -22,12 +22,15 @@ export const useTabbarStore = defineStore('tabbar', () => {
   const tabKeys = computed(() => tabs.value.map((item) => item.key))
 
   function ensureTab(tab: TabItem) {
-    const exists = tabs.value.some((item) => item.key === tab.key)
-    if (!exists) {
+    const existing = tabs.value.find((item) => item.key === tab.key)
+    if (!existing) {
       tabs.value.push(tab)
-      if (appStore.tabbarPersist) {
-        SessionStorage.set(TABS_LIST_KEY, tabs.value)
-      }
+    } else if (tab.meta) {
+      existing.meta = { ...existing.meta, ...tab.meta }
+      existing.title = tab.title
+    }
+    if (appStore.tabbarPersist) {
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
     activeTab.value = tab.key
   }

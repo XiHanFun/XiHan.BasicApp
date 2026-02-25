@@ -444,8 +444,8 @@ watch(() => route.fullPath, () => {
   <div
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
-    class="tabbar-root flex h-[38px] bg-[var(--tabbar-bg)] px-2"
-    :class="appStore.tabbarStyle === 'chrome' ? 'items-end pt-[2px] pb-0' : 'items-center py-0'"
+    class="tabbar-root flex bg-[var(--tabbar-bg)] px-2"
+    :class="appStore.tabbarStyle === 'chrome' ? 'h-10 items-end pt-[4px] pb-0' : 'h-[38px] items-center py-0'"
   >
     <!-- 左侧滚动箭头 -->
     <NButton
