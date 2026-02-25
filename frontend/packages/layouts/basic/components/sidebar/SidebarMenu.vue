@@ -53,6 +53,7 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
 .app-sidebar-menu :deep(.n-menu .n-menu-item-content .n-menu-item-content-header),
 .app-sidebar-menu :deep(.n-menu .n-submenu .n-menu-item-content .n-menu-item-content-header) {
   font-size: 14px;
+  font-weight: 500;
 }
 
 .app-sidebar-menu :deep(.n-menu .n-menu-item-content::before),

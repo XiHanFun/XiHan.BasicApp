@@ -45,24 +45,24 @@ function onAuxClick(event: MouseEvent) {
     :class="[
       styleType === 'chrome'
         ? [
-          'chrome-tab -mr-3 h-8 items-center',
-          {
-            'is-active': active,
-            'is-last-tab': isLast,
-            'affix-tab': Boolean(item.pinned),
-            draggable,
-          },
-        ]
+            'chrome-tab -mr-3 h-9 items-center',
+            {
+              'is-active': active,
+              'is-last-tab': isLast,
+              'affix-tab': Boolean(item.pinned),
+              draggable,
+            },
+          ]
         : [
-          `flat-tab flat-tab--${styleType}`,
-          {
-            'is-active': active,
-            'affix-tab': Boolean(item.pinned),
-            draggable,
-            'has-left-divider': index > 0 && styleType !== 'card',
-            'is-last': isLast && styleType !== 'card',
-          },
-        ],
+            `flat-tab flat-tab--${styleType}`,
+            {
+              'is-active': active,
+              'affix-tab': Boolean(item.pinned),
+              draggable,
+              'has-left-divider': index > 0 && styleType !== 'card',
+              'is-last': isLast && styleType !== 'card',
+            },
+          ],
     ]"
     role="button"
     tabindex="0"
@@ -97,7 +97,7 @@ function onAuxClick(event: MouseEvent) {
           </svg>
         </div>
         <div
-          class="chrome-tab__main relative z-[2] mx-[10px] flex h-full items-center gap-1 pr-1"
+          class="chrome-tab__main relative z-[2] mx-[12px] flex h-full min-w-[60px] items-center gap-1 pr-1"
         >
           <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
             <Icon :icon="item.meta.icon as string" />
@@ -164,18 +164,10 @@ function onAuxClick(event: MouseEvent) {
 </template>
 
 <style scoped>
-/* ========================================================
-   TransitionGroup FLIP 拖拽归位动画
-   注意：不能在基础 .tab-item 上加 transition:transform，
-   否则 SortableJS 的 FLIP 反转会导致拖拽动画异常。
-   ======================================================== */
-.tab-item.tabs-slide-move {
-  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* ============ Chrome 风格 ============ */
 .chrome-tab {
   font-size: 13px;
+  font-weight: 500;
   transition: color 0.18s ease;
 }
 
@@ -279,6 +271,7 @@ function onAuxClick(event: MouseEvent) {
 /* ============ Flat 通用基础 ============ */
 .flat-tab {
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   color: hsl(var(--muted-foreground));
 }

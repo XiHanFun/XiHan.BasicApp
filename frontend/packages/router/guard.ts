@@ -103,6 +103,9 @@ export function setupRouterGuard(router: Router) {
       path: to.fullPath,
       pinned,
       closable: !pinned,
+      meta: {
+        icon: to.meta?.icon as string | undefined,
+      },
     })
     if (!appStore.tabbarVisitHistory) {
       tabbarStore.closeOthers(to.fullPath)
