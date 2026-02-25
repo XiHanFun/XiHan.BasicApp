@@ -10,7 +10,7 @@ import {
   NSpace,
   NSwitch,
 } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
 import PrefTip from './PrefTip.vue'
@@ -52,6 +52,53 @@ const preferencePositionOptions = computed(() => [
   { label: t('preference.layout.widget.preference_position_fixed_left'), value: 'fixed-left' },
   { label: t('preference.layout.widget.preference_position_fixed_right'), value: 'fixed-right' },
 ])
+
+const layout = computed(() => appStore.layoutMode)
+const isFullContent = computed(() => layout.value === 'full')
+const isNoSidebar = computed(() => ['top', 'full'].includes(layout.value))
+const isMixedNav = computed(() => layout.value === 'mix')
+
+const sidebarDisabled = computed(() => isNoSidebar.value)
+const sidebarItemDisabled = computed(() => sidebarDisabled.value || !appStore.sidebarShow)
+const sidebarCollapsedDisabled = computed(() => sidebarItemDisabled.value)
+const sidebarExpandOnHoverDisabled = computed(
+  () => sidebarItemDisabled.value || !appStore.sidebarCollapsed,
+)
+const sidebarCollapsedShowTitleDisabled = computed(
+  () => sidebarItemDisabled.value || !appStore.sidebarCollapsed,
+)
+const sidebarAutoActivateChildDisabled = computed(
+  () => sidebarItemDisabled.value || !['side-mixed', 'mix', 'header-mix'].includes(layout.value),
+)
+
+const headerDisabled = computed(() => isFullContent.value)
+const headerItemDisabled = computed(() => headerDisabled.value || !appStore.headerShow)
+
+const navDisabled = computed(() => isFullContent.value)
+const navSplitDisabled = computed(() => navDisabled.value || !isMixedNav.value)
+
+const breadcrumbDisabled = computed(() => {
+  if (isFullContent.value || !appStore.headerShow) return true
+  return !['side', 'side-mixed', 'header-sidebar'].includes(layout.value)
+})
+const breadcrumbItemDisabled = computed(() => breadcrumbDisabled.value || !appStore.breadcrumbEnabled)
+const breadcrumbShowHomeDisabled = computed(
+  () => breadcrumbItemDisabled.value || !appStore.breadcrumbShowIcon,
+)
+
+const copyrightDisabled = computed(() => !appStore.footerEnable)
+const copyrightItemDisabled = computed(() => copyrightDisabled.value || !appStore.copyrightEnable)
+
+watch(() => appStore.sidebarShow, (val) => {
+  if (!val) {
+    appStore.sidebarCollapsed = false
+    appStore.sidebarExpandOnHover = false
+  }
+})
+
+watch(() => appStore.sidebarCollapsed, (val) => {
+  if (!val) appStore.sidebarExpandOnHover = false
+})
 </script>
 
 <template>
@@ -127,67 +174,69 @@ const preferencePositionOptions = computed(() => [
     </NCard>
 
     <!-- 侧边栏 -->
-    <NCard size="small" :bordered="false">
+    <NCard size="small" :bordered="false" :class="{ 'opacity-60': sidebarDisabled }">
       <div class="section-title">
         {{ t('preference.layout.sidebar.title') }}
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarDisabled }">
         <span>{{ t('preference.layout.sidebar.show') }}</span>
-        <NSwitch v-model:value="appStore.sidebarShow" />
+        <NSwitch v-model:value="appStore.sidebarShow" :disabled="sidebarDisabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarItemDisabled }">
         <span>{{ t('preference.layout.sidebar.collapse') }}</span>
-        <NSwitch v-model:value="appStore.sidebarCollapsed" />
+        <NSwitch v-model:value="appStore.sidebarCollapsed" :disabled="sidebarItemDisabled" />
       </div>
-      <div class="pref-row">
-        <div class="flex items-center gap-1" :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarExpandOnHoverDisabled }">
+        <div class="flex items-center gap-1">
           <span>{{ t('preference.layout.sidebar.hover_expand') }}</span>
           <PrefTip :content="t('preference.layout.sidebar.hover_expand_tip')" />
         </div>
         <NSwitch
           v-model:value="appStore.sidebarExpandOnHover"
-          :disabled="!appStore.sidebarCollapsed"
+          :disabled="sidebarExpandOnHoverDisabled"
         />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarCollapsedShowTitleDisabled }">
         <div class="flex items-center gap-1">
           <span>{{ t('preference.layout.sidebar.collapsed_show_title') }}</span>
           <PrefTip :content="t('preference.layout.sidebar.collapsed_show_title_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.sidebarCollapsedShowTitle" />
+        <NSwitch v-model:value="appStore.sidebarCollapsedShowTitle" :disabled="sidebarCollapsedShowTitleDisabled" />
       </div>
-      <div class="pref-row">
-        <div class="flex items-center gap-1" :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarCollapsed }">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarAutoActivateChildDisabled }">
+        <div class="flex items-center gap-1">
           <span>{{ t('preference.layout.sidebar.auto_activate_child') }}</span>
           <PrefTip :content="t('preference.layout.sidebar.auto_activate_child_tip')" />
         </div>
         <NSwitch
           v-model:value="appStore.sidebarAutoActivateChild"
-          :disabled="!appStore.sidebarCollapsed"
+          :disabled="sidebarAutoActivateChildDisabled"
         />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarItemDisabled }">
         <span>{{ t('preference.layout.sidebar.show_buttons') }}</span>
         <div class="flex gap-1">
           <button
             type="button"
             class="btn-toggle"
-            :class="{ 'is-active': appStore.sidebarCollapseButton }"
-            @click="appStore.sidebarCollapseButton = !appStore.sidebarCollapseButton"
+            :class="{ 'is-active': appStore.sidebarCollapseButton && !sidebarItemDisabled }"
+            :disabled="sidebarItemDisabled"
+            @click="!sidebarItemDisabled && (appStore.sidebarCollapseButton = !appStore.sidebarCollapseButton)"
           >
             {{ t('preference.layout.sidebar.collapse_button') }}
           </button>
           <button
             type="button"
             class="btn-toggle"
-            :class="{ 'is-active': appStore.sidebarFixedButton }"
-            @click="appStore.sidebarFixedButton = !appStore.sidebarFixedButton"
+            :class="{ 'is-active': appStore.sidebarFixedButton && !sidebarItemDisabled }"
+            :disabled="sidebarItemDisabled"
+            @click="!sidebarItemDisabled && (appStore.sidebarFixedButton = !appStore.sidebarFixedButton)"
           >
             {{ t('preference.layout.sidebar.fixed_button') }}
           </button>
         </div>
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': sidebarItemDisabled }">
         <span>{{ t('preference.layout.sidebar.width') }}</span>
         <div class="flex items-center gap-1.5">
           <NInputNumber
@@ -198,6 +247,7 @@ const preferencePositionOptions = computed(() => [
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 130px"
+            :disabled="sidebarItemDisabled"
           />
           <span class="unit-label">px</span>
         </div>
@@ -205,17 +255,17 @@ const preferencePositionOptions = computed(() => [
     </NCard>
 
     <!-- 顶栏 -->
-    <NCard size="small" :bordered="false">
+    <NCard size="small" :bordered="false" :class="{ 'opacity-60': headerDisabled }">
       <div class="section-title">
         {{ t('preference.layout.header.title') }}
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': headerDisabled }">
         <span>{{ t('preference.layout.header.show') }}</span>
-        <NSwitch v-model:value="appStore.headerShow" />
+        <NSwitch v-model:value="appStore.headerShow" :disabled="headerDisabled" />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.headerShow }">
+      <div class="pref-row" :class="{ 'opacity-50': headerItemDisabled }">
         <span>{{ t('preference.layout.header.mode') }}</span>
-        <NRadioGroup v-model:value="appStore.headerMode" size="small" :disabled="!appStore.headerShow">
+        <NRadioGroup v-model:value="appStore.headerMode" size="small" :disabled="headerItemDisabled">
           <NSpace :size="0">
             <NRadioButton value="fixed">
               {{ t('preference.layout.header.mode_fixed') }}
@@ -226,9 +276,9 @@ const preferencePositionOptions = computed(() => [
           </NSpace>
         </NRadioGroup>
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.headerShow }">
+      <div class="pref-row" :class="{ 'opacity-50': headerItemDisabled }">
         <span>{{ t('preference.layout.header.menu_align') }}</span>
-        <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small" :disabled="!appStore.headerShow">
+        <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small" :disabled="headerItemDisabled">
           <NSpace :size="0">
             <NRadioButton value="start">
               {{ t('preference.layout.header.menu_align_left') }}
@@ -245,13 +295,13 @@ const preferencePositionOptions = computed(() => [
     </NCard>
 
     <!-- 导航菜单 -->
-    <NCard size="small" :bordered="false">
+    <NCard size="small" :bordered="false" :class="{ 'opacity-60': navDisabled }">
       <div class="section-title">
         {{ t('preference.layout.navigation.title') }}
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': navDisabled }">
         <span>{{ t('preference.layout.navigation.style') }}</span>
-        <NRadioGroup v-model:value="appStore.navigationStyle" size="small">
+        <NRadioGroup v-model:value="appStore.navigationStyle" size="small" :disabled="navDisabled">
           <NSpace :size="0">
             <NRadioButton value="rounded">
               {{ t('preference.layout.navigation.style_rounded') }}
@@ -262,49 +312,49 @@ const preferencePositionOptions = computed(() => [
           </NSpace>
         </NRadioGroup>
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': navSplitDisabled }">
         <div class="flex items-center gap-1">
           <span>{{ t('preference.layout.navigation.split') }}</span>
           <PrefTip :content="t('preference.layout.navigation.split_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.navigationSplit" />
+        <NSwitch v-model:value="appStore.navigationSplit" :disabled="navSplitDisabled" />
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': navDisabled }">
         <div class="flex items-center gap-1">
           <span>{{ t('preference.layout.navigation.accordion') }}</span>
           <PrefTip :content="t('preference.layout.navigation.accordion_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.navigationAccordion" />
+        <NSwitch v-model:value="appStore.navigationAccordion" :disabled="navDisabled" />
       </div>
     </NCard>
 
     <!-- 面包屑导航 -->
-    <NCard size="small" :bordered="false">
+    <NCard size="small" :bordered="false" :class="{ 'opacity-60': breadcrumbDisabled }">
       <div class="section-title">
         {{ t('preference.layout.breadcrumb.title') }}
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': breadcrumbDisabled }">
         <span>{{ t('preference.layout.breadcrumb.enabled') }}</span>
-        <NSwitch v-model:value="appStore.breadcrumbEnabled" />
+        <NSwitch v-model:value="appStore.breadcrumbEnabled" :disabled="breadcrumbDisabled" />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
+      <div class="pref-row" :class="{ 'opacity-50': breadcrumbItemDisabled }">
         <div class="flex items-center gap-1">
           <span>{{ t('preference.layout.breadcrumb.hide_only_one') }}</span>
           <PrefTip :content="t('preference.layout.breadcrumb.hide_only_one_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" :disabled="!appStore.breadcrumbEnabled" />
+        <NSwitch v-model:value="appStore.breadcrumbHideOnlyOne" :disabled="breadcrumbItemDisabled" />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
+      <div class="pref-row" :class="{ 'opacity-50': breadcrumbItemDisabled }">
         <span>{{ t('preference.layout.breadcrumb.show_icon') }}</span>
-        <NSwitch v-model:value="appStore.breadcrumbShowIcon" :disabled="!appStore.breadcrumbEnabled" />
+        <NSwitch v-model:value="appStore.breadcrumbShowIcon" :disabled="breadcrumbItemDisabled" />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
+      <div class="pref-row" :class="{ 'opacity-50': breadcrumbShowHomeDisabled }">
         <span>{{ t('preference.layout.breadcrumb.show_home') }}</span>
-        <NSwitch v-model:value="appStore.breadcrumbShowHome" :disabled="!appStore.breadcrumbEnabled" />
+        <NSwitch v-model:value="appStore.breadcrumbShowHome" :disabled="breadcrumbShowHomeDisabled" />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.breadcrumbEnabled }">
+      <div class="pref-row" :class="{ 'opacity-50': breadcrumbItemDisabled }">
         <span>{{ t('preference.layout.breadcrumb.style') }}</span>
-        <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small" :disabled="!appStore.breadcrumbEnabled">
+        <NRadioGroup v-model:value="appStore.breadcrumbStyle" size="small" :disabled="breadcrumbItemDisabled">
           <NSpace :size="0">
             <NRadioButton value="normal">
               {{ t('preference.layout.breadcrumb.style_normal') }}
@@ -468,45 +518,45 @@ const preferencePositionOptions = computed(() => [
     </NCard>
 
     <!-- 版权 -->
-    <NCard size="small" :bordered="false">
+    <NCard size="small" :bordered="false" :class="{ 'opacity-60': copyrightDisabled }">
       <div class="section-title">
         {{ t('preference.layout.copyright.title') }}
       </div>
-      <div class="pref-row">
+      <div class="pref-row" :class="{ 'opacity-50': copyrightDisabled }">
         <span>{{ t('preference.layout.copyright.enabled') }}</span>
-        <NSwitch v-model:value="appStore.copyrightEnable" />
+        <NSwitch v-model:value="appStore.copyrightEnable" :disabled="copyrightDisabled" />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
+      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
         <span>{{ t('preference.layout.copyright.name') }}</span>
         <NInput
           v-model:value="appStore.copyrightName"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
-          :disabled="!appStore.copyrightEnable"
+          :disabled="copyrightItemDisabled"
         />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
+      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
         <span>{{ t('preference.layout.copyright.site') }}</span>
         <NInput
           v-model:value="appStore.copyrightSite"
           size="small"
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
-          :disabled="!appStore.copyrightEnable"
+          :disabled="copyrightItemDisabled"
         />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
+      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
         <span>{{ t('preference.layout.copyright.date') }}</span>
         <NInput
           v-model:value="appStore.copyrightDate"
           size="small"
           style="width: 90px"
           :input-props="{ style: 'text-align: right' }"
-          :disabled="!appStore.copyrightEnable"
+          :disabled="copyrightItemDisabled"
         />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
+      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
         <span>{{ t('preference.layout.copyright.icp') }}</span>
         <NInput
           v-model:value="appStore.copyrightIcp"
@@ -514,10 +564,10 @@ const preferencePositionOptions = computed(() => [
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
           :placeholder="t('preference.layout.copyright.optional')"
-          :disabled="!appStore.copyrightEnable"
+          :disabled="copyrightItemDisabled"
         />
       </div>
-      <div class="pref-row" :class="{ 'opacity-50': !appStore.copyrightEnable }">
+      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
         <span>{{ t('preference.layout.copyright.icp_url') }}</span>
         <NInput
           v-model:value="appStore.copyrightIcpUrl"
@@ -525,7 +575,7 @@ const preferencePositionOptions = computed(() => [
           style="width: 150px"
           :input-props="{ style: 'text-align: right' }"
           :placeholder="t('preference.layout.copyright.optional')"
-          :disabled="!appStore.copyrightEnable"
+          :disabled="copyrightItemDisabled"
         />
       </div>
     </NCard>
