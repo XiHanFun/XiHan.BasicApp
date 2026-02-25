@@ -488,11 +488,8 @@ watch(
     >
       <!-- Primary sidebar panel -->
       <div
-        class="relative h-full"
-        :class="[
-          sidebarTheme,
-          isDualColumn ? 'bg-sidebar-deep' : 'border-r border-border bg-sidebar',
-        ]"
+        class="relative h-full border-r border-border bg-sidebar"
+        :class="sidebarTheme"
         :style="{ width: `${sidebarWidth}px` }"
       >
         <!-- Fixed (pin) button -->
