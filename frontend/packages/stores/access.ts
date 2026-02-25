@@ -1,7 +1,7 @@
+import type { MenuRoute } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { MenuRoute } from '~/types'
-import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '~/constants'
+import { REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 
 export const useAccessStore = defineStore('access', () => {

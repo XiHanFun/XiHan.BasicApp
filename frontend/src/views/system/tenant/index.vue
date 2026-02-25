@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { h, onMounted, reactive, ref } from 'vue'
-import { NButton, NCard, NDataTable, NInput, NPagination, NSpace, NTag, useMessage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import type { SysTenant } from '~/types'
+import { NButton, NCard, NDataTable, NInput, NPagination, NSpace, NTag, useMessage } from 'naive-ui'
+import { h, onMounted, reactive, ref } from 'vue'
 import { getTenantPageApi } from '~/api'
 
 const message = useMessage()

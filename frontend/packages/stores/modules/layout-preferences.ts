@@ -6,39 +6,39 @@ export function useLayoutPreferences() {
 
   const layoutMode = computed({
     get: () => layoutStateStore.layoutMode,
-    set: value => (layoutStateStore.layoutMode = value),
+    set: (value) => (layoutStateStore.layoutMode = value),
   })
   const sidebarCollapsed = computed({
     get: () => layoutStateStore.sidebarCollapsed,
-    set: value => (layoutStateStore.sidebarCollapsed = value),
+    set: (value) => (layoutStateStore.sidebarCollapsed = value),
   })
   const sidebarWidth = computed({
     get: () => layoutStateStore.sidebarWidth,
-    set: value => (layoutStateStore.sidebarWidth = value),
+    set: (value) => (layoutStateStore.sidebarWidth = value),
   })
   const sidebarShow = computed({
     get: () => layoutStateStore.sidebarShow,
-    set: value => (layoutStateStore.sidebarShow = value),
+    set: (value) => (layoutStateStore.sidebarShow = value),
   })
   const sidebarExpandOnHover = computed({
     get: () => layoutStateStore.sidebarExpandOnHover,
-    set: value => (layoutStateStore.sidebarExpandOnHover = value),
+    set: (value) => (layoutStateStore.sidebarExpandOnHover = value),
   })
   const headerMode = computed({
     get: () => layoutStateStore.headerMode,
-    set: value => (layoutStateStore.headerMode = value),
+    set: (value) => (layoutStateStore.headerMode = value),
   })
   const headerMenuAlign = computed({
     get: () => layoutStateStore.headerMenuAlign,
-    set: value => (layoutStateStore.headerMenuAlign = value),
+    set: (value) => (layoutStateStore.headerMenuAlign = value),
   })
   const contentCompact = computed({
     get: () => layoutStateStore.contentCompact,
-    set: value => (layoutStateStore.contentCompact = value),
+    set: (value) => (layoutStateStore.contentCompact = value),
   })
   const contentMaxWidth = computed({
     get: () => layoutStateStore.contentMaxWidth,
-    set: value => (layoutStateStore.contentMaxWidth = value),
+    set: (value) => (layoutStateStore.contentMaxWidth = value),
   })
 
   return {

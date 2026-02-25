@@ -1,10 +1,10 @@
+import type { Ref } from 'vue'
 import type { LayoutMode } from '../contracts'
-import { computed, type Ref, toRef } from 'vue'
+import { computed, toRef } from 'vue'
 
 export function useLayout(layoutModeRef: Ref<string> | (() => string)) {
-  const currentLayout = typeof layoutModeRef === 'function'
-    ? computed(layoutModeRef)
-    : toRef(layoutModeRef)
+  const currentLayout =
+    typeof layoutModeRef === 'function' ? computed(layoutModeRef) : toRef(layoutModeRef)
 
   const isSideNav = computed(() => currentLayout.value === 'side')
   const isSideMixedNav = computed(() => currentLayout.value === 'side-mixed')
@@ -14,21 +14,20 @@ export function useLayout(layoutModeRef: Ref<string> | (() => string)) {
   const isHeaderSidebarNav = computed(() => currentLayout.value === 'header-sidebar')
   const isFullContent = computed(() => currentLayout.value === 'full')
 
-  const showHeaderNav = computed(() =>
-    isHeaderNav.value || isMixedNav.value || isHeaderMixedNav.value,
+  const showHeaderNav = computed(
+    () => isHeaderNav.value || isMixedNav.value || isHeaderMixedNav.value,
   )
 
-  const isSideMode = computed(() =>
-    isMixedNav.value
-    || isSideMixedNav.value
-    || isSideNav.value
-    || isHeaderMixedNav.value
-    || isHeaderSidebarNav.value,
+  const isSideMode = computed(
+    () =>
+      isMixedNav.value ||
+      isSideMixedNav.value ||
+      isSideNav.value ||
+      isHeaderMixedNav.value ||
+      isHeaderSidebarNav.value,
   )
 
-  const isDualColumnMode = computed(() =>
-    isSideMixedNav.value || isHeaderMixedNav.value,
-  )
+  const isDualColumnMode = computed(() => isSideMixedNav.value || isHeaderMixedNav.value)
 
   return {
     currentLayout: currentLayout as Ref<LayoutMode>,

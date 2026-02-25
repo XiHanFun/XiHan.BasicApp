@@ -18,7 +18,7 @@ withDefaults(defineProps<{
     :class="{ 'xihan-icon-btn--active': active }"
     :title="tooltip"
   >
-    <slot></slot>
+    <slot />
   </button>
 </template>
 

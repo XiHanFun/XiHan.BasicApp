@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends { id: string | number }">
-import { NCard, NDataTable, NPagination } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
+import { NCard, NDataTable, NPagination } from 'naive-ui'
 
 defineOptions({ name: 'PageQueryTable' })
 

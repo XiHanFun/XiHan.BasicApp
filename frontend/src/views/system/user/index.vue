@@ -1,35 +1,35 @@
 <script lang="ts" setup>
-import { ref, h, reactive, onMounted } from 'vue'
+import type { DataTableColumns } from 'naive-ui'
+import type { SysUser } from '~/types'
+import { Icon } from '@iconify/vue'
 import {
+  NAvatar,
+  NButton,
   NCard,
   NDataTable,
-  NButton,
-  NSpace,
-  NInput,
-  NSelect,
-  NTag,
-  NAvatar,
-  NPopconfirm,
-  NModal,
   NForm,
   NFormItem,
   NIcon,
+  NInput,
+  NModal,
   NPagination,
-  useMessage,
+  NPopconfirm,
+  NSelect,
+  NSpace,
+  NTag,
   useDialog,
+  useMessage,
 } from 'naive-ui'
-import type { DataTableColumns } from 'naive-ui'
-import { Icon } from '@iconify/vue'
-import type { SysUser } from '~/types'
-import { STATUS_OPTIONS, GENDER_OPTIONS, DEFAULT_PAGE_SIZE } from '~/constants'
-import { formatDate, getStatusType } from '~/utils'
+import { h, onMounted, reactive, ref } from 'vue'
 import {
-  getUserPageApi,
   createUserApi,
-  updateUserApi,
   deleteUserApi,
+  getUserPageApi,
+  updateUserApi,
   updateUserStatusApi,
 } from '~/api'
+import { DEFAULT_PAGE_SIZE, GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { formatDate, getStatusType } from '~/utils'
 
 defineOptions({ name: 'SystemUserPage' })
 

@@ -3,8 +3,6 @@ import { NButton, NModal, NSpace } from 'naive-ui'
 
 defineOptions({ name: 'CrudModal' })
 
-const show = defineModel<boolean>('show', { default: false })
-
 const props = defineProps<{
   title: string
   submitLoading?: boolean
@@ -13,6 +11,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   submit: []
 }>()
+
+const show = defineModel<boolean>('show', { default: false })
 </script>
 
 <template>
@@ -26,7 +26,9 @@ const emit = defineEmits<{
     <slot />
     <template #footer>
       <NSpace justify="end">
-        <NButton @click="show = false">取消</NButton>
+        <NButton @click="show = false">
+          取消
+        </NButton>
         <NButton type="primary" :loading="props.submitLoading" @click="emit('submit')">
           确认
         </NButton>

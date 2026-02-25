@@ -9,16 +9,14 @@ export function useScrollLock() {
   let savedOverflow = ''
 
   function lock() {
-    if (isLocked.value)
-      return
+    if (isLocked.value) return
     savedOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     isLocked.value = true
   }
 
   function unlock() {
-    if (!isLocked.value)
-      return
+    if (!isLocked.value) return
     document.body.style.overflow = savedOverflow
     isLocked.value = false
   }

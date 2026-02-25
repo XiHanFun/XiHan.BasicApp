@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { NCard, NDataTable, NInput, NSpace } from 'naive-ui'
+import { ref } from 'vue'
 
 const keyword = ref('')
 const columns = [
@@ -22,10 +22,15 @@ const allData = Array.from({ length: 20 }, (_, i) => ({
 <template>
   <NCard title="高级表格" :bordered="false">
     <NSpace vertical>
-      <NInput v-model:value="keyword" placeholder="搜索姓名..." clearable style="max-width: 300px" />
+      <NInput
+        v-model:value="keyword"
+        placeholder="搜索姓名..."
+        clearable
+        style="max-width: 300px"
+      />
       <NDataTable
         :columns="columns"
-        :data="keyword ? allData.filter(r => r.name.includes(keyword)) : allData"
+        :data="keyword ? allData.filter((r) => r.name.includes(keyword)) : allData"
         :bordered="false"
         :pagination="{ pageSize: 10 }"
       />

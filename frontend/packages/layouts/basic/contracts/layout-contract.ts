@@ -38,7 +38,7 @@ export interface HeaderToolbarPropsContract {
   isFullscreen: boolean
   showPreferencesInHeader?: boolean
   timezoneOptions: DropdownOption[]
-  localeOptions: Array<{ label: string, key: string }>
+  localeOptions: Array<{ label: string; key: string }>
   userOptions: DropdownOption[]
 }
 
@@ -117,6 +117,14 @@ export const LAYOUT_CONTRACT_SNAPSHOT = {
     'widgetNotification',
     'widgetLockScreen',
   ],
-  requiredRouteMetaFields: ['title', 'icon', 'hidden', 'keepAlive', 'affixTab', 'roles', 'permissions'],
+  requiredRouteMetaFields: [
+    'title',
+    'icon',
+    'hidden',
+    'keepAlive',
+    'affixTab',
+    'roles',
+    'permissions',
+  ],
   events: LAYOUT_COMPAT_EVENTS,
 } as const

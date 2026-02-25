@@ -38,17 +38,17 @@ const isNarrowScreen = computed(() => viewportWidth.value < 960)
 const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
 const showFloatingFab = computed(
   () =>
-    isNarrowScreen.value ||
-    contentMaximized.value ||
-    !appStore.headerShow ||
-    isFullContentLayout.value,
+    isNarrowScreen.value
+    || contentMaximized.value
+    || !appStore.headerShow
+    || isFullContentLayout.value,
 )
 const { animateThemeTransition, followSystem } = useTheme()
 
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
   get: () => appStore.layoutMode,
-  set: (v) => appStore.setLayoutMode(v),
+  set: v => appStore.setLayoutMode(v),
 })
 const contentMode = computed({
   get: () => (appStore.contentCompact ? 'fixed' : 'fluid'),
@@ -103,13 +103,14 @@ async function copyPreferences() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
     message.success(t('preference.drawer.copy_success'))
-  } catch {
+  }
+  catch {
     message.error(t('preference.drawer.copy_failed'))
   }
 }
 
 function resetPreferences() {
-  const keys = Object.keys(localStorage).filter((key) => key.startsWith(STORAGE_PREFIX))
+  const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX))
   for (const key of keys) {
     localStorage.removeItem(key)
   }

@@ -1,6 +1,6 @@
+import { dateEnUS, dateZhCN, enUS, zhCN } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n as _useI18n } from 'vue-i18n'
-import { dateEnUS, dateZhCN, enUS, zhCN } from 'naive-ui'
 import { useAppStore } from '~/stores'
 
 export function useNaiveLocale() {

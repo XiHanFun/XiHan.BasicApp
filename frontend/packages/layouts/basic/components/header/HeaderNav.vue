@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { DropdownOption } from 'naive-ui'
+import type { LayoutBreadcrumbItem } from '../../contracts'
+import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
 import { NBreadcrumb, NBreadcrumbItem, NDropdown } from 'naive-ui'
 import { computed } from 'vue'
-import type { useAppStore } from '~/stores'
-import type { LayoutBreadcrumbItem } from '../../contracts'
 
 defineOptions({ name: 'HeaderNav' })
 
@@ -20,13 +19,15 @@ const emit = defineEmits<{
 
 const allCrumbs = computed(() => {
   const result: Array<{ key: string, isHome?: boolean, index?: number }> = []
-  if (props.appStore.breadcrumbShowHome) result.push({ key: 'home', isHome: true })
+  if (props.appStore.breadcrumbShowHome)
+    result.push({ key: 'home', isHome: true })
   props.breadcrumbs.forEach((_, i) => result.push({ key: String(i), index: i }))
   return result
 })
 
 function isLast(isHome: boolean, index?: number): boolean {
-  if (isHome) return props.breadcrumbs.length === 0
+  if (isHome)
+    return props.breadcrumbs.length === 0
   return index === props.breadcrumbs.length - 1
 }
 </script>

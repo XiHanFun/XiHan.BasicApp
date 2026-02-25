@@ -1,4 +1,5 @@
-import { type MaybeRefOrGetter, computed, ref, toValue } from 'vue'
+import type { MaybeRefOrGetter } from 'vue'
+import { computed, ref, toValue } from 'vue'
 
 /**
  * 数组分页工具函数。

@@ -15,9 +15,8 @@ import {
 } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '~/stores'
 import { useTheme } from '~/hooks'
-import { useAppStore } from '~/stores'
+import { useAppStore, useAuthStore } from '~/stores'
 import LoginToolbar from './LoginToolbar.vue'
 
 defineOptions({ name: 'LoginPage' })
@@ -275,4 +274,3 @@ function handleKeydown(e: KeyboardEvent) {
   text-decoration: underline;
 }
 </style>
-

@@ -2,10 +2,9 @@
 import { Icon } from '@iconify/vue'
 import { NConfigProvider, NDialogProvider, NIcon, NInput, NLoadingBarProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
-import { useAuthStore } from '~/stores'
-import { useNaiveLocale, useTheme } from '~/hooks'
 import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'
-import { useAppStore, useLayoutBridgeStore, useUserStore } from '~/stores'
+import { useNaiveLocale, useTheme } from '~/hooks'
+import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
 
 defineOptions({ name: 'App' })
 

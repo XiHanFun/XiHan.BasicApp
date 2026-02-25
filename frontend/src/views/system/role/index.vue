@@ -1,28 +1,28 @@
 <script lang="ts" setup>
-import { ref, h, reactive, onMounted } from 'vue'
+import type { DataTableColumns } from 'naive-ui'
+import type { SysRole } from '~/types'
+import { Icon } from '@iconify/vue'
 import {
+  NButton,
   NCard,
   NDataTable,
-  NButton,
-  NSpace,
-  NInput,
-  NSelect,
-  NTag,
-  NPopconfirm,
-  NModal,
   NForm,
   NFormItem,
-  NInputNumber,
   NIcon,
+  NInput,
+  NInputNumber,
+  NModal,
   NPagination,
+  NPopconfirm,
+  NSelect,
+  NSpace,
+  NTag,
   useMessage,
 } from 'naive-ui'
-import type { DataTableColumns } from 'naive-ui'
-import { Icon } from '@iconify/vue'
-import type { SysRole } from '~/types'
-import { STATUS_OPTIONS, DEFAULT_PAGE_SIZE } from '~/constants'
+import { h, onMounted, reactive, ref } from 'vue'
+import { createRoleApi, deleteRoleApi, getRolePageApi, updateRoleApi } from '~/api'
+import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getStatusType } from '~/utils'
-import { getRolePageApi, createRoleApi, updateRoleApi, deleteRoleApi } from '~/api'
 
 defineOptions({ name: 'SystemRolePage' })
 

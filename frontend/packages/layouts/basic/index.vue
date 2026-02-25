@@ -1,16 +1,16 @@
 <script lang="ts" setup>
+import { Icon } from '@iconify/vue'
 import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed } from 'vue'
-import { Icon } from '@iconify/vue'
 import { useTheme } from '~/hooks'
-import { LayoutContentRenderer } from './core'
-import { useLayoutShellAdapter } from './composables'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
+import { useLayoutShellAdapter } from './composables'
+import { LayoutContentRenderer } from './core'
 
 defineOptions({ name: 'BasicLayout' })
 

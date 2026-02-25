@@ -1,7 +1,7 @@
 import type { PageResult, SysTenant } from '~/types'
-import requestClient from '../request'
 import { API_CONTRACT } from '../contract'
 import { normalizePageResult } from '../helpers'
+import requestClient from '../request'
 
 export async function getTenantPageApi(
   params: Record<string, any>,

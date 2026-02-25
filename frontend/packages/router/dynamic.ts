@@ -1,5 +1,5 @@
-import type { MenuRoute } from '~/types'
 import type { RouteRecordRaw } from 'vue-router'
+import type { MenuRoute } from '~/types'
 
 const viewModules = import.meta.glob('@/views/**/*.vue')
 

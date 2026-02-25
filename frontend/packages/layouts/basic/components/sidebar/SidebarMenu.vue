@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { NMenu } from 'naive-ui'
 import type { SidebarMenuPropsContract } from '../../contracts'
+import { NMenu } from 'naive-ui'
 
 defineOptions({ name: 'SidebarMenu' })
 
 const props = defineProps<SidebarMenuPropsContract>()
 
 const emit = defineEmits<{ menuUpdate: [key: string] }>()
-
 </script>
 
 <template>
@@ -179,15 +178,19 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   display: none !important;
 }
 
-:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
+:deep(
+  .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon
+) {
   transform: scale(1.2);
 }
 
-:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
+:deep(
+  .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed
+    .n-menu-item.n-menu-item--selected
+    .n-menu-item-content-header
+) {
   font-weight: 600;
 }
-
-
 </style>
 
 <style>

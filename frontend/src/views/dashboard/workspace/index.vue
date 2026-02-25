@@ -1,21 +1,10 @@
 <script lang="ts" setup>
-import { ref, h } from 'vue'
-import {
-  NCard,
-  NGrid,
-  NGridItem,
-  NStatistic,
-  NNumberAnimation,
-  NAvatar,
-  NIcon,
-  NTag,
-  NSpace,
-  NSkeleton,
-} from 'naive-ui'
 import { Icon } from '@iconify/vue'
+import dayjs from 'dayjs'
+import { NAvatar, NCard, NGrid, NGridItem, NIcon, NNumberAnimation, NStatistic } from 'naive-ui'
+import { ref } from 'vue'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
-import dayjs from 'dayjs'
 
 defineOptions({ name: 'WorkspacePage' })
 
@@ -123,7 +112,9 @@ const quickLinks = [
         <NCard :bordered="false" class="hover-card">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-500">{{ stat.label }}</p>
+              <p class="text-sm text-gray-500">
+                {{ stat.label }}
+              </p>
               <div class="mt-1 flex items-end gap-2">
                 <NStatistic>
                   <template #default>
@@ -160,7 +151,7 @@ const quickLinks = [
               <router-link :to="link.to">
                 <div
                   class="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-4 transition-all hover:shadow-md"
-                  :style="{ backgroundColor: link.color + '15' }"
+                  :style="{ backgroundColor: `${link.color}15` }"
                 >
                   <div
                     class="flex h-10 w-10 items-center justify-center rounded-lg"
