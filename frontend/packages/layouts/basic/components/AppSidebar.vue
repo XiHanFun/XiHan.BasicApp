@@ -101,9 +101,9 @@ const appLogo = computed(
 const activeKey = computed(() => String(route.meta?.activePath || route.path || ''))
 const isSideMixedLayout = computed(() => appStore.layoutMode === 'side-mixed')
 const isHeaderMixLayout = computed(() => appStore.layoutMode === 'header-mix')
-const isMixedNavLayout = computed(() => ['mix', 'header-sidebar'].includes(appStore.layoutMode))
+const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
 const isSplitMenuLayout = computed(
-  () => appStore.navigationSplit && ['mix', 'header-sidebar'].includes(appStore.layoutMode),
+  () => appStore.navigationSplit && appStore.layoutMode === 'mix',
 )
 
 const extraMenuTheme = computed<'dark' | 'light'>(() => {
