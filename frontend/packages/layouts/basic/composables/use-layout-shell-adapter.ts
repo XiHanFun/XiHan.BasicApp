@@ -342,7 +342,7 @@ export function useLayoutShellAdapter() {
       mobileSidebarOpen.value = !mobileSidebarOpen.value
     }
     else {
-      layoutBridgeStore.requestSidebarToggle()
+      appStore.setSidebarShow(!appStore.sidebarShow)
     }
   }
 
