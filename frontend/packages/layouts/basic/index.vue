@@ -167,8 +167,17 @@ const sidebarEnableState = computed(
         class="footer-bar bottom-0 flex w-full border-t border-border bg-background px-4 text-xs text-muted-foreground transition-all duration-200"
         :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-1 py-2' : 'flex-row items-center'"
       >
-        <!-- Left: Copyright -->
-        <div v-if="shell.appStore.copyrightEnable" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
+        <!-- Left: Dev version info -->
+        <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
+          <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
+          v{{ appVersion }}({{ appBuildTime }})
+          · by
+          <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
+
+        <!-- Center: Copyright -->
+        <div v-if="shell.appStore.copyrightEnable" class="footer-section-center">
           <span>
             Copyright &copy; {{ shell.appStore.copyrightDate || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
             <a
@@ -180,15 +189,6 @@ const sidebarEnableState = computed(
             <span v-else>{{ shell.appStore.copyrightName }}</span>.
             All Rights Reserved.
           </span>
-        </div>
-        <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
-
-        <!-- Center: Dev version info -->
-        <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-center">
-          <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
-          v{{ appVersion }}({{ appBuildTime }})
-          · by
-          <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
         </div>
         <div v-else-if="!shell.isMobile.value" class="footer-section-center" />
 
