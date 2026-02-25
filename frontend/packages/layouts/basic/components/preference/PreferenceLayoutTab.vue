@@ -90,7 +90,7 @@ const preferencePositionOptions = computed(() => [
       <div class="section-title">
         {{ t('preference.layout.content.title') }}
       </div>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-3 gap-2">
         <div class="preset-item">
           <button
             type="button"
