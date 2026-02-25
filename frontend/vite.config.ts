@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 
 import vue from '@vitejs/plugin-vue'
@@ -7,10 +8,20 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
 
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
 
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+      __APP_BUILD_TIME__: JSON.stringify(pkg.lastBuildTime),
+      __APP_HOMEPAGE__: JSON.stringify(pkg.homepage),
+      __APP_NAME__: JSON.stringify(pkg.name),
+      __APP_AUTHOR_NAME__: JSON.stringify(pkg.author?.name ?? ''),
+      __APP_AUTHOR_URL__: JSON.stringify(pkg.author?.url ?? ''),
+    },
     plugins: [
       vue(),
       vueJsx(),

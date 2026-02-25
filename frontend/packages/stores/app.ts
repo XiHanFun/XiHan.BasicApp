@@ -28,6 +28,7 @@ import {
   FONT_SIZE_KEY,
   FOOTER_ENABLE_KEY,
   FOOTER_FIXED_KEY,
+  FOOTER_SHOW_DEV_INFO_KEY,
   GRAYSCALE_ENABLED_KEY,
   HEADER_DARK_KEY,
   HEADER_MENU_ALIGN_KEY,
@@ -235,14 +236,15 @@ export const useAppStore = defineStore('app', () => {
 
   const footerEnable = ref<boolean>(LocalStorage.get<boolean>(FOOTER_ENABLE_KEY) ?? true)
   const footerFixed = ref<boolean>(LocalStorage.get<boolean>(FOOTER_FIXED_KEY) ?? true)
+  const footerShowDevInfo = ref<boolean>(
+    LocalStorage.get<boolean>(FOOTER_SHOW_DEV_INFO_KEY) ?? true,
+  )
   const copyrightEnable = ref<boolean>(LocalStorage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
   const copyrightName = ref<string>(LocalStorage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHan')
   const copyrightSite = ref<string>(
-    LocalStorage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://xihanfun.com',
+    LocalStorage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://www.xihanfun.com',
   )
-  const copyrightDate = ref<string>(
-    LocalStorage.get<string>(COPYRIGHT_DATE_KEY) ?? String(new Date().getFullYear()),
-  )
+  const copyrightDate = ref<string>(LocalStorage.get<string>(COPYRIGHT_DATE_KEY) ?? '2016')
   const copyrightIcp = ref<string>(LocalStorage.get<string>(COPYRIGHT_ICP_KEY) ?? '')
   const copyrightIcpUrl = ref<string>(LocalStorage.get<string>(COPYRIGHT_ICP_URL_KEY) ?? '')
 
@@ -325,6 +327,7 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition)
   bindPersist(FOOTER_ENABLE_KEY, footerEnable)
   bindPersist(FOOTER_FIXED_KEY, footerFixed)
+  bindPersist(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo)
   bindPersist(COPYRIGHT_ENABLE_KEY, copyrightEnable)
   bindPersist(COPYRIGHT_NAME_KEY, copyrightName)
   bindPersist(COPYRIGHT_SITE_KEY, copyrightSite)
@@ -567,6 +570,9 @@ export const useAppStore = defineStore('app', () => {
   function setFooterFixed(v: boolean) {
     save(FOOTER_FIXED_KEY, footerFixed, v)
   }
+  function setFooterShowDevInfo(v: boolean) {
+    save(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, v)
+  }
   function setCopyrightEnable(v: boolean) {
     save(COPYRIGHT_ENABLE_KEY, copyrightEnable, v)
   }
@@ -668,6 +674,7 @@ export const useAppStore = defineStore('app', () => {
     widgetPreferencePosition,
     footerEnable,
     footerFixed,
+    footerShowDevInfo,
     copyrightEnable,
     copyrightName,
     copyrightSite,
@@ -749,6 +756,7 @@ export const useAppStore = defineStore('app', () => {
     setWidgetPreferencePosition,
     setFooterEnable,
     setFooterFixed,
+    setFooterShowDevInfo,
     setCopyrightEnable,
     setCopyrightName,
     setCopyrightSite,

@@ -20,7 +20,14 @@ const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
 )
 
-const showFooter = computed(() => appStore.footerEnable && appStore.copyrightEnable)
+const showFooter = computed(() => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo))
+
+const appVersion = __APP_VERSION__
+const appBuildTime = __APP_BUILD_TIME__
+const appHomepage = __APP_HOMEPAGE__
+const appName = __APP_NAME__
+const appAuthorName = __APP_AUTHOR_NAME__
+const appAuthorUrl = __APP_AUTHOR_URL__
 </script>
 
 <template>
@@ -97,25 +104,34 @@ const showFooter = computed(() => appStore.footerEnable && appStore.copyrightEna
     <!-- Footer -->
     <footer
       v-if="showFooter"
-      class="absolute bottom-0 left-0 flex w-full items-center justify-center gap-x-3 px-4 py-3 text-xs"
+      class="auth-footer absolute bottom-0 left-0 flex w-full flex-col items-center justify-center gap-1 px-4 py-3 text-xs"
       :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
     >
-      <span>
-        Copyright &copy; {{ appStore.copyrightDate || new Date().getFullYear() }}
+      <div v-if="appStore.footerShowDevInfo" class="leading-tight">
+        <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
+        v{{ appVersion }}({{ appBuildTime }})
+        · by
+        <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
+      </div>
+      <div v-if="appStore.copyrightEnable" class="flex flex-wrap items-center justify-center gap-x-3">
+        <span>
+          Copyright &copy; {{ appStore.copyrightDate || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
+          <a
+            v-if="appStore.copyrightSite"
+            :href="appStore.copyrightSite"
+            target="_blank"
+            class="hover:underline"
+          >{{ appStore.copyrightName }}</a>
+          <span v-else>{{ appStore.copyrightName }}</span>.
+          All Rights Reserved.
+        </span>
         <a
-          v-if="appStore.copyrightSite"
-          :href="appStore.copyrightSite"
+          v-if="appStore.copyrightIcp"
+          :href="appStore.copyrightIcpUrl || '#'"
           target="_blank"
-          class="ml-1 hover:underline"
-        >{{ appStore.copyrightName }}</a>
-        <span v-else class="ml-1">{{ appStore.copyrightName }}</span>
-      </span>
-      <a
-        v-if="appStore.copyrightIcp"
-        :href="appStore.copyrightIcpUrl || '#'"
-        target="_blank"
-        class="hover:underline"
-      >{{ appStore.copyrightIcp }}</a>
+          class="hover:underline"
+        >{{ appStore.copyrightIcp }}</a>
+      </div>
     </footer>
   </div>
 </template>
@@ -134,5 +150,10 @@ const showFooter = computed(() => appStore.footerEnable && appStore.copyrightEna
 .auth-slide-leave-to {
   opacity: 0;
   transform: translateX(-30px);
+}
+
+.auth-footer :deep(a) {
+  color: inherit;
+  text-decoration: none;
 }
 </style>
