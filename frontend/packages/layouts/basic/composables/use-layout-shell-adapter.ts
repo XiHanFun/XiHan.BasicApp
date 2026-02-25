@@ -33,7 +33,7 @@ export function useLayoutShellAdapter() {
     isSideMode,
     isDualColumnMode,
     showHeaderNav,
-  } = useLayout(() => isMobile.value ? 'side' : layoutPreferences.layoutMode.value)
+  } = useLayout(() => (isMobile.value ? 'side' : layoutPreferences.layoutMode.value))
 
   const sidebarCollapse = ref(appStore.sidebarCollapsed)
   const sidebarExpandOnHovering = ref(false)
@@ -51,7 +51,7 @@ export function useLayoutShellAdapter() {
 
   const headerHeight = computed(() => 50)
   const tabbarHeight = computed(() => 40)
-  const footerHeight = computed(() => 48)
+  const footerHeight = computed(() => 30)
 
   const headerWrapperHeight = computed(() => {
     let height = 0
