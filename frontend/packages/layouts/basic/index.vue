@@ -22,7 +22,9 @@ const headerForceDark = computed(() => shell.appStore.headerDark && !isDark.valu
 const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark) ? 'dark' : 'light')
 const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark) ? 'dark' : 'light')
 
-const sidebarEnableState = computed(() => !shell.isHeaderNav.value && shell.appStore.sidebarShow)
+const sidebarEnableState = computed(
+  () => !shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow,
+)
 </script>
 
 <template>
