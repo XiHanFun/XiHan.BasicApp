@@ -18,6 +18,10 @@ export function useLayoutShellAdapter() {
   const route = useRoute()
   const { contentIsMaximize: contentMaximized } = useContentMaximize()
 
+  const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const isMobile = computed(() => viewportWidth.value < 768)
+  const isNarrowScreen = computed(() => viewportWidth.value < 960)
+
   const {
     currentLayout,
     isFullContent,
@@ -29,14 +33,11 @@ export function useLayoutShellAdapter() {
     isSideMode,
     isDualColumnMode,
     showHeaderNav,
-  } = useLayout(() => layoutPreferences.layoutMode.value)
+  } = useLayout(() => isMobile.value ? 'side' : layoutPreferences.layoutMode.value)
 
   const sidebarCollapse = ref(appStore.sidebarCollapsed)
   const sidebarExpandOnHovering = ref(false)
   const headerIsHidden = ref(false)
-  const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  const isMobile = computed(() => viewportWidth.value < 768)
-  const isNarrowScreen = computed(() => viewportWidth.value < 960)
   const mobileSidebarOpen = ref(false)
   const scrollY = ref(0)
   const mouseY = ref(0)
@@ -73,6 +74,7 @@ export function useLayoutShellAdapter() {
   })
 
   const sidebarEnableState = computed(() => {
+    if (isMobile.value) return true
     return !isHeaderNav.value && appStore.sidebarShow
   })
 
@@ -110,7 +112,7 @@ export function useLayoutShellAdapter() {
     return isSideMode.value && sidebarEnableState.value && !appStore.sidebarShow === false
   })
 
-  const maskVisible = computed(() => !sidebarCollapse.value && isMobile.value)
+  const maskVisible = computed(() => mobileSidebarOpen.value && isMobile.value)
 
   const mainStyle = computed(() => {
     let width = '100%'
@@ -263,12 +265,12 @@ export function useLayoutShellAdapter() {
   })
 
   const showSider = computed(() => {
+    if (isMobile.value) return mobileSidebarOpen.value
     return (
       !contentMaximized.value &&
       !isFullContent.value &&
       currentLayout.value !== 'top' &&
-      appStore.sidebarShow &&
-      (isMobile.value ? mobileSidebarOpen.value : true)
+      appStore.sidebarShow
     )
   })
 
