@@ -533,8 +533,17 @@ watch(
           <div style="height: 42px" />
         </template>
 
-        <!-- Header-mix layout: icon+text menu (logo in header) -->
+        <!-- Header-mix layout: collapsed logo + icon+text menu -->
         <template v-else-if="isHeaderMixLayout">
+          <div :style="logoAreaStyle">
+            <SidebarBrand
+              :collapsed="true"
+              :app-title="appTitle"
+              :app-logo="appLogo"
+              :sidebar-collapsed-show-title="false"
+              @click="handleBrandClick"
+            />
+          </div>
           <div
             :style="sidebarContentStyle"
             class="mixed-primary-menu overflow-y-auto overflow-x-hidden"

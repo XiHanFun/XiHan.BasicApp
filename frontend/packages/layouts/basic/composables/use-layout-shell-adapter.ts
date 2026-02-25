@@ -82,7 +82,7 @@ export function useLayoutShellAdapter() {
   })
 
   const sidebarMarginTop = computed(() => {
-    return (isMixedNav.value || isHeaderMixedNav.value) && !isMobile.value ? headerHeight.value : 0
+    return isMixedNav.value && !isMobile.value ? headerHeight.value : 0
   })
 
   const getSidebarWidth = computed(() => {
@@ -237,7 +237,7 @@ export function useLayoutShellAdapter() {
   })
 
   const showHeaderLogo = computed(() => {
-    return !isSideMode.value || isMixedNav.value || isHeaderMixedNav.value || isMobile.value
+    return !isSideMode.value || isMixedNav.value || isMobile.value
   })
 
   const headerHasShadow = computed(() => scrollY.value > 20)
