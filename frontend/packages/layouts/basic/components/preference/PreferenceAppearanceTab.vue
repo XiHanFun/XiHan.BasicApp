@@ -19,10 +19,14 @@ const appStore = props.appStore
 const { t } = useI18n()
 const { isDark } = useTheme()
 
+const isNoSidebar = computed(() => ['top', 'full'].includes(appStore.layoutMode))
 const isDualColumn = computed(() => ['side-mixed', 'header-mix'].includes(appStore.layoutMode))
+
+const sidebarDarkDisabled = computed(() => isDark.value || isNoSidebar.value)
 const sidebarSubDarkDisabled = computed(
   () => isDark.value || !isDualColumn.value || !appStore.sidebarDark,
 )
+const headerDarkDisabled = computed(() => isDark.value)
 
 watch(() => appStore.sidebarDark, (val) => {
   if (!val) appStore.sidebarSubDark = false
@@ -263,10 +267,12 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
       </div>
       <div class="pref-row">
         <div class="flex items-center gap-1">
-          <span>{{ t('preference.appearance.navigation.sidebar_dark') }}</span>
+          <span :class="{ 'text-[hsl(var(--muted-foreground))]': sidebarDarkDisabled }">
+            {{ t('preference.appearance.navigation.sidebar_dark') }}
+          </span>
           <PrefTip :content="t('preference.appearance.navigation.sidebar_dark_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.sidebarDark" />
+        <NSwitch v-model:value="appStore.sidebarDark" :disabled="sidebarDarkDisabled" />
       </div>
       <div class="pref-row">
         <div class="flex items-center gap-1">
@@ -279,10 +285,12 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
       </div>
       <div class="pref-row">
         <div class="flex items-center gap-1">
-          <span>{{ t('preference.appearance.navigation.header_dark') }}</span>
+          <span :class="{ 'text-[hsl(var(--muted-foreground))]': headerDarkDisabled }">
+            {{ t('preference.appearance.navigation.header_dark') }}
+          </span>
           <PrefTip :content="t('preference.appearance.navigation.header_dark_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.headerDark" />
+        <NSwitch v-model:value="appStore.headerDark" :disabled="headerDarkDisabled" />
       </div>
     </NCard>
 
