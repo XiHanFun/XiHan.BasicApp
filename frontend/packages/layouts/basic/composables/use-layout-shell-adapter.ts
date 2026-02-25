@@ -267,8 +267,8 @@ export function useLayoutShellAdapter() {
     if (isMobile.value) return expandedSidebarWidth.value
     if (isDualColumnMode.value) return SIDEBAR_MIXED_WIDTH + appStore.sidebarWidth
     if (floatingSidebarMode.value && floatingSidebarExpand.value) return expandedSidebarWidth.value
-    if (floatingSidebarMode.value) return SIDEBAR_COLLAPSE_WIDTH
-    if (effectiveCollapsed.value) return SIDEBAR_COLLAPSE_WIDTH
+    if (floatingSidebarMode.value) return getSideCollapseWidth.value
+    if (effectiveCollapsed.value) return getSideCollapseWidth.value
     return currentLayout.value === 'mix' ? 224 : sidebarWidth.value
   })
 

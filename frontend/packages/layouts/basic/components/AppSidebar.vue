@@ -103,6 +103,11 @@ const isSplitMenuLayout = computed(() =>
   appStore.navigationSplit && ['mix', 'header-sidebar'].includes(appStore.layoutMode),
 )
 
+const extraMenuTheme = computed<'dark' | 'light'>(() => {
+  if (props.sidebarTheme === 'dark') return 'dark'
+  return (appStore.sidebarSubDark || appStore.sidebarDark) ? 'dark' : 'light'
+})
+
 function renderIcon(icon: string) {
   return () => h(Icon, { icon })
 }
@@ -364,6 +369,7 @@ watch(() => route.path, () => {
     <SidebarMenu
       :active-key="activeKey"
       :collapsed="extraCollapse"
+      :sidebar-theme="extraMenuTheme"
       :menu-options="isSideMixedLayout ? sideMixedSecondaryOptions : headerMixSecondaryOptions"
       :navigation-style="appStore.navigationStyle"
       :accordion="appStore.navigationAccordion"
@@ -421,6 +427,7 @@ watch(() => route.path, () => {
               :collapsed="true"
               :collapsed-width="sidebarWidth"
               :sidebar-collapsed-show-title="true"
+              :sidebar-theme="sidebarTheme"
               :menu-options="sideMixedPrimaryOptions"
               :navigation-style="appStore.navigationStyle"
               :accordion="true"
@@ -448,6 +455,7 @@ watch(() => route.path, () => {
               :collapsed="true"
               :collapsed-width="sidebarWidth"
               :sidebar-collapsed-show-title="true"
+              :sidebar-theme="sidebarTheme"
               :menu-options="headerMixPrimaryOptions"
               :navigation-style="appStore.navigationStyle"
               :accordion="true"
@@ -476,7 +484,9 @@ watch(() => route.path, () => {
             <SidebarMenu
               :active-key="activeKey"
               :collapsed="effectiveCollapsed"
+              :collapsed-width="sidebarCollapseWidth"
               :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
+              :sidebar-theme="sidebarTheme"
               :no-top-padding="isMixedNav"
               :menu-options="menuOptions"
               :navigation-style="appStore.navigationStyle"
@@ -524,6 +534,7 @@ watch(() => route.path, () => {
           <SidebarMenu
             :active-key="activeKey"
             :collapsed="extraCollapse"
+            :sidebar-theme="extraMenuTheme"
             :menu-options="isSideMixedLayout ? sideMixedSecondaryOptions : headerMixSecondaryOptions"
             :navigation-style="appStore.navigationStyle"
             :accordion="appStore.navigationAccordion"
@@ -537,28 +548,37 @@ watch(() => route.path, () => {
 </template>
 
 <style scoped>
-:deep(.sidebar-menu-rounded .n-menu-item-content) {
-  border-radius: 8px;
-  margin: 2px 8px;
-}
-
-:deep(.sidebar-menu-plain .n-menu-item-content) {
-  border-radius: 0;
-  margin: 2px 0;
-}
-
 /*
- * Mixed primary column — match vben NormalMenu exactly
- * vben: <li> padding:9px 0, margin:4px 8px(rounded), icon 20px, text margin-top:8px font:12px
- * No parent wrapper height — items size naturally
+ * Mixed primary column — match vben NormalMenu
+ * Light: accent-foreground text, primary hover-text, primary-foreground active-text on primary bg
+ * Dark: foreground/80% text, foreground hover-text, primary-foreground active-text on primary bg
  */
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed) {
-  --n-item-color-active: hsl(var(--primary));
-  --n-item-text-color-active: hsl(var(--primary-foreground));
-  --n-item-icon-color-active: hsl(var(--primary-foreground));
-  --n-item-color-hover: hsl(var(--accent));
+.mixed-primary-menu :deep(.menu-theme-light.n-menu.n-menu--collapsed) {
+  --n-item-text-color: hsl(var(--accent-foreground));
   --n-item-text-color-hover: hsl(var(--primary));
+  --n-item-icon-color: hsl(var(--accent-foreground));
   --n-item-icon-color-hover: hsl(var(--primary));
+  --n-item-color-hover: hsl(var(--accent));
+  --n-item-text-color-active: hsl(var(--primary-foreground));
+  --n-item-text-color-active-hover: hsl(var(--primary-foreground));
+  --n-item-icon-color-active: hsl(var(--primary-foreground));
+  --n-item-icon-color-active-hover: hsl(var(--primary-foreground));
+  --n-item-color-active: hsl(var(--primary));
+  --n-item-color-active-hover: hsl(var(--primary));
+}
+
+.mixed-primary-menu :deep(.menu-theme-dark.n-menu.n-menu--collapsed) {
+  --n-item-text-color: hsl(var(--foreground) / 80%);
+  --n-item-text-color-hover: hsl(var(--foreground));
+  --n-item-icon-color: hsl(var(--foreground) / 72%);
+  --n-item-icon-color-hover: hsl(var(--foreground));
+  --n-item-color-hover: hsl(var(--accent));
+  --n-item-text-color-active: hsl(var(--primary-foreground));
+  --n-item-text-color-active-hover: hsl(var(--primary-foreground));
+  --n-item-icon-color-active: hsl(var(--primary-foreground));
+  --n-item-icon-color-active-hover: hsl(var(--primary-foreground));
+  --n-item-color-active: hsl(var(--primary));
+  --n-item-color-active-hover: hsl(var(--primary));
 }
 
 .mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item) {
@@ -585,7 +605,9 @@ watch(() => route.path, () => {
 }
 
 .mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
-  font-size: 20px;
+  font-size: 20px !important;
+  width: 20px;
+  height: 20px;
   max-height: 20px;
   margin-right: 0 !important;
   transition: all 0.25s ease;

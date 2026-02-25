@@ -87,16 +87,28 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   border-radius: 0 !important;
 }
 
+:deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed > .n-menu-item),
+:deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed > .n-submenu),
+:deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed > .n-submenu > .n-menu-item) {
+  height: auto !important;
+  margin: 4px 0 !important;
+  overflow: visible !important;
+}
+
 :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
   display: flex !important;
   align-items: center;
   justify-content: center;
-  padding: 23.5px 0 !important;
-  margin: 4px 0 !important;
+  height: auto !important;
+  padding: 12px 0 !important;
+  margin: 0 6px !important;
+  overflow: visible !important;
 }
 
-:deep(.sidebar-menu-rounded.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
-  margin: 4px 6px !important;
+:deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content::before) {
+  left: 0;
+  right: 0;
+  border-radius: 6px;
 }
 
 :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
@@ -108,33 +120,48 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   display: none !important;
 }
 
+/*
+ * Parent wrappers need height:auto to prevent NMenu's 38px constraint → overflow/overlap
+ */
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed > .n-menu-item),
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed > .n-submenu),
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed > .n-submenu > .n-menu-item) {
+  height: auto !important;
+  margin: 4px 0 !important;
+  overflow: visible !important;
+}
+
 :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
   display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: auto !important;
-  padding: 32px 0 !important;
-  margin: 4px 0 !important;
+  margin: 0 8px !important;
+  padding: 9px 0 !important;
+  overflow: visible !important;
   line-height: normal;
 }
 
-:deep(.sidebar-menu-rounded.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
-  margin: 4px 8px !important;
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content::before) {
+  left: 0;
+  right: 0;
+  border-radius: 6px;
 }
 
 :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
   margin-right: 0 !important;
-  font-size: 20px;
+  font-size: 20px !important;
+  width: 20px;
+  height: 20px;
   max-height: 20px;
   transition: all 0.25s ease;
 }
 
 :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content-header) {
-  display: inline-flex !important;
+  display: block !important;
   width: 100% !important;
-  justify-content: center;
-  flex-shrink: 0;
+  height: auto !important;
   margin-top: 8px;
   margin-bottom: 0;
   opacity: 1 !important;
@@ -145,10 +172,18 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   text-align: center;
   font-size: 12px;
   font-weight: 400;
-  line-height: normal;
+  line-height: 1.2;
 }
 
 :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
   display: none !important;
+}
+
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
+  transform: scale(1.2);
+}
+
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
+  font-weight: 600;
 }
 </style>

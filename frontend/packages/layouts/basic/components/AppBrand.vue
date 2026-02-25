@@ -18,7 +18,8 @@ interface AppBrandProps {
 
 <template>
   <div
-    class="app-brand flex h-full w-full min-w-0 cursor-pointer items-center overflow-hidden px-3"
+    :class="[props.collapsed ? 'justify-center' : 'px-3']"
+    class="app-brand flex h-full w-full min-w-0 cursor-pointer items-center overflow-hidden"
     @click="emit('click')"
   >
     <div class="flex min-w-0 items-center gap-2 overflow-hidden">
