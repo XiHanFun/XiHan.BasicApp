@@ -1,0 +1,64 @@
+{
+  "name": "xihan-basic-app",
+  "type": "module",
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.4.0",
+  "description": "XiHan BasicApp - A modern Vue3 admin management system built on Naive UI",
+  "author": "zhaifanhua",
+  "license": "MIT",
+  "homepage": "https://basicapp.xihanfun.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XiHanFun/XiHan.BasicApp"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "reinstall": "pnpm run clean:modules && pnpm install",
+    "clean": "rimraf dist",
+    "clean:modules": "rimraf node_modules",
+    "dev": "vite --mode development",
+    "build": "vue-tsc --noEmit && vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "rebuild": "pnpm run clean && pnpm run build",
+    "rebuild:dev": "pnpm run clean && pnpm run build:dev",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{ts,vue,json}\" \"packages/**/*.{ts,json}\""
+  },
+  "dependencies": {
+    "@iconify/vue": "^4.3.0",
+    "@vueuse/core": "^11.3.0",
+    "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
+    "naive-ui": "^2.41.0",
+    "pinia": "^2.3.0",
+    "pinia-plugin-persistedstate": "^3.2.3",
+    "sortablejs": "^1.15.7",
+    "vue": "^3.5.13",
+    "vue-i18n": "^11.0.0",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.0.0",
+    "@types/node": "^25.3.0",
+    "@types/sortablejs": "^1.15.9",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitejs/plugin-vue-jsx": "^4.1.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-plugin-format": "^1.4.0",
+    "postcss": "^8.5.0",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "unplugin-auto-import": "^0.18.6",
+    "unplugin-vue-components": "^0.28.0",
+    "vite": "^6.0.0",
+    "vue-tsc": "^2.2.0"
+  }
+}

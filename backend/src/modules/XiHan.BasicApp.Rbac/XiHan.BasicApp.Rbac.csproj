@@ -19,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="ValueObject\" />
       <Folder Include="Options\" />
       <Folder Include="OpenApi\" />
     </ItemGroup>
