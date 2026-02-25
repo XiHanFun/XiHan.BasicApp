@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { coreRoutes } from '~/router/routes/core'
-import { dashboardRoutes } from './modules/dashboard'
+import { analyticsRoute, workspaceRoute } from './modules/dashboard'
 import { playgroundRoutes } from './modules/playground'
 import { systemRoutes } from './modules/system'
 
@@ -11,9 +11,10 @@ export const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'RootLayout',
     component: BasicLayout,
-    redirect: '/dashboard',
+    redirect: '/workspace',
     children: [
-      dashboardRoutes,
+      workspaceRoute,
+      analyticsRoute,
       playgroundRoutes,
       systemRoutes,
       {

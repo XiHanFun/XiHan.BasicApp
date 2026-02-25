@@ -444,8 +444,8 @@ watch(() => route.fullPath, () => {
   <div
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
-    class="tabbar-root flex h-[38px] items-center bg-[var(--tabbar-bg)] px-2"
-    :class="appStore.tabbarStyle === 'chrome' ? 'pt-[2px] pb-0' : 'py-0'"
+    class="tabbar-root flex h-[38px] bg-[var(--tabbar-bg)] px-2"
+    :class="appStore.tabbarStyle === 'chrome' ? 'items-end pt-[2px] pb-0' : 'items-center py-0'"
   >
     <!-- 左侧滚动箭头 -->
     <NButton
@@ -467,7 +467,7 @@ watch(() => route.fullPath, () => {
     <!-- 标签列表（无滚动条，通过箭头控制） -->
     <div
       class="tabbar-list min-w-0 flex-1 overflow-hidden"
-      :class="appStore.tabbarStyle !== 'chrome' ? 'h-9' : ''"
+      :class="appStore.tabbarStyle !== 'chrome' ? 'h-9' : 'h-full'"
     >
       <div
         ref="scrollViewportRef"
@@ -477,7 +477,7 @@ watch(() => route.fullPath, () => {
           ref="tabsContainerRef"
           class="pr-2"
           :class="appStore.tabbarStyle === 'chrome'
-            ? 'flex min-w-max items-center'
+            ? 'flex h-full min-w-max items-end'
             : 'flex h-full min-w-max items-stretch'"
         >
           <TransitionGroup

@@ -1,34 +1,25 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const dashboardRoutes: RouteRecordRaw = {
-  path: '/dashboard',
-  name: 'Dashboard',
-  redirect: '/dashboard/workspace',
+export const workspaceRoute: RouteRecordRaw = {
+  path: '/workspace',
+  name: 'Workspace',
+  component: () => import('@/views/dashboard/workspace/index.vue'),
   meta: {
-    title: 'menu.dashboard',
-    icon: 'lucide:layout-dashboard',
+    title: 'menu.workspace',
+    icon: 'lucide:home',
+    keepAlive: true,
     order: 1,
   },
-  children: [
-    {
-      path: 'workspace',
-      name: 'DashboardWorkspace',
-      component: () => import('@/views/dashboard/workspace/index.vue'),
-      meta: {
-        title: 'menu.workspace',
-        icon: 'lucide:home',
-        keepAlive: true,
-      },
-    },
-    {
-      path: 'analytics',
-      name: 'DashboardAnalytics',
-      component: () => import('@/views/dashboard/analytics/index.vue'),
-      meta: {
-        title: 'menu.analytics',
-        icon: 'lucide:bar-chart-2',
-        keepAlive: true,
-      },
-    },
-  ],
+}
+
+export const analyticsRoute: RouteRecordRaw = {
+  path: '/analytics',
+  name: 'Analytics',
+  component: () => import('@/views/dashboard/analytics/index.vue'),
+  meta: {
+    title: 'menu.analytics',
+    icon: 'lucide:bar-chart-2',
+    keepAlive: true,
+    order: 2,
+  },
 }
