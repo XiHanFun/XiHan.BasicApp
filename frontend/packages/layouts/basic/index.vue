@@ -149,27 +149,34 @@ const sidebarEnableState = computed(
 
       <!-- Footer -->
       <footer
-        v-if="shell.appStore.footerEnable && !shell.isFullContent.value"
-        class="flex flex-wrap items-center justify-center gap-x-3 border-t border-border px-4 py-2 text-xs text-muted-foreground"
-        :class="shell.appStore.footerFixed ? 'sticky bottom-0 bg-header' : ''"
-        :style="{ width: shell.footerWidth.value }"
+        v-if="shell.appStore.footerEnable"
+        :style="{
+          height: `${shell.footerHeight.value}px`,
+          marginBottom: shell.isFullContent.value ? `-${shell.footerHeight.value}px` : '0',
+          position: shell.appStore.footerFixed ? 'fixed' : 'static',
+          width: shell.footerWidth.value,
+          zIndex: shell.appStore.footerFixed ? 199 : undefined,
+        }"
+        class="bottom-0 flex w-full flex-wrap items-center justify-center gap-x-3 border-t border-border bg-background px-4 text-xs text-muted-foreground transition-all duration-200"
       >
-        <span v-if="shell.appStore.copyrightEnable">
-          Copyright © {{ shell.appStore.copyrightDate || new Date().getFullYear() }}
+        <template v-if="shell.appStore.copyrightEnable">
+          <span>
+            Copyright &copy; {{ shell.appStore.copyrightDate || new Date().getFullYear() }}
+            <a
+              v-if="shell.appStore.copyrightSite"
+              :href="shell.appStore.copyrightSite"
+              target="_blank"
+              class="ml-1 hover:underline"
+            >{{ shell.appStore.copyrightName }}</a>
+            <span v-else class="ml-1">{{ shell.appStore.copyrightName }}</span>
+          </span>
           <a
-            v-if="shell.appStore.copyrightSite"
-            :href="shell.appStore.copyrightSite"
+            v-if="shell.appStore.copyrightIcp"
+            :href="shell.appStore.copyrightIcpUrl || '#'"
             target="_blank"
-            class="ml-1 hover:underline"
-          >{{ shell.appStore.copyrightName }}</a>
-          <span v-else class="ml-1">{{ shell.appStore.copyrightName }}</span>
-        </span>
-        <a
-          v-if="shell.appStore.copyrightIcp"
-          :href="shell.appStore.copyrightIcpUrl || '#'"
-          target="_blank"
-          class="hover:underline"
-        >{{ shell.appStore.copyrightIcp }}</a>
+            class="hover:underline"
+          >{{ shell.appStore.copyrightIcp }}</a>
+        </template>
       </footer>
     </div>
 

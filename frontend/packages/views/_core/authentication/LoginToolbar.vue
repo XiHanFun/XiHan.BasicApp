@@ -2,7 +2,9 @@
 import type { DropdownOption } from 'naive-ui'
 import { Icon } from '@iconify/vue'
 import { NButton, NDropdown, NIcon, NPopover } from 'naive-ui'
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useLocale, useTheme } from '~/hooks'
 import { useAppStore } from '~/stores'
 
@@ -17,22 +19,17 @@ const emit = defineEmits<{
 const appStore = useAppStore()
 const { isDark, toggleThemeWithTransition, setThemeColor } = useTheme()
 const { setLocale } = useLocale()
+const { t } = useI18n()
 
-// ---- 颜色预设 ----
-const colorPresets = [
-  { color: '#4080FF', label: '品蓝' },
-  { color: '#7C3AED', label: '青莲' },
-  { color: '#E91E8C', label: '胭脂' },
-  { color: '#F59E0B', label: '杏黄' },
-  { color: '#0EA5E9', label: '天青' },
-  { color: '#10B981', label: '翡翠' },
-  { color: '#6B7280', label: '苍灰' },
-  { color: '#059669', label: '松绿' },
-  { color: '#1D4ED8', label: '宝蓝' },
-  { color: '#EA580C', label: '橘红' },
-  { color: '#DC2626', label: '朱红' },
-  { color: '#374151', label: '玄灰' },
-]
+const colorPresets = computed(() => {
+  const presets = [{ color: DEFAULT_THEME_COLOR, label: t('preference.appearance.color.default') }]
+  for (const group of THEME_COLOR_GROUPS) {
+    for (const item of group.items) {
+      presets.push({ color: item.color, label: t(item.nameKey) })
+    }
+  }
+  return presets
+})
 const showColorPicker = ref(false)
 
 // ---- 语言 ----

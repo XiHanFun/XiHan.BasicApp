@@ -3,13 +3,43 @@ import { LOGIN_PATH } from '~/constants'
 
 export const coreRoutes: RouteRecordRaw[] = [
   {
-    path: LOGIN_PATH,
-    name: 'Login',
-    component: () => import('~/views/_core/authentication/login.vue'),
-    meta: {
-      title: 'page.login.title',
-      hidden: true,
-    },
+    path: '/auth',
+    name: 'Authentication',
+    component: () => import('~/views/_core/authentication/AuthLayout.vue'),
+    redirect: LOGIN_PATH,
+    meta: { title: 'page.login.title', hidden: true },
+    children: [
+      {
+        path: 'login',
+        name: 'Login',
+        component: () => import('~/views/_core/authentication/login.vue'),
+        meta: { title: 'page.login.title' },
+      },
+      {
+        path: 'code-login',
+        name: 'CodeLogin',
+        component: () => import('~/views/_core/authentication/code-login.vue'),
+        meta: { title: 'page.auth.mobile_login' },
+      },
+      {
+        path: 'qrcode-login',
+        name: 'QrCodeLogin',
+        component: () => import('~/views/_core/authentication/qrcode-login.vue'),
+        meta: { title: 'page.auth.qrcode_login' },
+      },
+      {
+        path: 'forget-password',
+        name: 'ForgetPassword',
+        component: () => import('~/views/_core/authentication/forget-password.vue'),
+        meta: { title: 'page.auth.forget_password_title' },
+      },
+      {
+        path: 'register',
+        name: 'Register',
+        component: () => import('~/views/_core/authentication/register.vue'),
+        meta: { title: 'page.auth.register_btn' },
+      },
+    ],
   },
   {
     path: '/403',

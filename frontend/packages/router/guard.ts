@@ -1,14 +1,14 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
 import { getUserInfoApi, getUserMenuRoutesApi } from '~/api'
-import { HOME_PATH, LOGIN_PATH } from '~/constants'
+import { AUTH_PATH, HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { mapMenuToRoutes } from './dynamic'
 
 const { loadingBar } = createDiscreteApi(['loadingBar'])
 
-const WHITE_LIST = [LOGIN_PATH, '/403', '/404', '/500']
+const WHITE_LIST = ['/403', '/404', '/500']
 
 export function setupRouterGuard(router: Router) {
   const installDynamicRoutes = (routes: RouteRecordRaw[]) => {
@@ -33,7 +33,8 @@ export function setupRouterGuard(router: Router) {
       appStore.setPageLoading(true)
     }
 
-    const isWhiteListed = WHITE_LIST.includes(to.path)
+    const isAuthPage = to.path.startsWith(AUTH_PATH)
+    const isWhiteListed = isAuthPage || WHITE_LIST.includes(to.path)
 
     // 未登录
     if (!accessStore.accessToken) {
@@ -45,8 +46,8 @@ export function setupRouterGuard(router: Router) {
       })
     }
 
-    // 已登录访问登录页
-    if (to.path === LOGIN_PATH) {
+    // 已登录访问认证页
+    if (isAuthPage) {
       return next({ path: HOME_PATH, replace: true })
     }
 
