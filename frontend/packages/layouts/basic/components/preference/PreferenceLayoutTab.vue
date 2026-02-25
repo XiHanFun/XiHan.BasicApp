@@ -515,6 +515,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <span>{{ t('preference.layout.footer.fixed') }}</span>
         <NSwitch v-model:value="appStore.footerFixed" :disabled="!appStore.footerEnable" />
       </div>
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.footerEnable }">
+        <span>{{ t('preference.layout.footer.show_dev_info') }}</span>
+        <NSwitch v-model:value="appStore.footerShowDevInfo" :disabled="!appStore.footerEnable" />
+      </div>
     </NCard>
 
     <!-- 版权 -->
@@ -547,12 +551,13 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
-        <span>{{ t('preference.layout.copyright.date') }}</span>
+        <span>{{ t('preference.layout.copyright.start_date') }}</span>
         <NInput
           v-model:value="appStore.copyrightDate"
           size="small"
           style="width: 90px"
           :input-props="{ style: 'text-align: right' }"
+          placeholder="2016"
           :disabled="copyrightItemDisabled"
         />
       </div>

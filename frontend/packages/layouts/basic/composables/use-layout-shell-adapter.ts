@@ -51,7 +51,12 @@ export function useLayoutShellAdapter() {
 
   const headerHeight = computed(() => 50)
   const tabbarHeight = computed(() => 40)
-  const footerHeight = computed(() => 30)
+  const footerHeight = computed(() => {
+    if (isMobile.value) {
+      return appStore.footerShowDevInfo ? 64 : 44
+    }
+    return 32
+  })
 
   const headerWrapperHeight = computed(() => {
     let height = 0

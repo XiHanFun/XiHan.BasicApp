@@ -17,14 +17,25 @@ defineOptions({ name: 'BasicLayout' })
 const { isDark, themeOverrides } = useTheme()
 const shell = useLayoutShellAdapter()
 
+const appVersion = __APP_VERSION__
+const appBuildTime = __APP_BUILD_TIME__
+const appHomepage = __APP_HOMEPAGE__
+const appName = __APP_NAME__
+const appAuthorName = __APP_AUTHOR_NAME__
+const appAuthorUrl = __APP_AUTHOR_URL__
+
 const sidebarForceDark = computed(() => shell.appStore.sidebarDark && !isDark.value)
 const headerForceDark = computed(() => shell.appStore.headerDark && !isDark.value)
-const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark) ? 'dark' : 'light')
-const sidebarSubTheme = computed(() => (isDark.value || shell.appStore.sidebarSubDark) ? 'dark' : 'light')
-const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark) ? 'dark' : 'light')
+const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark ? 'dark' : 'light'))
+const sidebarSubTheme = computed(() =>
+  isDark.value || shell.appStore.sidebarSubDark ? 'dark' : 'light',
+)
+const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark ? 'dark' : 'light'))
 
 const sidebarEnableState = computed(
-  () => shell.isMobile.value || (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow),
+  () =>
+    shell.isMobile.value ||
+    (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow),
 )
 </script>
 
@@ -93,10 +104,7 @@ const sidebarEnableState = computed(
               :theme="headerForceDark ? darkTheme : undefined"
               :theme-overrides="themeOverrides"
             >
-              <AppSidebar
-                mode="header-logo"
-                :effective-collapsed="shell.isMobile.value"
-              />
+              <AppSidebar mode="header-logo" :effective-collapsed="shell.isMobile.value" />
             </NConfigProvider>
           </div>
 
@@ -106,11 +114,7 @@ const sidebarEnableState = computed(
             class="my-0 mr-1"
             @click="shell.handleHeaderToggle"
           >
-            <Icon
-              :icon="shell.showSider.value ? 'ep:fold' : 'ep:expand'"
-              width="18"
-              height="18"
-            />
+            <Icon :icon="shell.showSider.value ? 'ep:fold' : 'ep:expand'" width="18" height="18" />
           </XihanIconButton>
 
           <!-- Header content (flex-1 fills remaining header space) -->
@@ -125,7 +129,11 @@ const sidebarEnableState = computed(
 
         <!-- Tabbar -->
         <div
-          v-if="shell.appStore.tabbarEnabled && !shell.contentMaximized.value && !shell.isFullContent.value"
+          v-if="
+            shell.appStore.tabbarEnabled &&
+            !shell.contentMaximized.value &&
+            !shell.isFullContent.value
+          "
           :style="shell.tabbarStyle.value"
         >
           <AppTabbar />
@@ -133,15 +141,14 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div
-        class="transition-[margin-top] duration-200"
-        :style="shell.contentStyle.value"
-      >
+      <div class="transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <div
           class="min-h-full"
-          :style="shell.appStore.contentCompact
-            ? { maxWidth: `${shell.appStore.contentMaxWidth}px`, margin: '0 auto' }
-            : {}"
+          :style="
+            shell.appStore.contentCompact
+              ? { maxWidth: `${shell.appStore.contentMaxWidth}px`, margin: '0 auto' }
+              : {}
+          "
         >
           <LayoutContentRenderer :transition-name="shell.transitionName.value" />
         </div>
@@ -151,32 +158,49 @@ const sidebarEnableState = computed(
       <footer
         v-if="shell.appStore.footerEnable"
         :style="{
-          height: `${shell.footerHeight.value}px`,
+          minHeight: `${shell.footerHeight.value}px`,
           marginBottom: shell.isFullContent.value ? `-${shell.footerHeight.value}px` : '0',
           position: shell.appStore.footerFixed ? 'fixed' : 'static',
           width: shell.footerWidth.value,
           zIndex: shell.appStore.footerFixed ? 199 : undefined,
         }"
-        class="bottom-0 flex w-full flex-wrap items-center justify-center gap-x-3 border-t border-border bg-background px-4 text-xs text-muted-foreground transition-all duration-200"
+        class="footer-bar bottom-0 flex w-full border-t border-border bg-background px-4 text-xs text-muted-foreground transition-all duration-200"
+        :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-1 py-2' : 'flex-row items-center'"
       >
-        <template v-if="shell.appStore.copyrightEnable">
+        <!-- Left: Copyright -->
+        <div v-if="shell.appStore.copyrightEnable" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
           <span>
-            Copyright &copy; {{ shell.appStore.copyrightDate || new Date().getFullYear() }}
+            Copyright &copy; {{ shell.appStore.copyrightDate || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
             <a
               v-if="shell.appStore.copyrightSite"
               :href="shell.appStore.copyrightSite"
               target="_blank"
-              class="ml-1 hover:underline"
+              class="hover:underline"
             >{{ shell.appStore.copyrightName }}</a>
-            <span v-else class="ml-1">{{ shell.appStore.copyrightName }}</span>
+            <span v-else>{{ shell.appStore.copyrightName }}</span>.
+            All Rights Reserved.
           </span>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
+
+        <!-- Center: Dev version info -->
+        <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-center">
+          <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
+          v{{ appVersion }}({{ appBuildTime }})
+          · by
+          <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-center" />
+
+        <!-- Right: ICP -->
+        <div v-if="shell.appStore.copyrightEnable && shell.appStore.copyrightIcp" :class="shell.isMobile.value ? '' : 'footer-section-right'">
           <a
-            v-if="shell.appStore.copyrightIcp"
             :href="shell.appStore.copyrightIcpUrl || '#'"
             target="_blank"
             class="hover:underline"
           >{{ shell.appStore.copyrightIcp }}</a>
-        </template>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-right" />
       </footer>
     </div>
 
@@ -193,3 +217,32 @@ const sidebarEnableState = computed(
     />
   </div>
 </template>
+
+<style scoped>
+.footer-bar {
+  gap: 8px;
+}
+
+.footer-section-left {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.footer-section-center {
+  flex: 0 0 auto;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.footer-section-right {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+}
+
+.footer-bar :deep(a) {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+}
+</style>

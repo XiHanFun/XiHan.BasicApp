@@ -79,6 +79,7 @@ export const TABBAR_MIDDLE_CLICK_CLOSE_KEY = `${STORAGE_PREFIX}tabbar_middle_cli
 export const TABBAR_SHOW_ICON_KEY = `${STORAGE_PREFIX}tabbar_show_icon`
 export const TABBAR_STYLE_KEY = `${STORAGE_PREFIX}tabbar_style`
 export const WIDGET_PREFERENCE_POSITION_KEY = `${STORAGE_PREFIX}widget_preference_position`
+export const FOOTER_SHOW_DEV_INFO_KEY = `${STORAGE_PREFIX}footer_show_dev_info`
 export const COPYRIGHT_DATE_KEY = `${STORAGE_PREFIX}copyright_date`
 export const COPYRIGHT_ICP_KEY = `${STORAGE_PREFIX}copyright_icp`
 export const COPYRIGHT_ICP_URL_KEY = `${STORAGE_PREFIX}copyright_icp_url`

@@ -1,10 +1,15 @@
 {
-  "name": "xihan-basic-app",
+  "name": "XihanBasicApp",
   "type": "module",
   "version": "1.0.0",
+  "lastBuildTime": "2026.02.26",
   "packageManager": "pnpm@10.4.0",
   "description": "XiHan BasicApp - A modern Vue3 admin management system built on Naive UI",
-  "author": "zhaifanhua",
+  "author": {
+    "name": "ZhaiFanhua",
+    "email": "zhaifanhua@foxmail.com",
+    "url": "https://www.zhaifanhua.com"
+  },
   "license": "MIT",
   "homepage": "https://basicapp.xihanfun.com",
   "repository": {
