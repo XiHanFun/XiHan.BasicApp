@@ -1,44 +1,44 @@
 import { computed } from 'vue'
-import { useAppStore } from '~/stores/app'
+import { useLayoutStateStore } from './layout-state'
 
 export function useLayoutPreferences() {
-  const appStore = useAppStore()
+  const layoutStateStore = useLayoutStateStore()
 
   const layoutMode = computed({
-    get: () => appStore.layoutMode,
-    set: value => appStore.setLayoutMode(value),
+    get: () => layoutStateStore.layoutMode,
+    set: value => (layoutStateStore.layoutMode = value),
   })
   const sidebarCollapsed = computed({
-    get: () => appStore.sidebarCollapsed,
-    set: value => appStore.setSidebarCollapsed(value),
+    get: () => layoutStateStore.sidebarCollapsed,
+    set: value => (layoutStateStore.sidebarCollapsed = value),
   })
   const sidebarWidth = computed({
-    get: () => appStore.sidebarWidth,
-    set: value => appStore.setSidebarWidth(value),
+    get: () => layoutStateStore.sidebarWidth,
+    set: value => (layoutStateStore.sidebarWidth = value),
   })
   const sidebarShow = computed({
-    get: () => appStore.sidebarShow,
-    set: value => appStore.setSidebarShow(value),
+    get: () => layoutStateStore.sidebarShow,
+    set: value => (layoutStateStore.sidebarShow = value),
   })
   const sidebarExpandOnHover = computed({
-    get: () => appStore.sidebarExpandOnHover,
-    set: value => appStore.setSidebarExpandOnHover(value),
+    get: () => layoutStateStore.sidebarExpandOnHover,
+    set: value => (layoutStateStore.sidebarExpandOnHover = value),
   })
   const headerMode = computed({
-    get: () => appStore.headerMode,
-    set: value => appStore.setHeaderMode(value),
+    get: () => layoutStateStore.headerMode,
+    set: value => (layoutStateStore.headerMode = value),
   })
   const headerMenuAlign = computed({
-    get: () => appStore.headerMenuAlign,
-    set: value => appStore.setHeaderMenuAlign(value),
+    get: () => layoutStateStore.headerMenuAlign,
+    set: value => (layoutStateStore.headerMenuAlign = value),
   })
   const contentCompact = computed({
-    get: () => appStore.contentCompact,
-    set: value => appStore.setContentCompact(value),
+    get: () => layoutStateStore.contentCompact,
+    set: value => (layoutStateStore.contentCompact = value),
   })
   const contentMaxWidth = computed({
-    get: () => appStore.contentMaxWidth,
-    set: value => appStore.setContentMaxWidth(value),
+    get: () => layoutStateStore.contentMaxWidth,
+    set: value => (layoutStateStore.contentMaxWidth = value),
   })
 
   return {

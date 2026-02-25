@@ -18,7 +18,7 @@ interface AppBrandProps {
 
 <template>
   <div
-    class="app-brand flex h-full shrink-0 cursor-pointer items-center overflow-hidden px-3"
+    class="app-brand flex h-full w-full min-w-0 cursor-pointer items-center overflow-hidden px-3"
     @click="emit('click')"
   >
     <div class="flex min-w-0 items-center gap-2 overflow-hidden">
@@ -32,7 +32,7 @@ interface AppBrandProps {
       </span>
       <span
         v-if="!props.collapsed"
-        class="app-brand-title truncate"
+        class="app-brand-title min-w-0 flex-1 truncate"
       >
         {{ props.appTitle }}
       </span>
@@ -47,21 +47,22 @@ interface AppBrandProps {
   width: 32px;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  border: 1px solid hsl(var(--border) / 0.6);
-  background: hsl(var(--card) / 0.9);
+  overflow: hidden;
+  border-radius: 6px;
 }
 
 .app-brand-logo {
-  object-fit: contain;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }
 
 .app-brand-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
+  letter-spacing: 0;
+  line-height: 1.2;
   color: hsl(var(--foreground));
-  max-width: 160px;
+  max-width: 100%;
 }
 </style>

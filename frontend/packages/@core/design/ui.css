@@ -86,6 +86,41 @@
   z-index: var(--popup-z-index);
 }
 
+/* ==================== 布局核心样式 ==================== */
+
+.bg-sidebar {
+  background: hsl(var(--sidebar));
+}
+
+.bg-sidebar-deep {
+  background: hsl(var(--sidebar-deep));
+}
+
+.bg-header {
+  background: hsl(var(--header));
+}
+
+.bg-background-deep {
+  background: hsl(var(--background-deep));
+}
+
+.bg-overlay {
+  background: hsl(var(--overlay));
+}
+
+/* menu align helpers compatible with vben layout */
+.menu-align-start {
+  --menu-align: start;
+}
+
+.menu-align-center {
+  --menu-align: center;
+}
+
+.menu-align-end {
+  --menu-align: end;
+}
+
 /* ==================== 偏好设置公共样式 ==================== */
 
 /* 每个分组的标题行 */

@@ -10,25 +10,14 @@ const props = withDefaults(defineProps<XihanBackTopProps>(), {
 })
 
 interface XihanBackTopProps {
-  /** 当前内容区滚动距离，由父级注入 */
   scrollY?: number
-  /** 触发显示的阈值（px） */
   threshold?: number
-  /** NLayoutContent 的组件实例（用于滚动回顶） */
-  contentRef?: any
 }
 
 const visible = computed(() => props.scrollY > props.threshold)
 
 function scrollToTop() {
-  const inst = props.contentRef as { $el?: Element } | null | undefined
-  const container = inst?.$el?.querySelector?.('.n-scrollbar-container')
-  if (container) {
-    container.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-  else {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 </script>
 

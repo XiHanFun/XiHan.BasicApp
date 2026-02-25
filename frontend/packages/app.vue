@@ -1,16 +1,18 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
 import { NConfigProvider, NDialogProvider, NIcon, NInput, NLoadingBarProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
-import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useAuthStore } from '~/stores'
 import { useNaiveLocale, useTheme } from '~/hooks'
-import { useAppStore, useUserStore } from '~/stores'
+import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'
+import { useAppStore, useLayoutBridgeStore, useUserStore } from '~/stores'
 
 defineOptions({ name: 'App' })
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const layoutBridgeStore = useLayoutBridgeStore()
 const { isDark, naiveTheme, themeOverrides } = useTheme()
 const { naiveLocale, naiveDateLocale } = useNaiveLocale()
 
@@ -133,7 +135,7 @@ function handleGlobalShortcuts(e: KeyboardEvent) {
   // Ctrl/Cmd + K：全局搜索
   if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
-    window.dispatchEvent(new Event('xihan-open-global-search'))
+    layoutBridgeStore.requestOpenGlobalSearch()
     return
   }
 
@@ -147,8 +149,9 @@ function handleGlobalShortcuts(e: KeyboardEvent) {
   // Alt + L：锁屏
   if (appStore.shortcutLock && e.altKey && e.key.toLowerCase() === 'l') {
     e.preventDefault()
-    if (appStore.widgetLockScreen)
-      doLock()
+    if (appStore.widgetLockScreen) {
+      layoutBridgeStore.requestLockScreen()
+    }
   }
 
   // Esc：无密码时直接解锁
@@ -159,13 +162,21 @@ function handleGlobalShortcuts(e: KeyboardEvent) {
 }
 
 function handleLockScreenRequest() {
-  if (appStore.widgetLockScreen)
-    doLock()
+  layoutBridgeStore.requestLockScreen()
 }
+
+watch(
+  () => layoutBridgeStore.lockScreenVersion,
+  () => {
+    if (appStore.widgetLockScreen) {
+      doLock()
+    }
+  },
+)
 
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalShortcuts)
-  window.addEventListener('xihan-lock-screen', handleLockScreenRequest)
+  window.addEventListener(LAYOUT_EVENT_LOCK_SCREEN, handleLockScreenRequest)
   // 页面刷新后恢复锁定状态
   if (sessionStorage.getItem(LOCK_SESS_KEY) === '1') {
     lockMode.value = 'locked'
@@ -176,7 +187,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalShortcuts)
-  window.removeEventListener('xihan-lock-screen', handleLockScreenRequest)
+  window.removeEventListener(LAYOUT_EVENT_LOCK_SCREEN, handleLockScreenRequest)
 })
 </script>
 
