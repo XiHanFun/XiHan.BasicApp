@@ -201,8 +201,8 @@ export default {
       refresh: 'Refresh',
       preference_position: 'Preference Position',
       preference_position_auto: 'Auto',
-      preference_position_fixed_left: 'Fixed Left',
-      preference_position_fixed_right: 'Fixed Right',
+      preference_position_header: 'Header',
+      preference_position_fixed: 'Fixed',
     },
     footer: {
       title: 'Footer',

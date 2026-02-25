@@ -194,8 +194,8 @@ export default {
       refresh: '启用刷新',
       preference_position: '偏好设置位置',
       preference_position_auto: '自动',
-      preference_position_fixed_left: '左侧固定',
-      preference_position_fixed_right: '右侧固定',
+      preference_position_header: '顶栏',
+      preference_position_fixed: '固定',
     },
     footer: {
       title: '底栏',

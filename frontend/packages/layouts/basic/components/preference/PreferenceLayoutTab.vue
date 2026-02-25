@@ -49,8 +49,8 @@ const tabbarStyleOptions = computed(() => [
 
 const preferencePositionOptions = computed(() => [
   { label: t('preference.layout.widget.preference_position_auto'), value: 'auto' },
-  { label: t('preference.layout.widget.preference_position_fixed_left'), value: 'fixed-left' },
-  { label: t('preference.layout.widget.preference_position_fixed_right'), value: 'fixed-right' },
+  { label: t('preference.layout.widget.preference_position_header'), value: 'header' },
+  { label: t('preference.layout.widget.preference_position_fixed'), value: 'fixed' },
 ])
 
 const layout = computed(() => appStore.layoutMode)

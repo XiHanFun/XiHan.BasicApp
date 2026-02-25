@@ -311,7 +311,7 @@ onBeforeUnmount(() => {
     :user-store="userStore"
     :is-dark="isDark"
     :is-fullscreen="isFullscreen"
-    :show-preferences-in-header="true"
+    :show-preferences-in-header="appStore.widgetPreferencePosition !== 'fixed'"
     :timezone-options="timezoneOptions"
     :locale-options="localeOptions"
     :user-options="userOptions"
