@@ -32,8 +32,43 @@
 /* 顶部水平菜单：收窄一级项左右内边距（Naive UI CSSR 默认 20px，此处改为 8px） */
 .xihan-top-menu .n-menu--horizontal .n-menu-item-content,
 .xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content {
-  padding-left: 8px !important;
-  padding-right: 8px !important;
+  height: 40px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+}
+
+.xihan-top-menu .n-menu--horizontal .n-menu-item-content::before,
+.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content::before {
+  border-radius: 6px !important;
+}
+
+.xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected::before,
+.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
+  background-color: hsl(var(--primary) / 0.15) !important;
+}
+
+.xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header,
+.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header {
+  color: hsl(var(--primary)) !important;
+}
+
+.xihan-top-menu .n-menu--horizontal .n-menu-item-content:hover::before,
+.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content:hover::before {
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* 侧边菜单：统一 vben 风格 item 尺寸 */
+.app-sidebar-menu .n-menu-item-content,
+.app-sidebar-menu .n-submenu > .n-menu-item > .n-menu-item-content {
+  height: 38px !important;
+  font-size: 14px !important;
+}
+
+.app-sidebar-menu .n-menu-item-content .n-menu-item-content__icon,
+.app-sidebar-menu .n-submenu .n-menu-item-content .n-menu-item-content__icon {
+  margin-right: 8px !important;
 }
 
 /* 禁用 Naive UI 交互式菜单覆盖的文本选择 */

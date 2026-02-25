@@ -5,11 +5,17 @@ import { Icon } from '@iconify/vue'
 import { useDebounceFn } from '@vueuse/core'
 import { NButton, NDropdown, NIcon } from 'naive-ui'
 import Sortable from 'sortablejs'
-import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import {
+  buildTabContextOptions,
+  createDropdownIcon,
+  getTabByPath,
+  openTabInNewWindow,
+} from '../composables'
 import TabbarContextMenu from './tabbar/TabbarContextMenu.vue'
 import TabbarTabItem from './tabbar/TabbarTabItem.vue'
 
@@ -62,9 +68,19 @@ const moreTabOptions = computed<DropdownOption[]>(() =>
   localizedTabs.value.map(item => ({
     key: item.path,
     label: item.displayTitle,
-    icon: getDropdownIcon(item.pinned ? 'lucide:pin' : 'lucide:file'),
+    icon: createDropdownIcon(item.pinned ? 'lucide:pin' : 'lucide:file'),
   })),
 )
+const contextMenuOptions = computed(() => {
+  return buildTabContextOptions({
+    path: contextTabPath.value,
+    closable: contextTabClosable.value,
+    pinned: contextTabPinned.value,
+    tabs: visibleTabs.value,
+    isContentMaximized: isContentMaximized.value,
+    t,
+  })
+})
 
 function handleJump(path: string) {
   tabbarStore.setActiveTab(path)
@@ -122,111 +138,9 @@ function handleContextMenuSelect(key: string, tabPath: string) {
       }
       break
     case 'open':
-      window.open(
-        import.meta.env.VITE_ROUTER_HISTORY === 'history'
-          ? `${window.location.origin}${tabPath}`
-          : `${window.location.origin}${window.location.pathname}#${tabPath}`,
-        '_blank',
-      )
+      openTabInNewWindow(tabPath)
       break
   }
-}
-
-function getDropdownIcon(icon: string) {
-  return () =>
-    h(
-      NIcon,
-      {
-        size: 16,
-      },
-      {
-        default: () => h(Icon, { icon }),
-      },
-    )
-}
-
-function getTabByPath(path: string) {
-  return visibleTabs.value.find(item => item.path === path)
-}
-
-function getTabDisableState(path: string, closable: boolean) {
-  const currentIndex = visibleTabs.value.findIndex(item => item.path === path)
-  const leftTabs = visibleTabs.value.slice(0, currentIndex)
-  const rightTabs = visibleTabs.value.slice(currentIndex + 1)
-  const currentTab = getTabByPath(path)
-
-  const hasLeftClosable = leftTabs.some(item => item.closable)
-  const hasRightClosable = rightTabs.some(item => item.closable)
-  const hasOtherClosable = visibleTabs.value.some(item => item.closable && item.path !== path)
-  const hasAnyClosable = visibleTabs.value.some(item => item.closable)
-
-  return {
-    closeAllDisabled: !hasAnyClosable,
-    closeCurrentDisabled: !closable,
-    closeLeftDisabled: !hasLeftClosable,
-    closeOthersDisabled: !hasOtherClosable,
-    closeRightDisabled: !hasRightClosable,
-    pinDisabled: currentTab?.path === '/',
-  }
-}
-
-function getContextOptions(path: string, closable: boolean, pinned: boolean): DropdownOption[] {
-  const {
-    closeAllDisabled,
-    closeCurrentDisabled,
-    closeLeftDisabled,
-    closeOthersDisabled,
-    closeRightDisabled,
-    pinDisabled,
-  } = getTabDisableState(path, closable)
-
-  return [
-    { key: 'reload', label: t('tabbar.reload'), icon: getDropdownIcon('lucide:refresh-cw') },
-    { key: 'open', label: t('tabbar.open'), icon: getDropdownIcon('lucide:external-link') },
-    {
-      key: 'pin',
-      label: pinned ? t('tabbar.unpin') : t('tabbar.pin'),
-      disabled: pinDisabled,
-      icon: getDropdownIcon(pinned ? 'lucide:pin-off' : 'lucide:pin'),
-    },
-    {
-      key: 'maximize',
-      label: isContentMaximized.value ? t('tabbar.unmaximize') : t('tabbar.maximize'),
-      icon: getDropdownIcon(isContentMaximized.value ? 'lucide:minimize-2' : 'lucide:maximize-2'),
-    },
-    { key: 'divider-1', type: 'divider' },
-    {
-      key: 'close',
-      label: t('tabbar.close'),
-      disabled: closeCurrentDisabled,
-      icon: getDropdownIcon('lucide:x'),
-    },
-    { key: 'divider-2', type: 'divider' },
-    {
-      key: 'closeLeft',
-      label: t('tabbar.close_left'),
-      disabled: closeLeftDisabled,
-      icon: getDropdownIcon('lucide:panel-left-close'),
-    },
-    {
-      key: 'closeRight',
-      label: t('tabbar.close_right'),
-      disabled: closeRightDisabled,
-      icon: getDropdownIcon('lucide:panel-right-close'),
-    },
-    {
-      key: 'closeOthers',
-      label: t('tabbar.close_others'),
-      disabled: closeOthersDisabled,
-      icon: getDropdownIcon('lucide:circle-off'),
-    },
-    {
-      key: 'closeAll',
-      label: t('tabbar.close_all'),
-      disabled: closeAllDisabled,
-      icon: getDropdownIcon('lucide:rows-3'),
-    },
-  ]
 }
 
 function openContextMenu(e: MouseEvent, tab: TabItem) {
@@ -248,7 +162,7 @@ function handleDropdownSelect(key: string) {
 }
 
 function handleMiddleClose(path: string) {
-  const target = getTabByPath(path)
+  const target = getTabByPath(visibleTabs.value, path)
   if (!target || !target.closable) {
     return
   }
@@ -530,8 +444,8 @@ watch(() => route.fullPath, () => {
   <div
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
-    class="tabbar-root flex items-center bg-[var(--tabbar-bg)] px-3"
-    :class="appStore.tabbarStyle === 'chrome' ? 'pt-[3px] pb-0' : 'py-0'"
+    class="tabbar-root flex h-[38px] items-center bg-[var(--tabbar-bg)] px-2"
+    :class="appStore.tabbarStyle === 'chrome' ? 'pt-[2px] pb-0' : 'py-0'"
   >
     <!-- 左侧滚动箭头 -->
     <NButton
@@ -620,7 +534,7 @@ watch(() => route.fullPath, () => {
       :show="contextMenuVisible"
       :x="contextMenuX"
       :y="contextMenuY"
-      :options="getContextOptions(contextTabPath, contextTabClosable, contextTabPinned)"
+      :options="contextMenuOptions"
       @close="contextMenuVisible = false"
       @select="handleDropdownSelect"
     />

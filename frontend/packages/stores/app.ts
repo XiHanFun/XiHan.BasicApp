@@ -105,7 +105,13 @@ export const useAppStore = defineStore('app', () => {
   const pageLoading = ref(false)
 
   const sidebarCollapsed = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_COLLAPSED_KEY) ?? false)
-  const sidebarWidth = ref<number>(LocalStorage.get<number>(SIDEBAR_WIDTH_KEY) ?? 224)
+  const sidebarWidth = ref<number>((() => {
+    const saved = LocalStorage.get<number>(SIDEBAR_WIDTH_KEY)
+    if (typeof saved === 'number' && Number.isFinite(saved)) {
+      return Math.min(320, Math.max(180, saved))
+    }
+    return 224
+  })())
   const sidebarShow = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_SHOW_KEY) ?? true)
   const sidebarCollapseButton = ref<boolean>(
     LocalStorage.get<boolean>(SIDEBAR_COLLAPSE_BUTTON_KEY) ?? true,
@@ -124,10 +130,20 @@ export const useAppStore = defineStore('app', () => {
   )
 
   const headerShow = ref<boolean>(LocalStorage.get<boolean>(HEADER_SHOW_KEY) ?? true)
-  const headerMenuAlign = ref<'left' | 'center' | 'right'>(
-    LocalStorage.get(HEADER_MENU_ALIGN_KEY) ?? 'left',
-  )
-  const headerMode = ref<'fixed' | 'static'>(LocalStorage.get(HEADER_MODE_KEY) ?? 'fixed')
+  const headerMenuAlign = ref<'start' | 'center' | 'end'>((() => {
+    const saved = LocalStorage.get<string>(HEADER_MENU_ALIGN_KEY)
+    if (saved === 'left') {
+      return 'start' as const
+    }
+    if (saved === 'right') {
+      return 'end' as const
+    }
+    if (saved === 'center' || saved === 'start' || saved === 'end') {
+      return saved
+    }
+    return 'start' as const
+  })())
+  const headerMode = ref<'fixed' | 'static' | 'auto' | 'auto-scroll'>(LocalStorage.get(HEADER_MODE_KEY) ?? 'fixed')
   const sidebarDark = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_DARK_KEY) ?? false)
   const sidebarSubDark = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_SUB_DARK_KEY) ?? false)
   const headerDark = ref<boolean>(LocalStorage.get<boolean>(HEADER_DARK_KEY) ?? false)
@@ -465,10 +481,10 @@ export const useAppStore = defineStore('app', () => {
   function setHeaderShow(v: boolean) {
     save(HEADER_SHOW_KEY, headerShow, v)
   }
-  function setHeaderMenuAlign(v: 'left' | 'center' | 'right') {
+  function setHeaderMenuAlign(v: 'start' | 'center' | 'end') {
     save(HEADER_MENU_ALIGN_KEY, headerMenuAlign, v)
   }
-  function setHeaderMode(v: 'fixed' | 'static') {
+  function setHeaderMode(v: 'fixed' | 'static' | 'auto' | 'auto-scroll') {
     save(HEADER_MODE_KEY, headerMode, v)
   }
   function setSidebarDark(v: boolean) {
@@ -490,7 +506,7 @@ export const useAppStore = defineStore('app', () => {
     save(NAV_ACCORDION_KEY, navigationAccordion, v)
   }
   function setSidebarWidth(v: number) {
-    save(SIDEBAR_WIDTH_KEY, sidebarWidth, v)
+    save(SIDEBAR_WIDTH_KEY, sidebarWidth, Math.min(320, Math.max(180, v)))
   }
   function setSidebarShow(v: boolean) {
     save(SIDEBAR_SHOW_KEY, sidebarShow, v)

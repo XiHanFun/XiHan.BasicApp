@@ -65,3 +65,6 @@ export const SessionStorage = {
     sessionStorage.clear()
   },
 }
+
+// 兼容旧代码命名（storage = localStorage 封装）
+export const storage = LocalStorage

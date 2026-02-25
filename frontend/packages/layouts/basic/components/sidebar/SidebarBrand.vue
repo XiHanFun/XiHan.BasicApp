@@ -14,11 +14,13 @@ interface SidebarBrandProps {
   sidebarCollapsedShowTitle: boolean
 }
 
-const showCollapsed = computed(() => props.collapsed && !props.sidebarCollapsedShowTitle)
+// Keep logo behavior consistent with vben:
+// collapsed menu still uses collapsed logo text state.
+const showCollapsed = computed(() => props.collapsed)
 </script>
 
 <template>
-  <div class="flex h-14 shrink-0">
+  <div class="flex h-[50px] w-full min-w-0 shrink-0">
     <AppBrand
       :app-title="props.appTitle"
       :app-logo="props.appLogo"

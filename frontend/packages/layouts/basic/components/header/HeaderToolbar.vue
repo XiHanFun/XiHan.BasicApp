@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { DropdownOption } from 'naive-ui'
-import type { useAppStore, useUserStore } from '~/stores'
 import { Icon } from '@iconify/vue'
 import { NAvatar, NDropdown } from 'naive-ui'
+import type { HeaderToolbarPropsContract } from '../../contracts'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
 
-const props = defineProps<HeaderToolbarProps>()
+const props = defineProps<HeaderToolbarPropsContract>()
 
 const emit = defineEmits<{
   localeChange: [key: string]
@@ -20,20 +19,10 @@ const emit = defineEmits<{
   userAction: [key: string]
 }>()
 
-interface HeaderToolbarProps {
-  appStore: ReturnType<typeof useAppStore>
-  userStore: ReturnType<typeof useUserStore>
-  isDark: boolean
-  isFullscreen: boolean
-  showPreferencesInHeader?: boolean
-  timezoneOptions: DropdownOption[]
-  localeOptions: Array<{ label: string, key: string }>
-  userOptions: DropdownOption[]
-}
 </script>
 
 <template>
-  <div class="flex shrink-0 items-center gap-0.5">
+  <div class="flex h-full min-w-0 shrink-0 items-center">
     <!-- 全局搜索 -->
     <AppGlobalSearch v-if="props.appStore.searchEnabled" class="mr-1" />
 
@@ -43,7 +32,7 @@ interface HeaderToolbarProps {
       :options="props.localeOptions"
       @select="(key) => emit('localeChange', String(key))"
     >
-      <XihanIconButton tooltip="切换语言">
+      <XihanIconButton class="mr-1" tooltip="切换语言">
         <Icon icon="lucide:languages" width="16" height="16" />
       </XihanIconButton>
     </NDropdown>
@@ -54,7 +43,7 @@ interface HeaderToolbarProps {
       :options="props.timezoneOptions"
       @select="(key) => emit('timezoneChange', String(key))"
     >
-      <XihanIconButton tooltip="切换时区">
+      <XihanIconButton class="mr-1 mt-[2px]" tooltip="切换时区">
         <Icon icon="lucide:clock-3" width="16" height="16" />
       </XihanIconButton>
     </NDropdown>
@@ -62,6 +51,7 @@ interface HeaderToolbarProps {
     <!-- 主题切换 -->
     <XihanIconButton
       v-if="props.appStore.widgetThemeToggle"
+      class="mr-1 mt-[2px]"
       :tooltip="props.isDark ? '切换浅色' : '切换深色'"
       @mousedown.prevent
       @click="(event: MouseEvent) => emit('themeToggle', event)"
@@ -76,6 +66,7 @@ interface HeaderToolbarProps {
     <!-- 全屏 -->
     <XihanIconButton
       v-if="props.appStore.widgetFullscreen"
+      class="mr-1"
       :tooltip="props.isFullscreen ? '退出全屏' : '全屏'"
       @click="emit('fullscreenToggle')"
     >
@@ -89,6 +80,7 @@ interface HeaderToolbarProps {
     <!-- 偏好设置 -->
     <XihanIconButton
       v-if="props.showPreferencesInHeader !== false"
+      class="mr-1"
       tooltip="偏好设置"
       @mousedown.prevent
       @click="emit('preferencesOpen')"
@@ -102,6 +94,7 @@ interface HeaderToolbarProps {
     <!-- 通知 -->
     <XihanIconButton
       v-if="props.appStore.widgetNotification"
+      class="mr-1"
       tooltip="通知"
       @click="emit('notification')"
     >

@@ -32,10 +32,10 @@
   --radius: 0.5rem;
   --overlay: 0 0% 0% / 45%;
   --overlay-content: 0 0% 95% / 45%;
-  --font-size-base: 14px;
+  --font-size-base: 16px;
   --menu-font-size: calc(var(--font-size-base) * 0.875);
   --sidebar: 0 0% 100%;
-  --sidebar-deep: 0 0% 100%;
+  --sidebar-deep: 210 15% 97.5%;
   --menu: var(--sidebar);
   --header: 0 0% 100%;
 
@@ -57,16 +57,22 @@
 
   /* legacy app sizes/z-index */
   --layout-sidebar-width: 240px;
-  --layout-sidebar-collapsed-width: 64px;
-  --layout-header-height: 56px;
+  --layout-sidebar-collapsed-width: 60px;
+  --layout-header-height: 50px;
   --layout-footer-height: 48px;
-  --layout-tags-height: 40px;
+  --layout-tags-height: 38px;
   --layout-content-padding: 16px;
   --z-sidebar: 100;
   --z-header: 200;
   --z-modal: 1000;
   --z-message: 2000;
   --z-loading: 3000;
+
+  /* vben-compatible layout variables */
+  --vben-header-height: var(--layout-header-height);
+  --vben-footer-height: var(--layout-footer-height);
+  --vben-content-height: 100%;
+  --vben-content-width: 100%;
 }
 
 .dark {

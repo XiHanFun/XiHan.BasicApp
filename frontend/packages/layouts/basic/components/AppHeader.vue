@@ -1,45 +1,44 @@
 <script lang="ts" setup>
 import type { DropdownOption, MenuOption } from 'naive-ui'
+import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '@iconify/vue'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import { useContentMaximize, useLocale, useRefresh, useTheme } from '~/hooks'
-import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
+import { useLocale, useRefresh, useTheme } from '~/hooks'
+import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
+import { useLayoutMenuDomain } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
+import XihanIconButton from './XihanIconButton.vue'
 
-interface HeaderRouteItem {
-  path: string
-  name?: string
-  meta?: {
-    hidden?: boolean
-    title?: string
-    icon?: string
-  }
-  children?: HeaderRouteItem[]
+interface Props {
+  theme?: string
 }
 
 defineOptions({ name: 'AppHeader' })
+withDefaults(defineProps<Props>(), { theme: 'light' })
 
-const route = useRoute()
-const router = useRouter()
-const accessStore = useAccessStore()
 const appStore = useAppStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
+const layoutBridgeStore = useLayoutBridgeStore()
 const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { setLocale } = useLocale()
-const { contentIsMaximize: contentMaximized } = useContentMaximize()
 const { refresh: doRefresh } = useRefresh()
+const {
+  route,
+  router,
+  baseMenuSource,
+  toLayoutMeta,
+  resolveFullPath,
+  buildMenuOptionsFromRoutes,
+  findMatchedRoutePath,
+} = useLayoutMenuDomain()
+
 const isFullscreen = ref(false)
-const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
-const isNarrowScreen = computed(() => viewportWidth.value < 960)
-// 与 FAB 互斥：窄屏或内容最大化时 FAB 显示，头部按钮隐藏
-const showPreferencesInHeader = computed(() => !isNarrowScreen.value && !contentMaximized.value)
 const currentTimezone = ref(
   typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC',
 )
@@ -47,232 +46,158 @@ const currentTimezone = ref(
 const isTopNavLayout = computed(() => appStore.layoutMode === 'top')
 const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
 const isHeaderMixedLayout = computed(() => appStore.layoutMode === 'header-mix')
-const showTopMenu = computed(
-  () => isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
+const showTopMenu = computed(() =>
+  isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
 )
-const headerBrandTitle = computed(
-  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
-)
-const headerBrandLogo = computed(
-  () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
+const showBreadcrumb = computed(() =>
+  !showTopMenu.value && appStore.breadcrumbEnabled,
 )
 
-const topMenuSource = computed<HeaderRouteItem[]>(() => {
-  if (isTopNavLayout.value) {
-    return (router.options.routes.find((item) => item.path === '/')?.children ??
-      []) as HeaderRouteItem[]
-  }
-  if (accessStore.accessRoutes.length) {
-    return accessStore.accessRoutes as unknown as HeaderRouteItem[]
-  }
-  return (router.options.routes.find((item) => item.path === '/')?.children ??
-    []) as HeaderRouteItem[]
-})
+const isSplitMode = computed(() =>
+  (appStore.navigationSplit && isMixedNavLayout.value) || isHeaderMixedLayout.value,
+)
 
-function toRouteNameKey(name: string | number | symbol | null | undefined) {
-  return typeof name === 'string' || typeof name === 'number' ? String(name) : undefined
+const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
+
+function renderRouteIcon(icon: string) {
+  return () => h(Icon, { icon })
 }
 
-function findVisibleChild(routeItem: HeaderRouteItem) {
-  return routeItem.children?.find((child) => !child.meta?.hidden)
-}
-
-function resolveFullPath(path: string, parentPath = '') {
-  if (!path) {
-    return parentPath || '/'
-  }
-  if (path.startsWith('/')) {
-    return path
-  }
-  return `${parentPath.replace(/\/$/, '')}/${path}`.replace(/\/{2,}/g, '/')
-}
-
-function buildTopTreeOptions(routeList: HeaderRouteItem[], parentPath = ''): MenuOption[] {
-  return routeList
-    .filter((item) => !item.meta?.hidden)
-    .map((item) => {
-      const fullPath = resolveFullPath(item.path, parentPath)
-      const iconName = item.meta?.icon
-      const titleKey = String(item.meta?.title ?? toRouteNameKey(item.name) ?? fullPath)
-      const displayText = te(titleKey) ? t(titleKey) : titleKey
-      const visibleChildren = item.children?.filter((child) => !child.meta?.hidden) ?? []
-      return {
-        key: fullPath,
-        // 有子菜单的一级项追加 chevron-down 图标
-        label:
-          visibleChildren.length > 0
-            ? () =>
-                h('span', { class: 'top-menu-label' }, [
-                  h('span', displayText),
-                  h(Icon, {
-                    icon: 'lucide:chevron-down',
-                    width: '12',
-                    height: '12',
-                    class: 'top-menu-chevron',
-                  }),
-                ])
-            : displayText,
-        icon: iconName ? () => h(Icon, { icon: iconName }) : undefined,
-        children: visibleChildren.length
-          ? buildTopTreeOptions(visibleChildren, fullPath)
-          : undefined,
-      } as MenuOption
-    })
-    .filter(Boolean) as MenuOption[]
+function translateMenuTitle(title: string, fallback: string) {
+  return te(title) ? t(title) : fallback
 }
 
 const topMenuOptions = computed<MenuOption[]>(() => {
-  if (isTopNavLayout.value) {
-    return buildTopTreeOptions(topMenuSource.value, '')
+  const options = buildMenuOptionsFromRoutes(topMenuSource.value, {
+    keyBy: 'path',
+    translate: translateMenuTitle,
+    iconRenderer: renderRouteIcon,
+  })
+  if (isSplitMode.value) {
+    return options.map(item => ({ ...item, children: undefined }))
   }
-  return topMenuSource.value
-    .filter((item) => !item.meta?.hidden)
-    .map((item) => {
-      const key = toRouteNameKey(item.name)
-      if (!key) {
-        return undefined
-      }
-      const iconName = item.meta?.icon
-      const titleKey = String(item.meta?.title ?? key)
-      return {
-        key,
-        label: te(titleKey) ? t(titleKey) : titleKey,
-        icon: iconName ? () => h(Icon, { icon: iconName }) : undefined,
-      } as MenuOption
-    })
-    .filter(Boolean) as MenuOption[]
+  return options
 })
 
-const topMenuActive = computed(() => {
-  if (isTopNavLayout.value) {
-    return route.path
+function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
+  const fullPath = resolveFullPath(routeItem.path, parentPath)
+  const firstVisibleChild = routeItem.children?.find(child => !toLayoutMeta(child).hidden)
+  if (!firstVisibleChild) {
+    return fullPath
   }
-  const routeMatched = route.matched.find((matchedRoute) => {
-    const matchedName = toRouteNameKey(matchedRoute.name)
-    return Boolean(
-      matchedName && topMenuSource.value.some((item) => toRouteNameKey(item.name) === matchedName),
-    )
-  })
+  return resolveFirstVisiblePath(firstVisibleChild, fullPath)
+}
+
+const topMenuActive = computed(() => {
+  if (!isSplitMode.value) {
+    return String(route.meta?.activePath || route.path || '')
+  }
   return (
-    toRouteNameKey(routeMatched?.name) ??
-    toRouteNameKey(topMenuSource.value.find((item) => !item.meta?.hidden)?.name)
+    findMatchedRoutePath(topMenuSource.value)
+    ?? resolveFullPath(topMenuSource.value.find(item => !toLayoutMeta(item).hidden)?.path ?? '')
   )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter((r) => r.meta?.title && !r.meta?.hidden)
+  const matched = route.matched.filter(item => item.meta?.title && !item.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
-  return matched.map((r, index) => {
+  return matched.map((item, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter((item) => item.meta?.title && !item.meta?.hidden)
-      .map((item) => ({
-        key: item.path.startsWith('/') ? item.path : `${parent?.path ?? ''}/${item.path}`,
-        label: te(String(item.meta?.title))
-          ? t(String(item.meta?.title))
-          : String(item.meta?.title),
-        icon: item.meta?.icon ? () => h(Icon, { icon: item.meta?.icon as string }) : undefined,
-      }))
-
-    const titleKey = String(r.meta.title)
+      .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
+      .map((sibling) => {
+        const siblingTitle = String(sibling.meta?.title ?? '')
+        const siblingIcon = sibling.meta?.icon as string | undefined
+        return {
+          key: resolveFullPath(sibling.path, parent?.path ?? ''),
+          label: te(siblingTitle) ? t(siblingTitle) : siblingTitle,
+          icon: siblingIcon ? () => h(Icon, { icon: siblingIcon }) : undefined,
+        }
+      })
+    const titleKey = String(item.meta?.title)
     return {
       title: te(titleKey) ? t(titleKey) : titleKey,
-      path: r.path,
-      icon: appStore.breadcrumbShowIcon ? (r.meta.icon as string | undefined) : undefined,
+      path: item.path,
+      icon: appStore.breadcrumbShowIcon ? (item.meta?.icon as string | undefined) : undefined,
       siblings,
     }
   })
 })
 
-const userOptions = computed<DropdownOption[]>(() => {
-  return [
-    {
-      label: t('header.user.profile'),
-      key: 'profile',
-      icon: () => h(Icon, { icon: 'lucide:user' }),
-    },
-    ...(appStore.widgetLockScreen
-      ? [
-          {
-            label: () =>
-              h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
-                h('span', t('header.user.lock')),
-                ...(appStore.shortcutEnable && appStore.shortcutLock
-                  ? [
-                      h(
-                        'kbd',
-                        {
-                          style:
-                            'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;' +
-                            'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));' +
-                            'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;' +
-                            'line-height:1.6;white-space:nowrap;',
-                        },
-                        'Alt L',
-                      ),
-                    ]
-                  : []),
-              ]),
-            key: 'lock',
-            icon: () => h(Icon, { icon: 'lucide:lock' }),
-          } as DropdownOption,
-        ]
-      : []),
-    {
-      type: 'divider',
-      key: 'divider',
-    },
-    {
-      label: () =>
-        h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
-          h('span', t('header.user.logout')),
-          ...(appStore.shortcutEnable && appStore.shortcutLogout
-            ? [
-                h(
-                  'kbd',
-                  {
-                    style:
-                      'display:inline-flex;align-items:center;padding:1px 6px;font-size:11px;' +
-                      'font-family:ui-monospace,SFMono-Regular,monospace;color:hsl(var(--muted-foreground));' +
-                      'background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;' +
-                      'line-height:1.6;white-space:nowrap;',
-                  },
-                  'Alt Q',
-                ),
-              ]
-            : []),
-        ]),
-      key: 'logout',
-      icon: () => h(Icon, { icon: 'lucide:log-out' }),
-    },
-  ]
-})
+const shortcutKbdStyle = [
+  'display:inline-flex',
+  'align-items:center',
+  'padding:1px 6px',
+  'font-size:11px',
+  'font-family:ui-monospace,SFMono-Regular,monospace',
+  'color:hsl(var(--muted-foreground))',
+  'background:hsl(var(--muted))',
+  'border:1px solid hsl(var(--border))',
+  'border-radius:4px',
+  'line-height:1.6',
+  'white-space:nowrap',
+].join(';')
+
+const userOptions = computed<DropdownOption[]>(() => [
+  {
+    label: t('header.user.profile'),
+    key: 'profile',
+    icon: () => h(Icon, { icon: 'lucide:user' }),
+  },
+  ...(appStore.widgetLockScreen
+    ? [{
+        label: () =>
+          h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+            h('span', t('header.user.lock')),
+            ...(appStore.shortcutEnable && appStore.shortcutLock
+              ? [h('kbd', { style: shortcutKbdStyle }, 'Alt L')]
+              : []),
+          ]),
+        key: 'lock',
+        icon: () => h(Icon, { icon: 'lucide:lock' }),
+      } as DropdownOption]
+    : []),
+  { type: 'divider', key: 'divider' },
+  {
+    label: () =>
+      h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+        h('span', t('header.user.logout')),
+        ...(appStore.shortcutEnable && appStore.shortcutLogout
+          ? [h('kbd', { style: shortcutKbdStyle }, 'Alt Q')]
+          : []),
+      ]),
+    key: 'logout',
+    icon: () => h(Icon, { icon: 'lucide:log-out' }),
+  },
+])
 
 const localeOptions = computed(() => [
   { label: t('header.locale.zh_cn'), key: 'zh-CN' },
   { label: t('header.locale.en_us'), key: 'en-US' },
 ])
 
-const timezoneOptions = computed<DropdownOption[]>(() => {
-  return [
-    { label: t('header.timezone.utc'), key: 'UTC' },
-    { label: t('header.timezone.shanghai'), key: 'Asia/Shanghai' },
-    { label: t('header.timezone.tokyo'), key: 'Asia/Tokyo' },
-    { label: t('header.timezone.london'), key: 'Europe/London' },
-    { label: t('header.timezone.new_york'), key: 'America/New_York' },
-    { label: t('header.timezone.los_angeles'), key: 'America/Los_Angeles' },
-  ]
-})
+const timezoneOptions = computed<DropdownOption[]>(() => [
+  { label: t('header.timezone.utc'), key: 'UTC' },
+  { label: t('header.timezone.shanghai'), key: 'Asia/Shanghai' },
+  { label: t('header.timezone.tokyo'), key: 'Asia/Tokyo' },
+  { label: t('header.timezone.london'), key: 'Europe/London' },
+  { label: t('header.timezone.new_york'), key: 'America/New_York' },
+  { label: t('header.timezone.los_angeles'), key: 'America/Los_Angeles' },
+])
 
 function handleUserAction(key: string) {
   if (key === 'logout') {
     authStore.logout()
-  } else if (key === 'profile') {
+    return
+  }
+  if (key === 'profile') {
     router.push('/profile')
-  } else if (key === 'lock') {
-    handleLockScreen()
+    return
+  }
+  if (key === 'lock') {
+    layoutBridgeStore.requestLockScreen()
   }
 }
 
@@ -286,8 +211,8 @@ function handleTimezoneChange(timezone: string) {
   message.success(t('header.timezone.switch_success', { timezone }))
 }
 
-function handleThemeToggle(e: MouseEvent) {
-  toggleThemeWithTransition(e)
+function handleThemeToggle(event: MouseEvent) {
+  toggleThemeWithTransition(event)
 }
 
 function handleBreadcrumbSelect(path: string) {
@@ -297,29 +222,21 @@ function handleBreadcrumbSelect(path: string) {
 }
 
 function handleTopMenuSelect(path: string) {
-  if (isTopNavLayout.value) {
-    if (path && path !== route.path) {
-      router.push(path)
-    }
+  if (!path || path === route.path) {
     return
   }
-  const rootMenu = topMenuSource.value.find((item) => toRouteNameKey(item.name) === path)
+  if (!isSplitMode.value) {
+    router.push(path)
+    return
+  }
+  const rootMenu = topMenuSource.value.find(item => resolveFullPath(item.path) === path)
   if (!rootMenu) {
     return
   }
-  const firstVisibleChild = findVisibleChild(rootMenu)
-  const targetName = toRouteNameKey(firstVisibleChild?.name ?? rootMenu.name)
-  if (targetName && targetName !== toRouteNameKey(route.name)) {
-    router.push({ name: targetName })
+  const targetPath = resolveFirstVisiblePath(rootMenu)
+  if (targetPath && targetPath !== route.path) {
+    router.push(targetPath)
   }
-}
-
-function handleLockScreen() {
-  window.dispatchEvent(new CustomEvent('xihan-lock-screen'))
-}
-
-function handleSidebarToggle() {
-  window.dispatchEvent(new CustomEvent('xihan-toggle-sidebar-request'))
 }
 
 function handleRefreshCurrentTab() {
@@ -327,7 +244,7 @@ function handleRefreshCurrentTab() {
 }
 
 function openPreferenceDrawer() {
-  window.dispatchEvent(new CustomEvent('xihan-open-preference-drawer'))
+  layoutBridgeStore.requestOpenPreferenceDrawer()
 }
 
 function syncFullscreenState() {
@@ -337,13 +254,9 @@ function syncFullscreenState() {
 function toggleFullscreen() {
   if (document.fullscreenElement) {
     document.exitFullscreen()
-  } else {
-    document.documentElement.requestFullscreen()
+    return
   }
-}
-
-function updateViewportWidth() {
-  viewportWidth.value = window.innerWidth
+  document.documentElement.requestFullscreen()
 }
 
 onMounted(() => {
@@ -353,74 +266,92 @@ onMounted(() => {
   }
   syncFullscreenState()
   document.addEventListener('fullscreenchange', syncFullscreenState)
-  window.addEventListener('resize', updateViewportWidth)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
-  window.removeEventListener('resize', updateViewportWidth)
 })
 </script>
 
 <template>
-  <div class="flex h-14 min-w-0 items-center gap-2 border-b border-border bg-header px-3">
-    <!-- 左侧：品牌 + 切换 + 刷新 + 面包屑（shrink-0） -->
+  <!-- Refresh button (left widget) -->
+  <XihanIconButton
+    v-if="appStore.widgetRefresh"
+    class="my-0 mr-1 rounded-md"
+    @click="handleRefreshCurrentTab"
+  >
+    <Icon icon="lucide:refresh-cw" class="size-4" />
+  </XihanIconButton>
+
+  <!-- Breadcrumb -->
+  <div v-if="showBreadcrumb" class="flex-center hidden lg:block">
     <HeaderNav
       :app-store="appStore"
-      :layout-mode="appStore.layoutMode"
-      :app-title="headerBrandTitle"
-      :app-logo="headerBrandLogo"
-      :show-top-menu="showTopMenu"
       :breadcrumbs="breadcrumbs"
-      @sidebar-toggle="handleSidebarToggle"
-      @refresh="handleRefreshCurrentTab"
       @breadcrumb-select="handleBreadcrumbSelect"
       @home-click="router.push('/')"
     />
-
-    <!-- 中间 flex-1 容器：有菜单时放 NMenu，无菜单时作弹性空白 -->
-    <div class="flex h-full min-w-0 flex-1 items-center justify-end">
-      <div v-if="showTopMenu" class="xihan-top-menu hidden h-full items-center lg:flex">
-        <NMenu
-          mode="horizontal"
-          :value="topMenuActive"
-          :options="topMenuOptions"
-          @update:value="(key) => handleTopMenuSelect(String(key))"
-        />
-      </div>
-    </div>
-
-    <HeaderToolbar
-      :app-store="appStore"
-      :user-store="userStore"
-      :is-dark="isDark"
-      :is-fullscreen="isFullscreen"
-      :show-preferences-in-header="showPreferencesInHeader"
-      :timezone-options="timezoneOptions"
-      :locale-options="localeOptions"
-      :user-options="userOptions"
-      @locale-change="handleLocaleChange"
-      @timezone-change="handleTimezoneChange"
-      @theme-toggle="handleThemeToggle"
-      @notification="message.info(t('header.notification.pending'))"
-      @fullscreen-toggle="toggleFullscreen"
-      @preferences-open="openPreferenceDrawer"
-      @user-action="handleUserAction"
-    />
   </div>
+
+  <!-- Menu area -->
+  <div
+    :class="`menu-align-${appStore.headerMenuAlign}`"
+    class="flex h-full min-w-0 flex-1 items-center"
+  >
+    <div v-if="showTopMenu" class="xihan-top-menu hidden h-full min-w-0 items-center lg:flex">
+      <NMenu
+        mode="horizontal"
+        :value="topMenuActive"
+        :options="topMenuOptions"
+        @update:value="(key: string | number) => handleTopMenuSelect(String(key))"
+      />
+    </div>
+  </div>
+
+  <!-- Right toolbar widgets -->
+  <HeaderToolbar
+    :app-store="appStore"
+    :user-store="userStore"
+    :is-dark="isDark"
+    :is-fullscreen="isFullscreen"
+    :show-preferences-in-header="true"
+    :timezone-options="timezoneOptions"
+    :locale-options="localeOptions"
+    :user-options="userOptions"
+    @locale-change="handleLocaleChange"
+    @timezone-change="handleTimezoneChange"
+    @theme-toggle="handleThemeToggle"
+    @notification="message.info(t('header.notification.pending'))"
+    @fullscreen-toggle="toggleFullscreen"
+    @preferences-open="openPreferenceDrawer"
+    @user-action="handleUserAction"
+  />
 </template>
 
 <style>
-/* 顶部水平菜单：一级项 label 含 chevron */
-.top-menu-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+.menu-align-start > .xihan-top-menu,
+.menu-align-left > .xihan-top-menu {
+  margin-right: auto;
 }
 
-.top-menu-chevron {
-  opacity: 0.5;
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
+.menu-align-center > .xihan-top-menu {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.menu-align-end > .xihan-top-menu,
+.menu-align-right > .xihan-top-menu {
+  margin-left: auto;
+}
+
+:deep(.xihan-top-menu .n-menu.n-menu--horizontal) {
+  --n-item-height: 40px;
+  --n-item-font-size-horizontal: 14px;
+  --n-item-text-color-horizontal: hsl(var(--foreground) / 80%);
+  --n-item-text-color-hover-horizontal: hsl(var(--foreground));
+  --n-item-text-color-active-horizontal: hsl(var(--primary));
+  --n-item-color-active-horizontal: hsl(var(--primary) / 15%);
+  --n-item-color-hover-horizontal: hsl(var(--accent));
+  background: transparent;
 }
 </style>

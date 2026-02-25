@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { NEmpty, NIcon, NInput, NModal, NScrollbar } from 'naive-ui'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAppStore } from '~/stores'
+import { LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
+import { useAppStore, useLayoutBridgeStore } from '~/stores'
 
 defineOptions({ name: 'AppGlobalSearch', inheritAttrs: false })
 
 const router = useRouter()
 const { t } = useI18n()
 const appStore = useAppStore()
+const layoutBridgeStore = useLayoutBridgeStore()
 const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcutSearch)
 const visible = ref(false)
 const keyword = ref('')
@@ -48,16 +50,23 @@ function jumpTo(path: string) {
 }
 
 function handleOpenEvent() {
-  openSearch()
+  layoutBridgeStore.requestOpenGlobalSearch()
 }
 
 onMounted(() => {
-  window.addEventListener('xihan-open-global-search', handleOpenEvent)
+  window.addEventListener(LAYOUT_EVENT_OPEN_GLOBAL_SEARCH, handleOpenEvent)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('xihan-open-global-search', handleOpenEvent)
+  window.removeEventListener(LAYOUT_EVENT_OPEN_GLOBAL_SEARCH, handleOpenEvent)
 })
+
+watch(
+  () => layoutBridgeStore.globalSearchVersion,
+  () => {
+    openSearch()
+  },
+)
 </script>
 
 <template>
@@ -65,7 +74,7 @@ onUnmounted(() => {
   <div v-bind="$attrs">
     <!-- 桌面端：胶囊样式，含搜索图标 + 文字 + kbd 徽标 -->
     <div class="hidden sm:block">
-      <button type="button" class="search-trigger" @click="openSearch">
+      <button type="button" class="search-trigger" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <NIcon size="14" class="shrink-0 text-[hsl(var(--muted-foreground))]">
           <Icon icon="lucide:search" />
         </NIcon>
@@ -75,7 +84,7 @@ onUnmounted(() => {
     </div>
     <!-- 移动端：只显示图标按钮 -->
     <div class="sm:hidden">
-      <button type="button" class="search-trigger-icon" @click="openSearch">
+      <button type="button" class="search-trigger-icon" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <NIcon size="16"><Icon icon="lucide:search" /></NIcon>
       </button>
     </div>

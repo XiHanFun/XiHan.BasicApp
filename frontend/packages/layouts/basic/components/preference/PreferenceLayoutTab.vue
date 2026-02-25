@@ -230,13 +230,13 @@ const preferencePositionOptions = computed(() => [
         <span>{{ t('preference.layout.header.menu_align') }}</span>
         <NRadioGroup v-model:value="appStore.headerMenuAlign" size="small" :disabled="!appStore.headerShow">
           <NSpace :size="0">
-            <NRadioButton value="left">
+            <NRadioButton value="start">
               {{ t('preference.layout.header.menu_align_left') }}
             </NRadioButton>
             <NRadioButton value="center">
               {{ t('preference.layout.header.menu_align_center') }}
             </NRadioButton>
-            <NRadioButton value="right">
+            <NRadioButton value="end">
               {{ t('preference.layout.header.menu_align_right') }}
             </NRadioButton>
           </NSpace>

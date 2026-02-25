@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { NButton, NDrawer, NDrawerContent, NIcon, NScrollbar, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '~/stores'
-import { STORAGE_PREFIX } from '~/constants'
+import { LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, STORAGE_PREFIX } from '~/constants'
 import { useContentMaximize, useTheme } from '~/hooks'
-import { useAppStore } from '~/stores'
+import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 import PreferenceAppearanceTab from './preference/PreferenceAppearanceTab.vue'
 import PreferenceFab from './preference/PreferenceFab.vue'
 import PreferenceGeneralTab from './preference/PreferenceGeneralTab.vue'
@@ -17,6 +16,7 @@ defineOptions({ name: 'AppPreferenceDrawer' })
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
+const layoutBridgeStore = useLayoutBridgeStore()
 const message = useMessage()
 const { t } = useI18n()
 const { contentIsMaximize: contentMaximized } = useContentMaximize()
@@ -85,11 +85,11 @@ function openDrawer() {
 }
 
 function handleFabClick() {
-  openDrawer()
+  layoutBridgeStore.requestOpenPreferenceDrawer()
 }
 
 function handleOpenPreferenceDrawer() {
-  openDrawer()
+  layoutBridgeStore.requestOpenPreferenceDrawer()
 }
 
 function handleThemeModeChange(value: 'light' | 'dark' | 'auto') {
@@ -115,13 +115,20 @@ function handleViewportResize() {
 onMounted(() => {
   handleViewportResize()
   window.addEventListener('resize', handleViewportResize)
-  window.addEventListener('xihan-open-preference-drawer', handleOpenPreferenceDrawer)
+  window.addEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleViewportResize)
-  window.removeEventListener('xihan-open-preference-drawer', handleOpenPreferenceDrawer)
+  window.removeEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
 })
+
+watch(
+  () => layoutBridgeStore.preferenceDrawerVersion,
+  () => {
+    openDrawer()
+  },
+)
 </script>
 
 <template>

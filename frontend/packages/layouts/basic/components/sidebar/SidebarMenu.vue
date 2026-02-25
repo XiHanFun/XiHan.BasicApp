@@ -1,34 +1,22 @@
 <script setup lang="ts">
-import type { MenuOption } from 'naive-ui'
 import { NMenu } from 'naive-ui'
+import type { SidebarMenuPropsContract } from '../../contracts'
 
 defineOptions({ name: 'SidebarMenu' })
 
-const props = defineProps<SidebarMenuProps>()
+const props = defineProps<SidebarMenuPropsContract>()
 
 const emit = defineEmits<{ menuUpdate: [key: string] }>()
 
-interface SidebarMenuProps {
-  activeKey: string
-  collapsed: boolean
-  sidebarCollapsedShowTitle?: boolean
-  noTopPadding?: boolean
-  menuOptions: MenuOption[]
-  navigationStyle: 'rounded' | 'plain'
-  accordion?: boolean
-}
 </script>
 
 <template>
-  <div
-    class="app-sidebar-menu flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-12"
-    :class="props.noTopPadding ? 'py-0' : 'py-2'"
-  >
+  <div class="app-sidebar-menu flex-1 min-h-0">
     <NMenu
       :value="props.activeKey"
       :collapsed="props.collapsed"
-      :collapsed-width="64"
-      :indent="18"
+      :collapsed-width="props.collapsedWidth ?? 60"
+      :indent="16"
       :options="props.menuOptions"
       :class="[
         props.navigationStyle === 'rounded' ? 'sidebar-menu-rounded' : 'sidebar-menu-plain',
@@ -42,42 +30,73 @@ interface SidebarMenuProps {
 </template>
 
 <style scoped>
-:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
-  display: flex !important;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 56px;
-  line-height: 1.1;
-  padding: 6px 0 !important;
+:deep(.app-sidebar-menu .n-menu) {
+  --n-item-height: 38px;
+  --n-item-text-color: hsl(var(--foreground) / 80%);
+  --n-item-text-color-hover: hsl(var(--foreground));
+  --n-item-icon-color: hsl(var(--foreground) / 72%);
+  --n-item-icon-color-hover: hsl(var(--foreground));
+  --n-item-color-hover: hsl(var(--accent));
+  --n-item-color-active: hsl(var(--primary) / 15%);
+  --n-item-text-color-active: hsl(var(--primary));
+  --n-item-icon-color-active: hsl(var(--primary));
+  --n-arrow-color: hsl(var(--foreground) / 55%);
+  --n-font-size: 14px;
+  background: transparent;
 }
 
-:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
-  margin-right: 0 !important;
+:deep(.app-sidebar-menu .n-menu .n-menu-item-content),
+:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content) {
+  margin: 2px 0;
+  border-radius: 0;
 }
 
-:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content-header) {
-  display: block !important;
-  margin-top: 4px;
-  width: auto !important;
-  max-width: 56px;
-  opacity: 1 !important;
-  transform: none !important;
-  white-space: normal;
-  text-align: center;
-  font-size: 12px;
-  line-height: 1.1;
+:deep(.app-sidebar-menu .n-menu .n-menu-item-content .n-menu-item-content-header),
+:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content .n-menu-item-content-header) {
+  font-size: 14px;
 }
 
-:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
-  display: none !important;
+:deep(.app-sidebar-menu .n-menu .n-menu-item-content::before),
+:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content::before) {
+  left: 0;
+  right: 0;
+  border-radius: inherit;
+}
+
+:deep(.app-sidebar-menu .n-menu .n-menu-item-content .n-menu-item-content__icon),
+:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content .n-menu-item-content__icon) {
+  transition: transform 0.25s ease;
+}
+
+:deep(.app-sidebar-menu .n-menu .n-menu-item-content:hover .n-menu-item-content__icon),
+:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content:hover .n-menu-item-content__icon) {
+  transform: scale(1.2);
+}
+
+:deep(.sidebar-menu-rounded.n-menu .n-menu-item-content),
+:deep(.sidebar-menu-rounded.n-menu .n-submenu .n-menu-item-content) {
+  margin-left: 8px;
+  margin-right: 8px;
+  border-radius: 8px !important;
+}
+
+:deep(.sidebar-menu-plain.n-menu .n-menu-item-content),
+:deep(.sidebar-menu-plain.n-menu .n-submenu .n-menu-item-content) {
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: 0 !important;
 }
 
 :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
   display: flex !important;
-  justify-content: center;
   align-items: center;
-  padding: 0 !important;
+  justify-content: center;
+  padding: 23.5px 0 !important;
+  margin: 4px 0 !important;
+}
+
+:deep(.sidebar-menu-rounded.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
+  margin: 4px 6px !important;
 }
 
 :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
@@ -86,6 +105,50 @@ interface SidebarMenuProps {
 
 :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content-header),
 :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
+  display: none !important;
+}
+
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto !important;
+  padding: 32px 0 !important;
+  margin: 4px 0 !important;
+  line-height: normal;
+}
+
+:deep(.sidebar-menu-rounded.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
+  margin: 4px 8px !important;
+}
+
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
+  margin-right: 0 !important;
+  font-size: 20px;
+  max-height: 20px;
+  transition: all 0.25s ease;
+}
+
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content-header) {
+  display: inline-flex !important;
+  width: 100% !important;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 8px;
+  margin-bottom: 0;
+  opacity: 1 !important;
+  transform: none !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+}
+
+:deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
   display: none !important;
 }
 </style>
