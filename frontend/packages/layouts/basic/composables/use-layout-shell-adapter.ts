@@ -385,6 +385,9 @@ export function useLayoutShellAdapter() {
     if (v !== appStore.sidebarCollapsed) {
       appStore.setSidebarCollapsed(v)
     }
+    if (v) {
+      sidebarExpandOnHovering.value = false
+    }
   })
 
   watch(() => isMobile.value, (val) => {
