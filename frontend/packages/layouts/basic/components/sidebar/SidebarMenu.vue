@@ -30,7 +30,7 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
 </template>
 
 <style scoped>
-:deep(.app-sidebar-menu .n-menu) {
+.app-sidebar-menu :deep(.n-menu) {
   --n-item-height: 38px;
   --n-item-text-color: hsl(var(--foreground) / 80%);
   --n-item-text-color-hover: hsl(var(--foreground));
@@ -45,31 +45,31 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   background: transparent;
 }
 
-:deep(.app-sidebar-menu .n-menu .n-menu-item-content),
-:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content) {
+.app-sidebar-menu :deep(.n-menu .n-menu-item-content),
+.app-sidebar-menu :deep(.n-menu .n-submenu .n-menu-item-content) {
   margin: 2px 0;
   border-radius: 0;
 }
 
-:deep(.app-sidebar-menu .n-menu .n-menu-item-content .n-menu-item-content-header),
-:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content .n-menu-item-content-header) {
+.app-sidebar-menu :deep(.n-menu .n-menu-item-content .n-menu-item-content-header),
+.app-sidebar-menu :deep(.n-menu .n-submenu .n-menu-item-content .n-menu-item-content-header) {
   font-size: 14px;
 }
 
-:deep(.app-sidebar-menu .n-menu .n-menu-item-content::before),
-:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content::before) {
+.app-sidebar-menu :deep(.n-menu .n-menu-item-content::before),
+.app-sidebar-menu :deep(.n-menu .n-submenu .n-menu-item-content::before) {
   left: 0;
   right: 0;
   border-radius: inherit;
 }
 
-:deep(.app-sidebar-menu .n-menu .n-menu-item-content .n-menu-item-content__icon),
-:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content .n-menu-item-content__icon) {
+.app-sidebar-menu :deep(.n-menu .n-menu-item-content .n-menu-item-content__icon),
+.app-sidebar-menu :deep(.n-menu .n-submenu .n-menu-item-content .n-menu-item-content__icon) {
   transition: transform 0.25s ease;
 }
 
-:deep(.app-sidebar-menu .n-menu .n-menu-item-content:hover .n-menu-item-content__icon),
-:deep(.app-sidebar-menu .n-menu .n-submenu .n-menu-item-content:hover .n-menu-item-content__icon) {
+.app-sidebar-menu :deep(.n-menu .n-menu-item-content:hover .n-menu-item-content__icon),
+.app-sidebar-menu :deep(.n-menu .n-submenu .n-menu-item-content:hover .n-menu-item-content__icon) {
   transform: scale(1.2);
 }
 
@@ -191,7 +191,8 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
 </style>
 
 <style>
-.app-sidebar-menu .n-menu-item-content.n-menu-item-content--child-active::before {
+.app-sidebar-menu .n-menu .n-menu-item-content.n-menu-item-content--selected::before,
+.app-sidebar-menu .n-menu .n-menu-item-content.n-menu-item-content--child-active::before {
   background-color: hsl(var(--primary) / 15%);
 }
 </style>

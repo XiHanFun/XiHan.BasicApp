@@ -46,15 +46,13 @@ const currentTimezone = ref(
 const isTopNavLayout = computed(() => appStore.layoutMode === 'top')
 const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
 const isHeaderMixedLayout = computed(() => appStore.layoutMode === 'header-mix')
-const showTopMenu = computed(() =>
-  isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
+const showTopMenu = computed(
+  () => isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
 )
-const showBreadcrumb = computed(() =>
-  !showTopMenu.value && appStore.breadcrumbEnabled,
-)
+const showBreadcrumb = computed(() => !showTopMenu.value && appStore.breadcrumbEnabled)
 
-const isSplitMode = computed(() =>
-  (appStore.navigationSplit && isMixedNavLayout.value) || isHeaderMixedLayout.value,
+const isSplitMode = computed(
+  () => (appStore.navigationSplit && isMixedNavLayout.value) || isHeaderMixedLayout.value,
 )
 
 const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
@@ -74,14 +72,14 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     iconRenderer: renderRouteIcon,
   })
   if (isSplitMode.value) {
-    return options.map(item => ({ ...item, children: undefined }))
+    return options.map((item) => ({ ...item, children: undefined }))
   }
   return options
 })
 
 function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
   const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const firstVisibleChild = routeItem.children?.find(child => !toLayoutMeta(child).hidden)
+  const firstVisibleChild = routeItem.children?.find((child) => !toLayoutMeta(child).hidden)
   if (!firstVisibleChild) {
     return fullPath
   }
@@ -93,20 +91,20 @@ const topMenuActive = computed(() => {
     return String(route.meta?.activePath || route.path || '')
   }
   return (
-    findMatchedRoutePath(topMenuSource.value)
-    ?? resolveFullPath(topMenuSource.value.find(item => !toLayoutMeta(item).hidden)?.path ?? '')
+    findMatchedRoutePath(topMenuSource.value) ??
+    resolveFullPath(topMenuSource.value.find((item) => !toLayoutMeta(item).hidden)?.path ?? '')
   )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter(item => item.meta?.title && !item.meta?.hidden)
+  const matched = route.matched.filter((item) => item.meta?.title && !item.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
   return matched.map((item, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
+      .filter((sibling) => sibling.meta?.title && !sibling.meta?.hidden)
       .map((sibling) => {
         const siblingTitle = String(sibling.meta?.title ?? '')
         const siblingIcon = sibling.meta?.icon as string | undefined
@@ -147,17 +145,19 @@ const userOptions = computed<DropdownOption[]>(() => [
     icon: () => h(Icon, { icon: 'lucide:user' }),
   },
   ...(appStore.widgetLockScreen
-    ? [{
-        label: () =>
-          h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
-            h('span', t('header.user.lock')),
-            ...(appStore.shortcutEnable && appStore.shortcutLock
-              ? [h('kbd', { style: shortcutKbdStyle }, 'Alt L')]
-              : []),
-          ]),
-        key: 'lock',
-        icon: () => h(Icon, { icon: 'lucide:lock' }),
-      } as DropdownOption]
+    ? [
+        {
+          label: () =>
+            h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+              h('span', t('header.user.lock')),
+              ...(appStore.shortcutEnable && appStore.shortcutLock
+                ? [h('kbd', { style: shortcutKbdStyle }, 'Alt L')]
+                : []),
+            ]),
+          key: 'lock',
+          icon: () => h(Icon, { icon: 'lucide:lock' }),
+        } as DropdownOption,
+      ]
     : []),
   { type: 'divider', key: 'divider' },
   {
@@ -229,7 +229,7 @@ function handleTopMenuSelect(path: string) {
     router.push(path)
     return
   }
-  const rootMenu = topMenuSource.value.find(item => resolveFullPath(item.path) === path)
+  const rootMenu = topMenuSource.value.find((item) => resolveFullPath(item.path) === path)
   if (!rootMenu) {
     return
   }
@@ -294,10 +294,7 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Menu area -->
-  <div
-    :class="`menu-align-${appStore.headerMenuAlign}`"
-    class="flex min-w-0 flex-1 items-center"
-  >
+  <div :class="`menu-align-${appStore.headerMenuAlign}`" class="flex min-w-0 flex-1 items-center">
     <div v-if="showTopMenu" class="xihan-top-menu hidden min-w-0 items-center lg:flex">
       <NMenu
         mode="horizontal"
@@ -366,9 +363,20 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--child-active,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-submenu
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--child-active,
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-submenu
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected,
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected {
   background-color: hsl(var(--primary) / 15%);
   border-radius: 6px;
 }
