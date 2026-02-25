@@ -47,7 +47,7 @@ const sidebarEnableState = computed(() => !shell.isHeaderNav.value && shell.appS
         :sidebar-margin-top="shell.sidebarMarginTop.value"
         :sidebar-z-index="shell.sidebarZIndex.value"
         :sidebar-extra-width="shell.sidebarExtraWidth.value"
-        :header-height="shell.isMixedNav.value ? 0 : shell.headerHeight.value"
+        :header-height="(shell.isMixedNav.value || shell.isHeaderMixedNav.value) ? 0 : shell.headerHeight.value"
         :is-side-mode="shell.isSideMode.value"
         :is-mixed-nav="shell.isMixedNav.value"
         :is-dual-column="shell.isDualColumnMode.value"
