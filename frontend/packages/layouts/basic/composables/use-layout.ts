@@ -9,7 +9,9 @@ export function useLayout(layoutModeRef: Ref<string> | (() => string)) {
   const isSideNav = computed(() => currentLayout.value === 'side')
   const isSideMixedNav = computed(() => currentLayout.value === 'side-mixed')
   const isHeaderNav = computed(() => currentLayout.value === 'top')
-  const isMixedNav = computed(() => currentLayout.value === 'mix')
+  const isMixedNav = computed(
+    () => currentLayout.value === 'mix' || currentLayout.value === 'header-sidebar',
+  )
   const isHeaderMixedNav = computed(() => currentLayout.value === 'header-mix')
   const isHeaderSidebarNav = computed(() => currentLayout.value === 'header-sidebar')
   const isFullContent = computed(() => currentLayout.value === 'full')
