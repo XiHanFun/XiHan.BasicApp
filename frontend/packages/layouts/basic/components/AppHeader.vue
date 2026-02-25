@@ -365,4 +365,11 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
 }
+
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--child-active,
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected,
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
+  background-color: hsl(var(--primary) / 15%);
+  border-radius: 6px;
+}
 </style>

@@ -186,4 +186,12 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
 :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
   font-weight: 600;
 }
+
+
+</style>
+
+<style>
+.app-sidebar-menu .n-menu-item-content.n-menu-item-content--child-active::before {
+  background-color: hsl(var(--primary) / 15%);
+}
 </style>
