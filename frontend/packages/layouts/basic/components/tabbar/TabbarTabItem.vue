@@ -97,7 +97,7 @@ function onAuxClick(event: MouseEvent) {
           </svg>
         </div>
         <div
-          class="chrome-tab__main relative z-[2] mx-[14px] flex h-full min-w-[96px] items-center gap-1 pr-1"
+          class="chrome-tab__main relative z-[2] mx-[10px] flex h-full items-center gap-1 pr-1"
         >
           <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
             <Icon :icon="item.meta.icon as string" />
@@ -185,6 +185,8 @@ function onAuxClick(event: MouseEvent) {
 
 .chrome-tab.is-active {
   z-index: 2;
+  margin-bottom: -1px;
+  padding-bottom: 1px;
 }
 
 .chrome-tab__divider {

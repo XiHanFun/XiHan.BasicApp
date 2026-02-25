@@ -9,7 +9,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   const appStore = useAppStore()
   const defaultTab: TabItem = {
     key: HOME_PATH,
-    title: 'Dashboard',
+    title: 'menu.workspace',
     path: HOME_PATH,
     pinned: true,
     closable: false,
