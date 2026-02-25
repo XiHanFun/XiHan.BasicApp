@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="renderer" content="webkit" />
+    <meta name="description" content="XiHan BasicApp - 现代化后台管理系统" />
+    <meta name="keywords" content="XiHan BasicApp Vue3 Vite Naive UI" />
+    <meta name="author" content="zhaifanhua" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"
+    />
+    <title>%VITE_APP_TITLE%</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      #app-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+
+      #app-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f0f0f0;
+        border-top-color: #18a058;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #app-loading {
+          background: #1a1a1a;
+        }
+
+        .loading-spinner {
+          border-color: #333;
+          border-top-color: #18a058;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app-loading">
+      <div class="loading-spinner"></div>
+    </div>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

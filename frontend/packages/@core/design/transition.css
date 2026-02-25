@@ -1,0 +1,104 @@
+/* 路由切换过渡 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-fast) ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滑动过渡 */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.slide-left-enter-from {
+  transform: translateX(30px);
+  opacity: 0;
+}
+
+.slide-left-leave-to {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+
+/* 展开收起过渡 */
+.collapse-enter-active,
+.collapse-leave-active {
+  transition:
+    height var(--transition-normal) ease,
+    opacity var(--transition-fast) ease;
+  overflow: hidden;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  height: 0;
+  opacity: 0;
+}
+
+/* 侧边栏过渡 */
+.sidebar-enter-active,
+.sidebar-leave-active {
+  transition: width var(--transition-normal) ease;
+}
+
+/* 向上滑入 */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.slide-up-enter-from {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+.slide-up-leave-to {
+  transform: translateY(-30px);
+  opacity: 0;
+}
+
+/* 向下滑入 */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.slide-down-enter-from {
+  transform: translateY(-30px);
+  opacity: 0;
+}
+
+.slide-down-leave-to {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+/* 主题切换动画（ViewTransition） */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/*
+ * backdrop-filter 会创建独立的 GPU 合成层，在某些 Chrome 版本中会
+ * 浮到 ViewTransition 伪元素之上导致动画被遮挡。
+ * :active-view-transition 在过渡进行期间自动应用于 html 元素，
+ * 此期间临时禁用所有 backdrop-filter 以保证扩散动画完整可见。
+ */
+html:active-view-transition *,
+html:active-view-transition *::before,
+html:active-view-transition *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* z-index 由 global.css 中的 html.dark 选择器自动控制：
+ *   亮色模式：new 在上（z-2147483646），old 在下（z-1）→ 新（亮）层扩散覆盖
+ *   暗色模式：old 在上（z-2147483646），new 在下（z-1）→ 旧（亮）层收缩消退
+ * 不再需要 data-theme-to 属性手动管理 z-index */

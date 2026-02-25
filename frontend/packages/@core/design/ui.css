@@ -1,0 +1,180 @@
+.side-content {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.side-content[data-side='top'] {
+  animation-name: slide-up;
+}
+
+.side-content[data-side='bottom'] {
+  animation-name: slide-down;
+}
+
+.side-content[data-side='left'] {
+  animation-name: slide-left;
+}
+
+.side-content[data-side='right'] {
+  animation-name: slide-right;
+}
+
+.breadcrumb-transition-enter-active {
+  transition:
+    transform 0.4s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.breadcrumb-transition-leave-active {
+  display: none;
+}
+
+.breadcrumb-transition-enter-from {
+  opacity: 0;
+  transform: translateX(30px) skewX(-30deg);
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.z-popup {
+  z-index: var(--popup-z-index);
+}
+
+/* ==================== 布局核心样式 ==================== */
+
+.bg-sidebar {
+  background: hsl(var(--sidebar));
+}
+
+.bg-sidebar-deep {
+  background: hsl(var(--sidebar-deep));
+}
+
+.bg-header {
+  background: hsl(var(--header));
+}
+
+.bg-background-deep {
+  background: hsl(var(--background-deep));
+}
+
+.bg-overlay {
+  background: hsl(var(--overlay));
+}
+
+/* menu align helpers compatible with vben layout */
+.menu-align-start {
+  --menu-align: start;
+}
+
+.menu-align-center {
+  --menu-align: center;
+}
+
+.menu-align-end {
+  --menu-align: end;
+}
+
+/* ==================== 偏好设置公共样式 ==================== */
+
+/* 每个分组的标题行 */
+.section-title {
+  margin-bottom: 4px;
+  padding: 0 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+}
+
+/* 数值输入框后的单位文字 */
+.unit-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+/* 键盘快捷键徽章 */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: ui-monospace, 'SFMono-Regular', monospace;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* 设置行：等高等间距 + hover 背景 */
+.pref-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  padding: 0 6px;
+  margin: 1px 0;
+  height: 38px;
+  transition: background-color 0.15s ease;
+}
+
+.pref-row:hover {
+  background-color: hsl(var(--accent));
+}
+
+.pref-row > span:first-child,
+.pref-row > label:first-child {
+  font-size: 13px;
+  line-height: 1.4;
+  flex-shrink: 1;
+  min-width: 0;
+}

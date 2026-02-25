@@ -1,0 +1,16 @@
+export default {
+  not_found: '页面不存在',
+  not_found_desc: '抱歉，您访问的页面不存在',
+  forbidden: '无权限访问',
+  forbidden_desc: '抱歉，您没有权限访问该页面',
+  server_error: '服务器错误',
+  server_error_desc: '抱歉，服务器发生了错误，请稍后重试',
+  offline: '网络已断开',
+  offline_desc: '请检查您的网络连接后重试',
+  coming_soon: '功能开发中',
+  coming_soon_desc: '该功能正在开发中，敬请期待',
+  back_home: '返回首页',
+  back_prev: '返回上一页',
+  refresh: '刷新重试',
+  retry: '重新连接',
+}
