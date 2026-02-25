@@ -20,6 +20,7 @@ const shell = useLayoutShellAdapter()
 const sidebarForceDark = computed(() => shell.appStore.sidebarDark && !isDark.value)
 const headerForceDark = computed(() => shell.appStore.headerDark && !isDark.value)
 const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark) ? 'dark' : 'light')
+const sidebarSubTheme = computed(() => (isDark.value || shell.appStore.sidebarSubDark) ? 'dark' : 'light')
 const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark) ? 'dark' : 'light')
 
 const sidebarEnableState = computed(
@@ -58,6 +59,7 @@ const sidebarEnableState = computed(
         :expanded-width="shell.expandedSidebarWidth.value"
         :effective-collapsed="shell.effectiveCollapsed.value"
         :sidebar-theme="sidebarTheme"
+        :sidebar-sub-theme="sidebarSubTheme"
         @sidebar-mouse-enter="shell.handleSidebarMouseEnter"
         @sidebar-mouse-leave="shell.handleSidebarMouseLeave"
       />

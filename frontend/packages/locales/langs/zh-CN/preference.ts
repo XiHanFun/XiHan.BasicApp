@@ -68,6 +68,7 @@ export default {
       sidebar_sub_dark: '深色侧边栏子栏',
       header_dark: '深色顶栏',
       sidebar_dark_tip: '在浅色主题下，单独将侧边栏切换为深色风格',
+      sidebar_sub_dark_tip: '当主题为浅色，开启深色侧边栏且布局使用双列菜单模式时可开启',
       header_dark_tip: '在浅色主题下，单独将顶栏切换为深色风格',
     },
     font: {

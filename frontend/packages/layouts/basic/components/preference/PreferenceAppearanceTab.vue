@@ -2,9 +2,10 @@
 import type { useAppStore } from '~/stores'
 import { Icon } from '@iconify/vue'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DEFAULT_THEME_COLOR } from '~/constants'
+import { useTheme } from '~/hooks'
 import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
@@ -16,6 +17,16 @@ const emit = defineEmits<{
 
 const appStore = props.appStore
 const { t } = useI18n()
+const { isDark } = useTheme()
+
+const isDualColumn = computed(() => ['side-mixed', 'header-mix'].includes(appStore.layoutMode))
+const sidebarSubDarkDisabled = computed(
+  () => isDark.value || !isDualColumn.value || !appStore.sidebarDark,
+)
+
+watch(() => appStore.sidebarDark, (val) => {
+  if (!val) appStore.sidebarSubDark = false
+})
 
 interface ThemePresetItem {
   color: string
@@ -258,10 +269,13 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         <NSwitch v-model:value="appStore.sidebarDark" />
       </div>
       <div class="pref-row">
-        <span :class="{ 'text-[hsl(var(--muted-foreground))]': !appStore.sidebarDark }">
-          {{ t('preference.appearance.navigation.sidebar_sub_dark') }}
-        </span>
-        <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="!appStore.sidebarDark" />
+        <div class="flex items-center gap-1">
+          <span :class="{ 'text-[hsl(var(--muted-foreground))]': sidebarSubDarkDisabled }">
+            {{ t('preference.appearance.navigation.sidebar_sub_dark') }}
+          </span>
+          <PrefTip :content="t('preference.appearance.navigation.sidebar_sub_dark_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="sidebarSubDarkDisabled" />
       </div>
       <div class="pref-row">
         <div class="flex items-center gap-1">

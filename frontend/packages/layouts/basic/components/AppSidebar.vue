@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { MenuOption } from 'naive-ui'
+import { darkTheme, NConfigProvider } from 'naive-ui'
 import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '@iconify/vue'
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   expandedWidth: 224,
   effectiveCollapsed: false,
   sidebarTheme: 'light',
+  sidebarSubTheme: 'light',
 })
 
 const emit = defineEmits<{
@@ -74,6 +76,7 @@ interface Props {
   expandedWidth?: number
   effectiveCollapsed?: boolean
   sidebarTheme?: string
+  sidebarSubTheme?: string
 }
 
 const appStore = useAppStore()
@@ -107,9 +110,11 @@ const isSplitMenuLayout = computed(
 )
 
 const extraMenuTheme = computed<'dark' | 'light'>(() => {
-  if (props.sidebarTheme === 'dark')
-    return 'dark'
-  return appStore.sidebarSubDark || appStore.sidebarDark ? 'dark' : 'light'
+  return props.sidebarSubTheme === 'dark' ? 'dark' : 'light'
+})
+
+const extraPanelNaiveTheme = computed(() => {
+  return extraMenuTheme.value === 'dark' ? darkTheme : null
 })
 
 function renderIcon(icon: string) {
@@ -628,45 +633,47 @@ watch(
       <div
         v-if="isDualColumn"
         :class="[
-          appStore.sidebarSubDark || appStore.sidebarDark ? 'dark' : 'light',
+          sidebarSubTheme,
           { 'border-l': extraVisible },
         ]"
         :style="extraStyle"
         class="fixed top-0 h-full overflow-hidden border-r border-border bg-sidebar transition-all duration-200"
       >
-        <SidebarCollapseButton
-          v-if="isDualColumn && appStore.sidebarExpandOnHover"
-          :collapsed="extraCollapse"
-          @update:collapsed="(v: boolean) => emit('update:extraCollapse', v)"
-        />
-        <SidebarFixedButton
-          v-if="!extraCollapse"
-          v-model:expand-on-hover="appStore.sidebarExpandOnHover"
-        />
-        <div
-          v-if="!extraCollapse && headerHeight > 0"
-          :style="extraTitleStyle"
-          class="flex items-center justify-center"
-        >
-          <span class="truncate text-base font-semibold text-foreground">{{ appTitle }}</span>
-        </div>
-        <div
-          :style="extraContentStyle"
-          class="overflow-y-auto overflow-x-hidden border-border py-2"
-        >
-          <SidebarMenu
-            :active-key="activeKey"
+        <NConfigProvider :theme="extraPanelNaiveTheme" class="h-full">
+          <SidebarCollapseButton
+            v-if="isDualColumn && appStore.sidebarExpandOnHover"
             :collapsed="extraCollapse"
-            :sidebar-theme="extraMenuTheme"
-            :menu-options="
-              isSideMixedLayout ? sideMixedSecondaryOptions : headerMixSecondaryOptions
-            "
-            :navigation-style="appStore.navigationStyle"
-            :accordion="appStore.navigationAccordion"
-            :no-top-padding="true"
-            @menu-update="handleMenuUpdate"
+            @update:collapsed="(v: boolean) => emit('update:extraCollapse', v)"
           />
-        </div>
+          <SidebarFixedButton
+            v-if="!extraCollapse"
+            v-model:expand-on-hover="appStore.sidebarExpandOnHover"
+          />
+          <div
+            v-if="!extraCollapse && headerHeight > 0"
+            :style="extraTitleStyle"
+            class="flex items-center justify-center"
+          >
+            <span class="truncate text-base font-semibold text-foreground">{{ appTitle }}</span>
+          </div>
+          <div
+            :style="extraContentStyle"
+            class="overflow-y-auto overflow-x-hidden border-border py-2"
+          >
+            <SidebarMenu
+              :active-key="activeKey"
+              :collapsed="extraCollapse"
+              :sidebar-theme="extraMenuTheme"
+              :menu-options="
+                isSideMixedLayout ? sideMixedSecondaryOptions : headerMixSecondaryOptions
+              "
+              :navigation-style="appStore.navigationStyle"
+              :accordion="appStore.navigationAccordion"
+              :no-top-padding="true"
+              @menu-update="handleMenuUpdate"
+            />
+          </div>
+        </NConfigProvider>
       </div>
     </aside>
   </template>
