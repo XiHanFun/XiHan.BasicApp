@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { h, onMounted, ref } from 'vue'
-import { NCard, NDataTable, NTag, useMessage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import type { SysPermission } from '~/types'
+import { NCard, NDataTable, NTag, useMessage } from 'naive-ui'
+import { h, onMounted, ref } from 'vue'
 import { getPermissionListApi } from '~/api'
 
 const message = useMessage()

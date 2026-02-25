@@ -45,12 +45,21 @@
 }
 
 .xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected::before,
-.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
+.xihan-top-menu
+  .n-menu--horizontal
+  .n-submenu
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected::before {
   background-color: hsl(var(--primary) / 0.15) !important;
 }
 
 .xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header,
-.xihan-top-menu .n-menu--horizontal .n-submenu > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header {
+.xihan-top-menu
+  .n-menu--horizontal
+  .n-submenu
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected
+  .n-menu-item-content-header {
   color: hsl(var(--primary)) !important;
 }
 

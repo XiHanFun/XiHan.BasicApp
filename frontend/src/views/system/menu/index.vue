@@ -1,28 +1,28 @@
 <script lang="ts" setup>
-import { ref, h, onMounted } from 'vue'
+import type { DataTableColumns } from 'naive-ui'
+import type { SysMenu } from '~/types'
+import { Icon } from '@iconify/vue'
 import {
+  NButton,
   NCard,
   NDataTable,
-  NButton,
-  NSpace,
-  NTag,
-  NIcon,
-  NModal,
   NForm,
   NFormItem,
+  NIcon,
   NInput,
   NInputNumber,
-  NSelect,
-  NSwitch,
+  NModal,
   NPopconfirm,
+  NSelect,
+  NSpace,
+  NSwitch,
+  NTag,
   NTreeSelect,
   useMessage,
 } from 'naive-ui'
-import type { DataTableColumns } from 'naive-ui'
-import { Icon } from '@iconify/vue'
-import type { SysMenu } from '~/types'
+import { h, onMounted, ref } from 'vue'
+import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '~/api'
 import { MENU_TYPE, STATUS_OPTIONS } from '~/constants'
-import { getMenuListApi, createMenuApi, updateMenuApi, deleteMenuApi } from '~/api'
 import { listToTree } from '~/utils'
 
 defineOptions({ name: 'SystemMenuPage' })

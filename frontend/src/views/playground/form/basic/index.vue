@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { NButton, NCard, NForm, NFormItem, NInput, NSelect, NSpace, useMessage } from 'naive-ui'
+import { ref } from 'vue'
 
 const message = useMessage()
 const form = ref({ name: '', email: '', type: null as string | null })

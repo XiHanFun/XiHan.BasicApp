@@ -1,7 +1,7 @@
-import type { SysRole, PageResult, RolePageQuery } from '~/types'
-import requestClient from '../request'
+import type { PageResult, RolePageQuery, SysRole } from '~/types'
 import { API_CONTRACT } from '../contract'
 import { normalizePageResult } from '../helpers'
+import requestClient from '../request'
 
 export async function getRolePageApi(params: RolePageQuery): Promise<PageResult<SysRole>> {
   const data = await requestClient.get<any>(API_CONTRACT.system.roles, { params })

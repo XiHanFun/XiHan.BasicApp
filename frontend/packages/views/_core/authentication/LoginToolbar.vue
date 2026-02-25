@@ -8,11 +8,11 @@ import { useAppStore } from '~/stores'
 
 export type LoginFormAlign = 'left' | 'center' | 'right'
 
+defineOptions({ name: 'LoginToolbar' })
+
 const emit = defineEmits<{
   layoutChange: [align: LoginFormAlign]
 }>()
-
-defineOptions({ name: 'LoginToolbar' })
 
 const appStore = useAppStore()
 const { isDark, toggleThemeWithTransition, setThemeColor } = useTheme()

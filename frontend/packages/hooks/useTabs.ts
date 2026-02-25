@@ -16,19 +16,17 @@ export function useTabs() {
   const tabbarStore = useTabbarStore()
 
   /** 当前路由对应的 tab */
-  const currentTab = computed(() =>
-    tabbarStore.tabs.find(tab => tab.path === route.path),
-  )
+  const currentTab = computed(() => tabbarStore.tabs.find((tab) => tab.path === route.path))
 
   /** 各关闭操作的禁用状态（供菜单项绑定） */
   const disableState = computed(() => {
     const tabs = tabbarStore.tabs
     const currentPath = route.path
-    const currentIndex = tabs.findIndex(tab => tab.path === currentPath)
+    const currentIndex = tabs.findIndex((tab) => tab.path === currentPath)
     const tab = tabs[currentIndex]
-    const closableTabs = tabs.filter(t => t.closable)
-    const leftClosable = tabs.slice(0, currentIndex).some(t => t.closable)
-    const rightClosable = tabs.slice(currentIndex + 1).some(t => t.closable)
+    const closableTabs = tabs.filter((t) => t.closable)
+    const leftClosable = tabs.slice(0, currentIndex).some((t) => t.closable)
+    const rightClosable = tabs.slice(currentIndex + 1).some((t) => t.closable)
 
     return {
       closeCurrent: !tab?.closable,

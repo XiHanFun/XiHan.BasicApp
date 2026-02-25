@@ -85,7 +85,9 @@ watch(
     <!-- 移动端：只显示图标按钮 -->
     <div class="sm:hidden">
       <button type="button" class="search-trigger-icon" @click="layoutBridgeStore.requestOpenGlobalSearch()">
-        <NIcon size="16"><Icon icon="lucide:search" /></NIcon>
+        <NIcon size="16">
+          <Icon icon="lucide:search" />
+        </NIcon>
       </button>
     </div>
   </div>

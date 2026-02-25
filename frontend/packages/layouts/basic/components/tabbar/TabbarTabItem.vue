@@ -45,24 +45,24 @@ function onAuxClick(event: MouseEvent) {
     :class="[
       styleType === 'chrome'
         ? [
-            'chrome-tab -mr-3 h-8 items-center',
-            {
-              'is-active': active,
-              'is-last-tab': isLast,
-              'affix-tab': Boolean(item.pinned),
-              draggable,
-            },
-          ]
+          'chrome-tab -mr-3 h-8 items-center',
+          {
+            'is-active': active,
+            'is-last-tab': isLast,
+            'affix-tab': Boolean(item.pinned),
+            draggable,
+          },
+        ]
         : [
-            `flat-tab flat-tab--${styleType}`,
-            {
-              'is-active': active,
-              'affix-tab': Boolean(item.pinned),
-              draggable,
-              'has-left-divider': index > 0 && styleType !== 'card',
-              'is-last': isLast && styleType !== 'card',
-            },
-          ],
+          `flat-tab flat-tab--${styleType}`,
+          {
+            'is-active': active,
+            'affix-tab': Boolean(item.pinned),
+            draggable,
+            'has-left-divider': index > 0 && styleType !== 'card',
+            'is-last': isLast && styleType !== 'card',
+          },
+        ],
     ]"
     role="button"
     tabindex="0"
@@ -110,7 +110,9 @@ function onAuxClick(event: MouseEvent) {
             aria-label="关闭标签页"
             @click.stop="emit('close', item.path, $event)"
           >
-            <NIcon size="12"><Icon icon="lucide:x" /></NIcon>
+            <NIcon size="12">
+              <Icon icon="lucide:x" />
+            </NIcon>
           </button>
           <button
             v-else-if="item.pinned && item.path !== HOME_PATH"
@@ -119,7 +121,9 @@ function onAuxClick(event: MouseEvent) {
             aria-label="取消固定"
             @click.stop="emit('togglePin', item.path)"
           >
-            <NIcon size="12"><Icon icon="lucide:pin" /></NIcon>
+            <NIcon size="12">
+              <Icon icon="lucide:pin" />
+            </NIcon>
           </button>
         </div>
       </div>
@@ -139,7 +143,9 @@ function onAuxClick(event: MouseEvent) {
           aria-label="关闭标签页"
           @click.stop="emit('close', item.path, $event)"
         >
-          <NIcon size="12"><Icon icon="lucide:x" /></NIcon>
+          <NIcon size="12">
+            <Icon icon="lucide:x" />
+          </NIcon>
         </button>
         <button
           v-else-if="item.pinned && item.path !== HOME_PATH"
@@ -148,7 +154,9 @@ function onAuxClick(event: MouseEvent) {
           aria-label="取消固定"
           @click.stop="emit('togglePin', item.path)"
         >
-          <NIcon size="12"><Icon icon="lucide:pin" /></NIcon>
+          <NIcon size="12">
+            <Icon icon="lucide:pin" />
+          </NIcon>
         </button>
       </div>
     </template>

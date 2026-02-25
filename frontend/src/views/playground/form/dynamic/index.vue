@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { NButton, NCard, NForm, NFormItem, NInput, NSpace, useMessage } from 'naive-ui'
+import { ref } from 'vue'
 
 const message = useMessage()
 const items = ref([{ key: 0, label: '', value: '' }])
@@ -9,7 +9,7 @@ function addItem() {
   items.value.push({ key: nextKey++, label: '', value: '' })
 }
 function removeItem(key: number) {
-  items.value = items.value.filter(i => i.key !== key)
+  items.value = items.value.filter((i) => i.key !== key)
 }
 function handleSubmit() {
   message.success(`提交了 ${items.value.length} 项`)

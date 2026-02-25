@@ -72,14 +72,14 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     iconRenderer: renderRouteIcon,
   })
   if (isSplitMode.value) {
-    return options.map((item) => ({ ...item, children: undefined }))
+    return options.map(item => ({ ...item, children: undefined }))
   }
   return options
 })
 
 function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
   const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const firstVisibleChild = routeItem.children?.find((child) => !toLayoutMeta(child).hidden)
+  const firstVisibleChild = routeItem.children?.find(child => !toLayoutMeta(child).hidden)
   if (!firstVisibleChild) {
     return fullPath
   }
@@ -91,20 +91,20 @@ const topMenuActive = computed(() => {
     return String(route.meta?.activePath || route.path || '')
   }
   return (
-    findMatchedRoutePath(topMenuSource.value) ??
-    resolveFullPath(topMenuSource.value.find((item) => !toLayoutMeta(item).hidden)?.path ?? '')
+    findMatchedRoutePath(topMenuSource.value)
+    ?? resolveFullPath(topMenuSource.value.find(item => !toLayoutMeta(item).hidden)?.path ?? '')
   )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter((item) => item.meta?.title && !item.meta?.hidden)
+  const matched = route.matched.filter(item => item.meta?.title && !item.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
   return matched.map((item, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter((sibling) => sibling.meta?.title && !sibling.meta?.hidden)
+      .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
       .map((sibling) => {
         const siblingTitle = String(sibling.meta?.title ?? '')
         const siblingIcon = sibling.meta?.icon as string | undefined
@@ -229,7 +229,7 @@ function handleTopMenuSelect(path: string) {
     router.push(path)
     return
   }
-  const rootMenu = topMenuSource.value.find((item) => resolveFullPath(item.path) === path)
+  const rootMenu = topMenuSource.value.find(item => resolveFullPath(item.path) === path)
   if (!rootMenu) {
     return
   }
@@ -373,10 +373,7 @@ onBeforeUnmount(() => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected {
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
   background-color: hsl(var(--primary) / 15%);
   border-radius: 6px;
 }

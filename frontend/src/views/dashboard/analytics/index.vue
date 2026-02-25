@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { NCard, NGrid, NGridItem, NIcon, NNumberAnimation, NSelect, NStatistic } from 'naive-ui'
 import { Icon } from '@iconify/vue'
+import { NCard, NGrid, NGridItem, NIcon, NNumberAnimation, NSelect } from 'naive-ui'
 import { ref } from 'vue'
 
 defineOptions({ name: 'AnalyticsPage' })
@@ -35,16 +35,20 @@ const summaryCards = ref([
           <div class="flex items-center gap-3">
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-              :style="{ backgroundColor: card.color + '20' }"
+              :style="{ backgroundColor: `${card.color}20` }"
             >
               <NIcon size="20" :style="{ color: card.color }">
                 <Icon :icon="card.icon" />
               </NIcon>
             </div>
             <div>
-              <p class="text-xs text-gray-500">{{ card.label }}</p>
+              <p class="text-xs text-gray-500">
+                {{ card.label }}
+              </p>
               <p class="mt-0.5 text-xl font-bold">
-                <template v-if="card.isText">{{ card.value }}</template>
+                <template v-if="card.isText">
+                  {{ card.value }}
+                </template>
                 <NNumberAnimation v-else :from="0" :to="card.value as number" :duration="1200" />
               </p>
             </div>
@@ -59,7 +63,9 @@ const summaryCards = ref([
         <NCard title="访问趋势" :bordered="false">
           <div class="flex h-48 items-center justify-center text-gray-400">
             <div class="text-center">
-              <NIcon size="48" class="mb-2 opacity-30"><Icon icon="lucide:bar-chart-2" /></NIcon>
+              <NIcon size="48" class="mb-2 opacity-30">
+                <Icon icon="lucide:bar-chart-2" />
+              </NIcon>
               <p class="text-sm">可集成 ECharts 等图表库</p>
             </div>
           </div>
@@ -69,7 +75,9 @@ const summaryCards = ref([
         <NCard title="访问来源" :bordered="false">
           <div class="flex h-48 items-center justify-center text-gray-400">
             <div class="text-center">
-              <NIcon size="48" class="mb-2 opacity-30"><Icon icon="lucide:pie-chart" /></NIcon>
+              <NIcon size="48" class="mb-2 opacity-30">
+                <Icon icon="lucide:pie-chart" />
+              </NIcon>
               <p class="text-sm">可集成 ECharts 等图表库</p>
             </div>
           </div>

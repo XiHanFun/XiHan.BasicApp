@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import { NButton, NCard, NInput, NSpace } from 'naive-ui'
+import { computed, ref } from 'vue'
 import { storage } from '~/utils'
 
 const key = 'playground_cache_text'

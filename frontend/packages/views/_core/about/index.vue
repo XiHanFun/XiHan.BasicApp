@@ -39,15 +39,25 @@ const frameworks = [
       <NDivider class="my-4" />
       <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
         <div class="space-y-1">
-          <div class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('page.about.version') }}</div>
-          <NTag type="primary" size="small">v1.0.0</NTag>
+          <div class="text-xs text-[hsl(var(--muted-foreground))]">
+            {{ t('page.about.version') }}
+          </div>
+          <NTag type="primary" size="small">
+            v1.0.0
+          </NTag>
         </div>
         <div class="space-y-1">
-          <div class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('page.about.license') }}</div>
-          <NTag size="small">MIT</NTag>
+          <div class="text-xs text-[hsl(var(--muted-foreground))]">
+            {{ t('page.about.license') }}
+          </div>
+          <NTag size="small">
+            MIT
+          </NTag>
         </div>
         <div class="space-y-1">
-          <div class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('page.about.author') }}</div>
+          <div class="text-xs text-[hsl(var(--muted-foreground))]">
+            {{ t('page.about.author') }}
+          </div>
           <span class="text-[hsl(var(--foreground))]">XiHan Team</span>
         </div>
       </div>

@@ -6,31 +6,31 @@ export function useTabbarPreferences() {
 
   const tabbarEnabled = computed({
     get: () => appStore.tabbarEnabled,
-    set: value => appStore.setTabbarEnabled(value),
+    set: (value) => appStore.setTabbarEnabled(value),
   })
   const tabbarPersist = computed({
     get: () => appStore.tabbarPersist,
-    set: value => appStore.setTabbarPersist(value),
+    set: (value) => appStore.setTabbarPersist(value),
   })
   const tabbarVisitHistory = computed({
     get: () => appStore.tabbarVisitHistory,
-    set: value => appStore.setTabbarVisitHistory(value),
+    set: (value) => appStore.setTabbarVisitHistory(value),
   })
   const tabbarDraggable = computed({
     get: () => appStore.tabbarDraggable,
-    set: value => appStore.setTabbarDraggable(value),
+    set: (value) => appStore.setTabbarDraggable(value),
   })
   const tabbarShowMore = computed({
     get: () => appStore.tabbarShowMore,
-    set: value => appStore.setTabbarShowMore(value),
+    set: (value) => appStore.setTabbarShowMore(value),
   })
   const tabbarShowMaximize = computed({
     get: () => appStore.tabbarShowMaximize,
-    set: value => appStore.setTabbarShowMaximize(value),
+    set: (value) => appStore.setTabbarShowMaximize(value),
   })
   const tabbarMaxCount = computed({
     get: () => appStore.tabbarMaxCount,
-    set: value => appStore.setTabbarMaxCount(value),
+    set: (value) => appStore.setTabbarMaxCount(value),
   })
 
   return {

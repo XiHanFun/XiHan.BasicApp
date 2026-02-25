@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { NCard, NColorPicker, NSwitch } from 'naive-ui'
+import { computed } from 'vue'
 import { useTheme } from '~/hooks'
 import { useAppStore } from '~/stores'
 

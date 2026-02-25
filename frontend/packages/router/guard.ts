@@ -37,8 +37,7 @@ export function setupRouterGuard(router: Router) {
 
     // 未登录
     if (!accessStore.accessToken) {
-      if (isWhiteListed)
-        return next()
+      if (isWhiteListed) return next()
       return next({
         path: LOGIN_PATH,
         query: { redirect: encodeURIComponent(to.fullPath) },
@@ -56,8 +55,7 @@ export function setupRouterGuard(router: Router) {
       try {
         const userInfo = await getUserInfoApi()
         userStore.setUserInfo(userInfo)
-      }
-      catch {
+      } catch {
         accessStore.$reset()
         userStore.$reset()
         return next({
@@ -74,8 +72,7 @@ export function setupRouterGuard(router: Router) {
         accessStore.setAccessRoutes(dynamicMenus)
         installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
         return next({ ...to, replace: true })
-      }
-      catch {
+      } catch {
         accessStore.setAccessRoutes([])
       }
     }
@@ -87,9 +84,9 @@ export function setupRouterGuard(router: Router) {
     }
 
     if (roles?.length || permissions?.length) {
-      const hasAccess
-        = roles?.some(r => userStore.hasRole(r))
-          || permissions?.some(p => userStore.hasPermission(p))
+      const hasAccess =
+        roles?.some((r) => userStore.hasRole(r)) ||
+        permissions?.some((p) => userStore.hasPermission(p))
 
       if (!hasAccess) {
         return next({ path: '/403', replace: true })
@@ -110,7 +107,7 @@ export function setupRouterGuard(router: Router) {
       tabbarStore.closeOthers(to.fullPath)
     }
     if (appStore.tabbarMaxCount > 0 && tabbarStore.tabs.length > appStore.tabbarMaxCount) {
-      const removable = tabbarStore.tabs.find(tab => tab.closable && tab.path !== to.fullPath)
+      const removable = tabbarStore.tabs.find((tab) => tab.closable && tab.path !== to.fullPath)
       if (removable) {
         tabbarStore.removeTab(removable.path)
       }

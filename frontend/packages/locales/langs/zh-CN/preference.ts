@@ -177,7 +177,8 @@ export default {
       visit_history_tip: '记录标签访问历史，支持通过前进/后退操作在已访问标签间切换',
       max_count_tip: '超出数量限制时，最早打开的标签将被自动关闭，设为 0 表示不限制',
       draggable_tip: '按住标签并拖动可调整标签的排列顺序',
-      scroll_response_tip: '开启后标签栏可响应鼠标纵向滚轮事件。\n关闭时只能响应系统横向滚动（需按住 Shift 再滚动）',
+      scroll_response_tip:
+        '开启后标签栏可响应鼠标纵向滚轮事件。\n关闭时只能响应系统横向滚动（需按住 Shift 再滚动）',
       middle_click_close_tip: '使用鼠标中键点击标签页可快速将其关闭',
     },
     widget: {

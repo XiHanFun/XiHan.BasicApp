@@ -1,6 +1,6 @@
-import type { SysMenu, MenuRoute } from '~/types'
-import requestClient from '../request'
+import type { MenuRoute, SysMenu } from '~/types'
 import { API_CONTRACT } from '../contract'
+import requestClient from '../request'
 
 export function getMenuTreeApi() {
   return requestClient.get<SysMenu[]>(`${API_CONTRACT.system.menus}/tree`)

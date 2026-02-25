@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
 import type { UserInfo } from '~/types'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 import { USER_INFO_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 

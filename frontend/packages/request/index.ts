@@ -1,10 +1,11 @@
-import axios, {
-  type AxiosInstance,
-  type AxiosRequestConfig,
-  type AxiosResponse,
-  type InternalAxiosRequestConfig,
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
 } from 'axios'
 import type { ApiResponse } from '~/types'
+import axios from 'axios'
 import { BIZ_CODE, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 
@@ -204,5 +205,6 @@ export class RequestClient {
   }
 }
 
-export const createRequestClient = (baseURL: string, apiPrefix = '/api') =>
-  new RequestClient({ baseURL, apiPrefix })
+export function createRequestClient(baseURL: string, apiPrefix = '/api') {
+  return new RequestClient({ baseURL, apiPrefix })
+}

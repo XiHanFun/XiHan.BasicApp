@@ -1,20 +1,18 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import type { FormInst } from 'naive-ui'
 import {
-  NCard,
   NAvatar,
-  NTabs,
-  NTabPane,
+  NButton,
+  NCard,
   NForm,
   NFormItem,
   NInput,
-  NButton,
-  NSpace,
+  NTabPane,
+  NTabs,
   NTag,
   useMessage,
 } from 'naive-ui'
-import type { FormInst } from 'naive-ui'
-import { Icon } from '@iconify/vue'
+import { ref } from 'vue'
 import { useUserStore } from '~/stores'
 
 defineOptions({ name: 'ProfilePage' })
@@ -76,8 +74,12 @@ async function changePassword() {
           :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
         />
         <div class="flex-1">
-          <h2 class="text-xl font-semibold">{{ userStore.nickname }}</h2>
-          <p class="mt-1 text-sm text-gray-500">@{{ userStore.username }}</p>
+          <h2 class="text-xl font-semibold">
+            {{ userStore.nickname }}
+          </h2>
+          <p class="mt-1 text-sm text-gray-500">
+            @{{ userStore.username }}
+          </p>
           <div class="mt-2 flex flex-wrap gap-2">
             <NTag v-for="role in userStore.roles" :key="role" type="primary" size="small">
               {{ role }}
@@ -109,7 +111,9 @@ async function changePassword() {
               <NInput v-model:value="baseForm.phone" placeholder="请输入手机号" />
             </NFormItem>
             <NFormItem>
-              <NButton type="primary" @click="saveBaseInfo">保存修改</NButton>
+              <NButton type="primary" @click="saveBaseInfo">
+                保存修改
+              </NButton>
             </NFormItem>
           </NForm>
         </NTabPane>
@@ -149,7 +153,9 @@ async function changePassword() {
               />
             </NFormItem>
             <NFormItem>
-              <NButton type="primary" @click="changePassword">修改密码</NButton>
+              <NButton type="primary" @click="changePassword">
+                修改密码
+              </NButton>
             </NFormItem>
           </NForm>
         </NTabPane>

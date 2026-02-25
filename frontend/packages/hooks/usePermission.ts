@@ -1,5 +1,4 @@
-import { useUserStore } from '~/stores'
-import { useAccessStore } from '~/stores'
+import { useAccessStore, useUserStore } from '~/stores'
 
 export function usePermission() {
   const userStore = useUserStore()

@@ -1,6 +1,6 @@
 import type { LoginParams, LoginResult, UserInfo } from '~/types'
-import requestClient from '../request'
 import { API_CONTRACT } from '../contract'
+import requestClient from '../request'
 
 function normalizeUserInfo(raw: any): UserInfo {
   return {

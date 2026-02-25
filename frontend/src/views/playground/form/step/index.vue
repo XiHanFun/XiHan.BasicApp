@@ -1,6 +1,16 @@
 <script setup lang="ts">
+import {
+  NButton,
+  NCard,
+  NForm,
+  NFormItem,
+  NInput,
+  NSpace,
+  NStep,
+  NSteps,
+  useMessage,
+} from 'naive-ui'
 import { ref } from 'vue'
-import { NButton, NCard, NForm, NFormItem, NInput, NSpace, NSteps, NStep, useMessage } from 'naive-ui'
 
 const message = useMessage()
 const current = ref(1)
@@ -40,7 +50,9 @@ function handlePrev() {
       </template>
       <NSpace justify="end" class="mt-4">
         <NButton v-if="current > 1" @click="handlePrev">上一步</NButton>
-        <NButton type="primary" @click="handleNext">{{ current < 3 ? '下一步' : '完成' }}</NButton>
+        <NButton type="primary" @click="handleNext">
+          {{ current < 3 ? '下一步' : '完成' }}
+        </NButton>
       </NSpace>
     </NForm>
   </NCard>

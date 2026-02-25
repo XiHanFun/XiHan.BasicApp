@@ -2,13 +2,8 @@ import type { CSSProperties } from 'vue'
 import type { HeaderMode } from '../contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { LAYOUT_EVENT_TOGGLE_SIDEBAR_REQUEST } from '~/constants'
 import { useContentMaximize } from '~/hooks'
-import {
-  useAppStore,
-  useLayoutBridgeStore,
-  useLayoutPreferences,
-} from '~/stores'
+import { useAppStore, useLayoutBridgeStore, useLayoutPreferences } from '~/stores'
 import { useLayout } from './use-layout'
 
 export function useLayoutShellAdapter() {
@@ -104,10 +99,10 @@ export function useLayoutShellAdapter() {
 
   const headerFixed = computed(() => {
     return (
-      isMixedNav.value
-      || headerMode.value === 'fixed'
-      || isHeaderAutoScrollMode.value
-      || isHeaderAutoMode.value
+      isMixedNav.value ||
+      headerMode.value === 'fixed' ||
+      isHeaderAutoScrollMode.value ||
+      isHeaderAutoMode.value
     )
   })
 
@@ -122,31 +117,28 @@ export function useLayoutShellAdapter() {
     let sidebarAndExtraWidth = 'unset'
 
     if (
-      headerFixed.value
-      && currentLayout.value !== 'top'
-      && currentLayout.value !== 'mix'
-      && currentLayout.value !== 'header-sidebar'
-      && showSidebar.value
-      && !isMobile.value
+      headerFixed.value &&
+      currentLayout.value !== 'top' &&
+      currentLayout.value !== 'mix' &&
+      currentLayout.value !== 'header-sidebar' &&
+      showSidebar.value &&
+      !isMobile.value
     ) {
-      const isSideNavEffective
-        = (isSideMixedNav.value || isHeaderMixedNav.value)
-        && appStore.sidebarExpandOnHover
-        && sidebarExtraVisible.value
+      const isSideNavEffective =
+        (isSideMixedNav.value || isHeaderMixedNav.value) &&
+        appStore.sidebarExpandOnHover &&
+        sidebarExtraVisible.value
 
       if (isSideNavEffective) {
         const sideCollapseW = sidebarCollapse.value
           ? getSideCollapseWidth.value
           : SIDEBAR_MIXED_WIDTH
-        const sideW = sidebarExtraCollapse.value
-          ? SIDEBAR_COLLAPSE_WIDTH
-          : sidebarWidth.value
+        const sideW = sidebarExtraCollapse.value ? SIDEBAR_COLLAPSE_WIDTH : sidebarWidth.value
         sidebarAndExtraWidth = `${sideCollapseW + sideW}px`
         width = `calc(100% - ${sidebarAndExtraWidth})`
-      }
-      else {
-        sidebarAndExtraWidth
-          = sidebarExpandOnHovering.value && !appStore.sidebarExpandOnHover
+      } else {
+        sidebarAndExtraWidth =
+          sidebarExpandOnHovering.value && !appStore.sidebarExpandOnHover
             ? `${getSideCollapseWidth.value}px`
             : `${getSidebarWidth.value}px`
         width = `calc(100% - ${sidebarAndExtraWidth})`
@@ -161,19 +153,15 @@ export function useLayoutShellAdapter() {
 
     if (!isMixedNav.value || !appStore.sidebarShow) {
       width = '100%'
-    }
-    else if (sidebarEnableState.value) {
+    } else if (sidebarEnableState.value) {
       const onHoveringWidth = appStore.sidebarExpandOnHover
         ? sidebarWidth.value
         : getSideCollapseWidth.value
 
-      marginLeft = sidebarCollapse.value
-        ? getSideCollapseWidth.value
-        : onHoveringWidth
+      marginLeft = sidebarCollapse.value ? getSideCollapseWidth.value : onHoveringWidth
 
       width = `calc(100% - ${sidebarCollapse.value ? getSidebarWidth.value : onHoveringWidth}px)`
-    }
-    else {
+    } else {
       width = '100%'
     }
 
@@ -184,10 +172,10 @@ export function useLayoutShellAdapter() {
     const fixed = headerFixed.value
     return {
       marginTop:
-        fixed
-        && !isFullContent.value
-        && !headerIsHidden.value
-        && (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
+        fixed &&
+        !isFullContent.value &&
+        !headerIsHidden.value &&
+        (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
           ? `${headerWrapperHeight.value}px`
           : '0',
       paddingBottom: `${appStore.footerEnable && appStore.footerFixed ? footerHeight.value : 0}px`,
@@ -205,10 +193,7 @@ export function useLayoutShellAdapter() {
       height: isFullContent.value ? '0' : `${headerWrapperHeight.value}px`,
       left: isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth,
       position: fixed ? 'fixed' : 'static',
-      top:
-        headerIsHidden.value || isFullContent.value
-          ? `-${headerWrapperHeight.value}px`
-          : '0',
+      top: headerIsHidden.value || isFullContent.value ? `-${headerWrapperHeight.value}px` : '0',
       width: mainStyle.value.width,
       zIndex: headerZIndex.value,
     }
@@ -227,12 +212,12 @@ export function useLayoutShellAdapter() {
 
   const showHeaderToggleButton = computed(() => {
     return (
-      isMobile.value
-      || (appStore.widgetSidebarToggle
-        && isSideMode.value
-        && !isSideMixedNav.value
-        && !isMixedNav.value
-        && !isMobile.value)
+      isMobile.value ||
+      (appStore.widgetSidebarToggle &&
+        isSideMode.value &&
+        !isSideMixedNav.value &&
+        !isMixedNav.value &&
+        !isMobile.value)
     )
   })
 
@@ -252,7 +237,12 @@ export function useLayoutShellAdapter() {
   })
 
   const floatingSidebarMode = computed(() => {
-    return !appStore.sidebarExpandOnHover && sidebarCollapse.value && !isMobile.value && !isDualColumnMode.value
+    return (
+      !appStore.sidebarExpandOnHover &&
+      sidebarCollapse.value &&
+      !isMobile.value &&
+      !isDualColumnMode.value
+    )
   })
 
   const floatingSidebarExpand = computed(() => {
@@ -274,11 +264,11 @@ export function useLayoutShellAdapter() {
 
   const showSider = computed(() => {
     return (
-      !contentMaximized.value
-      && !isFullContent.value
-      && currentLayout.value !== 'top'
-      && appStore.sidebarShow
-      && (isMobile.value ? mobileSidebarOpen.value : true)
+      !contentMaximized.value &&
+      !isFullContent.value &&
+      currentLayout.value !== 'top' &&
+      appStore.sidebarShow &&
+      (isMobile.value ? mobileSidebarOpen.value : true)
     )
   })
 
@@ -340,8 +330,7 @@ export function useLayoutShellAdapter() {
   function handleHeaderToggle() {
     if (isMobile.value) {
       mobileSidebarOpen.value = !mobileSidebarOpen.value
-    }
-    else {
+    } else {
       appStore.setSidebarShow(!appStore.sidebarShow)
     }
   }
@@ -377,9 +366,12 @@ export function useLayoutShellAdapter() {
   }
 
   // --- Watchers ---
-  watch(() => appStore.sidebarCollapsed, (v) => {
-    sidebarCollapse.value = v
-  })
+  watch(
+    () => appStore.sidebarCollapsed,
+    (v) => {
+      sidebarCollapse.value = v
+    },
+  )
 
   watch(sidebarCollapse, (v) => {
     if (v !== appStore.sidebarCollapsed) {
@@ -390,17 +382,27 @@ export function useLayoutShellAdapter() {
     }
   })
 
-  watch(() => isMobile.value, (val) => {
-    if (val) sidebarCollapse.value = true
-  }, { immediate: true })
+  watch(
+    () => isMobile.value,
+    (val) => {
+      if (val) sidebarCollapse.value = true
+    },
+    { immediate: true },
+  )
 
-  watch(() => route.fullPath, () => {
-    if (isNarrowScreen.value) mobileSidebarOpen.value = false
-  })
+  watch(
+    () => route.fullPath,
+    () => {
+      if (isNarrowScreen.value) mobileSidebarOpen.value = false
+    },
+  )
 
-  watch(() => layoutBridgeStore.sidebarToggleVersion, () => {
-    handleSidebarToggleRequest()
-  })
+  watch(
+    () => layoutBridgeStore.sidebarToggleVersion,
+    () => {
+      handleSidebarToggleRequest()
+    },
+  )
 
   onMounted(() => {
     updateViewportWidth()

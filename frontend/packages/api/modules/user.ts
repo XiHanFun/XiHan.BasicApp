@@ -1,7 +1,7 @@
-import type { SysUser, PageResult, UserPageQuery } from '~/types'
-import requestClient from '../request'
+import type { PageResult, SysUser, UserPageQuery } from '~/types'
 import { API_CONTRACT } from '../contract'
 import { normalizePageResult } from '../helpers'
+import requestClient from '../request'
 
 export async function getUserPageApi(params: UserPageQuery): Promise<PageResult<SysUser>> {
   const data = await requestClient.get<any>(API_CONTRACT.system.users, { params })

@@ -7,23 +7,23 @@ export const useLayoutStateStore = defineStore('layout-state', () => {
 
   const layoutMode = computed({
     get: () => appStore.layoutMode,
-    set: value => appStore.setLayoutMode(value),
+    set: (value) => appStore.setLayoutMode(value),
   })
   const sidebarCollapsed = computed({
     get: () => appStore.sidebarCollapsed,
-    set: value => appStore.setSidebarCollapsed(value),
+    set: (value) => appStore.setSidebarCollapsed(value),
   })
   const sidebarWidth = computed({
     get: () => appStore.sidebarWidth,
-    set: value => appStore.setSidebarWidth(value),
+    set: (value) => appStore.setSidebarWidth(value),
   })
   const sidebarShow = computed({
     get: () => appStore.sidebarShow,
-    set: value => appStore.setSidebarShow(value),
+    set: (value) => appStore.setSidebarShow(value),
   })
   const sidebarExpandOnHover = computed({
     get: () => appStore.sidebarExpandOnHover,
-    set: value => appStore.setSidebarExpandOnHover(value),
+    set: (value) => appStore.setSidebarExpandOnHover(value),
   })
   const headerMode = computed({
     get: () => appStore.headerMode as 'fixed' | 'static' | 'auto' | 'auto-scroll',
@@ -31,27 +31,27 @@ export const useLayoutStateStore = defineStore('layout-state', () => {
   })
   const headerMenuAlign = computed({
     get: () => appStore.headerMenuAlign,
-    set: value => appStore.setHeaderMenuAlign(value),
+    set: (value) => appStore.setHeaderMenuAlign(value),
   })
   const contentCompact = computed({
     get: () => appStore.contentCompact,
-    set: value => appStore.setContentCompact(value),
+    set: (value) => appStore.setContentCompact(value),
   })
   const contentMaxWidth = computed({
     get: () => appStore.contentMaxWidth,
-    set: value => appStore.setContentMaxWidth(value),
+    set: (value) => appStore.setContentMaxWidth(value),
   })
   const navigationStyle = computed({
     get: () => appStore.navigationStyle,
-    set: value => appStore.setNavigationStyle(value),
+    set: (value) => appStore.setNavigationStyle(value),
   })
   const navigationSplit = computed({
     get: () => appStore.navigationSplit,
-    set: value => appStore.setNavigationSplit(value),
+    set: (value) => appStore.setNavigationSplit(value),
   })
   const navigationAccordion = computed({
     get: () => appStore.navigationAccordion,
-    set: value => appStore.setNavigationAccordion(value),
+    set: (value) => appStore.setNavigationAccordion(value),
   })
 
   function toggleSidebar() {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { HeaderToolbarPropsContract } from '../../contracts'
 import { Icon } from '@iconify/vue'
 import { NAvatar, NDropdown } from 'naive-ui'
-import type { HeaderToolbarPropsContract } from '../../contracts'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
 
@@ -18,7 +18,6 @@ const emit = defineEmits<{
   preferencesOpen: []
   userAction: [key: string]
 }>()
-
 </script>
 
 <template>

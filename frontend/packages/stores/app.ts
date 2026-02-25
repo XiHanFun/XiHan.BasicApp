@@ -12,11 +12,11 @@ import {
   COLOR_WEAKNESS_ENABLED_KEY,
   CONTENT_COMPACT_KEY,
   CONTENT_MAX_WIDTH_KEY,
-  COPYRIGHT_NAME_KEY,
   COPYRIGHT_DATE_KEY,
   COPYRIGHT_ENABLE_KEY,
   COPYRIGHT_ICP_KEY,
   COPYRIGHT_ICP_URL_KEY,
+  COPYRIGHT_NAME_KEY,
   COPYRIGHT_SITE_KEY,
   DEFAULT_FONT_SIZE,
   DEFAULT_LAYOUT_MODE,
@@ -105,13 +105,15 @@ export const useAppStore = defineStore('app', () => {
   const pageLoading = ref(false)
 
   const sidebarCollapsed = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_COLLAPSED_KEY) ?? false)
-  const sidebarWidth = ref<number>((() => {
-    const saved = LocalStorage.get<number>(SIDEBAR_WIDTH_KEY)
-    if (typeof saved === 'number' && Number.isFinite(saved)) {
-      return Math.min(320, Math.max(180, saved))
-    }
-    return 224
-  })())
+  const sidebarWidth = ref<number>(
+    (() => {
+      const saved = LocalStorage.get<number>(SIDEBAR_WIDTH_KEY)
+      if (typeof saved === 'number' && Number.isFinite(saved)) {
+        return Math.min(320, Math.max(180, saved))
+      }
+      return 224
+    })(),
+  )
   const sidebarShow = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_SHOW_KEY) ?? true)
   const sidebarCollapseButton = ref<boolean>(
     LocalStorage.get<boolean>(SIDEBAR_COLLAPSE_BUTTON_KEY) ?? true,
@@ -130,20 +132,24 @@ export const useAppStore = defineStore('app', () => {
   )
 
   const headerShow = ref<boolean>(LocalStorage.get<boolean>(HEADER_SHOW_KEY) ?? true)
-  const headerMenuAlign = ref<'start' | 'center' | 'end'>((() => {
-    const saved = LocalStorage.get<string>(HEADER_MENU_ALIGN_KEY)
-    if (saved === 'left') {
+  const headerMenuAlign = ref<'start' | 'center' | 'end'>(
+    (() => {
+      const saved = LocalStorage.get<string>(HEADER_MENU_ALIGN_KEY)
+      if (saved === 'left') {
+        return 'start' as const
+      }
+      if (saved === 'right') {
+        return 'end' as const
+      }
+      if (saved === 'center' || saved === 'start' || saved === 'end') {
+        return saved
+      }
       return 'start' as const
-    }
-    if (saved === 'right') {
-      return 'end' as const
-    }
-    if (saved === 'center' || saved === 'start' || saved === 'end') {
-      return saved
-    }
-    return 'start' as const
-  })())
-  const headerMode = ref<'fixed' | 'static' | 'auto' | 'auto-scroll'>(LocalStorage.get(HEADER_MODE_KEY) ?? 'fixed')
+    })(),
+  )
+  const headerMode = ref<'fixed' | 'static' | 'auto' | 'auto-scroll'>(
+    LocalStorage.get(HEADER_MODE_KEY) ?? 'fixed',
+  )
   const sidebarDark = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_DARK_KEY) ?? false)
   const sidebarSubDark = ref<boolean>(LocalStorage.get<boolean>(SIDEBAR_SUB_DARK_KEY) ?? false)
   const headerDark = ref<boolean>(LocalStorage.get<boolean>(HEADER_DARK_KEY) ?? false)

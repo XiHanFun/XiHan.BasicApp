@@ -6,28 +6,23 @@ import { h } from 'vue'
 import { HOME_PATH } from '~/constants'
 
 export function createDropdownIcon(icon: string) {
-  return () =>
-    h(
-      NIcon,
-      { size: 16 },
-      { default: () => h(Icon, { icon }) },
-    )
+  return () => h(NIcon, { size: 16 }, { default: () => h(Icon, { icon }) })
 }
 
 export function getTabByPath(tabs: TabItem[], path: string) {
-  return tabs.find(item => item.path === path)
+  return tabs.find((item) => item.path === path)
 }
 
 export function getTabDisableState(tabs: TabItem[], path: string, closable: boolean) {
-  const currentIndex = tabs.findIndex(item => item.path === path)
+  const currentIndex = tabs.findIndex((item) => item.path === path)
   const leftTabs = tabs.slice(0, currentIndex)
   const rightTabs = tabs.slice(currentIndex + 1)
   const currentTab = getTabByPath(tabs, path)
 
-  const hasLeftClosable = leftTabs.some(item => item.closable)
-  const hasRightClosable = rightTabs.some(item => item.closable)
-  const hasOtherClosable = tabs.some(item => item.closable && item.path !== path)
-  const hasAnyClosable = tabs.some(item => item.closable)
+  const hasLeftClosable = leftTabs.some((item) => item.closable)
+  const hasRightClosable = rightTabs.some((item) => item.closable)
+  const hasOtherClosable = tabs.some((item) => item.closable && item.path !== path)
+  const hasAnyClosable = tabs.some((item) => item.closable)
 
   return {
     closeAllDisabled: !hasAnyClosable,

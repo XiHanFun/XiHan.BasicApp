@@ -1,7 +1,7 @@
 import type { PageResult, SysLogItem } from '~/types'
-import requestClient from '../request'
 import { API_CONTRACT } from '../contract'
 import { normalizePageResult } from '../helpers'
+import requestClient from '../request'
 
 async function getLogPage(url: string, payload: Record<string, any>) {
   const data = await requestClient.post<any>(url, payload)

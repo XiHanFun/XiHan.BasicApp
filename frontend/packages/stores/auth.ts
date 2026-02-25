@@ -1,9 +1,9 @@
+import type { LoginParams } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { LoginParams } from '~/types'
-import { LOGIN_PATH, HOME_PATH } from '~/constants'
-import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 import { loginApi, logoutApi } from '~/api'
+import { HOME_PATH, LOGIN_PATH } from '~/constants'
+import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()
