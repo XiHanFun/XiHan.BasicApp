@@ -20,8 +20,8 @@ const keyword = ref('')
 const routeItems = computed(() => {
   const routes = router
     .getRoutes()
-    .filter(item => item.meta?.title && !item.meta?.hidden && item.path && item.name)
-    .map(item => ({
+    .filter((item) => item.meta?.title && !item.meta?.hidden && item.path && item.name)
+    .map((item) => ({
       name: String(item.name),
       path: item.path,
       title: t(String(item.meta.title), String(item.meta.title)),
@@ -29,13 +29,12 @@ const routeItems = computed(() => {
     }))
 
   const text = keyword.value.trim().toLowerCase()
-  if (!text)
-    return routes.slice(0, 20)
+  if (!text) return routes.slice(0, 20)
   return routes.filter(
-    item =>
-      item.title.toLowerCase().includes(text)
-      || item.path.toLowerCase().includes(text)
-      || item.name.toLowerCase().includes(text),
+    (item) =>
+      item.title.toLowerCase().includes(text) ||
+      item.path.toLowerCase().includes(text) ||
+      item.name.toLowerCase().includes(text),
   )
 })
 
@@ -74,7 +73,11 @@ watch(
   <div v-bind="$attrs">
     <!-- 桌面端：胶囊样式，含搜索图标 + 文字 + kbd 徽标 -->
     <div class="hidden sm:block">
-      <button type="button" class="search-trigger" @click="layoutBridgeStore.requestOpenGlobalSearch()">
+      <button
+        type="button"
+        class="search-trigger"
+        @click="layoutBridgeStore.requestOpenGlobalSearch()"
+      >
         <NIcon size="14" class="shrink-0 text-[hsl(var(--muted-foreground))]">
           <Icon icon="lucide:search" />
         </NIcon>
@@ -84,7 +87,11 @@ watch(
     </div>
     <!-- 移动端：只显示图标按钮 -->
     <div class="sm:hidden">
-      <button type="button" class="search-trigger-icon" @click="layoutBridgeStore.requestOpenGlobalSearch()">
+      <button
+        type="button"
+        class="search-trigger-icon"
+        @click="layoutBridgeStore.requestOpenGlobalSearch()"
+      >
         <NIcon size="16">
           <Icon icon="lucide:search" />
         </NIcon>
@@ -92,7 +99,13 @@ watch(
     </div>
   </div>
 
-  <NModal v-model:show="visible" preset="card" :bordered="false" class="w-[580px]" :on-after-leave="() => keyword = ''">
+  <NModal
+    v-model:show="visible"
+    preset="card"
+    :bordered="false"
+    class="w-[580px]"
+    :on-after-leave="() => (keyword = '')"
+  >
     <template #header>
       <NInput
         v-model:value="keyword"
