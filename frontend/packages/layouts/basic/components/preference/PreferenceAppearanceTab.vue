@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DEFAULT_THEME_COLOR } from '~/constants'
+import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useTheme } from '~/hooks'
 import PrefTip from './PrefTip.vue'
 
@@ -32,16 +32,6 @@ watch(() => appStore.sidebarDark, (val) => {
   if (!val) appStore.sidebarSubDark = false
 })
 
-interface ThemePresetItem {
-  color: string
-  nameKey: string
-}
-
-interface ThemeColorGroup {
-  familyKey: string
-  items: ThemePresetItem[]
-}
-
 interface PreferenceAppearanceTabProps {
   appStore: ReturnType<typeof useAppStore>
   themeMode: string
@@ -53,70 +43,8 @@ const themeModes = [
   { value: 'auto', labelKey: 'preference.appearance.mode.auto', icon: 'lucide:monitor' },
 ] as const
 
-const themeColorGroups: ThemeColorGroup[] = [
-  {
-    familyKey: 'preference.appearance.color.family.red',
-    items: [
-      { color: '#C0446A', nameKey: 'preference.appearance.color.preset.yan_zhi_hong' },
-      { color: '#C0392B', nameKey: 'preference.appearance.color.preset.zhu_sha_hong' },
-      { color: '#8B1A3A', nameKey: 'preference.appearance.color.preset.jiang_zi_hong' },
-    ],
-  },
-  {
-    familyKey: 'preference.appearance.color.family.orange',
-    items: [
-      { color: '#A0522D', nameKey: 'preference.appearance.color.preset.zhe_shi_zong' },
-      { color: '#C45C26', nameKey: 'preference.appearance.color.preset.zhuan_wa_cheng' },
-      { color: '#D4751A', nameKey: 'preference.appearance.color.preset.hu_po_cheng' },
-    ],
-  },
-  {
-    familyKey: 'preference.appearance.color.family.yellow',
-    items: [
-      { color: '#D4A017', nameKey: 'preference.appearance.color.preset.jiang_huang_cheng' },
-      { color: '#E8C97E', nameKey: 'preference.appearance.color.preset.xiang_ye_huang' },
-      { color: '#F0C040', nameKey: 'preference.appearance.color.preset.teng_huang_se' },
-    ],
-  },
-  {
-    familyKey: 'preference.appearance.color.family.green',
-    items: [
-      { color: '#7AB648', nameKey: 'preference.appearance.color.preset.song_hua_lv' },
-      { color: '#5C8A6F', nameKey: 'preference.appearance.color.preset.zhu_qing_lv' },
-      { color: '#2E8B57', nameKey: 'preference.appearance.color.preset.bi_yu_lv' },
-    ],
-  },
-  {
-    familyKey: 'preference.appearance.color.family.cyan',
-    items: [
-      { color: '#48C0A3', nameKey: 'preference.appearance.color.preset.bi_bo_qing' },
-      { color: '#1A6B56', nameKey: 'preference.appearance.color.preset.shi_qing_se' },
-      { color: '#3DAA8A', nameKey: 'preference.appearance.color.preset.fei_cui_qing' },
-    ],
-  },
-  {
-    familyKey: 'preference.appearance.color.family.blue',
-    items: [
-      { color: '#3A5A8C', nameKey: 'preference.appearance.color.preset.cang_qing_lan' },
-      { color: '#5A7FA0', nameKey: 'preference.appearance.color.preset.shi_ban_lan' },
-      { color: '#2A5CAA', nameKey: 'preference.appearance.color.preset.ji_lan_se' },
-    ],
-  },
-  {
-    familyKey: 'preference.appearance.color.family.purple',
-    items: [
-      { color: '#8B7BA8', nameKey: 'preference.appearance.color.preset.ding_xiang_zi' },
-      { color: '#9C7B9A', nameKey: 'preference.appearance.color.preset.ou_he_zi' },
-      { color: '#6A4C8C', nameKey: 'preference.appearance.color.preset.qing_lian_zi' },
-    ],
-  },
-]
-
-/** 所有预设色值（含默认色），用于判断当前色是否为自定义 */
-const allPresetColors = [
-  DEFAULT_THEME_COLOR,
-  ...themeColorGroups.flatMap(g => g.items.map(i => i.color)),
-]
+const themeColorGroups = THEME_COLOR_GROUPS
+const allPresetColors = ALL_THEME_COLORS
 
 const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
 </script>
