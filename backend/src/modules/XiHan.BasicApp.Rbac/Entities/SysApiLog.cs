@@ -21,14 +21,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统接口日志实体
 /// </summary>
 [SugarTable("Sys_Api_Log_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysApiLog_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_ApiPath", nameof(ApiPath), OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_Method", nameof(Method), OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_RequestTime", nameof(RequestTime), OrderByType.Desc)]
-[SugarIndex("IX_SysApiLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysApiLog_TenantId_RequestTime", nameof(TenantId), OrderByType.Asc, nameof(RequestTime), OrderByType.Desc)]
-[SugarIndex("IX_SysApiLog_ExecutionTime", nameof(ExecutionTime), OrderByType.Desc)]
+[SugarIndex("IX_SysApiLog_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_ApPa", nameof(ApiPath), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_Me", nameof(Method), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_StCo", nameof(StatusCode), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_ReTi", nameof(RequestTime), OrderByType.Desc)]
+[SugarIndex("IX_SysApiLog_TeId_ReTi", nameof(TenantId), OrderByType.Asc, nameof(RequestTime), OrderByType.Desc)]
+[SugarIndex("IX_SysApiLog_ExTi", nameof(ExecutionTime), OrderByType.Desc)]
 public partial class SysApiLog : RbacCreationEntity<long>
 {
     /// <summary>

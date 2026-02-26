@@ -24,13 +24,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 与 SysResource 是一对一关系，SysResource 提供权限控制，SysMenu 提供界面配置
 /// </summary>
 [SugarTable("Sys_Menu", "系统菜单表")]
-[SugarIndex("IX_SysMenu_MenuCode", nameof(MenuCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysMenu_ParentId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_ResourceId", nameof(ResourceId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_MenuType", nameof(MenuType), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_MeCo", nameof(MenuCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysMenu_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_ReId", nameof(ResourceId), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_MeTy", nameof(MenuType), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysMenu : RbacAggregateRoot<long>
 {
     /// <summary>

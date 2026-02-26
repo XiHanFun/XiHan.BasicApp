@@ -22,12 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统 OAuth 令牌实体
 /// </summary>
 [SugarTable("Sys_OAuth_Token", "系统 OAuth 令牌表")]
-[SugarIndex("UX_SysOAuthToken_AccessToken", nameof(AccessToken), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthToken_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_ClientId", nameof(ClientId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_IsRevoked", nameof(IsRevoked), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_AccessTokenExpiresTime", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
+[SugarIndex("UX_SysOAuthToken_AcTo", nameof(AccessToken), OrderByType.Asc, true)]
+[SugarIndex("IX_SysOAuthToken_ReTo", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_ClId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_IsRe", nameof(IsRevoked), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
 public partial class SysOAuthToken : RbacCreationEntity<long>
 {
     /// <summary>

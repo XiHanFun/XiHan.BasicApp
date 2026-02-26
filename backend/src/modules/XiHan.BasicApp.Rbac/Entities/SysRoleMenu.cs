@@ -22,13 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统角色菜单关联实体
 /// </summary>
 [SugarTable("Sys_Role_Menu", "系统角色菜单关联表")]
-[SugarIndex("UX_SysRoleMenu_Role_Menu", nameof(RoleId), OrderByType.Asc, nameof(MenuId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRoleMenu_RoleId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleMenu_MenuId", nameof(MenuId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleMenu_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleMenu_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleMenu_TenantId_RoleId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleMenu_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("UX_SysRoleMenu_RoId_MeId", nameof(RoleId), OrderByType.Asc, nameof(MenuId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRoleMenu_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_MeId", nameof(MenuId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRoleMenu : RbacCreationEntity<long>
 {
     /// <summary>

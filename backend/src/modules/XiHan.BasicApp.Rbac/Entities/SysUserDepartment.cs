@@ -22,13 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户部门关联实体
 /// </summary>
 [SugarTable("Sys_User_Department", "系统用户部门关联表")]
-[SugarIndex("UX_SysUserDepartment_User_Department", nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserDepartment_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserDepartment_DepartmentId", nameof(DepartmentId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserDepartment_IsMain", nameof(IsMain), OrderByType.Asc)]
-[SugarIndex("IX_SysUserDepartment_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUserDepartment_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserDepartment_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("UX_SysUserDepartment_UsId_DeId", nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserDepartment_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserDepartment_DeId", nameof(DepartmentId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserDepartment_IsMa", nameof(IsMain), OrderByType.Asc)]
+[SugarIndex("IX_SysUserDepartment_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUserDepartment_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserDepartment : RbacCreationEntity<long>
 {
     /// <summary>

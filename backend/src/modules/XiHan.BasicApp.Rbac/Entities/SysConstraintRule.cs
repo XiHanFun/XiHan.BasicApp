@@ -23,9 +23,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 定义 RBAC 约束规则（静态职责分离SSD、动态职责分离DSD、互斥约束等）
 /// </summary>
 [SugarTable("Sys_Constraint_Rule", "系统约束规则表")]
-[SugarIndex("IX_SysConstraintRule_RuleCode", nameof(RuleCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysConstraintRule_Type", nameof(ConstraintType), OrderByType.Asc)]
-[SugarIndex("IX_SysConstraintRule_IsEnabled", nameof(IsEnabled), OrderByType.Asc)]
+[SugarIndex("IX_SysConstraintRule_RuCo", nameof(RuleCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysConstraintRule_CoTy", nameof(ConstraintType), OrderByType.Asc)]
+[SugarIndex("IX_SysConstraintRule_IsEn", nameof(IsEnabled), OrderByType.Asc)]
 public partial class SysConstraintRule : RbacFullAuditedEntity<long>
 {
     /// <summary>

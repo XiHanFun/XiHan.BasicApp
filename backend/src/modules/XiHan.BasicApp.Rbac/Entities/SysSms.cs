@@ -22,11 +22,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统短信实体
 /// </summary>
 [SugarTable("Sys_Sms", "系统短信表")]
-[SugarIndex("IX_SysSms_ToPhone", nameof(ToPhone), OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SmsStatus", nameof(SmsStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SmsType", nameof(SmsType), OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SendTime", nameof(SendTime), OrderByType.Desc)]
-[SugarIndex("IX_SysSms_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_ToPh", nameof(ToPhone), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_SmSt", nameof(SmsStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_SmTy", nameof(SmsType), OrderByType.Asc)]
+[SugarIndex("IX_SysSms_SeTi", nameof(SendTime), OrderByType.Desc)]
 public partial class SysSms : RbacAggregateRoot<long>
 {
     /// <summary>

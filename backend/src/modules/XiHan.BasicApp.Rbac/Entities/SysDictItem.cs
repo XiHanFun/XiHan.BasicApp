@@ -22,14 +22,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统字典项实体
 /// </summary>
 [SugarTable("Sys_Dict_Item", "系统字典项表")]
-[SugarIndex("UX_SysDictItem_Dict_ItemCode", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysDictItem_DictId", nameof(DictId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_ItemCode", nameof(ItemCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_DictCode", nameof(DictCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_ParentId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_TenantId_DictId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
+[SugarIndex("UX_SysDictItem_DiId_ItCo", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysDictItem_DiId", nameof(DictId), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_ItCo", nameof(ItemCode), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_DiCo", nameof(DictCode), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysDictItem_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
 public partial class SysDictItem : RbacFullAuditedEntity<long>
 {
     /// <summary>

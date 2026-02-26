@@ -22,10 +22,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统审查实体
 /// </summary>
 [SugarTable("Sys_Review", "系统审查表")]
-[SugarIndex("IX_SysReview_ReviewCode", nameof(ReviewCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysReview_ReviewType", nameof(ReviewType), OrderByType.Asc)]
-[SugarIndex("IX_SysReview_ReviewStatus", nameof(ReviewStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysReview_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysReview_ReCo", nameof(ReviewCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysReview_ReTy", nameof(ReviewType), OrderByType.Asc)]
+[SugarIndex("IX_SysReview_ReSt", nameof(ReviewStatus), OrderByType.Asc)]
 public partial class SysReview : RbacAggregateRoot<long>
 {
     /// <summary>

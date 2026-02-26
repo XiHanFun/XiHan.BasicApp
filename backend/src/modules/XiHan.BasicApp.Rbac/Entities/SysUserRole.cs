@@ -22,12 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户角色关联实体
 /// </summary>
 [SugarTable("Sys_User_Role", "系统用户角色关联表")]
-[SugarIndex("UX_SysUserRole_User_Role", nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserRole_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_RoleId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("UX_SysUserRole_UsId_RoId", nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserRole_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserRole_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserRole_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUserRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserRole : RbacCreationEntity<long>
 {
     /// <summary>

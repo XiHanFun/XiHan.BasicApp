@@ -23,8 +23,8 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 /// 系统代码生成表列配置实体
 /// </summary>
 [SugarTable("Sys_Code_Gen_Table_Column", "系统代码生成表列配置表")]
-[SugarIndex("IX_SysCodeGenTableColumn_TableId", nameof(TableId), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenTableColumn_ColumnName", nameof(ColumnName), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenTableColumn_TaId", nameof(TableId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenTableColumn_CoNa", nameof(ColumnName), OrderByType.Asc)]
 public partial class SysCodeGenTableColumn : RbacFullAuditedEntity<long>
 {
     /// <summary>

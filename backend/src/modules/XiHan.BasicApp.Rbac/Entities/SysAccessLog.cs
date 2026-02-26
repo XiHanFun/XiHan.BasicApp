@@ -22,13 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统访问日志实体
 /// </summary>
 [SugarTable("Sys_Access_Log_{year}{month}{day}", "系统访问日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysAccessLog_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_AccessResult", nameof(AccessResult), OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_AccessTime", nameof(AccessTime), OrderByType.Desc)]
-[SugarIndex("IX_SysAccessLog_ResourcePath", nameof(ResourcePath), OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysAccessLog_TenantId_AccessTime", nameof(TenantId), OrderByType.Asc, nameof(AccessTime), OrderByType.Desc)]
-[SugarIndex("IX_SysAccessLog_SessionId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_AcRe", nameof(AccessResult), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_AcTi", nameof(AccessTime), OrderByType.Desc)]
+[SugarIndex("IX_SysAccessLog_RePa", nameof(ResourcePath), OrderByType.Asc)]
+[SugarIndex("IX_SysAccessLog_TeId_AcTi", nameof(TenantId), OrderByType.Asc, nameof(AccessTime), OrderByType.Desc)]
+[SugarIndex("IX_SysAccessLog_SeId", nameof(SessionId), OrderByType.Asc)]
 public partial class SysAccessLog : RbacCreationEntity<long>
 {
     /// <summary>

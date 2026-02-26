@@ -22,13 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统登录日志实体
 /// </summary>
 [SugarTable("Sys_Login_Log_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysLoginLog_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_LoginTime", nameof(LoginTime), OrderByType.Desc)]
-[SugarIndex("IX_SysLoginLog_LoginResult", nameof(LoginResult), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_UserName", nameof(UserName), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_LoginIp", nameof(LoginIp), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_TenantId_LoginTime", nameof(TenantId), OrderByType.Asc, nameof(LoginTime), OrderByType.Desc)]
+[SugarIndex("IX_SysLoginLog_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_LoTi", nameof(LoginTime), OrderByType.Desc)]
+[SugarIndex("IX_SysLoginLog_LoRe", nameof(LoginResult), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_UsNa", nameof(UserName), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_LoIp", nameof(LoginIp), OrderByType.Asc)]
+[SugarIndex("IX_SysLoginLog_TeId_LoTi", nameof(TenantId), OrderByType.Asc, nameof(LoginTime), OrderByType.Desc)]
 public partial class SysLoginLog : RbacCreationEntity<long>
 {
     /// <summary>

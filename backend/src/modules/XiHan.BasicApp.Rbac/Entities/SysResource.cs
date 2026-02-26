@@ -23,13 +23,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 统一抽象所有可被授权的资源（菜单、API、按钮、文件等）
 /// </summary>
 [SugarTable("Sys_Resource", "系统资源表")]
-[SugarIndex("IX_SysResource_ResourceCode", nameof(ResourceCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysResource_ParentId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_ResourceType", nameof(ResourceType), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_ResourceType_Status", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_TenantId_ResourceType_Status", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_ReCo", nameof(ResourceCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysResource_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_ReTy", nameof(ResourceType), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_ReTy_St", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysResource : RbacCreationEntity<long>
 {
     /// <summary>

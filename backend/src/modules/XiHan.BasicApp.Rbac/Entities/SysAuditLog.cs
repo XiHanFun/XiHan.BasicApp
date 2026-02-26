@@ -22,15 +22,14 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统审计日志实体
 /// </summary>
 [SugarTable("Sys_Audit_Log_{year}{month}{day}", "系统审计日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysAuditLog_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuditType", nameof(AuditType), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_EntityType", nameof(EntityType), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_OperationType", nameof(OperationType), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuditTime", nameof(AuditTime), OrderByType.Desc)]
-[SugarIndex("IX_SysAuditLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_TenantId_AuditTime", nameof(TenantId), OrderByType.Asc, nameof(AuditTime), OrderByType.Desc)]
-[SugarIndex("IX_SysAuditLog_RiskLevel", nameof(RiskLevel), OrderByType.Desc)]
-[SugarIndex("IX_SysAuditLog_EntityId", nameof(EntityId), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_AuTy", nameof(AuditType), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_EnTy", nameof(EntityType), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_OpTy", nameof(OperationType), OrderByType.Asc)]
+[SugarIndex("IX_SysAuditLog_AuTi", nameof(AuditTime), OrderByType.Desc)]
+[SugarIndex("IX_SysAuditLog_TeId_AuTi", nameof(TenantId), OrderByType.Asc, nameof(AuditTime), OrderByType.Desc)]
+[SugarIndex("IX_SysAuditLog_RiLe", nameof(RiskLevel), OrderByType.Desc)]
+[SugarIndex("IX_SysAuditLog_EnId", nameof(EntityId), OrderByType.Asc)]
 public partial class SysAuditLog : RbacCreationEntity<long>
 {
     /// <summary>

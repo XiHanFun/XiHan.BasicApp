@@ -22,12 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统操作日志实体
 /// </summary>
 [SugarTable("Sys_Operation_Log_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysOperationLog_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OperationType", nameof(OperationType), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OperationTime", nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_TenantId_OperationTime", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_Status", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_OpTy", nameof(OperationType), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_OpTi", nameof(OperationTime), OrderByType.Desc)]
+[SugarIndex("IX_SysOperationLog_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
+[SugarIndex("IX_SysOperationLog_St", nameof(Status), OrderByType.Asc)]
 public partial class SysOperationLog : RbacCreationEntity<long>
 {
     /// <summary>
