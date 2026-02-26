@@ -22,10 +22,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 支持部门多继承，子部门继承父部门的权限
 /// </summary>
 [SugarTable("Sys_Department_Hierarchy", "系统部门继承关系表")]
-[SugarIndex("UX_SysDepartmentHierarchy_Ancestor_Descendant", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysDepartmentHierarchy_DescendantId", nameof(DescendantId), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartmentHierarchy_Depth", nameof(Depth), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartmentHierarchy_AncestorId_Depth", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
+[SugarIndex("UX_SysDepartmentHierarchy_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysDepartmentHierarchy_DeId", nameof(DescendantId), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartmentHierarchy_De", nameof(Depth), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartmentHierarchy_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
 public partial class SysDepartmentHierarchy : RbacCreationEntity<long>
 {
     /// <summary>

@@ -30,12 +30,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 3. 避免递归查询的性能问题
 /// </remarks>
 [SugarTable("Sys_Role_Hierarchy", "系统角色层级关系表")]
-[SugarIndex("UX_SysRoleHierarchy_Ancestor_Descendant", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRoleHierarchy_DescendantId", nameof(DescendantId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleHierarchy_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleHierarchy_AncestorId_Depth", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleHierarchy_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleHierarchy_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("UX_SysRoleHierarchy_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRoleHierarchy_DeId", nameof(DescendantId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleHierarchy_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleHierarchy_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleHierarchy_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRoleHierarchy : RbacCreationEntity<long>
 {
     /// <summary>

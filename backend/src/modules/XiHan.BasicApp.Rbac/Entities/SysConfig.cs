@@ -22,12 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统配置实体
 /// </summary>
 [SugarTable("Sys_Config", "系统配置表")]
-[SugarIndex("IX_SysConfig_ConfigKey", nameof(ConfigKey), OrderByType.Asc, true)]
-[SugarIndex("IX_SysConfig_ConfigType", nameof(ConfigType), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_TenantId_ConfigKey", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_ConfigGroup", nameof(ConfigGroup), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_CoKe", nameof(ConfigKey), OrderByType.Asc, true)]
+[SugarIndex("IX_SysConfig_CoTy", nameof(ConfigType), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_TeId_CoKe", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
 public partial class SysConfig : RbacAggregateRoot<long>
 {
     /// <summary>

@@ -22,14 +22,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户权限关联实体（直授）
 /// </summary>
 [SugarTable("Sys_User_Permission", "系统用户权限关联表")]
-[SugarIndex("UX_SysUserPermission_User_Permission", nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserPermission_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_PermissionId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_EffectiveTime", nameof(EffectiveTime), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_ExpirationTime", nameof(ExpirationTime), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("UX_SysUserPermission_UsId_PeId", nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserPermission_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarIndex("IX_SysUserPermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserPermission : RbacCreationEntity<long>
 {
     /// <summary>

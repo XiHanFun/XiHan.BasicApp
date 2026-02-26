@@ -22,11 +22,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统任务实体
 /// </summary>
 [SugarTable("Sys_Task", "系统任务表")]
-[SugarIndex("IX_SysTask_TaskCode", nameof(TaskCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTask_RunTaskStatus", nameof(RunTaskStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTask_TriggerType", nameof(TriggerType), OrderByType.Asc)]
-[SugarIndex("IX_SysTask_NextRunTime", nameof(NextRunTime), OrderByType.Asc)]
-[SugarIndex("IX_SysTask_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_TaCo", nameof(TaskCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysTask_RuTaSt", nameof(RunTaskStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_TrTy", nameof(TriggerType), OrderByType.Asc)]
+[SugarIndex("IX_SysTask_NeRuTi", nameof(NextRunTime), OrderByType.Asc)]
 public partial class SysTask : RbacAggregateRoot<long>
 {
     /// <summary>

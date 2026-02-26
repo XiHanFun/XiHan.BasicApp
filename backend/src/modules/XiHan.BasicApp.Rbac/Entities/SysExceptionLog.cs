@@ -22,14 +22,13 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统异常日志实体
 /// </summary>
 [SugarTable("Sys_Exception_Log_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysExceptionLog_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_ExceptionType", nameof(ExceptionType), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_SeverityLevel", nameof(SeverityLevel), OrderByType.Desc)]
-[SugarIndex("IX_SysExceptionLog_IsHandled", nameof(IsHandled), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_ExceptionTime", nameof(ExceptionTime), OrderByType.Desc)]
-[SugarIndex("IX_SysExceptionLog_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_StatusCode", nameof(StatusCode), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_BusinessModule", nameof(BusinessModule), OrderByType.Asc)]
+[SugarIndex("IX_SysExceptionLog_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysExceptionLog_ExTy", nameof(ExceptionType), OrderByType.Asc)]
+[SugarIndex("IX_SysExceptionLog_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
+[SugarIndex("IX_SysExceptionLog_IsHa", nameof(IsHandled), OrderByType.Asc)]
+[SugarIndex("IX_SysExceptionLog_ExTi", nameof(ExceptionTime), OrderByType.Desc)]
+[SugarIndex("IX_SysExceptionLog_StCo", nameof(StatusCode), OrderByType.Asc)]
+[SugarIndex("IX_SysExceptionLog_BuMo", nameof(BusinessModule), OrderByType.Asc)]
 public partial class SysExceptionLog : RbacCreationEntity<long>
 {
     /// <summary>

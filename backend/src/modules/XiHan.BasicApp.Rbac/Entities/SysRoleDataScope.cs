@@ -23,13 +23,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 用于配置角色的自定义数据权限规则（当DataScope=Custom时使用）
 /// </summary>
 [SugarTable("Sys_Role_Data_Scope", "系统角色自定义数据权限范围表")]
-[SugarIndex("UX_SysRoleDataScope_Role_Department", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRoleDataScope_RoleId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_DepartmentId", nameof(DepartmentId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_TenantId_RoleId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("UX_SysRoleDataScope_RoId_DeId", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRoleDataScope_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleDataScope_DeId", nameof(DepartmentId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleDataScope_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleDataScope_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_SysRoleDataScope_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRoleDataScope : RbacCreationEntity<long>
 {
     /// <summary>

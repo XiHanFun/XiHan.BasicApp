@@ -22,11 +22,10 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 /// 系统代码生成历史记录实体
 /// </summary>
 [SugarTable("Sys_Code_Gen_History", "系统代码生成历史记录表")]
-[SugarIndex("IX_SysCodeGenHistory_TableId", nameof(TableId), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenHistory_GenTime", nameof(GenTime), OrderByType.Desc)]
-[SugarIndex("IX_SysCodeGenHistory_GenStatus", nameof(GenStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenHistory_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenHistory_TenantId_TableId", nameof(TenantId), OrderByType.Asc, nameof(TableId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenHistory_TaId", nameof(TableId), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenHistory_GeTi", nameof(GenTime), OrderByType.Desc)]
+[SugarIndex("IX_SysCodeGenHistory_GeSt", nameof(GenStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenHistory_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TableId), OrderByType.Asc)]
 public partial class SysCodeGenHistory : RbacFullAuditedEntity<long>
 {
     /// <summary>

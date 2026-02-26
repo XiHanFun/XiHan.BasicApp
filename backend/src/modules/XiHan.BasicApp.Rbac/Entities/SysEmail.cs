@@ -22,11 +22,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统邮件实体
 /// </summary>
 [SugarTable("Sys_Email", "系统邮件表")]
-[SugarIndex("IX_SysEmail_ToEmail", nameof(ToEmail), OrderByType.Asc)]
-[SugarIndex("IX_SysEmail_EmailStatus", nameof(EmailStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysEmail_EmailType", nameof(EmailType), OrderByType.Asc)]
-[SugarIndex("IX_SysEmail_SendTime", nameof(SendTime), OrderByType.Desc)]
-[SugarIndex("IX_SysEmail_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysEmail_ToEm", nameof(ToEmail), OrderByType.Asc)]
+[SugarIndex("IX_SysEmail_EmSt", nameof(EmailStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysEmail_EmTy", nameof(EmailType), OrderByType.Asc)]
+[SugarIndex("IX_SysEmail_SeTi", nameof(SendTime), OrderByType.Desc)]
 public partial class SysEmail : RbacAggregateRoot<long>
 {
     /// <summary>

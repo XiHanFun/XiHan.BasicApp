@@ -21,9 +21,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户安全状态实体
 /// </summary>
 [SugarTable("Sys_User_Security", "系统用户安全状态表")]
-[SugarIndex("UX_SysUserSecurity_UserId", nameof(UserId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserSecurity_LockoutEndTime", nameof(LockoutEndTime), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSecurity_TenantId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("UX_SysUserSecurity_UsId", nameof(UserId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserSecurity_LoEnTi", nameof(LockoutEndTime), OrderByType.Asc)]
 public partial class SysUserSecurity : RbacFullAuditedEntity<long>
 {
     /// <summary>

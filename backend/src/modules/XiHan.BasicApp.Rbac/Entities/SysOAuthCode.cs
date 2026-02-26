@@ -22,9 +22,9 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统 OAuth 授权码实体
 /// </summary>
 [SugarTable("Sys_OAuth_Code", "系统 OAuth 授权码表")]
-[SugarIndex("IX_SysOAuthCode_Code", nameof(Code), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthCode_ClientId", nameof(ClientId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthCode_UserId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthCode_Co", nameof(Code), OrderByType.Asc, true)]
+[SugarIndex("IX_SysOAuthCode_ClId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthCode_UsId", nameof(UserId), OrderByType.Asc)]
 public partial class SysOAuthCode : RbacFullAuditedEntity<long>
 {
     /// <summary>

@@ -26,14 +26,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 一个文件可以对应多个存储位置（主存储、备份、CDN等）
 /// </remarks>
 [SugarTable("Sys_File", "系统文件表")]
-[SugarIndex("IX_SysFile_FileHash", nameof(FileHash), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FileName", nameof(FileName), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FileType", nameof(FileType), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_CreatedTime", nameof(CreatedTime), OrderByType.Desc)]
-[SugarIndex("IX_SysFile_IsTemporary", nameof(IsTemporary), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_ExpiresAt", nameof(ExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_FiHa", nameof(FileHash), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_FiNa", nameof(FileName), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_FiTy", nameof(FileType), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_IsTe", nameof(IsTemporary), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
 public partial class SysFile : RbacAggregateRoot<long>
 {
     #region 基本信息

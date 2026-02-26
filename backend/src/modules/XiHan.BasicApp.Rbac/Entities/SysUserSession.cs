@@ -22,13 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户会话实体
 /// </summary>
 [SugarTable("Sys_User_Session", "系统用户会话表")]
-[SugarIndex("IX_SysUserSession_UserId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_Token", nameof(Token), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserSession_RefreshToken", nameof(RefreshToken), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_SessionId", nameof(SessionId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_TokenExpiresAt", nameof(TokenExpiresAt), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_TenantId_UserId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_To", nameof(Token), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserSession_ReTo", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_ToExAt", nameof(TokenExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 public partial class SysUserSession : RbacAggregateRoot<long>
 {
     /// <summary>

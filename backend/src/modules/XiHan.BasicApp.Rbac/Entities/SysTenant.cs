@@ -22,12 +22,12 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统租户实体
 /// </summary>
 [SugarTable("Sys_Tenant", "系统租户表")]
-[SugarIndex("IX_SysTenant_TenantCode", nameof(TenantCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTenant_TenantName", nameof(TenantName), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_TenantStatus", nameof(TenantStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_ConfigStatus", nameof(ConfigStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_ExpireTime", nameof(ExpireTime), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysTenant_TeNa", nameof(TenantName), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_TeSt", nameof(TenantStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_ExTi", nameof(ExpireTime), OrderByType.Asc)]
 public partial class SysTenant : RbacAggregateRoot<long>
 {
     /// <summary>

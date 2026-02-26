@@ -23,11 +23,10 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 /// 系统代码生成表配置实体
 /// </summary>
 [SugarTable("Sys_Code_Gen_Table", "系统代码生成表配置表")]
-[SugarIndex("IX_SysCodeGenTable_TableName", nameof(TableName), OrderByType.Asc, true)]
-[SugarIndex("IX_SysCodeGenTable_ClassName", nameof(ClassName), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenTable_ModuleName", nameof(ModuleName), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenTable_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenTable_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenTable_TaNa", nameof(TableName), OrderByType.Asc, true)]
+[SugarIndex("IX_SysCodeGenTable_ClNa", nameof(ClassName), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenTable_MoNa", nameof(ModuleName), OrderByType.Asc)]
+[SugarIndex("IX_SysCodeGenTable_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysCodeGenTable : RbacFullAuditedEntity<long>
 {
     /// <summary>

@@ -22,12 +22,11 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统用户实体
 /// </summary>
 [SugarTable("Sys_User", "系统用户表")]
-[SugarIndex("IX_SysUser_UserName", nameof(UserName), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUser_Email", nameof(Email), OrderByType.Asc)]
-[SugarIndex("IX_SysUser_Phone", nameof(Phone), OrderByType.Asc)]
-[SugarIndex("IX_SysUser_TenantId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_SysUser_Status", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUser_TenantId_Status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUser_UsNa", nameof(UserName), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUser_Em", nameof(Email), OrderByType.Asc)]
+[SugarIndex("IX_SysUser_Ph", nameof(Phone), OrderByType.Asc)]
+[SugarIndex("IX_SysUser_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUser_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUser : RbacAggregateRoot<long>
 {
     /// <summary>

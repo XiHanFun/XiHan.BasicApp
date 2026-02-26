@@ -26,10 +26,10 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 一个文件可以有多个存储位置（主存储、备份存储、CDN等）
 /// </remarks>
 [SugarTable("Sys_File_Storage", "系统文件存储表")]
-[SugarIndex("IX_SysFileStorage_FileId", nameof(FileId), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_StorageType", nameof(StorageType), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_IsPrimary", nameof(IsPrimary), OrderByType.Desc)]
-[SugarIndex("IX_SysFileStorage_FileId_StorageType", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_SysFileStorage_FiId", nameof(FileId), OrderByType.Asc)]
+[SugarIndex("IX_SysFileStorage_StTy", nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_SysFileStorage_IsPr", nameof(IsPrimary), OrderByType.Desc)]
+[SugarIndex("IX_SysFileStorage_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
 public partial class SysFileStorage : RbacFullAuditedEntity<long>
 {
     #region 关联信息

@@ -22,8 +22,8 @@ namespace XiHan.BasicApp.Rbac.Entities;
 /// 系统 OAuth 应用实体
 /// </summary>
 [SugarTable("Sys_OAuth_App", "系统 OAuth 应用表")]
-[SugarIndex("IX_SysOAuthApp_ClientId", nameof(ClientId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthApp_AppName", nameof(AppName), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthApp_ClId", nameof(ClientId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysOAuthApp_ApNa", nameof(AppName), OrderByType.Asc)]
 public partial class SysOAuthApp : RbacAggregateRoot<long>
 {
     /// <summary>
