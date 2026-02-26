@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.BasicApp.Rbac.Repositories;
+using XiHan.Framework.Application.Services;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
 namespace XiHan.BasicApp.Rbac.ApplicationServices.Logging;
@@ -21,7 +22,7 @@ namespace XiHan.BasicApp.Rbac.ApplicationServices.Logging;
 /// <summary>
 /// 日志查询应用服务
 /// </summary>
-public class LogApplicationService
+public class LoggingApplicationService : ApplicationServiceBase
 {
     private readonly ISysAccessLogRepository _accessLogRepository;
     private readonly ISysOperationLogRepository _operationLogRepository;
@@ -31,7 +32,7 @@ public class LogApplicationService
     /// <summary>
     /// 构造函数
     /// </summary>
-    public LogApplicationService(
+    public LoggingApplicationService(
         ISysAccessLogRepository accessLogRepository,
         ISysOperationLogRepository operationLogRepository,
         ISysExceptionLogRepository exceptionLogRepository,

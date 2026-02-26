@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.WebHost.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-public class LogsController(LogApplicationService logApplicationService) : ControllerBase
+public class LoggingController(LoggingApplicationService logApplicationService) : ControllerBase
 {
     /// <summary>
     /// 分页查询访问日志
