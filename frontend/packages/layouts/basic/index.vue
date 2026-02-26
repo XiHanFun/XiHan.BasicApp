@@ -34,9 +34,8 @@ const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark ? 
 
 const sidebarEnableState = computed(
   () =>
-    !shell.contentMaximized.value
-    && (shell.isMobile.value
-      || (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow)),
+    shell.isMobile.value
+    || (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow),
 )
 </script>
 
@@ -45,6 +44,7 @@ const sidebarEnableState = computed(
     <!-- ==================== Sidebar ==================== -->
     <NConfigProvider
       v-if="sidebarEnableState"
+      v-show="!shell.contentMaximized.value"
       :theme="sidebarForceDark ? darkTheme : undefined"
       :theme-overrides="themeOverrides"
     >

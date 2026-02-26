@@ -158,8 +158,9 @@ export function useLayoutShellAdapter() {
   const tabbarStyle = computed((): CSSProperties => {
     let width = ''
     let marginLeft = 0
+    const maximized = contentMaximized.value
 
-    if (!isMixedNav.value || !appStore.sidebarShow) {
+    if (maximized || !isMixedNav.value || !appStore.sidebarShow) {
       width = '100%'
     } else if (sidebarEnableState.value) {
       const onHoveringWidth = appStore.sidebarExpandOnHover
@@ -179,12 +180,18 @@ export function useLayoutShellAdapter() {
   const contentStyle = computed((): CSSProperties => {
     const fixed = headerFixed.value
     const maximized = contentMaximized.value
-    const needFixedOffset = (fixed || maximized)
-      && !isFullContent.value
-      && !headerIsHidden.value
-      && (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
+    const marginTop = maximized
+      ? (appStore.tabbarEnabled && !isFullContent.value ? `${tabbarHeight.value}px` : '0')
+      : (
+          fixed &&
+            !isFullContent.value &&
+            !headerIsHidden.value &&
+            (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
+            ? `${headerWrapperHeight.value}px`
+            : '0'
+        )
     return {
-      marginTop: needFixedOffset ? `${headerWrapperHeight.value}px` : '0',
+      marginTop,
       paddingBottom: `${appStore.footerEnable && appStore.footerFixed && !maximized ? footerHeight.value : 0}px`,
     }
   })
@@ -201,9 +208,12 @@ export function useLayoutShellAdapter() {
       height: isFullContent.value ? '0' : `${headerWrapperHeight.value}px`,
       left: maximized ? '0' : (isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth),
       position: fixed || maximized ? 'fixed' : 'static',
-      top: headerIsHidden.value || isFullContent.value ? `-${headerWrapperHeight.value}px` : '0',
+      top: maximized
+        ? '0'
+        : (headerIsHidden.value || isFullContent.value ? `-${headerWrapperHeight.value}px` : '0'),
+      transition: maximized ? 'none' : undefined,
       width: maximized ? '100%' : mainStyle.value.width,
-      zIndex: headerZIndex.value,
+      zIndex: maximized ? Z_INDEX_BASE + 10 : headerZIndex.value,
     }
   })
 
