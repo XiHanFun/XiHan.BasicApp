@@ -13,7 +13,7 @@ export function useContentMaximize() {
   /** 当前是否处于内容最大化模式（只读） */
   const contentIsMaximize = readonly(_contentMaximized)
 
-  /** 进入内容最大化模式（隐藏 header / sidebar / tabbar） */
+  /** 进入内容最大化模式（隐藏 header / sidebar，保留 tabbar） */
   function maximize() {
     _contentMaximized.value = true
   }
