@@ -87,7 +87,7 @@ public static class ServiceCollectionExtensions
     {
         // 应用服务
         services.AddScoped<UserApplicationService>();
-        services.AddScoped<LogApplicationService>();
+        services.AddScoped<LoggingApplicationService>();
 
         return services;
     }
