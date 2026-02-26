@@ -658,7 +658,7 @@ watch(
             :style="extraTitleStyle"
             class="flex items-center justify-center"
           >
-            <span class="truncate text-base font-semibold text-foreground">{{ appTitle }}</span>
+            <span class="extra-brand-title truncate">{{ appTitle }}</span>
           </div>
           <div
             :style="extraContentStyle"
@@ -776,6 +776,14 @@ watch(
 
 .mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
   font-weight: 600;
+}
+
+.extra-brand-title {
+  color: hsl(var(--foreground));
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.2;
 }
 </style>
 
