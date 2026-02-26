@@ -595,7 +595,11 @@ watch(
         <!-- Standard layout -->
         <template v-else>
           <!-- Logo -->
-          <div v-if="isSideMode && !isMixedNav" :style="logoAreaStyle">
+          <div
+            v-if="isSideMode && !isMixedNav"
+            :style="logoAreaStyle"
+            :class="{ 'sidebar-logo-align-with-header': !effectiveCollapsed }"
+          >
             <SidebarBrand
               :collapsed="effectiveCollapsed"
               :app-title="appTitle"
@@ -784,6 +788,11 @@ watch(
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1.2;
+}
+
+.sidebar-logo-align-with-header {
+  /* Header logo has an extra pl-2 container offset; keep side mode aligned with it. */
+  padding-left: 0.5rem;
 }
 </style>
 
