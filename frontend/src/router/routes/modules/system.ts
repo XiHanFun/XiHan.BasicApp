@@ -74,14 +74,14 @@ export const systemRoutes: RouteRecordRaw = {
         keepAlive: true,
       },
     },
-    // {
-    //   path: 'logs',
-    //   name: 'SystemLogs',
-    //   component: () => import('@/views/system/logs/index.vue'),
-    //   meta: {
-    //     title: 'menu.logs',
-    //     icon: 'lucide:history',
-    //   },
-    // },
+    {
+      path: 'logs',
+      name: 'SystemLogs',
+      component: () => import('@/views/system/logs/index.vue'),
+      meta: {
+        title: 'menu.logs',
+        icon: 'lucide:history',
+      },
+    },
   ],
 }
