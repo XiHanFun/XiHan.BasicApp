@@ -14,91 +14,47 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework.Application.Contracts" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.DevTools" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Domain.Shared" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.EventBus.Abstractions" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Localization.Abstractions" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Metadata" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.AI" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Application" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Authentication" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Authorization" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Bot" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Caching" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Core" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Data" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.DistributedIds" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Domain" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.EventBus" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Http" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Localization" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Logging" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Messaging" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.MultiTenancy.Abstractions" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.ObjectMapping" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.ObjectStorage" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Observability" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Script" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.SearchEngines" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Security" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Serialization" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Settings" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Tasks" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Templating" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Threading" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Timing" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Traffic" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Uow" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Utils" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Validation" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.Validation.Abstractions" Version="2.2.0-alpha.8" />
-      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="2.2.0-alpha.8" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.AI\XiHan.Framework.AI.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Application.Contracts\XiHan.Framework.Application.Contracts.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Application\XiHan.Framework.Application.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Authentication\XiHan.Framework.Authentication.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Authorization\XiHan.Framework.Authorization.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot\XiHan.Framework.Bot.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Caching\XiHan.Framework.Caching.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Core\XiHan.Framework.Core.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Data\XiHan.Framework.Data.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.DevTools\XiHan.Framework.DevTools.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.DistributedIds\XiHan.Framework.DistributedIds.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Domain.Shared\XiHan.Framework.Domain.Shared.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Domain\XiHan.Framework.Domain.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.EventBus.Abstractions\XiHan.Framework.EventBus.Abstractions.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.EventBus\XiHan.Framework.EventBus.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Http\XiHan.Framework.Http.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Localization.Abstractions\XiHan.Framework.Localization.Abstractions.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Localization\XiHan.Framework.Localization.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Logging\XiHan.Framework.Logging.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Messaging\XiHan.Framework.Messaging.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Metadata\XiHan.Framework.Metadata.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.MultiTenancy.Abstractions\XiHan.Framework.MultiTenancy.Abstractions.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.MultiTenancy\XiHan.Framework.MultiTenancy.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.ObjectMapping\XiHan.Framework.ObjectMapping.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.ObjectStorage\XiHan.Framework.ObjectStorage.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Observability\XiHan.Framework.Observability.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Script\XiHan.Framework.Script.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.SearchEngines\XiHan.Framework.SearchEngines.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Security\XiHan.Framework.Security.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Serialization\XiHan.Framework.Serialization.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Settings\XiHan.Framework.Settings.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Tasks\XiHan.Framework.Tasks.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Templating\XiHan.Framework.Templating.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Threading\XiHan.Framework.Threading.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Timing\XiHan.Framework.Timing.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Traffic\XiHan.Framework.Traffic.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Uow\XiHan.Framework.Uow.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Utils\XiHan.Framework.Utils.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Validation.Abstractions\XiHan.Framework.Validation.Abstractions.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Validation\XiHan.Framework.Validation.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.VirtualFileSystem\XiHan.Framework.VirtualFileSystem.csproj" />
+      <PackageReference Include="XiHan.Framework.Application.Contracts" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.DevTools" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Domain.Shared" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.EventBus.Abstractions" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Localization.Abstractions" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Metadata" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.AI" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Application" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Authentication" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Authorization" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Bot" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Caching" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Core" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Data" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.DistributedIds" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Domain" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.EventBus" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Http" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Localization" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Logging" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Messaging" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.MultiTenancy" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.MultiTenancy.Abstractions" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.ObjectMapping" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.ObjectStorage" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Observability" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Script" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.SearchEngines" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Security" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Serialization" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Settings" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Tasks" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Templating" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Threading" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Timing" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Traffic" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Uow" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Utils" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Validation" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.Validation.Abstractions" Version="2.3.0-preview" />
+      <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="2.3.0-preview" />
     </ItemGroup>
 
 </Project>

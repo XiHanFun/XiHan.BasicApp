@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Rbac.ApplicationServices.Logs;
 using XiHan.BasicApp.Rbac.ApplicationServices.Users;
 using XiHan.BasicApp.Rbac.DomainServices;
 using XiHan.BasicApp.Rbac.DomainServices.Implementations;
@@ -87,7 +86,7 @@ public static class ServiceCollectionExtensions
     {
         // 应用服务
         services.AddScoped<UserApplicationService>();
-        services.AddScoped<LogApplicationService>();
+        //services.AddScoped<LogApplicationService>();
 
         return services;
     }
