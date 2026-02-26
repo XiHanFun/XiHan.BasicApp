@@ -34,8 +34,9 @@ const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark ? 
 
 const sidebarEnableState = computed(
   () =>
-    shell.isMobile.value ||
-    (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow),
+    !shell.contentMaximized.value
+    && (shell.isMobile.value
+      || (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow)),
 )
 </script>
 
@@ -129,11 +130,7 @@ const sidebarEnableState = computed(
 
         <!-- Tabbar -->
         <div
-          v-if="
-            shell.appStore.tabbarEnabled &&
-            !shell.contentMaximized.value &&
-            !shell.isFullContent.value
-          "
+          v-if="shell.appStore.tabbarEnabled && !shell.isFullContent.value"
           :style="shell.tabbarStyle.value"
         >
           <AppTabbar />
@@ -156,7 +153,7 @@ const sidebarEnableState = computed(
 
       <!-- Footer -->
       <footer
-        v-if="shell.appStore.footerEnable"
+        v-if="shell.appStore.footerEnable && !shell.contentMaximized.value"
         :style="{
           minHeight: `${shell.footerHeight.value}px`,
           marginBottom: shell.isFullContent.value ? `-${shell.footerHeight.value}px` : '0',

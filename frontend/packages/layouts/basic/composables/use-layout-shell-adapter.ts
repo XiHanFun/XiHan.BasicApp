@@ -60,10 +60,10 @@ export function useLayoutShellAdapter() {
 
   const headerWrapperHeight = computed(() => {
     let height = 0
-    if (appStore.headerShow && !isFullContent.value) {
+    if (appStore.headerShow && !isFullContent.value && !contentMaximized.value) {
       height += headerHeight.value
     }
-    if (appStore.tabbarEnabled) {
+    if (appStore.tabbarEnabled && !isFullContent.value) {
       height += tabbarHeight.value
     }
     return height
@@ -88,6 +88,7 @@ export function useLayoutShellAdapter() {
   })
 
   const getSidebarWidth = computed(() => {
+    if (contentMaximized.value) return 0
     if (!appStore.sidebarShow) return 0
     if (!sidebarEnableState.value) return 0
 
@@ -177,15 +178,14 @@ export function useLayoutShellAdapter() {
 
   const contentStyle = computed((): CSSProperties => {
     const fixed = headerFixed.value
+    const maximized = contentMaximized.value
+    const needFixedOffset = (fixed || maximized)
+      && !isFullContent.value
+      && !headerIsHidden.value
+      && (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
     return {
-      marginTop:
-        fixed &&
-        !isFullContent.value &&
-        !headerIsHidden.value &&
-        (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
-          ? `${headerWrapperHeight.value}px`
-          : '0',
-      paddingBottom: `${appStore.footerEnable && appStore.footerFixed ? footerHeight.value : 0}px`,
+      marginTop: needFixedOffset ? `${headerWrapperHeight.value}px` : '0',
+      paddingBottom: `${appStore.footerEnable && appStore.footerFixed && !maximized ? footerHeight.value : 0}px`,
     }
   })
 
@@ -196,12 +196,13 @@ export function useLayoutShellAdapter() {
 
   const headerWrapperStyle = computed((): CSSProperties => {
     const fixed = headerFixed.value
+    const maximized = contentMaximized.value
     return {
       height: isFullContent.value ? '0' : `${headerWrapperHeight.value}px`,
-      left: isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth,
-      position: fixed ? 'fixed' : 'static',
+      left: maximized ? '0' : (isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth),
+      position: fixed || maximized ? 'fixed' : 'static',
       top: headerIsHidden.value || isFullContent.value ? `-${headerWrapperHeight.value}px` : '0',
-      width: mainStyle.value.width,
+      width: maximized ? '100%' : mainStyle.value.width,
       zIndex: headerZIndex.value,
     }
   })
