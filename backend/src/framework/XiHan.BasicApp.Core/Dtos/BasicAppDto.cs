@@ -19,6 +19,7 @@ namespace XiHan.BasicApp.Core.Dtos;
 
 /// <summary>
 /// BasicApp DTO 基类
+/// 命名规则：Dto（Data Transfer Object）
 /// </summary>
 public abstract class BasicAppDto : DtoBase<long>
 {
@@ -26,21 +27,24 @@ public abstract class BasicAppDto : DtoBase<long>
 
 /// <summary>
 /// BasicApp 创建 DTO 基类
+/// 命名规则：CDto（Create DTO）
 /// </summary>
-public abstract class BasicAppCreationDto : CreationDtoBase<long>
+public abstract class BasicAppCDto : CreationDtoBase<long>
 {
 }
 
 /// <summary>
 /// BasicApp 修改 DTO 基类
+/// 命名规则：UDto（Update DTO）
 /// </summary>
-public abstract class BasicAppUpdateDto : UpdateDtoBase<long>
+public abstract class BasicAppUDto : UpdateDtoBase<long>
 {
 }
 
 /// <summary>
 /// BasicApp 分页请求 DTO 基类
+/// 命名规则：PRDto（Page Request DTO）
 /// </summary>
-public abstract class BasicAppPageRequestDto : PageRequestDtoBase
+public abstract class BasicAppPRDto : PageRequestDtoBase
 {
 }

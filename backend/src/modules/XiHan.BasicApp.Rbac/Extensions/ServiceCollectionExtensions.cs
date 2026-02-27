@@ -13,12 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Rbac.ApplicationServices.Logging;
-using XiHan.BasicApp.Rbac.ApplicationServices.Users;
-using XiHan.BasicApp.Rbac.DomainServices;
-using XiHan.BasicApp.Rbac.DomainServices.Implementations;
-using XiHan.BasicApp.Rbac.Repositories;
-using XiHan.BasicApp.Rbac.Repositories.Implementations;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -36,26 +30,6 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacRepositories(this IServiceCollection services)
     {
-        // 聚合根仓储
-        services.AddScoped<ISysUserRepository, SysUserRepository>();
-        services.AddScoped<ISysRoleRepository, SysRoleRepository>();
-        services.AddScoped<ISysPermissionRepository, SysPermissionRepository>();
-        services.AddScoped<ISysTenantRepository, SysTenantRepository>();
-        services.AddScoped<ISysMenuRepository, SysMenuRepository>();
-        services.AddScoped<ISysDepartmentRepository, SysDepartmentRepository>();
-        services.AddScoped<ISysConfigRepository, SysConfigRepository>();
-        services.AddScoped<ISysDictRepository, SysDictRepository>();
-
-        // 关联关系仓储
-        services.AddScoped<ISysUserRoleRepository, SysUserRoleRepository>();
-        services.AddScoped<ISysRolePermissionRepository, SysRolePermissionRepository>();
-        services.AddScoped<ISysLoginLogRepository, SysLoginLogRepository>();
-        services.AddScoped<ISysUserSecurityRepository, SysUserSecurityRepository>();
-        services.AddScoped<ISysAccessLogRepository, SysAccessLogRepository>();
-        services.AddScoped<ISysOperationLogRepository, SysOperationLogRepository>();
-        services.AddScoped<ISysExceptionLogRepository, SysExceptionLogRepository>();
-        services.AddScoped<ISysAuditLogRepository, SysAuditLogRepository>();
-
         return services;
     }
 
@@ -66,15 +40,6 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDomainServices(this IServiceCollection services)
     {
-        // Domain Services
-        services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
-        services.AddScoped<IPermissionAuthorizationService, PermissionAuthorizationService>();
-        services.AddScoped<IRoleManagementService, RoleManagementService>();
-        services.AddScoped<ITenantManagementService, TenantManagementService>();
-        services.AddScoped<IDataPermissionService, DataPermissionService>();
-        services.AddScoped<IMenuNavigationService, MenuNavigationService>();
-        services.AddScoped<IDepartmentHierarchyService, DepartmentHierarchyService>();
-
         return services;
     }
 
@@ -85,10 +50,6 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacApplicationServices(this IServiceCollection services)
     {
-        // 应用服务
-        services.AddScoped<UserApplicationService>();
-        services.AddScoped<LoggingApplicationService>();
-
         return services;
     }
 
@@ -119,24 +80,10 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// 添加 RBAC 基础设施适配器
     /// </summary>
-    /// <remarks>
-    /// Adapters 属于基础设施层，作为防腐层（Anti-Corruption Layer）隔离框架接口和领域模型
-    /// 所有适配器只做接口转换，不包含业务逻辑，完全委托给 Domain Services 和 Application Services
-    /// </remarks>
-    /// <param name="services"></param>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
-        // 暂时注释掉，稍后创建极简实现
-        // 认证适配器
-        // services.AddScoped<IAuthenticationService, RbacAuthenticationService>();
-
-        // 授权适配器
-        // services.AddScoped<IPermissionStore, RbacPermissionStore>();
-        // services.AddScoped<IRoleStore, RbacRoleStore>();
-        // services.AddScoped<IRoleManager, RbacRoleManager>();
-        // services.AddSingleton<IPolicyStore, RbacPolicyStore>();
-        // services.AddScoped<IPolicyEvaluator, RbacPolicyEvaluator>();
-
         return services;
     }
 }
