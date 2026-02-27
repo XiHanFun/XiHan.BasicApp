@@ -15,7 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 
-namespace XiHan.BasicApp.Rbac.Domain.Entities;
+namespace XiHan.BasicApp.Rbac.Entities;
 
 /// <summary>
 /// 系统用户安全状态实体
