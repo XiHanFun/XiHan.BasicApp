@@ -1,7 +1,7 @@
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Events;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 租户聚合领域行为

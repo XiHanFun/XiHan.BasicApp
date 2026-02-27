@@ -14,7 +14,7 @@
 
 using SqlSugar;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 系统角色自定义数据权限范围实体扩展

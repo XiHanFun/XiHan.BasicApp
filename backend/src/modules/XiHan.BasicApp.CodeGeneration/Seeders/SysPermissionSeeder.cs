@@ -14,7 +14,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Rbac.Domain.Enums;
-using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 

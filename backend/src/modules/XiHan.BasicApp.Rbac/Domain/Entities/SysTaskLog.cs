@@ -15,7 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 系统任务日志实体

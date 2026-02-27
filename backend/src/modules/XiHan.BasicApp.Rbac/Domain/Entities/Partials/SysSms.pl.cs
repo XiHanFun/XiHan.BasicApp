@@ -14,7 +14,7 @@
 
 using SqlSugar;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 系统短信实体扩展

@@ -14,7 +14,7 @@
 
 using SqlSugar;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 系统部门继承关系实体扩展

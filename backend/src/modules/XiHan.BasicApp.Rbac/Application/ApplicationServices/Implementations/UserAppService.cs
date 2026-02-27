@@ -1,13 +1,12 @@
 using Mapster;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
-using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.ValueObjects;
-using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Uow;

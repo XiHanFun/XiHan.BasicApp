@@ -1,5 +1,5 @@
 using XiHan.BasicApp.Rbac.Domain.Enums;
-using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 
 namespace XiHan.BasicApp.Rbac.Domain.DomainServices;
 

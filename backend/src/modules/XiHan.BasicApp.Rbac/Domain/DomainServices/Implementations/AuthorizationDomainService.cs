@@ -1,6 +1,6 @@
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 
-namespace XiHan.BasicApp.Rbac.Domain.DomainServices;
+namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
 /// <summary>
 /// 授权领域服务实现

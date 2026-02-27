@@ -3,7 +3,7 @@ using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Services;
 
-namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
+namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 
 /// <summary>
 /// 部门应用服务

@@ -19,7 +19,6 @@ using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
-using XiHan.BasicApp.Rbac.Infrastructure.Seeders;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -101,7 +100,6 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<RbacBootstrapSeeder>();       // Order = -100
         // 按执行顺序注册
         services.AddDataSeeder<SysOperationSeeder>();        // Order = 0
         services.AddDataSeeder<SysResourceSeeder>();          // Order = 1

@@ -16,7 +16,7 @@ using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 系统权限实体
