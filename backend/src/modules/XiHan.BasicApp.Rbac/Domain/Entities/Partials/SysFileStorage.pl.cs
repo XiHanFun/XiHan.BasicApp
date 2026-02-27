@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Enums;
+using XiHan.BasicApp.Rbac.Domain.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
