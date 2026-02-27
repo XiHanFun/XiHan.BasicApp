@@ -113,7 +113,7 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
         ArgumentNullException.ThrowIfNull(input);
         if (input.BasicId <= 0)
         {
-            throw new ArgumentException("角色 ID 无效", nameof(input.BasicId));
+            throw new ArgumentException("角色 ID 无效");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -174,7 +174,7 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
         ArgumentNullException.ThrowIfNull(command);
         if (command.RoleId <= 0)
         {
-            throw new ArgumentException("角色 ID 无效", nameof(command.RoleId));
+            throw new ArgumentException("角色 ID 无效");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -195,7 +195,7 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
         ArgumentNullException.ThrowIfNull(command);
         if (command.RoleId <= 0)
         {
-            throw new ArgumentException("角色 ID 无效", nameof(command.RoleId));
+            throw new ArgumentException("角色 ID 无效");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
