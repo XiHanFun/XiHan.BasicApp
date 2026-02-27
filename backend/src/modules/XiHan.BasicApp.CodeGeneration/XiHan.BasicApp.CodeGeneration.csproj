@@ -17,9 +17,4 @@
       <ProjectReference Include="..\XiHan.BasicApp.Rbac\XiHan.BasicApp.Rbac.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Services\Domain\" />
-      <Folder Include="Services\Dtos\" />
-    </ItemGroup>
-
 </Project>
