@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:LogsController
+// FileName:LoggingController
 // Guid:3a1f6be3-c54f-4ea5-aa01-2a0465b834cc
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
