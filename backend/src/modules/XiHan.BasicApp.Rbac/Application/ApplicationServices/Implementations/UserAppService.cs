@@ -1,8 +1,8 @@
 using Mapster;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Application.Queries;
-using XiHan.BasicApp.Rbac.Application.Validators;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
@@ -109,7 +109,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
     /// <returns></returns>
     public async Task<UserDto> CreateAsync(UserCreateDto input)
     {
-        RbacCommandValidators.Validate(input);
+        input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
@@ -201,7 +201,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
     /// <returns></returns>
     public async Task<UserLoginResultDto> LoginAsync(UserLoginCommand command)
     {
-        RbacCommandValidators.Validate(command);
+        command.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         var user = await _userRepository.GetByUserNameAsync(command.UserName.Trim(), command.TenantId);
@@ -296,7 +296,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
     /// <returns></returns>
     public async Task ChangePasswordAsync(ChangePasswordCommand command)
     {
-        RbacCommandValidators.Validate(command);
+        command.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         var user = await _userRepository.GetByIdAsync(command.UserId)
