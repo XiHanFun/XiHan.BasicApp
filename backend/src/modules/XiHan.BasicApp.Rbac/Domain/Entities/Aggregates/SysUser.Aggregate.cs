@@ -2,7 +2,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Events;
 using XiHan.BasicApp.Rbac.Domain.ValueObjects;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 用户聚合领域行为

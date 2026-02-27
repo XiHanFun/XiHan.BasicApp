@@ -15,7 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
-namespace XiHan.BasicApp.Rbac.Entities;
+namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
 /// 系统文件存储实体（部分类 - 业务方法）

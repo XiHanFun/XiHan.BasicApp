@@ -1,6 +1,6 @@
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.ValueObjects;
-using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Authentication.Password;
 
 namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;

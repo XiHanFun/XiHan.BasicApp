@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using XiHan.BasicApp.Rbac.Domain.Enums;
-using XiHan.BasicApp.Rbac.Entities;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 
 namespace XiHan.BasicApp.Rbac.Domain.Specifications;
