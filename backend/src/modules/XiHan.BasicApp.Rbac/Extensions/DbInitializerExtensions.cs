@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:DbInitializerExtensions
-// Guid:24e5f4b9-d3ad-43df-9aaa-2bb9bb6a45d0
+// Guid:ad73acc4-b6f6-4e4c-bc8b-19f844f84d74
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/01/05 04:37:06
