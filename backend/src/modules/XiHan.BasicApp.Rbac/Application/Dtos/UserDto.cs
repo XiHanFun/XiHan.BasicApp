@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
@@ -62,11 +63,15 @@ public class UserCreateDto : BasicAppCDto
     /// <summary>
     /// 用户名
     /// </summary>
+    [Required(ErrorMessage = "用户名不能为空")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "用户名长度必须在 1～50 之间")]
     public string UserName { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码
     /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "密码不能为空")]
     public string Password { get; set; } = string.Empty;
 
     /// <summary>

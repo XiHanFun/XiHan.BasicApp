@@ -2,7 +2,7 @@ using Mapster;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
-using XiHan.BasicApp.Rbac.Application.Validators;
+using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
@@ -68,7 +68,7 @@ public class TenantAppService : ApplicationServiceBase, ITenantAppService
     /// <returns></returns>
     public async Task<TenantDto> CreateAsync(TenantCreateDto input)
     {
-        RbacCommandValidators.Validate(input);
+        input.ValidateAnnotations();
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
         var tenant = new SysTenant

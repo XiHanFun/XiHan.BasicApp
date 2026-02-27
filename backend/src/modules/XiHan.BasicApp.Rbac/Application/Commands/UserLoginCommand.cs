@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace XiHan.BasicApp.Rbac.Application.Commands;
 
 /// <summary>
@@ -8,11 +10,15 @@ public class UserLoginCommand
     /// <summary>
     /// 用户名
     /// </summary>
+    [Required(ErrorMessage = "用户名不能为空")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "用户名长度必须在 1～50 之间")]
     public string UserName { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码
     /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "密码不能为空")]
     public string Password { get; set; } = string.Empty;
 
     /// <summary>

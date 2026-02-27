@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
@@ -67,11 +68,15 @@ public class TenantCreateDto : BasicAppCDto
     /// <summary>
     /// 租户编码
     /// </summary>
+    [Required(ErrorMessage = "租户编码不能为空")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "租户编码长度必须在 1～50 之间")]
     public string TenantCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 租户名称
     /// </summary>
+    [Required(ErrorMessage = "租户名称不能为空")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "租户名称长度必须在 1～100 之间")]
     public string TenantName { get; set; } = string.Empty;
 
     /// <summary>
@@ -108,6 +113,8 @@ public class TenantUpdateDto : BasicAppUDto
     /// <summary>
     /// 租户名称
     /// </summary>
+    [Required(ErrorMessage = "租户名称不能为空")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "租户名称长度必须在 1～100 之间")]
     public string TenantName { get; set; } = string.Empty;
 
     /// <summary>

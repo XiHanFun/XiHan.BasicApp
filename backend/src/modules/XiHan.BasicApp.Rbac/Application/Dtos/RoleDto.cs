@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
@@ -57,11 +58,15 @@ public class RoleCreateDto : BasicAppCDto
     /// <summary>
     /// 角色编码
     /// </summary>
+    [Required(ErrorMessage = "角色编码不能为空")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "角色编码长度必须在 1～50 之间")]
     public string RoleCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 角色名称
     /// </summary>
+    [Required(ErrorMessage = "角色名称不能为空")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "角色名称长度必须在 1～100 之间")]
     public string RoleName { get; set; } = string.Empty;
 
     /// <summary>
@@ -99,6 +104,8 @@ public class RoleUpdateDto : BasicAppUDto
     /// <summary>
     /// 角色名称
     /// </summary>
+    [Required(ErrorMessage = "角色名称不能为空")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "角色名称长度必须在 1～100 之间")]
     public string RoleName { get; set; } = string.Empty;
 
     /// <summary>
