@@ -2,7 +2,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Entities;
 
-namespace XiHan.BasicApp.Rbac.Domain.DomainServices;
+namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
 /// <summary>
 /// 角色领域管理器实现
