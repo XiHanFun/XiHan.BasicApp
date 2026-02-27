@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserStatistics_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserStatistics_StDa", nameof(StatisticsDate), OrderByType.Desc)]
 [SugarIndex("IX_SysUserStatistics_Pe", nameof(Period), OrderByType.Asc)]
-public partial class SysUserStatistics : RbacFullAuditedEntity<long>
+public partial class SysUserStatistics : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 用户ID（为空表示全体用户统计）

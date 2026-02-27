@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysSessionRole_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysSessionRole_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
 [SugarIndex("IX_SysSessionRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysSessionRole : RbacEntity<long>
+public partial class SysSessionRole : BasicAppCreationEntity
 {
     /// <summary>
     /// 会话ID
@@ -72,10 +72,4 @@ public partial class SysSessionRole : RbacEntity<long>
     /// </summary>
     [SugarColumn(ColumnDescription = "激活原因", Length = 500, IsNullable = true)]
     public virtual string? Reason { get; set; }
-
-    /// <summary>
-    /// 创建时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "创建时间")]
-    public virtual DateTimeOffset CreatedTime { get; set; } = DateTimeOffset.Now;
 }

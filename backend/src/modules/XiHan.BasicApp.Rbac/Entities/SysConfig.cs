@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysConfig_TeId_CoKe", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
-public partial class SysConfig : RbacAggregateRoot<long>
+public partial class SysConfig : BasicAppAggregateRoot
 {
     /// <summary>
     /// 配置名称

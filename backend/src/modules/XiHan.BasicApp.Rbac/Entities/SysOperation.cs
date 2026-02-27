@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOperation_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysOperation : RbacCreationEntity<long>
+public partial class SysOperation : BasicAppCreationEntity
 {
     /// <summary>
     /// 操作编码（唯一标识，如：create, read, update, delete, approve）

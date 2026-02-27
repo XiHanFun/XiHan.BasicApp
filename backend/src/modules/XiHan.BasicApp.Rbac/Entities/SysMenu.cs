@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_MeTy", nameof(MenuType), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysMenu : RbacAggregateRoot<long>
+public partial class SysMenu : BasicAppAggregateRoot
 {
     /// <summary>
     /// 关联资源ID（每个菜单对应一个资源，可为空表示纯展示菜单）

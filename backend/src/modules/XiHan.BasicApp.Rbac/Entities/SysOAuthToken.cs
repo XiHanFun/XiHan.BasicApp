@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOAuthToken_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_IsRe", nameof(IsRevoked), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
-public partial class SysOAuthToken : RbacCreationEntity<long>
+public partial class SysOAuthToken : BasicAppCreationEntity
 {
     /// <summary>
     /// 访问令牌（敏感信息）

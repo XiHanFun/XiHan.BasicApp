@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysLoginLog_UsNa", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_LoIp", nameof(LoginIp), OrderByType.Asc)]
 [SugarIndex("IX_SysLoginLog_TeId_LoTi", nameof(TenantId), OrderByType.Asc, nameof(LoginTime), OrderByType.Desc)]
-public partial class SysLoginLog : RbacCreationEntity<long>
+public partial class SysLoginLog : BasicAppCreationEntity
 {
     /// <summary>
     /// 用户ID

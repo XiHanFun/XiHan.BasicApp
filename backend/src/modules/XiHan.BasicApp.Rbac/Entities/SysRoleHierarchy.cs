@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -35,7 +35,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysRoleHierarchy_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysRoleHierarchy_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_SysRoleHierarchy_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysRoleHierarchy : RbacCreationEntity<long>
+public partial class SysRoleHierarchy : BasicAppCreationEntity
 {
     /// <summary>
     /// 祖先角色ID（被继承的角色）

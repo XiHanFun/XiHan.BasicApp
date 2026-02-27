@@ -14,7 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Enums;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;
@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarIndex("IX_SysCodeGenTemplate_TeCo", nameof(TemplateCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysCodeGenTemplate_TeGr", nameof(TemplateGroup), OrderByType.Asc)]
 [SugarIndex("IX_SysCodeGenTemplate_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysCodeGenTemplate : RbacFullAuditedEntity<long>
+public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 模板编码

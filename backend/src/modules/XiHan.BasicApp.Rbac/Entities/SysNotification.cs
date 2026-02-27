@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysNotification_NoTy", nameof(NotificationType), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NoSt", nameof(NotificationStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SeTi", nameof(SendTime), OrderByType.Desc)]
-public partial class SysNotification : RbacAggregateRoot<long>
+public partial class SysNotification : BasicAppAggregateRoot
 {
     /// <summary>
     /// 接收用户ID（为空表示全体用户）
