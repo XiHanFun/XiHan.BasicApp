@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:PasswordValueObject
+// Guid:23fc69ac-8d3f-46f8-bfc5-4e32a231e3f6
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:36:33
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using XiHan.Framework.Authentication.Password;
 
 namespace XiHan.BasicApp.Rbac.Domain.ValueObjects;

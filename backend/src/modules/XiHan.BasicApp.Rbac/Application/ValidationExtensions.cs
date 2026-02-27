@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:ValidationExtensions
+// Guid:57511a84-d7c0-4cb8-92d0-2a69ec2c09d0
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 06:54:45
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Rbac.Application;
