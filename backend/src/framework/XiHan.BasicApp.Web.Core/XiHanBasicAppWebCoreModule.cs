@@ -13,11 +13,14 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Web.Core.Extensions;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Core.Threading;
 using XiHan.Framework.Web.Api;
 using XiHan.Framework.Web.Core;
+using XiHan.Framework.Web.Core.Extensions;
 using XiHan.Framework.Web.Docs;
 using XiHan.Framework.Web.Gateway;
 using XiHan.Framework.Web.RealTime;
@@ -53,5 +56,11 @@ public class XiHanBasicAppWebCoreModule : XiHanModule
     /// <param name="context"></param>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
+        var app = context.GetApplicationBuilder();
+        AsyncHelper.RunSync(async () =>
+        {
+            // 进行数据库初始化
+            await app.UseDbInitializerAsync(initialize: true);
+        });
     }
 }

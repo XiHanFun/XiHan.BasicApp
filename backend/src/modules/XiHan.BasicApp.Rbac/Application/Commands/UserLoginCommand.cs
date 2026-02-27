@@ -39,19 +39,4 @@ public class UserLoginCommand
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; }
-
-    /// <summary>
-    /// 登录IP
-    /// </summary>
-    public string? LoginIp { get; set; }
-
-    /// <summary>
-    /// 浏览器
-    /// </summary>
-    public string? Browser { get; set; }
-
-    /// <summary>
-    /// 操作系统
-    /// </summary>
-    public string? Os { get; set; }
 }

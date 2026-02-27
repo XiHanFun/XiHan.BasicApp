@@ -284,7 +284,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
         await _userSecurityRepository.UpdateAsync(security);
 
         user.LastLoginTime = DateTimeOffset.UtcNow;
-        user.LastLoginIp = command.LoginIp;
+        //user.LastLoginIp = command.LoginIp;
         await _userRepository.UpdateAsync(user);
 
         var permissionCodes = await _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId);
@@ -479,9 +479,9 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
             TenantId = command.TenantId,
             UserId = userId,
             UserName = command.UserName,
-            LoginIp = command.LoginIp,
-            Browser = command.Browser,
-            Os = command.Os,
+            //LoginIp = command.LoginIp,
+            //Browser = command.Browser,
+            //Os = command.Os,
             LoginResult = loginResult,
             Message = message,
             LoginTime = DateTimeOffset.UtcNow

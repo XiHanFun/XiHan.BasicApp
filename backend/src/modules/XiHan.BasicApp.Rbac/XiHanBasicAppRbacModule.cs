@@ -20,7 +20,6 @@ using XiHan.Framework.Authorization;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Core.Threading;
 using XiHan.Framework.Data.SqlSugar.Options;
 using XiHan.Framework.Web.Core.Extensions;
 
@@ -72,11 +71,5 @@ public class XiHanBasicAppRbacModule : XiHanModule
     /// <returns></returns>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
-        var app = context.GetApplicationBuilder();
-        AsyncHelper.RunSync(async () =>
-        {
-            // 进行数据库初始化
-            await app.UseDbInitializerAsync(initialize: true);
-        });
     }
 }
