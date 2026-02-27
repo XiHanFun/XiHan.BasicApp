@@ -13,6 +13,13 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Rbac.Application.ApplicationServices;
+using XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
+using XiHan.BasicApp.Rbac.Domain.DomainServices;
+using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
+using XiHan.BasicApp.Rbac.Domain.Repositories;
+using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
+using XiHan.BasicApp.Rbac.Infrastructure.Seeders;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -30,6 +37,26 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacRepositories(this IServiceCollection services)
     {
+        // 聚合仓储
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IPermissionRepository, PermissionRepository>();
+        services.AddScoped<IMenuRepository, MenuRepository>();
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IConfigRepository, ConfigRepository>();
+        services.AddScoped<IDictRepository, DictRepository>();
+
+        // 关系与日志仓储
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+        services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+        services.AddScoped<IRoleMenuRepository, RoleMenuRepository>();
+        services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
+        services.AddScoped<IUserDepartmentRepository, UserDepartmentRepository>();
+        services.AddScoped<IUserSecurityRepository, UserSecurityRepository>();
+        services.AddScoped<ILoginLogRepository, LoginLogRepository>();
+        services.AddScoped<IDictItemRepository, DictItemRepository>();
+
         return services;
     }
 
@@ -40,6 +67,11 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDomainServices(this IServiceCollection services)
     {
+        services.AddScoped<IUserManager, UserManager>();
+        services.AddScoped<IRoleManager, RoleManager>();
+        services.AddScoped<ITenantManager, TenantManager>();
+        services.AddScoped<IAuthorizationDomainService, AuthorizationDomainService>();
+
         return services;
     }
 
@@ -50,6 +82,15 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacApplicationServices(this IServiceCollection services)
     {
+        services.AddScoped<IUserAppService, UserAppService>();
+        services.AddScoped<IRoleAppService, RoleAppService>();
+        services.AddScoped<IPermissionAppService, PermissionAppService>();
+        services.AddScoped<IMenuAppService, MenuAppService>();
+        services.AddScoped<IDepartmentAppService, DepartmentAppService>();
+        services.AddScoped<ITenantAppService, TenantAppService>();
+        services.AddScoped<IConfigAppService, ConfigAppService>();
+        services.AddScoped<IDictAppService, DictAppService>();
+
         return services;
     }
 
@@ -60,6 +101,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDataSeeders(this IServiceCollection services)
     {
+        services.AddDataSeeder<RbacBootstrapSeeder>();       // Order = -100
         // 按执行顺序注册
         services.AddDataSeeder<SysOperationSeeder>();        // Order = 0
         services.AddDataSeeder<SysResourceSeeder>();          // Order = 1

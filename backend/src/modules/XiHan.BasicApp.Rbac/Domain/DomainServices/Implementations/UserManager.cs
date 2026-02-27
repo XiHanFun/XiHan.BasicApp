@@ -3,7 +3,7 @@ using XiHan.BasicApp.Rbac.Domain.ValueObjects;
 using XiHan.BasicApp.Rbac.Entities;
 using XiHan.Framework.Authentication.Password;
 
-namespace XiHan.BasicApp.Rbac.Domain.DomainServices;
+namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
 /// <summary>
 /// 用户领域管理器实现
