@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysDepartment_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_DeTy", nameof(DepartmentType), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_LeId", nameof(LeaderId), OrderByType.Asc)]
-public partial class SysDepartment : RbacAggregateRoot<long>
+public partial class SysDepartment : BasicAppAggregateRoot
 {
     /// <summary>
     /// 父级部门ID

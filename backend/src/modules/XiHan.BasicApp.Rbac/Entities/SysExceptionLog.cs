@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysExceptionLog_ExTi", nameof(ExceptionTime), OrderByType.Desc)]
 [SugarIndex("IX_SysExceptionLog_StCo", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_SysExceptionLog_BuMo", nameof(BusinessModule), OrderByType.Asc)]
-public partial class SysExceptionLog : RbacCreationEntity<long>
+public partial class SysExceptionLog : BasicAppCreationEntity
 {
     /// <summary>
     /// 用户ID

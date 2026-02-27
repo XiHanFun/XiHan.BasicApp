@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserPermission_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
 [SugarIndex("IX_SysUserPermission_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
 [SugarIndex("IX_SysUserPermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysUserPermission : RbacCreationEntity<long>
+public partial class SysUserPermission : BasicAppCreationEntity
 {
     /// <summary>
     /// 用户ID

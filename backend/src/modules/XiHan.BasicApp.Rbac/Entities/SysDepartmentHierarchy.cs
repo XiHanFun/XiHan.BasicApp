@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysDepartmentHierarchy_DeId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartmentHierarchy_De", nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartmentHierarchy_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
-public partial class SysDepartmentHierarchy : RbacCreationEntity<long>
+public partial class SysDepartmentHierarchy : BasicAppCreationEntity
 {
     /// <summary>
     /// 祖先部门ID

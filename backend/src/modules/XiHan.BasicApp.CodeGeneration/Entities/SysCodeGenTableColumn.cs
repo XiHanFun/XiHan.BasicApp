@@ -14,7 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Enums;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.CodeGeneration.Entities;
@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.CodeGeneration.Entities;
 [SugarTable("Sys_Code_Gen_Table_Column", "系统代码生成表列配置表")]
 [SugarIndex("IX_SysCodeGenTableColumn_TaId", nameof(TableId), OrderByType.Asc)]
 [SugarIndex("IX_SysCodeGenTableColumn_CoNa", nameof(ColumnName), OrderByType.Asc)]
-public partial class SysCodeGenTableColumn : RbacFullAuditedEntity<long>
+public partial class SysCodeGenTableColumn : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 所属表ID

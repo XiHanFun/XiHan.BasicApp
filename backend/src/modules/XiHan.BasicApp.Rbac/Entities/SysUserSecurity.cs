@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarTable("Sys_User_Security", "系统用户安全状态表")]
 [SugarIndex("UX_SysUserSecurity_UsId", nameof(UserId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserSecurity_LoEnTi", nameof(LockoutEndTime), OrderByType.Asc)]
-public partial class SysUserSecurity : RbacFullAuditedEntity<long>
+public partial class SysUserSecurity : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 用户ID

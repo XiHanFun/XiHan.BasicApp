@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysReview_ReCo", nameof(ReviewCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysReview_ReTy", nameof(ReviewType), OrderByType.Asc)]
 [SugarIndex("IX_SysReview_ReSt", nameof(ReviewStatus), OrderByType.Asc)]
-public partial class SysReview : RbacAggregateRoot<long>
+public partial class SysReview : BasicAppAggregateRoot
 {
     /// <summary>
     /// 审查编码

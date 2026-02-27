@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTask_RuTaSt", nameof(RunTaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_TrTy", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_SysTask_NeRuTi", nameof(NextRunTime), OrderByType.Asc)]
-public partial class SysTask : RbacAggregateRoot<long>
+public partial class SysTask : BasicAppAggregateRoot
 {
     /// <summary>
     /// 任务编码

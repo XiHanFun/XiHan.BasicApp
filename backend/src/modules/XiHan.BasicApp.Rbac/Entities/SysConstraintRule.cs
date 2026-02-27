@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysConstraintRule_RuCo", nameof(RuleCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConstraintRule_CoTy", nameof(ConstraintType), OrderByType.Asc)]
 [SugarIndex("IX_SysConstraintRule_IsEn", nameof(IsEnabled), OrderByType.Asc)]
-public partial class SysConstraintRule : RbacFullAuditedEntity<long>
+public partial class SysConstraintRule : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 规则编码（唯一标识）

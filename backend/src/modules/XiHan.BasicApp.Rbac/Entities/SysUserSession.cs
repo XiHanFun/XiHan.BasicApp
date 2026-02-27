@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysUserSession_SeId", nameof(SessionId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_ToExAt", nameof(TokenExpiresAt), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
-public partial class SysUserSession : RbacAggregateRoot<long>
+public partial class SysUserSession : BasicAppAggregateRoot
 {
     /// <summary>
     /// 用户ID

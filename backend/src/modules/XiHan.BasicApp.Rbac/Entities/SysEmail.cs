@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysEmail_EmSt", nameof(EmailStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_EmTy", nameof(EmailType), OrderByType.Asc)]
 [SugarIndex("IX_SysEmail_SeTi", nameof(SendTime), OrderByType.Desc)]
-public partial class SysEmail : RbacAggregateRoot<long>
+public partial class SysEmail : BasicAppAggregateRoot
 {
     /// <summary>
     /// 发送用户ID

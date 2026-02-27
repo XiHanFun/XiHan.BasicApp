@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysFile_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_IsTe", nameof(IsTemporary), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
-public partial class SysFile : RbacAggregateRoot<long>
+public partial class SysFile : BasicAppAggregateRoot
 {
     #region 基本信息
 

@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 
 namespace XiHan.BasicApp.Rbac.Entities;
 
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysTaskLog_BaNu", nameof(BatchNumber), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_SysTaskLog_TeId_StTi", nameof(TenantId), OrderByType.Asc, nameof(StartTime), OrderByType.Desc)]
-public partial class SysTaskLog : RbacCreationEntity<long>
+public partial class SysTaskLog : BasicAppCreationEntity
 {
     /// <summary>
     /// 任务ID

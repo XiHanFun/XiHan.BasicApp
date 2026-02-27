@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Entities.Base;
+using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Rbac.Enums;
 
 namespace XiHan.BasicApp.Rbac.Entities;
@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Entities;
 [SugarIndex("IX_SysOAuthCode_Co", nameof(Code), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthCode_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthCode_UsId", nameof(UserId), OrderByType.Asc)]
-public partial class SysOAuthCode : RbacFullAuditedEntity<long>
+public partial class SysOAuthCode : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 授权码
