@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:TenantConnectionValueObject
+// Guid:f0be6af2-2759-4412-a633-bf6df52e59a2
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:36:59
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
 namespace XiHan.BasicApp.Rbac.Domain.ValueObjects;

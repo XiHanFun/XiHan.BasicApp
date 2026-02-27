@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:PermissionCodeValueObject
+// Guid:4ae0e127-adfb-42b2-bbe7-f77fd21b3eb2
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:36:47
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 namespace XiHan.BasicApp.Rbac.Domain.ValueObjects;
 
 /// <summary>

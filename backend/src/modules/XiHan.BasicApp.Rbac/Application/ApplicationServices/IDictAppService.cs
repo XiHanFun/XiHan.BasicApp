@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:IDictAppService
+// Guid:aa5d565c-7953-4b28-b903-a896f636eb97
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:47:17
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 

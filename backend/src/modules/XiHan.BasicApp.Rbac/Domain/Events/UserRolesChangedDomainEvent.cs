@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:UserRolesChangedDomainEvent
+// Guid:b8ea5fda-6a10-4749-a5b7-0bc79e462bce
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:37:24
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using XiHan.Framework.Domain.Events;
 
 namespace XiHan.BasicApp.Rbac.Domain.Events;

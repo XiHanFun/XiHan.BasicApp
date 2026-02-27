@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:MenuRepository
+// Guid:50645114-3d16-496e-a535-63c1756d8fb8
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:53:17
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;

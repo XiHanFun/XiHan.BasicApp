@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:UserLoginCommand
+// Guid:164ec453-5ede-41f1-858d-2245f1814d06
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:44:10
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Rbac.Application.Commands;

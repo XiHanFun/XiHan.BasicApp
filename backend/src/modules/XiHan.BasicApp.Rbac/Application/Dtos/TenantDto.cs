@@ -1,3 +1,17 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:TenantDto
+// Guid:70bfef33-a72d-4b12-b98f-78b0683da17b
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/02/28 05:43:44
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Enums;
