@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:LogApplicationService
+// FileName:LoggingApplicationService
 // Guid:5dca2f1f-9fca-4f98-bdff-c9c65c14cbf9
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com

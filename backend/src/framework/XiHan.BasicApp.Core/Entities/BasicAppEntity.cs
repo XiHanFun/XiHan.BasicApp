@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacEntity
+// FileName:BasicAppEntity
 // Guid:892d867f-e909-4e3c-80c9-81c24b8e07dc
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
