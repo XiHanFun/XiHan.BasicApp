@@ -14,7 +14,6 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
