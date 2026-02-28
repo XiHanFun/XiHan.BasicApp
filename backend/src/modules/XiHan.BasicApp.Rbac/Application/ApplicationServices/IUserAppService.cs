@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
@@ -22,15 +23,9 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
 /// <summary>
 /// 用户应用服务
 /// </summary>
-public interface IUserAppService : IApplicationService
+public interface IUserAppService
+    : ICrudApplicationService<UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>
 {
-    /// <summary>
-    /// 根据用户ID获取用户
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    Task<UserDto?> GetByIdAsync(long userId);
-
     /// <summary>
     /// 根据用户名获取用户
     /// </summary>
@@ -38,27 +33,6 @@ public interface IUserAppService : IApplicationService
     /// <param name="tenantId"></param>
     /// <returns></returns>
     Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null);
-
-    /// <summary>
-    /// 创建用户
-    /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
-    Task<UserDto> CreateAsync(UserCreateDto input);
-
-    /// <summary>
-    /// 更新用户
-    /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
-    Task<UserDto> UpdateAsync(UserUpdateDto input);
-
-    /// <summary>
-    /// 删除用户
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    Task<bool> DeleteAsync(long userId);
 
     /// <summary>
     /// 登录

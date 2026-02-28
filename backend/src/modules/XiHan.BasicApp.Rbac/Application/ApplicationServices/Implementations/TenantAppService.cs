@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
@@ -29,7 +31,9 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 租户应用服务
 /// </summary>
-public class TenantAppService : ApplicationServiceBase, ITenantAppService
+public class TenantAppService
+    : CrudApplicationServiceBase<SysTenant, TenantDto, long, TenantCreateDto, TenantUpdateDto, BasicAppPRDto>,
+        ITenantAppService
 {
     private readonly ITenantRepository _tenantRepository;
     private readonly ITenantManager _tenantManager;
@@ -45,21 +49,11 @@ public class TenantAppService : ApplicationServiceBase, ITenantAppService
         ITenantRepository tenantRepository,
         ITenantManager tenantManager,
         IUnitOfWorkManager unitOfWorkManager)
+        : base(tenantRepository)
     {
         _tenantRepository = tenantRepository;
         _tenantManager = tenantManager;
         _unitOfWorkManager = unitOfWorkManager;
-    }
-
-    /// <summary>
-    /// 根据租户ID获取租户
-    /// </summary>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    public async Task<TenantDto?> GetByIdAsync(long tenantId)
-    {
-        var tenant = await _tenantRepository.GetByIdAsync(tenantId);
-        return tenant?.Adapt<TenantDto>();
     }
 
     /// <summary>
@@ -79,7 +73,7 @@ public class TenantAppService : ApplicationServiceBase, ITenantAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<TenantDto> CreateAsync(TenantCreateDto input)
+    public override async Task<TenantDto> CreateAsync(TenantCreateDto input)
     {
         input.ValidateAnnotations();
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -105,19 +99,16 @@ public class TenantAppService : ApplicationServiceBase, ITenantAppService
     /// <summary>
     /// 更新租户
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<TenantDto> UpdateAsync(TenantUpdateDto input)
+    public override async Task<TenantDto> UpdateAsync(long id, TenantUpdateDto input)
     {
-        ArgumentNullException.ThrowIfNull(input);
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentException("租户 ID 无效", nameof(input.BasicId));
-        }
+        input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var tenant = await _tenantRepository.GetByIdAsync(input.BasicId)
-                     ?? throw new KeyNotFoundException($"未找到租户: {input.BasicId}");
+        var tenant = await _tenantRepository.GetByIdAsync(id)
+                     ?? throw new KeyNotFoundException($"未找到租户: {id}");
 
         tenant.TenantName = input.TenantName.Trim();
         tenant.TenantShortName = input.TenantShortName;

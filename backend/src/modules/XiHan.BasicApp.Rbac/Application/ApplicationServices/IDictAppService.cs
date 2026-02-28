@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
@@ -20,7 +21,8 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
 /// <summary>
 /// 字典应用服务
 /// </summary>
-public interface IDictAppService : IApplicationService
+public interface IDictAppService
+    : ICrudApplicationService<DictDto, long, DictCreateDto, DictUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据字典编码获取字典
@@ -37,4 +39,33 @@ public interface IDictAppService : IApplicationService
     /// <param name="tenantId"></param>
     /// <returns></returns>
     Task<IReadOnlyList<DictItemDto>> GetDictItemsAsync(long dictId, long? tenantId = null);
+
+    /// <summary>
+    /// 根据字典项ID获取字典项
+    /// </summary>
+    /// <param name="dictItemId"></param>
+    /// <returns></returns>
+    Task<DictItemDto?> GetDictItemByIdAsync(long dictItemId);
+
+    /// <summary>
+    /// 创建字典项
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    Task<DictItemDto> CreateItemAsync(DictItemCreateDto input);
+
+    /// <summary>
+    /// 更新字典项
+    /// </summary>
+    /// <param name="dictItemId"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    Task<DictItemDto> UpdateItemAsync(long dictItemId, DictItemUpdateDto input);
+
+    /// <summary>
+    /// 删除字典项
+    /// </summary>
+    /// <param name="dictItemId"></param>
+    /// <returns></returns>
+    Task<bool> DeleteItemAsync(long dictItemId);
 }

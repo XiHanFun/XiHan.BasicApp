@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 
@@ -66,4 +67,132 @@ public class PermissionDto : BasicAppDto
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; }
+}
+
+/// <summary>
+/// 创建权限 DTO
+/// </summary>
+public class PermissionCreateDto : BasicAppCDto
+{
+    /// <summary>
+    /// 资源ID
+    /// </summary>
+    [Range(1, long.MaxValue, ErrorMessage = "资源 ID 无效")]
+    public long ResourceId { get; set; }
+
+    /// <summary>
+    /// 操作ID
+    /// </summary>
+    [Range(1, long.MaxValue, ErrorMessage = "操作 ID 无效")]
+    public long OperationId { get; set; }
+
+    /// <summary>
+    /// 权限代码
+    /// </summary>
+    [Required(ErrorMessage = "权限代码不能为空")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "权限代码长度必须在 1～200 之间")]
+    public string PermissionCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 权限名称
+    /// </summary>
+    [Required(ErrorMessage = "权限名称不能为空")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "权限名称长度必须在 1～200 之间")]
+    public string PermissionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 权限描述
+    /// </summary>
+    [StringLength(500, ErrorMessage = "权限描述长度不能超过 500")]
+    public string? PermissionDescription { get; set; }
+
+    /// <summary>
+    /// 是否需要审计
+    /// </summary>
+    public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int Priority { get; set; }
+
+    /// <summary>
+    /// 排序
+    /// </summary>
+    public int Sort { get; set; }
+
+    /// <summary>
+    /// 租户ID
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    [StringLength(500, ErrorMessage = "备注长度不能超过 500")]
+    public string? Remark { get; set; }
+}
+
+/// <summary>
+/// 更新权限 DTO
+/// </summary>
+public class PermissionUpdateDto : BasicAppUDto
+{
+    /// <summary>
+    /// 资源ID
+    /// </summary>
+    [Range(1, long.MaxValue, ErrorMessage = "资源 ID 无效")]
+    public long ResourceId { get; set; }
+
+    /// <summary>
+    /// 操作ID
+    /// </summary>
+    [Range(1, long.MaxValue, ErrorMessage = "操作 ID 无效")]
+    public long OperationId { get; set; }
+
+    /// <summary>
+    /// 权限代码
+    /// </summary>
+    [Required(ErrorMessage = "权限代码不能为空")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "权限代码长度必须在 1～200 之间")]
+    public string PermissionCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 权限名称
+    /// </summary>
+    [Required(ErrorMessage = "权限名称不能为空")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "权限名称长度必须在 1～200 之间")]
+    public string PermissionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 权限描述
+    /// </summary>
+    [StringLength(500, ErrorMessage = "权限描述长度不能超过 500")]
+    public string? PermissionDescription { get; set; }
+
+    /// <summary>
+    /// 是否需要审计
+    /// </summary>
+    public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int Priority { get; set; }
+
+    /// <summary>
+    /// 状态
+    /// </summary>
+    public YesOrNo Status { get; set; } = YesOrNo.Yes;
+
+    /// <summary>
+    /// 排序
+    /// </summary>
+    public int Sort { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    [StringLength(500, ErrorMessage = "备注长度不能超过 500")]
+    public string? Remark { get; set; }
 }

@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
@@ -31,7 +33,9 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 用户应用服务
 /// </summary>
-public class UserAppService : ApplicationServiceBase, IUserAppService
+public class UserAppService
+    : CrudApplicationServiceBase<SysUser, UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>,
+        IUserAppService
 {
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 15;
@@ -77,6 +81,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
         ILoginLogRepository loginLogRepository,
         IPasswordHasher passwordHasher,
         IUnitOfWorkManager unitOfWorkManager)
+        : base(userRepository)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -90,17 +95,6 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
         _loginLogRepository = loginLogRepository;
         _passwordHasher = passwordHasher;
         _unitOfWorkManager = unitOfWorkManager;
-    }
-
-    /// <summary>
-    /// 根据用户ID获取用户
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    public async Task<UserDto?> GetByIdAsync(long userId)
-    {
-        var entity = await _userRepository.GetByIdAsync(userId);
-        return entity?.Adapt<UserDto>();
     }
 
     /// <summary>
@@ -120,7 +114,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<UserDto> CreateAsync(UserCreateDto input)
+    public override async Task<UserDto> CreateAsync(UserCreateDto input)
     {
         input.ValidateAnnotations();
 
@@ -146,20 +140,17 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
     /// <summary>
     /// 更新用户
     /// </summary>
+    /// <param name="userId"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<UserDto> UpdateAsync(UserUpdateDto input)
+    public override async Task<UserDto> UpdateAsync(long userId, UserUpdateDto input)
     {
-        ArgumentNullException.ThrowIfNull(input);
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentException("用户 ID 无效", nameof(input.BasicId));
-        }
+        input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
-        var user = await _userRepository.GetByIdAsync(input.BasicId)
-                   ?? throw new KeyNotFoundException($"未找到用户: {input.BasicId}");
+        var user = await _userRepository.GetByIdAsync(userId)
+                   ?? throw new KeyNotFoundException($"未找到用户: {userId}");
 
         user.RealName = input.RealName;
         user.NickName = input.NickName;
@@ -188,7 +179,7 @@ public class UserAppService : ApplicationServiceBase, IUserAppService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<bool> DeleteAsync(long userId)
+    public override async Task<bool> DeleteAsync(long userId)
     {
         if (userId <= 0)
         {

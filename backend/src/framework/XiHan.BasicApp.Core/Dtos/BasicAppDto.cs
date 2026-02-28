@@ -45,6 +45,6 @@ public abstract class BasicAppUDto : UpdateDtoBase<long>
 /// BasicApp 分页请求 DTO 基类
 /// 命名规则：PRDto（Page Request DTO）
 /// </summary>
-public abstract class BasicAppPRDto : PageRequestDtoBase
+public class BasicAppPRDto : PageRequestDtoBase
 {
 }
