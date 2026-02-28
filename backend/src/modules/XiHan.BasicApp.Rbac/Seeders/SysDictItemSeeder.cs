@@ -28,8 +28,8 @@ public class SysDictItemSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysDictItemSeeder(ISqlSugarDbContext dbContext, ILogger<SysDictItemSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysDictItemSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysDictItemSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -54,7 +54,7 @@ public class SysDictItemSeeder : DataSeederBase
             return;
         }
 
-        var dicts = await DbContext.GetClient().Queryable<SysDict>().ToListAsync();
+        var dicts = await ClientProvider.GetClient().Queryable<SysDict>().ToListAsync();
         if (dicts.Count == 0)
         {
             Logger.LogWarning("系统字典数据不存在，跳过字典项种子数据");

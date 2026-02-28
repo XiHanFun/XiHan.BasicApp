@@ -28,8 +28,8 @@ public class SysDepartmentSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysDepartmentSeeder(ISqlSugarDbContext dbContext, ILogger<SysDepartmentSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysDepartmentSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysDepartmentSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -117,10 +117,10 @@ public class SysDepartmentSeeder : DataSeederBase
         await BulkInsertAsync(departments);
 
         // 更新子部门的 ParentId
-        var rootDept = await DbContext.GetClient().Queryable<SysDepartment>().FirstAsync(d => d.DepartmentCode == "ROOT");
+        var rootDept = await ClientProvider.GetClient().Queryable<SysDepartment>().FirstAsync(d => d.DepartmentCode == "ROOT");
         if (rootDept != null)
         {
-            await DbContext.GetClient().Updateable<SysDepartment>()
+            await ClientProvider.GetClient().Updateable<SysDepartment>()
                 .SetColumns(d => d.ParentId == rootDept.BasicId)
                 .Where(d => d.DepartmentCode != "ROOT")
                 .ExecuteCommandAsync();

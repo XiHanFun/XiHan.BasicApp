@@ -28,7 +28,7 @@ public class SysMenuSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysMenuSeeder(ISqlSugarDbContext dbContext, ILogger<SysMenuSeeder> logger, IServiceProvider serviceProvider) : base(dbContext, logger, serviceProvider) { }
+    public SysMenuSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysMenuSeeder> logger, IServiceProvider serviceProvider) : base(clientProvider, logger, serviceProvider) { }
 
     /// <summary>
     /// 种子数据优先级
@@ -45,7 +45,7 @@ public class SysMenuSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = ClientProvider.GetClient();
         var resources = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "develop" || r.ResourceCode == "code_gen").ToListAsync();
         var resourceMap = resources.ToDictionary(r => r.ResourceCode, r => r.BasicId);
         if (!resourceMap.ContainsKey("develop") || !resourceMap.ContainsKey("code_gen"))

@@ -28,8 +28,8 @@ public class SysMenuSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysMenuSeeder(ISqlSugarDbContext dbContext, ILogger<SysMenuSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysMenuSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysMenuSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -54,7 +54,7 @@ public class SysMenuSeeder : DataSeederBase
             return;
         }
 
-        var resources = await DbContext.GetClient().Queryable<SysResource>().ToListAsync();
+        var resources = await ClientProvider.GetClient().Queryable<SysResource>().ToListAsync();
         if (resources.Count == 0)
         {
             Logger.LogWarning("资源数据不存在，跳过菜单种子数据");
@@ -101,12 +101,12 @@ public class SysMenuSeeder : DataSeederBase
 
     private async Task UpdateMenuParentIdAsync(string parentCode, string[] childCodes)
     {
-        var parentMenu = await DbContext.GetClient().Queryable<SysMenu>().FirstAsync(m => m.MenuCode == parentCode);
+        var parentMenu = await ClientProvider.GetClient().Queryable<SysMenu>().FirstAsync(m => m.MenuCode == parentCode);
         if (parentMenu == null)
         {
             return;
         }
 
-        await DbContext.GetClient().Updateable<SysMenu>().SetColumns(m => m.ParentId == parentMenu.BasicId).Where(m => childCodes.Contains(m.MenuCode)).ExecuteCommandAsync();
+        await ClientProvider.GetClient().Updateable<SysMenu>().SetColumns(m => m.ParentId == parentMenu.BasicId).Where(m => childCodes.Contains(m.MenuCode)).ExecuteCommandAsync();
     }
 }

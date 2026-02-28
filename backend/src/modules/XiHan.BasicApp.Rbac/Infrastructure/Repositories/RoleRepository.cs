@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -25,17 +26,20 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 /// </summary>
 public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
-
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
-    public RoleRepository(ISqlSugarDbContext dbContext, IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, unitOfWorkManager)
+    public RoleRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider,
+        IUnitOfWorkManager unitOfWorkManager)
+        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
     {
-        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -48,7 +52,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     public async Task<SysRole?> GetByRoleCodeAsync(string roleCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
-        var query = _dbContext.CreateQueryable<SysRole>().Where(role => role.RoleCode == roleCode);
+        var query = CreateTenantQueryable().Where(role => role.RoleCode == roleCode);
 
         if (tenantId.HasValue)
         {
@@ -77,7 +81,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
-        var query = _dbContext.CreateQueryable<SysRole>().Where(role => role.RoleCode == roleCode);
+        var query = CreateTenantQueryable().Where(role => role.RoleCode == roleCode);
 
         if (excludeRoleId.HasValue)
         {

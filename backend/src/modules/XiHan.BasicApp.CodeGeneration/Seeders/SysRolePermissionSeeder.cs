@@ -27,8 +27,8 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysRolePermissionSeeder(ISqlSugarDbContext dbContext, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysRolePermissionSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -47,7 +47,7 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = ClientProvider.GetClient();
         var roles = await client.Queryable<SysRole>().Where(r => r.RoleCode == "super_admin" || r.RoleCode == "admin").ToListAsync();
         var permissions = await client.Queryable<SysPermission>().Where(p => p.PermissionCode.StartsWith("code_gen:") || p.PermissionCode.StartsWith("code_gen_api:")).ToListAsync();
         if (roles.Count == 0 || permissions.Count == 0)
