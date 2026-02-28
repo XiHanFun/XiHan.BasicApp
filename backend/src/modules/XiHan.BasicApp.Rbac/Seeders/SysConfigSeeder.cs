@@ -28,8 +28,8 @@ public class SysConfigSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysConfigSeeder(ISqlSugarDbContext dbContext, ILogger<SysConfigSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysConfigSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysConfigSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 

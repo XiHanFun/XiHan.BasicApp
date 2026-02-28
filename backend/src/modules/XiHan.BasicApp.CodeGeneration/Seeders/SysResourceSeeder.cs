@@ -28,8 +28,8 @@ public class SysResourceSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysResourceSeeder(ISqlSugarDbContext dbContext, ILogger<SysResourceSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysResourceSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysResourceSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -48,7 +48,7 @@ public class SysResourceSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = ClientProvider.GetClient();
         var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "develop" || r.ResourceCode == "code_gen" || r.ResourceCode == "code_gen_api").ToListAsync();
         var existsCodes = exists.Select(x => x.ResourceCode).ToHashSet();
         var addList = new List<SysResource>();

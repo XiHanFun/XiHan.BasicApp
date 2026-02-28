@@ -17,6 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 
@@ -25,16 +26,18 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 /// </summary>
 public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILoginLogRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
-
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    public LoginLogRepository(ISqlSugarDbContext dbContext)
-        : base(dbContext)
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
+    public LoginLogRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider)
+        : base(clientProvider, currentTenant, serviceProvider)
     {
-        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -54,7 +57,7 @@ public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILo
         }
 
         var since = DateTimeOffset.UtcNow.AddMinutes(-minutes);
-        var query = _dbContext.CreateQueryable<SysLoginLog>()
+        var query = CreateTenantQueryable()
             .Where(log => log.UserName == userName
                           && log.LoginTime >= since
                           && log.LoginResult != LoginResult.Success);

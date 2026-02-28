@@ -17,6 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -26,17 +27,20 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 /// </summary>
 public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, long>, IPermissionRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
-
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
-    public PermissionRepository(ISqlSugarDbContext dbContext, IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, unitOfWorkManager)
+    public PermissionRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider,
+        IUnitOfWorkManager unitOfWorkManager)
+        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
     {
-        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -49,7 +53,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     public async Task<SysPermission?> GetByPermissionCodeAsync(string permissionCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
-        var query = _dbContext.CreateQueryable<SysPermission>().Where(permission => permission.PermissionCode == permissionCode);
+        var query = CreateTenantQueryable().Where(permission => permission.PermissionCode == permissionCode);
 
         if (tenantId.HasValue)
         {
@@ -72,7 +76,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var rolePermissionQuery = _dbContext.GetClient().Queryable<SysUserRole, SysRolePermission>(
+        var rolePermissionQuery = DbClient.Queryable<SysUserRole, SysRolePermission>(
             (userRole, rolePermission) => userRole.RoleId == rolePermission.RoleId)
             .Where((userRole, rolePermission) =>
                 userRole.UserId == userId &&
@@ -90,7 +94,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        var directPermissionQuery = _dbContext.CreateQueryable<SysUserPermission>()
+        var directPermissionQuery = CreateTenantQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
@@ -118,7 +122,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             return [];
         }
 
-        var query = _dbContext.CreateQueryable<SysPermission>()
+        var query = CreateTenantQueryable()
             .Where(permission => permissionIdSet.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
@@ -139,7 +143,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var permissionIds = await _dbContext.CreateQueryable<SysRolePermission>()
+        var permissionIds = await CreateTenantQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes)
             .Select(mapping => mapping.PermissionId)
             .Distinct()
@@ -150,7 +154,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             return [];
         }
 
-        var query = _dbContext.CreateQueryable<SysPermission>()
+        var query = CreateTenantQueryable()
             .Where(permission => permissionIds.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)

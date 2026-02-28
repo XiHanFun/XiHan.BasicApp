@@ -28,8 +28,8 @@ public class SysPermissionSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysPermissionSeeder(ISqlSugarDbContext dbContext, ILogger<SysPermissionSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysPermissionSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysPermissionSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -48,7 +48,7 @@ public class SysPermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = ClientProvider.GetClient();
         var resources = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "code_gen" || r.ResourceCode == "code_gen_api").ToListAsync();
         var operations = await client.Queryable<SysOperation>().ToListAsync();
         if (resources.Count == 0 || operations.Count == 0)

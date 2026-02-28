@@ -17,6 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -26,17 +27,20 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 /// </summary>
 public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
-
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
-    public MenuRepository(ISqlSugarDbContext dbContext, IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, unitOfWorkManager)
+    public MenuRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider,
+        IUnitOfWorkManager unitOfWorkManager)
+        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
     {
-        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -49,7 +53,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     public async Task<SysMenu?> GetByMenuCodeAsync(string menuCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(menuCode);
-        var query = _dbContext.CreateQueryable<SysMenu>()
+        var query = CreateTenantQueryable()
             .Where(menu => menu.MenuCode == menuCode);
 
         if (tenantId.HasValue)
@@ -73,7 +77,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysMenu>> GetRoleMenusAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var menuIds = await _dbContext.CreateQueryable<SysRoleMenu>()
+        var menuIds = await CreateTenantQueryable<SysRoleMenu>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes)
             .Select(mapping => mapping.MenuId)
             .Distinct()
@@ -84,7 +88,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
             return [];
         }
 
-        var query = _dbContext.CreateQueryable<SysMenu>()
+        var query = CreateTenantQueryable()
             .Where(menu => menuIds.Contains(menu.BasicId) && menu.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
@@ -105,7 +109,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysMenu>> GetUserMenusAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var roleIds = await _dbContext.CreateQueryable<SysUserRole>()
+        var roleIds = await CreateTenantQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes)
             .Select(mapping => mapping.RoleId)
             .Distinct()
@@ -116,7 +120,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
             return [];
         }
 
-        var menuIds = await _dbContext.CreateQueryable<SysRoleMenu>()
+        var menuIds = await CreateTenantQueryable<SysRoleMenu>()
             .Where(mapping => roleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes)
             .Select(mapping => mapping.MenuId)
             .Distinct()
@@ -127,7 +131,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
             return [];
         }
 
-        var query = _dbContext.CreateQueryable<SysMenu>()
+        var query = CreateTenantQueryable()
             .Where(menu => menuIds.Contains(menu.BasicId) && menu.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)

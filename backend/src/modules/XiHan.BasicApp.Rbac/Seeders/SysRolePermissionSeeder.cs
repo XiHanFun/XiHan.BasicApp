@@ -27,8 +27,8 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysRolePermissionSeeder(ISqlSugarDbContext dbContext, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysRolePermissionSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientProvider, logger, serviceProvider)
     {
     }
 
@@ -53,8 +53,8 @@ public class SysRolePermissionSeeder : DataSeederBase
             return;
         }
 
-        var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
-        var permissions = await DbContext.GetClient().Queryable<SysPermission>().ToListAsync();
+        var roles = await ClientProvider.GetClient().Queryable<SysRole>().ToListAsync();
+        var permissions = await ClientProvider.GetClient().Queryable<SysPermission>().ToListAsync();
 
         if (roles.Count == 0 || permissions.Count == 0)
         {

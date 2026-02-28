@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -25,17 +26,20 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 /// </summary>
 public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
-
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
-    public UserRepository(ISqlSugarDbContext dbContext, IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, unitOfWorkManager)
+    public UserRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider,
+        IUnitOfWorkManager unitOfWorkManager)
+        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
     {
-        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -49,7 +53,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
 
-        var query = _dbContext.CreateQueryable<SysUser>()
+        var query = CreateTenantQueryable()
             .Where(user => user.UserName == userName);
 
         if (tenantId.HasValue)
@@ -80,7 +84,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
 
-        var query = _dbContext.CreateQueryable<SysUser>()
+        var query = CreateTenantQueryable()
             .Where(user => user.UserName == userName);
 
         if (excludeUserId.HasValue)

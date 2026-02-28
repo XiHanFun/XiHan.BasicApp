@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 
@@ -27,9 +28,14 @@ public class UserRoleRepository : SqlSugarRepositoryBase<SysUserRole, long>, IUs
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    public UserRoleRepository(ISqlSugarDbContext dbContext)
-        : base(dbContext)
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
+    public UserRoleRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider)
+        : base(clientProvider, currentTenant, serviceProvider)
     {
     }
 

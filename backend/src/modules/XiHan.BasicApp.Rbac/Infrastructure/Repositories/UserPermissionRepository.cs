@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 
@@ -27,9 +28,14 @@ public class UserPermissionRepository : SqlSugarRepositoryBase<SysUserPermission
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    public UserPermissionRepository(ISqlSugarDbContext dbContext)
-        : base(dbContext)
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
+    public UserPermissionRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider)
+        : base(clientProvider, currentTenant, serviceProvider)
     {
     }
 

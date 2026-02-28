@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -25,17 +26,20 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 /// </summary>
 public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, long>, IDepartmentRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
-
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
+    /// <param name="clientProvider"></param>
+    /// <param name="currentTenant"></param>
+    /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
-    public DepartmentRepository(ISqlSugarDbContext dbContext, IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, unitOfWorkManager)
+    public DepartmentRepository(
+        ISqlSugarClientProvider clientProvider,
+        ICurrentTenant currentTenant,
+        IServiceProvider serviceProvider,
+        IUnitOfWorkManager unitOfWorkManager)
+        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
     {
-        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -48,7 +52,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     public async Task<SysDepartment?> GetByDepartmentCodeAsync(string departmentCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(departmentCode);
-        var query = _dbContext.CreateQueryable<SysDepartment>()
+        var query = CreateTenantQueryable()
             .Where(department => department.DepartmentCode == departmentCode);
 
         if (tenantId.HasValue)
@@ -72,7 +76,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysDepartment>> GetChildrenAsync(long? parentId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.CreateQueryable<SysDepartment>()
+        var query = CreateTenantQueryable()
             .Where(department => department.ParentId == parentId);
 
         if (tenantId.HasValue)
