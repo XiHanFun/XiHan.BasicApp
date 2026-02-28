@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
@@ -20,7 +21,8 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
 /// <summary>
 /// 配置应用服务
 /// </summary>
-public interface IConfigAppService : IApplicationService
+public interface IConfigAppService
+    : ICrudApplicationService<ConfigDto, long, ConfigCreateDto, ConfigUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据配置键获取配置

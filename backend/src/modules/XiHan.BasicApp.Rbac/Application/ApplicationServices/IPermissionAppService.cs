@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
@@ -21,15 +22,9 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
 /// <summary>
 /// 权限应用服务
 /// </summary>
-public interface IPermissionAppService : IApplicationService
+public interface IPermissionAppService
+    : ICrudApplicationService<PermissionDto, long, PermissionCreateDto, PermissionUpdateDto, BasicAppPRDto>
 {
-    /// <summary>
-    /// 根据权限ID获取权限
-    /// </summary>
-    /// <param name="permissionId"></param>
-    /// <returns></returns>
-    Task<PermissionDto?> GetByIdAsync(long permissionId);
-
     /// <summary>
     /// 根据角色ID获取权限
     /// </summary>

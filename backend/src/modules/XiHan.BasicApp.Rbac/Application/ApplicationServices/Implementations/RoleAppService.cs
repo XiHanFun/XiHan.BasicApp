@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
@@ -29,7 +31,9 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 角色应用服务
 /// </summary>
-public class RoleAppService : ApplicationServiceBase, IRoleAppService
+public class RoleAppService
+    : CrudApplicationServiceBase<SysRole, RoleDto, long, RoleCreateDto, RoleUpdateDto, BasicAppPRDto>,
+        IRoleAppService
 {
     private readonly IRoleRepository _roleRepository;
     private readonly IRoleManager _roleManager;
@@ -45,21 +49,11 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
         IRoleRepository roleRepository,
         IRoleManager roleManager,
         IUnitOfWorkManager unitOfWorkManager)
+        : base(roleRepository)
     {
         _roleRepository = roleRepository;
         _roleManager = roleManager;
         _unitOfWorkManager = unitOfWorkManager;
-    }
-
-    /// <summary>
-    /// 根据角色ID获取角色
-    /// </summary>
-    /// <param name="roleId"></param>
-    /// <returns></returns>
-    public async Task<RoleDto?> GetByIdAsync(long roleId)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId);
-        return role?.Adapt<RoleDto>();
     }
 
     /// <summary>
@@ -79,7 +73,7 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<RoleDto> CreateAsync(RoleCreateDto input)
+    public override async Task<RoleDto> CreateAsync(RoleCreateDto input)
     {
         input.ValidateAnnotations();
 
@@ -106,19 +100,16 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
     /// <summary>
     /// 更新角色
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public async Task<RoleDto> UpdateAsync(RoleUpdateDto input)
+    public override async Task<RoleDto> UpdateAsync(long id, RoleUpdateDto input)
     {
-        ArgumentNullException.ThrowIfNull(input);
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentException("角色 ID 无效");
-        }
+        input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var role = await _roleRepository.GetByIdAsync(input.BasicId)
-                   ?? throw new KeyNotFoundException($"未找到角色: {input.BasicId}");
+        var role = await _roleRepository.GetByIdAsync(id)
+                   ?? throw new KeyNotFoundException($"未找到角色: {id}");
 
         role.RoleName = input.RoleName;
         role.RoleDescription = input.RoleDescription;
@@ -145,7 +136,7 @@ public class RoleAppService : ApplicationServiceBase, IRoleAppService
     /// </summary>
     /// <param name="roleId"></param>
     /// <returns></returns>
-    public async Task<bool> DeleteAsync(long roleId)
+    public override async Task<bool> DeleteAsync(long roleId)
     {
         if (roleId <= 0)
         {
