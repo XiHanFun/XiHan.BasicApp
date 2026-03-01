@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:ISystemUpgradeAppService
+// FileName:IUpgradeAppService
 // Guid:3a0c2a0b-3b2c-4c48-9c6f-4f1f9b0e9d2c
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Upgrade.Application.ApplicationServices;
 /// <summary>
 /// 系统升级应用服务
 /// </summary>
-public interface ISystemUpgradeAppService : IApplicationService
+public interface IUpgradeAppService : IApplicationService
 {
     /// <summary>
     /// 获取系统版本信息

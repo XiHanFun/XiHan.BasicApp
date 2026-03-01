@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SystemUpgradeAppService
+// FileName:UpgradeAppService
 // Guid:0d8c6b6d-1e9f-4c25-9f8b-2a1d8a1b4c8f
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Upgrade.Application.ApplicationServices.Implementations
 /// <summary>
 /// 系统升级应用服务
 /// </summary>
-public class SystemUpgradeAppService : ApplicationServiceBase, ISystemUpgradeAppService
+public class UpgradeAppService : ApplicationServiceBase, IUpgradeAppService
 {
     private readonly IUpgradeStatusService _statusService;
     private readonly IUpgradeCoordinator _coordinator;
@@ -35,7 +35,7 @@ public class SystemUpgradeAppService : ApplicationServiceBase, ISystemUpgradeApp
     /// <param name="statusService">升级状态服务</param>
     /// <param name="coordinator">升级协调器</param>
     /// <param name="httpContextAccessor">HTTP上下文访问器</param>
-    public SystemUpgradeAppService(
+    public UpgradeAppService(
         IUpgradeStatusService statusService,
         IUpgradeCoordinator coordinator,
         IHttpContextAccessor httpContextAccessor)
