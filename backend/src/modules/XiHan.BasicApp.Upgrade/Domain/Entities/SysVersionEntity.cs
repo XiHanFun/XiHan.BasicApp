@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Upgrade.Domain.Entities;
 /// <summary>
 /// 系统版本实体
 /// </summary>
-[SugarTable("Sys_Version")]
+[SugarTable("Sys_Version", "系统版本表")]
 public class SysVersionEntity : BasicAppCreationEntity
 {
     /// <summary>

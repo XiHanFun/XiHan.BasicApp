@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Upgrade.Domain.Entities;
 /// <summary>
 /// 系统迁移历史实体
 /// </summary>
-[SugarTable("Sys_Migration_History")]
+[SugarTable("Sys_Migration_History", "系统迁移历史表")]
 [SugarIndex("IX_SysMigrationHistory_Version", nameof(Version), OrderByType.Asc)]
 public class SysMigrationHistory : BasicAppCreationEntity
 {

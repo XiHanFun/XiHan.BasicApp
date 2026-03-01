@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddUpgradeApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<ISystemUpgradeAppService, SystemUpgradeAppService>();
+        services.AddScoped<IUpgradeAppService, UpgradeAppService>();
         return services;
     }
 

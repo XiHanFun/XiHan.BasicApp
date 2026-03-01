@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Upgrade.Domain.Entities;
 /// <summary>
 /// 系统升级分布式锁实体
 /// </summary>
-[SugarTable("Sys_Upgrade_Lock")]
+[SugarTable("Sys_Upgrade_Lock", "系统升级分布式锁表")]
 public class SysUpgradeLockEntity : BasicAppCreationEntity
 {
     /// <summary>
