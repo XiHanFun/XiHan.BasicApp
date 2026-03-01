@@ -25,12 +25,18 @@ namespace XiHan.BasicApp.Upgrade.Infrastructure.Adapters;
 /// <summary>
 /// 基于 SqlSugar 的升级分布式锁
 /// </summary>
-public class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
+public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
 {
     private readonly ISqlSugarClientProvider _clientProvider;
     private readonly XiHanUpgradeOptions _options;
     private readonly ILogger<SqlSugarUpgradeLockProvider> _logger;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="clientProvider">SqlSugar 客户端提供者</param>
+    /// <param name="options">升级选项</param>
+    /// <param name="logger">日志记录器</param>
     public SqlSugarUpgradeLockProvider(
         ISqlSugarClientProvider clientProvider,
         IOptions<XiHanUpgradeOptions> options,
@@ -41,6 +47,14 @@ public class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
         _logger = logger;
     }
 
+    /// <summary>
+    /// 尝试获取升级锁
+    /// </summary>
+    /// <param name="resourceKey">资源键</param>
+    /// <param name="expiry">锁的过期时间</param>
+    /// <param name="nodeName">节点名称</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>返回升级锁令牌，如果获取失败则返回 null</returns>
     public async Task<IUpgradeLockToken?> TryAcquireLockAsync(string resourceKey, TimeSpan expiry, string nodeName, CancellationToken cancellationToken = default)
     {
         var db = _clientProvider.GetClient(_options.ConnectionConfigId);
@@ -89,44 +103,17 @@ public class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
         return null;
     }
 
+    /// <summary>
+    /// 释放升级锁
+    /// </summary>
+    /// <param name="resourceKey">资源键</param>
+    /// <param name="lockId">锁标识</param>
+    /// <returns></returns>
     internal async Task ReleaseAsync(string resourceKey, string lockId)
     {
         var db = _clientProvider.GetClient(_options.ConnectionConfigId);
         await db.Deleteable<SysUpgradeLockEntity>()
             .Where(l => l.ResourceKey == resourceKey && l.LockId == lockId)
             .ExecuteCommandAsync();
-    }
-
-    private sealed class SqlSugarUpgradeLockToken : IUpgradeLockToken
-    {
-        private readonly SqlSugarUpgradeLockProvider _provider;
-        private bool _isReleased;
-
-        public SqlSugarUpgradeLockToken(string resourceKey, string lockId, SqlSugarUpgradeLockProvider provider)
-        {
-            ResourceKey = resourceKey;
-            LockId = lockId;
-            _provider = provider;
-        }
-
-        public string ResourceKey { get; }
-        public string LockId { get; }
-        public bool IsReleased => _isReleased;
-
-        public async Task ReleaseAsync()
-        {
-            if (_isReleased)
-            {
-                return;
-            }
-
-            await _provider.ReleaseAsync(ResourceKey, LockId);
-            _isReleased = true;
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await ReleaseAsync();
-        }
     }
 }

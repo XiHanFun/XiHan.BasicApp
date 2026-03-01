@@ -32,6 +32,12 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
     private readonly XiHanUpgradeOptions _options;
     private readonly ICurrentTenant _currentTenant;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="clientProvider">SqlSugar 客户端提供者</param>
+    /// <param name="options">升级选项</param>
+    /// <param name="currentTenant">当前租户</param>
     public SqlSugarUpgradeVersionStore(
         ISqlSugarClientProvider clientProvider,
         IOptions<XiHanUpgradeOptions> options,
@@ -42,6 +48,11 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         _currentTenant = currentTenant;
     }
 
+    /// <summary>
+    /// 确保升级相关表存在
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task EnsureTablesAsync(CancellationToken cancellationToken = default)
     {
         var db = GetDbClient();
@@ -51,6 +62,13 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         }, cancellationToken);
     }
 
+    /// <summary>
+    /// 获取或创建升级版本状态
+    /// </summary>
+    /// <param name="currentAppVersion">当前应用版本</param>
+    /// <param name="minSupportVersion">最小支持版本</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task<UpgradeVersionState> GetOrCreateAsync(string currentAppVersion, string minSupportVersion, CancellationToken cancellationToken = default)
     {
         await EnsureTablesAsync(cancellationToken);
@@ -89,6 +107,11 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         return MapVersion(version);
     }
 
+    /// <summary>
+    /// 获取最新的升级迁移历史
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>最新的升级迁移历史</returns>
     public async Task<UpgradeMigrationHistory?> GetLatestHistoryAsync(CancellationToken cancellationToken = default)
     {
         var db = GetDbClient();
@@ -103,6 +126,14 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         return history == null ? null : MapHistory(history);
     }
 
+    /// <summary>
+    /// 设置升级中状态
+    /// </summary>
+    /// <param name="version">升级版本状态</param>
+    /// <param name="nodeName">节点名称</param>
+    /// <param name="startTime">开始时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task SetUpgradingAsync(UpgradeVersionState version, string nodeName, DateTime startTime, CancellationToken cancellationToken = default)
     {
         version.IsUpgrading = true;
@@ -121,6 +152,14 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             .ExecuteCommandAsync();
     }
 
+    /// <summary>
+    /// 设置升级完成状态
+    /// </summary>
+    /// <param name="version">升级版本状态</param>
+    /// <param name="appVersion">应用版本</param>
+    /// <param name="dbVersion">数据库版本</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task SetUpgradeCompletedAsync(UpgradeVersionState version, string appVersion, string dbVersion, CancellationToken cancellationToken = default)
     {
         version.IsUpgrading = false;
@@ -139,6 +178,12 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             .ExecuteCommandAsync();
     }
 
+    /// <summary>
+    /// 设置升级失败状态
+    /// </summary>
+    /// <param name="version">升级版本状态</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task SetUpgradeFailedAsync(UpgradeVersionState version, CancellationToken cancellationToken = default)
     {
         version.IsUpgrading = false;
@@ -153,6 +198,13 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             .ExecuteCommandAsync();
     }
 
+    /// <summary>
+    /// 更新数据库版本
+    /// </summary>
+    /// <param name="version">升级版本状态</param>
+    /// <param name="dbVersion">数据库版本</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task UpdateDbVersionAsync(UpgradeVersionState version, string dbVersion, CancellationToken cancellationToken = default)
     {
         version.DbVersion = dbVersion;
@@ -167,6 +219,12 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             .ExecuteCommandAsync();
     }
 
+    /// <summary>
+    /// 添加升级迁移历史
+    /// </summary>
+    /// <param name="history">升级迁移历史</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task AddMigrationHistoryAsync(UpgradeMigrationHistory history, CancellationToken cancellationToken = default)
     {
         var db = GetDbClient();
@@ -184,6 +242,13 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         await db.Insertable(entity).ExecuteCommandAsync();
     }
 
+    /// <summary>
+    /// 检查是否存在升级迁移历史
+    /// </summary>
+    /// <param name="version">版本号</param>
+    /// <param name="scriptName">脚本名称</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task<bool> HasMigrationHistoryAsync(string version, string scriptName, CancellationToken cancellationToken = default)
     {
         var db = GetDbClient();
@@ -199,6 +264,11 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         return await query.AnyAsync();
     }
 
+    /// <summary>
+    /// 将 SysVersionEntity 映射为 UpgradeVersionState
+    /// </summary>
+    /// <param name="entity">系统版本实体</param>
+    /// <returns>升级版本状态</returns>
     private static UpgradeVersionState MapVersion(SysVersionEntity entity)
     {
         return new UpgradeVersionState
@@ -214,6 +284,11 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         };
     }
 
+    /// <summary>
+    /// 将 SysMigrationHistory 映射为 UpgradeMigrationHistory
+    /// </summary>
+    /// <param name="entity">系统迁移历史实体</param>
+    /// <returns>升级迁移历史</returns>
     private static UpgradeMigrationHistory MapHistory(SysMigrationHistory entity)
     {
         return new UpgradeMigrationHistory
@@ -228,11 +303,19 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         };
     }
 
+    /// <summary>
+    /// 获取 SqlSugar 客户端
+    /// </summary>
+    /// <returns></returns>
     private ISqlSugarClient GetDbClient()
     {
         return _clientProvider.GetClient(_options.ConnectionConfigId);
     }
 
+    /// <summary>
+    /// 获取当前租户 ID（如果启用多租户隔离）
+    /// </summary>
+    /// <returns>租户 ID</returns>
     private long? GetTenantId()
     {
         if (!_options.EnableMultiTenantIsolation)
