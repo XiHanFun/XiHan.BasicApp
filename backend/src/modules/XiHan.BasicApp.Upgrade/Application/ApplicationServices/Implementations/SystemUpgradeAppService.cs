@@ -15,7 +15,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Upgrade.Application.Dtos;
-using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Upgrade.Abstractions;
 
