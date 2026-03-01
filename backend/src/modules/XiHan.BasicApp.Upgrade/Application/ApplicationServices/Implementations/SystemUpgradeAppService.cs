@@ -14,7 +14,6 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using XiHan.BasicApp.Upgrade.Application.Dtos;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
@@ -25,13 +24,18 @@ namespace XiHan.BasicApp.Upgrade.Application.ApplicationServices.Implementations
 /// <summary>
 /// 系统升级应用服务
 /// </summary>
-[DynamicApi]
 public class SystemUpgradeAppService : ApplicationServiceBase, ISystemUpgradeAppService
 {
     private readonly IUpgradeStatusService _statusService;
     private readonly IUpgradeCoordinator _coordinator;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="statusService">升级状态服务</param>
+    /// <param name="coordinator">升级协调器</param>
+    /// <param name="httpContextAccessor">HTTP上下文访问器</param>
     public SystemUpgradeAppService(
         IUpgradeStatusService statusService,
         IUpgradeCoordinator coordinator,
@@ -45,10 +49,9 @@ public class SystemUpgradeAppService : ApplicationServiceBase, ISystemUpgradeApp
     /// <summary>
     /// 获取系统版本信息
     /// </summary>
-    /// <param name="clientVersion"></param>
-    /// <returns></returns>
+    /// <param name="clientVersion">客户端版本</param>
+    /// <returns>系统版本信息</returns>
     [HttpGet]
-    [DynamicApi(RouteTemplate = "~/api/system/version", Name = "version")]
     public async Task<SystemVersionDto> GetVersionAsync(string? clientVersion = null)
     {
         var cancellationToken = _httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;
@@ -79,7 +82,6 @@ public class SystemUpgradeAppService : ApplicationServiceBase, ISystemUpgradeApp
     /// </summary>
     /// <returns></returns>
     [HttpPost]
-    [DynamicApi(RouteTemplate = "~/api/system/upgrade/start", Name = "upgrade-start")]
     public async Task<UpgradeStartResultDto> StartUpgradeAsync()
     {
         var result = await _coordinator.StartAsync();
@@ -96,7 +98,6 @@ public class SystemUpgradeAppService : ApplicationServiceBase, ISystemUpgradeApp
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [DynamicApi(RouteTemplate = "~/api/system/upgrade/status", Name = "upgrade-status")]
     public async Task<UpgradeStatusDto> GetUpgradeStatusAsync()
     {
         var cancellationToken = _httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;

@@ -26,11 +26,19 @@ public class SqlSugarUpgradeTenantProvider : IUpgradeTenantProvider
 {
     private readonly XiHanSqlSugarCoreOptions _options;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="options">SqlSugar 核心选项</param>
     public SqlSugarUpgradeTenantProvider(IOptions<XiHanSqlSugarCoreOptions> options)
     {
         _options = options.Value;
     }
 
+    /// <summary>
+    /// 获取租户列表
+    /// </summary>
+    /// <returns>租户信息列表</returns>
     public IReadOnlyList<BasicTenantInfo> GetTenants()
     {
         var tenantIds = new HashSet<long>();
@@ -53,6 +61,12 @@ public class SqlSugarUpgradeTenantProvider : IUpgradeTenantProvider
             .ToList();
     }
 
+    /// <summary>
+    /// 尝试从连接配置 ID 中解析租户 ID
+    /// </summary>
+    /// <param name="configId">连接配置 ID</param>
+    /// <param name="tenantId">解析出的租户 ID</param>
+    /// <returns>是否成功解析租户 ID</returns>
     private static bool TryParseTenantId(string? configId, out long tenantId)
     {
         tenantId = default;
