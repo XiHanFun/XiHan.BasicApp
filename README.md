@@ -2,6 +2,8 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/XiHanFun/XiHan.BasicApp)
 
+[曦寒懿官方交流群](https://qm.qq.com/q/qYp1Urv3z2) 462371834
+
 # XiHan.BasicApp
 
 通用、全面的管理系统，基于 XiHan.Framework 和 XiHan.UI 构建。
