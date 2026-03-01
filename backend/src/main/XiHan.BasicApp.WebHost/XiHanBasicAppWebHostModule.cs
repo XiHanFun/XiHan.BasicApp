@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Rbac;
+using XiHan.BasicApp.Upgrade;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Core.Application;
@@ -30,8 +31,11 @@ namespace XiHan.BasicApp.WebHost;
 /// 曦寒基础应用 Web 主机
 /// </summary>
 [DependsOn(
+    // 应用模块依赖
     typeof(XiHanBasicAppRbacModule),
     typeof(XiHanBasicAppCodeGenerationModule),
+    typeof(XiHanBasicAppUpgradeModule),
+    // Web 模块依赖
     typeof(XiHanBasicAppWebCoreModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule

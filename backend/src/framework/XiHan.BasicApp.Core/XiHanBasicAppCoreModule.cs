@@ -40,6 +40,7 @@ using XiHan.Framework.Tasks;
 using XiHan.Framework.Templating;
 using XiHan.Framework.Threading;
 using XiHan.Framework.Uow;
+using XiHan.Framework.Upgrade;
 using XiHan.Framework.Validation;
 using XiHan.Framework.VirtualFileSystem;
 
@@ -73,6 +74,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanTemplatingModule),
     typeof(XiHanThreadingModule),
     typeof(XiHanUowModule),
+    typeof(XiHanUpgradeModule),
     typeof(XiHanValidationModule),
     typeof(XiHanVirtualFileSystemModule),
     typeof(XiHanApplicationModule)

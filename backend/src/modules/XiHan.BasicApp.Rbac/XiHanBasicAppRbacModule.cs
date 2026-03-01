@@ -14,14 +14,12 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Extensions;
-using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Data.SqlSugar.Options;
-using XiHan.Framework.Web.Core.Extensions;
 
 namespace XiHan.BasicApp.Rbac;
 
@@ -30,7 +28,6 @@ namespace XiHan.BasicApp.Rbac;
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
-    typeof(XiHanBasicAppWebCoreModule),
     typeof(XiHanAuthenticationModule),
     typeof(XiHanAuthorizationModule)
 )]
