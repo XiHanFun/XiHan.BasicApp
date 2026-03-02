@@ -14,17 +14,13 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
-using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
-using XiHan.BasicApp.Rbac.Domain.ValueObjects;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -38,17 +34,8 @@ public class UserAppService
     : CrudApplicationServiceBase<SysUser, UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>,
         IUserAppService
 {
-    private const int MaxFailedAttempts = 5;
-    private const int LockoutMinutes = 15;
-
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
-    private readonly IUserRelationRepository _userRelationRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IAuthorizationDomainService _authorizationDomainService;
-    private readonly ILoginLogRepository _loginLogRepository;
-    private readonly IPasswordHasher _passwordHasher;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -56,33 +43,15 @@ public class UserAppService
     /// </summary>
     /// <param name="userRepository"></param>
     /// <param name="userManager"></param>
-    /// <param name="userRelationRepository"></param>
-    /// <param name="roleRepository"></param>
-    /// <param name="permissionRepository"></param>
-    /// <param name="authorizationDomainService"></param>
-    /// <param name="loginLogRepository"></param>
-    /// <param name="passwordHasher"></param>
     /// <param name="unitOfWorkManager"></param>
     public UserAppService(
         IUserRepository userRepository,
         IUserManager userManager,
-        IUserRelationRepository userRelationRepository,
-        IRoleRepository roleRepository,
-        IPermissionRepository permissionRepository,
-        IAuthorizationDomainService authorizationDomainService,
-        ILoginLogRepository loginLogRepository,
-        IPasswordHasher passwordHasher,
         IUnitOfWorkManager unitOfWorkManager)
         : base(userRepository)
     {
         _userRepository = userRepository;
         _userManager = userManager;
-        _userRelationRepository = userRelationRepository;
-        _roleRepository = roleRepository;
-        _permissionRepository = permissionRepository;
-        _authorizationDomainService = authorizationDomainService;
-        _loginLogRepository = loginLogRepository;
-        _passwordHasher = passwordHasher;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -187,302 +156,4 @@ public class UserAppService
         return true;
     }
 
-    /// <summary>
-    /// 登录
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task<UserLoginResultDto> LoginAsync(UserLoginCommand command)
-    {
-        command.ValidateAnnotations();
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByUserNameAsync(command.UserName.Trim(), command.TenantId);
-        if (user is null)
-        {
-            await WriteLoginLogAsync(0, command, LoginResult.InvalidCredentials, "用户名或密码错误");
-            await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                LoginResult = LoginResult.InvalidCredentials,
-                Message = "用户名或密码错误"
-            };
-        }
-
-        if (user.Status != YesOrNo.Yes)
-        {
-            await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountDisabled, "账号已禁用");
-            await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                UserId = user.BasicId,
-                UserName = user.UserName,
-                LoginResult = LoginResult.AccountDisabled,
-                Message = "账号已禁用"
-            };
-        }
-
-        var security = await EnsureSecurityProfileAsync(user);
-        if (security.IsLocked && security.LockoutEndTime.HasValue && security.LockoutEndTime > DateTimeOffset.UtcNow)
-        {
-            await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountLocked, "账号已锁定");
-            await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                UserId = user.BasicId,
-                UserName = user.UserName,
-                LoginResult = LoginResult.AccountLocked,
-                Message = $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试"
-            };
-        }
-
-        var password = PasswordValueObject.FromHash(user.Password);
-        if (!password.Verify(command.Password, _passwordHasher))
-        {
-            await HandlePasswordFailureAsync(security);
-            await WriteLoginLogAsync(user.BasicId, command, LoginResult.InvalidCredentials, "用户名或密码错误");
-            await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                UserId = user.BasicId,
-                UserName = user.UserName,
-                LoginResult = LoginResult.InvalidCredentials,
-                Message = "用户名或密码错误"
-            };
-        }
-
-        security.FailedLoginAttempts = 0;
-        security.IsLocked = false;
-        security.LockoutTime = null;
-        security.LockoutEndTime = null;
-        security.LastFailedLoginTime = null;
-        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
-        await _userRepository.SaveSecurityAsync(security);
-
-        user.LastLoginTime = DateTimeOffset.UtcNow;
-        //user.LastLoginIp = command.LoginIp;
-        await _userRepository.UpdateAsync(user);
-
-        var permissionCodes = await _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId);
-        await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, "登录成功");
-        await uow.CompleteAsync();
-
-        return new UserLoginResultDto
-        {
-            Success = true,
-            UserId = user.BasicId,
-            UserName = user.UserName,
-            LoginResult = LoginResult.Success,
-            Message = "登录成功",
-            PermissionCodes = permissionCodes
-        };
-    }
-
-    /// <summary>
-    /// 修改密码
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task ChangePasswordAsync(ChangePasswordCommand command)
-    {
-        command.ValidateAnnotations();
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByIdAsync(command.UserId)
-                   ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
-
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
-        if (!currentPassword.Verify(command.OldPassword, _passwordHasher))
-        {
-            throw new InvalidOperationException("原密码错误");
-        }
-
-        await _userManager.ChangePasswordAsync(user, command.NewPassword);
-        await uow.CompleteAsync();
-    }
-
-    /// <summary>
-    /// 分配角色
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task AssignRolesAsync(AssignUserRolesCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        if (command.UserId <= 0)
-        {
-            throw new ArgumentException("用户 ID 无效", nameof(command.UserId));
-        }
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByIdAsync(command.UserId)
-                   ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
-
-        var roleIds = command.RoleIds.Distinct().ToArray();
-        if (roleIds.Length > 0)
-        {
-            var roles = await _roleRepository.GetByIdsAsync(roleIds);
-            if (roles.Count != roleIds.Length)
-            {
-                throw new InvalidOperationException("存在无效角色 ID");
-            }
-        }
-
-        await _userRelationRepository.ReplaceUserRolesAsync(
-            command.UserId,
-            roleIds,
-            command.TenantId ?? user.TenantId);
-
-        user.MarkRolesChanged(roleIds);
-        await _userRepository.UpdateAsync(user);
-        await uow.CompleteAsync();
-    }
-
-    /// <summary>
-    /// 分配权限
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task AssignPermissionsAsync(AssignUserPermissionsCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        if (command.UserId <= 0)
-        {
-            throw new ArgumentException("用户 ID 无效", nameof(command.UserId));
-        }
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByIdAsync(command.UserId)
-                   ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
-
-        var permissionIds = command.PermissionIds.Distinct().ToArray();
-        if (permissionIds.Length > 0)
-        {
-            var permissions = await _permissionRepository.GetByIdsAsync(permissionIds);
-            if (permissions.Count != permissionIds.Length)
-            {
-                throw new InvalidOperationException("存在无效权限 ID");
-            }
-        }
-
-        await _userRelationRepository.ReplaceUserPermissionsAsync(
-            command.UserId,
-            permissionIds,
-            command.TenantId ?? user.TenantId);
-
-        await uow.CompleteAsync();
-    }
-
-    /// <summary>
-    /// 分配部门
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task AssignDepartmentsAsync(AssignUserDepartmentsCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        if (command.UserId <= 0)
-        {
-            throw new ArgumentException("用户 ID 无效", nameof(command.UserId));
-        }
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByIdAsync(command.UserId)
-                   ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
-
-        var departmentIds = command.DepartmentIds.Distinct().ToArray();
-        await _userRelationRepository.ReplaceUserDepartmentsAsync(
-            command.UserId,
-            departmentIds,
-            command.MainDepartmentId,
-            command.TenantId ?? user.TenantId);
-
-        await uow.CompleteAsync();
-    }
-
-    /// <summary>
-    /// 获取用户权限编码
-    /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    public async Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query)
-    {
-        ArgumentNullException.ThrowIfNull(query);
-        return await _authorizationDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId);
-    }
-
-    /// <summary>
-    /// 写入登录日志
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="command"></param>
-    /// <param name="loginResult"></param>
-    /// <param name="message"></param>
-    /// <returns></returns>
-    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, string message)
-    {
-        var log = new SysLoginLog
-        {
-            TenantId = command.TenantId,
-            UserId = userId,
-            UserName = command.UserName,
-            //LoginIp = command.LoginIp,
-            //Browser = command.Browser,
-            //Os = command.Os,
-            LoginResult = loginResult,
-            Message = message,
-            LoginTime = DateTimeOffset.UtcNow
-        };
-
-        await _loginLogRepository.AddAsync(log);
-    }
-
-    /// <summary>
-    /// 确保安全配置文件
-    /// </summary>
-    /// <param name="user"></param>
-    /// <returns></returns>
-    private async Task<SysUserSecurity> EnsureSecurityProfileAsync(SysUser user)
-    {
-        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId);
-        if (security is not null)
-        {
-            return security;
-        }
-
-        security = new SysUserSecurity
-        {
-            TenantId = user.TenantId,
-            UserId = user.BasicId,
-            FailedLoginAttempts = 0,
-            IsLocked = false,
-            SecurityStamp = Guid.NewGuid().ToString("N")
-        };
-
-        return await _userRepository.SaveSecurityAsync(security);
-    }
-
-    /// <summary>
-    /// 处理密码失败
-    /// </summary>
-    /// <param name="security"></param>
-    /// <returns></returns>
-    private async Task HandlePasswordFailureAsync(SysUserSecurity security)
-    {
-        security.FailedLoginAttempts += 1;
-        security.LastFailedLoginTime = DateTimeOffset.UtcNow;
-
-        if (security.FailedLoginAttempts >= MaxFailedAttempts)
-        {
-            security.IsLocked = true;
-            security.LockoutTime = DateTimeOffset.UtcNow;
-            security.LockoutEndTime = DateTimeOffset.UtcNow.AddMinutes(LockoutMinutes);
-        }
-
-        await _userRepository.SaveSecurityAsync(security);
-    }
 }

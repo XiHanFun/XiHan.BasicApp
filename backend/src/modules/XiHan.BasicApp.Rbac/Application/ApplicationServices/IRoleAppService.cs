@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Core.Dtos;
@@ -33,17 +32,4 @@ public interface IRoleAppService
     /// <returns></returns>
     Task<RoleDto?> GetByCodeAsync(RoleByCodeQuery query);
 
-    /// <summary>
-    /// 分配权限
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task AssignPermissionsAsync(AssignRolePermissionsCommand command);
-
-    /// <summary>
-    /// 分配菜单
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task AssignMenusAsync(AssignRoleMenusCommand command);
 }

@@ -12,9 +12,7 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
-using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
@@ -34,45 +32,4 @@ public interface IUserAppService
     /// <returns></returns>
     Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null);
 
-    /// <summary>
-    /// 登录
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task<UserLoginResultDto> LoginAsync(UserLoginCommand command);
-
-    /// <summary>
-    /// 修改密码
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task ChangePasswordAsync(ChangePasswordCommand command);
-
-    /// <summary>
-    /// 分配角色
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task AssignRolesAsync(AssignUserRolesCommand command);
-
-    /// <summary>
-    /// 分配权限
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task AssignPermissionsAsync(AssignUserPermissionsCommand command);
-
-    /// <summary>
-    /// 分配部门
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    Task AssignDepartmentsAsync(AssignUserDepartmentsCommand command);
-
-    /// <summary>
-    /// 获取用户权限编码
-    /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
 }

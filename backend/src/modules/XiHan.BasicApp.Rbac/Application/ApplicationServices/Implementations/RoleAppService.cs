@@ -14,7 +14,6 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
@@ -156,42 +155,4 @@ public class RoleAppService
         return true;
     }
 
-    /// <summary>
-    /// 分配权限
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task AssignPermissionsAsync(AssignRolePermissionsCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        if (command.RoleId <= 0)
-        {
-            throw new ArgumentException("角色 ID 无效");
-        }
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var role = await _roleRepository.GetByIdAsync(command.RoleId)
-                   ?? throw new KeyNotFoundException($"未找到角色: {command.RoleId}");
-
-        await _roleManager.AssignPermissionsAsync(role, command.PermissionIds, command.TenantId ?? role.TenantId);
-        await uow.CompleteAsync();
-    }
-
-    /// <summary>
-    /// 分配菜单
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task AssignMenusAsync(AssignRoleMenusCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        if (command.RoleId <= 0)
-        {
-            throw new ArgumentException("角色 ID 无效");
-        }
-
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        await _roleManager.AssignMenusAsync(command.RoleId, command.MenuIds, command.TenantId);
-        await uow.CompleteAsync();
-    }
 }

@@ -28,4 +28,12 @@ public interface IAuthorizationDomainService
     /// 判断用户是否具备某权限
     /// </summary>
     Task<bool> HasPermissionAsync(long userId, string permissionCode, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取用户数据范围部门ID
+    /// </summary>
+    /// <remarks>
+    /// 返回空集合表示不限部门（全量数据范围）。
+    /// </remarks>
+    Task<IReadOnlyCollection<long>> GetUserDataScopeDepartmentIdsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
 }
