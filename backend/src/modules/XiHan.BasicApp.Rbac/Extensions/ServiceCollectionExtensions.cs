@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Rbac.Application.Caching;
+using XiHan.BasicApp.Rbac.Application.Caching.Implementations;
 using XiHan.BasicApp.Rbac.Application.ApplicationServices;
 using XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
@@ -125,6 +127,8 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
+        services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
+
         return services;
     }
 }

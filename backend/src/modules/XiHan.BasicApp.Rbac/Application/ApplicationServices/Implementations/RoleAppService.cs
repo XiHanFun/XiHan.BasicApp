@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
@@ -37,6 +38,7 @@ public class RoleAppService
 {
     private readonly IRoleRepository _roleRepository;
     private readonly IRoleManager _roleManager;
+    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -44,15 +46,18 @@ public class RoleAppService
     /// </summary>
     /// <param name="roleRepository"></param>
     /// <param name="roleManager"></param>
+    /// <param name="authorizationCacheService"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleAppService(
         IRoleRepository roleRepository,
         IRoleManager roleManager,
+        IRbacAuthorizationCacheService authorizationCacheService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(roleRepository)
     {
         _roleRepository = roleRepository;
         _roleManager = roleManager;
+        _authorizationCacheService = authorizationCacheService;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -127,6 +132,7 @@ public class RoleAppService
         }
 
         var updated = await _roleRepository.UpdateAsync(role);
+        await _authorizationCacheService.InvalidateAllAsync(updated.TenantId);
         await uow.CompleteAsync();
         return updated.Adapt<RoleDto>();
     }
@@ -151,6 +157,7 @@ public class RoleAppService
         }
 
         await _roleRepository.DeleteAsync(role);
+        await _authorizationCacheService.InvalidateAllAsync(role.TenantId);
         await uow.CompleteAsync();
         return true;
     }

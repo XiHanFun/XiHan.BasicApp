@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.Entities;
@@ -32,15 +33,20 @@ public class PermissionAppService
         IPermissionAppService
 {
     private readonly IPermissionRepository _permissionRepository;
+    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="permissionRepository"></param>
-    public PermissionAppService(IPermissionRepository permissionRepository)
+    /// <param name="authorizationCacheService"></param>
+    public PermissionAppService(
+        IPermissionRepository permissionRepository,
+        IRbacAuthorizationCacheService authorizationCacheService)
         : base(permissionRepository)
     {
         _permissionRepository = permissionRepository;
+        _authorizationCacheService = authorizationCacheService;
     }
 
     /// <summary>
@@ -79,7 +85,9 @@ public class PermissionAppService
         var normalizedCode = input.PermissionCode.Trim();
         await EnsurePermissionCodeUniqueAsync(normalizedCode, null, input.TenantId);
 
-        return await base.CreateAsync(input);
+        var created = await base.CreateAsync(input);
+        await _authorizationCacheService.InvalidatePermissionAsync(created.TenantId);
+        return created;
     }
 
     /// <summary>
@@ -100,7 +108,35 @@ public class PermissionAppService
 
         await MapDtoToEntityAsync(input, permission);
         var updated = await _permissionRepository.UpdateAsync(permission);
+        await _authorizationCacheService.InvalidatePermissionAsync(updated.TenantId);
         return updated.Adapt<PermissionDto>();
+    }
+
+    /// <summary>
+    /// 删除权限
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        if (id <= 0)
+        {
+            return false;
+        }
+
+        var permission = await _permissionRepository.GetByIdAsync(id);
+        if (permission is null)
+        {
+            return false;
+        }
+
+        var deleted = await _permissionRepository.DeleteAsync(permission);
+        if (deleted)
+        {
+            await _authorizationCacheService.InvalidatePermissionAsync(permission.TenantId);
+        }
+
+        return deleted;
     }
 
     /// <summary>
