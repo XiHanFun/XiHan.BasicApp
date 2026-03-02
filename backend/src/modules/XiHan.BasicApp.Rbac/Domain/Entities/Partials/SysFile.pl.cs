@@ -271,10 +271,9 @@ public partial class SysFile
             return [];
         }
 
-        return Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        return [.. Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(t => t.Trim())
-            .Where(t => !string.IsNullOrWhiteSpace(t))
-            .ToList();
+            .Where(t => !string.IsNullOrWhiteSpace(t))];
     }
 
     /// <summary>
