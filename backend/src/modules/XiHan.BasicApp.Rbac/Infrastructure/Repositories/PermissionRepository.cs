@@ -76,6 +76,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
+        var resolvedTenantId = tenantId ?? CurrentTenantId;
         var rolePermissionQuery = DbClient.Queryable<SysUserRole, SysRolePermission>(
             (userRole, rolePermission) => userRole.RoleId == rolePermission.RoleId)
             .Where((userRole, rolePermission) =>
@@ -83,10 +84,15 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
                 userRole.Status == YesOrNo.Yes &&
                 rolePermission.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
+        if (resolvedTenantId.HasValue)
         {
             rolePermissionQuery = rolePermissionQuery.Where((userRole, rolePermission) =>
-                userRole.TenantId == tenantId.Value && rolePermission.TenantId == tenantId.Value);
+                userRole.TenantId == resolvedTenantId.Value && rolePermission.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            rolePermissionQuery = rolePermissionQuery.Where((userRole, rolePermission) =>
+                userRole.TenantId == null && rolePermission.TenantId == null);
         }
 
         var rolePermissionIds = await rolePermissionQuery
@@ -94,28 +100,37 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             .Distinct()
             .ToListAsync(cancellationToken);
 
+        var now = DateTimeOffset.UtcNow;
         var directPermissionQuery = CreateTenantQueryable<SysUserPermission>()
-            .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
+            .Where(mapping =>
+                mapping.UserId == userId
+                && mapping.Status == YesOrNo.Yes
+                && (!mapping.EffectiveTime.HasValue || mapping.EffectiveTime <= now)
+                && (!mapping.ExpirationTime.HasValue || mapping.ExpirationTime > now));
 
-        if (tenantId.HasValue)
+        if (resolvedTenantId.HasValue)
         {
-            directPermissionQuery = directPermissionQuery.Where(mapping => mapping.TenantId == tenantId.Value);
+            directPermissionQuery = directPermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            directPermissionQuery = directPermissionQuery.Where(mapping => mapping.TenantId == null);
         }
 
         var directPermissions = await directPermissionQuery.ToListAsync(cancellationToken);
 
+        var grantIds = directPermissions
+            .Where(mapping => mapping.PermissionAction == PermissionAction.Grant)
+            .Select(mapping => mapping.PermissionId)
+            .ToHashSet();
+        var denyIds = directPermissions
+            .Where(mapping => mapping.PermissionAction == PermissionAction.Deny)
+            .Select(mapping => mapping.PermissionId)
+            .ToHashSet();
+
         var permissionIdSet = rolePermissionIds.ToHashSet();
-        foreach (var mapping in directPermissions)
-        {
-            if (mapping.PermissionAction == PermissionAction.Grant)
-            {
-                permissionIdSet.Add(mapping.PermissionId);
-            }
-            else
-            {
-                permissionIdSet.Remove(mapping.PermissionId);
-            }
-        }
+        permissionIdSet.UnionWith(grantIds);
+        permissionIdSet.ExceptWith(denyIds);
 
         if (permissionIdSet.Count == 0)
         {
@@ -125,9 +140,13 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var query = CreateTenantQueryable()
             .Where(permission => permissionIdSet.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
+        if (resolvedTenantId.HasValue)
         {
-            query = query.Where(permission => permission.TenantId == tenantId.Value);
+            query = query.Where(permission => permission.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            query = query.Where(permission => permission.TenantId == null);
         }
 
         return await query.OrderBy(permission => permission.Sort)
@@ -143,8 +162,20 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var permissionIds = await CreateTenantQueryable<SysRolePermission>()
-            .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes)
+        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var mappingQuery = CreateTenantQueryable<SysRolePermission>()
+            .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
+
+        if (resolvedTenantId.HasValue)
+        {
+            mappingQuery = mappingQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            mappingQuery = mappingQuery.Where(mapping => mapping.TenantId == null);
+        }
+
+        var permissionIds = await mappingQuery
             .Select(mapping => mapping.PermissionId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -157,9 +188,13 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var query = CreateTenantQueryable()
             .Where(permission => permissionIds.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
+        if (resolvedTenantId.HasValue)
         {
-            query = query.Where(permission => permission.TenantId == tenantId.Value);
+            query = query.Where(permission => permission.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            query = query.Where(permission => permission.TenantId == null);
         }
 
         return await query.OrderBy(permission => permission.Sort)

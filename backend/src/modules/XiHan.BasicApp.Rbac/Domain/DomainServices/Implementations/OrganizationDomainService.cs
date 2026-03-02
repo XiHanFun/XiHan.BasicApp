@@ -52,16 +52,25 @@ public class OrganizationDomainService : IOrganizationDomainService
             return [];
         }
 
-        var result = new HashSet<long> { departmentId };
-        var queue = new Queue<long>();
-        queue.Enqueue(departmentId);
+        var descendantIds = await _departmentRepository.GetDescendantIdsAsync(
+            departmentId,
+            includeSelf: true,
+            tenantId,
+            cancellationToken);
 
+        if (descendantIds.Count > 0)
+        {
+            return descendantIds;
+        }
+
+        // 兼容层级表尚未构建时的兜底逻辑
+        var result = new HashSet<long> { departmentId };
+        var queue = new Queue<long>([departmentId]);
         while (queue.Count > 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var current = queue.Dequeue();
             var children = await _departmentRepository.GetChildrenAsync(current, tenantId, cancellationToken);
-
             foreach (var child in children)
             {
                 if (result.Add(child.BasicId))
