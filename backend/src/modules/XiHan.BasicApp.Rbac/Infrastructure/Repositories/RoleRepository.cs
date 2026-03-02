@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -98,5 +99,87 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         }
 
         return await query.AnyAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取角色自定义数据范围部门ID
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyCollection<long>> GetCustomDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        if (roleId <= 0)
+        {
+            return [];
+        }
+
+        var query = CreateTenantQueryable<SysRoleDataScope>()
+            .Where(scope => scope.RoleId == roleId && scope.Status == YesOrNo.Yes);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(scope => scope.TenantId == tenantId.Value);
+        }
+
+        return await query
+            .Select(scope => scope.DepartmentId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 替换角色自定义数据范围部门ID
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="departmentIds"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task ReplaceCustomDataScopeDepartmentIdsAsync(
+        long roleId,
+        IReadOnlyCollection<long> departmentIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (roleId <= 0)
+        {
+            return;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var resolvedTenantId = tenantId ?? CurrentTenantId;
+
+        var deleteable = DbClient.Deleteable<SysRoleDataScope>()
+            .Where(scope => scope.RoleId == roleId);
+
+        if (resolvedTenantId.HasValue)
+        {
+            deleteable = deleteable.Where(scope => scope.TenantId == resolvedTenantId.Value);
+        }
+
+        await deleteable.ExecuteCommandAsync(cancellationToken);
+
+        var distinctDepartmentIds = departmentIds.Where(id => id > 0).Distinct().ToArray();
+        if (distinctDepartmentIds.Length == 0)
+        {
+            return;
+        }
+
+        var scopes = distinctDepartmentIds.Select(departmentId => new SysRoleDataScope
+        {
+            TenantId = resolvedTenantId,
+            RoleId = roleId,
+            DepartmentId = departmentId,
+            Status = YesOrNo.Yes
+        }).ToArray();
+
+        foreach (var scope in scopes)
+        {
+            TrySetTenantId(scope);
+        }
+
+        await DbClient.Insertable(scopes).ExecuteCommandAsync(cancellationToken);
     }
 }

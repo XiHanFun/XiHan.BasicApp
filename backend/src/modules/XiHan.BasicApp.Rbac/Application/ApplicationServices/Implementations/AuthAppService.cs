@@ -198,6 +198,17 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
+    /// 获取用户数据范围部门ID
+    /// </summary>
+    /// <param name="query"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        return await _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId);
+    }
+
+    /// <summary>
     /// 写入登录日志
     /// </summary>
     /// <param name="userId"></param>

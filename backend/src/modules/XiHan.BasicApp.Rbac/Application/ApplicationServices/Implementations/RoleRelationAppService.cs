@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
+using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
@@ -33,6 +34,7 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IMenuRepository _menuRepository;
+    private readonly IDepartmentRepository _departmentRepository;
     private readonly IRoleManager _roleManager;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
@@ -43,6 +45,7 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
     /// <param name="roleRepository"></param>
     /// <param name="permissionRepository"></param>
     /// <param name="menuRepository"></param>
+    /// <param name="departmentRepository"></param>
     /// <param name="roleManager"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleRelationAppService(
@@ -50,6 +53,7 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IMenuRepository menuRepository,
+        IDepartmentRepository departmentRepository,
         IRoleManager roleManager,
         IUnitOfWorkManager unitOfWorkManager)
     {
@@ -57,6 +61,7 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _menuRepository = menuRepository;
+        _departmentRepository = departmentRepository;
         _roleManager = roleManager;
         _unitOfWorkManager = unitOfWorkManager;
     }
@@ -107,6 +112,22 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
             MenuId = relation.MenuId,
             Status = relation.Status
         }).ToArray();
+    }
+
+    /// <summary>
+    /// 获取角色自定义数据范围部门ID
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null)
+    {
+        if (roleId <= 0)
+        {
+            return [];
+        }
+
+        return await _roleRepository.GetCustomDataScopeDepartmentIdsAsync(roleId, tenantId);
     }
 
     /// <summary>
@@ -175,6 +196,47 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
             command.RoleId,
             menuIds,
             command.TenantId ?? role.TenantId);
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 分配角色自定义数据范围
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task AssignDataScopeAsync(AssignRoleDataScopeCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.RoleId <= 0)
+        {
+            throw new ArgumentException("角色 ID 无效", nameof(command.RoleId));
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var role = await _roleRepository.GetByIdAsync(command.RoleId)
+                   ?? throw new KeyNotFoundException($"未找到角色: {command.RoleId}");
+
+        var departmentIds = command.DepartmentIds.Where(id => id > 0).Distinct().ToArray();
+        if (departmentIds.Length > 0)
+        {
+            var departments = await _departmentRepository.GetByIdsAsync(departmentIds);
+            if (departments.Count != departmentIds.Length)
+            {
+                throw new InvalidOperationException("存在无效部门 ID");
+            }
+        }
+
+        await _roleRepository.ReplaceCustomDataScopeDepartmentIdsAsync(
+            command.RoleId,
+            departmentIds,
+            command.TenantId ?? role.TenantId);
+
+        if (role.DataScope != DataPermissionScope.Custom)
+        {
+            role.DataScope = DataPermissionScope.Custom;
+            await _roleRepository.UpdateAsync(role);
+        }
 
         await uow.CompleteAsync();
     }

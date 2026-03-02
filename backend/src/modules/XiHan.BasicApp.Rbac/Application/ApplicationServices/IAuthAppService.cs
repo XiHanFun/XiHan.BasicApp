@@ -38,4 +38,12 @@ public interface IAuthAppService : IApplicationService
     /// 获取用户权限编码
     /// </summary>
     Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
+
+    /// <summary>
+    /// 获取用户数据范围部门ID
+    /// </summary>
+    /// <remarks>
+    /// 空集合表示不限部门（全量数据范围）。
+    /// </remarks>
+    Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
 }
