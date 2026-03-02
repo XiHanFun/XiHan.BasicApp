@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Commands;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
@@ -40,6 +41,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
     private readonly IAuthorizationDomainService _authorizationDomainService;
+    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
     private readonly ILoginLogRepository _loginLogRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
@@ -50,6 +52,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="userRepository"></param>
     /// <param name="userManager"></param>
     /// <param name="authorizationDomainService"></param>
+    /// <param name="authorizationCacheService"></param>
     /// <param name="loginLogRepository"></param>
     /// <param name="passwordHasher"></param>
     /// <param name="unitOfWorkManager"></param>
@@ -57,6 +60,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IUserRepository userRepository,
         IUserManager userManager,
         IAuthorizationDomainService authorizationDomainService,
+        IRbacAuthorizationCacheService authorizationCacheService,
         ILoginLogRepository loginLogRepository,
         IPasswordHasher passwordHasher,
         IUnitOfWorkManager unitOfWorkManager)
@@ -64,6 +68,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _userRepository = userRepository;
         _userManager = userManager;
         _authorizationDomainService = authorizationDomainService;
+        _authorizationCacheService = authorizationCacheService;
         _loginLogRepository = loginLogRepository;
         _passwordHasher = passwordHasher;
         _unitOfWorkManager = unitOfWorkManager;
@@ -148,7 +153,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         user.LastLoginTime = DateTimeOffset.UtcNow;
         await _userRepository.UpdateAsync(user);
 
-        var permissionCodes = await _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId);
+        var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
+            user.BasicId,
+            user.TenantId,
+            token => _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId, token));
         await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, "登录成功");
         await uow.CompleteAsync();
 
@@ -194,7 +202,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public async Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return await _authorizationDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId);
+        return await _authorizationCacheService.GetUserPermissionCodesAsync(
+            query.UserId,
+            query.TenantId,
+            token => _authorizationDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId, token));
     }
 
     /// <summary>
@@ -205,7 +216,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public async Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return await _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId);
+        return await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
+            query.UserId,
+            query.TenantId,
+            token => _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
     }
 
     /// <summary>

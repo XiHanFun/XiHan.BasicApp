@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
@@ -33,19 +34,23 @@ public class DepartmentAppService
         IDepartmentAppService
 {
     private readonly IDepartmentRepository _departmentRepository;
+    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository"></param>
+    /// <param name="authorizationCacheService"></param>
     /// <param name="unitOfWorkManager"></param>
     public DepartmentAppService(
         IDepartmentRepository departmentRepository,
+        IRbacAuthorizationCacheService authorizationCacheService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(departmentRepository)
     {
         _departmentRepository = departmentRepository;
+        _authorizationCacheService = authorizationCacheService;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -77,6 +82,7 @@ public class DepartmentAppService
         var entity = await MapDtoToEntityAsync(input);
         var created = await _departmentRepository.AddAsync(entity);
         await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
+        await _authorizationCacheService.InvalidateDataScopeAsync(created.TenantId);
         await uow.CompleteAsync();
         return created.Adapt<DepartmentDto>();
     }
@@ -101,6 +107,7 @@ public class DepartmentAppService
         await MapDtoToEntityAsync(input, department);
         var updated = await _departmentRepository.UpdateAsync(department);
         await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
+        await _authorizationCacheService.InvalidateDataScopeAsync(updated.TenantId);
         await uow.CompleteAsync();
         return updated.Adapt<DepartmentDto>();
     }
@@ -131,6 +138,7 @@ public class DepartmentAppService
         }
 
         await _departmentRepository.RebuildHierarchyAsync(department.TenantId);
+        await _authorizationCacheService.InvalidateDataScopeAsync(department.TenantId);
         await uow.CompleteAsync();
         return true;
     }
