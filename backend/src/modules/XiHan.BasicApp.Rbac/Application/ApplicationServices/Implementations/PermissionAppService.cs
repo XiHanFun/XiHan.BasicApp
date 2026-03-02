@@ -18,6 +18,7 @@ using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
+using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
@@ -25,6 +26,7 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 权限应用服务
 /// </summary>
+[DynamicApi(Group = "BasicApp.Rbac")]
 public class PermissionAppService
     : CrudApplicationServiceBase<SysPermission, PermissionDto, long, PermissionCreateDto, PermissionUpdateDto, BasicAppPRDto>,
         IPermissionAppService
