@@ -13,14 +13,12 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Commands;
-using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -38,7 +36,6 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
     private readonly IMenuRepository _menuRepository;
     private readonly IDepartmentRepository _departmentRepository;
     private readonly IRoleManager _roleManager;
-    private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -50,7 +47,6 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
     /// <param name="menuRepository"></param>
     /// <param name="departmentRepository"></param>
     /// <param name="roleManager"></param>
-    /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleRelationAppService(
         IRoleRelationRepository roleRelationRepository,
@@ -59,7 +55,6 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
         IMenuRepository menuRepository,
         IDepartmentRepository departmentRepository,
         IRoleManager roleManager,
-        ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
     {
         _roleRelationRepository = roleRelationRepository;
@@ -68,7 +63,6 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
         _menuRepository = menuRepository;
         _departmentRepository = departmentRepository;
         _roleManager = roleManager;
-        _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -241,15 +235,10 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
         if (role.DataScope != DataPermissionScope.Custom)
         {
             role.DataScope = DataPermissionScope.Custom;
-            await _roleRepository.UpdateAsync(role);
         }
 
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.DataScope);
+        role.MarkDataScopeChanged(departmentIds);
+        await _roleRepository.UpdateAsync(role);
         await uow.CompleteAsync();
-    }
-
-    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
-    {
-        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }

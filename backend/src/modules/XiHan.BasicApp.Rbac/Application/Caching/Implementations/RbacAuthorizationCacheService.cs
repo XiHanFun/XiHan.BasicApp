@@ -85,7 +85,7 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
             key,
             async () => new UserPermissionCodesCacheItem
             {
-                PermissionCodes = (await factory(cancellationToken)).ToArray()
+                PermissionCodes = [.. (await factory(cancellationToken))]
             },
             optionsFactory: () => PermissionCacheOptions,
             token: cancellationToken);
@@ -119,7 +119,7 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
             key,
             async () => new UserDataScopeDepartmentIdsCacheItem
             {
-                DepartmentIds = (await factory(cancellationToken)).ToArray()
+                DepartmentIds = [.. (await factory(cancellationToken))]
             },
             optionsFactory: () => DataScopeCacheOptions,
             token: cancellationToken);
@@ -175,28 +175,6 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
         await InvalidateDataScopeAsync(tenantId, cancellationToken);
     }
 
-    private async Task<long> GetPermissionVersionAsync(long? tenantId, CancellationToken cancellationToken)
-    {
-        var item = await _versionCache.GetOrAddAsync(
-            BuildPermissionVersionKey(tenantId),
-            () => Task.FromResult(new AuthorizationCacheVersionItem { Version = 1 }),
-            optionsFactory: () => VersionCacheOptions,
-            token: cancellationToken);
-
-        return item?.Version > 0 ? item.Version : 1;
-    }
-
-    private async Task<long> GetDataScopeVersionAsync(long? tenantId, CancellationToken cancellationToken)
-    {
-        var item = await _versionCache.GetOrAddAsync(
-            BuildDataScopeVersionKey(tenantId),
-            () => Task.FromResult(new AuthorizationCacheVersionItem { Version = 1 }),
-            optionsFactory: () => VersionCacheOptions,
-            token: cancellationToken);
-
-        return item?.Version > 0 ? item.Version : 1;
-    }
-
     private static string BuildPermissionVersionKey(long? tenantId)
     {
         return $"perm:ver:{FormatTenantSegment(tenantId)}";
@@ -220,5 +198,27 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
     private static string FormatTenantSegment(long? tenantId)
     {
         return tenantId?.ToString() ?? "host";
+    }
+
+    private async Task<long> GetPermissionVersionAsync(long? tenantId, CancellationToken cancellationToken)
+    {
+        var item = await _versionCache.GetOrAddAsync(
+            BuildPermissionVersionKey(tenantId),
+            () => Task.FromResult(new AuthorizationCacheVersionItem { Version = 1 }),
+            optionsFactory: () => VersionCacheOptions,
+            token: cancellationToken);
+
+        return item?.Version > 0 ? item.Version : 1;
+    }
+
+    private async Task<long> GetDataScopeVersionAsync(long? tenantId, CancellationToken cancellationToken)
+    {
+        var item = await _versionCache.GetOrAddAsync(
+            BuildDataScopeVersionKey(tenantId),
+            () => Task.FromResult(new AuthorizationCacheVersionItem { Version = 1 }),
+            optionsFactory: () => VersionCacheOptions,
+            token: cancellationToken);
+
+        return item?.Version > 0 ? item.Version : 1;
     }
 }

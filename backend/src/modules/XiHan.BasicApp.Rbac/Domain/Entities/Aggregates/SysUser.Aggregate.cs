@@ -64,4 +64,20 @@ public partial class SysUser
     {
         AddLocalEvent(new UserRolesChangedDomainEvent(BasicId, roleIds, TenantId));
     }
+
+    /// <summary>
+    /// 记录直授权限变更
+    /// </summary>
+    public void MarkPermissionsChanged(IReadOnlyCollection<long> permissionIds)
+    {
+        AddLocalEvent(new UserPermissionsChangedDomainEvent(BasicId, permissionIds, TenantId));
+    }
+
+    /// <summary>
+    /// 记录部门关系变更
+    /// </summary>
+    public void MarkDepartmentsChanged(IReadOnlyCollection<long> departmentIds, long? mainDepartmentId = null)
+    {
+        AddLocalEvent(new UserDepartmentsChangedDomainEvent(BasicId, departmentIds, mainDepartmentId, TenantId));
+    }
 }
