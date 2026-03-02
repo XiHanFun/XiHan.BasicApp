@@ -168,7 +168,6 @@ public class RoleRelationAppService : ApplicationServiceBase, IRoleRelationAppSe
             permissionIds,
             command.TenantId ?? role.TenantId);
 
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.Permission);
         await uow.CompleteAsync();
     }
 

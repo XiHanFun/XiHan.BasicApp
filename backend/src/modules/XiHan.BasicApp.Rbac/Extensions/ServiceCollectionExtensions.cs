@@ -21,6 +21,7 @@ using XiHan.BasicApp.Rbac.Application.ApplicationServices;
 using XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
+using XiHan.BasicApp.Rbac.Domain.Events;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 using XiHan.BasicApp.Rbac.Seeders;
@@ -132,6 +133,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
         services.AddScoped<ILocalEventHandler<RbacAuthorizationChangedEvent>, RbacAuthorizationChangedEventHandler>();
+        services.AddScoped<ILocalEventHandler<UserRolesChangedDomainEvent>, UserRolesChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<RolePermissionsChangedDomainEvent>, RolePermissionsChangedDomainEventHandler>();
 
         return services;
     }

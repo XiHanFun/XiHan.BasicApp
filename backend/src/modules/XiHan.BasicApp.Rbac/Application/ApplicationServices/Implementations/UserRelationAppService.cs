@@ -174,7 +174,6 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
 
         user.MarkRolesChanged(roleIds);
         await _userRepository.UpdateAsync(user);
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.All);
         await uow.CompleteAsync();
     }
 
