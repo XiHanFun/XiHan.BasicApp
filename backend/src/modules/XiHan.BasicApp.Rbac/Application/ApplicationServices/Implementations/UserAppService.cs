@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
-using Microsoft.AspNetCore.Routing.Template;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
@@ -34,7 +33,7 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 用户应用服务
 /// </summary>
-[DynamicApi(Group = "BasicApp.Rbac")]
+[DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
 public class UserAppService
     : CrudApplicationServiceBase<SysUser, UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>,
         IUserAppService

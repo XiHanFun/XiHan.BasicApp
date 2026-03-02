@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 配置应用服务
 /// </summary>
-[DynamicApi(Group = "BasicApp.Rbac")]
+[DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
 public class ConfigAppService
     : CrudApplicationServiceBase<SysConfig, ConfigDto, long, ConfigCreateDto, ConfigUpdateDto, BasicAppPRDto>,
         IConfigAppService
@@ -45,6 +45,9 @@ public class ConfigAppService
     /// <summary>
     /// 根据配置键获取配置信息
     /// </summary>
+    /// <remarks>
+    /// 如果 tenantId 不为 null，则优先查询租户级配置，否则查询全局配置。
+    /// </remarks>
     /// <param name="configKey"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
