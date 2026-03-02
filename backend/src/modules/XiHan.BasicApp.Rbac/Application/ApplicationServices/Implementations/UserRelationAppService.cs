@@ -13,12 +13,10 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Commands;
-using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -35,7 +33,6 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IDepartmentRepository _departmentRepository;
-    private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -46,7 +43,6 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
     /// <param name="roleRepository"></param>
     /// <param name="permissionRepository"></param>
     /// <param name="departmentRepository"></param>
-    /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public UserRelationAppService(
         IUserRelationRepository userRelationRepository,
@@ -54,7 +50,6 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
-        ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
     {
         _userRelationRepository = userRelationRepository;
@@ -62,7 +57,6 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
-        _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -209,7 +203,8 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
             permissionIds,
             command.TenantId ?? user.TenantId);
 
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
+        user.MarkPermissionsChanged(permissionIds);
+        await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
     }
 
@@ -253,12 +248,8 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
             command.MainDepartmentId,
             command.TenantId ?? user.TenantId);
 
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.DataScope);
+        user.MarkDepartmentsChanged(departmentIds, command.MainDepartmentId);
+        await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-    }
-
-    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
-    {
-        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }

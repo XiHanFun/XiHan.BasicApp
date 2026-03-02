@@ -134,7 +134,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
         services.AddScoped<ILocalEventHandler<RbacAuthorizationChangedEvent>, RbacAuthorizationChangedEventHandler>();
         services.AddScoped<ILocalEventHandler<UserRolesChangedDomainEvent>, UserRolesChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<UserPermissionsChangedDomainEvent>, UserPermissionsChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<UserDepartmentsChangedDomainEvent>, UserDepartmentsChangedDomainEventHandler>();
         services.AddScoped<ILocalEventHandler<RolePermissionsChangedDomainEvent>, RolePermissionsChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<RoleDataScopeChangedDomainEvent>, RoleDataScopeChangedDomainEventHandler>();
 
         return services;
     }

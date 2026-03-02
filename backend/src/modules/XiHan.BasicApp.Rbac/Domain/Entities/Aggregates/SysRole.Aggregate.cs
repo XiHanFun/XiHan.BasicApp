@@ -45,4 +45,12 @@ public partial class SysRole
     {
         AddLocalEvent(new RolePermissionsChangedDomainEvent(BasicId, permissionIds, TenantId));
     }
+
+    /// <summary>
+    /// 记录数据范围变更
+    /// </summary>
+    public void MarkDataScopeChanged(IReadOnlyCollection<long> departmentIds)
+    {
+        AddLocalEvent(new RoleDataScopeChangedDomainEvent(BasicId, DataScope, departmentIds, TenantId));
+    }
 }
