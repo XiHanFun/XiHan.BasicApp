@@ -18,9 +18,10 @@ using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
-using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
@@ -30,6 +31,7 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 租户应用服务
 /// </summary>
+[DynamicApi(Group = "BasicApp.Rbac")]
 public class TenantAppService
     : CrudApplicationServiceBase<SysTenant, TenantDto, long, TenantCreateDto, TenantUpdateDto, BasicAppPRDto>,
         ITenantAppService

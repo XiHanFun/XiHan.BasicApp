@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Upgrade.Application.Dtos;
+using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Upgrade.Abstractions;
 
@@ -23,6 +24,7 @@ namespace XiHan.BasicApp.Upgrade.Application.ApplicationServices.Implementations
 /// <summary>
 /// 系统升级应用服务
 /// </summary>
+[DynamicApi(Group = "BasicApp.Upgrade")]
 public class UpgradeAppService : ApplicationServiceBase, IUpgradeAppService
 {
     private readonly IUpgradeStatusService _statusService;
