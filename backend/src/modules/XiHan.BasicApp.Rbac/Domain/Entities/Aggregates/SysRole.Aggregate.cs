@@ -43,6 +43,6 @@ public partial class SysRole
     /// </summary>
     public void MarkPermissionsChanged(IReadOnlyCollection<long> permissionIds)
     {
-        AddLocalEvent(new RolePermissionsChangedDomainEvent(BasicId, permissionIds));
+        AddLocalEvent(new RolePermissionsChangedDomainEvent(BasicId, permissionIds, TenantId));
     }
 }

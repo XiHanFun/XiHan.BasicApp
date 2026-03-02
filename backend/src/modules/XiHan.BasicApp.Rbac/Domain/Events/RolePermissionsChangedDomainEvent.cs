@@ -26,10 +26,12 @@ public sealed class RolePermissionsChangedDomainEvent : DomainEventBase
     /// </summary>
     /// <param name="roleId">角色 ID</param>
     /// <param name="permissionIds">新权限集合</param>
-    public RolePermissionsChangedDomainEvent(long roleId, IReadOnlyCollection<long> permissionIds)
+    /// <param name="tenantId">租户 ID</param>
+    public RolePermissionsChangedDomainEvent(long roleId, IReadOnlyCollection<long> permissionIds, long? tenantId = null)
     {
         RoleId = roleId;
         PermissionIds = permissionIds;
+        TenantId = tenantId;
     }
 
     /// <summary>
@@ -41,4 +43,9 @@ public sealed class RolePermissionsChangedDomainEvent : DomainEventBase
     /// 新权限集合
     /// </summary>
     public IReadOnlyCollection<long> PermissionIds { get; }
+
+    /// <summary>
+    /// 租户 ID
+    /// </summary>
+    public long? TenantId { get; }
 }

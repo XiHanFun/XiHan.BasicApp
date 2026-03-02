@@ -62,6 +62,6 @@ public partial class SysUser
     /// </summary>
     public void MarkRolesChanged(IReadOnlyCollection<long> roleIds)
     {
-        AddLocalEvent(new UserRolesChangedDomainEvent(BasicId, roleIds));
+        AddLocalEvent(new UserRolesChangedDomainEvent(BasicId, roleIds, TenantId));
     }
 }
