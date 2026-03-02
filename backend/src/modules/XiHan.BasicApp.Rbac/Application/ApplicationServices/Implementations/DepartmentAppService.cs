@@ -19,6 +19,8 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Uow;
+using XiHan.Framework.Uow.Options;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 
@@ -31,15 +33,20 @@ public class DepartmentAppService
         IDepartmentAppService
 {
     private readonly IDepartmentRepository _departmentRepository;
+    private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository"></param>
-    public DepartmentAppService(IDepartmentRepository departmentRepository)
+    /// <param name="unitOfWorkManager"></param>
+    public DepartmentAppService(
+        IDepartmentRepository departmentRepository,
+        IUnitOfWorkManager unitOfWorkManager)
         : base(departmentRepository)
     {
         _departmentRepository = departmentRepository;
+        _unitOfWorkManager = unitOfWorkManager;
     }
 
     /// <summary>
@@ -66,7 +73,12 @@ public class DepartmentAppService
         var normalizedCode = input.DepartmentCode.Trim();
         await EnsureDepartmentCodeUniqueAsync(normalizedCode, null, input.TenantId);
 
-        return await base.CreateAsync(input);
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _departmentRepository.AddAsync(entity);
+        await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
+        await uow.CompleteAsync();
+        return created.Adapt<DepartmentDto>();
     }
 
     /// <summary>
@@ -79,6 +91,7 @@ public class DepartmentAppService
     {
         input.ValidateAnnotations();
 
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         var department = await _departmentRepository.GetByIdAsync(id)
                          ?? throw new KeyNotFoundException($"未找到部门: {id}");
 
@@ -87,7 +100,39 @@ public class DepartmentAppService
 
         await MapDtoToEntityAsync(input, department);
         var updated = await _departmentRepository.UpdateAsync(department);
+        await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
+        await uow.CompleteAsync();
         return updated.Adapt<DepartmentDto>();
+    }
+
+    /// <summary>
+    /// 删除部门
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        if (id <= 0)
+        {
+            return false;
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var department = await _departmentRepository.GetByIdAsync(id);
+        if (department is null)
+        {
+            return false;
+        }
+
+        var deleted = await _departmentRepository.DeleteAsync(department);
+        if (!deleted)
+        {
+            return false;
+        }
+
+        await _departmentRepository.RebuildHierarchyAsync(department.TenantId);
+        await uow.CompleteAsync();
+        return true;
     }
 
     /// <summary>
