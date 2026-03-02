@@ -103,4 +103,45 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         return await query.AnyAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 根据用户ID获取安全状态
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysUserSecurity?> GetSecurityByUserIdAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable<SysUserSecurity>()
+            .Where(entity => entity.UserId == userId);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(entity => entity.TenantId == tenantId.Value);
+        }
+
+        return await query.FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 保存用户安全状态（新增或更新）
+    /// </summary>
+    /// <param name="security"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysUserSecurity> SaveSecurityAsync(SysUserSecurity security, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+        cancellationToken.ThrowIfCancellationRequested();
+        TrySetTenantId(security);
+
+        if (security.BasicId <= 0)
+        {
+            return await DbClient.Insertable(security).ExecuteReturnEntityAsync();
+        }
+
+        await DbClient.Updateable(security).ExecuteCommandAsync(cancellationToken);
+        return security;
+    }
 }

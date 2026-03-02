@@ -47,14 +47,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDictRepository, DictRepository>();
 
         // 关系与日志仓储
-        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-        services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
-        services.AddScoped<IRoleMenuRepository, RoleMenuRepository>();
-        services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
-        services.AddScoped<IUserDepartmentRepository, UserDepartmentRepository>();
-        services.AddScoped<IUserSecurityRepository, UserSecurityRepository>();
+        services.AddScoped<IUserRelationRepository, UserRelationRepository>();
+        services.AddScoped<IRoleRelationRepository, RoleRelationRepository>();
         services.AddScoped<ILoginLogRepository, LoginLogRepository>();
-        services.AddScoped<IDictItemRepository, DictItemRepository>();
 
         return services;
     }
