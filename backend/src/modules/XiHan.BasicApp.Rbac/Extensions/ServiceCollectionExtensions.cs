@@ -64,6 +64,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserManager, UserManager>();
         services.AddScoped<IRoleManager, RoleManager>();
         services.AddScoped<ITenantManager, TenantManager>();
+        services.AddScoped<IOrganizationDomainService, OrganizationDomainService>();
+        services.AddScoped<IPermissionDomainService, PermissionDomainService>();
         services.AddScoped<IAuthorizationDomainService, AuthorizationDomainService>();
 
         return services;
@@ -78,6 +80,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IUserAppService, UserAppService>();
         services.AddScoped<IRoleAppService, RoleAppService>();
+        services.AddScoped<IAuthAppService, AuthAppService>();
+        services.AddScoped<IUserRelationAppService, UserRelationAppService>();
+        services.AddScoped<IRoleRelationAppService, RoleRelationAppService>();
         services.AddScoped<IPermissionAppService, PermissionAppService>();
         services.AddScoped<IMenuAppService, MenuAppService>();
         services.AddScoped<IDepartmentAppService, DepartmentAppService>();

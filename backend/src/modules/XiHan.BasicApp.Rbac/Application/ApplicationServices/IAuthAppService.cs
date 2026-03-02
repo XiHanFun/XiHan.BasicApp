@@ -3,33 +3,39 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IRoleAppService
-// Guid:fb5f77dd-0653-4987-be28-f559db7f6ca2
+// FileName:IAuthAppService
+// Guid:3f99078f-71c5-4fa0-a685-c8c3ad90addf
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2026/02/28 05:46:36
+// CreateTime:2026/03/03 15:35:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Rbac.Application.Commands;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
-using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices;
 
 /// <summary>
-/// 角色应用服务
+/// 认证应用服务
 /// </summary>
-public interface IRoleAppService
-    : ICrudApplicationService<RoleDto, long, RoleCreateDto, RoleUpdateDto, BasicAppPRDto>
+public interface IAuthAppService : IApplicationService
 {
     /// <summary>
-    /// 根据角色编码获取角色
+    /// 登录
     /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    Task<RoleDto?> GetByCodeAsync(RoleByCodeQuery query);
+    Task<UserLoginResultDto> LoginAsync(UserLoginCommand command);
 
+    /// <summary>
+    /// 修改密码
+    /// </summary>
+    Task ChangePasswordAsync(ChangePasswordCommand command);
+
+    /// <summary>
+    /// 获取用户权限编码
+    /// </summary>
+    Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
 }
