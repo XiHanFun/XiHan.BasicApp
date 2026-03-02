@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Upgrade.Application.ApplicationServices.Implementations
 /// <summary>
 /// 系统升级应用服务
 /// </summary>
-[DynamicApi(Group = "BasicApp.Upgrade")]
+[DynamicApi(Group = "BasicApp.Upgrade", GroupName = "系统升级服务")]
 public class UpgradeAppService : ApplicationServiceBase, IUpgradeAppService
 {
     private readonly IUpgradeStatusService _statusService;

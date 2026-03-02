@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 角色应用服务
 /// </summary>
-[DynamicApi(Group = "BasicApp.Rbac")]
+[DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
 public class RoleAppService
     : CrudApplicationServiceBase<SysRole, RoleDto, long, RoleCreateDto, RoleUpdateDto, BasicAppPRDto>,
         IRoleAppService

@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 /// <summary>
 /// 部门应用服务
 /// </summary>
-[DynamicApi(Group = "BasicApp.Rbac")]
+[DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
 public class DepartmentAppService
     : CrudApplicationServiceBase<SysDepartment, DepartmentDto, long, DepartmentCreateDto, DepartmentUpdateDto, BasicAppPRDto>,
         IDepartmentAppService
