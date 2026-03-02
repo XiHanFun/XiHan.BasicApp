@@ -13,11 +13,12 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Commands;
-using XiHan.BasicApp.Rbac.Application.Caching;
+using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -34,7 +35,7 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IDepartmentRepository _departmentRepository;
-    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
+    private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -45,7 +46,7 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
     /// <param name="roleRepository"></param>
     /// <param name="permissionRepository"></param>
     /// <param name="departmentRepository"></param>
-    /// <param name="authorizationCacheService"></param>
+    /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public UserRelationAppService(
         IUserRelationRepository userRelationRepository,
@@ -53,7 +54,7 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
-        IRbacAuthorizationCacheService authorizationCacheService,
+        ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
     {
         _userRelationRepository = userRelationRepository;
@@ -61,7 +62,7 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
-        _authorizationCacheService = authorizationCacheService;
+        _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -173,7 +174,7 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
 
         user.MarkRolesChanged(roleIds);
         await _userRepository.UpdateAsync(user);
-        await _authorizationCacheService.InvalidateAllAsync(command.TenantId ?? user.TenantId);
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.All);
         await uow.CompleteAsync();
     }
 
@@ -209,7 +210,7 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
             permissionIds,
             command.TenantId ?? user.TenantId);
 
-        await _authorizationCacheService.InvalidatePermissionAsync(command.TenantId ?? user.TenantId);
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
         await uow.CompleteAsync();
     }
 
@@ -253,7 +254,12 @@ public class UserRelationAppService : ApplicationServiceBase, IUserRelationAppSe
             command.MainDepartmentId,
             command.TenantId ?? user.TenantId);
 
-        await _authorizationCacheService.InvalidateDataScopeAsync(command.TenantId ?? user.TenantId);
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
+    }
+
+    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
+    {
+        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }

@@ -14,13 +14,14 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Rbac.Application.Caching;
+using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.Queries;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
 
@@ -33,20 +34,20 @@ public class PermissionAppService
         IPermissionAppService
 {
     private readonly IPermissionRepository _permissionRepository;
-    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
+    private readonly ILocalEventBus _localEventBus;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="permissionRepository"></param>
-    /// <param name="authorizationCacheService"></param>
+    /// <param name="localEventBus"></param>
     public PermissionAppService(
         IPermissionRepository permissionRepository,
-        IRbacAuthorizationCacheService authorizationCacheService)
+        ILocalEventBus localEventBus)
         : base(permissionRepository)
     {
         _permissionRepository = permissionRepository;
-        _authorizationCacheService = authorizationCacheService;
+        _localEventBus = localEventBus;
     }
 
     /// <summary>
@@ -86,7 +87,7 @@ public class PermissionAppService
         await EnsurePermissionCodeUniqueAsync(normalizedCode, null, input.TenantId);
 
         var created = await base.CreateAsync(input);
-        await _authorizationCacheService.InvalidatePermissionAsync(created.TenantId);
+        await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.Permission);
         return created;
     }
 
@@ -108,7 +109,7 @@ public class PermissionAppService
 
         await MapDtoToEntityAsync(input, permission);
         var updated = await _permissionRepository.UpdateAsync(permission);
-        await _authorizationCacheService.InvalidatePermissionAsync(updated.TenantId);
+        await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.Permission);
         return updated.Adapt<PermissionDto>();
     }
 
@@ -133,7 +134,7 @@ public class PermissionAppService
         var deleted = await _permissionRepository.DeleteAsync(permission);
         if (deleted)
         {
-            await _authorizationCacheService.InvalidatePermissionAsync(permission.TenantId);
+            await PublishAuthorizationChangedEventAsync(permission.TenantId, AuthorizationChangeType.Permission);
         }
 
         return deleted;
@@ -198,5 +199,10 @@ public class PermissionAppService
         {
             throw new InvalidOperationException($"权限编码 '{permissionCode}' 已存在");
         }
+    }
+
+    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
+    {
+        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }

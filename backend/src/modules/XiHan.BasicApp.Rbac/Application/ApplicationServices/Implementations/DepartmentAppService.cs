@@ -14,12 +14,13 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Rbac.Application.Caching;
+using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -34,23 +35,23 @@ public class DepartmentAppService
         IDepartmentAppService
 {
     private readonly IDepartmentRepository _departmentRepository;
-    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
+    private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository"></param>
-    /// <param name="authorizationCacheService"></param>
+    /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public DepartmentAppService(
         IDepartmentRepository departmentRepository,
-        IRbacAuthorizationCacheService authorizationCacheService,
+        ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
         : base(departmentRepository)
     {
         _departmentRepository = departmentRepository;
-        _authorizationCacheService = authorizationCacheService;
+        _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -82,7 +83,7 @@ public class DepartmentAppService
         var entity = await MapDtoToEntityAsync(input);
         var created = await _departmentRepository.AddAsync(entity);
         await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
-        await _authorizationCacheService.InvalidateDataScopeAsync(created.TenantId);
+        await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
         return created.Adapt<DepartmentDto>();
     }
@@ -107,7 +108,7 @@ public class DepartmentAppService
         await MapDtoToEntityAsync(input, department);
         var updated = await _departmentRepository.UpdateAsync(department);
         await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
-        await _authorizationCacheService.InvalidateDataScopeAsync(updated.TenantId);
+        await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
         return updated.Adapt<DepartmentDto>();
     }
@@ -138,7 +139,7 @@ public class DepartmentAppService
         }
 
         await _departmentRepository.RebuildHierarchyAsync(department.TenantId);
-        await _authorizationCacheService.InvalidateDataScopeAsync(department.TenantId);
+        await PublishAuthorizationChangedEventAsync(department.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
         return true;
     }
@@ -204,5 +205,10 @@ public class DepartmentAppService
         {
             throw new InvalidOperationException($"部门编码 '{departmentCode}' 已存在");
         }
+    }
+
+    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
+    {
+        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }
