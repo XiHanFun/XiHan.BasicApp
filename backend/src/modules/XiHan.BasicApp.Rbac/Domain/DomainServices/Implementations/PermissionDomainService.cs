@@ -100,22 +100,50 @@ public class PermissionDomainService : IPermissionDomainService
             return [];
         }
 
-        var requireChildren = activeRoles.Any(role => role.DataScope == DataPermissionScope.DepartmentAndChildren);
-        var requireOwnDepartment = activeRoles.Any(role =>
-            role.DataScope == DataPermissionScope.DepartmentOnly
-            || role.DataScope == DataPermissionScope.DepartmentAndChildren
-            || role.DataScope == DataPermissionScope.Custom);
+        var hasDepartmentOnly = activeRoles.Any(role => role.DataScope == DataPermissionScope.DepartmentOnly);
+        var hasDepartmentAndChildren = activeRoles.Any(role => role.DataScope == DataPermissionScope.DepartmentAndChildren);
+        var customRoles = activeRoles
+            .Where(role => role.DataScope == DataPermissionScope.Custom)
+            .ToArray();
 
-        if (!requireOwnDepartment)
+        if (!hasDepartmentOnly && !hasDepartmentAndChildren && customRoles.Length == 0)
         {
+            // SelfOnly 等不基于部门范围控制的策略，在部门维度不做过滤。
             return [];
         }
 
-        return await _organizationDomainService.GetUserDepartmentScopeIdsAsync(
-            userId,
-            requireChildren,
-            tenantId,
-            cancellationToken);
+        var scopeDepartmentIds = new HashSet<long>();
+
+        if (hasDepartmentOnly)
+        {
+            var ownDepartments = await _organizationDomainService.GetUserDepartmentScopeIdsAsync(
+                userId,
+                includeChildren: false,
+                tenantId,
+                cancellationToken);
+            scopeDepartmentIds.UnionWith(ownDepartments);
+        }
+
+        if (hasDepartmentAndChildren)
+        {
+            var ownAndChildrenDepartments = await _organizationDomainService.GetUserDepartmentScopeIdsAsync(
+                userId,
+                includeChildren: true,
+                tenantId,
+                cancellationToken);
+            scopeDepartmentIds.UnionWith(ownAndChildrenDepartments);
+        }
+
+        foreach (var customRole in customRoles)
+        {
+            var customDepartmentIds = await _roleRepository.GetCustomDataScopeDepartmentIdsAsync(
+                customRole.BasicId,
+                tenantId ?? customRole.TenantId,
+                cancellationToken);
+            scopeDepartmentIds.UnionWith(customDepartmentIds);
+        }
+
+        return scopeDepartmentIds.ToArray();
     }
 
     private async Task<IReadOnlyCollection<SysRole>> GetActiveUserRolesAsync(long userId, long? tenantId, CancellationToken cancellationToken)

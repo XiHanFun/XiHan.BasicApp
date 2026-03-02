@@ -31,4 +31,18 @@ public interface IRoleRepository : IAggregateRootRepository<SysRole, long>
     /// 校验角色编码是否已存在
     /// </summary>
     Task<bool> IsRoleCodeExistsAsync(string roleCode, long? excludeRoleId = null, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取角色自定义数据范围部门ID
+    /// </summary>
+    Task<IReadOnlyCollection<long>> GetCustomDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 替换角色自定义数据范围部门ID
+    /// </summary>
+    Task ReplaceCustomDataScopeDepartmentIdsAsync(
+        long roleId,
+        IReadOnlyCollection<long> departmentIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default);
 }
