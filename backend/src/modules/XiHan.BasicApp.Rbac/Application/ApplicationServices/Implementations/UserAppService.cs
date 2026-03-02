@@ -43,10 +43,7 @@ public class UserAppService
 
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
-    private readonly IUserSecurityRepository _userSecurityRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository;
-    private readonly IUserDepartmentRepository _userDepartmentRepository;
+    private readonly IUserRelationRepository _userRelationRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IAuthorizationDomainService _authorizationDomainService;
@@ -59,10 +56,7 @@ public class UserAppService
     /// </summary>
     /// <param name="userRepository"></param>
     /// <param name="userManager"></param>
-    /// <param name="userSecurityRepository"></param>
-    /// <param name="userRoleRepository"></param>
-    /// <param name="userPermissionRepository"></param>
-    /// <param name="userDepartmentRepository"></param>
+    /// <param name="userRelationRepository"></param>
     /// <param name="roleRepository"></param>
     /// <param name="permissionRepository"></param>
     /// <param name="authorizationDomainService"></param>
@@ -72,10 +66,7 @@ public class UserAppService
     public UserAppService(
         IUserRepository userRepository,
         IUserManager userManager,
-        IUserSecurityRepository userSecurityRepository,
-        IUserRoleRepository userRoleRepository,
-        IUserPermissionRepository userPermissionRepository,
-        IUserDepartmentRepository userDepartmentRepository,
+        IUserRelationRepository userRelationRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IAuthorizationDomainService authorizationDomainService,
@@ -86,10 +77,7 @@ public class UserAppService
     {
         _userRepository = userRepository;
         _userManager = userManager;
-        _userSecurityRepository = userSecurityRepository;
-        _userRoleRepository = userRoleRepository;
-        _userPermissionRepository = userPermissionRepository;
-        _userDepartmentRepository = userDepartmentRepository;
+        _userRelationRepository = userRelationRepository;
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _authorizationDomainService = authorizationDomainService;
@@ -273,7 +261,7 @@ public class UserAppService
         security.LockoutEndTime = null;
         security.LastFailedLoginTime = null;
         security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
-        await _userSecurityRepository.UpdateAsync(security);
+        await _userRepository.SaveSecurityAsync(security);
 
         user.LastLoginTime = DateTimeOffset.UtcNow;
         //user.LastLoginIp = command.LoginIp;
@@ -344,19 +332,10 @@ public class UserAppService
             }
         }
 
-        await _userRoleRepository.RemoveByUserIdAsync(command.UserId, command.TenantId ?? user.TenantId);
-        if (roleIds.Length > 0)
-        {
-            var mappings = roleIds.Select(roleId => new SysUserRole
-            {
-                TenantId = command.TenantId ?? user.TenantId,
-                UserId = command.UserId,
-                RoleId = roleId,
-                Status = YesOrNo.Yes
-            }).ToArray();
-
-            await _userRoleRepository.AddRangeAsync(mappings);
-        }
+        await _userRelationRepository.ReplaceUserRolesAsync(
+            command.UserId,
+            roleIds,
+            command.TenantId ?? user.TenantId);
 
         user.MarkRolesChanged(roleIds);
         await _userRepository.UpdateAsync(user);
@@ -390,20 +369,10 @@ public class UserAppService
             }
         }
 
-        await _userPermissionRepository.RemoveByUserIdAsync(command.UserId, command.TenantId ?? user.TenantId);
-        if (permissionIds.Length > 0)
-        {
-            var mappings = permissionIds.Select(permissionId => new SysUserPermission
-            {
-                TenantId = command.TenantId ?? user.TenantId,
-                UserId = command.UserId,
-                PermissionId = permissionId,
-                PermissionAction = PermissionAction.Grant,
-                Status = YesOrNo.Yes
-            }).ToArray();
-
-            await _userPermissionRepository.AddRangeAsync(mappings);
-        }
+        await _userRelationRepository.ReplaceUserPermissionsAsync(
+            command.UserId,
+            permissionIds,
+            command.TenantId ?? user.TenantId);
 
         await uow.CompleteAsync();
     }
@@ -425,22 +394,12 @@ public class UserAppService
         var user = await _userRepository.GetByIdAsync(command.UserId)
                    ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
 
-        await _userDepartmentRepository.RemoveByUserIdAsync(command.UserId, command.TenantId ?? user.TenantId);
-
         var departmentIds = command.DepartmentIds.Distinct().ToArray();
-        if (departmentIds.Length > 0)
-        {
-            var mappings = departmentIds.Select(departmentId => new SysUserDepartment
-            {
-                TenantId = command.TenantId ?? user.TenantId,
-                UserId = command.UserId,
-                DepartmentId = departmentId,
-                IsMain = command.MainDepartmentId.HasValue && command.MainDepartmentId.Value == departmentId,
-                Status = YesOrNo.Yes
-            }).ToArray();
-
-            await _userDepartmentRepository.AddRangeAsync(mappings);
-        }
+        await _userRelationRepository.ReplaceUserDepartmentsAsync(
+            command.UserId,
+            departmentIds,
+            command.MainDepartmentId,
+            command.TenantId ?? user.TenantId);
 
         await uow.CompleteAsync();
     }
@@ -489,7 +448,7 @@ public class UserAppService
     /// <returns></returns>
     private async Task<SysUserSecurity> EnsureSecurityProfileAsync(SysUser user)
     {
-        var security = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, user.TenantId);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId);
         if (security is not null)
         {
             return security;
@@ -504,7 +463,7 @@ public class UserAppService
             SecurityStamp = Guid.NewGuid().ToString("N")
         };
 
-        return await _userSecurityRepository.AddAsync(security);
+        return await _userRepository.SaveSecurityAsync(security);
     }
 
     /// <summary>
@@ -524,6 +483,6 @@ public class UserAppService
             security.LockoutEndTime = DateTimeOffset.UtcNow.AddMinutes(LockoutMinutes);
         }
 
-        await _userSecurityRepository.UpdateAsync(security);
+        await _userRepository.SaveSecurityAsync(security);
     }
 }

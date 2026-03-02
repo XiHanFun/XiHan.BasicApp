@@ -25,22 +25,18 @@ namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 public class UserManager : IUserManager
 {
     private readonly IUserRepository _userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository;
     private readonly IPasswordHasher _passwordHasher;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="userRepository">用户仓储</param>
-    /// <param name="userSecurityRepository">用户安全仓储</param>
     /// <param name="passwordHasher">密码哈希器</param>
     public UserManager(
         IUserRepository userRepository,
-        IUserSecurityRepository userSecurityRepository,
         IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
-        _userSecurityRepository = userSecurityRepository;
         _passwordHasher = passwordHasher;
     }
 
@@ -83,7 +79,7 @@ public class UserManager : IUserManager
         user.ChangePassword(password);
         await _userRepository.UpdateAsync(user, cancellationToken);
 
-        var security = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
         if (security is null)
         {
             await EnsureSecurityProfileAsync(user, cancellationToken);
@@ -93,7 +89,7 @@ public class UserManager : IUserManager
         security.LastPasswordChangeTime = DateTimeOffset.UtcNow;
         security.PasswordExpiryTime = DateTimeOffset.UtcNow.AddDays(90);
         security.SecurityStamp = Guid.NewGuid().ToString("N");
-        await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        await _userRepository.SaveSecurityAsync(security, cancellationToken);
     }
 
     /// <summary>
@@ -127,7 +123,7 @@ public class UserManager : IUserManager
     /// <returns></returns>
     private async Task EnsureSecurityProfileAsync(SysUser user, CancellationToken cancellationToken)
     {
-        var current = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
+        var current = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
         if (current is not null)
         {
             return;
@@ -143,6 +139,6 @@ public class UserManager : IUserManager
             IsLocked = false
         };
 
-        await _userSecurityRepository.AddAsync(security, cancellationToken);
+        await _userRepository.SaveSecurityAsync(security, cancellationToken);
     }
 }

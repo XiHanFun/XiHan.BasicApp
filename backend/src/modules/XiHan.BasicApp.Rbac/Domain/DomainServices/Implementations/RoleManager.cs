@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 
@@ -24,23 +23,19 @@ namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 public class RoleManager : IRoleManager
 {
     private readonly IRoleRepository _roleRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IRoleMenuRepository _roleMenuRepository;
+    private readonly IRoleRelationRepository _roleRelationRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="roleRepository">角色仓储</param>
-    /// <param name="rolePermissionRepository">角色权限仓储</param>
-    /// <param name="roleMenuRepository">角色菜单仓储</param>
+    /// <param name="roleRelationRepository">角色关系仓储</param>
     public RoleManager(
         IRoleRepository roleRepository,
-        IRolePermissionRepository rolePermissionRepository,
-        IRoleMenuRepository roleMenuRepository)
+        IRoleRelationRepository roleRelationRepository)
     {
         _roleRepository = roleRepository;
-        _rolePermissionRepository = rolePermissionRepository;
-        _roleMenuRepository = roleMenuRepository;
+        _roleRelationRepository = roleRelationRepository;
     }
 
     /// <summary>
@@ -83,23 +78,11 @@ public class RoleManager : IRoleManager
     {
         ArgumentNullException.ThrowIfNull(role);
 
-        await _rolePermissionRepository.RemoveByRoleIdAsync(role.BasicId, tenantId ?? role.TenantId, cancellationToken);
-
-        if (permissionIds.Count > 0)
-        {
-            var mappings = permissionIds
-                .Distinct()
-                .Select(permissionId => new SysRolePermission
-                {
-                    TenantId = tenantId ?? role.TenantId,
-                    RoleId = role.BasicId,
-                    PermissionId = permissionId,
-                    Status = YesOrNo.Yes
-                })
-                .ToArray();
-
-            await _rolePermissionRepository.AddRangeAsync(mappings, cancellationToken);
-        }
+        await _roleRelationRepository.ReplaceRolePermissionsAsync(
+            role.BasicId,
+            permissionIds,
+            tenantId ?? role.TenantId,
+            cancellationToken);
 
         role.MarkPermissionsChanged(permissionIds.Distinct().ToArray());
         await _roleRepository.UpdateAsync(role, cancellationToken);
@@ -120,24 +103,10 @@ public class RoleManager : IRoleManager
         long? tenantId = null,
         CancellationToken cancellationToken = default)
     {
-        await _roleMenuRepository.RemoveByRoleIdAsync(roleId, tenantId, cancellationToken);
-
-        if (menuIds.Count == 0)
-        {
-            return;
-        }
-
-        var mappings = menuIds
-            .Distinct()
-            .Select(menuId => new SysRoleMenu
-            {
-                TenantId = tenantId,
-                RoleId = roleId,
-                MenuId = menuId,
-                Status = YesOrNo.Yes
-            })
-            .ToArray();
-
-        await _roleMenuRepository.AddRangeAsync(mappings, cancellationToken);
+        await _roleRelationRepository.ReplaceRoleMenusAsync(
+            roleId,
+            menuIds,
+            tenantId,
+            cancellationToken);
     }
 }

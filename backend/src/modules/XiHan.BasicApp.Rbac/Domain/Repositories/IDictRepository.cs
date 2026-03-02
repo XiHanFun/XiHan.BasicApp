@@ -26,4 +26,34 @@ public interface IDictRepository : IAggregateRootRepository<SysDict, long>
     /// 根据字典编码获取字典
     /// </summary>
     Task<SysDict?> GetByDictCodeAsync(string dictCode, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据字典ID获取字典项列表
+    /// </summary>
+    Task<IReadOnlyList<SysDictItem>> GetDictItemsAsync(long dictId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据字典项ID获取字典项
+    /// </summary>
+    Task<SysDictItem?> GetDictItemByIdAsync(long dictItemId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据字典ID和字典项编码获取字典项
+    /// </summary>
+    Task<SysDictItem?> GetDictItemByCodeAsync(long dictId, string itemCode, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 新增字典项
+    /// </summary>
+    Task<SysDictItem> AddDictItemAsync(SysDictItem dictItem, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新字典项
+    /// </summary>
+    Task<SysDictItem> UpdateDictItemAsync(SysDictItem dictItem, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除字典项
+    /// </summary>
+    Task<bool> DeleteDictItemAsync(SysDictItem dictItem, CancellationToken cancellationToken = default);
 }

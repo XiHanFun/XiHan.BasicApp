@@ -31,4 +31,14 @@ public interface IUserRepository : IAggregateRootRepository<SysUser, long>
     /// 校验用户名是否已存在
     /// </summary>
     Task<bool> IsUserNameExistsAsync(string userName, long? excludeUserId = null, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据用户ID获取安全状态
+    /// </summary>
+    Task<SysUserSecurity?> GetSecurityByUserIdAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 保存用户安全状态（新增或更新）
+    /// </summary>
+    Task<SysUserSecurity> SaveSecurityAsync(SysUserSecurity security, CancellationToken cancellationToken = default);
 }

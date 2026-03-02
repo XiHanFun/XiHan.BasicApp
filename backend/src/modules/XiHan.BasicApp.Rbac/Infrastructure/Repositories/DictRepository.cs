@@ -66,4 +66,97 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
 
         return await query.FirstAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 根据字典ID获取字典项
+    /// </summary>
+    /// <param name="dictId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<SysDictItem>> GetDictItemsAsync(long dictId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable<SysDictItem>()
+            .Where(item => item.DictId == dictId);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(item => item.TenantId == tenantId.Value);
+        }
+
+        return await query.OrderBy(item => item.Sort).ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 根据字典项ID获取字典项
+    /// </summary>
+    /// <param name="dictItemId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysDictItem?> GetDictItemByIdAsync(long dictItemId, CancellationToken cancellationToken = default)
+    {
+        return await CreateTenantQueryable<SysDictItem>()
+            .Where(item => item.BasicId == dictItemId)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 根据字典ID和字典项编码获取字典项
+    /// </summary>
+    /// <param name="dictId"></param>
+    /// <param name="itemCode"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysDictItem?> GetDictItemByCodeAsync(long dictId, string itemCode, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(itemCode);
+        return await CreateTenantQueryable<SysDictItem>()
+            .Where(item => item.DictId == dictId && item.ItemCode == itemCode)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 新增字典项
+    /// </summary>
+    /// <param name="dictItem"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysDictItem> AddDictItemAsync(SysDictItem dictItem, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dictItem);
+        cancellationToken.ThrowIfCancellationRequested();
+        TrySetTenantId(dictItem);
+        return await DbClient.Insertable(dictItem).ExecuteReturnEntityAsync();
+    }
+
+    /// <summary>
+    /// 更新字典项
+    /// </summary>
+    /// <param name="dictItem"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysDictItem> UpdateDictItemAsync(SysDictItem dictItem, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dictItem);
+        cancellationToken.ThrowIfCancellationRequested();
+        TrySetTenantId(dictItem);
+        await DbClient.Updateable(dictItem).ExecuteCommandAsync(cancellationToken);
+        return dictItem;
+    }
+
+    /// <summary>
+    /// 删除字典项
+    /// </summary>
+    /// <param name="dictItem"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<bool> DeleteDictItemAsync(SysDictItem dictItem, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dictItem);
+        cancellationToken.ThrowIfCancellationRequested();
+        var affectedRows = await DbClient.Deleteable<SysDictItem>()
+            .Where(item => item.BasicId == dictItem.BasicId)
+            .ExecuteCommandAsync(cancellationToken);
+        return affectedRows > 0;
+    }
 }

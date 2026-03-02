@@ -31,20 +31,15 @@ public class DictAppService
         IDictAppService
 {
     private readonly IDictRepository _dictRepository;
-    private readonly IDictItemRepository _dictItemRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dictRepository"></param>
-    /// <param name="dictItemRepository"></param>
-    public DictAppService(
-        IDictRepository dictRepository,
-        IDictItemRepository dictItemRepository)
+    public DictAppService(IDictRepository dictRepository)
         : base(dictRepository)
     {
         _dictRepository = dictRepository;
-        _dictItemRepository = dictItemRepository;
     }
 
     /// <summary>
@@ -67,7 +62,7 @@ public class DictAppService
     /// <returns></returns>
     public async Task<IReadOnlyList<DictItemDto>> GetDictItemsAsync(long dictId, long? tenantId = null)
     {
-        var entities = await _dictItemRepository.GetByDictIdAsync(dictId, tenantId);
+        var entities = await _dictRepository.GetDictItemsAsync(dictId, tenantId);
         return entities.Select(static entity => entity.Adapt<DictItemDto>()).ToArray();
     }
 
@@ -78,7 +73,7 @@ public class DictAppService
     /// <returns></returns>
     public async Task<DictItemDto?> GetDictItemByIdAsync(long dictItemId)
     {
-        var entity = await _dictItemRepository.GetByIdAsync(dictItemId);
+        var entity = await _dictRepository.GetDictItemByIdAsync(dictItemId);
         return entity?.Adapt<DictItemDto>();
     }
 
@@ -145,7 +140,7 @@ public class DictAppService
             Sort = input.Sort
         };
 
-        var created = await _dictItemRepository.AddAsync(entity);
+        var created = await _dictRepository.AddDictItemAsync(entity);
         return created.Adapt<DictItemDto>();
     }
 
@@ -159,7 +154,7 @@ public class DictAppService
     {
         input.ValidateAnnotations();
 
-        var dictItem = await _dictItemRepository.GetByIdAsync(dictItemId)
+        var dictItem = await _dictRepository.GetDictItemByIdAsync(dictItemId)
                        ?? throw new KeyNotFoundException($"未找到字典项: {dictItemId}");
 
         var dict = await _dictRepository.GetByIdAsync(input.DictId)
@@ -178,7 +173,7 @@ public class DictAppService
         dictItem.Sort = input.Sort;
         dictItem.Remark = input.Remark;
 
-        var updated = await _dictItemRepository.UpdateAsync(dictItem);
+        var updated = await _dictRepository.UpdateDictItemAsync(dictItem);
         return updated.Adapt<DictItemDto>();
     }
 
@@ -194,13 +189,13 @@ public class DictAppService
             return false;
         }
 
-        var dictItem = await _dictItemRepository.GetByIdAsync(dictItemId);
+        var dictItem = await _dictRepository.GetDictItemByIdAsync(dictItemId);
         if (dictItem is null)
         {
             return false;
         }
 
-        return await _dictItemRepository.DeleteAsync(dictItem);
+        return await _dictRepository.DeleteDictItemAsync(dictItem);
     }
 
     /// <summary>
@@ -267,8 +262,7 @@ public class DictAppService
     /// <exception cref="InvalidOperationException"></exception>
     private async Task EnsureDictItemCodeUniqueAsync(long dictId, string itemCode, long? excludeDictItemId)
     {
-        var existing = await _dictItemRepository.GetFirstAsync(
-            item => item.DictId == dictId && item.ItemCode == itemCode);
+        var existing = await _dictRepository.GetDictItemByCodeAsync(dictId, itemCode);
 
         if (existing is not null && (!excludeDictItemId.HasValue || existing.BasicId != excludeDictItemId.Value))
         {
