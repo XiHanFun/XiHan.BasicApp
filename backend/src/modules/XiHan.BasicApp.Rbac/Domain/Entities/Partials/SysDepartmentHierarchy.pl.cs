@@ -22,20 +22,20 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 public partial class SysDepartmentHierarchy
 {
     /// <summary>
-    /// 祖先部门
+    /// 祖先部门（多条层级记录可指向同一部门，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(AncestorId))]
+    [Navigate(NavigateType.ManyToOne, nameof(AncestorId))]
     public virtual SysDepartment? Ancestor { get; set; }
 
     /// <summary>
-    /// 后代部门
+    /// 后代部门（多条层级记录可指向同一部门，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(DescendantId))]
+    [Navigate(NavigateType.ManyToOne, nameof(DescendantId))]
     public virtual SysDepartment? Descendant { get; set; }
 }

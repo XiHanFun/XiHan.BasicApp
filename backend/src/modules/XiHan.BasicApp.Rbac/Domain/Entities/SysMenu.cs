@@ -24,7 +24,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 与 SysResource 是一对一关系，SysResource 提供权限控制，SysMenu 提供界面配置
 /// </summary>
 [SugarTable("Sys_Menu", "系统菜单表")]
-[SugarIndex("IX_SysMenu_MeCo", nameof(MenuCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysMenu_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysMenu_MeCo", nameof(MenuCode), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_ReId", nameof(ResourceId), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]

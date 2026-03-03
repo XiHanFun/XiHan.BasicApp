@@ -22,20 +22,20 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 public partial class SysRoleDataScope
 {
     /// <summary>
-    /// 角色
+    /// 角色（多条数据范围可属同一角色，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(RoleId))]
+    [Navigate(NavigateType.ManyToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 
     /// <summary>
-    /// 部门
+    /// 部门（多条数据范围可指向同一部门，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(DepartmentId))]
+    [Navigate(NavigateType.ManyToOne, nameof(DepartmentId))]
     public virtual SysDepartment? Department { get; set; }
 }

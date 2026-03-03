@@ -22,7 +22,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 系统角色实体
 /// </summary>
 [SugarTable("Sys_Role", "系统角色表")]
-[SugarIndex("IX_SysRole_RoCo", nameof(RoleCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysRole_TeId_RoCo", nameof(TenantId), OrderByType.Asc, nameof(RoleCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysRole_RoCo", nameof(RoleCode), OrderByType.Asc)]
 [SugarIndex("IX_SysRole_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRole : BasicAppAggregateRoot

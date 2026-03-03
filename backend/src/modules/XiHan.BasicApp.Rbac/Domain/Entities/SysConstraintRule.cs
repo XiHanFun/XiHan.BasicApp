@@ -60,7 +60,7 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     /// Cardinality: { "targetType": "Role", "maxCount": 5 }
     /// Prerequisite: { "requiredRole": 1, "targetRole": 2 }
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束参数", ColumnDataType = "text", IsNullable = false)]
+    [SugarColumn(ColumnDescription = "约束参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
     public virtual string Parameters { get; set; } = "{}";
 
     /// <summary>

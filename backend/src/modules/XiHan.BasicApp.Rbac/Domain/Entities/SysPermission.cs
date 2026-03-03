@@ -23,8 +23,9 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 权限 = 资源 + 操作（标准 RBAC 模型）
 /// </summary>
 [SugarTable("Sys_Permission", "系统权限表")]
-[SugarIndex("IX_SysPermission_PeCo", nameof(PermissionCode), OrderByType.Asc, true)]
-[SugarIndex("UX_SysPermission_ReId_OpId", nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
+[SugarIndex("UX_SysPermission_TeId_PeCo", nameof(TenantId), OrderByType.Asc, nameof(PermissionCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysPermission_TeId_ReId_OpId", nameof(TenantId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysPermission_PeCo", nameof(PermissionCode), OrderByType.Asc)]
 [SugarIndex("IX_SysPermission_ReId", nameof(ResourceId), OrderByType.Asc)]
 [SugarIndex("IX_SysPermission_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysPermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
