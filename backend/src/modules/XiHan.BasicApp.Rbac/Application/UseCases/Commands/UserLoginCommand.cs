@@ -38,5 +38,5 @@ public class UserLoginCommand
     /// <summary>
     /// 租户ID
     /// </summary>
-    public long? TenantId { get; set; }
+    public long? TenantId { get; set; } = 1;
 }

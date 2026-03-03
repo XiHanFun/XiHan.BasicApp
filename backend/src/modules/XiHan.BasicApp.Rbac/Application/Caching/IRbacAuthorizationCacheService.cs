@@ -51,4 +51,9 @@ public interface IRbacAuthorizationCacheService
     /// 失效权限与数据范围缓存
     /// </summary>
     Task InvalidateAllAsync(long? tenantId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取授权缓存版本快照
+    /// </summary>
+    Task<AuthorizationCacheVersionSnapshot> GetVersionSnapshotAsync(long? tenantId, CancellationToken cancellationToken = default);
 }

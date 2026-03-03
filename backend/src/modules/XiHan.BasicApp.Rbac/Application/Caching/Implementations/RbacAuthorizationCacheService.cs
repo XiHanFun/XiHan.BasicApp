@@ -175,6 +175,24 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
         await InvalidateDataScopeAsync(tenantId, cancellationToken);
     }
 
+    /// <summary>
+    /// 获取授权缓存版本快照
+    /// </summary>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<AuthorizationCacheVersionSnapshot> GetVersionSnapshotAsync(long? tenantId, CancellationToken cancellationToken = default)
+    {
+        var permissionVersion = await GetPermissionVersionAsync(tenantId, cancellationToken);
+        var dataScopeVersion = await GetDataScopeVersionAsync(tenantId, cancellationToken);
+
+        return new AuthorizationCacheVersionSnapshot
+        {
+            PermissionVersion = permissionVersion,
+            DataScopeVersion = dataScopeVersion
+        };
+    }
+
     private static string BuildPermissionVersionKey(long? tenantId)
     {
         return $"perm:ver:{FormatTenantSegment(tenantId)}";

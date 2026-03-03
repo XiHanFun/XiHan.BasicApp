@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
@@ -31,14 +32,16 @@ public class OAuthAppService
         IOAuthAppService
 {
     private readonly IOAuthAppRepository _oauthAppRepository;
+    private readonly IRbacLookupCacheService _lookupCacheService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public OAuthAppService(IOAuthAppRepository oauthAppRepository)
+    public OAuthAppService(IOAuthAppRepository oauthAppRepository, IRbacLookupCacheService lookupCacheService)
         : base(oauthAppRepository)
     {
         _oauthAppRepository = oauthAppRepository;
+        _lookupCacheService = lookupCacheService;
     }
 
     /// <summary>
@@ -46,8 +49,17 @@ public class OAuthAppService
     /// </summary>
     public async Task<OAuthAppDto?> GetByClientIdAsync(string clientId, long? tenantId = null)
     {
-        var entity = await _oauthAppRepository.GetByClientIdAsync(clientId, tenantId);
-        return entity?.Adapt<OAuthAppDto>();
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
+        var normalizedClientId = clientId.Trim();
+
+        return await _lookupCacheService.GetOAuthAppByClientIdAsync(
+            normalizedClientId,
+            tenantId,
+            async token =>
+            {
+                var entity = await _oauthAppRepository.GetByClientIdAsync(normalizedClientId, tenantId, token);
+                return entity?.Adapt<OAuthAppDto>();
+            });
     }
 
     /// <summary>
@@ -64,7 +76,9 @@ public class OAuthAppService
             throw new InvalidOperationException($"客户端ID '{normalizedClientId}' 已存在");
         }
 
-        return await base.CreateAsync(input);
+        var dto = await base.CreateAsync(input);
+        await _lookupCacheService.InvalidateOAuthAppLookupAsync(input.TenantId);
+        return dto;
     }
 
     /// <summary>
@@ -73,7 +87,33 @@ public class OAuthAppService
     public override async Task<OAuthAppDto> UpdateAsync(long id, OAuthAppUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(id, input);
+        var entity = await _oauthAppRepository.GetByIdAsync(id)
+                     ?? throw new KeyNotFoundException($"未找到 OAuth 应用: {id}");
+        var dto = await base.UpdateAsync(id, input);
+        await _lookupCacheService.InvalidateOAuthAppLookupAsync(entity.TenantId);
+        return dto;
+    }
+
+    /// <summary>
+    /// 删除 OAuth 应用
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        var entity = await _oauthAppRepository.GetByIdAsync(id);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        var deleted = await base.DeleteAsync(id);
+        if (deleted)
+        {
+            await _lookupCacheService.InvalidateOAuthAppLookupAsync(entity.TenantId);
+        }
+
+        return deleted;
     }
 
     /// <summary>

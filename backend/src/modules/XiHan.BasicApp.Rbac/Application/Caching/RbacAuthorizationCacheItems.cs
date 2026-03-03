@@ -55,3 +55,19 @@ public class UserDataScopeDepartmentIdsCacheItem
     /// </summary>
     public long[] DepartmentIds { get; set; } = [];
 }
+
+/// <summary>
+/// 授权缓存版本快照
+/// </summary>
+public class AuthorizationCacheVersionSnapshot
+{
+    /// <summary>
+    /// 权限缓存版本
+    /// </summary>
+    public long PermissionVersion { get; set; }
+
+    /// <summary>
+    /// 数据范围缓存版本
+    /// </summary>
+    public long DataScopeVersion { get; set; }
+}

@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Rbac.Domain.Entities;
@@ -36,6 +37,7 @@ public class NotificationAppService
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IMessageCacheService _messageCacheService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -47,11 +49,13 @@ public class NotificationAppService
     public NotificationAppService(
         INotificationRepository notificationRepository,
         IUserRepository userRepository,
+        IMessageCacheService messageCacheService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(notificationRepository)
     {
         _notificationRepository = notificationRepository;
         _userRepository = userRepository;
+        _messageCacheService = messageCacheService;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -86,7 +90,10 @@ public class NotificationAppService
             return 0;
         }
 
-        return await _notificationRepository.GetUnreadCountAsync(userId, tenantId);
+        return await _messageCacheService.GetUnreadCountAsync(
+            userId,
+            tenantId,
+            token => _notificationRepository.GetUnreadCountAsync(userId, tenantId, token));
     }
 
     /// <summary>
@@ -103,7 +110,13 @@ public class NotificationAppService
             return false;
         }
 
-        return await _notificationRepository.MarkAsReadAsync(notificationId, userId, tenantId);
+        var changed = await _notificationRepository.MarkAsReadAsync(notificationId, userId, tenantId);
+        if (changed)
+        {
+            await _messageCacheService.InvalidateUnreadCountAsync(tenantId);
+        }
+
+        return changed;
     }
 
     /// <summary>
@@ -119,7 +132,13 @@ public class NotificationAppService
             return 0;
         }
 
-        return await _notificationRepository.MarkAllAsReadAsync(userId, tenantId);
+        var count = await _notificationRepository.MarkAllAsReadAsync(userId, tenantId);
+        if (count > 0)
+        {
+            await _messageCacheService.InvalidateUnreadCountAsync(tenantId);
+        }
+
+        return count;
     }
 
     /// <summary>
@@ -160,6 +179,7 @@ public class NotificationAppService
         notification.Confirm();
         await _notificationRepository.UpdateAsync(notification);
         await uow.CompleteAsync();
+        await _messageCacheService.InvalidateUnreadCountAsync(notification.TenantId);
         return true;
     }
 
@@ -303,6 +323,7 @@ public class NotificationAppService
         }
 
         await uow.CompleteAsync();
+        await _messageCacheService.InvalidateUnreadCountAsync(resolvedTenantId);
         return count;
     }
 
@@ -316,7 +337,9 @@ public class NotificationAppService
         input.ValidateAnnotations();
         ValidateNotificationPayload(input.Title, input.IsGlobal, input.RecipientUserId, input.SendTime, input.ExpireTime);
         await EnsureUsersExistsAsync(input.RecipientUserId, input.SendUserId, input.TenantId);
-        return await base.CreateAsync(input);
+        var dto = await base.CreateAsync(input);
+        await _messageCacheService.InvalidateUnreadCountAsync(input.TenantId);
+        return dto;
     }
 
     /// <summary>
@@ -337,7 +360,30 @@ public class NotificationAppService
 
         await MapDtoToEntityAsync(input, notification);
         var updated = await _notificationRepository.UpdateAsync(notification);
+        await _messageCacheService.InvalidateUnreadCountAsync(notification.TenantId);
         return updated.Adapt<NotificationDto>()!;
+    }
+
+    /// <summary>
+    /// 删除通知
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        var entity = await _notificationRepository.GetByIdAsync(id);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        var deleted = await base.DeleteAsync(id);
+        if (deleted)
+        {
+            await _messageCacheService.InvalidateUnreadCountAsync(entity.TenantId);
+        }
+
+        return deleted;
     }
 
     /// <summary>
