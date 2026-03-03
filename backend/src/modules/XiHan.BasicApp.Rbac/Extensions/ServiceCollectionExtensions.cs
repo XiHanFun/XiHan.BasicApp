@@ -23,10 +23,10 @@ using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Abstractions.Local;
-using XiHan.BasicApp.Rbac.Application.Services;
-using XiHan.BasicApp.Rbac.Application.Services.Implementations;
-using XiHan.BasicApp.Rbac.Domain.Services;
-using XiHan.BasicApp.Rbac.Domain.Services.Implementations;
+using XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
+using XiHan.BasicApp.Rbac.Application.AppServices;
+using XiHan.BasicApp.Rbac.Domain.DomainServices;
+using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
