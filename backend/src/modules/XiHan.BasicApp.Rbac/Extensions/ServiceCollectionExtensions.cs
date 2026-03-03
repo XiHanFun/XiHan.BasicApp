@@ -51,6 +51,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IConfigRepository, ConfigRepository>();
         services.AddScoped<IDictRepository, DictRepository>();
+        services.AddScoped<IFileRepository, FileRepository>();
+        services.AddScoped<IEmailRepository, EmailRepository>();
+        services.AddScoped<ISmsRepository, SmsRepository>();
+        services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<IOAuthAppRepository, OAuthAppRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
 
         // 日志仓储
@@ -92,6 +99,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantAppService, TenantAppService>();
         services.AddScoped<IConfigAppService, ConfigAppService>();
         services.AddScoped<IDictAppService, DictAppService>();
+        services.AddScoped<IFileAppService, FileAppService>();
+        services.AddScoped<IEmailAppService, EmailAppService>();
+        services.AddScoped<ISmsAppService, SmsAppService>();
+        services.AddScoped<ITaskAppService, TaskAppService>();
+        services.AddScoped<IOAuthAppService, OAuthAppService>();
+        services.AddScoped<IReviewAppService, ReviewAppService>();
+        services.AddScoped<IUserSessionAppService, UserSessionAppService>();
         services.AddScoped<INotificationAppService, NotificationAppService>();
 
         return services;
