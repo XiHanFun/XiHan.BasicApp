@@ -16,6 +16,7 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Entities;
@@ -38,6 +39,9 @@ public class RoleAppService
         IRoleAppService
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IMenuRepository _menuRepository;
+    private readonly IDepartmentRepository _departmentRepository;
     private readonly IRoleManager _roleManager;
     private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
@@ -46,17 +50,26 @@ public class RoleAppService
     /// 构造函数
     /// </summary>
     /// <param name="roleRepository"></param>
+    /// <param name="permissionRepository"></param>
+    /// <param name="menuRepository"></param>
+    /// <param name="departmentRepository"></param>
     /// <param name="roleManager"></param>
     /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleAppService(
         IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        IMenuRepository menuRepository,
+        IDepartmentRepository departmentRepository,
         IRoleManager roleManager,
         ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
         : base(roleRepository)
     {
         _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _menuRepository = menuRepository;
+        _departmentRepository = departmentRepository;
         _roleManager = roleManager;
         _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
@@ -72,6 +85,182 @@ public class RoleAppService
         ArgumentNullException.ThrowIfNull(query);
         var role = await _roleRepository.GetByRoleCodeAsync(query.RoleCode, query.TenantId);
         return role?.Adapt<RoleDto>();
+    }
+
+    /// <summary>
+    /// 获取角色权限关系
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<RolePermissionRelationDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null)
+    {
+        if (roleId <= 0)
+        {
+            return [];
+        }
+
+        var relations = await _roleRepository.GetRolePermissionsAsync(roleId, tenantId);
+        return relations.Select(relation => new RolePermissionRelationDto
+        {
+            BasicId = relation.BasicId,
+            TenantId = relation.TenantId,
+            RoleId = relation.RoleId,
+            PermissionId = relation.PermissionId,
+            Status = relation.Status
+        }).ToArray();
+    }
+
+    /// <summary>
+    /// 获取角色菜单关系
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<RoleMenuRelationDto>> GetRoleMenusAsync(long roleId, long? tenantId = null)
+    {
+        if (roleId <= 0)
+        {
+            return [];
+        }
+
+        var relations = await _roleRepository.GetRoleMenusAsync(roleId, tenantId);
+        return relations.Select(relation => new RoleMenuRelationDto
+        {
+            BasicId = relation.BasicId,
+            TenantId = relation.TenantId,
+            RoleId = relation.RoleId,
+            MenuId = relation.MenuId,
+            Status = relation.Status
+        }).ToArray();
+    }
+
+    /// <summary>
+    /// 获取角色自定义数据范围部门ID
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null)
+    {
+        if (roleId <= 0)
+        {
+            return [];
+        }
+
+        return await _roleRepository.GetCustomDataScopeDepartmentIdsAsync(roleId, tenantId);
+    }
+
+    /// <summary>
+    /// 分配角色权限
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task AssignPermissionsAsync(AssignRolePermissionsCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.RoleId <= 0)
+        {
+            throw new ArgumentException("角色 ID 无效", nameof(command.RoleId));
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var role = await _roleRepository.GetByIdAsync(command.RoleId)
+                   ?? throw new KeyNotFoundException($"未找到角色: {command.RoleId}");
+
+        var permissionIds = command.PermissionIds.Where(id => id > 0).Distinct().ToArray();
+        if (permissionIds.Length > 0)
+        {
+            var permissions = await _permissionRepository.GetByIdsAsync(permissionIds);
+            if (permissions.Count != permissionIds.Length)
+            {
+                throw new InvalidOperationException("存在无效权限 ID");
+            }
+        }
+
+        await _roleManager.AssignPermissionsAsync(
+            role,
+            permissionIds,
+            command.TenantId ?? role.TenantId);
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 分配角色菜单
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task AssignMenusAsync(AssignRoleMenusCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.RoleId <= 0)
+        {
+            throw new ArgumentException("角色 ID 无效", nameof(command.RoleId));
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var role = await _roleRepository.GetByIdAsync(command.RoleId)
+                   ?? throw new KeyNotFoundException($"未找到角色: {command.RoleId}");
+
+        var menuIds = command.MenuIds.Where(id => id > 0).Distinct().ToArray();
+        if (menuIds.Length > 0)
+        {
+            var menus = await _menuRepository.GetByIdsAsync(menuIds);
+            if (menus.Count != menuIds.Length)
+            {
+                throw new InvalidOperationException("存在无效菜单 ID");
+            }
+        }
+
+        await _roleManager.AssignMenusAsync(
+            command.RoleId,
+            menuIds,
+            command.TenantId ?? role.TenantId);
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 分配角色自定义数据范围
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task AssignDataScopeAsync(AssignRoleDataScopeCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.RoleId <= 0)
+        {
+            throw new ArgumentException("角色 ID 无效", nameof(command.RoleId));
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var role = await _roleRepository.GetByIdAsync(command.RoleId)
+                   ?? throw new KeyNotFoundException($"未找到角色: {command.RoleId}");
+
+        var departmentIds = command.DepartmentIds.Where(id => id > 0).Distinct().ToArray();
+        if (departmentIds.Length > 0)
+        {
+            var departments = await _departmentRepository.GetByIdsAsync(departmentIds);
+            if (departments.Count != departmentIds.Length)
+            {
+                throw new InvalidOperationException("存在无效部门 ID");
+            }
+        }
+
+        await _roleRepository.ReplaceCustomDataScopeDepartmentIdsAsync(
+            command.RoleId,
+            departmentIds,
+            command.TenantId ?? role.TenantId);
+
+        if (role.DataScope != DataPermissionScope.Custom)
+        {
+            role.DataScope = DataPermissionScope.Custom;
+        }
+
+        role.MarkDataScopeChanged(departmentIds);
+        await _roleRepository.UpdateAsync(role);
+        await uow.CompleteAsync();
     }
 
     /// <summary>

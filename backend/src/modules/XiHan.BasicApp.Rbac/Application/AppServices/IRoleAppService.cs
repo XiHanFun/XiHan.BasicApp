@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
@@ -32,4 +33,33 @@ public interface IRoleAppService
     /// <returns></returns>
     Task<RoleDto?> GetByCodeAsync(RoleByCodeQuery query);
 
+    /// <summary>
+    /// 获取角色权限关系
+    /// </summary>
+    Task<IReadOnlyList<RolePermissionRelationDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取角色菜单关系
+    /// </summary>
+    Task<IReadOnlyList<RoleMenuRelationDto>> GetRoleMenusAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取角色自定义数据范围部门ID
+    /// </summary>
+    Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 分配角色权限
+    /// </summary>
+    Task AssignPermissionsAsync(AssignRolePermissionsCommand command);
+
+    /// <summary>
+    /// 分配角色菜单
+    /// </summary>
+    Task AssignMenusAsync(AssignRoleMenusCommand command);
+
+    /// <summary>
+    /// 分配角色自定义数据范围
+    /// </summary>
+    Task AssignDataScopeAsync(AssignRoleDataScopeCommand command);
 }

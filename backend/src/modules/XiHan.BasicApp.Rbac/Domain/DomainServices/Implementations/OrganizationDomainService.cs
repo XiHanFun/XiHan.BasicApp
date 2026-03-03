@@ -23,19 +23,19 @@ namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 public class OrganizationDomainService : IOrganizationDomainService
 {
     private readonly IDepartmentRepository _departmentRepository;
-    private readonly IUserRelationRepository _userRelationRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository">部门仓储</param>
-    /// <param name="userRelationRepository">用户关系仓储</param>
+    /// <param name="userRepository">用户仓储</param>
     public OrganizationDomainService(
         IDepartmentRepository departmentRepository,
-        IUserRelationRepository userRelationRepository)
+        IUserRepository userRepository)
     {
         _departmentRepository = departmentRepository;
-        _userRelationRepository = userRelationRepository;
+        _userRepository = userRepository;
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class OrganizationDomainService : IOrganizationDomainService
             return [];
         }
 
-        var relations = await _userRelationRepository.GetUserDepartmentsAsync(userId, tenantId, cancellationToken);
+        var relations = await _userRepository.GetUserDepartmentsAsync(userId, tenantId, cancellationToken);
         return relations
             .Where(relation => relation.Status == YesOrNo.Yes)
             .Select(relation => relation.DepartmentId)

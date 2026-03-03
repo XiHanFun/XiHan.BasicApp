@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
@@ -32,4 +33,33 @@ public interface IUserAppService
     /// <returns></returns>
     Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null);
 
+    /// <summary>
+    /// 获取用户角色关系
+    /// </summary>
+    Task<IReadOnlyList<UserRoleRelationDto>> GetUserRolesAsync(long userId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户权限关系
+    /// </summary>
+    Task<IReadOnlyList<UserPermissionRelationDto>> GetUserPermissionsAsync(long userId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户部门关系
+    /// </summary>
+    Task<IReadOnlyList<UserDepartmentRelationDto>> GetUserDepartmentsAsync(long userId, long? tenantId = null);
+
+    /// <summary>
+    /// 分配用户角色
+    /// </summary>
+    Task AssignRolesAsync(AssignUserRolesCommand command);
+
+    /// <summary>
+    /// 分配用户权限
+    /// </summary>
+    Task AssignPermissionsAsync(AssignUserPermissionsCommand command);
+
+    /// <summary>
+    /// 分配用户部门
+    /// </summary>
+    Task AssignDepartmentsAsync(AssignUserDepartmentsCommand command);
 }

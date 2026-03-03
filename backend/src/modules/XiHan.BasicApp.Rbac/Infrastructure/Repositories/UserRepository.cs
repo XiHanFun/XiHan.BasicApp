@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -143,5 +144,208 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         await DbClient.Updateable(security).ExecuteCommandAsync(cancellationToken);
         return security;
+    }
+
+    /// <summary>
+    /// 获取用户角色关系
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<SysUserRole>> GetUserRolesAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable<SysUserRole>()
+            .Where(mapping => mapping.UserId == userId);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取用户直授权限关系
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<SysUserPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable<SysUserPermission>()
+            .Where(mapping => mapping.UserId == userId);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取用户部门关系
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<SysUserDepartment>> GetUserDepartmentsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable<SysUserDepartment>()
+            .Where(mapping => mapping.UserId == userId);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 替换用户角色关系
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="roleIds"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task ReplaceUserRolesAsync(long userId, IReadOnlyCollection<long> roleIds, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var resolvedTenantId = tenantId ?? CurrentTenantId;
+
+        var deleteable = DbClient.Deleteable<SysUserRole>()
+            .Where(mapping => mapping.UserId == userId);
+
+        if (resolvedTenantId.HasValue)
+        {
+            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
+        }
+
+        await deleteable.ExecuteCommandAsync(cancellationToken);
+
+        var distinctRoleIds = roleIds.Where(id => id > 0).Distinct().ToArray();
+        if (distinctRoleIds.Length == 0)
+        {
+            return;
+        }
+
+        var mappings = distinctRoleIds.Select(roleId => new SysUserRole
+        {
+            TenantId = resolvedTenantId,
+            UserId = userId,
+            RoleId = roleId,
+            Status = YesOrNo.Yes
+        }).ToArray();
+
+        foreach (var mapping in mappings)
+        {
+            TrySetTenantId(mapping);
+        }
+
+        await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 替换用户直授权限关系
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="permissionIds"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task ReplaceUserPermissionsAsync(long userId, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var resolvedTenantId = tenantId ?? CurrentTenantId;
+
+        var deleteable = DbClient.Deleteable<SysUserPermission>()
+            .Where(mapping => mapping.UserId == userId);
+
+        if (resolvedTenantId.HasValue)
+        {
+            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
+        }
+
+        await deleteable.ExecuteCommandAsync(cancellationToken);
+
+        var distinctPermissionIds = permissionIds.Where(id => id > 0).Distinct().ToArray();
+        if (distinctPermissionIds.Length == 0)
+        {
+            return;
+        }
+
+        var mappings = distinctPermissionIds.Select(permissionId => new SysUserPermission
+        {
+            TenantId = resolvedTenantId,
+            UserId = userId,
+            PermissionId = permissionId,
+            PermissionAction = PermissionAction.Grant,
+            Status = YesOrNo.Yes
+        }).ToArray();
+
+        foreach (var mapping in mappings)
+        {
+            TrySetTenantId(mapping);
+        }
+
+        await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 替换用户部门关系
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="departmentIds"></param>
+    /// <param name="mainDepartmentId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task ReplaceUserDepartmentsAsync(
+        long userId,
+        IReadOnlyCollection<long> departmentIds,
+        long? mainDepartmentId = null,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var resolvedTenantId = tenantId ?? CurrentTenantId;
+
+        var deleteable = DbClient.Deleteable<SysUserDepartment>()
+            .Where(mapping => mapping.UserId == userId);
+
+        if (resolvedTenantId.HasValue)
+        {
+            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
+        }
+
+        await deleteable.ExecuteCommandAsync(cancellationToken);
+
+        var distinctDepartmentIds = departmentIds.Where(id => id > 0).Distinct().ToArray();
+        if (distinctDepartmentIds.Length == 0)
+        {
+            return;
+        }
+
+        var mappings = distinctDepartmentIds.Select(departmentId => new SysUserDepartment
+        {
+            TenantId = resolvedTenantId,
+            UserId = userId,
+            DepartmentId = departmentId,
+            IsMain = mainDepartmentId.HasValue && mainDepartmentId.Value == departmentId,
+            Status = YesOrNo.Yes
+        }).ToArray();
+
+        foreach (var mapping in mappings)
+        {
+            TrySetTenantId(mapping);
+        }
+
+        await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }
 }

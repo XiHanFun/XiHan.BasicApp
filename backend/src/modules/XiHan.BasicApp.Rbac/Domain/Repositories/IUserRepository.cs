@@ -41,4 +41,39 @@ public interface IUserRepository : IAggregateRootRepository<SysUser, long>
     /// 保存用户安全状态（新增或更新）
     /// </summary>
     Task<SysUserSecurity> SaveSecurityAsync(SysUserSecurity security, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取用户角色关系
+    /// </summary>
+    Task<IReadOnlyList<SysUserRole>> GetUserRolesAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取用户直授权限关系
+    /// </summary>
+    Task<IReadOnlyList<SysUserPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取用户部门关系
+    /// </summary>
+    Task<IReadOnlyList<SysUserDepartment>> GetUserDepartmentsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 替换用户角色关系
+    /// </summary>
+    Task ReplaceUserRolesAsync(long userId, IReadOnlyCollection<long> roleIds, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 替换用户直授权限关系
+    /// </summary>
+    Task ReplaceUserPermissionsAsync(long userId, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 替换用户部门关系
+    /// </summary>
+    Task ReplaceUserDepartmentsAsync(
+        long userId,
+        IReadOnlyCollection<long> departmentIds,
+        long? mainDepartmentId = null,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default);
 }
