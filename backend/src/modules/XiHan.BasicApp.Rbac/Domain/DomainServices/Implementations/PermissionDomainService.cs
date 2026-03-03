@@ -25,7 +25,7 @@ public class PermissionDomainService : IPermissionDomainService
 {
     private readonly IPermissionRepository _permissionRepository;
     private readonly IRoleRepository _roleRepository;
-    private readonly IUserRelationRepository _userRelationRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IOrganizationDomainService _organizationDomainService;
 
     /// <summary>
@@ -33,17 +33,17 @@ public class PermissionDomainService : IPermissionDomainService
     /// </summary>
     /// <param name="permissionRepository">权限仓储</param>
     /// <param name="roleRepository">角色仓储</param>
-    /// <param name="userRelationRepository">用户关系仓储</param>
+    /// <param name="userRepository">用户仓储</param>
     /// <param name="organizationDomainService">组织架构领域服务</param>
     public PermissionDomainService(
         IPermissionRepository permissionRepository,
         IRoleRepository roleRepository,
-        IUserRelationRepository userRelationRepository,
+        IUserRepository userRepository,
         IOrganizationDomainService organizationDomainService)
     {
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
-        _userRelationRepository = userRelationRepository;
+        _userRepository = userRepository;
         _organizationDomainService = organizationDomainService;
     }
 
@@ -148,7 +148,7 @@ public class PermissionDomainService : IPermissionDomainService
 
     private async Task<IReadOnlyCollection<SysRole>> GetActiveUserRolesAsync(long userId, long? tenantId, CancellationToken cancellationToken)
     {
-        var roleRelations = await _userRelationRepository.GetUserRolesAsync(userId, tenantId, cancellationToken);
+        var roleRelations = await _userRepository.GetUserRolesAsync(userId, tenantId, cancellationToken);
         var roleIds = roleRelations
             .Where(relation => relation.Status == YesOrNo.Yes)
             .Select(relation => relation.RoleId)

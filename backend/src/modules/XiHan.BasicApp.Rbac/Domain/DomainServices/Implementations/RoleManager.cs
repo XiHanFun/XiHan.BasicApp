@@ -23,19 +23,15 @@ namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 public class RoleManager : IRoleManager
 {
     private readonly IRoleRepository _roleRepository;
-    private readonly IRoleRelationRepository _roleRelationRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="roleRepository">角色仓储</param>
-    /// <param name="roleRelationRepository">角色关系仓储</param>
     public RoleManager(
-        IRoleRepository roleRepository,
-        IRoleRelationRepository roleRelationRepository)
+        IRoleRepository roleRepository)
     {
         _roleRepository = roleRepository;
-        _roleRelationRepository = roleRelationRepository;
     }
 
     /// <summary>
@@ -78,7 +74,7 @@ public class RoleManager : IRoleManager
     {
         ArgumentNullException.ThrowIfNull(role);
 
-        await _roleRelationRepository.ReplaceRolePermissionsAsync(
+        await _roleRepository.ReplaceRolePermissionsAsync(
             role.BasicId,
             permissionIds,
             tenantId ?? role.TenantId,
@@ -103,7 +99,7 @@ public class RoleManager : IRoleManager
         long? tenantId = null,
         CancellationToken cancellationToken = default)
     {
-        await _roleRelationRepository.ReplaceRoleMenusAsync(
+        await _roleRepository.ReplaceRoleMenusAsync(
             roleId,
             menuIds,
             tenantId,
