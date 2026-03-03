@@ -51,6 +51,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IConfigRepository, ConfigRepository>();
         services.AddScoped<IDictRepository, DictRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         // 日志仓储
         services.AddScoped<ILoginLogRepository, LoginLogRepository>();
@@ -91,6 +92,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantAppService, TenantAppService>();
         services.AddScoped<IConfigAppService, ConfigAppService>();
         services.AddScoped<IDictAppService, DictAppService>();
+        services.AddScoped<INotificationAppService, NotificationAppService>();
 
         return services;
     }
