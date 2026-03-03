@@ -19,15 +19,16 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
-/// 系统用户会话实体
+/// 系统用户会话实体（会话中心）
+/// 职责：登录状态、多端控制、在线状态、会话撤销、设备管理。
+/// 不存储完整 Token/RefreshToken，仅通过 AccessTokenJti 与 Token 表关联，便于黑名单与撤销。
 /// </summary>
 [SugarTable("Sys_User_Session", "系统用户会话表")]
 [SugarIndex("IX_SysUserSession_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_To", nameof(Token), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserSession_ReTo", nameof(RefreshToken), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_SeId", nameof(SessionId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_ToExAt", nameof(TokenExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_SeId", nameof(SessionId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserSession_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_SysUserSession_IsOn_IsRe", nameof(IsOnline), OrderByType.Asc, nameof(IsRevoked), OrderByType.Asc)]
 public partial class SysUserSession : BasicAppAggregateRoot
 {
     /// <summary>
@@ -37,19 +38,13 @@ public partial class SysUserSession : BasicAppAggregateRoot
     public virtual long UserId { get; set; }
 
     /// <summary>
-    /// 访问令牌
+    /// 当前访问令牌 JTI（JWT ID，用于黑名单/撤销校验，不存完整 Token）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问令牌", Length = 1000, IsNullable = false)]
-    public virtual string Token { get; set; } = string.Empty;
+    [SugarColumn(ColumnDescription = "当前访问令牌JTI", Length = 200, IsNullable = true)]
+    public virtual string? CurrentAccessTokenJti { get; set; }
 
     /// <summary>
-    /// 刷新令牌
-    /// </summary>
-    [SugarColumn(ColumnDescription = "刷新令牌", Length = 1000, IsNullable = true)]
-    public virtual string? RefreshToken { get; set; }
-
-    /// <summary>
-    /// 会话标识（用于区分不同设备）
+    /// 会话标识（用于区分不同设备/端，业务侧唯一）
     /// </summary>
     [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = false)]
     public virtual string SessionId { get; set; } = string.Empty;
@@ -107,18 +102,6 @@ public partial class SysUserSession : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "最后活动时间")]
     public virtual DateTimeOffset LastActivityTime { get; set; } = DateTimeOffset.Now;
-
-    /// <summary>
-    /// Token过期时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "Token过期时间")]
-    public virtual DateTimeOffset TokenExpiresAt { get; set; }
-
-    /// <summary>
-    /// RefreshToken过期时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "RefreshToken过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? RefreshTokenExpiresAt { get; set; }
 
     /// <summary>
     /// 是否在线
