@@ -89,6 +89,199 @@ export interface SysLogItem {
   [key: string]: any
 }
 
+export interface SysFile {
+  id: string
+  fileName: string
+  originalName: string
+  fileExtension?: string
+  fileType: number
+  mimeType?: string
+  fileSize: number
+  fileHash?: string
+  isPublic: boolean
+  requireAuth: boolean
+  isTemporary: boolean
+  expiresAt?: string
+  status: number
+  tags?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysEmail {
+  id: string
+  sendUserId?: number
+  receiveUserId?: number
+  emailType: number
+  fromEmail: string
+  toEmail: string
+  subject: string
+  content?: string
+  isHtml: boolean
+  emailStatus: number
+  scheduledTime?: string
+  sendTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysSms {
+  id: string
+  senderId?: number
+  receiverId?: number
+  smsType: number
+  toPhone: string
+  content: string
+  templateId?: string
+  templateParams?: string
+  provider?: string
+  smsStatus: number
+  scheduledTime?: string
+  sendTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysTask {
+  id: string
+  taskCode: string
+  taskName: string
+  taskDescription?: string
+  taskGroup?: string
+  taskClass: string
+  taskMethod?: string
+  taskParams?: string
+  triggerType: number
+  cronExpression?: string
+  runTaskStatus: number
+  priority: number
+  status: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysOAuthApp {
+  id: string
+  appName: string
+  appDescription?: string
+  clientId: string
+  clientSecret: string
+  appType: number
+  grantTypes: string
+  redirectUris?: string
+  scopes?: string
+  accessTokenLifetime: number
+  refreshTokenLifetime: number
+  authorizationCodeLifetime: number
+  skipConsent: boolean
+  status: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysReview {
+  id: string
+  reviewCode: string
+  reviewTitle: string
+  reviewType: string
+  reviewContent?: string
+  reviewStatus: number
+  reviewResult?: number
+  priority: number
+  submitUserId?: number
+  submitTime: string
+  currentReviewUserId?: number
+  reviewLevel: number
+  currentLevel: number
+  status: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysUserSession {
+  id: string
+  userId: number
+  sessionId: string
+  deviceType: number
+  deviceName?: string
+  ipAddress?: string
+  loginTime: string
+  lastActivityTime: string
+  isOnline: boolean
+  isRevoked: boolean
+  revokedAt?: string
+  logoutTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysConfig {
+  id: string
+  configName: string
+  configKey: string
+  configValue?: string
+  configType: number
+  dataType: number
+  status: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysDict {
+  id: string
+  dictCode: string
+  dictName: string
+  dictType: string
+  dictDescription?: string
+  status: number
+  sort: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysDictItem {
+  id: string
+  dictId: number
+  dictCode: string
+  parentId?: number
+  itemCode: string
+  itemName: string
+  itemValue?: string
+  status: number
+  sort: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysNotification {
+  id: string
+  recipientUserId?: number
+  sendUserId?: number
+  notificationType: number
+  title: string
+  content?: string
+  notificationStatus: number
+  readTime?: string
+  sendTime: string
+  expireTime?: string
+  isGlobal?: boolean
+  needConfirm?: boolean
+  status?: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
 // ==================== 业务分页查询参数 ====================
 
 export interface UserPageQuery extends PageQuery {
@@ -97,5 +290,60 @@ export interface UserPageQuery extends PageQuery {
 }
 
 export interface RolePageQuery extends PageQuery {
+  status?: number | undefined
+}
+
+export interface FilePageQuery extends PageQuery {
+  status?: number | undefined
+  fileType?: number | undefined
+}
+
+export interface EmailPageQuery extends PageQuery {
+  emailType?: number | undefined
+  emailStatus?: number | undefined
+}
+
+export interface SmsPageQuery extends PageQuery {
+  smsType?: number | undefined
+  smsStatus?: number | undefined
+}
+
+export interface TaskPageQuery extends PageQuery {
+  triggerType?: number | undefined
+  runTaskStatus?: number | undefined
+  status?: number | undefined
+}
+
+export interface OAuthAppPageQuery extends PageQuery {
+  appType?: number | undefined
+  status?: number | undefined
+}
+
+export interface ReviewPageQuery extends PageQuery {
+  reviewStatus?: number | undefined
+  reviewResult?: number | undefined
+  status?: number | undefined
+}
+
+export interface UserSessionPageQuery extends PageQuery {
+  deviceType?: number | undefined
+  isOnline?: boolean | undefined
+  isRevoked?: boolean | undefined
+}
+
+export interface ConfigPageQuery extends PageQuery {
+  configType?: number | undefined
+  dataType?: number | undefined
+  status?: number | undefined
+}
+
+export interface DictPageQuery extends PageQuery {
+  dictType?: string | undefined
+  status?: number | undefined
+}
+
+export interface NotificationPageQuery extends PageQuery {
+  notificationType?: number | undefined
+  notificationStatus?: number | undefined
   status?: number | undefined
 }
