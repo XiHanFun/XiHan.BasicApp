@@ -19,11 +19,14 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
 /// <summary>
-/// 系统 OAuth 令牌实体
+/// 系统 OAuth 令牌实体（Token 生命周期中心）
+/// 职责：AccessTokenJti、RefreshToken、过期时间、轮换关系、重放检测；通过 SessionId 关联会话。
+/// 不负责：设备信息、在线状态（由 SysUserSession 负责）。
 /// </summary>
 [SugarTable("Sys_OAuth_Token", "系统 OAuth 令牌表")]
-[SugarIndex("UX_SysOAuthToken_AcTo", nameof(AccessToken), OrderByType.Asc, true)]
+[SugarIndex("UX_SysOAuthToken_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
 [SugarIndex("IX_SysOAuthToken_ReTo", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_SysOAuthToken_SeId", nameof(SessionId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysOAuthToken_IsRe", nameof(IsRevoked), OrderByType.Asc)]
@@ -31,20 +34,38 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 public partial class SysOAuthToken : BasicAppCreationEntity
 {
     /// <summary>
-    /// 访问令牌（敏感信息）
+    /// 会话ID（关联 SysUserSession，用于多端控制与撤销）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", IsNullable = true)]
+    public virtual long? SessionId { get; set; }
+
+    /// <summary>
+    /// 访问令牌 JTI（JWT ID，用于黑名单与重放检测；非 JWT 时可与 AccessToken 同值）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "访问令牌JTI", Length = 200, IsNullable = false)]
+    public virtual string AccessTokenJti { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 访问令牌（敏感信息；JWT 场景可不存正文仅用 JTI，兼容 opaque token 时保留）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "访问令牌", Length = 1000, IsNullable = false)]
-    public virtual string AccessToken { get; set; } = string.Empty;
+    [SugarColumn(ColumnDescription = "访问令牌", Length = 1000, IsNullable = true)]
+    public virtual string? AccessToken { get; set; }
 
     /// <summary>
-    /// 刷新令牌（敏感信息）
+    /// 刷新令牌（敏感信息；仅在此表存储，Session 不存）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "刷新令牌", Length = 1000, IsNullable = true)]
     public virtual string? RefreshToken { get; set; }
+
+    /// <summary>
+    /// 被替换后的新 Token 的 RefreshToken 或 JTI（轮换检测：若已撤销且存在则视为重放，需撤销整会话）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "被替换为的Token标识", Length = 200, IsNullable = true)]
+    public virtual string? ReplacedByToken { get; set; }
 
     /// <summary>
     /// 令牌类型

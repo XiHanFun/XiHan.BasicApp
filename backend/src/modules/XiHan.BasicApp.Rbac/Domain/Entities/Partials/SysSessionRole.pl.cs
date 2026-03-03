@@ -27,7 +27,7 @@ public partial class SysSessionRole
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(SessionId))]
+    [Navigate(NavigateType.ManyToOne, nameof(SessionId))]
     public virtual SysUserSession? Session { get; set; }
 
     /// <summary>
@@ -36,6 +36,6 @@ public partial class SysSessionRole
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(RoleId))]
+    [Navigate(NavigateType.ManyToOne, nameof(RoleId))]
     public virtual SysRole? Role { get; set; }
 }
