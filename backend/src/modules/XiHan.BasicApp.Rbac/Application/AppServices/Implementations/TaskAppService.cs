@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
@@ -31,14 +32,16 @@ public class TaskAppService
         ITaskAppService
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly IRbacLookupCacheService _lookupCacheService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public TaskAppService(ITaskRepository taskRepository)
+    public TaskAppService(ITaskRepository taskRepository, IRbacLookupCacheService lookupCacheService)
         : base(taskRepository)
     {
         _taskRepository = taskRepository;
+        _lookupCacheService = lookupCacheService;
     }
 
     /// <summary>
@@ -46,8 +49,17 @@ public class TaskAppService
     /// </summary>
     public async Task<TaskDto?> GetByTaskCodeAsync(string taskCode, long? tenantId = null)
     {
-        var entity = await _taskRepository.GetByTaskCodeAsync(taskCode, tenantId);
-        return entity?.Adapt<TaskDto>();
+        ArgumentException.ThrowIfNullOrWhiteSpace(taskCode);
+        var normalizedCode = taskCode.Trim();
+
+        return await _lookupCacheService.GetTaskByCodeAsync(
+            normalizedCode,
+            tenantId,
+            async token =>
+            {
+                var entity = await _taskRepository.GetByTaskCodeAsync(normalizedCode, tenantId, token);
+                return entity?.Adapt<TaskDto>();
+            });
     }
 
     /// <summary>
@@ -64,7 +76,9 @@ public class TaskAppService
             throw new InvalidOperationException($"任务编码 '{normalizedCode}' 已存在");
         }
 
-        return await base.CreateAsync(input);
+        var dto = await base.CreateAsync(input);
+        await _lookupCacheService.InvalidateTaskLookupAsync(input.TenantId);
+        return dto;
     }
 
     /// <summary>
@@ -73,7 +87,33 @@ public class TaskAppService
     public override async Task<TaskDto> UpdateAsync(long id, TaskUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(id, input);
+        var entity = await _taskRepository.GetByIdAsync(id)
+                     ?? throw new KeyNotFoundException($"未找到任务: {id}");
+        var dto = await base.UpdateAsync(id, input);
+        await _lookupCacheService.InvalidateTaskLookupAsync(entity.TenantId);
+        return dto;
+    }
+
+    /// <summary>
+    /// 删除任务
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        var entity = await _taskRepository.GetByIdAsync(id);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        var deleted = await base.DeleteAsync(id);
+        if (deleted)
+        {
+            await _lookupCacheService.InvalidateTaskLookupAsync(entity.TenantId);
+        }
+
+        return deleted;
     }
 
     /// <summary>

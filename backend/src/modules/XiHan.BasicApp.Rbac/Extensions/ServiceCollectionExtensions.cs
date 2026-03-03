@@ -107,6 +107,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReviewAppService, ReviewAppService>();
         services.AddScoped<IUserSessionAppService, UserSessionAppService>();
         services.AddScoped<INotificationAppService, NotificationAppService>();
+        services.AddScoped<IMessageAppService, MessageAppService>();
+        services.AddScoped<ICacheService, CacheService>();
+        services.AddScoped<IServerService, ServerService>();
 
         return services;
     }
@@ -144,6 +147,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
+        services.AddScoped<IRbacLookupCacheService, RbacLookupCacheService>();
+        services.AddScoped<IMessageCacheService, MessageCacheService>();
         services.AddScoped<ILocalEventHandler<RbacAuthorizationChangedEvent>, RbacAuthorizationChangedEventHandler>();
         services.AddScoped<ILocalEventHandler<UserRolesChangedDomainEvent>, UserRolesChangedDomainEventHandler>();
         services.AddScoped<ILocalEventHandler<UserPermissionsChangedDomainEvent>, UserPermissionsChangedDomainEventHandler>();
