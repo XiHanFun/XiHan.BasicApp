@@ -124,3 +124,15 @@ export function getStatusType(
   }
   return map[status] ?? 'default'
 }
+
+/**
+ * 根据选项数组获取标签
+ */
+export function getOptionLabel(
+  options: Array<{ label: string; value: number | string }>,
+  value: number | string | null | undefined,
+  fallback = '-',
+) {
+  const matched = options.find((item) => item.value === value)
+  return matched?.label ?? fallback
+}
