@@ -17,4 +17,11 @@
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Core\XiHan.BasicApp.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="HttpApi\Admin\" />
+      <Folder Include="HttpApi\Public\" />
+      <Folder Include="HttpApi\OpenApi\" />
+      <Folder Include="HttpApi\" />
+    </ItemGroup>
+
 </Project>
