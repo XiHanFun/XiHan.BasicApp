@@ -40,6 +40,15 @@ public partial class SysUser
     public virtual List<SysUserPermission>? UserPermissions { get; set; }
 
     /// <summary>
+    /// 用户安全状态
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(BasicId), nameof(SysUserSecurity.UserId))]
+    public virtual SysUserSecurity? Security { get; set; }
+
+    /// <summary>
     /// 用户部门关联列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
