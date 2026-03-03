@@ -17,16 +17,16 @@ using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Caching.EventHandlers;
 using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Caching.Implementations;
-using XiHan.BasicApp.Rbac.Application.ApplicationServices;
-using XiHan.BasicApp.Rbac.Application.ApplicationServices.Implementations;
-using XiHan.BasicApp.Rbac.Domain.DomainServices;
-using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.Rbac.Domain.Events;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.BasicApp.Rbac.Application.Services;
+using XiHan.BasicApp.Rbac.Application.Services.Implementations;
+using XiHan.BasicApp.Rbac.Domain.Services;
+using XiHan.BasicApp.Rbac.Domain.Services.Implementations;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
