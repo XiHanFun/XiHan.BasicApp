@@ -22,7 +22,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 系统部门实体
 /// </summary>
 [SugarTable("Sys_Department", "系统部门表")]
-[SugarIndex("IX_SysDepartment_DeCo", nameof(DepartmentCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysDepartment_TeId_DeCo", nameof(TenantId), OrderByType.Asc, nameof(DepartmentCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysDepartment_DeCo", nameof(DepartmentCode), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartment_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]

@@ -31,12 +31,12 @@ public partial class SysDictItem
     public virtual SysDict? Dict { get; set; }
 
     /// <summary>
-    /// 父级字典项
+    /// 父级字典项（多子对一父，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(ParentId))]
+    [Navigate(NavigateType.ManyToOne, nameof(ParentId))]
     public virtual SysDictItem? ParentItem { get; set; }
 
     /// <summary>

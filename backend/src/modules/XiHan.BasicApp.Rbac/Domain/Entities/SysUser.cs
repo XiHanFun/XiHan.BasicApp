@@ -22,7 +22,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 系统用户实体
 /// </summary>
 [SugarTable("Sys_User", "系统用户表")]
-[SugarIndex("IX_SysUser_UsNa", nameof(UserName), OrderByType.Asc, true)]
+[SugarIndex("UX_SysUser_TeId_UsNa", nameof(TenantId), OrderByType.Asc, nameof(UserName), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUser_UsNa", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Em", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_Ph", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_SysUser_St", nameof(Status), OrderByType.Asc)]

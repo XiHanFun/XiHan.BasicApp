@@ -23,7 +23,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 定义可对资源执行的操作类型（增删改查、审批、导入导出等）
 /// </summary>
 [SugarTable("Sys_Operation", "系统操作表")]
-[SugarIndex("IX_SysOperation_OpCo", nameof(OperationCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysOperation_TeId_OpCo", nameof(TenantId), OrderByType.Asc, nameof(OperationCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysOperation_OpCo", nameof(OperationCode), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_Ca", nameof(Category), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]

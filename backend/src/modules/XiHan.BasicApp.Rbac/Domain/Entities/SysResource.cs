@@ -23,7 +23,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 统一抽象所有可被授权的资源（菜单、API、按钮、文件等）
 /// </summary>
 [SugarTable("Sys_Resource", "系统资源表")]
-[SugarIndex("IX_SysResource_ReCo", nameof(ResourceCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysResource_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysResource_ReCo", nameof(ResourceCode), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_ReTy", nameof(ResourceType), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_St", nameof(Status), OrderByType.Asc)]

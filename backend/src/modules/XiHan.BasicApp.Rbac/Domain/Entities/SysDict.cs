@@ -22,7 +22,8 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// 系统字典实体
 /// </summary>
 [SugarTable("Sys_Dict", "系统字典表")]
-[SugarIndex("IX_SysDict_DiCo", nameof(DictCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysDict_TeId_DiCo", nameof(TenantId), OrderByType.Asc, nameof(DictCode), OrderByType.Asc, true)]
+[SugarIndex("IX_SysDict_DiCo", nameof(DictCode), OrderByType.Asc)]
 [SugarIndex("IX_SysDict_DiTy", nameof(DictType), OrderByType.Asc)]
 [SugarIndex("IX_SysDict_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysDict_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]

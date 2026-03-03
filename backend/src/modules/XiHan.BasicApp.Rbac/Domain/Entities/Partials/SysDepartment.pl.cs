@@ -22,12 +22,12 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 public partial class SysDepartment
 {
     /// <summary>
-    /// 父级部门
+    /// 父级部门（多子对一父，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(ParentId))]
+    [Navigate(NavigateType.ManyToOne, nameof(ParentId))]
     public virtual SysDepartment? ParentDepartment { get; set; }
 
     /// <summary>
@@ -40,12 +40,12 @@ public partial class SysDepartment
     public virtual List<SysDepartment>? Children { get; set; }
 
     /// <summary>
-    /// 负责人
+    /// 负责人（多部门可同负责人，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(LeaderId))]
+    [Navigate(NavigateType.ManyToOne, nameof(LeaderId))]
     public virtual SysUser? Leader { get; set; }
 
     /// <summary>

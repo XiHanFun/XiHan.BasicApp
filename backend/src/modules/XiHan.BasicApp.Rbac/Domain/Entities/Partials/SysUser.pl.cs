@@ -31,6 +31,15 @@ public partial class SysUser
     public virtual List<SysUserRole>? UserRoles { get; set; }
 
     /// <summary>
+    /// 用户权限关联列表（直授）
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysUserPermission.UserId))]
+    public virtual List<SysUserPermission>? UserPermissions { get; set; }
+
+    /// <summary>
     /// 用户部门关联列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -218,4 +227,13 @@ public partial class SysUser
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysApiLog.UserId))]
     public virtual List<SysApiLog>? ApiLogs { get; set; }
+
+    /// <summary>
+    /// 用户会话列表（多端/多设备）
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysUserSession.UserId))]
+    public virtual List<SysUserSession>? UserSessions { get; set; }
 }

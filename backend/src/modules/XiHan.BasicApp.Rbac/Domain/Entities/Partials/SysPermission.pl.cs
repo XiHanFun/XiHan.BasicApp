@@ -22,21 +22,21 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 public partial class SysPermission
 {
     /// <summary>
-    /// 关联的资源
+    /// 关联的资源（多权限可关联同一资源，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(ResourceId))]
+    [Navigate(NavigateType.ManyToOne, nameof(ResourceId))]
     public virtual SysResource? Resource { get; set; }
 
     /// <summary>
-    /// 关联的操作
+    /// 关联的操作（多权限可关联同一操作，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(OperationId))]
+    [Navigate(NavigateType.ManyToOne, nameof(OperationId))]
     public virtual SysOperation? Operation { get; set; }
 
     /// <summary>
