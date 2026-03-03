@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
-using XiHan.BasicApp.Upgrade.Application.Services;
-using XiHan.BasicApp.Upgrade.Application.Services.Implementations;
+using XiHan.BasicApp.Upgrade.Application.AppServices;
+using XiHan.BasicApp.Upgrade.Application.AppServices.Implementations;
 using XiHan.BasicApp.Upgrade.Infrastructure.Adapters;
 using XiHan.Framework.Upgrade.Abstractions;
 
