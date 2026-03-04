@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -30,16 +30,16 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider"></param>
-    /// <param name="currentTenant"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public PermissionRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -76,7 +76,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
         var rolePermissionQuery = DbClient.Queryable<SysUserRole, SysRolePermission>(
             (userRole, rolePermission) => userRole.RoleId == rolePermission.RoleId)
             .Where((userRole, rolePermission) =>
@@ -100,13 +100,8 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
         var directPermissionQuery = CreateTenantQueryable<SysUserPermission>()
-            .Where(mapping =>
-                mapping.UserId == userId
-                && mapping.Status == YesOrNo.Yes
-                && (!mapping.EffectiveTime.HasValue || mapping.EffectiveTime <= now)
-                && (!mapping.ExpirationTime.HasValue || mapping.ExpirationTime > now));
+            .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
         if (resolvedTenantId.HasValue)
         {
@@ -117,15 +112,25 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             directPermissionQuery = directPermissionQuery.Where(mapping => mapping.TenantId == null);
         }
 
-        var directPermissions = await directPermissionQuery.ToListAsync(cancellationToken);
+        // 获取用户直接授权的权限列表，包括授权和拒绝
+        var allUserPermissions = await directPermissionQuery
+            .Select(mapping => new { mapping.PermissionId, mapping.PermissionAction, mapping.EffectiveTime, mapping.ExpirationTime })
+            .ToListAsync(cancellationToken);
 
-        var grantIds = directPermissions
-            .Where(mapping => mapping.PermissionAction == PermissionAction.Grant)
-            .Select(mapping => mapping.PermissionId)
+        var now = DateTimeOffset.UtcNow;
+        var validUserPermissions = allUserPermissions.Where(x =>
+            (!x.EffectiveTime.HasValue || x.EffectiveTime <= now) &&
+            (!x.ExpirationTime.HasValue || x.ExpirationTime > now));
+
+        // 将授权和拒绝的权限ID分别存储在两个HashSet中，方便后续的权限计算
+        var grantIds = validUserPermissions
+            .Where(x => x.PermissionAction == PermissionAction.Grant)
+            .Select(x => x.PermissionId)
             .ToHashSet();
-        var denyIds = directPermissions
-            .Where(mapping => mapping.PermissionAction == PermissionAction.Deny)
-            .Select(mapping => mapping.PermissionId)
+
+        var denyIds = validUserPermissions
+            .Where(x => x.PermissionAction == PermissionAction.Deny)
+            .Select(x => x.PermissionId)
             .ToHashSet();
 
         var permissionIdSet = rolePermissionIds.ToHashSet();
@@ -162,7 +167,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
         var mappingQuery = CreateTenantQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
 

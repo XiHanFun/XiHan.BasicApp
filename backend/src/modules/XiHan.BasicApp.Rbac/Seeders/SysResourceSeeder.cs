@@ -28,8 +28,8 @@ public class SysResourceSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysResourceSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysResourceSeeder> logger, IServiceProvider serviceProvider)
-        : base(clientProvider, logger, serviceProvider)
+    public SysResourceSeeder(ISqlSugarDbContext dbContext, ILogger<SysResourceSeeder> logger, IServiceProvider serviceProvider)
+        : base(dbContext, logger, serviceProvider)
     {
     }
 
@@ -107,12 +107,12 @@ public class SysResourceSeeder : DataSeederBase
 
     private async Task UpdateResourceParentIdAsync(string parentCode, string[] childCodes)
     {
-        var parent = await ClientProvider.GetClient().Queryable<SysResource>().FirstAsync(r => r.ResourceCode == parentCode);
+        var parent = await DbContext.GetClient().Queryable<SysResource>().FirstAsync(r => r.ResourceCode == parentCode);
         if (parent == null)
         {
             return;
         }
 
-        await ClientProvider.GetClient().Updateable<SysResource>().SetColumns(r => r.ParentId == parent.BasicId).Where(r => childCodes.Contains(r.ResourceCode)).ExecuteCommandAsync();
+        await DbContext.GetClient().Updateable<SysResource>().SetColumns(r => r.ParentId == parent.BasicId).Where(r => childCodes.Contains(r.ResourceCode)).ExecuteCommandAsync();
     }
 }

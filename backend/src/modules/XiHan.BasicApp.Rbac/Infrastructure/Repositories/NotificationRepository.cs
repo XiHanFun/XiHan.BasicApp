@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -30,16 +30,16 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider"></param>
-    /// <param name="currentTenant"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public NotificationRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -62,7 +62,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return [];
         }
 
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -106,7 +106,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return 0;
         }
 
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -143,7 +143,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return false;
         }
 
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -188,7 +188,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return 0;
         }
 
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()

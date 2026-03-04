@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -31,11 +31,11 @@ public class SmsRepository : SqlSugarAggregateRepository<SysSms, long>, ISmsRepo
     /// 构造函数
     /// </summary>
     public SmsRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -45,7 +45,7 @@ public class SmsRepository : SqlSugarAggregateRepository<SysSms, long>, ISmsRepo
     public async Task<IReadOnlyList<SysSms>> GetPendingSmsAsync(int maxCount = 100, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var take = maxCount <= 0 ? 100 : maxCount;
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var query = CreateTenantQueryable()
             .Where(sms => sms.SmsStatus == SmsStatus.Pending);

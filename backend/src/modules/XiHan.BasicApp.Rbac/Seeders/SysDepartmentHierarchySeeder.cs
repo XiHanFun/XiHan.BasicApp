@@ -28,10 +28,10 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
     /// 构造函数
     /// </summary>
     public SysDepartmentHierarchySeeder(
-        ISqlSugarClientProvider clientProvider,
+        ISqlSugarDbContext dbContext,
         ILogger<SysDepartmentHierarchySeeder> logger,
         IServiceProvider serviceProvider)
-        : base(clientProvider, logger, serviceProvider)
+        : base(dbContext, logger, serviceProvider)
     {
     }
 
@@ -50,7 +50,7 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var db = ClientProvider.GetClient();
+        var db = DbContext.GetClient();
         var departments = await db.Queryable<SysDepartment>().ToListAsync();
         if (departments.Count == 0)
         {

@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 
@@ -29,14 +29,14 @@ public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILo
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider"></param>
-    /// <param name="currentTenant"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     public LoginLogRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider)
-        : base(clientProvider, currentTenant, serviceProvider)
+        : base(dbContext, splitTableExecutor, serviceProvider)
     {
     }
 

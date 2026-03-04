@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -30,16 +30,16 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider"></param>
-    /// <param name="currentTenant"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public UserRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -135,7 +135,6 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentNullException.ThrowIfNull(security);
         cancellationToken.ThrowIfCancellationRequested();
-        TrySetTenantId(security);
 
         if (security.BasicId <= 0)
         {
@@ -217,7 +216,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     public async Task ReplaceUserRolesAsync(long userId, IReadOnlyCollection<long> roleIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var deleteable = DbClient.Deleteable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId);
@@ -243,11 +242,6 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             Status = YesOrNo.Yes
         }).ToArray();
 
-        foreach (var mapping in mappings)
-        {
-            TrySetTenantId(mapping);
-        }
-
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }
 
@@ -262,7 +256,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     public async Task ReplaceUserPermissionsAsync(long userId, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var deleteable = DbClient.Deleteable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId);
@@ -289,11 +283,6 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             Status = YesOrNo.Yes
         }).ToArray();
 
-        foreach (var mapping in mappings)
-        {
-            TrySetTenantId(mapping);
-        }
-
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }
 
@@ -314,7 +303,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var deleteable = DbClient.Deleteable<SysUserDepartment>()
             .Where(mapping => mapping.UserId == userId);
@@ -340,11 +329,6 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             IsMain = mainDepartmentId.HasValue && mainDepartmentId.Value == departmentId,
             Status = YesOrNo.Yes
         }).ToArray();
-
-        foreach (var mapping in mappings)
-        {
-            TrySetTenantId(mapping);
-        }
 
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }

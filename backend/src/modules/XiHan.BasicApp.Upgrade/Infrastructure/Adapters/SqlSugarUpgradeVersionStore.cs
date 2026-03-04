@@ -28,22 +28,22 @@ namespace XiHan.BasicApp.Upgrade.Infrastructure.Adapters;
 /// </summary>
 public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
 {
-    private readonly ISqlSugarClientProvider _clientProvider;
+    private readonly ISqlSugarDbContext _dbContext;
     private readonly XiHanUpgradeOptions _options;
     private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider">SqlSugar 客户端提供者</param>
+    /// <param name="dbContext">SqlSugar 数据上下文</param>
     /// <param name="options">升级选项</param>
     /// <param name="currentTenant">当前租户</param>
     public SqlSugarUpgradeVersionStore(
-        ISqlSugarClientProvider clientProvider,
+        ISqlSugarDbContext dbContext,
         IOptions<XiHanUpgradeOptions> options,
         ICurrentTenant currentTenant)
     {
-        _clientProvider = clientProvider;
+        _dbContext = dbContext;
         _options = options.Value;
         _currentTenant = currentTenant;
     }
@@ -309,7 +309,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
     /// <returns></returns>
     private ISqlSugarClient GetDbClient()
     {
-        return _clientProvider.GetClient(_options.ConnectionConfigId);
+        return _dbContext.GetClient(_options.ConnectionConfigId);
     }
 
     /// <summary>
