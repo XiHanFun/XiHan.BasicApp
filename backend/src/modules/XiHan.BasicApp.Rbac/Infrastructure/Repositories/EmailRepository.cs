@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -31,11 +31,11 @@ public class EmailRepository : SqlSugarAggregateRepository<SysEmail, long>, IEma
     /// 构造函数
     /// </summary>
     public EmailRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -45,7 +45,7 @@ public class EmailRepository : SqlSugarAggregateRepository<SysEmail, long>, IEma
     public async Task<IReadOnlyList<SysEmail>> GetPendingEmailsAsync(int maxCount = 100, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var take = maxCount <= 0 ? 100 : maxCount;
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var query = CreateTenantQueryable()
             .Where(email => email.EmailStatus == EmailStatus.Pending);

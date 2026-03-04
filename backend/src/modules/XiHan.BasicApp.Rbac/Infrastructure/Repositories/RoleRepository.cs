@@ -17,7 +17,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -30,16 +30,16 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider"></param>
-    /// <param name="currentTenant"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -149,7 +149,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var deleteable = DbClient.Deleteable<SysRoleDataScope>()
             .Where(scope => scope.RoleId == roleId);
@@ -174,11 +174,6 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
             DepartmentId = departmentId,
             Status = YesOrNo.Yes
         }).ToArray();
-
-        foreach (var scope in scopes)
-        {
-            TrySetTenantId(scope);
-        }
 
         await DbClient.Insertable(scopes).ExecuteCommandAsync(cancellationToken);
     }
@@ -234,7 +229,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     public async Task ReplaceRolePermissionsAsync(long roleId, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var deleteable = DbClient.Deleteable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId);
@@ -260,11 +255,6 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
             Status = YesOrNo.Yes
         }).ToArray();
 
-        foreach (var mapping in mappings)
-        {
-            TrySetTenantId(mapping);
-        }
-
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }
 
@@ -279,7 +269,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     public async Task ReplaceRoleMenusAsync(long roleId, IReadOnlyCollection<long> menuIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var deleteable = DbClient.Deleteable<SysRoleMenu>()
             .Where(mapping => mapping.RoleId == roleId);
@@ -304,11 +294,6 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
             MenuId = menuId,
             Status = YesOrNo.Yes
         }).ToArray();
-
-        foreach (var mapping in mappings)
-        {
-            TrySetTenantId(mapping);
-        }
 
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }

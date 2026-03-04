@@ -27,22 +27,22 @@ namespace XiHan.BasicApp.Upgrade.Infrastructure.Adapters;
 /// </summary>
 public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
 {
-    private readonly ISqlSugarClientProvider _clientProvider;
+    private readonly ISqlSugarDbContext _dbContext;
     private readonly XiHanUpgradeOptions _options;
     private readonly ILogger<SqlSugarUpgradeLockProvider> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider">SqlSugar 客户端提供者</param>
+    /// <param name="dbContext">SqlSugar 数据上下文</param>
     /// <param name="options">升级选项</param>
     /// <param name="logger">日志记录器</param>
     public SqlSugarUpgradeLockProvider(
-        ISqlSugarClientProvider clientProvider,
+        ISqlSugarDbContext dbContext,
         IOptions<XiHanUpgradeOptions> options,
         ILogger<SqlSugarUpgradeLockProvider> logger)
     {
-        _clientProvider = clientProvider;
+        _dbContext = dbContext;
         _options = options.Value;
         _logger = logger;
     }
@@ -57,7 +57,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
     /// <returns>返回升级锁令牌，如果获取失败则返回 null</returns>
     public async Task<IUpgradeLockToken?> TryAcquireLockAsync(string resourceKey, TimeSpan expiry, string nodeName, CancellationToken cancellationToken = default)
     {
-        var db = _clientProvider.GetClient(_options.ConnectionConfigId);
+        var db = _dbContext.GetClient(_options.ConnectionConfigId);
         var lockId = Guid.NewGuid().ToString("N");
         var now = DateTime.UtcNow;
         var expiryTime = now.Add(expiry);
@@ -111,7 +111,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
     /// <returns></returns>
     internal async Task ReleaseAsync(string resourceKey, string lockId)
     {
-        var db = _clientProvider.GetClient(_options.ConnectionConfigId);
+        var db = _dbContext.GetClient(_options.ConnectionConfigId);
         await db.Deleteable<SysUpgradeLockEntity>()
             .Where(l => l.ResourceKey == resourceKey && l.LockId == lockId)
             .ExecuteCommandAsync();

@@ -16,7 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -29,16 +29,16 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="clientProvider"></param>
-    /// <param name="currentTenant"></param>
+    /// <param name="dbContext"></param>
+    /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public ConfigRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 

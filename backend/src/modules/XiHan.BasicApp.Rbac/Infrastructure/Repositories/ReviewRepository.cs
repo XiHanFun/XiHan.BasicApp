@@ -16,7 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -30,11 +30,11 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
     /// 构造函数
     /// </summary>
     public ReviewRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -44,7 +44,7 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
     public async Task<SysReview?> GetByReviewCodeAsync(string reviewCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reviewCode);
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var query = CreateTenantQueryable()
             .Where(review => review.ReviewCode == reviewCode);
@@ -67,7 +67,7 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
     public async Task<bool> IsReviewCodeExistsAsync(string reviewCode, long? tenantId = null, long? excludeReviewId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reviewCode);
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var query = CreateTenantQueryable()
             .Where(review => review.ReviewCode == reviewCode);

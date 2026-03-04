@@ -16,7 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Repositories;
@@ -30,11 +30,11 @@ public class FileRepository : SqlSugarAggregateRepository<SysFile, long>, IFileR
     /// 构造函数
     /// </summary>
     public FileRepository(
-        ISqlSugarClientProvider clientProvider,
-        ICurrentTenant currentTenant,
+        ISqlSugarDbContext dbContext,
+        ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(clientProvider, currentTenant, serviceProvider, unitOfWorkManager)
+        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
     }
 
@@ -44,7 +44,7 @@ public class FileRepository : SqlSugarAggregateRepository<SysFile, long>, IFileR
     public async Task<SysFile?> GetByFileHashAsync(string fileHash, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileHash);
-        var resolvedTenantId = tenantId ?? CurrentTenantId;
+        var resolvedTenantId = tenantId;
 
         var query = CreateTenantQueryable()
             .Where(file => file.FileHash == fileHash);

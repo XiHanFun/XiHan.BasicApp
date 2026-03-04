@@ -28,8 +28,8 @@ public class SysDictSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysDictSeeder(ISqlSugarClientProvider clientProvider, ILogger<SysDictSeeder> logger, IServiceProvider serviceProvider)
-        : base(clientProvider, logger, serviceProvider)
+    public SysDictSeeder(ISqlSugarDbContext dbContext, ILogger<SysDictSeeder> logger, IServiceProvider serviceProvider)
+        : base(dbContext, logger, serviceProvider)
     {
     }
 
