@@ -18,7 +18,6 @@ using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Rbac;
 using XiHan.BasicApp.Upgrade;
-using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
@@ -34,9 +33,7 @@ namespace XiHan.BasicApp.WebHost;
     // 应用模块依赖
     typeof(XiHanBasicAppRbacModule),
     typeof(XiHanBasicAppCodeGenerationModule),
-    typeof(XiHanBasicAppUpgradeModule),
-    // Web 模块依赖
-    typeof(XiHanBasicAppWebCoreModule)
+    typeof(XiHanBasicAppUpgradeModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {

@@ -14,8 +14,7 @@
 
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Rbac.Extensions;
-using XiHan.Framework.Authentication;
-using XiHan.Framework.Authorization;
+using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
@@ -28,8 +27,7 @@ namespace XiHan.BasicApp.Rbac;
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
-    typeof(XiHanAuthenticationModule),
-    typeof(XiHanAuthorizationModule)
+    typeof(XiHanBasicAppWebCoreModule)
 )]
 public class XiHanBasicAppRbacModule : XiHanModule
 {
