@@ -176,11 +176,6 @@ function goTo(path: string) {
       </NButton>
       <NButton circle quaternary>
         <template #icon>
-          <Icon icon="logos:wechat" />
-        </template>
-      </NButton>
-      <NButton circle quaternary>
-        <template #icon>
           <Icon icon="logos:google-icon" />
         </template>
       </NButton>
