@@ -14,8 +14,8 @@ export default {
     register: '立即注册',
   },
   auth: {
-    slogan_title: '开箱即用的大型中后台管理系统',
-    slogan_desc: '工程化、智能化、国际化的前端组织架构',
+    slogan_title: '企业 SaaS 中后台内核',
+    slogan_desc: '工程化、智能化、国际化',
     welcome_back: '欢迎回来 👋🏻',
     login_subtitle: '请输入您的账号密码以登录管理系统',
     select_account: '选择演示账号',

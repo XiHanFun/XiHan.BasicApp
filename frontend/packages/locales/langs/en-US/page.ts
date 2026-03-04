@@ -14,15 +14,15 @@ export default {
     register: 'Register now',
   },
   auth: {
-    slogan_title: 'Enterprise-ready Admin System',
-    slogan_desc: 'Engineered, intelligent, and internationalized frontend architecture',
+    slogan_title: 'Enterprise SaaS Admin System',
+    slogan_desc: 'Engineered, intelligent, and internationalized',
     welcome_back: 'Welcome back 👋🏻',
     login_subtitle: 'Enter your credentials to access the admin panel',
     select_account: 'Select demo account',
     mobile_login: 'Phone Login',
     qrcode_login: 'QR Login',
     third_party_login: 'Third-party login',
-    no_account: "Don't have an account?",
+    no_account: 'Don\'t have an account?',
     back_to_login: 'Back to login',
     // Code login
     code_login_subtitle: 'Enter your phone number to receive a verification code',
@@ -66,7 +66,7 @@ export default {
   },
   dashboard: {
     welcome: 'Welcome back',
-    today_visitors: "Today's Visitors",
+    today_visitors: 'Today\'s Visitors',
     total_users: 'Total Users',
     online_count: 'Online Users',
     system_version: 'System Version',

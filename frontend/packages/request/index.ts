@@ -113,7 +113,7 @@ export class RequestClient {
 
     this.isRefreshing = true
     try {
-      const { data } = await this.instance.post(this.resolveUrl('/auth/refresh-token'), {
+      const { data } = await this.instance.post(this.resolveUrl('/auth/refreshToken'), {
         RefreshToken: refreshToken,
       })
       const payload = (data?.data ?? data) as { accessToken?: string; refreshToken?: string }
