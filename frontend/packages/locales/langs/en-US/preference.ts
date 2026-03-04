@@ -68,7 +68,8 @@ export default {
       sidebar_sub_dark: 'Dark Sidebar Sub',
       header_dark: 'Dark Header',
       sidebar_dark_tip: 'Switch the sidebar to dark style independently in light theme',
-      sidebar_sub_dark_tip: 'Available when using light theme with dark sidebar enabled and dual-column layout',
+      sidebar_sub_dark_tip:
+        'Available when using light theme with dark sidebar enabled and dual-column layout',
       header_dark_tip: 'Switch the header to dark style independently in light theme',
     },
     font: {
