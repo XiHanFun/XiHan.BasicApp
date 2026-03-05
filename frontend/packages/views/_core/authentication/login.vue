@@ -86,45 +86,50 @@ function goTo(path: string) {
 </script>
 
 <template>
-  <div>
-    <h1 class="mb-1 text-2xl font-bold">
-      {{ t('page.auth.welcome_back') }}
-    </h1>
-    <p
-      class="mb-5 text-sm"
-      :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-    >
-      {{ t('page.auth.login_subtitle') }}
-    </p>
+  <div class="py-1">
+    <div class="mb-8">
+      <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
+        {{ t('page.auth.welcome_back') }}
+      </h1>
+      <p
+        class="mt-3 text-[15px] leading-7"
+        :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+      >
+        {{ t('page.auth.login_subtitle') }}
+      </p>
+    </div>
 
     <NForm
       ref="formRef"
       :model="formData"
       :rules="rules"
       label-placement="top"
-      size="medium"
+      size="large"
       :show-label="false"
       @keydown="handleKeydown"
     >
-      <NFormItem path="selectAccount" :show-feedback="false" class="!mb-5">
+      <NFormItem path="selectAccount" :show-feedback="false" class="!mb-6">
         <NSelect
           v-model:value="formData.selectAccount"
           :options="accountOptions"
           :placeholder="t('page.auth.select_account')"
+          size="large"
           @update:value="handleSelectAccount"
         />
       </NFormItem>
-      <NFormItem path="username" :show-feedback="false" class="!mb-5">
+      <NFormItem path="username" :show-feedback="false" class="!mb-6">
         <NInput
           v-model:value="formData.username"
+          size="large"
           :placeholder="t('page.login.username_placeholder')"
           :input-props="{ autocomplete: 'username' }"
         />
       </NFormItem>
-      <NFormItem path="password" :show-feedback="false" class="!mb-5">
+      <NFormItem path="password" :show-feedback="false" class="!mb-6">
         <NInput
           v-model:value="formData.password"
           :type="showPassword ? 'text' : 'password'"
+          size="large"
           :placeholder="t('page.login.password_placeholder')"
           :input-props="{ autocomplete: 'current-password' }"
         >
@@ -140,7 +145,7 @@ function goTo(path: string) {
         </NInput>
       </NFormItem>
 
-      <div class="mb-4 flex items-center justify-between text-sm">
+      <div class="mb-5 flex items-center justify-between text-sm">
         <NCheckbox v-model:checked="rememberMe">
           {{ t('page.login.remember_me') }}
         </NCheckbox>
@@ -149,32 +154,29 @@ function goTo(path: string) {
         </span>
       </div>
 
-      <NButton type="primary" block :loading="authStore.loginLoading" @click="handleLogin">
+      <NButton
+        type="primary"
+        block
+        :loading="authStore.loginLoading"
+        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
+        @click="handleLogin"
+      >
         {{ t('page.login.login_btn') }}
       </NButton>
     </NForm>
 
-    <div class="mt-4 grid grid-cols-2 gap-2">
-      <NButton quaternary @click="goTo('/auth/code-login')">
-        {{ t('page.auth.mobile_login') }}
-      </NButton>
-      <NButton quaternary @click="goTo('/auth/qrcode-login')">
-        {{ t('page.auth.qrcode_login') }}
-      </NButton>
-    </div>
-
     <NDivider
-      :class="isDark ? '!my-5 !border-white/10' : '!my-5 !border-[hsl(var(--border))]'"
+      :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'"
     >
       {{ t('page.auth.third_party_login') }}
     </NDivider>
-    <div class="flex items-center justify-center gap-3">
-      <NButton circle quaternary>
+    <div class="flex items-center justify-center gap-4">
+      <NButton circle quaternary class="!h-11 !w-11">
         <template #icon>
           <Icon icon="logos:github-icon" />
         </template>
       </NButton>
-      <NButton circle quaternary>
+      <NButton circle quaternary class="!h-11 !w-11">
         <template #icon>
           <Icon icon="logos:google-icon" />
         </template>
@@ -182,7 +184,7 @@ function goTo(path: string) {
     </div>
 
     <p
-      class="mt-5 text-center text-xs"
+      class="mt-6 text-center text-sm"
       :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.no_account') }}
