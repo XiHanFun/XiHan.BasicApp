@@ -101,37 +101,41 @@ function handleKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <div>
-    <h1 class="mb-1 text-2xl font-bold">
-      {{ t('page.auth.create_account_title') }}
-    </h1>
-    <p
-      class="mb-5 text-sm"
-      :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-    >
-      {{ t('page.auth.register_subtitle') }}
-    </p>
+  <div class="py-1">
+    <div class="mb-8">
+      <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
+        {{ t('page.auth.create_account_title') }}
+      </h1>
+      <p
+        class="mt-3 text-[15px] leading-7"
+        :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+      >
+        {{ t('page.auth.register_subtitle') }}
+      </p>
+    </div>
 
     <NForm
       ref="formRef"
       :model="formData"
       :rules="rules"
       label-placement="top"
-      size="medium"
+      size="large"
       :show-label="false"
       @keydown="handleKeydown"
     >
-      <NFormItem path="username" :show-feedback="false" class="!mb-5">
+      <NFormItem path="username" :show-feedback="false" class="!mb-6">
         <NInput
           v-model:value="formData.username"
+          size="large"
           :placeholder="t('page.login.username_placeholder')"
           :input-props="{ autocomplete: 'username' }"
         />
       </NFormItem>
-      <NFormItem path="password" :show-feedback="false" class="!mb-2">
+      <NFormItem path="password" :show-feedback="false" class="!mb-3">
         <NInput
           v-model:value="formData.password"
           :type="showPassword ? 'text' : 'password'"
+          size="large"
           :placeholder="t('page.login.password_placeholder')"
           :input-props="{ autocomplete: 'new-password' }"
         >
@@ -148,7 +152,7 @@ function handleKeydown(e: KeyboardEvent) {
       </NFormItem>
 
       <!-- Password strength -->
-      <div v-if="formData.password" class="mb-5 flex items-center gap-2">
+      <div v-if="formData.password" class="mb-6 flex items-center gap-2">
         <div class="flex flex-1 gap-1">
           <div
             v-for="i in 4"
@@ -161,10 +165,11 @@ function handleKeydown(e: KeyboardEvent) {
       </div>
       <div v-else class="mb-3" />
 
-      <NFormItem path="confirmPassword" :show-feedback="false" class="!mb-5">
+      <NFormItem path="confirmPassword" :show-feedback="false" class="!mb-6">
         <NInput
           v-model:value="formData.confirmPassword"
           :type="showConfirmPassword ? 'text' : 'password'"
+          size="large"
           :placeholder="t('page.auth.confirm_password_placeholder')"
           :input-props="{ autocomplete: 'new-password' }"
         >
@@ -180,7 +185,7 @@ function handleKeydown(e: KeyboardEvent) {
         </NInput>
       </NFormItem>
 
-      <div class="mb-5">
+      <div class="mb-6">
         <NCheckbox v-model:checked="agreePolicy">
           <span class="text-sm">
             {{ t('page.auth.agree_text') }}
@@ -195,13 +200,19 @@ function handleKeydown(e: KeyboardEvent) {
         </NCheckbox>
       </div>
 
-      <NButton type="primary" block :loading="loading" @click="handleRegister">
+      <NButton
+        type="primary"
+        block
+        :loading="loading"
+        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
+        @click="handleRegister"
+      >
         {{ t('page.auth.register_btn') }}
       </NButton>
     </NForm>
 
     <p
-      class="mt-4 text-center text-sm"
+      class="mt-6 text-center text-sm"
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.already_have_account') }}

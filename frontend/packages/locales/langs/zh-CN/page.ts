@@ -1,6 +1,6 @@
 export default {
   login: {
-    title: '用户登录',
+    title: '账号登录',
     username: '用户名',
     password: '密码',
     captcha: '验证码',

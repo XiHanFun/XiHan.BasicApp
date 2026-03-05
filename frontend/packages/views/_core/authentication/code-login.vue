@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
 import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naive-ui'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useTheme } from '~/hooks'
 
 defineOptions({ name: 'CodeLoginPage' })
@@ -36,7 +36,8 @@ const rules: FormRules = {
 function handleSendCode() {
   formRef.value?.validate(
     (errors) => {
-      if (errors) return
+      if (errors)
+        return
       countdown.value = 60
       timer = setInterval(() => {
         countdown.value--
@@ -47,7 +48,7 @@ function handleSendCode() {
       }, 1000)
       message.success(t('page.auth.code_sent'))
     },
-    (rule) => rule?.key === 'phone',
+    rule => rule?.key === 'phone',
   )
 }
 
@@ -64,42 +65,54 @@ async function handleLogin() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') handleLogin()
+  if (e.key === 'Enter')
+    handleLogin()
 }
+
+onBeforeUnmount(() => {
+  if (!timer)
+    return
+  clearInterval(timer)
+  timer = null
+})
 </script>
 
 <template>
-  <div>
-    <h1 class="mb-1 text-2xl font-bold">
-      {{ t('page.auth.mobile_login') }} 📲
-    </h1>
-    <p
-      class="mb-5 text-sm"
-      :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-    >
-      {{ t('page.auth.code_login_subtitle') }}
-    </p>
+  <div class="py-1">
+    <div class="mb-8">
+      <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
+        {{ t('page.auth.mobile_login') }} 📲
+      </h1>
+      <p
+        class="mt-3 text-[15px] leading-7"
+        :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+      >
+        {{ t('page.auth.code_login_subtitle') }}
+      </p>
+    </div>
 
     <NForm
       ref="formRef"
       :model="formData"
       :rules="rules"
       label-placement="top"
-      size="medium"
+      size="large"
       :show-label="false"
       @keydown="handleKeydown"
     >
-      <NFormItem path="phone" :show-feedback="false" class="!mb-5">
+      <NFormItem path="phone" :show-feedback="false" class="!mb-6">
         <NInput
           v-model:value="formData.phone"
+          size="large"
           :placeholder="t('page.auth.phone_placeholder')"
           :maxlength="11"
         />
       </NFormItem>
-      <NFormItem path="code" :show-feedback="false" class="!mb-5">
+      <NFormItem path="code" :show-feedback="false" class="!mb-6">
         <NInputGroup>
           <NInput
             v-model:value="formData.code"
+            size="large"
             :placeholder="t('page.auth.code_placeholder')"
             :maxlength="6"
           />
@@ -107,7 +120,8 @@ function handleKeydown(e: KeyboardEvent) {
             type="primary"
             ghost
             :disabled="countdown > 0"
-            style="min-width: 120px"
+            size="large"
+            style="min-width: 132px"
             @click="handleSendCode"
           >
             {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
@@ -115,12 +129,18 @@ function handleKeydown(e: KeyboardEvent) {
         </NInputGroup>
       </NFormItem>
 
-      <NButton type="primary" block :loading="loading" @click="handleLogin">
+      <NButton
+        type="primary"
+        block
+        :loading="loading"
+        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
+        @click="handleLogin"
+      >
         {{ t('page.login.login_btn') }}
       </NButton>
     </NForm>
 
-    <NButton class="mt-4 w-full" quaternary @click="router.push('/auth/login')">
+    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push('/auth/login')">
       {{ t('page.auth.back_to_login') }}
     </NButton>
   </div>

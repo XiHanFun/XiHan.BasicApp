@@ -1,6 +1,6 @@
 export default {
   login: {
-    title: 'Sign In',
+    title: 'Account Login',
     username: 'Username',
     password: 'Password',
     captcha: 'Captcha',
