@@ -1,64 +1,107 @@
-import type { LoginParams, LoginResult, UserInfo } from '~/types'
+import type { CaptchaInfo, LoginConfig, LoginParams, LoginResult, PermissionInfo, UserInfo } from '~/types'
 import { API_CONTRACT } from '../contract'
 import requestClient from '../request'
 
+function unwrapPayload<T>(raw: any): T {
+  return (raw?.data ?? raw?.Data ?? raw) as T
+}
+
 function normalizeUserInfo(raw: any): UserInfo {
+  const payload = unwrapPayload<any>(raw)
   return {
-    basicId: raw?.basicId ?? raw?.BasicId ?? 0,
-    userName: raw?.userName ?? raw?.UserName ?? '',
-    nickName: raw?.nickName ?? raw?.NickName ?? '',
-    avatar: raw?.avatar ?? raw?.Avatar ?? '',
-    email: raw?.email ?? raw?.Email ?? '',
-    phone: raw?.phone ?? raw?.Phone ?? '',
-    roles: raw?.roles ?? raw?.Roles ?? [],
-    permissions: raw?.permissions ?? raw?.Permissions ?? [],
+    basicId: payload?.basicId ?? payload?.BasicId ?? payload?.userId ?? payload?.UserId ?? 0,
+    userName: payload?.userName ?? payload?.UserName ?? payload?.username ?? payload?.Username ?? '',
+    nickName: payload?.nickName ?? payload?.NickName ?? payload?.nickname ?? payload?.Nickname ?? '',
+    avatar: payload?.avatar ?? payload?.Avatar ?? '',
+    email: payload?.email ?? payload?.Email ?? '',
+    phone: payload?.phone ?? payload?.Phone ?? '',
+    tenantId: payload?.tenantId ?? payload?.TenantId ?? null,
+    roles: payload?.roles ?? payload?.Roles ?? [],
+    permissions: payload?.permissions ?? payload?.Permissions ?? [],
   }
+}
+
+function normalizeToken(raw: any): LoginResult {
+  const payload = unwrapPayload<any>(raw)
+  return {
+    accessToken: payload?.accessToken ?? payload?.AccessToken ?? '',
+    refreshToken: payload?.refreshToken ?? payload?.RefreshToken ?? '',
+    tokenType: payload?.tokenType ?? payload?.TokenType ?? 'Bearer',
+    expiresIn: payload?.expiresIn ?? payload?.ExpiresIn ?? 0,
+    issuedAt: payload?.issuedAt ?? payload?.IssuedAt ?? new Date().toISOString(),
+    expiresAt: payload?.expiresAt ?? payload?.ExpiresAt ?? '',
+  }
+}
+
+function normalizeLoginConfig(raw: any): LoginConfig {
+  const payload = unwrapPayload<any>(raw)
+  return {
+    captchaEnabled: payload?.captchaEnabled ?? payload?.CaptchaEnabled ?? true,
+    loginMethods: payload?.loginMethods ?? payload?.LoginMethods ?? ['password'],
+    tenantEnabled: payload?.tenantEnabled ?? payload?.TenantEnabled ?? true,
+    oauthProviders: payload?.oauthProviders ?? payload?.OauthProviders ?? payload?.OAuthProviders ?? [],
+  }
+}
+
+function normalizeCaptcha(raw: any): CaptchaInfo {
+  const payload = unwrapPayload<any>(raw)
+  return {
+    captchaId: payload?.captchaId ?? payload?.CaptchaId ?? '',
+    imageBase64: payload?.imageBase64 ?? payload?.ImageBase64 ?? '',
+  }
+}
+
+function normalizePermission(raw: any): PermissionInfo {
+  const payload = unwrapPayload<any>(raw)
+  return {
+    roles: payload?.roles ?? payload?.Roles ?? [],
+    permissions: payload?.permissions ?? payload?.Permissions ?? [],
+    menus: payload?.menus ?? payload?.Menus ?? [],
+  }
+}
+
+export function getLoginConfigApi() {
+  return requestClient.get<any>(API_CONTRACT.auth.loginConfig).then(normalizeLoginConfig)
+}
+
+export async function getCaptchaApi(): Promise<CaptchaInfo> {
+  const raw = await requestClient.get<any>(API_CONTRACT.auth.captcha)
+  return normalizeCaptcha(raw)
 }
 
 export async function loginApi(data: LoginParams): Promise<LoginResult> {
   const raw = await requestClient.post<any>(API_CONTRACT.auth.login, {
     UserName: data.username,
     Password: data.password,
+    CaptchaId: data.captchaId,
     CaptchaCode: data.captchaCode,
-    CaptchaKey: data.captchaKey,
+    TenantId: data.tenantId,
   })
-
-  return {
-    accessToken: raw?.accessToken ?? raw?.AccessToken ?? '',
-    refreshToken: raw?.refreshToken ?? raw?.RefreshToken ?? '',
-    tokenType: raw?.tokenType ?? raw?.TokenType ?? 'Bearer',
-    expiresIn: raw?.expiresIn ?? raw?.ExpiresIn ?? 0,
-    issuedAt: raw?.issuedAt ?? raw?.IssuedAt ?? '',
-    expiresAt: raw?.expiresAt ?? raw?.ExpiresAt ?? '',
-    user: normalizeUserInfo(raw?.user ?? raw?.User),
-    roles: raw?.roles ?? raw?.Roles ?? [],
-    permissions: raw?.permissions ?? raw?.Permissions ?? [],
-  }
+  return normalizeToken(raw)
 }
 
-export function logoutApi() {
-  return requestClient.post(API_CONTRACT.auth.logout)
-}
-
-export async function refreshTokenApi(refreshToken: string) {
+export async function refreshTokenApi(refreshToken: string): Promise<LoginResult> {
   const raw = await requestClient.post<any>(API_CONTRACT.auth.refreshToken, {
     RefreshToken: refreshToken,
   })
-  return {
-    accessToken: raw?.accessToken ?? raw?.AccessToken ?? '',
-    refreshToken: raw?.refreshToken ?? raw?.RefreshToken ?? '',
-  }
+  return normalizeToken(raw)
 }
 
-export async function getUserInfoApi() {
+export async function getUserInfoApi(): Promise<UserInfo> {
   const raw = await requestClient.get<any>(API_CONTRACT.auth.currentUser)
   return normalizeUserInfo(raw)
 }
 
-export function getAccessCodesApi() {
-  return requestClient.get<string[]>(API_CONTRACT.auth.codes)
+export async function getPermissionsApi(): Promise<PermissionInfo> {
+  const raw = await requestClient.get<any>(API_CONTRACT.auth.permissions)
+  return normalizePermission(raw)
 }
 
-export function getCaptchaApi() {
-  return requestClient.get<{ key: string; image: string }>(API_CONTRACT.auth.captcha)
+export async function getAccessCodesApi() {
+  const authPermission = await getPermissionsApi()
+  return authPermission.permissions
+}
+
+export function logoutApi() {
+  return requestClient.post(API_CONTRACT.auth.logout)
 }

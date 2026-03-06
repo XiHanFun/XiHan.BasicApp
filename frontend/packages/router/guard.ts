@@ -1,6 +1,6 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
-import { getUserInfoApi, getUserMenuRoutesApi } from '~/api'
+import { getPermissionsApi, getUserInfoApi } from '~/api'
 import { AUTH_PATH, HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
@@ -25,6 +25,7 @@ export function setupRouterGuard(router: Router) {
     const appStore = useAppStore()
     const userStore = useUserStore()
     const tabbarStore = useTabbarStore()
+    let permissionInfo: null | Awaited<ReturnType<typeof getPermissionsApi>> = null
 
     if (appStore.transitionProgress) {
       loadingBar.start()
@@ -54,8 +55,17 @@ export function setupRouterGuard(router: Router) {
     // 已登录但无用户信息，尝试获取
     if (!userStore.isLoggedIn) {
       try {
-        const userInfo = await getUserInfoApi()
-        userStore.setUserInfo(userInfo)
+        const [userInfo, authPermission] = await Promise.all([
+          getUserInfoApi(),
+          getPermissionsApi(),
+        ])
+        permissionInfo = authPermission
+        userStore.setUserInfo({
+          ...userInfo,
+          roles: authPermission.roles,
+          permissions: authPermission.permissions,
+        })
+        accessStore.setAccessCodes(authPermission.permissions)
       } catch {
         accessStore.$reset()
         userStore.$reset()
@@ -69,7 +79,19 @@ export function setupRouterGuard(router: Router) {
 
     if (!accessStore.isRoutesLoaded) {
       try {
-        const dynamicMenus = await getUserMenuRoutesApi()
+        if (!permissionInfo) {
+          permissionInfo = await getPermissionsApi()
+          accessStore.setAccessCodes(permissionInfo.permissions)
+          if (userStore.userInfo) {
+            userStore.setUserInfo({
+              ...userStore.userInfo,
+              roles: permissionInfo.roles,
+              permissions: permissionInfo.permissions,
+            })
+          }
+        }
+
+        const dynamicMenus = permissionInfo.menus
         accessStore.setAccessRoutes(dynamicMenus)
         installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
         return next({ ...to, replace: true })

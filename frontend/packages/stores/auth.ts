@@ -1,8 +1,9 @@
 import type { LoginParams } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { loginApi, logoutApi } from '~/api'
+import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi } from '~/api'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
+import { mapMenuToRoutes } from '~/router/dynamic'
 import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -21,18 +22,37 @@ export const useAuthStore = defineStore('auth', () => {
       accessStore.setAccessToken(result.accessToken)
       accessStore.setRefreshToken(result.refreshToken)
 
-      // 登录结果直接包含用户信息和权限，无需额外请求
+      let userInfo: Awaited<ReturnType<typeof getUserInfoApi>>
+      let permissionInfo: Awaited<ReturnType<typeof getPermissionsApi>>
+      try {
+        ;[userInfo, permissionInfo] = await Promise.all([
+          getUserInfoApi(),
+          getPermissionsApi(),
+        ])
+      } catch (error) {
+        accessStore.$reset()
+        userStore.$reset()
+        throw error
+      }
+
       userStore.setUserInfo({
-        ...result.user,
-        roles: result.roles,
-        permissions: result.permissions,
+        ...userInfo,
+        roles: permissionInfo.roles,
+        permissions: permissionInfo.permissions,
       })
       appStore.setBranding({
-        title: result.user.appTitle,
-        logo: result.user.appLogo,
+        title: userInfo.appTitle,
+        logo: userInfo.appLogo,
       })
-      accessStore.setAccessCodes(result.permissions)
-      accessStore.isRoutesLoaded = false
+      accessStore.setAccessCodes(permissionInfo.permissions)
+      accessStore.setAccessRoutes(permissionInfo.menus)
+
+      for (const route of mapMenuToRoutes(permissionInfo.menus)) {
+        const routeName = route.name ? String(route.name) : ''
+        if (routeName && !router.hasRoute(routeName)) {
+          router.addRoute('RootLayout', route)
+        }
+      }
 
       await router.replace(redirect ? decodeURIComponent(redirect) : HOME_PATH)
     } finally {

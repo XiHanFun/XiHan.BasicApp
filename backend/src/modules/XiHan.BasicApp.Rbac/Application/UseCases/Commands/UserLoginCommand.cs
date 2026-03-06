@@ -36,6 +36,18 @@ public class UserLoginCommand
     public string Password { get; set; } = string.Empty;
 
     /// <summary>
+    /// 验证码ID
+    /// </summary>
+    [StringLength(64, ErrorMessage = "验证码ID长度不能超过 64")]
+    public string? CaptchaId { get; set; }
+
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [StringLength(16, ErrorMessage = "验证码长度不能超过 16")]
+    public string? CaptchaCode { get; set; }
+
+    /// <summary>
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; } = 1;

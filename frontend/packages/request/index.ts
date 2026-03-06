@@ -6,7 +6,7 @@ import type {
 } from 'axios'
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
-import { BIZ_CODE, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
+import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 
 type AnyRecord = Record<string, any>
@@ -93,7 +93,7 @@ export class RequestClient {
             }
             LocalStorage.remove(TOKEN_KEY)
             LocalStorage.remove(REFRESH_TOKEN_KEY)
-            window.location.href = '/login'
+            window.location.href = LOGIN_PATH
           }
         }
         return Promise.reject(error)
@@ -113,11 +113,16 @@ export class RequestClient {
 
     this.isRefreshing = true
     try {
-      const { data } = await this.instance.post(this.resolveUrl('/auth/refreshToken'), {
+      const { data } = await this.instance.post(this.resolveUrl('/auth/refresh-token'), {
         RefreshToken: refreshToken,
       })
-      const payload = (data?.data ?? data) as { accessToken?: string; refreshToken?: string }
-      const nextAccessToken = payload?.accessToken ?? (payload as any)?.AccessToken ?? null
+      const payload = (data?.data ?? data?.Data ?? data) as {
+        AccessToken?: string
+        RefreshToken?: string
+        accessToken?: string
+        refreshToken?: string
+      }
+      const nextAccessToken = payload?.accessToken ?? payload?.AccessToken ?? null
       if (!nextAccessToken) {
         this.pendingRequests.forEach((cb) => cb(null))
         this.pendingRequests = []
@@ -125,7 +130,7 @@ export class RequestClient {
       }
 
       LocalStorage.set(TOKEN_KEY, nextAccessToken)
-      const nextRefreshToken = payload.refreshToken ?? (payload as any)?.RefreshToken
+      const nextRefreshToken = payload?.refreshToken ?? payload?.RefreshToken
       if (nextRefreshToken) {
         LocalStorage.set(REFRESH_TOKEN_KEY, nextRefreshToken)
       }
@@ -145,18 +150,21 @@ export class RequestClient {
   async request<T = any>(config: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.request<ApiResponse<T> | T>(config)
     const { data } = response
-    const typed = data as ApiResponse<T>
+    const typed = data as AnyRecord
 
-    if (
-      typed &&
-      typeof typed === 'object' &&
-      'data' in typed &&
-      ('code' in typed || 'success' in typed)
-    ) {
-      if (typed.success || typed.code === BIZ_CODE.SUCCESS || typed.code === 0) {
-        return typed.data
+    if (typed && typeof typed === 'object') {
+      const responseData = typed.data ?? typed.Data
+      const responseCode = typed.code ?? typed.Code
+      const responseSuccess = typed.success ?? typed.isSuccess ?? typed.IsSuccess
+      const responseMessage = typed.message ?? typed.Message
+      const hasEnvelope = responseData !== undefined && (responseCode !== undefined || responseSuccess !== undefined)
+
+      if (hasEnvelope) {
+        if (responseSuccess || responseCode === BIZ_CODE.SUCCESS || responseCode === 0) {
+          return responseData as T
+        }
+        return Promise.reject(new Error((responseMessage as string) || '请求失败'))
       }
-      return Promise.reject(new Error(typed.message || '请求失败'))
     }
 
     return data as T

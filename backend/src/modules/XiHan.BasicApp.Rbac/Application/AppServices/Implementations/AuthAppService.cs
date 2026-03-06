@@ -12,20 +12,36 @@
 
 #endregion <<版权版本注释>>
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Dtos;
+using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
+using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
+using XiHan.BasicApp.Rbac.Domain.DomainServices;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.ValueObjects;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Application.Contracts.Dtos;
+using XiHan.Framework.Application.Contracts.Enums;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.Password;
+using XiHan.Framework.Caching;
+using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Extensions;
+using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
-using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
-using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
-using XiHan.BasicApp.Rbac.Domain.DomainServices;
+using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -33,17 +49,33 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 /// 认证应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
+[DynamicApi(RouteTemplate = "api/auth")]
 public class AuthAppService : ApplicationServiceBase, IAuthAppService
 {
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 15;
+    private const int CaptchaLength = 4;
+    private const int CaptchaExpireMinutes = 5;
 
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
     private readonly IAuthorizationDomainService _authorizationDomainService;
     private readonly IRbacAuthorizationCacheService _authorizationCacheService;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IMenuRepository _menuRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
     private readonly ILoginLogRepository _loginLogRepository;
+    private readonly IJwtTokenService _jwtTokenService;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IDistributedCache<AuthCaptchaCacheItem> _captchaCache;
+    private readonly IDistributedCache<AuthRefreshTokenCacheItem> _refreshTokenCache;
+    private readonly IDistributedCache<AuthSessionTokenMapCacheItem> _sessionTokenMapCache;
+    private readonly IConfiguration _configuration;
+    private readonly JwtOptions _jwtOptions;
+    private readonly ICurrentUser _currentUser;
+    private readonly IClientInfoProvider _clientInfoProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -61,85 +93,146 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IUserManager userManager,
         IAuthorizationDomainService authorizationDomainService,
         IRbacAuthorizationCacheService authorizationCacheService,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        IMenuRepository menuRepository,
+        IUserSessionRepository userSessionRepository,
         ILoginLogRepository loginLogRepository,
+        IJwtTokenService jwtTokenService,
         IPasswordHasher passwordHasher,
+        IDistributedCache<AuthCaptchaCacheItem> captchaCache,
+        IDistributedCache<AuthRefreshTokenCacheItem> refreshTokenCache,
+        IDistributedCache<AuthSessionTokenMapCacheItem> sessionTokenMapCache,
+        IConfiguration configuration,
+        IOptions<JwtOptions> jwtOptions,
+        ICurrentUser currentUser,
+        IClientInfoProvider clientInfoProvider,
+        IHttpContextAccessor httpContextAccessor,
         IUnitOfWorkManager unitOfWorkManager)
     {
         _userRepository = userRepository;
         _userManager = userManager;
         _authorizationDomainService = authorizationDomainService;
         _authorizationCacheService = authorizationCacheService;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _menuRepository = menuRepository;
+        _userSessionRepository = userSessionRepository;
         _loginLogRepository = loginLogRepository;
+        _jwtTokenService = jwtTokenService;
         _passwordHasher = passwordHasher;
+        _captchaCache = captchaCache;
+        _refreshTokenCache = refreshTokenCache;
+        _sessionTokenMapCache = sessionTokenMapCache;
+        _configuration = configuration;
+        _jwtOptions = jwtOptions.Value;
+        _currentUser = currentUser;
+        _clientInfoProvider = clientInfoProvider;
+        _httpContextAccessor = httpContextAccessor;
         _unitOfWorkManager = unitOfWorkManager;
+    }
+
+    /// <summary>
+    /// 获取登录配置
+    /// </summary>
+    [DynamicApi(Name = "login-config")]
+    public Task<ApiResponse> GetLoginConfigAsync()
+    {
+        var loginMethods = _configuration.GetSection("XiHan:Authentication:LoginMethods").Get<string[]>();
+        var oauthProviders = _configuration.GetSection("XiHan:Authentication:OAuth:Providers").Get<string[]>();
+
+        var response = new LoginConfigDto
+        {
+            CaptchaEnabled = _configuration.GetValue("XiHan:Authentication:Captcha:Enabled", true),
+            TenantEnabled = _configuration.GetValue("XiHan:MultiTenancy:Enabled", true),
+            LoginMethods = loginMethods is { Length: > 0 } ? [.. loginMethods] : ["password"],
+            OauthProviders = oauthProviders is { Length: > 0 } ? [.. oauthProviders] : []
+        };
+
+        return Task.FromResult(Success(response));
+    }
+
+    /// <summary>
+    /// 获取验证码
+    /// </summary>
+    [DynamicApi(Name = "captcha")]
+    public async Task<ApiResponse> GetCaptchaAsync()
+    {
+        var captchaCode = GenerateCaptchaCode();
+        var captchaId = Guid.NewGuid().ToString("N")[..8];
+        var expireAt = DateTimeOffset.UtcNow.AddMinutes(CaptchaExpireMinutes);
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpiration = expireAt
+        };
+
+        await _captchaCache.SetAsync(
+            BuildCaptchaCacheKey(captchaId),
+            new AuthCaptchaCacheItem
+            {
+                Code = captchaCode,
+                ExpireAt = expireAt
+            },
+            options: cacheOptions,
+            hideErrors: true);
+
+        var response = new CaptchaDto
+        {
+            CaptchaId = captchaId,
+            ImageBase64 = BuildCaptchaSvgImage(captchaCode)
+        };
+
+        return Success(response);
     }
 
     /// <summary>
     /// 登录
     /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task<UserLoginResultDto> LoginAsync(UserLoginCommand command)
+    [DynamicApi(Name = "login")]
+    public async Task<ApiResponse> LoginAsync(UserLoginCommand command)
     {
         command.ValidateAnnotations();
+        command.UserName = command.UserName.Trim();
+        var clientInfo = _clientInfoProvider.GetCurrent();
 
+        if (!await ValidateCaptchaAsync(command))
+        {
+            return Error(ApiResponseCodes.BadRequest, "验证码错误或已过期");
+        }
+
+        var refreshToken = string.Empty;
+        var sessionId = Guid.NewGuid().ToString("N");
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByUserNameAsync(command.UserName.Trim(), command.TenantId);
+        var user = await _userRepository.GetByUserNameAsync(command.UserName, command.TenantId);
         if (user is null)
         {
-            await WriteLoginLogAsync(0, command, LoginResult.InvalidCredentials, "用户名或密码错误");
+            await WriteLoginLogAsync(0, command, LoginResult.InvalidCredentials, clientInfo, "用户名或密码错误");
             await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                LoginResult = LoginResult.InvalidCredentials,
-                Message = "用户名或密码错误"
-            };
+            return Error(ApiResponseCodes.Unauthorized, "用户名或密码错误");
         }
 
         if (user.Status != YesOrNo.Yes)
         {
-            await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountDisabled, "账号已禁用");
+            await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountDisabled, clientInfo, "账号已禁用");
             await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                UserId = user.BasicId,
-                UserName = user.UserName,
-                LoginResult = LoginResult.AccountDisabled,
-                Message = "账号已禁用"
-            };
+            return Error(ApiResponseCodes.Forbidden, "账号已禁用");
         }
 
         var security = await EnsureSecurityProfileAsync(user);
         if (security.IsLocked && security.LockoutEndTime.HasValue && security.LockoutEndTime > DateTimeOffset.UtcNow)
         {
-            await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountLocked, "账号已锁定");
+            await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountLocked, clientInfo, "账号已锁定");
             await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                UserId = user.BasicId,
-                UserName = user.UserName,
-                LoginResult = LoginResult.AccountLocked,
-                Message = $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试"
-            };
+            return Error(ApiResponseCodes.Forbidden, $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
         }
 
         var password = PasswordValueObject.FromHash(user.Password);
         if (!password.Verify(command.Password, _passwordHasher))
         {
             await HandlePasswordFailureAsync(security);
-            await WriteLoginLogAsync(user.BasicId, command, LoginResult.InvalidCredentials, "用户名或密码错误");
+            await WriteLoginLogAsync(user.BasicId, command, LoginResult.InvalidCredentials, clientInfo, "用户名或密码错误");
             await uow.CompleteAsync();
-            return new UserLoginResultDto
-            {
-                Success = false,
-                UserId = user.BasicId,
-                UserName = user.UserName,
-                LoginResult = LoginResult.InvalidCredentials,
-                Message = "用户名或密码错误"
-            };
+            return Error(ApiResponseCodes.Unauthorized, "用户名或密码错误");
         }
 
         security.FailedLoginAttempts = 0;
@@ -151,32 +244,192 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         await _userRepository.SaveSecurityAsync(security);
 
         user.LastLoginTime = DateTimeOffset.UtcNow;
+        user.LastLoginIp = clientInfo.IpAddress;
         await _userRepository.UpdateAsync(user);
 
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+        var tokenResult = _jwtTokenService.GenerateAccessToken(
+            BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+        refreshToken = tokenResult.RefreshToken;
+
+        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
+        await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, clientInfo, "登录成功");
+        await uow.CompleteAsync();
+
+        await SaveRefreshTokenAsync(refreshToken, user, sessionId);
+
+        var response = new AuthTokenDto
+        {
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ExpiresIn = tokenResult.ExpiresIn,
+            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+        };
+
+        return Success(response);
+    }
+
+    /// <summary>
+    /// 刷新令牌
+    /// </summary>
+    [DynamicApi(Name = "refresh-token")]
+    public async Task<ApiResponse> RefreshTokenAsync(RefreshTokenCommand command)
+    {
+        command.ValidateAnnotations();
+        var refreshToken = command.RefreshToken.Trim();
+        var oldRefreshTokenCacheKey = BuildRefreshTokenCacheKey(refreshToken);
+        var cachedToken = await _refreshTokenCache.GetAsync(oldRefreshTokenCacheKey, hideErrors: true);
+        if (cachedToken is null || cachedToken.ExpireAt <= DateTimeOffset.UtcNow)
+        {
+            return Error(ApiResponseCodes.Unauthorized, "刷新令牌已失效，请重新登录");
+        }
+
+        var user = await _userRepository.GetByIdAsync(cachedToken.UserId);
+        if (user is null || user.Status != YesOrNo.Yes)
+        {
+            await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
+            await _sessionTokenMapCache.RemoveAsync(BuildSessionTokenMapCacheKey(cachedToken.SessionId), hideErrors: true);
+            return Error(ApiResponseCodes.Unauthorized, "登录状态已失效，请重新登录");
+        }
+
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+        var sessionId = string.IsNullOrWhiteSpace(cachedToken.SessionId) ? Guid.NewGuid().ToString("N") : cachedToken.SessionId;
+        var tokenResult = _jwtTokenService.GenerateAccessToken(
+            BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
+        await uow.CompleteAsync();
+
+        await SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
+        if (!string.Equals(oldRefreshTokenCacheKey, BuildRefreshTokenCacheKey(tokenResult.RefreshToken), StringComparison.Ordinal))
+        {
+            await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
+        }
+
+        var response = new AuthTokenDto
+        {
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ExpiresIn = tokenResult.ExpiresIn,
+            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+        };
+
+        return Success(response);
+    }
+
+    /// <summary>
+    /// 获取当前用户信息
+    /// </summary>
+    [DynamicApi(Name = "me")]
+    public async Task<ApiResponse> GetCurrentUserAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync();
+        if (user is null)
+        {
+            return Error(ApiResponseCodes.Unauthorized, "未登录或登录已过期");
+        }
+
+        var response = new CurrentUserDto
+        {
+            UserId = user.BasicId,
+            UserName = user.UserName,
+            NickName = user.NickName,
+            Avatar = user.Avatar,
+            TenantId = user.TenantId
+        };
+        return Success(response);
+    }
+
+    /// <summary>
+    /// 获取权限上下文
+    /// </summary>
+    [DynamicApi(Name = "permissions")]
+    public async Task<ApiResponse> GetPermissionsAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync();
+        if (user is null)
+        {
+            return Error(ApiResponseCodes.Unauthorized, "未登录或登录已过期");
+        }
+
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
         var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
             user.BasicId,
             user.TenantId,
             token => _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId, token));
-        await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, "登录成功");
+        var userPermissions = await _permissionRepository.GetUserPermissionsAsync(user.BasicId, user.TenantId);
+        var userMenus = await _menuRepository.GetUserMenusAsync(user.BasicId, user.TenantId);
+
+        var permissionCodeSet = permissionCodes
+            .Where(static code => !string.IsNullOrWhiteSpace(code))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var resourcePermissionMap = userPermissions
+            .Where(permission =>
+                permission.ResourceId > 0 &&
+                !string.IsNullOrWhiteSpace(permission.PermissionCode) &&
+                permissionCodeSet.Contains(permission.PermissionCode))
+            .GroupBy(permission => permission.ResourceId)
+            .ToDictionary(group => group.Key, group => group.Select(static permission => permission.PermissionCode).First());
+
+        var response = new AuthPermissionDto
+        {
+            Roles = [.. roleCodes],
+            Permissions = [.. permissionCodeSet.OrderBy(static code => code)],
+            Menus = BuildMenuRoutes(userMenus, resourcePermissionMap)
+        };
+
+        return Success(response);
+    }
+
+    /// <summary>
+    /// 退出登录
+    /// </summary>
+    [DynamicApi(Name = "logout")]
+    public async Task<ApiResponse> LogoutAsync()
+    {
+        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
+        {
+            return Success();
+        }
+
+        var userId = _currentUser.UserId.Value;
+        var tenantId = _currentUser.TenantId;
+        var sessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        if (!string.IsNullOrWhiteSpace(sessionId))
+        {
+            await MarkSessionRevokedAsync(sessionId, tenantId, "用户主动退出");
+        }
+        else
+        {
+            await _userSessionRepository.RevokeUserSessionsAsync(userId, "用户主动退出", tenantId);
+        }
+
         await uow.CompleteAsync();
 
-        return new UserLoginResultDto
+        if (!string.IsNullOrWhiteSpace(sessionId))
         {
-            Success = true,
-            UserId = user.BasicId,
-            UserName = user.UserName,
-            LoginResult = LoginResult.Success,
-            Message = "登录成功",
-            PermissionCodes = permissionCodes
-        };
+            await RemoveSessionTokenAsync(sessionId);
+        }
+
+        return Success();
     }
 
     /// <summary>
     /// 修改密码
     /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    public async Task ChangePasswordAsync(ChangePasswordCommand command)
+    [DynamicApi(Name = "change-password")]
+    public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordCommand command)
     {
         command.ValidateAnnotations();
 
@@ -192,34 +445,245 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         await _userManager.ChangePasswordAsync(user, command.NewPassword);
         await uow.CompleteAsync();
+
+        return Success();
     }
 
     /// <summary>
     /// 获取用户权限编码
     /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    public async Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query)
+    [DynamicApi(Name = "permission-codes")]
+    public async Task<ApiResponse> GetPermissionCodesAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return await _authorizationCacheService.GetUserPermissionCodesAsync(
+        var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
             query.UserId,
             query.TenantId,
             token => _authorizationDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId, token));
+        return Success(permissionCodes);
     }
 
     /// <summary>
     /// 获取用户数据范围部门ID
     /// </summary>
-    /// <param name="query"></param>
-    /// <returns></returns>
-    public async Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
+    [DynamicApi(Name = "data-scope-department-ids")]
+    public async Task<ApiResponse> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
+        var departmentIds = await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
             query.UserId,
             query.TenantId,
             token => _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
+        return Success(departmentIds);
+    }
+
+    /// <summary>
+    /// 构建用户声明
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="roleCodes"></param>
+    /// <param name="sessionId"></param>
+    /// <param name="accessTokenJti"></param>
+    /// <returns></returns>
+    private static List<Claim> BuildUserClaims(SysUser user, IReadOnlyCollection<string> roleCodes, string sessionId, string accessTokenJti)
+    {
+        var claims = new List<Claim>
+        {
+            new(XiHanClaimTypes.UserId, user.BasicId.ToString()),
+            new(XiHanClaimTypes.UserName, user.UserName),
+            new(XiHanClaimTypes.SessionId, sessionId),
+            new(JwtRegisteredClaimNames.Jti, accessTokenJti)
+        };
+
+        if (!string.IsNullOrWhiteSpace(user.NickName))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Name, user.NickName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Email, user.Email));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Phone))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.PhoneNumber, user.Phone));
+        }
+
+        if (user.TenantId.HasValue)
+        {
+            claims.Add(new Claim(XiHanClaimTypes.TenantId, user.TenantId.Value.ToString()));
+        }
+
+        foreach (var roleCode in roleCodes.Where(static roleCode => !string.IsNullOrWhiteSpace(roleCode)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Role, roleCode));
+        }
+
+        return claims;
+    }
+
+    /// <summary>
+    /// 构建菜单树
+    /// </summary>
+    /// <param name="menus"></param>
+    /// <param name="resourcePermissionMap"></param>
+    /// <returns></returns>
+    private static IReadOnlyList<AuthMenuRouteDto> BuildMenuRoutes(
+        IReadOnlyList<SysMenu> menus,
+        IReadOnlyDictionary<long, string> resourcePermissionMap)
+    {
+        var routeMenus = menus
+            .Where(menu => menu.MenuType != MenuType.Button)
+            .OrderBy(static menu => menu.Sort)
+            .ThenBy(static menu => menu.BasicId)
+            .ToList();
+        var menuMap = routeMenus.ToDictionary(static menu => menu.BasicId, menu => MapMenuRoute(menu, resourcePermissionMap));
+        var rootMenus = new List<AuthMenuRouteDto>();
+
+        foreach (var menu in routeMenus)
+        {
+            var route = menuMap[menu.BasicId];
+            if (menu.ParentId.HasValue && menuMap.TryGetValue(menu.ParentId.Value, out var parent))
+            {
+                parent.Children.Add(route);
+            }
+            else
+            {
+                rootMenus.Add(route);
+            }
+        }
+
+        SortMenuTree(rootMenus);
+        return rootMenus;
+    }
+
+    /// <summary>
+    /// 映射菜单路由
+    /// </summary>
+    /// <param name="menu"></param>
+    /// <param name="resourcePermissionMap"></param>
+    /// <returns></returns>
+    private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlyDictionary<long, string> resourcePermissionMap)
+    {
+        var permissionCode = menu.ResourceId.HasValue && resourcePermissionMap.TryGetValue(menu.ResourceId.Value, out var permission)
+            ? permission
+            : null;
+        return new AuthMenuRouteDto
+        {
+            Name = !string.IsNullOrWhiteSpace(menu.RouteName)
+                ? menu.RouteName
+                : !string.IsNullOrWhiteSpace(menu.MenuCode)
+                    ? menu.MenuCode
+                    : $"menu_{menu.BasicId}",
+            Path = !string.IsNullOrWhiteSpace(menu.Path) ? menu.Path : BuildFallbackMenuPath(menu),
+            Component = menu.Component,
+            Redirect = menu.Redirect,
+            Permission = permissionCode,
+            Meta = new AuthMenuMetaDto
+            {
+                Title = !string.IsNullOrWhiteSpace(menu.Title) ? menu.Title : menu.MenuName,
+                Icon = menu.Icon,
+                Hidden = !menu.IsVisible,
+                KeepAlive = menu.IsCache,
+                AffixTab = menu.IsAffix,
+                Permissions = string.IsNullOrWhiteSpace(permissionCode) ? [] : [permissionCode],
+                Order = menu.Sort,
+                Link = menu.IsExternal ? menu.ExternalUrl : null
+            }
+        };
+    }
+
+    /// <summary>
+    /// 排序菜单树
+    /// </summary>
+    /// <param name="menus"></param>
+    private static void SortMenuTree(List<AuthMenuRouteDto> menus)
+    {
+        menus.Sort((left, right) => left.Meta.Order.CompareTo(right.Meta.Order));
+        foreach (var menu in menus.Where(static menu => menu.Children.Count > 0))
+        {
+            SortMenuTree(menu.Children);
+        }
+    }
+
+    /// <summary>
+    /// 构建兜底菜单路径
+    /// </summary>
+    /// <param name="menu"></param>
+    /// <returns></returns>
+    private static string BuildFallbackMenuPath(SysMenu menu)
+    {
+        var seed = string.IsNullOrWhiteSpace(menu.MenuCode) ? $"menu-{menu.BasicId}" : menu.MenuCode;
+        var normalized = seed
+            .Replace("_", "-", StringComparison.Ordinal)
+            .Replace(":", "-", StringComparison.Ordinal)
+            .ToLowerInvariant();
+        return menu.ParentId.HasValue ? normalized : $"/{normalized}";
+    }
+
+    /// <summary>
+    /// 构建验证码缓存键
+    /// </summary>
+    /// <param name="captchaId"></param>
+    /// <returns></returns>
+    private static string BuildCaptchaCacheKey(string captchaId)
+    {
+        return $"auth:captcha:{captchaId}";
+    }
+
+    /// <summary>
+    /// 构建刷新令牌缓存键
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <returns></returns>
+    private static string BuildRefreshTokenCacheKey(string refreshToken)
+    {
+        var tokenBytes = Encoding.UTF8.GetBytes(refreshToken);
+        var tokenHash = Convert.ToHexString(SHA256.HashData(tokenBytes));
+        return $"auth:refresh:{tokenHash}";
+    }
+
+    /// <summary>
+    /// 构建会话映射缓存键
+    /// </summary>
+    /// <param name="sessionId"></param>
+    /// <returns></returns>
+    private static string BuildSessionTokenMapCacheKey(string sessionId)
+    {
+        return $"auth:session:{sessionId}";
+    }
+
+    /// <summary>
+    /// 构建验证码图片
+    /// </summary>
+    /// <param name="captchaCode"></param>
+    /// <returns></returns>
+    private static string BuildCaptchaSvgImage(string captchaCode)
+    {
+        var svg = $"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+              <rect width="120" height="40" fill="#f5f7fa"/>
+              <text x="60" y="27" text-anchor="middle" font-size="22" font-family="Arial, sans-serif" fill="#303133" letter-spacing="4">{captchaCode}</text>
+            </svg>
+            """;
+        return $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(svg))}";
+    }
+
+    /// <summary>
+    /// 生成验证码
+    /// </summary>
+    /// <returns></returns>
+    private static string GenerateCaptchaCode()
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        Span<char> buffer = stackalloc char[CaptchaLength];
+        for (var index = 0; index < buffer.Length; index++)
+        {
+            buffer[index] = chars[RandomNumberGenerator.GetInt32(chars.Length)];
+        }
+
+        return new string(buffer);
     }
 
     /// <summary>
@@ -228,21 +692,256 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="userId"></param>
     /// <param name="command"></param>
     /// <param name="loginResult"></param>
+    /// <param name="clientInfo"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, string message)
+    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message)
     {
         var log = new SysLoginLog
         {
             TenantId = command.TenantId,
             UserId = userId,
             UserName = command.UserName,
+            LoginIp = clientInfo.IpAddress,
+            LoginLocation = clientInfo.Location,
+            Browser = clientInfo.Browser,
+            Os = clientInfo.OperatingSystem,
             LoginResult = loginResult,
             Message = message,
             LoginTime = DateTimeOffset.UtcNow
         };
 
         await _loginLogRepository.AddAsync(log);
+    }
+
+    /// <summary>
+    /// 获取当前用户实体
+    /// </summary>
+    /// <returns></returns>
+    private async Task<SysUser?> ResolveCurrentUserEntityAsync()
+    {
+        if (!_currentUser.UserId.HasValue)
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetByIdAsync(_currentUser.UserId.Value);
+        return user is not null && user.Status == YesOrNo.Yes ? user : null;
+    }
+
+    /// <summary>
+    /// 获取用户角色编码
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    private async Task<IReadOnlyCollection<string>> GetUserRoleCodesAsync(long userId, long? tenantId)
+    {
+        var userRoles = await _userRepository.GetUserRolesAsync(userId, tenantId);
+        var roleIds = userRoles
+            .Where(role => role.Status == YesOrNo.Yes)
+            .Select(static role => role.RoleId)
+            .Distinct()
+            .ToArray();
+
+        if (roleIds.Length == 0)
+        {
+            return [];
+        }
+
+        var roles = await _roleRepository.GetByIdsAsync(roleIds);
+        return [.. roles
+            .Where(role => role.Status == YesOrNo.Yes && !string.IsNullOrWhiteSpace(role.RoleCode))
+            .OrderBy(static role => role.Sort)
+            .Select(static role => role.RoleCode)
+            .Distinct(StringComparer.OrdinalIgnoreCase)];
+    }
+
+    /// <summary>
+    /// 保存或更新会话
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="sessionId"></param>
+    /// <param name="accessTokenJti"></param>
+    /// <returns></returns>
+    private async Task SaveOrUpdateSessionAsync(SysUser user, string sessionId, string accessTokenJti)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var clientInfo = _clientInfoProvider.GetCurrent();
+        var session = await _userSessionRepository.GetBySessionIdAsync(sessionId, user.TenantId);
+        if (session is null)
+        {
+            session = new SysUserSession
+            {
+                TenantId = user.TenantId,
+                UserId = user.BasicId,
+                CurrentAccessTokenJti = accessTokenJti,
+                SessionId = sessionId,
+                DeviceType = DeviceType.Web,
+                DeviceName = clientInfo.DeviceName ?? "Web Browser",
+                Browser = clientInfo.Browser,
+                OperatingSystem = clientInfo.OperatingSystem,
+                IpAddress = clientInfo.IpAddress,
+                Location = clientInfo.Location,
+                LoginTime = now,
+                LastActivityTime = now,
+                IsOnline = true,
+                IsRevoked = false
+            };
+            await _userSessionRepository.AddAsync(session);
+            return;
+        }
+
+        session.CurrentAccessTokenJti = accessTokenJti;
+        session.LastActivityTime = now;
+        session.IsOnline = true;
+        session.IsRevoked = false;
+        session.RevokedAt = null;
+        session.RevokedReason = null;
+        session.LogoutTime = null;
+        session.DeviceName = clientInfo.DeviceName ?? session.DeviceName;
+        session.IpAddress = clientInfo.IpAddress;
+        session.Browser = clientInfo.Browser;
+        session.OperatingSystem = clientInfo.OperatingSystem;
+        session.Location = clientInfo.Location;
+        await _userSessionRepository.UpdateAsync(session);
+    }
+
+    /// <summary>
+    /// 标记会话已撤销
+    /// </summary>
+    /// <param name="sessionId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="reason"></param>
+    /// <returns></returns>
+    private async Task MarkSessionRevokedAsync(string sessionId, long? tenantId, string reason)
+    {
+        var session = await _userSessionRepository.GetBySessionIdAsync(sessionId, tenantId);
+        if (session is null)
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        session.IsOnline = false;
+        session.IsRevoked = true;
+        session.RevokedAt = now;
+        session.LogoutTime = now;
+        session.RevokedReason = reason;
+        await _userSessionRepository.UpdateAsync(session);
+    }
+
+    /// <summary>
+    /// 保存刷新令牌
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <param name="user"></param>
+    /// <param name="sessionId"></param>
+    /// <returns></returns>
+    private async Task SaveRefreshTokenAsync(string refreshToken, SysUser user, string sessionId)
+    {
+        var refreshTokenCacheKey = BuildRefreshTokenCacheKey(refreshToken);
+        var expireAt = DateTimeOffset.UtcNow.AddDays(Math.Max(1, _jwtOptions.RefreshTokenExpirationDays));
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpiration = expireAt
+        };
+
+        await _refreshTokenCache.SetAsync(
+            refreshTokenCacheKey,
+            new AuthRefreshTokenCacheItem
+            {
+                UserId = user.BasicId,
+                UserName = user.UserName,
+                TenantId = user.TenantId,
+                SessionId = sessionId,
+                ExpireAt = expireAt
+            },
+            options: cacheOptions,
+            hideErrors: true);
+
+        await _sessionTokenMapCache.SetAsync(
+            BuildSessionTokenMapCacheKey(sessionId),
+            new AuthSessionTokenMapCacheItem
+            {
+                RefreshTokenCacheKey = refreshTokenCacheKey
+            },
+            options: cacheOptions,
+            hideErrors: true);
+    }
+
+    /// <summary>
+    /// 移除会话令牌
+    /// </summary>
+    /// <param name="sessionId"></param>
+    /// <returns></returns>
+    private async Task RemoveSessionTokenAsync(string sessionId)
+    {
+        var sessionTokenMapCacheKey = BuildSessionTokenMapCacheKey(sessionId);
+        var tokenMap = await _sessionTokenMapCache.GetAsync(sessionTokenMapCacheKey, hideErrors: true);
+        if (tokenMap is not null && !string.IsNullOrWhiteSpace(tokenMap.RefreshTokenCacheKey))
+        {
+            await _refreshTokenCache.RemoveAsync(tokenMap.RefreshTokenCacheKey, hideErrors: true);
+        }
+
+        await _sessionTokenMapCache.RemoveAsync(sessionTokenMapCacheKey, hideErrors: true);
+    }
+
+    /// <summary>
+    /// 校验验证码
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    private async Task<bool> ValidateCaptchaAsync(UserLoginCommand command)
+    {
+        if (!_configuration.GetValue("XiHan:Authentication:Captcha:Enabled", true))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(command.CaptchaId) || string.IsNullOrWhiteSpace(command.CaptchaCode))
+        {
+            return false;
+        }
+
+        var captchaCacheKey = BuildCaptchaCacheKey(command.CaptchaId.Trim());
+        var captchaCacheItem = await _captchaCache.GetAsync(captchaCacheKey, hideErrors: true);
+        if (captchaCacheItem is null || captchaCacheItem.ExpireAt <= DateTimeOffset.UtcNow)
+        {
+            await _captchaCache.RemoveAsync(captchaCacheKey, hideErrors: true);
+            return false;
+        }
+
+        await _captchaCache.RemoveAsync(captchaCacheKey, hideErrors: true);
+        return string.Equals(captchaCacheItem.Code, command.CaptchaCode.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 成功响应
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    private ApiResponse Success(object? data = null)
+    {
+        return ApiResponse.Success(data, _httpContextAccessor.HttpContext?.TraceIdentifier);
+    }
+
+    /// <summary>
+    /// 失败响应
+    /// </summary>
+    /// <param name="code"></param>
+    /// <param name="message"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    private ApiResponse Error(ApiResponseCodes code, string message, object? data = null)
+    {
+        return new ApiResponse
+        {
+            Code = code,
+            Message = message,
+            Data = data,
+            TraceId = _httpContextAccessor.HttpContext?.TraceIdentifier
+        };
     }
 
     /// <summary>
