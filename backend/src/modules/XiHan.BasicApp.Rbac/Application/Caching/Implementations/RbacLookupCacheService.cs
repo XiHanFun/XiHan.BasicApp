@@ -14,7 +14,7 @@
 
 using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Rbac.Application.Dtos;
-using XiHan.Framework.Caching;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Application.Caching.Implementations;
 

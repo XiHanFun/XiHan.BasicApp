@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
@@ -43,27 +42,17 @@ public interface ICacheService : IApplicationService
     Task RemoveManyAsync(IReadOnlyCollection<string> keys, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 失效授权缓存
+    /// 判断缓存键是否存在
     /// </summary>
-    Task InvalidateAuthorizationAsync(long? tenantId = null, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 失效查找缓存
+    /// 按模式获取缓存键
     /// </summary>
-    Task InvalidateLookupAsync(long? tenantId = null, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<string>> GetKeysAsync(string pattern = "*", CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 失效消息缓存
+    /// 按模式删除缓存项
     /// </summary>
-    Task InvalidateMessageAsync(long? tenantId = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 失效全部缓存
-    /// </summary>
-    Task InvalidateAllAsync(long? tenantId = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 获取缓存版本快照
-    /// </summary>
-    Task<SysCacheSnapshotDto> GetSnapshotAsync(long? tenantId = null, CancellationToken cancellationToken = default);
+    Task<long> RemoveByPatternAsync(string pattern = "*", CancellationToken cancellationToken = default);
 }

@@ -35,7 +35,7 @@ using XiHan.Framework.Application.Contracts.Enums;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.Password;
-using XiHan.Framework.Caching;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
@@ -85,8 +85,21 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="userManager"></param>
     /// <param name="authorizationDomainService"></param>
     /// <param name="authorizationCacheService"></param>
+    /// <param name="roleRepository"></param>
+    /// <param name="permissionRepository"></param>
+    /// <param name="menuRepository"></param>
+    /// <param name="userSessionRepository"></param>
     /// <param name="loginLogRepository"></param>
+    /// <param name="jwtTokenService"></param>
     /// <param name="passwordHasher"></param>
+    /// <param name="captchaCache"></param>
+    /// <param name="refreshTokenCache"></param>
+    /// <param name="sessionTokenMapCache"></param>
+    /// <param name="configuration"></param>
+    /// <param name="jwtOptions"></param>
+    /// <param name="currentUser"></param>
+    /// <param name="clientInfoProvider"></param>
+    /// <param name="httpContextAccessor"></param>
     /// <param name="unitOfWorkManager"></param>
     public AuthAppService(
         IUserRepository userRepository,
