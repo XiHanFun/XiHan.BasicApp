@@ -1,12 +1,14 @@
 export const API_CONTRACT = {
   auth: {
-    login: '/auth/login',
-    refreshToken: '/auth/refreshToken',
-    logout: '/auth/logout',
-    currentUser: '/user/byUserName',
-    userMenus: '/menu/userMenus',
-    codes: '/auth/permissionCodes',
+    loginConfig: '/auth/login-config',
     captcha: '/auth/captcha',
+    login: '/auth/login',
+    refreshToken: '/auth/refresh-token',
+    currentUser: '/auth/me',
+    permissions: '/auth/permissions',
+    logout: '/auth/logout',
+    codes: '/auth/permission-codes',
+    userMenus: '/menu/userMenus',
   },
   system: {
     users: '/system/users',

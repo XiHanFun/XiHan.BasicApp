@@ -1,3 +1,5 @@
+import type { MenuRoute } from './menu'
+
 // ==================== 认证 & 用户类型 ====================
 
 export interface UserInfo {
@@ -9,15 +11,29 @@ export interface UserInfo {
   avatar?: string
   email?: string
   phone?: string
+  tenantId?: null | number
   roles: string[]
   permissions: string[]
+}
+
+export interface LoginConfig {
+  captchaEnabled: boolean
+  loginMethods: string[]
+  tenantEnabled: boolean
+  oauthProviders: string[]
+}
+
+export interface CaptchaInfo {
+  captchaId: string
+  imageBase64: string
 }
 
 export interface LoginParams {
   username: string
   password: string
+  tenantId?: null | number
+  captchaId?: string
   captchaCode?: string
-  captchaKey?: string
 }
 
 export interface LoginResult {
@@ -27,7 +43,10 @@ export interface LoginResult {
   expiresIn: number
   issuedAt: string
   expiresAt: string
-  user: UserInfo
+}
+
+export interface PermissionInfo {
   roles: string[]
   permissions: string[]
+  menus: MenuRoute[]
 }

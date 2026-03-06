@@ -20,4 +20,10 @@
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Upgrade\XiHan.BasicApp.Upgrade.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="IpDatabases\ip2region.xdb">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

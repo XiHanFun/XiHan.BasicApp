@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
+using XiHan.Framework.Application.Contracts.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
@@ -25,19 +26,49 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices;
 public interface IAuthAppService : IApplicationService
 {
     /// <summary>
+    /// 获取登录配置
+    /// </summary>
+    Task<ApiResponse> GetLoginConfigAsync();
+
+    /// <summary>
+    /// 获取验证码
+    /// </summary>
+    Task<ApiResponse> GetCaptchaAsync();
+
+    /// <summary>
     /// 登录
     /// </summary>
-    Task<UserLoginResultDto> LoginAsync(UserLoginCommand command);
+    Task<ApiResponse> LoginAsync(UserLoginCommand command);
+
+    /// <summary>
+    /// 刷新令牌
+    /// </summary>
+    Task<ApiResponse> RefreshTokenAsync(RefreshTokenCommand command);
+
+    /// <summary>
+    /// 获取当前用户
+    /// </summary>
+    Task<ApiResponse> GetCurrentUserAsync();
+
+    /// <summary>
+    /// 获取权限上下文
+    /// </summary>
+    Task<ApiResponse> GetPermissionsAsync();
+
+    /// <summary>
+    /// 退出登录
+    /// </summary>
+    Task<ApiResponse> LogoutAsync();
 
     /// <summary>
     /// 修改密码
     /// </summary>
-    Task ChangePasswordAsync(ChangePasswordCommand command);
+    Task<ApiResponse> ChangePasswordAsync(ChangePasswordCommand command);
 
     /// <summary>
     /// 获取用户权限编码
     /// </summary>
-    Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
+    Task<ApiResponse> GetPermissionCodesAsync(UserPermissionQuery query);
 
     /// <summary>
     /// 获取用户数据范围部门ID
@@ -45,5 +76,5 @@ public interface IAuthAppService : IApplicationService
     /// <remarks>
     /// 空集合表示不限部门（全量数据范围）。
     /// </remarks>
-    Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
+    Task<ApiResponse> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
 }

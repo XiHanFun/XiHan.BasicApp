@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
+import type { LoginConfig } from '~/types'
 import { Icon } from '@iconify/vue'
 import {
   NButton,
@@ -12,9 +13,10 @@ import {
   NSelect,
   useMessage,
 } from 'naive-ui'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { getCaptchaApi, getLoginConfigApi } from '~/api'
 import { useTheme } from '~/hooks'
 import { useAuthStore } from '~/stores'
 
@@ -29,6 +31,16 @@ const message = useMessage()
 const formRef = ref<FormInst | null>(null)
 const rememberMe = ref(true)
 const showPassword = ref(false)
+const loginConfig = ref<LoginConfig>({
+  captchaEnabled: true,
+  loginMethods: ['password'],
+  tenantEnabled: true,
+  oauthProviders: [],
+})
+const captcha = ref({
+  captchaId: '',
+  imageBase64: '',
+})
 
 const accountOptions = [
   { label: 'Super', value: 'superadmin' },
@@ -40,11 +52,33 @@ const formData = ref({
   selectAccount: 'superadmin',
   username: 'superadmin',
   password: 'Admin@123',
+  tenantId: '1',
+  captchaCode: '',
 })
 
 const rules: FormRules = {
   username: [{ required: true, message: () => t('page.login.username_placeholder'), trigger: 'blur' }],
   password: [{ required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' }],
+  tenantId: [
+    {
+      trigger: 'blur',
+      validator: (_rule, value: string) => {
+        if (!loginConfig.value.tenantEnabled) return true
+        if (!value?.trim()) return new Error('请输入租户ID')
+        return true
+      },
+    },
+  ],
+  captchaCode: [
+    {
+      trigger: 'blur',
+      validator: (_rule, value: string) => {
+        if (!loginConfig.value.captchaEnabled) return true
+        if (!value?.trim()) return new Error('请输入验证码')
+        return true
+      },
+    },
+  ],
 }
 
 const redirect = computed(() => {
@@ -52,18 +86,65 @@ const redirect = computed(() => {
   return r ? decodeURIComponent(r) : undefined
 })
 
+const defaultOauthProviders = ['github', 'google']
+const oauthProviderMeta: Record<string, { icon: string; label: string }> = {
+  github: { icon: 'mdi:github', label: 'GitHub' },
+  google: { icon: 'logos:google-icon', label: 'Google' },
+}
+
+const oauthProviders = computed(() => {
+  const providers = (loginConfig.value.oauthProviders || [])
+    .map((provider) => provider.trim().toLowerCase())
+    .filter(Boolean)
+  return providers.length > 0 ? providers : defaultOauthProviders
+})
+
+function getOauthProviderLabel(provider: string) {
+  return oauthProviderMeta[provider]?.label ?? provider.toUpperCase()
+}
+
+function getOauthProviderIcon(provider: string) {
+  return oauthProviderMeta[provider]?.icon ?? 'lucide:link-2'
+}
+
 function handleSelectAccount(value: string) {
   formData.value.username = value
   formData.value.password = 'Admin@123'
 }
 
+async function refreshCaptcha() {
+  if (!loginConfig.value.captchaEnabled) return
+
+  captcha.value = await getCaptchaApi()
+  formData.value.captchaCode = ''
+}
+
+async function loadLoginConfig() {
+  loginConfig.value = await getLoginConfigApi()
+  if (loginConfig.value.captchaEnabled) {
+    try {
+      await refreshCaptcha()
+    }
+    catch {
+      message.error('加载验证码失败')
+    }
+  }
+}
+
 async function handleLogin() {
   try {
     await formRef.value?.validate()
+    const parsedTenantId = Number(formData.value.tenantId)
     await authStore.login(
       {
         username: formData.value.username,
         password: formData.value.password,
+        tenantId:
+          loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId)
+            ? parsedTenantId
+            : undefined,
+        captchaId: loginConfig.value.captchaEnabled ? captcha.value.captchaId : undefined,
+        captchaCode: loginConfig.value.captchaEnabled ? formData.value.captchaCode : undefined,
       },
       redirect.value,
     )
@@ -72,6 +153,9 @@ async function handleLogin() {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
+    }
+    if (loginConfig.value.captchaEnabled) {
+      await refreshCaptcha()
     }
   }
 }
@@ -83,6 +167,15 @@ function handleKeydown(e: KeyboardEvent) {
 function goTo(path: string) {
   router.push(path)
 }
+
+onMounted(async () => {
+  try {
+    await loadLoginConfig()
+  }
+  catch {
+    message.error('加载登录配置失败')
+  }
+})
 </script>
 
 <template>
@@ -144,6 +237,42 @@ function goTo(path: string) {
           </template>
         </NInput>
       </NFormItem>
+      <NFormItem
+        v-if="loginConfig.tenantEnabled"
+        path="tenantId"
+        :show-feedback="false"
+        class="!mb-6"
+      >
+        <NInput
+          v-model:value="formData.tenantId"
+          size="large"
+          placeholder="请输入租户ID"
+        />
+      </NFormItem>
+      <NFormItem
+        v-if="loginConfig.captchaEnabled"
+        path="captchaCode"
+        :show-feedback="false"
+        class="!mb-6"
+      >
+        <div class="flex w-full items-center gap-3">
+          <NInput
+            v-model:value="formData.captchaCode"
+            size="large"
+            placeholder="请输入验证码"
+          />
+          <img
+            v-if="captcha.imageBase64"
+            :src="captcha.imageBase64"
+            alt="captcha"
+            class="h-10 w-32 cursor-pointer rounded-md border border-[hsl(var(--border))] bg-white px-2"
+            @click="refreshCaptcha"
+          >
+          <NButton v-else secondary @click="refreshCaptcha">
+            刷新
+          </NButton>
+        </div>
+      </NFormItem>
 
       <div class="mb-5 flex items-center justify-between text-sm">
         <NCheckbox v-model:checked="rememberMe">
@@ -170,16 +299,17 @@ function goTo(path: string) {
     >
       {{ t('page.auth.third_party_login') }}
     </NDivider>
-    <div class="flex items-center justify-center gap-4">
-      <NButton circle quaternary class="!h-11 !w-11">
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <NButton
+        v-for="provider in oauthProviders"
+        :key="provider"
+        secondary
+        class="!h-10 !rounded-xl !px-4 !text-sm"
+      >
         <template #icon>
-          <Icon icon="logos:github-icon" />
+          <Icon :icon="getOauthProviderIcon(provider)" width="16" />
         </template>
-      </NButton>
-      <NButton circle quaternary class="!h-11 !w-11">
-        <template #icon>
-          <Icon icon="logos:google-icon" />
-        </template>
+        {{ getOauthProviderLabel(provider) }}
       </NButton>
     </div>
 
