@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
-using XiHan.Framework.Caching;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Application.Caching.Implementations;
 

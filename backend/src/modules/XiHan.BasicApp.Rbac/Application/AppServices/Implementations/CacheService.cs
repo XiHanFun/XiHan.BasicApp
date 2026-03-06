@@ -13,10 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
-using XiHan.BasicApp.Rbac.Application.Caching;
-using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -26,23 +25,14 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 [DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
 public class CacheService : ApplicationServiceBase, ICacheService
 {
-    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
-    private readonly IRbacLookupCacheService _lookupCacheService;
-    private readonly IMessageCacheService _messageCacheService;
     private readonly IDistributedCache _distributedCache;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public CacheService(
-        IRbacAuthorizationCacheService authorizationCacheService,
-        IRbacLookupCacheService lookupCacheService,
-        IMessageCacheService messageCacheService,
         IDistributedCache distributedCache)
     {
-        _authorizationCacheService = authorizationCacheService;
-        _lookupCacheService = lookupCacheService;
-        _messageCacheService = messageCacheService;
         _distributedCache = distributedCache;
     }
 
@@ -87,66 +77,64 @@ public class CacheService : ApplicationServiceBase, ICacheService
     public async Task RemoveManyAsync(IReadOnlyCollection<string> keys, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(keys);
-        foreach (var key in keys.Where(static key => !string.IsNullOrWhiteSpace(key)))
+        var keyArray = keys
+            .Where(static key => !string.IsNullOrWhiteSpace(key))
+            .Select(static key => key.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (keyArray.Length == 0)
         {
-            await _distributedCache.RemoveAsync(key.Trim(), cancellationToken);
+            return;
+        }
+
+        if (_distributedCache is ICacheSupportsMultipleItems multipleItemsCache)
+        {
+            await multipleItemsCache.RemoveManyAsync(keyArray, cancellationToken);
+            return;
+        }
+
+        foreach (var key in keyArray)
+        {
+            await _distributedCache.RemoveAsync(key, cancellationToken);
         }
     }
 
     /// <summary>
-    /// 失效授权缓存
+    /// 判断缓存键是否存在
     /// </summary>
-    public Task InvalidateAuthorizationAsync(long? tenantId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
-        return _authorizationCacheService.InvalidateAllAsync(tenantId, cancellationToken);
+        ValidateKey(key);
+        return await _distributedCache.GetAsync(key, cancellationToken) is not null;
     }
 
     /// <summary>
-    /// 失效查找缓存
+    /// 按模式获取缓存键
     /// </summary>
-    public Task InvalidateLookupAsync(long? tenantId = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<string>> GetKeysAsync(string pattern = "*", CancellationToken cancellationToken = default)
     {
-        return _lookupCacheService.InvalidateAllAsync(tenantId, cancellationToken);
-    }
-
-    /// <summary>
-    /// 失效消息缓存
-    /// </summary>
-    public Task InvalidateMessageAsync(long? tenantId = null, CancellationToken cancellationToken = default)
-    {
-        return _messageCacheService.InvalidateUnreadCountAsync(tenantId, cancellationToken);
-    }
-
-    /// <summary>
-    /// 失效全部缓存
-    /// </summary>
-    public async Task InvalidateAllAsync(long? tenantId = null, CancellationToken cancellationToken = default)
-    {
-        await _authorizationCacheService.InvalidateAllAsync(tenantId, cancellationToken);
-        await _lookupCacheService.InvalidateAllAsync(tenantId, cancellationToken);
-        await _messageCacheService.InvalidateUnreadCountAsync(tenantId, cancellationToken);
-    }
-
-    /// <summary>
-    /// 获取缓存版本快照
-    /// </summary>
-    public async Task<SysCacheSnapshotDto> GetSnapshotAsync(long? tenantId = null, CancellationToken cancellationToken = default)
-    {
-        var authorizationSnapshot = await _authorizationCacheService.GetVersionSnapshotAsync(tenantId, cancellationToken);
-        var lookupSnapshot = await _lookupCacheService.GetVersionSnapshotAsync(tenantId, cancellationToken);
-        var messageVersion = await _messageCacheService.GetUnreadVersionAsync(tenantId, cancellationToken);
-
-        return new SysCacheSnapshotDto
+        var normalizedPattern = NormalizePattern(pattern);
+        if (_distributedCache is not ICacheSupportsKeyPattern keyPatternCache)
         {
-            TenantId = tenantId,
-            PermissionVersion = authorizationSnapshot.PermissionVersion,
-            DataScopeVersion = authorizationSnapshot.DataScopeVersion,
-            FileLookupVersion = lookupSnapshot.FileLookupVersion,
-            TaskLookupVersion = lookupSnapshot.TaskLookupVersion,
-            OAuthAppLookupVersion = lookupSnapshot.OAuthAppLookupVersion,
-            MessageUnreadVersion = messageVersion,
-            CollectedAt = DateTimeOffset.UtcNow
-        };
+            throw new NotSupportedException("当前缓存实现不支持按模式获取缓存键，请启用 Redis 缓存。");
+        }
+
+        return await keyPatternCache.GetKeysAsync(normalizedPattern, cancellationToken);
+    }
+
+    /// <summary>
+    /// 按模式删除缓存项
+    /// </summary>
+    public async Task<long> RemoveByPatternAsync(string pattern = "*", CancellationToken cancellationToken = default)
+    {
+        var normalizedPattern = NormalizePattern(pattern);
+        if (_distributedCache is not ICacheSupportsKeyPattern keyPatternCache)
+        {
+            throw new NotSupportedException("当前缓存实现不支持按模式删除缓存键，请启用 Redis 缓存。");
+        }
+
+        return await keyPatternCache.RemoveByPatternAsync(normalizedPattern, cancellationToken);
     }
 
     private static void ValidateKey(string key)
@@ -155,5 +143,10 @@ public class CacheService : ApplicationServiceBase, ICacheService
         {
             throw new ArgumentException("缓存键不能为空", nameof(key));
         }
+    }
+
+    private static string NormalizePattern(string pattern)
+    {
+        return string.IsNullOrWhiteSpace(pattern) ? "*" : pattern.Trim();
     }
 }
