@@ -108,7 +108,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserSessionAppService, UserSessionAppService>();
         services.AddScoped<INotificationAppService, NotificationAppService>();
         services.AddScoped<IMessageAppService, MessageAppService>();
-        services.AddScoped<ICacheService, CacheService>();
+        services.AddScoped<ICacheAppService, CacheAppService>();
         services.AddScoped<IServerService, ServerService>();
 
         return services;

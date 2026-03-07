@@ -168,8 +168,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.UserName = command.UserName.Trim();
         var clientInfo = _clientInfoProvider.GetCurrent();
 
-        var refreshToken = string.Empty;
-        var sessionId = Guid.NewGuid().ToString("N");
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         var user = await _userRepository.GetByUserNameAsync(command.UserName, command.TenantId);
         if (user is null)
@@ -216,10 +214,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         await _userRepository.UpdateAsync(user);
 
         var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var sessionId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
-        var tokenResult = _jwtTokenService.GenerateAccessToken(
-            BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
-        refreshToken = tokenResult.RefreshToken;
+        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+        var refreshToken = tokenResult.RefreshToken;
 
         await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
         await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, clientInfo, "登录成功");

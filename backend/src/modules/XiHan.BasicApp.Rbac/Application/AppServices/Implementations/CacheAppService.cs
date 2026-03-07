@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:CacheService
+// FileName:CacheAppService
 // Guid:9a67eaf4-3eca-4072-b5c3-0ae47f3b66ab
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -20,17 +20,17 @@ using XiHan.Framework.Caching.Distributed.Abstracts;
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
 /// <summary>
-/// 系统缓存服务
+/// 缓存应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
-public class CacheService : ApplicationServiceBase, ICacheService
+public class CacheAppService : ApplicationServiceBase, ICacheAppService
 {
     private readonly IDistributedCache _distributedCache;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CacheService(
+    public CacheAppService(
         IDistributedCache distributedCache)
     {
         _distributedCache = distributedCache;
