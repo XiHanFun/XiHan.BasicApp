@@ -54,8 +54,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 {
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 15;
-    private const int CaptchaLength = 4;
-    private const int CaptchaExpireMinutes = 5;
 
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
@@ -68,7 +66,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly ILoginLogRepository _loginLogRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IDistributedCache<AuthCaptchaCacheItem> _captchaCache;
     private readonly IDistributedCache<AuthRefreshTokenCacheItem> _refreshTokenCache;
     private readonly IDistributedCache<AuthSessionTokenMapCacheItem> _sessionTokenMapCache;
     private readonly IConfiguration _configuration;
@@ -92,7 +89,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="loginLogRepository"></param>
     /// <param name="jwtTokenService"></param>
     /// <param name="passwordHasher"></param>
-    /// <param name="captchaCache"></param>
     /// <param name="refreshTokenCache"></param>
     /// <param name="sessionTokenMapCache"></param>
     /// <param name="configuration"></param>
@@ -113,7 +109,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         ILoginLogRepository loginLogRepository,
         IJwtTokenService jwtTokenService,
         IPasswordHasher passwordHasher,
-        IDistributedCache<AuthCaptchaCacheItem> captchaCache,
         IDistributedCache<AuthRefreshTokenCacheItem> refreshTokenCache,
         IDistributedCache<AuthSessionTokenMapCacheItem> sessionTokenMapCache,
         IConfiguration configuration,
@@ -134,7 +129,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _loginLogRepository = loginLogRepository;
         _jwtTokenService = jwtTokenService;
         _passwordHasher = passwordHasher;
-        _captchaCache = captchaCache;
         _refreshTokenCache = refreshTokenCache;
         _sessionTokenMapCache = sessionTokenMapCache;
         _configuration = configuration;
@@ -156,46 +150,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         var response = new LoginConfigDto
         {
-            CaptchaEnabled = _configuration.GetValue("XiHan:Authentication:Captcha:Enabled", true),
             TenantEnabled = _configuration.GetValue("XiHan:MultiTenancy:Enabled", true),
             LoginMethods = loginMethods is { Length: > 0 } ? [.. loginMethods] : ["password"],
             OauthProviders = oauthProviders is { Length: > 0 } ? [.. oauthProviders] : []
         };
 
         return Task.FromResult(Success(response));
-    }
-
-    /// <summary>
-    /// 获取验证码
-    /// </summary>
-    [DynamicApi(Name = "captcha")]
-    public async Task<ApiResponse> GetCaptchaAsync()
-    {
-        var captchaCode = GenerateCaptchaCode();
-        var captchaId = Guid.NewGuid().ToString("N")[..8];
-        var expireAt = DateTimeOffset.UtcNow.AddMinutes(CaptchaExpireMinutes);
-        var cacheOptions = new DistributedCacheEntryOptions
-        {
-            AbsoluteExpiration = expireAt
-        };
-
-        await _captchaCache.SetAsync(
-            BuildCaptchaCacheKey(captchaId),
-            new AuthCaptchaCacheItem
-            {
-                Code = captchaCode,
-                ExpireAt = expireAt
-            },
-            options: cacheOptions,
-            hideErrors: true);
-
-        var response = new CaptchaDto
-        {
-            CaptchaId = captchaId,
-            ImageBase64 = BuildCaptchaSvgImage(captchaCode)
-        };
-
-        return Success(response);
     }
 
     /// <summary>
@@ -207,11 +167,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.ValidateAnnotations();
         command.UserName = command.UserName.Trim();
         var clientInfo = _clientInfoProvider.GetCurrent();
-
-        if (!await ValidateCaptchaAsync(command))
-        {
-            return Error(ApiResponseCodes.BadRequest, "验证码错误或已过期");
-        }
 
         var refreshToken = string.Empty;
         var sessionId = Guid.NewGuid().ToString("N");
@@ -636,16 +591,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
-    /// 构建验证码缓存键
-    /// </summary>
-    /// <param name="captchaId"></param>
-    /// <returns></returns>
-    private static string BuildCaptchaCacheKey(string captchaId)
-    {
-        return $"auth:captcha:{captchaId}";
-    }
-
-    /// <summary>
     /// 构建刷新令牌缓存键
     /// </summary>
     /// <param name="refreshToken"></param>
@@ -665,38 +610,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private static string BuildSessionTokenMapCacheKey(string sessionId)
     {
         return $"auth:session:{sessionId}";
-    }
-
-    /// <summary>
-    /// 构建验证码图片
-    /// </summary>
-    /// <param name="captchaCode"></param>
-    /// <returns></returns>
-    private static string BuildCaptchaSvgImage(string captchaCode)
-    {
-        var svg = $"""
-            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
-              <rect width="120" height="40" fill="#f5f7fa"/>
-              <text x="60" y="27" text-anchor="middle" font-size="22" font-family="Arial, sans-serif" fill="#303133" letter-spacing="4">{captchaCode}</text>
-            </svg>
-            """;
-        return $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(svg))}";
-    }
-
-    /// <summary>
-    /// 生成验证码
-    /// </summary>
-    /// <returns></returns>
-    private static string GenerateCaptchaCode()
-    {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        Span<char> buffer = stackalloc char[CaptchaLength];
-        for (var index = 0; index < buffer.Length; index++)
-        {
-            buffer[index] = chars[RandomNumberGenerator.GetInt32(chars.Length)];
-        }
-
-        return new string(buffer);
     }
 
     /// <summary>
@@ -898,35 +811,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         await _sessionTokenMapCache.RemoveAsync(sessionTokenMapCacheKey, hideErrors: true);
-    }
-
-    /// <summary>
-    /// 校验验证码
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
-    private async Task<bool> ValidateCaptchaAsync(UserLoginCommand command)
-    {
-        if (!_configuration.GetValue("XiHan:Authentication:Captcha:Enabled", true))
-        {
-            return true;
-        }
-
-        if (string.IsNullOrWhiteSpace(command.CaptchaId) || string.IsNullOrWhiteSpace(command.CaptchaCode))
-        {
-            return false;
-        }
-
-        var captchaCacheKey = BuildCaptchaCacheKey(command.CaptchaId.Trim());
-        var captchaCacheItem = await _captchaCache.GetAsync(captchaCacheKey, hideErrors: true);
-        if (captchaCacheItem is null || captchaCacheItem.ExpireAt <= DateTimeOffset.UtcNow)
-        {
-            await _captchaCache.RemoveAsync(captchaCacheKey, hideErrors: true);
-            return false;
-        }
-
-        await _captchaCache.RemoveAsync(captchaCacheKey, hideErrors: true);
-        return string.Equals(captchaCacheItem.Code, command.CaptchaCode.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
