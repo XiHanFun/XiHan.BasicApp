@@ -30,6 +30,7 @@ using XiHan.Framework.Localization;
 using XiHan.Framework.Logging;
 using XiHan.Framework.Messaging;
 using XiHan.Framework.MultiTenancy;
+using XiHan.Framework.ObjectStorage;
 using XiHan.Framework.ObjectMapping;
 using XiHan.Framework.Script;
 using XiHan.Framework.SearchEngines;
@@ -65,6 +66,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanLoggingModule),
     typeof(XiHanMessagingModule),
     typeof(XiHanMultiTenancyModule),
+    typeof(XiHanObjectStorageModule),
     typeof(XiHanObjectMappingModule),
     typeof(XiHanScriptModule),
     typeof(XiHanSearchEnginesModule),
