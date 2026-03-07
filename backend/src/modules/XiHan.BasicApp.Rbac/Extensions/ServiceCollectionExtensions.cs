@@ -13,22 +13,30 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Rbac.Application.AppServices;
+using XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 using XiHan.BasicApp.Rbac.Application.Caching;
 using XiHan.BasicApp.Rbac.Application.Caching.EventHandlers;
 using XiHan.BasicApp.Rbac.Application.Caching.Events;
 using XiHan.BasicApp.Rbac.Application.Caching.Implementations;
+using XiHan.BasicApp.Rbac.Domain.DomainServices;
+using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.Rbac.Domain.Events;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
+using XiHan.BasicApp.Rbac.Infrastructure.Authentication;
+using XiHan.BasicApp.Rbac.Infrastructure.Authorization;
+using XiHan.BasicApp.Rbac.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 using XiHan.BasicApp.Rbac.Infrastructure.Settings;
 using XiHan.BasicApp.Rbac.Seeders;
+using XiHan.Framework.Authentication;
+using XiHan.Framework.Authorization.Permissions;
+using XiHan.Framework.Authorization.Policies;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.MultiTenancy.ConfigurationStore;
 using XiHan.Framework.Settings.Stores;
-using XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
-using XiHan.BasicApp.Rbac.Application.AppServices;
-using XiHan.BasicApp.Rbac.Domain.DomainServices;
-using XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
+using FrameworkRoleStore = XiHan.Framework.Authorization.Roles.IRoleStore;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
@@ -148,6 +156,11 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
+        services.AddScoped<IUserStore, RbacUserStore>();
+        services.AddScoped<FrameworkRoleStore, RbacRoleStore>();
+        services.AddScoped<IPermissionStore, RbacPermissionStore>();
+        services.AddScoped<IPolicyStore, RbacPolicyStore>();
+        services.AddScoped<ITenantStore, RbacTenantStore>();
         services.AddScoped<ISettingStore, RbacSettingStore>();
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
         services.AddScoped<IRbacLookupCacheService, RbacLookupCacheService>();

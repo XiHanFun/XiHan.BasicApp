@@ -12,9 +12,11 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using XiHan.Framework.Data.SqlSugar.Options;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.MultiTenancy.ConfigurationStore;
 using XiHan.Framework.Upgrade.Abstractions;
 
 namespace XiHan.BasicApp.Upgrade.Infrastructure.Adapters;
@@ -25,14 +27,17 @@ namespace XiHan.BasicApp.Upgrade.Infrastructure.Adapters;
 public class SqlSugarUpgradeTenantProvider : IUpgradeTenantProvider
 {
     private readonly XiHanSqlSugarCoreOptions _options;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="options">SqlSugar 核心选项</param>
-    public SqlSugarUpgradeTenantProvider(IOptions<XiHanSqlSugarCoreOptions> options)
+    /// <param name="scopeFactory">作用域工厂</param>
+    public SqlSugarUpgradeTenantProvider(IOptions<XiHanSqlSugarCoreOptions> options, IServiceScopeFactory scopeFactory)
     {
         _options = options.Value;
+        _scopeFactory = scopeFactory;
     }
 
     /// <summary>
@@ -41,6 +46,12 @@ public class SqlSugarUpgradeTenantProvider : IUpgradeTenantProvider
     /// <returns>租户信息列表</returns>
     public IReadOnlyList<BasicTenantInfo> GetTenants()
     {
+        var storeTenants = TryGetTenantsFromStore();
+        if (storeTenants.Count > 0)
+        {
+            return storeTenants;
+        }
+
         var tenantIds = new HashSet<long>();
         foreach (var connConfig in _options.ConnectionConfigs)
         {
@@ -58,6 +69,28 @@ public class SqlSugarUpgradeTenantProvider : IUpgradeTenantProvider
         return tenantIds
             .OrderBy(id => id)
             .Select(id => new BasicTenantInfo(id, id.ToString()))
+            .ToList();
+    }
+
+    private IReadOnlyList<BasicTenantInfo> TryGetTenantsFromStore()
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var tenantStore = scope.ServiceProvider.GetService<ITenantStore>();
+        if (tenantStore is null)
+        {
+            return [];
+        }
+
+        var tenants = tenantStore.GetListAsync(includeInactive: false).GetAwaiter().GetResult();
+        if (tenants.Count == 0)
+        {
+            return [];
+        }
+
+        return tenants
+            .Where(tenant => tenant.Id > 0)
+            .OrderBy(tenant => tenant.Id)
+            .Select(tenant => new BasicTenantInfo(tenant.Id, tenant.Name))
             .ToList();
     }
 
