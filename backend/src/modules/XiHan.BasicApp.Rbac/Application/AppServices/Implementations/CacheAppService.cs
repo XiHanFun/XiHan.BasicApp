@@ -42,16 +42,16 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
     /// <summary>
     /// 获取缓存字符串
     /// </summary>
-    public async Task<string?> GetStringAsync(string key, CancellationToken cancellationToken = default)
+    public string? GetString(string key)
     {
         ValidateKey(key);
-        return await _distributedCache.GetStringAsync(key, cancellationToken);
+        return _distributedCache.GetString(key);
     }
 
     /// <summary>
     /// 设置缓存字符串
     /// </summary>
-    public async Task SetStringAsync(string key, string value, int expireSeconds = 300, CancellationToken cancellationToken = default)
+    public void SetString(string key, string value, int expireSeconds = 300)
     {
         ValidateKey(key);
         ArgumentNullException.ThrowIfNull(value);
@@ -62,24 +62,24 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
             AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(seconds)
         };
 
-        await _distributedCache.SetStringAsync(key, value, options, cancellationToken);
-        await AddIndexKeyAsync(key, cancellationToken);
+        _distributedCache.SetString(key, value, options);
+        AddIndexKey(key);
     }
 
     /// <summary>
     /// 删除缓存项
     /// </summary>
-    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
+    public void Remove(string key)
     {
         ValidateKey(key);
-        await _distributedCache.RemoveAsync(key, cancellationToken);
-        await RemoveIndexKeysAsync([key], cancellationToken);
+        _distributedCache.Remove(key);
+        RemoveIndexKeys([key]);
     }
 
     /// <summary>
     /// 批量删除缓存项
     /// </summary>
-    public async Task RemoveManyAsync(IReadOnlyCollection<string> keys, CancellationToken cancellationToken = default)
+    public void RemoveMany(IReadOnlyCollection<string> keys)
     {
         ArgumentNullException.ThrowIfNull(keys);
         var keyArray = keys
@@ -95,61 +95,61 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
 
         if (_distributedCache is ICacheSupportsMultipleItems multipleItemsCache)
         {
-            await multipleItemsCache.RemoveManyAsync(keyArray, cancellationToken);
+            multipleItemsCache.RemoveMany(keyArray);
         }
         else
         {
             foreach (var key in keyArray)
             {
-                await _distributedCache.RemoveAsync(key, cancellationToken);
+                _distributedCache.Remove(key);
             }
         }
 
-        await RemoveIndexKeysAsync(keyArray, cancellationToken);
+        RemoveIndexKeys(keyArray);
     }
 
     /// <summary>
     /// 判断缓存键是否存在
     /// </summary>
-    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
+    public bool Exists(string key)
     {
         ValidateKey(key);
-        return await _distributedCache.GetAsync(key, cancellationToken) is not null;
+        return _distributedCache.Get(key) is not null;
     }
 
     /// <summary>
     /// 按模式获取缓存键
     /// </summary>
-    public async Task<IReadOnlyCollection<string>> GetKeysAsync(string pattern = "*", CancellationToken cancellationToken = default)
+    public IReadOnlyCollection<string> GetKeys(string pattern = "*")
     {
         var normalizedPattern = NormalizePattern(pattern);
         if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
         {
-            return await keyPatternCache.GetKeysAsync(normalizedPattern, cancellationToken);
+            return keyPatternCache.GetKeys(normalizedPattern);
         }
 
-        var allKeys = await GetIndexKeysAsync(cancellationToken);
+        var allKeys = GetIndexKeys();
         return [.. allKeys.Where(key => IsMatchPattern(key, normalizedPattern))];
     }
 
     /// <summary>
     /// 按模式删除缓存项
     /// </summary>
-    public async Task<long> RemoveByPatternAsync(string pattern = "*", CancellationToken cancellationToken = default)
+    public long RemoveByPattern(string pattern = "*")
     {
         var normalizedPattern = NormalizePattern(pattern);
         if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
         {
-            return await keyPatternCache.RemoveByPatternAsync(normalizedPattern, cancellationToken);
+            return keyPatternCache.RemoveByPattern(normalizedPattern);
         }
 
-        var matchedKeys = await GetKeysAsync(normalizedPattern, cancellationToken);
+        var matchedKeys = GetKeys(normalizedPattern);
         if (matchedKeys.Count == 0)
         {
             return 0;
         }
 
-        await RemoveManyAsync([.. matchedKeys], cancellationToken);
+        RemoveMany([.. matchedKeys]);
         return matchedKeys.Count;
     }
 
@@ -166,20 +166,31 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
         return string.IsNullOrWhiteSpace(pattern) ? "*" : pattern.Trim();
     }
 
-    private async Task AddIndexKeyAsync(string key, CancellationToken cancellationToken)
+    private static bool IsMatchPattern(string input, string wildcardPattern)
     {
-        var keySet = await GetIndexKeysAsync(cancellationToken);
+        if (wildcardPattern == "*")
+        {
+            return true;
+        }
+
+        var escapedPattern = Regex.Escape(wildcardPattern).Replace("\\*", ".*", StringComparison.Ordinal);
+        return Regex.IsMatch(input, $"^{escapedPattern}$", RegexOptions.CultureInvariant | RegexOptions.Singleline);
+    }
+
+    private void AddIndexKey(string key)
+    {
+        var keySet = GetIndexKeys();
         if (!keySet.Add(key))
         {
             return;
         }
 
-        await SaveIndexKeysAsync(keySet, cancellationToken);
+        SaveIndexKeys(keySet);
     }
 
-    private async Task RemoveIndexKeysAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
+    private void RemoveIndexKeys(IEnumerable<string> keys)
     {
-        var keySet = await GetIndexKeysAsync(cancellationToken);
+        var keySet = GetIndexKeys();
         var changed = false;
         foreach (var key in keys)
         {
@@ -194,12 +205,12 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
             return;
         }
 
-        await SaveIndexKeysAsync(keySet, cancellationToken);
+        SaveIndexKeys(keySet);
     }
 
-    private async Task<HashSet<string>> GetIndexKeysAsync(CancellationToken cancellationToken)
+    private HashSet<string> GetIndexKeys()
     {
-        var rawValue = await _distributedCache.GetStringAsync(CacheKeyIndexKey, cancellationToken);
+        var rawValue = _distributedCache.GetString(CacheKeyIndexKey);
         if (string.IsNullOrWhiteSpace(rawValue))
         {
             return new HashSet<string>(StringComparer.Ordinal);
@@ -216,26 +227,15 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
         }
     }
 
-    private async Task SaveIndexKeysAsync(HashSet<string> keySet, CancellationToken cancellationToken)
+    private void SaveIndexKeys(HashSet<string> keySet)
     {
         if (keySet.Count == 0)
         {
-            await _distributedCache.RemoveAsync(CacheKeyIndexKey, cancellationToken);
+            _distributedCache.Remove(CacheKeyIndexKey);
             return;
         }
 
         var payload = JsonSerializer.Serialize(keySet.ToArray());
-        await _distributedCache.SetStringAsync(CacheKeyIndexKey, payload, cancellationToken);
-    }
-
-    private static bool IsMatchPattern(string input, string wildcardPattern)
-    {
-        if (wildcardPattern == "*")
-        {
-            return true;
-        }
-
-        var escapedPattern = Regex.Escape(wildcardPattern).Replace("\\*", ".*", StringComparison.Ordinal);
-        return Regex.IsMatch(input, $"^{escapedPattern}$", RegexOptions.CultureInvariant | RegexOptions.Singleline);
+        _distributedCache.SetString(CacheKeyIndexKey, payload);
     }
 }
