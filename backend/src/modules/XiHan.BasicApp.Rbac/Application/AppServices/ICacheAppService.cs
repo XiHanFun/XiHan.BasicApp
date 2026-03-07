@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:ICacheService
+// FileName:ICacheAppService
 // Guid:feeb119e-8c9a-48ec-aac6-7fdcf6d63f84
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -17,9 +17,9 @@ using XiHan.Framework.Application.Contracts.Services;
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
 
 /// <summary>
-/// 系统缓存服务
+/// 缓存应用服务
 /// </summary>
-public interface ICacheService : IApplicationService
+public interface ICacheAppService : IApplicationService
 {
     /// <summary>
     /// 获取缓存字符串
