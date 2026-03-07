@@ -20,9 +20,11 @@ using XiHan.BasicApp.Rbac.Application.Caching.Implementations;
 using XiHan.BasicApp.Rbac.Domain.Events;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
+using XiHan.BasicApp.Rbac.Infrastructure.Settings;
 using XiHan.BasicApp.Rbac.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Settings.Stores;
 using XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 using XiHan.BasicApp.Rbac.Application.AppServices;
 using XiHan.BasicApp.Rbac.Domain.DomainServices;
@@ -146,6 +148,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
+        services.AddScoped<ISettingStore, RbacSettingStore>();
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
         services.AddScoped<IRbacLookupCacheService, RbacLookupCacheService>();
         services.AddScoped<IMessageCacheService, MessageCacheService>();

@@ -103,4 +103,98 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
         await DbClient.Updateable(sessions).ExecuteCommandAsync(cancellationToken);
         return sessions.Count;
     }
+
+    /// <summary>
+    /// 获取用户在线会话列表
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<SysUserSession>> GetOnlineSessionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return [];
+        }
+
+        var resolvedTenantId = tenantId;
+        var query = CreateTenantQueryable()
+            .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked);
+
+        if (resolvedTenantId.HasValue)
+        {
+            query = query.Where(session => session.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            query = query.Where(session => session.TenantId == null);
+        }
+
+        var sessions = await query
+            .OrderBy(session => session.LastActivityTime)
+            .ToListAsync(cancellationToken);
+        return sessions;
+    }
+
+    /// <summary>
+    /// 批量撤销指定会话
+    /// </summary>
+    /// <param name="sessionIds">会话ID列表</param>
+    /// <param name="reason">撤销原因</param>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
+    public async Task<int> RevokeSessionsAsync(IReadOnlyCollection<string> sessionIds, string reason, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        if (sessionIds.Count == 0)
+        {
+            return 0;
+        }
+
+        var normalizedSessionIds = sessionIds
+            .Where(static sessionId => !string.IsNullOrWhiteSpace(sessionId))
+            .Select(static sessionId => sessionId.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (normalizedSessionIds.Length == 0)
+        {
+            return 0;
+        }
+
+        var resolvedTenantId = tenantId;
+        var query = CreateTenantQueryable()
+            .Where(session =>
+                normalizedSessionIds.Contains(session.SessionId) &&
+                session.IsOnline &&
+                !session.IsRevoked);
+
+        if (resolvedTenantId.HasValue)
+        {
+            query = query.Where(session => session.TenantId == resolvedTenantId.Value);
+        }
+        else
+        {
+            query = query.Where(session => session.TenantId == null);
+        }
+
+        var sessions = await query.ToListAsync(cancellationToken);
+        if (sessions.Count == 0)
+        {
+            return 0;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var session in sessions)
+        {
+            session.IsRevoked = true;
+            session.IsOnline = false;
+            session.RevokedAt = now;
+            session.LogoutTime = now;
+            session.RevokedReason = reason;
+        }
+
+        await DbClient.Updateable(sessions).ExecuteCommandAsync(cancellationToken);
+        return sessions.Count;
+    }
 }

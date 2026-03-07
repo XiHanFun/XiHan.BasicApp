@@ -36,6 +36,12 @@ public class UserLoginCommand
     public string Password { get; set; } = string.Empty;
 
     /// <summary>
+    /// 双因素验证码（开启双因素认证时必填）
+    /// </summary>
+    [StringLength(20, MinimumLength = 1, ErrorMessage = "双因素验证码长度必须在 1～20 之间")]
+    public string? TwoFactorCode { get; set; }
+
+    /// <summary>
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; } = 1;

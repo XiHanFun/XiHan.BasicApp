@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Caching.Distributed.Abstracts;
@@ -25,6 +27,7 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 [DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
 public class CacheAppService : ApplicationServiceBase, ICacheAppService
 {
+    private const string CacheKeyIndexKey = "basicapp:cache:index:keys";
     private readonly IDistributedCache _distributedCache;
 
     /// <summary>
@@ -60,6 +63,7 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
         };
 
         await _distributedCache.SetStringAsync(key, value, options, cancellationToken);
+        await AddIndexKeyAsync(key, cancellationToken);
     }
 
     /// <summary>
@@ -69,6 +73,7 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
     {
         ValidateKey(key);
         await _distributedCache.RemoveAsync(key, cancellationToken);
+        await RemoveIndexKeysAsync([key], cancellationToken);
     }
 
     /// <summary>
@@ -91,13 +96,16 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
         if (_distributedCache is ICacheSupportsMultipleItems multipleItemsCache)
         {
             await multipleItemsCache.RemoveManyAsync(keyArray, cancellationToken);
-            return;
+        }
+        else
+        {
+            foreach (var key in keyArray)
+            {
+                await _distributedCache.RemoveAsync(key, cancellationToken);
+            }
         }
 
-        foreach (var key in keyArray)
-        {
-            await _distributedCache.RemoveAsync(key, cancellationToken);
-        }
+        await RemoveIndexKeysAsync(keyArray, cancellationToken);
     }
 
     /// <summary>
@@ -115,12 +123,13 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
     public async Task<IReadOnlyCollection<string>> GetKeysAsync(string pattern = "*", CancellationToken cancellationToken = default)
     {
         var normalizedPattern = NormalizePattern(pattern);
-        if (_distributedCache is not ICacheSupportsKeyPattern keyPatternCache)
+        if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
         {
-            throw new NotSupportedException("当前缓存实现不支持按模式获取缓存键，请启用 Redis 缓存。");
+            return await keyPatternCache.GetKeysAsync(normalizedPattern, cancellationToken);
         }
 
-        return await keyPatternCache.GetKeysAsync(normalizedPattern, cancellationToken);
+        var allKeys = await GetIndexKeysAsync(cancellationToken);
+        return [.. allKeys.Where(key => IsMatchPattern(key, normalizedPattern))];
     }
 
     /// <summary>
@@ -129,12 +138,19 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
     public async Task<long> RemoveByPatternAsync(string pattern = "*", CancellationToken cancellationToken = default)
     {
         var normalizedPattern = NormalizePattern(pattern);
-        if (_distributedCache is not ICacheSupportsKeyPattern keyPatternCache)
+        if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
         {
-            throw new NotSupportedException("当前缓存实现不支持按模式删除缓存键，请启用 Redis 缓存。");
+            return await keyPatternCache.RemoveByPatternAsync(normalizedPattern, cancellationToken);
         }
 
-        return await keyPatternCache.RemoveByPatternAsync(normalizedPattern, cancellationToken);
+        var matchedKeys = await GetKeysAsync(normalizedPattern, cancellationToken);
+        if (matchedKeys.Count == 0)
+        {
+            return 0;
+        }
+
+        await RemoveManyAsync([.. matchedKeys], cancellationToken);
+        return matchedKeys.Count;
     }
 
     private static void ValidateKey(string key)
@@ -148,5 +164,78 @@ public class CacheAppService : ApplicationServiceBase, ICacheAppService
     private static string NormalizePattern(string pattern)
     {
         return string.IsNullOrWhiteSpace(pattern) ? "*" : pattern.Trim();
+    }
+
+    private async Task AddIndexKeyAsync(string key, CancellationToken cancellationToken)
+    {
+        var keySet = await GetIndexKeysAsync(cancellationToken);
+        if (!keySet.Add(key))
+        {
+            return;
+        }
+
+        await SaveIndexKeysAsync(keySet, cancellationToken);
+    }
+
+    private async Task RemoveIndexKeysAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
+    {
+        var keySet = await GetIndexKeysAsync(cancellationToken);
+        var changed = false;
+        foreach (var key in keys)
+        {
+            if (keySet.Remove(key))
+            {
+                changed = true;
+            }
+        }
+
+        if (!changed)
+        {
+            return;
+        }
+
+        await SaveIndexKeysAsync(keySet, cancellationToken);
+    }
+
+    private async Task<HashSet<string>> GetIndexKeysAsync(CancellationToken cancellationToken)
+    {
+        var rawValue = await _distributedCache.GetStringAsync(CacheKeyIndexKey, cancellationToken);
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+
+        try
+        {
+            var keys = JsonSerializer.Deserialize<List<string>>(rawValue) ?? [];
+            return new HashSet<string>(keys.Where(static key => !string.IsNullOrWhiteSpace(key)), StringComparer.Ordinal);
+        }
+        catch (JsonException)
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+    }
+
+    private async Task SaveIndexKeysAsync(HashSet<string> keySet, CancellationToken cancellationToken)
+    {
+        if (keySet.Count == 0)
+        {
+            await _distributedCache.RemoveAsync(CacheKeyIndexKey, cancellationToken);
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(keySet.ToArray());
+        await _distributedCache.SetStringAsync(CacheKeyIndexKey, payload, cancellationToken);
+    }
+
+    private static bool IsMatchPattern(string input, string wildcardPattern)
+    {
+        if (wildcardPattern == "*")
+        {
+            return true;
+        }
+
+        var escapedPattern = Regex.Escape(wildcardPattern).Replace("\\*", ".*", StringComparison.Ordinal);
+        return Regex.IsMatch(input, $"^{escapedPattern}$", RegexOptions.CultureInvariant | RegexOptions.Singleline);
     }
 }

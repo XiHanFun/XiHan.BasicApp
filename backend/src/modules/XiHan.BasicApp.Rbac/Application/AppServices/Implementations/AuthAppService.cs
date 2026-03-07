@@ -34,6 +34,7 @@ using XiHan.Framework.Application.Contracts.Dtos;
 using XiHan.Framework.Application.Contracts.Enums;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Security.Claims;
@@ -65,6 +66,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IUserSessionRepository _userSessionRepository;
     private readonly ILoginLogRepository _loginLogRepository;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IOtpService _otpService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IDistributedCache<AuthRefreshTokenCacheItem> _refreshTokenCache;
     private readonly IDistributedCache<AuthSessionTokenMapCacheItem> _sessionTokenMapCache;
@@ -108,6 +110,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IUserSessionRepository userSessionRepository,
         ILoginLogRepository loginLogRepository,
         IJwtTokenService jwtTokenService,
+        IOtpService otpService,
         IPasswordHasher passwordHasher,
         IDistributedCache<AuthRefreshTokenCacheItem> refreshTokenCache,
         IDistributedCache<AuthSessionTokenMapCacheItem> sessionTokenMapCache,
@@ -128,6 +131,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _userSessionRepository = userSessionRepository;
         _loginLogRepository = loginLogRepository;
         _jwtTokenService = jwtTokenService;
+        _otpService = otpService;
         _passwordHasher = passwordHasher;
         _refreshTokenCache = refreshTokenCache;
         _sessionTokenMapCache = sessionTokenMapCache;
@@ -201,6 +205,33 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             return Error(ApiResponseCodes.Unauthorized, "用户名或密码错误");
         }
 
+        if (security.TwoFactorEnabled)
+        {
+            if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+            {
+                await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "账号未配置双因素密钥");
+                await uow.CompleteAsync();
+                return Error(ApiResponseCodes.Forbidden, "账号双因素认证配置异常，请联系管理员");
+            }
+
+            var twoFactorCode = command.TwoFactorCode?.Trim();
+            if (string.IsNullOrWhiteSpace(twoFactorCode))
+            {
+                await WriteLoginLogAsync(user.BasicId, command, LoginResult.RequiresTwoFactor, clientInfo, "需要双因素认证");
+                await uow.CompleteAsync();
+                return Error(ApiResponseCodes.Unauthorized, "请输入双因素验证码", new { RequiresTwoFactor = true });
+            }
+
+            if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, twoFactorCode))
+            {
+                await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "双因素验证码错误");
+                await uow.CompleteAsync();
+                return Error(ApiResponseCodes.Unauthorized, "双因素验证码错误");
+            }
+        }
+
+        var revokedSessionIds = await EnforceSessionPolicyAsync(user, security);
+
         security.FailedLoginAttempts = 0;
         security.IsLocked = false;
         security.LockoutTime = null;
@@ -222,6 +253,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
         await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, clientInfo, "登录成功");
         await uow.CompleteAsync();
+
+        foreach (var revokedSessionId in revokedSessionIds)
+        {
+            await RemoveSessionTokenAsync(revokedSessionId);
+        }
 
         await SaveRefreshTokenAsync(refreshToken, user, sessionId);
 
@@ -259,6 +295,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
             await _sessionTokenMapCache.RemoveAsync(BuildSessionTokenMapCacheKey(cachedToken.SessionId), hideErrors: true);
             return Error(ApiResponseCodes.Unauthorized, "登录状态已失效，请重新登录");
+        }
+
+        var existingSession = await _userSessionRepository.GetBySessionIdAsync(cachedToken.SessionId, user.TenantId);
+        if (existingSession is null || existingSession.IsRevoked || !existingSession.IsOnline)
+        {
+            await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
+            await _sessionTokenMapCache.RemoveAsync(BuildSessionTokenMapCacheKey(cachedToken.SessionId), hideErrors: true);
+            return Error(ApiResponseCodes.Unauthorized, "会话已失效，请重新登录");
         }
 
         var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
@@ -679,6 +723,49 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             .OrderBy(static role => role.Sort)
             .Select(static role => role.RoleCode)
             .Distinct(StringComparer.OrdinalIgnoreCase)];
+    }
+
+    /// <summary>
+    /// 按安全策略限制会话数量
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="security"></param>
+    /// <returns>被撤销的会话ID集合</returns>
+    private async Task<IReadOnlyList<string>> EnforceSessionPolicyAsync(SysUser user, SysUserSecurity security)
+    {
+        var onlineSessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
+        if (onlineSessions.Count == 0)
+        {
+            return [];
+        }
+
+        List<string> toRevokeSessionIds;
+        if (!security.AllowMultiLogin)
+        {
+            toRevokeSessionIds = [.. onlineSessions.Select(session => session.SessionId)];
+        }
+        else if (security.MaxLoginDevices > 0 && onlineSessions.Count >= security.MaxLoginDevices)
+        {
+            var overflowCount = onlineSessions.Count - security.MaxLoginDevices + 1;
+            toRevokeSessionIds = [..
+                onlineSessions
+                    .OrderBy(session => session.LastActivityTime)
+                    .ThenBy(session => session.LoginTime)
+                    .Take(overflowCount)
+                    .Select(session => session.SessionId)];
+        }
+        else
+        {
+            return [];
+        }
+
+        if (toRevokeSessionIds.Count == 0)
+        {
+            return [];
+        }
+
+        await _userSessionRepository.RevokeSessionsAsync(toRevokeSessionIds, "触发多端登录策略", user.TenantId);
+        return toRevokeSessionIds;
     }
 
     /// <summary>
