@@ -31,11 +31,6 @@ public interface IAuthAppService : IApplicationService
     Task<ApiResponse> GetLoginConfigAsync();
 
     /// <summary>
-    /// 获取验证码
-    /// </summary>
-    Task<ApiResponse> GetCaptchaAsync();
-
-    /// <summary>
     /// 登录
     /// </summary>
     Task<ApiResponse> LoginAsync(UserLoginCommand command);

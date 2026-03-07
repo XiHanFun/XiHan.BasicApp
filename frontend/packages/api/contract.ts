@@ -1,7 +1,6 @@
 export const API_CONTRACT = {
   auth: {
     loginConfig: '/auth/login-config',
-    captcha: '/auth/captcha',
     login: '/auth/login',
     refreshToken: '/auth/refresh-token',
     currentUser: '/auth/me',

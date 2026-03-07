@@ -16,7 +16,7 @@ import {
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getCaptchaApi, getLoginConfigApi } from '~/api'
+import { getLoginConfigApi } from '~/api'
 import { useTheme } from '~/hooks'
 import { useAuthStore } from '~/stores'
 
@@ -32,14 +32,9 @@ const formRef = ref<FormInst | null>(null)
 const rememberMe = ref(true)
 const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
-  captchaEnabled: true,
   loginMethods: ['password'],
   tenantEnabled: true,
   oauthProviders: [],
-})
-const captcha = ref({
-  captchaId: '',
-  imageBase64: '',
 })
 
 const accountOptions = [
@@ -53,28 +48,21 @@ const formData = ref({
   username: 'superadmin',
   password: 'Admin@123',
   tenantId: '1',
-  captchaCode: '',
 })
 
 const rules: FormRules = {
-  username: [{ required: true, message: () => t('page.login.username_placeholder'), trigger: 'blur' }],
-  password: [{ required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' }],
+  username: [
+    { required: true, message: () => t('page.login.username_placeholder'), trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
+  ],
   tenantId: [
     {
       trigger: 'blur',
       validator: (_rule, value: string) => {
         if (!loginConfig.value.tenantEnabled) return true
         if (!value?.trim()) return new Error('请输入租户ID')
-        return true
-      },
-    },
-  ],
-  captchaCode: [
-    {
-      trigger: 'blur',
-      validator: (_rule, value: string) => {
-        if (!loginConfig.value.captchaEnabled) return true
-        if (!value?.trim()) return new Error('请输入验证码')
         return true
       },
     },
@@ -112,23 +100,8 @@ function handleSelectAccount(value: string) {
   formData.value.password = 'Admin@123'
 }
 
-async function refreshCaptcha() {
-  if (!loginConfig.value.captchaEnabled) return
-
-  captcha.value = await getCaptchaApi()
-  formData.value.captchaCode = ''
-}
-
 async function loadLoginConfig() {
   loginConfig.value = await getLoginConfigApi()
-  if (loginConfig.value.captchaEnabled) {
-    try {
-      await refreshCaptcha()
-    }
-    catch {
-      message.error('加载验证码失败')
-    }
-  }
 }
 
 async function handleLogin() {
@@ -143,19 +116,13 @@ async function handleLogin() {
           loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId)
             ? parsedTenantId
             : undefined,
-        captchaId: loginConfig.value.captchaEnabled ? captcha.value.captchaId : undefined,
-        captchaCode: loginConfig.value.captchaEnabled ? formData.value.captchaCode : undefined,
       },
       redirect.value,
     )
-  }
-  catch (err: unknown) {
+  } catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
-    }
-    if (loginConfig.value.captchaEnabled) {
-      await refreshCaptcha()
     }
   }
 }
@@ -171,8 +138,7 @@ function goTo(path: string) {
 onMounted(async () => {
   try {
     await loadLoginConfig()
-  }
-  catch {
+  } catch {
     message.error('加载登录配置失败')
   }
 })
@@ -243,37 +209,8 @@ onMounted(async () => {
         :show-feedback="false"
         class="!mb-6"
       >
-        <NInput
-          v-model:value="formData.tenantId"
-          size="large"
-          placeholder="请输入租户ID"
-        />
+        <NInput v-model:value="formData.tenantId" size="large" placeholder="请输入租户ID" />
       </NFormItem>
-      <NFormItem
-        v-if="loginConfig.captchaEnabled"
-        path="captchaCode"
-        :show-feedback="false"
-        class="!mb-6"
-      >
-        <div class="flex w-full items-center gap-3">
-          <NInput
-            v-model:value="formData.captchaCode"
-            size="large"
-            placeholder="请输入验证码"
-          />
-          <img
-            v-if="captcha.imageBase64"
-            :src="captcha.imageBase64"
-            alt="captcha"
-            class="h-10 w-32 cursor-pointer rounded-md border border-[hsl(var(--border))] bg-white px-2"
-            @click="refreshCaptcha"
-          >
-          <NButton v-else secondary @click="refreshCaptcha">
-            刷新
-          </NButton>
-        </div>
-      </NFormItem>
-
       <div class="mb-5 flex items-center justify-between text-sm">
         <NCheckbox v-model:checked="rememberMe">
           {{ t('page.login.remember_me') }}
@@ -294,9 +231,7 @@ onMounted(async () => {
       </NButton>
     </NForm>
 
-    <NDivider
-      :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'"
-    >
+    <NDivider :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'">
       {{ t('page.auth.third_party_login') }}
     </NDivider>
     <div class="flex flex-wrap items-center justify-center gap-3">

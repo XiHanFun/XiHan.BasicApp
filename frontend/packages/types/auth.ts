@@ -17,23 +17,15 @@ export interface UserInfo {
 }
 
 export interface LoginConfig {
-  captchaEnabled: boolean
   loginMethods: string[]
   tenantEnabled: boolean
   oauthProviders: string[]
-}
-
-export interface CaptchaInfo {
-  captchaId: string
-  imageBase64: string
 }
 
 export interface LoginParams {
   username: string
   password: string
   tenantId?: null | number
-  captchaId?: string
-  captchaCode?: string
 }
 
 export interface LoginResult {

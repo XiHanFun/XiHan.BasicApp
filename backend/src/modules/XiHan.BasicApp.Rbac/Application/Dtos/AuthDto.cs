@@ -20,11 +20,6 @@ namespace XiHan.BasicApp.Rbac.Application.Dtos;
 public class LoginConfigDto
 {
     /// <summary>
-    /// 是否启用验证码
-    /// </summary>
-    public bool CaptchaEnabled { get; set; } = true;
-
-    /// <summary>
     /// 登录方式
     /// </summary>
     public string[] LoginMethods { get; set; } = ["password"];
@@ -38,22 +33,6 @@ public class LoginConfigDto
     /// 三方登录提供商
     /// </summary>
     public string[] OauthProviders { get; set; } = [];
-}
-
-/// <summary>
-/// 验证码信息
-/// </summary>
-public class CaptchaDto
-{
-    /// <summary>
-    /// 验证码ID
-    /// </summary>
-    public string CaptchaId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Base64 图片
-    /// </summary>
-    public string ImageBase64 { get; set; } = string.Empty;
 }
 
 /// <summary>

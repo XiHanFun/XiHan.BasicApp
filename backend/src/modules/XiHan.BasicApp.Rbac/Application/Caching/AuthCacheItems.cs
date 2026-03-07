@@ -18,24 +18,6 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 namespace XiHan.BasicApp.Rbac.Application.Caching;
 
 /// <summary>
-/// 验证码缓存项
-/// </summary>
-[CacheName("AuthCaptcha")]
-[IgnoreMultiTenancy]
-public class AuthCaptchaCacheItem
-{
-    /// <summary>
-    /// 验证码
-    /// </summary>
-    public string Code { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 过期时间
-    /// </summary>
-    public DateTimeOffset ExpireAt { get; set; }
-}
-
-/// <summary>
 /// 刷新令牌缓存项
 /// </summary>
 [CacheName("AuthRefreshToken")]

@@ -1,4 +1,4 @@
-import type { CaptchaInfo, LoginConfig, LoginParams, LoginResult, PermissionInfo, UserInfo } from '~/types'
+import type { LoginConfig, LoginParams, LoginResult, PermissionInfo, UserInfo } from '~/types'
 import { API_CONTRACT } from '../contract'
 import requestClient from '../request'
 
@@ -10,8 +10,10 @@ function normalizeUserInfo(raw: any): UserInfo {
   const payload = unwrapPayload<any>(raw)
   return {
     basicId: payload?.basicId ?? payload?.BasicId ?? payload?.userId ?? payload?.UserId ?? 0,
-    userName: payload?.userName ?? payload?.UserName ?? payload?.username ?? payload?.Username ?? '',
-    nickName: payload?.nickName ?? payload?.NickName ?? payload?.nickname ?? payload?.Nickname ?? '',
+    userName:
+      payload?.userName ?? payload?.UserName ?? payload?.username ?? payload?.Username ?? '',
+    nickName:
+      payload?.nickName ?? payload?.NickName ?? payload?.nickname ?? payload?.Nickname ?? '',
     avatar: payload?.avatar ?? payload?.Avatar ?? '',
     email: payload?.email ?? payload?.Email ?? '',
     phone: payload?.phone ?? payload?.Phone ?? '',
@@ -36,18 +38,10 @@ function normalizeToken(raw: any): LoginResult {
 function normalizeLoginConfig(raw: any): LoginConfig {
   const payload = unwrapPayload<any>(raw)
   return {
-    captchaEnabled: payload?.captchaEnabled ?? payload?.CaptchaEnabled ?? true,
     loginMethods: payload?.loginMethods ?? payload?.LoginMethods ?? ['password'],
     tenantEnabled: payload?.tenantEnabled ?? payload?.TenantEnabled ?? true,
-    oauthProviders: payload?.oauthProviders ?? payload?.OauthProviders ?? payload?.OAuthProviders ?? [],
-  }
-}
-
-function normalizeCaptcha(raw: any): CaptchaInfo {
-  const payload = unwrapPayload<any>(raw)
-  return {
-    captchaId: payload?.captchaId ?? payload?.CaptchaId ?? '',
-    imageBase64: payload?.imageBase64 ?? payload?.ImageBase64 ?? '',
+    oauthProviders:
+      payload?.oauthProviders ?? payload?.OauthProviders ?? payload?.OAuthProviders ?? [],
   }
 }
 
@@ -64,17 +58,10 @@ export function getLoginConfigApi() {
   return requestClient.get<any>(API_CONTRACT.auth.loginConfig).then(normalizeLoginConfig)
 }
 
-export async function getCaptchaApi(): Promise<CaptchaInfo> {
-  const raw = await requestClient.get<any>(API_CONTRACT.auth.captcha)
-  return normalizeCaptcha(raw)
-}
-
 export async function loginApi(data: LoginParams): Promise<LoginResult> {
   const raw = await requestClient.post<any>(API_CONTRACT.auth.login, {
     UserName: data.username,
     Password: data.password,
-    CaptchaId: data.captchaId,
-    CaptchaCode: data.captchaCode,
     TenantId: data.tenantId,
   })
   return normalizeToken(raw)
