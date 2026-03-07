@@ -31,4 +31,23 @@ public interface IUserSessionRepository : IAggregateRootRepository<SysUserSessio
     /// 撤销用户的在线会话
     /// </summary>
     Task<int> RevokeUserSessionsAsync(long userId, string reason, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取用户在线会话列表
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>在线会话列表</returns>
+    Task<IReadOnlyList<SysUserSession>> GetOnlineSessionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 批量撤销指定会话
+    /// </summary>
+    /// <param name="sessionIds">会话ID列表</param>
+    /// <param name="reason">撤销原因</param>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>撤销数量</returns>
+    Task<int> RevokeSessionsAsync(IReadOnlyCollection<string> sessionIds, string reason, long? tenantId = null, CancellationToken cancellationToken = default);
 }
