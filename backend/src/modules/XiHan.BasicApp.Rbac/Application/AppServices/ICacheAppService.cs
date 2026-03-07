@@ -24,35 +24,35 @@ public interface ICacheAppService : IApplicationService
     /// <summary>
     /// 获取缓存字符串
     /// </summary>
-    Task<string?> GetStringAsync(string key, CancellationToken cancellationToken = default);
+    string? GetString(string key);
 
     /// <summary>
     /// 设置缓存字符串
     /// </summary>
-    Task SetStringAsync(string key, string value, int expireSeconds = 300, CancellationToken cancellationToken = default);
+    void SetString(string key, string value, int expireSeconds = 300);
 
     /// <summary>
     /// 删除缓存项
     /// </summary>
-    Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+    void Remove(string key);
 
     /// <summary>
     /// 批量删除缓存项
     /// </summary>
-    Task RemoveManyAsync(IReadOnlyCollection<string> keys, CancellationToken cancellationToken = default);
+    void RemoveMany(IReadOnlyCollection<string> keys);
 
     /// <summary>
     /// 判断缓存键是否存在
     /// </summary>
-    Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
+    bool Exists(string key);
 
     /// <summary>
     /// 按模式获取缓存键
     /// </summary>
-    Task<IReadOnlyCollection<string>> GetKeysAsync(string pattern = "*", CancellationToken cancellationToken = default);
+    IReadOnlyCollection<string> GetKeys(string pattern = "*");
 
     /// <summary>
     /// 按模式删除缓存项
     /// </summary>
-    Task<long> RemoveByPatternAsync(string pattern = "*", CancellationToken cancellationToken = default);
+    long RemoveByPattern(string pattern = "*");
 }
