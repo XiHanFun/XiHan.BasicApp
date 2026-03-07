@@ -20,7 +20,7 @@ using System.Text.Json;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
-using XiHan.Framework.Authentication;
+using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -38,8 +38,6 @@ public class RbacUserStore : IUserStore
     private readonly IConfigRepository _configRepository;
     private readonly ISqlSugarDbContext _dbContext;
     private readonly ICurrentTenant _currentTenant;
-
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 构造函数
@@ -59,6 +57,8 @@ public class RbacUserStore : IUserStore
         _dbContext = dbContext;
         _currentTenant = currentTenant;
     }
+
+    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 根据用户名获取用户
@@ -299,6 +299,37 @@ public class RbacUserStore : IUserStore
         return security?.LockoutEndTime?.UtcDateTime;
     }
 
+    private static string BuildRecoveryCodeConfigKey(long userId, long? tenantId)
+    {
+        var tenantPart = tenantId.HasValue ? tenantId.Value.ToString(CultureInfo.InvariantCulture) : "host";
+        var raw = $"auth-recovery|{tenantPart}|{userId}";
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
+        return $"auth:{hash}";
+    }
+
+    private static bool TryParseUserId(string? userId, out long parsedUserId)
+    {
+        return long.TryParse(userId, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedUserId);
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static DateTimeOffset? ToDateTimeOffset(DateTime? value)
+    {
+        if (!value.HasValue)
+        {
+            return null;
+        }
+
+        var utc = value.Value.Kind == DateTimeKind.Utc
+            ? value.Value
+            : DateTime.SpecifyKind(value.Value, DateTimeKind.Utc);
+        return new DateTimeOffset(utc);
+    }
+
     private async Task<UserInfo> MapToUserInfoAsync(SysUser user, CancellationToken cancellationToken)
     {
         var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
@@ -413,40 +444,9 @@ public class RbacUserStore : IUserStore
         await DbClient.Updateable(existing).ExecuteCommandAsync(cancellationToken);
     }
 
-    private static string BuildRecoveryCodeConfigKey(long userId, long? tenantId)
-    {
-        var tenantPart = tenantId.HasValue ? tenantId.Value.ToString(CultureInfo.InvariantCulture) : "host";
-        var raw = $"auth-recovery|{tenantPart}|{userId}";
-        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
-        return $"auth:{hash}";
-    }
-
     private bool IsTenantMatched(long? tenantId)
     {
         var currentTenantId = _currentTenant.Id;
         return currentTenantId.HasValue ? tenantId == currentTenantId : tenantId is null;
-    }
-
-    private static bool TryParseUserId(string? userId, out long parsedUserId)
-    {
-        return long.TryParse(userId, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedUserId);
-    }
-
-    private static string? NormalizeNullable(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
-
-    private static DateTimeOffset? ToDateTimeOffset(DateTime? value)
-    {
-        if (!value.HasValue)
-        {
-            return null;
-        }
-
-        var utc = value.Value.Kind == DateTimeKind.Utc
-            ? value.Value
-            : DateTime.SpecifyKind(value.Value, DateTimeKind.Utc);
-        return new DateTimeOffset(utc);
     }
 }

@@ -30,7 +30,6 @@ using XiHan.BasicApp.Rbac.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Rbac.Infrastructure.Repositories;
 using XiHan.BasicApp.Rbac.Infrastructure.Settings;
 using XiHan.BasicApp.Rbac.Seeders;
-using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Authorization.Policies;
 using XiHan.Framework.Data.Auditing;
@@ -39,7 +38,8 @@ using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.MultiTenancy.ConfigurationStore;
 using XiHan.Framework.Settings.Stores;
 using XiHan.Framework.Web.Api.Logging;
-using FrameworkRoleStore = XiHan.Framework.Authorization.Roles.IRoleStore;
+using XiHan.Framework.Authorization.Roles;
+using XiHan.Framework.Authentication.Users;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 
@@ -160,7 +160,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
         services.AddScoped<IUserStore, RbacUserStore>();
-        services.AddScoped<FrameworkRoleStore, RbacRoleStore>();
+        services.AddScoped<IRoleStore, RbacRoleStore>();
         services.AddScoped<IPermissionStore, RbacPermissionStore>();
         services.AddScoped<IPolicyStore, RbacPolicyStore>();
         services.AddScoped<ITenantStore, RbacTenantStore>();
