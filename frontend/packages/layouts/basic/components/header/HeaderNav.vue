@@ -18,23 +18,28 @@ const emit = defineEmits<{
 }>()
 
 const allCrumbs = computed(() => {
-  const result: Array<{ key: string, isHome?: boolean, index?: number }> = []
-  if (props.appStore.breadcrumbShowHome)
-    result.push({ key: 'home', isHome: true })
+  const result: Array<{ key: string; isHome?: boolean; index?: number }> = []
+  if (props.appStore.breadcrumbShowHome) result.push({ key: 'home', isHome: true })
   props.breadcrumbs.forEach((_, i) => result.push({ key: String(i), index: i }))
   return result
 })
 
+const shouldShowBreadcrumb = computed(() => {
+  // 没有任何面包屑项时不渲染
+  if (allCrumbs.value.length === 0) return false
+  if (props.appStore.breadcrumbHideOnlyOne && allCrumbs.value.length <= 1) return false
+  return true
+})
+
 function isLast(isHome: boolean, index?: number): boolean {
-  if (isHome)
-    return props.breadcrumbs.length === 0
+  if (isHome) return props.breadcrumbs.length === 0
   return index === props.breadcrumbs.length - 1
 }
 </script>
 
 <template>
   <NBreadcrumb
-    v-if="!(appStore.breadcrumbHideOnlyOne && allCrumbs.length <= 1)"
+    v-if="shouldShowBreadcrumb"
     class="flex items-center"
     :class="appStore.breadcrumbStyle === 'background' ? 'rounded-md bg-muted px-2 py-1' : ''"
   >
@@ -58,10 +63,7 @@ function isLast(isHome: boolean, index?: number): boolean {
       </div>
     </NBreadcrumbItem>
 
-    <NBreadcrumbItem
-      v-for="(item, index) in breadcrumbs"
-      :key="item.path"
-    >
+    <NBreadcrumbItem v-for="(item, index) in breadcrumbs" :key="item.path">
       <template v-if="!isLast(false, index)" #separator>
         <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
       </template>
