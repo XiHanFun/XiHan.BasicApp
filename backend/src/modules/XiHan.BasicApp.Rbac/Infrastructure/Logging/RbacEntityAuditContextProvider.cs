@@ -18,6 +18,7 @@ using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Web.Api.Constants;
+using XiHan.Framework.Web.Api.Contexts;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Logging;
 
@@ -39,6 +40,7 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
     };
 
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IRequestContextAccessor _requestContextAccessor;
     private readonly ICurrentUser _currentUser;
     private readonly ICurrentTenant _currentTenant;
 
@@ -46,14 +48,17 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
     /// 构造函数
     /// </summary>
     /// <param name="httpContextAccessor"></param>
+    /// <param name="requestContextAccessor"></param>
     /// <param name="currentUser"></param>
     /// <param name="currentTenant"></param>
     public RbacEntityAuditContextProvider(
         IHttpContextAccessor httpContextAccessor,
+        IRequestContextAccessor requestContextAccessor,
         ICurrentUser currentUser,
         ICurrentTenant currentTenant)
     {
         _httpContextAccessor = httpContextAccessor;
+        _requestContextAccessor = requestContextAccessor;
         _currentUser = currentUser;
         _currentTenant = currentTenant;
     }
@@ -65,18 +70,19 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
     public EntityAuditLogRecord CreateBaseRecord()
     {
         var httpContext = _httpContextAccessor.HttpContext;
-        var requestId = ResolveRequestId(httpContext);
+        var requestContext = _requestContextAccessor.Current;
+        var requestId = ResolveRequestId(requestContext, httpContext);
 
         return new EntityAuditLogRecord
         {
             AuditType = "EntityChange",
-            RequestPath = RbacLogMappingHelper.TrimOrNull(httpContext?.Request.Path.ToString(), 500),
-            RequestMethod = RbacLogMappingHelper.TrimOrNull(httpContext?.Request.Method, 10),
-            OperationIp = RbacLogMappingHelper.TrimOrNull(httpContext?.Connection.RemoteIpAddress?.ToString(), 50),
+            RequestPath = RbacLogMappingHelper.TrimOrNull(requestContext?.Path ?? httpContext?.Request.Path.ToString(), 500),
+            RequestMethod = RbacLogMappingHelper.TrimOrNull(requestContext?.Method ?? httpContext?.Request.Method, 10),
+            OperationIp = RbacLogMappingHelper.TrimOrNull(requestContext?.RemoteIp ?? httpContext?.Connection.RemoteIpAddress?.ToString(), 50),
             RequestId = requestId,
-            UserId = _currentUser.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(_currentUser.UserName, 50),
-            TenantId = _currentTenant.Id ?? _currentUser.TenantId
+            UserId = requestContext?.UserId ?? _currentUser.UserId,
+            UserName = RbacLogMappingHelper.TrimOrNull(requestContext?.UserName ?? _currentUser.UserName, 50),
+            TenantId = requestContext?.TenantId ?? _currentTenant.Id ?? _currentUser.TenantId
         };
     }
 
@@ -98,9 +104,10 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
         return !ExcludedEntityNames.Contains(entityType.Name);
     }
 
-    private static string? ResolveRequestId(HttpContext? httpContext)
+    private static string? ResolveRequestId(RequestContext? requestContext, HttpContext? httpContext)
     {
-        var traceId = httpContext?.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString()
+        var traceId = requestContext?.TraceId
+            ?? httpContext?.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString()
             ?? httpContext?.TraceIdentifier;
         return RbacLogMappingHelper.TrimOrNull(traceId, 100);
     }

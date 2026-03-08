@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 [SugarIndex("IX_SysResource_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_ReTy_St", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysResource : BasicAppCreationEntity
+public partial class SysResource : BasicAppAggregateRoot
 {
     /// <summary>
     /// 父资源ID（支持资源树结构）
@@ -78,7 +78,7 @@ public partial class SysResource : BasicAppCreationEntity
     /// 资源元数据（JSON格式，存储扩展信息）
     /// 例如：{"method": "GET", "controller": "UserController", "action": "GetList"}
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源元数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "资源元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Metadata { get; set; }
 
     /// <summary>

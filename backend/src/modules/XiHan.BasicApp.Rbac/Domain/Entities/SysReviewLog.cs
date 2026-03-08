@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 [SugarIndex("IX_SysReviewLog_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
 [SugarIndex("IX_SysReviewLog_ReRe", nameof(ReviewResult), OrderByType.Asc)]
 [SugarIndex("IX_SysReviewLog_ReTi", nameof(ReviewTime), OrderByType.Desc)]
-public partial class SysReviewLog : BasicAppFullAuditedEntity
+public partial class SysReviewLog : BasicAppCreationEntity
 {
     /// <summary>
     /// 审查ID

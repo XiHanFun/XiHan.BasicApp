@@ -59,9 +59,10 @@ public partial class SysOAuthCode : BasicAppFullAuditedEntity
 
     /// <summary>
     /// 状态
+    /// 防 CSRF 的随机字符串
     /// </summary>
     [SugarColumn(ColumnDescription = "状态", IsNullable = true)]
-    public virtual YesOrNo? State { get; set; }
+    public virtual string? State { get; set; }
 
     /// <summary>
     /// 质询码

@@ -133,7 +133,7 @@ public partial class SysMenu : BasicAppAggregateRoot
     /// 菜单元数据（JSON格式，存储额外配置）
     /// 例如：{"badge": "new", "activeMenu": "/system/user"}
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单元数据", ColumnDataType = "text", IsNullable = true)]
+    [SugarColumn(ColumnDescription = "菜单元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Metadata { get; set; }
 
     /// <summary>

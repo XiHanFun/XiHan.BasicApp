@@ -45,6 +45,7 @@ public class NotificationAppService
     /// </summary>
     /// <param name="notificationRepository"></param>
     /// <param name="userRepository"></param>
+    /// <param name="messageCacheService"></param>
     /// <param name="unitOfWorkManager"></param>
     public NotificationAppService(
         INotificationRepository notificationRepository,

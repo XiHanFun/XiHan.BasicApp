@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 [SugarIndex("IX_SysOperation_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysOperation : BasicAppCreationEntity
+public partial class SysOperation : BasicAppAggregateRoot
 {
     /// <summary>
     /// 操作编码（唯一标识，如：create, read, update, delete, approve）

@@ -91,7 +91,7 @@ public class UserSessionAppService
             TenantId = createDto.TenantId,
             UserId = createDto.UserId,
             CurrentAccessTokenJti = createDto.CurrentAccessTokenJti,
-            SessionId = createDto.SessionId.Trim(),
+            UserSessionId = createDto.SessionId.Trim(),
             DeviceType = createDto.DeviceType,
             DeviceName = createDto.DeviceName,
             DeviceId = createDto.DeviceId,

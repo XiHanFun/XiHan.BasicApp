@@ -19,6 +19,7 @@ using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Web.Api.Logging;
+using XiHan.Framework.Web.Api.Logging.Writers;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Logging;
@@ -34,8 +35,6 @@ public class RbacAccessLogWriter : IAccessLogWriter
     private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
-
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 构造函数
@@ -55,6 +54,8 @@ public class RbacAccessLogWriter : IAccessLogWriter
         _currentTenant = currentTenant;
         _clientInfoProvider = clientInfoProvider;
     }
+
+    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 写入访问日志
