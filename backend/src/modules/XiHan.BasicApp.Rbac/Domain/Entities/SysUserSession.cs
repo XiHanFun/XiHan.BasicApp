@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Domain.Entities;
 /// </summary>
 [SugarTable("Sys_User_Session", "系统用户会话表")]
 [SugarIndex("IX_SysUserSession_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_SeId", nameof(SessionId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserSession_UsSeId", nameof(UserSessionId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserSession_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserSession_IsOn_IsRe", nameof(IsOnline), OrderByType.Asc, nameof(IsRevoked), OrderByType.Asc)]
@@ -47,7 +47,7 @@ public partial class SysUserSession : BasicAppAggregateRoot
     /// 会话标识（用于区分不同设备/端，业务侧唯一）
     /// </summary>
     [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = false)]
-    public virtual string SessionId { get; set; } = string.Empty;
+    public virtual string UserSessionId { get; set; } = string.Empty;
 
     /// <summary>
     /// 设备类型

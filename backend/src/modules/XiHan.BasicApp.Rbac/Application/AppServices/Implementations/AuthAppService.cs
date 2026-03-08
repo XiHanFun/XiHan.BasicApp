@@ -90,6 +90,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="userSessionRepository"></param>
     /// <param name="loginLogRepository"></param>
     /// <param name="jwtTokenService"></param>
+    /// <param name="otpService"></param>
     /// <param name="passwordHasher"></param>
     /// <param name="refreshTokenCache"></param>
     /// <param name="sessionTokenMapCache"></param>
@@ -742,7 +743,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         List<string> toRevokeSessionIds;
         if (!security.AllowMultiLogin)
         {
-            toRevokeSessionIds = [.. onlineSessions.Select(session => session.SessionId)];
+            toRevokeSessionIds = [.. onlineSessions.Select(session => session.UserSessionId)];
         }
         else if (security.MaxLoginDevices > 0 && onlineSessions.Count >= security.MaxLoginDevices)
         {
@@ -752,7 +753,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                     .OrderBy(session => session.LastActivityTime)
                     .ThenBy(session => session.LoginTime)
                     .Take(overflowCount)
-                    .Select(session => session.SessionId)];
+                    .Select(session => session.UserSessionId)];
         }
         else
         {
@@ -779,15 +780,15 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         var now = DateTimeOffset.UtcNow;
         var clientInfo = _clientInfoProvider.GetCurrent();
-        var session = await _userSessionRepository.GetBySessionIdAsync(sessionId, user.TenantId);
-        if (session is null)
+        var userSession = await _userSessionRepository.GetBySessionIdAsync(sessionId, user.TenantId);
+        if (userSession is null)
         {
-            session = new SysUserSession
+            userSession = new SysUserSession
             {
                 TenantId = user.TenantId,
                 UserId = user.BasicId,
                 CurrentAccessTokenJti = accessTokenJti,
-                SessionId = sessionId,
+                UserSessionId = sessionId,
                 DeviceType = DeviceType.Web,
                 DeviceName = clientInfo.DeviceName ?? "Web Browser",
                 Browser = clientInfo.Browser,
@@ -799,23 +800,23 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                 IsOnline = true,
                 IsRevoked = false
             };
-            await _userSessionRepository.AddAsync(session);
+            await _userSessionRepository.AddAsync(userSession);
             return;
         }
 
-        session.CurrentAccessTokenJti = accessTokenJti;
-        session.LastActivityTime = now;
-        session.IsOnline = true;
-        session.IsRevoked = false;
-        session.RevokedAt = null;
-        session.RevokedReason = null;
-        session.LogoutTime = null;
-        session.DeviceName = clientInfo.DeviceName ?? session.DeviceName;
-        session.IpAddress = clientInfo.IpAddress;
-        session.Browser = clientInfo.Browser;
-        session.OperatingSystem = clientInfo.OperatingSystem;
-        session.Location = clientInfo.Location;
-        await _userSessionRepository.UpdateAsync(session);
+        userSession.CurrentAccessTokenJti = accessTokenJti;
+        userSession.LastActivityTime = now;
+        userSession.IsOnline = true;
+        userSession.IsRevoked = false;
+        userSession.RevokedAt = null;
+        userSession.RevokedReason = null;
+        userSession.LogoutTime = null;
+        userSession.DeviceName = clientInfo.DeviceName ?? userSession.DeviceName;
+        userSession.IpAddress = clientInfo.IpAddress;
+        userSession.Browser = clientInfo.Browser;
+        userSession.OperatingSystem = clientInfo.OperatingSystem;
+        userSession.Location = clientInfo.Location;
+        await _userSessionRepository.UpdateAsync(userSession);
     }
 
     /// <summary>

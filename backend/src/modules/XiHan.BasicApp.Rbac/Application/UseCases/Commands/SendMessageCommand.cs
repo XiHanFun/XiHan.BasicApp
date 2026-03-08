@@ -89,7 +89,7 @@ public class SendMessageCommand
     /// <summary>
     /// 短信模板ID
     /// </summary>
-    public string? SmsTemplateId { get; set; }
+    public long? SmsTemplateId { get; set; }
 
     /// <summary>
     /// 短信模板参数

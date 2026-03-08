@@ -33,14 +33,14 @@ public partial class SysLoginLog : BasicAppCreationEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
-    public virtual long UserId { get; set; }
+    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = false)]
-    public virtual string UserName { get; set; } = string.Empty;
+    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
+    public virtual string? UserName { get; set; }
 
     /// <summary>
     /// 登录IP

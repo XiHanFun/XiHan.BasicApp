@@ -61,8 +61,8 @@ public partial class SysSms : BasicAppAggregateRoot
     /// <summary>
     /// 模板ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板ID", Length = 50, IsNullable = true)]
-    public virtual string? TemplateId { get; set; }
+    [SugarColumn(ColumnDescription = "模板ID", IsNullable = true)]
+    public virtual long? TemplateId { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）

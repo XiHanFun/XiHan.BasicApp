@@ -60,7 +60,7 @@ public class SmsCreateDto : BasicAppCDto
     public string Content { get; set; } = string.Empty;
 
     [StringLength(50, ErrorMessage = "模板ID长度不能超过 50")]
-    public string? TemplateId { get; set; }
+    public long? TemplateId { get; set; }
 
     [StringLength(1000, ErrorMessage = "模板参数长度不能超过 1000")]
     public string? TemplateParams { get; set; }
@@ -96,7 +96,7 @@ public class SmsUpdateDto : BasicAppUDto
     public string Content { get; set; } = string.Empty;
 
     [StringLength(50, ErrorMessage = "模板ID长度不能超过 50")]
-    public string? TemplateId { get; set; }
+    public long? TemplateId { get; set; }
 
     [StringLength(1000, ErrorMessage = "模板参数长度不能超过 1000")]
     public string? TemplateParams { get; set; }

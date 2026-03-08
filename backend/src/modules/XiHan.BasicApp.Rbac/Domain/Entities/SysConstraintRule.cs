@@ -82,7 +82,7 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual string? Description { get; set; }
 
     /// <summary>
-    /// 规则优先级（数字越大优先级越高）
+    /// 规则优先级（数字越小优先级越高）
     /// </summary>
     [SugarColumn(ColumnDescription = "规则优先级")]
     public virtual int Priority { get; set; } = 0;

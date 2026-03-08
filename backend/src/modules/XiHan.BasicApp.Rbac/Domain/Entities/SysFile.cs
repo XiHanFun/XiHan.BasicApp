@@ -241,7 +241,7 @@ public partial class SysFile : BasicAppAggregateRoot
     /// 扩展数据（JSON格式）
     /// </summary>
     [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
-    public virtual string? ExtensionData { get; set; }
+    public virtual string? ExtendData { get; set; }
 
     #endregion
 }

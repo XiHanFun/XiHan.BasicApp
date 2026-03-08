@@ -40,6 +40,7 @@ using XiHan.Framework.Settings.Stores;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Authorization.Roles;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.Web.Api.Logging.Writers;
 
 namespace XiHan.BasicApp.Rbac.Extensions;
 

@@ -47,7 +47,7 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
         var resolvedTenantId = tenantId;
 
         var query = CreateTenantQueryable()
-            .Where(session => session.SessionId == sessionId);
+            .Where(session => session.UserSessionId == sessionId);
 
         if (resolvedTenantId.HasValue)
         {
@@ -165,7 +165,7 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
         var resolvedTenantId = tenantId;
         var query = CreateTenantQueryable()
             .Where(session =>
-                normalizedSessionIds.Contains(session.SessionId) &&
+                normalizedSessionIds.Contains(session.UserSessionId) &&
                 session.IsOnline &&
                 !session.IsRevoked);
 

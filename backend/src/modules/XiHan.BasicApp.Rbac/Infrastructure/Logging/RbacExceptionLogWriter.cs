@@ -22,6 +22,7 @@ using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Web.Api.Logging;
+using XiHan.Framework.Web.Api.Logging.Writers;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Rbac.Infrastructure.Logging;
@@ -37,8 +38,6 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IWebHostEnvironment _hostingEnvironment;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 构造函数
@@ -64,6 +63,8 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
         _hostingEnvironment = hostingEnvironment;
         _httpContextAccessor = httpContextAccessor;
     }
+
+    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 写入异常日志
