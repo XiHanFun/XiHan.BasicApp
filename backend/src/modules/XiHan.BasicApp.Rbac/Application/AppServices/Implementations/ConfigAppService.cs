@@ -90,7 +90,7 @@ public class ConfigAppService
 
         await MapDtoToEntityAsync(input, config);
         var updated = await _configRepository.UpdateAsync(config);
-        return updated.Adapt<ConfigDto>();
+        return updated.Adapt<ConfigDto>()!;
     }
 
     /// <summary>

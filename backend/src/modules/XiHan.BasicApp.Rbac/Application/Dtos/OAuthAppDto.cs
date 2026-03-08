@@ -23,30 +23,69 @@ namespace XiHan.BasicApp.Rbac.Application.Dtos;
 /// </summary>
 public class OAuthAppDto : BasicAppDto
 {
+    /// <summary>
+    /// 应用名称
+    /// </summary>
     public string AppName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 应用描述
+    /// </summary>
     public string? AppDescription { get; set; }
 
+    /// <summary>
+    /// 客户端 ID
+    /// </summary>
     public string ClientId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 客户端密钥
+    /// </summary>
     public string ClientSecret { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 应用类型
+    /// </summary>
     public OAuthAppType AppType { get; set; } = OAuthAppType.Web;
 
+    /// <summary>
+    /// 授权类型
+    /// </summary>
     public string GrantTypes { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
     public string? RedirectUris { get; set; }
 
+    /// <summary>
+    /// 权限范围
+    /// </summary>
     public string? Scopes { get; set; }
 
+    /// <summary>
+    /// 访问令牌有效期（秒）
+    /// </summary>
     public int AccessTokenLifetime { get; set; } = 3600;
 
+    /// <summary>
+    /// 刷新令牌有效期（秒）
+    /// </summary>
     public int RefreshTokenLifetime { get; set; } = 2592000;
 
+    /// <summary>
+    /// 授权码有效期（秒）
+    /// </summary>
     public int AuthorizationCodeLifetime { get; set; } = 300;
 
+    /// <summary>
+    /// 是否跳过用户同意
+    /// </summary>
     public bool SkipConsent { get; set; }
 
+    /// <summary>
+    /// 状态
+    /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
 }
 
@@ -55,43 +94,85 @@ public class OAuthAppDto : BasicAppDto
 /// </summary>
 public class OAuthAppCreateDto : BasicAppCDto
 {
+    /// <summary>
+    /// 应用名称
+    /// </summary>
     [Required(ErrorMessage = "应用名称不能为空")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "应用名称长度必须在 1～100 之间")]
     public string AppName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 应用描述
+    /// </summary>
     [StringLength(500, ErrorMessage = "应用描述长度不能超过 500")]
     public string? AppDescription { get; set; }
 
+    /// <summary>
+    /// 客户端 ID
+    /// </summary>
     [Required(ErrorMessage = "客户端ID不能为空")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "客户端ID长度必须在 1～100 之间")]
     public string ClientId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 客户端密钥
+    /// </summary>
     [Required(ErrorMessage = "客户端密钥不能为空")]
     [StringLength(200, MinimumLength = 1, ErrorMessage = "客户端密钥长度必须在 1～200 之间")]
     public string ClientSecret { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 应用类型
+    /// </summary>
     public OAuthAppType AppType { get; set; } = OAuthAppType.Web;
 
+    /// <summary>
+    /// 授权类型
+    /// </summary>
     [Required(ErrorMessage = "授权类型不能为空")]
     [StringLength(200, MinimumLength = 1, ErrorMessage = "授权类型长度必须在 1～200 之间")]
     public string GrantTypes { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
     [StringLength(1000, ErrorMessage = "重定向地址长度不能超过 1000")]
     public string? RedirectUris { get; set; }
 
+    /// <summary>
+    /// 权限范围
+    /// </summary>
     [StringLength(500, ErrorMessage = "权限范围长度不能超过 500")]
     public string? Scopes { get; set; }
 
+    /// <summary>
+    /// 访问令牌有效期（秒）
+    /// </summary>
     public int AccessTokenLifetime { get; set; } = 3600;
 
+    /// <summary>
+    /// 刷新令牌有效期（秒）
+    /// </summary>
     public int RefreshTokenLifetime { get; set; } = 2592000;
 
+    /// <summary>
+    /// 授权码有效期（秒）
+    /// </summary>
     public int AuthorizationCodeLifetime { get; set; } = 300;
 
+    /// <summary>
+    /// 是否跳过用户同意
+    /// </summary>
     public bool SkipConsent { get; set; }
 
+    /// <summary>
+    /// 租户标识
+    /// </summary>
     public long? TenantId { get; set; }
 
+    /// <summary>
+    /// 备注
+    /// </summary>
     [StringLength(500, ErrorMessage = "备注长度不能超过 500")]
     public string? Remark { get; set; }
 }
@@ -101,39 +182,78 @@ public class OAuthAppCreateDto : BasicAppCDto
 /// </summary>
 public class OAuthAppUpdateDto : BasicAppUDto
 {
+    /// <summary>
+    /// 应用名称
+    /// </summary>
     [Required(ErrorMessage = "应用名称不能为空")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "应用名称长度必须在 1～100 之间")]
     public string AppName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 应用描述
+    /// </summary>
     [StringLength(500, ErrorMessage = "应用描述长度不能超过 500")]
     public string? AppDescription { get; set; }
 
+    /// <summary>
+    /// 客户端密钥
+    /// </summary>
     [Required(ErrorMessage = "客户端密钥不能为空")]
     [StringLength(200, MinimumLength = 1, ErrorMessage = "客户端密钥长度必须在 1～200 之间")]
     public string ClientSecret { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 应用类型
+    /// </summary>
     public OAuthAppType AppType { get; set; } = OAuthAppType.Web;
 
+    /// <summary>
+    /// 授权类型
+    /// </summary>
     [Required(ErrorMessage = "授权类型不能为空")]
     [StringLength(200, MinimumLength = 1, ErrorMessage = "授权类型长度必须在 1～200 之间")]
     public string GrantTypes { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
     [StringLength(1000, ErrorMessage = "重定向地址长度不能超过 1000")]
     public string? RedirectUris { get; set; }
 
+    /// <summary>
+    /// 权限范围
+    /// </summary>
     [StringLength(500, ErrorMessage = "权限范围长度不能超过 500")]
     public string? Scopes { get; set; }
 
+    /// <summary>
+    /// 访问令牌有效期（秒）
+    /// </summary>
     public int AccessTokenLifetime { get; set; } = 3600;
 
+    /// <summary>
+    /// 刷新令牌有效期（秒）
+    /// </summary>
     public int RefreshTokenLifetime { get; set; } = 2592000;
 
+    /// <summary>
+    /// 授权码有效期（秒）
+    /// </summary>
     public int AuthorizationCodeLifetime { get; set; } = 300;
 
+    /// <summary>
+    /// 是否跳过用户同意
+    /// </summary>
     public bool SkipConsent { get; set; }
 
+    /// <summary>
+    /// 状态
+    /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
 
+    /// <summary>
+    /// 备注
+    /// </summary>
     [StringLength(500, ErrorMessage = "备注长度不能超过 500")]
     public string? Remark { get; set; }
 }

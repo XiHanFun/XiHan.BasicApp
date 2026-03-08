@@ -298,7 +298,7 @@ public class UserAppService
 
         var created = await _userManager.CreateAsync(user, input.Password);
         await uow.CompleteAsync();
-        return created.Adapt<UserDto>();
+        return created.Adapt<UserDto>()!;
     }
 
     /// <summary>
@@ -335,7 +335,7 @@ public class UserAppService
 
         var updated = await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        return updated.Adapt<UserDto>();
+        return updated.Adapt<UserDto>()!;
     }
 
     /// <summary>

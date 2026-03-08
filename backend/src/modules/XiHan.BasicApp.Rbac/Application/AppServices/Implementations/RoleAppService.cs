@@ -289,7 +289,7 @@ public class RoleAppService
 
         var created = await _roleRepository.AddAsync(role);
         await uow.CompleteAsync();
-        return created.Adapt<RoleDto>();
+        return created.Adapt<RoleDto>()!;
     }
 
     /// <summary>
@@ -324,7 +324,7 @@ public class RoleAppService
         var updated = await _roleRepository.UpdateAsync(role);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.All);
         await uow.CompleteAsync();
-        return updated.Adapt<RoleDto>();
+        return updated.Adapt<RoleDto>()!;
     }
 
     /// <summary>

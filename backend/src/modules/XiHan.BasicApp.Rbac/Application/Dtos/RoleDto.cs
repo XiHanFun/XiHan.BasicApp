@@ -106,7 +106,6 @@ public class RoleCreateDto : BasicAppCDto
     /// <summary>
     /// 租户ID
     /// </summary>
-
     public long? TenantId { get; set; }
 }
 

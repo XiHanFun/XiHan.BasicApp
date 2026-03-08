@@ -52,7 +52,7 @@ public class MenuAppService
     public async Task<IReadOnlyList<MenuDto>> GetRoleMenusAsync(long roleId, long? tenantId = null)
     {
         var menus = await _menuRepository.GetRoleMenusAsync(roleId, tenantId);
-        return menus.Select(static menu => menu.Adapt<MenuDto>()).ToArray();
+        return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class MenuAppService
     {
         ArgumentNullException.ThrowIfNull(query);
         var menus = await _menuRepository.GetUserMenusAsync(query.UserId, query.TenantId);
-        return menus.Select(static menu => menu.Adapt<MenuDto>()).ToArray();
+        return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class MenuAppService
 
         await MapDtoToEntityAsync(input, menu);
         var updated = await _menuRepository.UpdateAsync(menu);
-        return updated.Adapt<MenuDto>();
+        return updated.Adapt<MenuDto>()!;
     }
 
     /// <summary>

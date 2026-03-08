@@ -64,7 +64,7 @@ public class DepartmentAppService
     public async Task<IReadOnlyList<DepartmentDto>> GetChildrenAsync(long? parentId, long? tenantId = null)
     {
         var departments = await _departmentRepository.GetChildrenAsync(parentId, tenantId);
-        return departments.Select(department => department.Adapt<DepartmentDto>()).ToArray();
+        return departments.Select(department => department.Adapt<DepartmentDto>()!).ToArray();
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class DepartmentAppService
         await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
         await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
-        return created.Adapt<DepartmentDto>();
+        return created.Adapt<DepartmentDto>()!;
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class DepartmentAppService
         await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
-        return updated.Adapt<DepartmentDto>();
+        return updated.Adapt<DepartmentDto>()!;
     }
 
     /// <summary>
