@@ -15,11 +15,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="XiHan.Framework.Web.Api" Version="2.3.2-preview.5" />
-      <PackageReference Include="XiHan.Framework.Web.Core" Version="2.3.2-preview.5" />
-      <PackageReference Include="XiHan.Framework.Web.Docs" Version="2.3.2-preview.5" />
-      <PackageReference Include="XiHan.Framework.Web.Gateway" Version="2.3.2-preview.5" />
-      <PackageReference Include="XiHan.Framework.Web.RealTime" Version="2.3.2-preview.5" />
+      <PackageReference Include="XiHan.Framework.Web.Api" Version="2.3.2-preview.6" />
+      <PackageReference Include="XiHan.Framework.Web.Core" Version="2.3.2-preview.6" />
+      <PackageReference Include="XiHan.Framework.Web.Docs" Version="2.3.2-preview.6" />
+      <PackageReference Include="XiHan.Framework.Web.Gateway" Version="2.3.2-preview.6" />
+      <PackageReference Include="XiHan.Framework.Web.RealTime" Version="2.3.2-preview.6" />
     </ItemGroup>
 
     <ItemGroup>
