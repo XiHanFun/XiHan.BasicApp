@@ -130,7 +130,7 @@ public static class AutoVersionUpdate
     private static string GetEntryAssemblyCurrentVersion()
     {
         var entryAssemblyVersion = ReflectionHelper.GetEntryAssemblyVersion();
-        return entryAssemblyVersion.ToString(3);
+        return entryAssemblyVersion?.ToString(3) ?? "0.0.0";
     }
 
     /// <summary>

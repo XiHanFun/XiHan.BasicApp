@@ -59,7 +59,7 @@ public class PermissionAppService
     public async Task<IReadOnlyList<PermissionDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null)
     {
         var permissions = await _permissionRepository.GetRolePermissionsAsync(roleId, tenantId);
-        return permissions.Select(static permission => permission.Adapt<PermissionDto>()).ToArray();
+        return permissions.Select(static permission => permission.Adapt<PermissionDto>()!).ToArray();
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public class PermissionAppService
     {
         ArgumentNullException.ThrowIfNull(query);
         var permissions = await _permissionRepository.GetUserPermissionsAsync(query.UserId, query.TenantId);
-        return permissions.Select(static permission => permission.Adapt<PermissionDto>()).ToArray();
+        return permissions.Select(static permission => permission.Adapt<PermissionDto>()!).ToArray();
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class PermissionAppService
         await MapDtoToEntityAsync(input, permission);
         var updated = await _permissionRepository.UpdateAsync(permission);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.Permission);
-        return updated.Adapt<PermissionDto>();
+        return updated.Adapt<PermissionDto>()!;
     }
 
     /// <summary>

@@ -94,7 +94,7 @@ public class TenantAppService
 
         var created = await _tenantManager.CreateAsync(tenant);
         await uow.CompleteAsync();
-        return created.Adapt<TenantDto>();
+        return created.Adapt<TenantDto>()!;
     }
 
     /// <summary>
@@ -130,7 +130,7 @@ public class TenantAppService
 
         var updated = await _tenantRepository.UpdateAsync(tenant);
         await uow.CompleteAsync();
-        return updated.Adapt<TenantDto>();
+        return updated.Adapt<TenantDto>()!;
     }
 
     /// <summary>

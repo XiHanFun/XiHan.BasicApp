@@ -63,7 +63,7 @@ public class DictAppService
     public async Task<IReadOnlyList<DictItemDto>> GetDictItemsAsync(long dictId, long? tenantId = null)
     {
         var entities = await _dictRepository.GetDictItemsAsync(dictId, tenantId);
-        return entities.Select(static entity => entity.Adapt<DictItemDto>()).ToArray();
+        return entities.Select(static entity => entity.Adapt<DictItemDto>()!).ToArray();
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class DictAppService
 
         await MapDtoToEntityAsync(input, dict);
         var updated = await _dictRepository.UpdateAsync(dict);
-        return updated.Adapt<DictDto>();
+        return updated.Adapt<DictDto>()!;
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class DictAppService
         };
 
         var created = await _dictRepository.AddDictItemAsync(entity);
-        return created.Adapt<DictItemDto>();
+        return created.Adapt<DictItemDto>()!;
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class DictAppService
         dictItem.Remark = input.Remark;
 
         var updated = await _dictRepository.UpdateDictItemAsync(dictItem);
-        return updated.Adapt<DictItemDto>();
+        return updated.Adapt<DictItemDto>()!;
     }
 
     /// <summary>
