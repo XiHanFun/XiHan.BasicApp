@@ -97,6 +97,7 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
             ControllerName = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 100),
             ActionName = RbacLogMappingHelper.TrimOrNull(record.ActionName, 100),
             RequestParams = RbacLogMappingHelper.TrimOrNull(record.RequestParams, 32000),
+            RequestBody = RbacLogMappingHelper.TrimOrNull(record.RequestBody, 32000),
             RequestHeaders = RbacLogMappingHelper.TrimOrNull(record.RequestHeaders, 32000),
             StatusCode = record.StatusCode,
             OperationIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),

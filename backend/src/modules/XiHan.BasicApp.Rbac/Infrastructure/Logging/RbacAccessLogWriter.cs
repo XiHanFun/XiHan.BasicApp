@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.Text.Json;
 using SqlSugar;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
@@ -27,6 +28,8 @@ namespace XiHan.BasicApp.Rbac.Infrastructure.Logging;
 /// </summary>
 public class RbacAccessLogWriter : IAccessLogWriter
 {
+    private const int ExtendDataLimit = 32000;
+
     private readonly ISqlSugarDbContext _dbContext;
     private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
     private readonly ICurrentTenant _currentTenant;
@@ -87,15 +90,46 @@ public class RbacAccessLogWriter : IAccessLogWriter
             Device = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
             Referer = RbacLogMappingHelper.TrimOrNull(record.Referer, 500),
             ResponseTime = elapsedMilliseconds,
+            ResponseSize = record.ResponseSize < 0 ? 0 : record.ResponseSize,
             AccessTime = accessTime,
             LeaveTime = now,
             StayTime = (long)Math.Ceiling(elapsedMilliseconds / 1000D),
             ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
+            ExtendData = BuildExtendData(record),
             Remark = RbacLogMappingHelper.TrimOrNull(
                 string.IsNullOrWhiteSpace(record.TraceId) ? null : $"TraceId:{record.TraceId}",
                 500)
         };
 
         await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);
+    }
+
+    private static string? BuildExtendData(AccessLogRecord record)
+    {
+        if (string.IsNullOrWhiteSpace(record.QueryString) && string.IsNullOrWhiteSpace(record.RequestBody))
+        {
+            return null;
+        }
+
+        var payload = new Dictionary<string, string?>();
+        if (!string.IsNullOrWhiteSpace(record.QueryString))
+        {
+            payload["query"] = record.QueryString;
+        }
+
+        if (!string.IsNullOrWhiteSpace(record.RequestBody))
+        {
+            payload["body"] = record.RequestBody;
+        }
+
+        try
+        {
+            var json = JsonSerializer.Serialize(payload);
+            return RbacLogMappingHelper.TrimOrNull(json, ExtendDataLimit);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
