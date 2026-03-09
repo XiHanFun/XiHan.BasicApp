@@ -57,12 +57,17 @@ const isSplitMode = computed(
 
 const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
 
-function renderRouteIcon(icon: string) {
-  return () => h(Icon, { icon })
+function resolveIcon(icon: string) {
+  if (!icon) return icon
+  return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
-function translateMenuTitle(title: string, fallback: string) {
-  return te(title) ? t(title) : fallback
+function renderRouteIcon(icon: string) {
+  return () => h(Icon, { icon: resolveIcon(icon) })
+}
+
+function translateMenuTitle(title: string, _fallback: string) {
+  return te(title) ? t(title) : title
 }
 
 const topMenuOptions = computed<MenuOption[]>(() => {
