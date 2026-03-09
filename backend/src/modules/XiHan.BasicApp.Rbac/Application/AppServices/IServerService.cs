@@ -27,23 +27,20 @@ public interface IServerService : IApplicationService
     /// <summary>
     /// 获取服务器综合信息
     /// </summary>
-    Task<ServerInfoDto> GetServerInfoAsync(
-        bool includeDisk = true,
-        bool includeNetwork = true,
-        CancellationToken cancellationToken = default);
+    Task<ServerInfoDto> GetServerInfoAsync(bool includeDisk = true, bool includeNetwork = true);
 
     /// <summary>
     /// 获取运行时信息
     /// </summary>
-    Task<RuntimeInfo> GetRuntimeInfoAsync(CancellationToken cancellationToken = default);
+    Task<RuntimeInfo> GetRuntimeInfoAsync();
 
     /// <summary>
     /// 获取 CPU 信息
     /// </summary>
-    Task<CpuInfo> GetCpuInfoAsync(CancellationToken cancellationToken = default);
+    Task<CpuInfo> GetCpuInfoAsync();
 
     /// <summary>
     /// 获取内存信息
     /// </summary>
-    Task<RamInfo> GetMemoryInfoAsync(CancellationToken cancellationToken = default);
+    Task<RamInfo> GetMemoryInfoAsync();
 }
