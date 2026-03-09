@@ -5,7 +5,7 @@ import { createApp } from 'vue'
 import App from '~/app.vue'
 import { setupI18n } from '~/locales'
 import { router } from './router'
-import '~/@core/design/global.css'
+import '~/design/global.css'
 
 async function bootstrap() {
   const app = createApp(App)
