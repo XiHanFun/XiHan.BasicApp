@@ -30,8 +30,6 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.ValueObjects;
 using XiHan.Framework.Application.Attributes;
-using XiHan.Framework.Application.Contracts.Dtos;
-using XiHan.Framework.Application.Contracts.Enums;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.Otp;
@@ -51,7 +49,6 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 /// 认证应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Rbac", GroupName = "系统Rbac服务")]
-[DynamicApi(RouteTemplate = "api/auth")]
 public class AuthAppService : ApplicationServiceBase, IAuthAppService
 {
     private const int MaxFailedAttempts = 5;
@@ -148,8 +145,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 获取登录配置
     /// </summary>
-    [DynamicApi(Name = "login-config")]
-    public Task<ApiResponse> GetLoginConfigAsync()
+    public Task<LoginConfigDto> GetLoginConfigAsync()
     {
         var loginMethods = _configuration.GetSection("XiHan:Authentication:LoginMethods").Get<string[]>();
         var oauthProviders = _configuration.GetSection("XiHan:Authentication:OAuth:Providers").Get<string[]>();
@@ -161,14 +157,13 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             OauthProviders = oauthProviders is { Length: > 0 } ? [.. oauthProviders] : []
         };
 
-        return Task.FromResult(Success(response));
+        return Task.FromResult(response);
     }
 
     /// <summary>
     /// 登录
     /// </summary>
-    [DynamicApi(Name = "login")]
-    public async Task<ApiResponse> LoginAsync(UserLoginCommand command)
+    public async Task<AuthTokenDto> LoginAsync(UserLoginCommand command)
     {
         command.ValidateAnnotations();
         command.UserName = command.UserName.Trim();
@@ -180,14 +175,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await WriteLoginLogAsync(0, command, LoginResult.InvalidCredentials, clientInfo, "用户名或密码错误");
             await uow.CompleteAsync();
-            return Error(ApiResponseCodes.Unauthorized, "用户名或密码错误");
+            throw new UnauthorizedAccessException("用户名或密码错误");
         }
 
         if (user.Status != YesOrNo.Yes)
         {
             await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountDisabled, clientInfo, "账号已禁用");
             await uow.CompleteAsync();
-            return Error(ApiResponseCodes.Forbidden, "账号已禁用");
+            throw new BusinessException(message: "账号已禁用");
         }
 
         var security = await EnsureSecurityProfileAsync(user);
@@ -195,7 +190,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await WriteLoginLogAsync(user.BasicId, command, LoginResult.AccountLocked, clientInfo, "账号已锁定");
             await uow.CompleteAsync();
-            return Error(ApiResponseCodes.Forbidden, $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
+            throw new BusinessException(message: $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
         }
 
         var password = PasswordValueObject.FromHash(user.Password);
@@ -204,7 +199,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             await HandlePasswordFailureAsync(security);
             await WriteLoginLogAsync(user.BasicId, command, LoginResult.InvalidCredentials, clientInfo, "用户名或密码错误");
             await uow.CompleteAsync();
-            return Error(ApiResponseCodes.Unauthorized, "用户名或密码错误");
+            throw new UnauthorizedAccessException("用户名或密码错误");
         }
 
         if (security.TwoFactorEnabled)
@@ -213,7 +208,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "账号未配置双因素密钥");
                 await uow.CompleteAsync();
-                return Error(ApiResponseCodes.Forbidden, "账号双因素认证配置异常，请联系管理员");
+                throw new BusinessException(message: "账号双因素认证配置异常，请联系管理员");
             }
 
             var twoFactorCode = command.TwoFactorCode?.Trim();
@@ -221,14 +216,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.RequiresTwoFactor, clientInfo, "需要双因素认证");
                 await uow.CompleteAsync();
-                return Error(ApiResponseCodes.Unauthorized, "请输入双因素验证码", new { RequiresTwoFactor = true });
+                throw new UnauthorizedAccessException("请输入双因素验证码");
             }
 
             if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, twoFactorCode))
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "双因素验证码错误");
                 await uow.CompleteAsync();
-                return Error(ApiResponseCodes.Unauthorized, "双因素验证码错误");
+                throw new UnauthorizedAccessException("双因素验证码错误");
             }
         }
 
@@ -263,7 +258,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         await SaveRefreshTokenAsync(refreshToken, user, sessionId);
 
-        var response = new AuthTokenDto
+        return new AuthTokenDto
         {
             AccessToken = tokenResult.AccessToken,
             RefreshToken = tokenResult.RefreshToken,
@@ -272,15 +267,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
             ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
         };
-
-        return Success(response);
     }
 
     /// <summary>
     /// 刷新令牌
     /// </summary>
-    [DynamicApi(Name = "refresh-token")]
-    public async Task<ApiResponse> RefreshTokenAsync(RefreshTokenCommand command)
+    public async Task<AuthTokenDto> RefreshTokenAsync(RefreshTokenCommand command)
     {
         command.ValidateAnnotations();
         var refreshToken = command.RefreshToken.Trim();
@@ -288,7 +280,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var cachedToken = await _refreshTokenCache.GetAsync(oldRefreshTokenCacheKey, hideErrors: true);
         if (cachedToken is null || cachedToken.ExpireAt <= DateTimeOffset.UtcNow)
         {
-            return Error(ApiResponseCodes.Unauthorized, "刷新令牌已失效，请重新登录");
+            throw new UnauthorizedAccessException("刷新令牌已失效，请重新登录");
         }
 
         var user = await _userRepository.GetByIdAsync(cachedToken.UserId);
@@ -296,7 +288,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
             await _sessionTokenMapCache.RemoveAsync(BuildSessionTokenMapCacheKey(cachedToken.SessionId), hideErrors: true);
-            return Error(ApiResponseCodes.Unauthorized, "登录状态已失效，请重新登录");
+            throw new UnauthorizedAccessException("登录状态已失效，请重新登录");
         }
 
         var existingSession = await _userSessionRepository.GetBySessionIdAsync(cachedToken.SessionId, user.TenantId);
@@ -304,7 +296,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
             await _sessionTokenMapCache.RemoveAsync(BuildSessionTokenMapCacheKey(cachedToken.SessionId), hideErrors: true);
-            return Error(ApiResponseCodes.Unauthorized, "会话已失效，请重新登录");
+            throw new UnauthorizedAccessException("会话已失效，请重新登录");
         }
 
         var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
@@ -323,7 +315,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             await _refreshTokenCache.RemoveAsync(oldRefreshTokenCacheKey, hideErrors: true);
         }
 
-        var response = new AuthTokenDto
+        return new AuthTokenDto
         {
             AccessToken = tokenResult.AccessToken,
             RefreshToken = tokenResult.RefreshToken,
@@ -332,23 +324,20 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
             ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
         };
-
-        return Success(response);
     }
 
     /// <summary>
     /// 获取当前用户信息
     /// </summary>
-    [DynamicApi(Name = "me")]
-    public async Task<ApiResponse> GetCurrentUserAsync()
+    public async Task<CurrentUserDto> GetCurrentUserAsync()
     {
         var user = await ResolveCurrentUserEntityAsync();
         if (user is null)
         {
-            return Error(ApiResponseCodes.Unauthorized, "未登录或登录已过期");
+            throw new UnauthorizedAccessException("未登录或登录已过期");
         }
 
-        var response = new CurrentUserDto
+        return new CurrentUserDto
         {
             UserId = user.BasicId,
             UserName = user.UserName,
@@ -356,19 +345,17 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             Avatar = user.Avatar,
             TenantId = user.TenantId
         };
-        return Success(response);
     }
 
     /// <summary>
     /// 获取权限上下文
     /// </summary>
-    [DynamicApi(Name = "permissions")]
-    public async Task<ApiResponse> GetPermissionsAsync()
+    public async Task<AuthPermissionDto> GetPermissionsAsync()
     {
         var user = await ResolveCurrentUserEntityAsync();
         if (user is null)
         {
-            return Error(ApiResponseCodes.Unauthorized, "未登录或登录已过期");
+            throw new UnauthorizedAccessException("未登录或登录已过期");
         }
 
         var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
@@ -392,25 +379,22 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             .GroupBy(permission => permission.ResourceId)
             .ToDictionary(group => group.Key, group => group.Select(static permission => permission.PermissionCode).First());
 
-        var response = new AuthPermissionDto
+        return new AuthPermissionDto
         {
             Roles = [.. roleCodes],
             Permissions = [.. permissionCodeSet.OrderBy(static code => code)],
             Menus = BuildMenuRoutes(userMenus, resourcePermissionMap)
         };
-
-        return Success(response);
     }
 
     /// <summary>
     /// 退出登录
     /// </summary>
-    [DynamicApi(Name = "logout")]
-    public async Task<ApiResponse> LogoutAsync()
+    public async Task LogoutAsync()
     {
         if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
         {
-            return Success();
+            return;
         }
 
         var userId = _currentUser.UserId.Value;
@@ -433,15 +417,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await RemoveSessionTokenAsync(sessionId);
         }
-
-        return Success();
     }
 
     /// <summary>
     /// 修改密码
     /// </summary>
-    [DynamicApi(Name = "change-password")]
-    public async Task<ApiResponse> ChangePasswordAsync(ChangePasswordCommand command)
+    public async Task ChangePasswordAsync(ChangePasswordCommand command)
     {
         command.ValidateAnnotations();
 
@@ -457,15 +438,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         await _userManager.ChangePasswordAsync(user, command.NewPassword);
         await uow.CompleteAsync();
-
-        return Success();
     }
 
     /// <summary>
     /// 获取用户权限编码
     /// </summary>
-    [DynamicApi(Name = "permission-codes")]
-    public async Task<ApiResponse> GetPermissionCodesAsync(UserPermissionQuery query)
+    public async Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.UserId <= 0)
@@ -477,14 +455,13 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             query.UserId,
             query.TenantId,
             token => _authorizationDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId, token));
-        return Success(permissionCodes);
+        return permissionCodes;
     }
 
     /// <summary>
     /// 获取用户数据范围部门ID
     /// </summary>
-    [DynamicApi(Name = "data-scope-department-ids")]
-    public async Task<ApiResponse> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
+    public async Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.UserId <= 0)
@@ -496,7 +473,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             query.UserId,
             query.TenantId,
             token => _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
-        return Success(departmentIds);
+        return departmentIds;
     }
 
     /// <summary>
@@ -908,34 +885,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         await _sessionTokenMapCache.RemoveAsync(sessionTokenMapCacheKey, hideErrors: true);
-    }
-
-    /// <summary>
-    /// 成功响应
-    /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    private ApiResponse Success(object? data = null)
-    {
-        return ApiResponse.Success(data, _httpContextAccessor.HttpContext?.TraceIdentifier);
-    }
-
-    /// <summary>
-    /// 失败响应
-    /// </summary>
-    /// <param name="code"></param>
-    /// <param name="message"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    private ApiResponse Error(ApiResponseCodes code, string message, object? data = null)
-    {
-        return new ApiResponse
-        {
-            Code = code,
-            Message = message,
-            Data = data,
-            TraceId = _httpContextAccessor.HttpContext?.TraceIdentifier
-        };
     }
 
     /// <summary>

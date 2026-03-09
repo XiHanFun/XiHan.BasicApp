@@ -15,7 +15,6 @@
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
-using XiHan.Framework.Application.Contracts.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
@@ -28,42 +27,42 @@ public interface IAuthAppService : IApplicationService
     /// <summary>
     /// 获取登录配置
     /// </summary>
-    Task<ApiResponse> GetLoginConfigAsync();
+    Task<LoginConfigDto> GetLoginConfigAsync();
 
     /// <summary>
     /// 登录
     /// </summary>
-    Task<ApiResponse> LoginAsync(UserLoginCommand command);
+    Task<AuthTokenDto> LoginAsync(UserLoginCommand command);
 
     /// <summary>
     /// 刷新令牌
     /// </summary>
-    Task<ApiResponse> RefreshTokenAsync(RefreshTokenCommand command);
+    Task<AuthTokenDto> RefreshTokenAsync(RefreshTokenCommand command);
 
     /// <summary>
     /// 获取当前用户
     /// </summary>
-    Task<ApiResponse> GetCurrentUserAsync();
+    Task<CurrentUserDto> GetCurrentUserAsync();
 
     /// <summary>
     /// 获取权限上下文
     /// </summary>
-    Task<ApiResponse> GetPermissionsAsync();
+    Task<AuthPermissionDto> GetPermissionsAsync();
 
     /// <summary>
     /// 退出登录
     /// </summary>
-    Task<ApiResponse> LogoutAsync();
+    Task LogoutAsync();
 
     /// <summary>
     /// 修改密码
     /// </summary>
-    Task<ApiResponse> ChangePasswordAsync(ChangePasswordCommand command);
+    Task ChangePasswordAsync(ChangePasswordCommand command);
 
     /// <summary>
     /// 获取用户权限编码
     /// </summary>
-    Task<ApiResponse> GetPermissionCodesAsync(UserPermissionQuery query);
+    Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
 
     /// <summary>
     /// 获取用户数据范围部门ID
@@ -71,5 +70,5 @@ public interface IAuthAppService : IApplicationService
     /// <remarks>
     /// 空集合表示不限部门（全量数据范围）。
     /// </remarks>
-    Task<ApiResponse> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
+    Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
 }
