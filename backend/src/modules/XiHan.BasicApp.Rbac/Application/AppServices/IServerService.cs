@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.Framework.Utils.Diagnostics.HardwareInfos;
+using XiHan.Framework.Utils.Reflections;
 using XiHan.Framework.Utils.Runtime;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
@@ -43,4 +44,29 @@ public interface IServerService : IApplicationService
     /// 获取内存信息
     /// </summary>
     Task<RamInfo> GetMemoryInfoAsync();
+
+    /// <summary>
+    /// 获取磁盘信息
+    /// </summary>
+    Task<List<DiskInfo>> GetDiskInfoAsync();
+
+    /// <summary>
+    /// 获取网卡信息
+    /// </summary>
+    Task<List<NetworkInfo>> GetNetworkInfoAsync();
+
+    /// <summary>
+    /// 获取主板信息
+    /// </summary>
+    Task<BoardInfo> GetBoardInfoAsync();
+
+    /// <summary>
+    /// 获取 GPU 信息
+    /// </summary>
+    Task<List<GpuInfo>> GetGpuInfoAsync();
+
+    /// <summary>
+    /// 获取 NuGet 包信息
+    /// </summary>
+    Task<List<NuGetPackage>> GetNuGetPackagesAsync();
 }
