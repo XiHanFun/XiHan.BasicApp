@@ -26,7 +26,7 @@ import {
   deletePermissionApi,
   getPermissionPageApi,
   updatePermissionApi,
-} from '~/api'
+} from '@/api'
 import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getStatusType } from '~/utils'
 

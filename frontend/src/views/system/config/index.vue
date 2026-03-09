@@ -1,25 +1,21 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
+import type { CrudSearchField } from '~/components'
 import type { SysConfig } from '~/types'
-import { Icon } from '@iconify/vue'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NModal,
-  NPagination,
   NPopconfirm,
-  NSelect,
   NSpace,
   NTag,
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createConfigApi, deleteConfigApi, getConfigPageApi, updateConfigApi } from '~/api'
+import { createConfigApi, deleteConfigApi, getConfigPageApi, updateConfigApi } from '@/api'
+import { CrudEnumSelect, CrudProTable, CrudQueryPanel } from '~/components'
 import {
   CONFIG_DATA_TYPE_OPTIONS,
   CONFIG_TYPE_OPTIONS,
@@ -30,18 +26,50 @@ import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemConfigPage' })
 
+interface QueryFormModel {
+  keyword: string
+  configType?: number
+  status?: number
+}
+
 const message = useMessage()
 const loading = ref(false)
 const tableData = ref<SysConfig[]>([])
 const total = ref(0)
 
-const queryParams = reactive({
+const queryForm = ref<QueryFormModel>({
+  keyword: '',
+  configType: undefined,
+  status: undefined,
+})
+
+const pager = reactive({
   page: 1,
   pageSize: DEFAULT_PAGE_SIZE,
-  keyword: '',
-  configType: undefined as number | undefined,
-  status: undefined as number | undefined,
 })
+
+const searchFields: CrudSearchField[] = [
+  {
+    key: 'keyword',
+    type: 'input',
+    placeholder: '搜索配置名称/配置键',
+    width: 260,
+  },
+  {
+    key: 'configType',
+    type: 'select',
+    options: CONFIG_TYPE_OPTIONS,
+    placeholder: '配置类型',
+    width: 140,
+  },
+  {
+    key: 'status',
+    type: 'select',
+    options: STATUS_OPTIONS,
+    placeholder: '状态',
+    width: 120,
+  },
+]
 
 const modalVisible = ref(false)
 const modalTitle = ref('新增配置')
@@ -60,7 +88,11 @@ const formData = ref<Partial<SysConfig>>({
 async function fetchData() {
   try {
     loading.value = true
-    const result = await getConfigPageApi(queryParams)
+    const result = await getConfigPageApi({
+      page: pager.page,
+      pageSize: pager.pageSize,
+      ...queryForm.value,
+    })
     tableData.value = result.items
     total.value = result.total
   }
@@ -70,6 +102,27 @@ async function fetchData() {
   finally {
     loading.value = false
   }
+}
+
+function handleSearch() {
+  pager.page = 1
+  fetchData()
+}
+
+function handleReset() {
+  pager.page = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  pager.page = page
+  fetchData()
+}
+
+function handlePageSizeChange(pageSize: number) {
+  pager.page = 1
+  pager.pageSize = pageSize
+  fetchData()
 }
 
 function handleAdd() {
@@ -219,85 +272,36 @@ onMounted(fetchData)
 
 <template>
   <div class="space-y-4">
-    <NCard :bordered="false">
-      <div class="flex flex-wrap items-center gap-3">
-        <NInput
-          v-model:value="queryParams.keyword"
-          placeholder="搜索配置名称/配置键"
-          style="width: 240px"
-          clearable
-          @keydown.enter="fetchData"
-        />
-        <NSelect
-          v-model:value="queryParams.configType"
-          :options="CONFIG_TYPE_OPTIONS"
-          placeholder="配置类型"
-          style="width: 130px"
-          clearable
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="STATUS_OPTIONS"
-          placeholder="状态"
-          style="width: 120px"
-          clearable
-        />
-        <NButton type="primary" @click="fetchData">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" width="14" /></NIcon>
-          </template>
-          搜索
-        </NButton>
-        <NButton
-          @click="
-            () => {
-              queryParams.keyword = ''
-              queryParams.configType = undefined
-              queryParams.status = undefined
-              queryParams.page = 1
-              fetchData()
-            }
-          "
-        >
-          重置
-        </NButton>
-        <NButton class="ml-auto" type="primary" @click="handleAdd">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
-          </template>
+    <CrudQueryPanel
+      v-model="queryForm"
+      title="配置查询"
+      :fields="searchFields"
+      @search="handleSearch"
+      @reset="handleReset"
+    >
+      <template #actions>
+        <NButton type="primary" @click="handleAdd">
           新增配置
         </NButton>
-      </div>
-    </NCard>
+      </template>
+    </CrudQueryPanel>
 
-    <NCard :bordered="false">
-      <NDataTable
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :row-key="(row) => row.basicId"
-        :pagination="false"
-        :scroll-x="1300"
-        size="small"
-        striped
-      />
-      <div class="mt-4 flex justify-end">
-        <NPagination
-          v-model:page="queryParams.page"
-          v-model:page-size="queryParams.pageSize"
-          :item-count="total"
-          :page-sizes="[10, 20, 50, 100]"
-          show-size-picker
-          @update:page="fetchData"
-          @update:page-size="
-            () => {
-              queryParams.page = 1
-              fetchData()
-            }
-          "
-        />
-      </div>
-    </NCard>
+    <CrudProTable
+      storage-key="system_config_table_columns"
+      :columns="columns"
+      :data="tableData"
+      :loading="loading"
+      :row-key="(row) => row.basicId"
+      :pagination="{ page: pager.page, pageSize: pager.pageSize, total }"
+      :scroll-x="1300"
+      @refresh="fetchData"
+      @update:page="handlePageChange"
+      @update:page-size="handlePageSizeChange"
+    >
+      <template #toolbar-left>
+        <span class="text-xs text-gray-400">共 {{ total }} 条</span>
+      </template>
+    </CrudProTable>
 
     <NModal
       v-model:show="modalVisible"
@@ -322,13 +326,13 @@ onMounted(fetchData)
           />
         </NFormItem>
         <NFormItem label="配置类型" path="configType">
-          <NSelect v-model:value="formData.configType" :options="CONFIG_TYPE_OPTIONS" />
+          <CrudEnumSelect v-model="formData.configType" :options="CONFIG_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="数据类型" path="dataType">
-          <NSelect v-model:value="formData.dataType" :options="CONFIG_DATA_TYPE_OPTIONS" />
+          <CrudEnumSelect v-model="formData.dataType" :options="CONFIG_DATA_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="状态" path="status">
-          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+          <CrudEnumSelect v-model="formData.status" :options="STATUS_OPTIONS" />
         </NFormItem>
       </NForm>
       <template #footer>

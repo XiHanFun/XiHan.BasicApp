@@ -21,7 +21,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createFileApi, deleteFileApi, getFilePageApi, updateFileApi } from '~/api'
+import { createFileApi, deleteFileApi, getFilePageApi, updateFileApi } from '@/api'
 import { DEFAULT_PAGE_SIZE, FILE_STATUS_OPTIONS, FILE_TYPE_OPTIONS } from '~/constants'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 

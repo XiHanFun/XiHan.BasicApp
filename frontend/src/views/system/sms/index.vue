@@ -19,7 +19,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createSmsApi, deleteSmsApi, getPendingSmsApi, getSmsPageApi, updateSmsApi } from '~/api'
+import { createSmsApi, deleteSmsApi, getPendingSmsApi, getSmsPageApi, updateSmsApi } from '@/api'
 import { DEFAULT_PAGE_SIZE, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 

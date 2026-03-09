@@ -29,7 +29,7 @@ import {
   getDictPageApi,
   updateDictApi,
   updateDictItemApi,
-} from '~/api'
+} from '@/api'
 import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
 import { formatDate } from '~/utils'
 

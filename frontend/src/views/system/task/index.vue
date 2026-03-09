@@ -20,7 +20,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createTaskApi, deleteTaskApi, getTaskPageApi, updateTaskApi } from '~/api'
+import { createTaskApi, deleteTaskApi, getTaskPageApi, updateTaskApi } from '@/api'
 import {
   DEFAULT_PAGE_SIZE,
   RUN_TASK_STATUS_OPTIONS,

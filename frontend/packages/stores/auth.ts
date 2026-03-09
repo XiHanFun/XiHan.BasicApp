@@ -1,7 +1,7 @@
 import type { LoginParams } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi } from '~/api'
+import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi } from '@/api'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { useAccessStore, useAppStore, useUserStore } from '~/stores'

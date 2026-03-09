@@ -14,9 +14,9 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getLoginConfigApi } from '~/api'
+import { useRoute, useRouter } from 'vue-router'
+import { getLoginConfigApi } from '@/api'
 import { useTheme } from '~/hooks'
 import { useAuthStore } from '~/stores'
 

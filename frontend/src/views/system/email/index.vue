@@ -26,7 +26,7 @@ import {
   getEmailPageApi,
   getPendingEmailsApi,
   updateEmailApi,
-} from '~/api'
+} from '@/api'
 import { DEFAULT_PAGE_SIZE, EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 

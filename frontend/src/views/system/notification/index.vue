@@ -29,7 +29,7 @@ import {
   markAllNotificationsReadApi,
   markNotificationReadApi,
   updateNotificationApi,
-} from '~/api'
+} from '@/api'
 import {
   DEFAULT_PAGE_SIZE,
   NOTIFICATION_STATUS_OPTIONS,

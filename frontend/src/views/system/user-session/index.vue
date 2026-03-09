@@ -27,7 +27,7 @@ import {
   getUserSessionPageApi,
   revokeUserSessionsApi,
   updateUserSessionApi,
-} from '~/api'
+} from '@/api'
 import { DEFAULT_PAGE_SIZE, DEVICE_TYPE_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
