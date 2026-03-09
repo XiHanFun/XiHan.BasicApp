@@ -118,12 +118,17 @@ const extraPanelNaiveTheme = computed(() => {
   return extraMenuTheme.value === 'dark' ? darkTheme : null
 })
 
-function renderIcon(icon: string) {
-  return () => h(Icon, { icon })
+function resolveIcon(icon: string) {
+  if (!icon) return icon
+  return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
-function translateTitle(title: string, fallback: string) {
-  return te(title) ? t(title) : fallback
+function renderIcon(icon: string) {
+  return () => h(Icon, { icon: resolveIcon(icon) })
+}
+
+function translateTitle(title: string, _fallback: string) {
+  return te(title) ? t(title) : title
 }
 
 function toPrimaryOptions(routeList: LayoutRouteRecord[], parentPath = '') {
