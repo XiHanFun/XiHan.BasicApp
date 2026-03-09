@@ -13,6 +13,42 @@ export const STATUS_OPTIONS = [
   { label: '禁用', value: 0 },
 ]
 
+// ==================== 部门 ====================
+
+export const DEPARTMENT_TYPE_OPTIONS = [
+  { label: '集团', value: 0 },
+  { label: '总部', value: 1 },
+  { label: '公司', value: 2 },
+  { label: '分公司', value: 3 },
+  { label: '事业部', value: 4 },
+  { label: '中心', value: 5 },
+  { label: '部门', value: 6 },
+  { label: '科室', value: 7 },
+  { label: '团队', value: 8 },
+  { label: '小组', value: 9 },
+  { label: '项目组', value: 10 },
+  { label: '工作组', value: 11 },
+  { label: '虚拟组织', value: 12 },
+  { label: '办事处', value: 13 },
+  { label: '子公司', value: 14 },
+  { label: '其他', value: 99 },
+]
+
+// ==================== 租户 ====================
+
+export const TENANT_ISOLATION_MODE_OPTIONS = [
+  { label: '字段隔离', value: 0 },
+  { label: '数据库隔离', value: 1 },
+  { label: 'Schema隔离', value: 2 },
+]
+
+export const TENANT_STATUS_OPTIONS = [
+  { label: '正常', value: 0 },
+  { label: '暂停', value: 1 },
+  { label: '过期', value: 2 },
+  { label: '禁用', value: 3 },
+]
+
 // ==================== 菜单类型 ====================
 
 export const MENU_TYPE = {

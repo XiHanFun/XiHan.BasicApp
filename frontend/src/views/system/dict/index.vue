@@ -126,8 +126,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateDictApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateDictApi(formData.value.basicId, formData.value)
     } else {
       await createDictApi(formData.value)
     }
@@ -142,7 +142,7 @@ async function handleSubmit() {
 }
 
 async function openItems(row: SysDict) {
-  currentDictId.value = row.id
+  currentDictId.value = row.basicId
   currentDictName.value = row.dictName
   currentDictCode.value = row.dictCode
   itemModalVisible.value = true
@@ -204,8 +204,8 @@ async function handleSubmitItem() {
       dictCode: currentDictCode.value,
     }
 
-    if (itemFormData.value.id) {
-      await updateDictItemApi(itemFormData.value.id, payload)
+    if (itemFormData.value.basicId) {
+      await updateDictItemApi(itemFormData.value.basicId, payload)
     } else {
       await createDictItemApi(payload)
     }
@@ -294,7 +294,7 @@ const columns: DataTableColumns<SysDict> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该字典？',
@@ -369,7 +369,7 @@ const itemColumns: DataTableColumns<SysDictItem> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDeleteItem(row.id),
+                onPositiveClick: () => handleDeleteItem(row.basicId),
               },
               {
                 default: () => '确认删除该字典项？',
@@ -440,7 +440,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1280"
         size="small"
@@ -523,7 +523,7 @@ onMounted(fetchData)
         :columns="itemColumns"
         :data="itemRows"
         :loading="itemLoading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="{ pageSize: 10 }"
         :scroll-x="900"
         size="small"

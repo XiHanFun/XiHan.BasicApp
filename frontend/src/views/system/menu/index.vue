@@ -71,7 +71,7 @@ async function fetchData() {
 function buildTreeSelectOptions(list: SysMenu[]): any[] {
   return list.map((item) => ({
     label: item.name,
-    value: item.id,
+    value: item.basicId,
     children: item.children ? buildTreeSelectOptions(item.children) : undefined,
   }))
 }
@@ -112,8 +112,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateMenuApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateMenuApi(formData.value.basicId, formData.value)
     } else {
       await createMenuApi(formData.value)
     }
@@ -208,7 +208,7 @@ const columns: DataTableColumns<SysMenu> = [
                   {
                     size: 'small',
                     ghost: true,
-                    onClick: () => handleAdd(row.id),
+                    onClick: () => handleAdd(row.basicId),
                   },
                   { default: () => '添加子项' },
                 ),
@@ -225,7 +225,7 @@ const columns: DataTableColumns<SysMenu> = [
               h(
                 NPopconfirm,
                 {
-                  onPositiveClick: () => handleDelete(row.id),
+                  onPositiveClick: () => handleDelete(row.basicId),
                 },
                 {
                   default: () => '确认删除该菜单？',
@@ -270,7 +270,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :scroll-x="1000"
         :pagination="false"
         size="small"

@@ -133,8 +133,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateSmsApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateSmsApi(formData.value.basicId, formData.value)
     }
     else {
       await createSmsApi(formData.value)
@@ -210,7 +210,7 @@ const columns: DataTableColumns<SysSms> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该短信？',
@@ -292,7 +292,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1020"
         size="small"

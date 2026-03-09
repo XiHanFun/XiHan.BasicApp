@@ -1,7 +1,7 @@
 /**
  * 将平铺数据转换为树形结构
  */
-export function listToTree<T extends { id: string; parentId?: string; children?: T[] }>(
+export function listToTree<T extends { basicId: string; parentId?: string; children?: T[] }>(
   list: T[],
   parentId: string | null = null,
 ): T[] {
@@ -9,7 +9,7 @@ export function listToTree<T extends { id: string; parentId?: string; children?:
     .filter((item) => item.parentId === parentId || (!item.parentId && parentId === null))
     .map((item) => ({
       ...item,
-      children: listToTree(list, item.id),
+      children: listToTree(list, item.basicId),
     }))
     .map((item) => {
       if ((item.children as T[]).length === 0) {
@@ -39,14 +39,14 @@ export function treeToList<T extends { children?: T[] }>(tree: T[]): Omit<T, 'ch
 /**
  * 在树中查找节点
  */
-export function findTreeNode<T extends { id: string; children?: T[] }>(
+export function findTreeNode<T extends { basicId: string; children?: T[] }>(
   tree: T[],
-  id: string,
+  basicId: string,
 ): T | null {
   for (const node of tree) {
-    if (node.id === id) return node
+    if (node.basicId === basicId) return node
     if (node.children) {
-      const found = findTreeNode(node.children, id)
+      const found = findTreeNode(node.children, basicId)
       if (found) return found
     }
   }
@@ -56,13 +56,13 @@ export function findTreeNode<T extends { id: string; children?: T[] }>(
 /**
  * 获取节点的所有父节点 id
  */
-export function getParentIds<T extends { id: string; parentId?: string }>(
+export function getParentIds<T extends { basicId: string; parentId?: string }>(
   list: T[],
-  id: string,
+  basicId: string,
 ): string[] {
-  const map = new Map(list.map((item) => [item.id, item]))
+  const map = new Map(list.map((item) => [item.basicId, item]))
   const result: string[] = []
-  let current = map.get(id)
+  let current = map.get(basicId)
   while (current?.parentId) {
     result.unshift(current.parentId)
     current = map.get(current.parentId)

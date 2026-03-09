@@ -15,7 +15,7 @@ export interface MenuMeta {
 }
 
 export interface MenuRoute {
-  id?: string
+  basicId?: string
   path: string
   name: string
   component?: string

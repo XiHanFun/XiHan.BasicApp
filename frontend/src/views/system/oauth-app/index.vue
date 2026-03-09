@@ -114,8 +114,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateOAuthAppApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateOAuthAppApi(formData.value.basicId, formData.value)
     } else {
       await createOAuthAppApi(formData.value)
     }
@@ -205,7 +205,7 @@ const columns: DataTableColumns<SysOAuthApp> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该应用？',
@@ -284,7 +284,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1250"
         size="small"
@@ -330,7 +330,7 @@ onMounted(fetchData)
         <NFormItem label="客户端ID" path="clientId">
           <NInput
             v-model:value="formData.clientId"
-            :disabled="!!formData.id"
+            :disabled="!!formData.basicId"
             placeholder="请输入客户端ID"
           />
         </NFormItem>

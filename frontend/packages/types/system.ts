@@ -3,7 +3,7 @@ import type { PageQuery } from './common'
 // ==================== 系统管理类型 ====================
 
 export interface SysUser {
-  id: string
+  basicId: string
   username: string
   nickname: string
   avatar?: string
@@ -19,7 +19,7 @@ export interface SysUser {
 }
 
 export interface SysRole {
-  id: string
+  basicId: string
   name: string
   code: string
   description?: string
@@ -31,7 +31,7 @@ export interface SysRole {
 }
 
 export interface SysMenu {
-  id: string
+  basicId: string
   parentId?: string
   name: string
   path: string
@@ -47,40 +47,65 @@ export interface SysMenu {
 }
 
 export interface SysPermission {
-  id: string
+  basicId: string
+  resourceId: number
+  operationId: number
   permissionName: string
   permissionCode: string
+  permissionDescription?: string
   description?: string
+  isRequireAudit?: boolean
+  priority?: number
+  sort?: number
+  tenantId?: number
+  remark?: string
+  createTime?: string
+  updateTime?: string
   groupName?: string
   status?: number
 }
 
 export interface SysDepartment {
-  id: string
+  basicId: string
   parentId?: string | null
   departmentName: string
   departmentCode?: string
+  departmentType?: number
+  leaderId?: number
   leader?: string
   phone?: string
   email?: string
+  address?: string
+  tenantId?: number
+  remark?: string
+  createTime?: string
+  updateTime?: string
   sort?: number
   status?: number
   children?: SysDepartment[]
 }
 
 export interface SysTenant {
-  id: string
+  basicId: string
   tenantName: string
   tenantCode?: string
+  tenantShortName?: string
+  contactPerson?: string
   contactName?: string
   contactPhone?: string
+  contactEmail?: string
+  isolationMode?: number
+  tenantStatus?: number
   status?: number
+  expireTime?: string
   expiredTime?: string
   createTime?: string
+  updateTime?: string
+  remark?: string
 }
 
 export interface SysLogItem {
-  id?: string
+  basicId?: string
   createdTime?: string
   userName?: string
   operationName?: string
@@ -90,7 +115,7 @@ export interface SysLogItem {
 }
 
 export interface SysFile {
-  id: string
+  basicId: string
   fileName: string
   originalName: string
   fileExtension?: string
@@ -110,7 +135,7 @@ export interface SysFile {
 }
 
 export interface SysEmail {
-  id: string
+  basicId: string
   sendUserId?: number
   receiveUserId?: number
   emailType: number
@@ -128,7 +153,7 @@ export interface SysEmail {
 }
 
 export interface SysSms {
-  id: string
+  basicId: string
   senderId?: number
   receiverId?: number
   smsType: number
@@ -146,7 +171,7 @@ export interface SysSms {
 }
 
 export interface SysTask {
-  id: string
+  basicId: string
   taskCode: string
   taskName: string
   taskDescription?: string
@@ -165,7 +190,7 @@ export interface SysTask {
 }
 
 export interface SysOAuthApp {
-  id: string
+  basicId: string
   appName: string
   appDescription?: string
   clientId: string
@@ -185,7 +210,7 @@ export interface SysOAuthApp {
 }
 
 export interface SysReview {
-  id: string
+  basicId: string
   reviewCode: string
   reviewTitle: string
   reviewType: string
@@ -205,7 +230,7 @@ export interface SysReview {
 }
 
 export interface SysUserSession {
-  id: string
+  basicId: string
   userId: number
   sessionId: string
   deviceType: number
@@ -223,7 +248,7 @@ export interface SysUserSession {
 }
 
 export interface SysConfig {
-  id: string
+  basicId: string
   configName: string
   configKey: string
   configValue?: string
@@ -236,7 +261,7 @@ export interface SysConfig {
 }
 
 export interface SysDict {
-  id: string
+  basicId: string
   dictCode: string
   dictName: string
   dictType: string
@@ -249,7 +274,7 @@ export interface SysDict {
 }
 
 export interface SysDictItem {
-  id: string
+  basicId: string
   dictId: number
   dictCode: string
   parentId?: number
@@ -264,7 +289,7 @@ export interface SysDictItem {
 }
 
 export interface SysNotification {
-  id: string
+  basicId: string
   recipientUserId?: number
   sendUserId?: number
   notificationType: number
@@ -340,6 +365,24 @@ export interface ConfigPageQuery extends PageQuery {
 export interface DictPageQuery extends PageQuery {
   dictType?: string | undefined
   status?: number | undefined
+}
+
+export interface DepartmentPageQuery extends PageQuery {
+  status?: number | undefined
+  departmentType?: number | undefined
+  parentId?: string | undefined
+}
+
+export interface PermissionPageQuery extends PageQuery {
+  status?: number | undefined
+  resourceId?: number | undefined
+  operationId?: number | undefined
+}
+
+export interface TenantPageQuery extends PageQuery {
+  status?: number | undefined
+  tenantStatus?: number | undefined
+  isolationMode?: number | undefined
 }
 
 export interface NotificationPageQuery extends PageQuery {

@@ -155,7 +155,7 @@ async function handleMarkRead(row: SysNotification) {
   }
 
   try {
-    const ok = await markNotificationReadApi(Number(row.id), row.recipientUserId)
+    const ok = await markNotificationReadApi(Number(row.basicId), row.recipientUserId)
     if (ok) {
       message.success('已标记为已读')
       fetchData()
@@ -170,8 +170,8 @@ async function handleMarkRead(row: SysNotification) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateNotificationApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateNotificationApi(formData.value.basicId, formData.value)
     } else {
       await createNotificationApi(formData.value)
     }
@@ -265,7 +265,7 @@ const columns: DataTableColumns<SysNotification> = [
               h(
                 NPopconfirm,
                 {
-                  onPositiveClick: () => handleDelete(row.id),
+                  onPositiveClick: () => handleDelete(row.basicId),
                 },
                 {
                   default: () => '确认删除该通知？',
@@ -350,7 +350,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1280"
         size="small"

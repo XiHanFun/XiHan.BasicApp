@@ -162,8 +162,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateUserSessionApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateUserSessionApi(formData.value.basicId, formData.value)
     } else {
       await createUserSessionApi(formData.value)
     }
@@ -270,7 +270,7 @@ const columns: DataTableColumns<SysUserSession> = [
               h(
                 NPopconfirm,
                 {
-                  onPositiveClick: () => handleDelete(row.id),
+                  onPositiveClick: () => handleDelete(row.basicId),
                 },
                 {
                   default: () => '确认删除该会话？',
@@ -357,7 +357,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1520"
         size="small"
@@ -390,12 +390,12 @@ onMounted(fetchData)
     >
       <NForm :model="formData" label-placement="left" label-width="95px">
         <NFormItem label="用户ID" path="userId">
-          <NInputNumber v-model:value="formData.userId" :disabled="!!formData.id" :min="1" class="w-full" />
+          <NInputNumber v-model:value="formData.userId" :disabled="!!formData.basicId" :min="1" class="w-full" />
         </NFormItem>
         <NFormItem label="会话ID" path="sessionId">
           <NInput
             v-model:value="formData.sessionId"
-            :disabled="!!formData.id"
+            :disabled="!!formData.basicId"
             placeholder="请输入会话ID"
           />
         </NFormItem>

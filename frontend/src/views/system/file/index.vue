@@ -127,8 +127,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateFileApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateFileApi(formData.value.basicId, formData.value)
     }
     else {
       await createFileApi(formData.value)
@@ -216,7 +216,7 @@ const columns: DataTableColumns<SysFile> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该文件？',
@@ -295,7 +295,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1080"
         size="small"

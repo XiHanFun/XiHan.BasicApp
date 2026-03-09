@@ -106,8 +106,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateConfigApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateConfigApi(formData.value.basicId, formData.value)
     }
     else {
       await createConfigApi(formData.value)
@@ -196,7 +196,7 @@ const columns: DataTableColumns<SysConfig> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该配置？',
@@ -275,7 +275,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1300"
         size="small"
