@@ -92,3 +92,29 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* 紧凑模式：统一收紧页面间距与表单间距 */
+.xihan-compact-layout .n-card > .n-card-header {
+  padding-top: 10px;
+  padding-bottom: 8px;
+}
+
+.xihan-compact-layout .n-card > .n-card__content {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.xihan-compact-layout .n-form .n-form-item {
+  margin-bottom: 10px;
+}
+
+.xihan-compact-layout .n-data-table .n-data-table-th,
+.xihan-compact-layout .n-data-table .n-data-table-td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.xihan-compact-layout .n-pagination {
+  --n-item-size: 26px;
+  --n-item-size-small: 22px;
+}

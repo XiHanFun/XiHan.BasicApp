@@ -307,6 +307,139 @@ export interface SysNotification {
   remark?: string
 }
 
+export interface SysRuntimeInfo {
+  osName: string
+  osDescription: string
+  osVersion: string
+  osArchitecture: string
+  processArchitecture: string
+  frameworkDescription: string
+  runtimeVersion: string
+  is64BitOperatingSystem: boolean
+  is64BitProcess: boolean
+  isInteractive: boolean
+  interactiveMode: string
+  processorCount: number
+  systemDirectory: string
+  currentDirectory: string
+  machineName: string
+  userName: string
+  userDomainName: string
+  workingSet: number
+  systemStartTime: string
+  systemUptime: string
+  processStartTime: string
+  processUptime: string
+  processId: number
+  processName: string
+  clrVersion: string
+  environmentVariableCount: number
+  commandLineArgs: string[]
+}
+
+export interface SysCpuInfo {
+  processorName: string
+  processorArchitecture: string
+  physicalCoreCount: number
+  logicalCoreCount: number
+  baseClockSpeed: number
+  cacheBytes: number
+  usagePercentage: number
+}
+
+export interface SysMemoryInfo {
+  totalBytes: number
+  usedBytes: number
+  freeBytes: number
+  availableBytes: number
+  buffersCachedBytes: number
+  usagePercentage: number
+  availablePercentage: number
+}
+
+export interface SysDiskInfo {
+  diskName: string
+  typeName: string
+  totalSpace: number
+  freeSpace: number
+  usedSpace: number
+  availableRate: number
+}
+
+export interface SysNetworkIpAddress {
+  address: string
+  subnetMask: string
+  prefixLength: number
+}
+
+export interface SysNetworkStatistics {
+  bytesReceived: number
+  bytesSent: number
+  packetsReceived: number
+  packetsSent: number
+  incomingPacketsDiscarded: number
+  outgoingPacketsDiscarded: number
+  incomingPacketsWithErrors: number
+  outgoingPacketsWithErrors: number
+}
+
+export interface SysNetworkInfo {
+  name: string
+  description: string
+  type: string
+  operationalStatus: string
+  speed: string
+  physicalAddress: string
+  supportsMulticast: boolean
+  isReceiveOnly: boolean
+  dnsAddresses: string[]
+  gatewayAddresses: string[]
+  dhcpServerAddresses: string[]
+  iPv4Addresses: SysNetworkIpAddress[]
+  iPv6Addresses: SysNetworkIpAddress[]
+  statistics?: SysNetworkStatistics
+}
+
+export interface SysBoardInfo {
+  product: string
+  manufacturer: string
+  serialNumber: string
+  version: string
+}
+
+export interface SysGpuInfo {
+  name: string
+  description: string
+  vendor: string
+  deviceId: string
+  busInfo: string
+  driverVersion: string
+  memoryBytes: number
+  temperature?: number
+  videoModeDescription: string
+  status: string
+  utilizationPercentage?: number
+  memoryUtilizationPercentage?: number
+}
+
+export interface SysServerInfo {
+  runtimeInfo: SysRuntimeInfo
+  cpuInfo: SysCpuInfo
+  memoryInfo: SysMemoryInfo
+  diskInfos: SysDiskInfo[]
+  networkInfos: SysNetworkInfo[]
+  boardInfo: SysBoardInfo
+  gpuInfos: SysGpuInfo[]
+  collectedAt: string
+}
+
+export interface SysNuGetPackage {
+  packageName: string
+  packageVersion: string
+}
+
+export interface MessageDispatchResult extends Record<string, any> {}
+
 // ==================== 业务分页查询参数 ====================
 
 export interface UserPageQuery extends PageQuery {

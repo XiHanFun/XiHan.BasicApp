@@ -20,6 +20,22 @@ export interface ApiResponse<T = any> {
   timestamp?: string
 }
 
+export type FrontendRequestLogStatus = 'pending' | 'success' | 'error'
+
+export interface FrontendRequestLog {
+  requestId: string
+  method: string
+  url: string
+  startedAt: number
+  finishedAt?: number
+  duration?: number
+  status: FrontendRequestLogStatus
+  statusCode?: number
+  responseCode?: number | string
+  message?: string
+  traceId?: string
+}
+
 export interface SelectOption {
   label: string
   value: string | number

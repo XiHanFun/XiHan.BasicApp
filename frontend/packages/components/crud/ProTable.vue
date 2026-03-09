@@ -23,7 +23,7 @@ interface ColumnSettingItem {
 const props = withDefaults(defineProps<{
   columns: DataTableColumns<any>
   data: Record<string, any>[]
-  pagination: PaginationConfig
+  pagination?: PaginationConfig
   loading?: boolean
   rowKey?: (row: any) => number | string
   scrollX?: number
@@ -33,6 +33,7 @@ const props = withDefaults(defineProps<{
   defaultExpandAll?: boolean
   showToolbar?: boolean
   showRefresh?: boolean
+  showPagination?: boolean
 }>(), {
   loading: false,
   rowKey: undefined,
@@ -43,6 +44,7 @@ const props = withDefaults(defineProps<{
   defaultExpandAll: false,
   showToolbar: true,
   showRefresh: true,
+  showPagination: true,
 })
 
 const emit = defineEmits<{
@@ -147,6 +149,14 @@ const tableColumns = computed<DataTableColumns<any>>(() => {
     .filter(item => item.visible)
     .map(item => columnMap.value.get(item.key))
     .filter(Boolean) as DataTableColumns<any>
+})
+
+const paginationConfig = computed<PaginationConfig>(() => {
+  return props.pagination ?? {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+  }
 })
 
 function updateColumnVisible(key: string, checked: boolean) {
@@ -277,13 +287,13 @@ onBeforeUnmount(() => {
       :size="props.size"
     />
 
-    <div class="mt-4 flex justify-end">
+    <div v-if="props.showPagination" class="mt-4 flex justify-end">
       <NPagination
-        :page="props.pagination.page"
-        :page-size="props.pagination.pageSize"
-        :item-count="props.pagination.total"
-        :page-sizes="props.pagination.pageSizes ?? [10, 20, 50, 100]"
-        :show-quick-jumper="props.pagination.showQuickJumper ?? true"
+        :page="paginationConfig.page"
+        :page-size="paginationConfig.pageSize"
+        :item-count="paginationConfig.total"
+        :page-sizes="paginationConfig.pageSizes ?? [10, 20, 50, 100]"
+        :show-quick-jumper="paginationConfig.showQuickJumper ?? true"
         show-size-picker
         @update:page="(page) => emit('update:page', page)"
         @update:page-size="(size) => emit('update:pageSize', size)"
