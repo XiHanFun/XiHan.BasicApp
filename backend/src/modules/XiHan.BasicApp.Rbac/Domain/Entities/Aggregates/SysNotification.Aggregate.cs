@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Rbac.Domain.Enums;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Domain.Entities;
 
@@ -59,7 +60,7 @@ public partial class SysNotification
     {
         if (NotificationStatus == NotificationStatus.Deleted)
         {
-            throw new InvalidOperationException("已删除通知不允许标记已读");
+            throw new BusinessException(message: "已删除通知不允许标记已读");
         }
 
         NotificationStatus = NotificationStatus.Read;

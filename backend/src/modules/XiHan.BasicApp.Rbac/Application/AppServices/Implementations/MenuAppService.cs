@@ -17,9 +17,11 @@ using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
 using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -51,6 +53,11 @@ public class MenuAppService
     /// <returns></returns>
     public async Task<IReadOnlyList<MenuDto>> GetRoleMenusAsync(long roleId, long? tenantId = null)
     {
+        if (roleId <= 0)
+        {
+            throw new ArgumentException("角色 ID 无效", nameof(roleId));
+        }
+
         var menus = await _menuRepository.GetRoleMenusAsync(roleId, tenantId);
         return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
     }
@@ -63,6 +70,11 @@ public class MenuAppService
     public async Task<IReadOnlyList<MenuDto>> GetUserMenusAsync(UserMenuQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
+        if (query.UserId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
+        }
+
         var menus = await _menuRepository.GetUserMenusAsync(query.UserId, query.TenantId);
         return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
     }
@@ -78,6 +90,7 @@ public class MenuAppService
 
         var normalizedCode = input.MenuCode.Trim();
         await EnsureMenuCodeUniqueAsync(normalizedCode, null, input.TenantId);
+        await EnsureValidParentAsync(input.ParentId, null, input.TenantId);
 
         return await base.CreateAsync(input);
     }
@@ -97,6 +110,7 @@ public class MenuAppService
 
         var normalizedCode = input.MenuCode.Trim();
         await EnsureMenuCodeUniqueAsync(normalizedCode, id, menu.TenantId);
+        await EnsureValidParentAsync(input.ParentId, id, menu.TenantId);
 
         await MapDtoToEntityAsync(input, menu);
         var updated = await _menuRepository.UpdateAsync(menu);
@@ -164,7 +178,70 @@ public class MenuAppService
         var existing = await _menuRepository.GetByMenuCodeAsync(menuCode, tenantId);
         if (existing is not null && (!excludeMenuId.HasValue || existing.BasicId != excludeMenuId.Value))
         {
-            throw new InvalidOperationException($"菜单编码 '{menuCode}' 已存在");
+            throw new BusinessException(message: $"菜单编码 '{menuCode}' 已存在");
+        }
+    }
+
+    /// <summary>
+    /// 校验菜单父级合法性
+    /// </summary>
+    /// <param name="parentId"></param>
+    /// <param name="currentMenuId"></param>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="KeyNotFoundException"></exception>
+    private async Task EnsureValidParentAsync(long? parentId, long? currentMenuId, long? tenantId)
+    {
+        if (!parentId.HasValue)
+        {
+            return;
+        }
+
+        if (currentMenuId.HasValue && parentId.Value == currentMenuId.Value)
+        {
+            throw new BusinessException(message: "上级菜单不能是当前菜单本身");
+        }
+
+        var parent = await _menuRepository.GetByIdAsync(parentId.Value)
+                     ?? throw new KeyNotFoundException($"未找到上级菜单: {parentId.Value}");
+
+        if (parent.Status != YesOrNo.Yes)
+        {
+            throw new BusinessException(message: "上级菜单已禁用，无法关联");
+        }
+
+        if (parent.TenantId != tenantId)
+        {
+            throw new BusinessException(message: "上级菜单与当前菜单租户不一致");
+        }
+
+        if (!currentMenuId.HasValue)
+        {
+            return;
+        }
+
+        var visited = new HashSet<long> { currentMenuId.Value };
+        var currentParent = parent;
+        while (true)
+        {
+            if (!visited.Add(currentParent.BasicId))
+            {
+                throw new BusinessException(message: "菜单层级存在循环引用");
+            }
+
+            if (!currentParent.ParentId.HasValue)
+            {
+                break;
+            }
+
+            var nextParent = await _menuRepository.GetByIdAsync(currentParent.ParentId.Value);
+            if (nextParent is null || nextParent.Status != YesOrNo.Yes)
+            {
+                break;
+            }
+
+            currentParent = nextParent;
         }
     }
 }

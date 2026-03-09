@@ -35,7 +35,7 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 12;
+    public override int Order => 13;
 
     /// <summary>
     /// 种子数据名称
@@ -47,12 +47,6 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysRolePermission>(rp => true))
-        {
-            Logger.LogInformation("系统角色权限关系数据已存在，跳过种子数据");
-            return;
-        }
-
         var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
         var permissions = await DbContext.GetClient().Queryable<SysPermission>().ToListAsync();
 
@@ -62,103 +56,116 @@ public class SysRolePermissionSeeder : DataSeederBase
             return;
         }
 
-        var rolePermissions = new List<SysRolePermission>();
+        var roleMap = roles
+            .Where(role => !string.IsNullOrWhiteSpace(role.RoleCode))
+            .GroupBy(role => role.RoleCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(role => role.TenantId.HasValue ? 1 : 0)
+                    .ThenBy(role => role.BasicId)
+                    .First()
+                    .BasicId,
+                StringComparer.OrdinalIgnoreCase);
 
-        // 超级管理员拥有所有权限
-        var superAdminRole = roles.FirstOrDefault(r => r.RoleCode == "super_admin");
-        if (superAdminRole != null)
+        var permissionMap = permissions
+            .Where(permission => !string.IsNullOrWhiteSpace(permission.PermissionCode))
+            .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(permission => permission.TenantId.HasValue ? 1 : 0)
+                    .ThenBy(permission => permission.BasicId)
+                    .First()
+                    .BasicId,
+                StringComparer.OrdinalIgnoreCase);
+
+        var requiredPairs = new HashSet<(long RoleId, long PermissionId)>();
+
+        if (roleMap.TryGetValue("super_admin", out var superAdminRoleId))
         {
-            rolePermissions.AddRange(permissions.Select(p => new SysRolePermission
+            foreach (var permissionId in permissionMap.Values.Distinct())
             {
-                RoleId = superAdminRole.BasicId,
-                PermissionId = p.BasicId
-            }));
+                requiredPairs.Add((superAdminRoleId, permissionId));
+            }
         }
 
-        // 系统管理员拥有管理权限（排除敏感的删除和撤销权限）
-        var adminRole = roles.FirstOrDefault(r => r.RoleCode == "admin");
-        if (adminRole != null)
-        {
-            var adminPermissions = permissions.Where(p =>
-                !p.PermissionCode.Contains(":delete") &&
-                !p.PermissionCode.Contains(":revoke") &&
-                !p.PermissionCode.Contains("tenant:") // 排除租户管理
-            ).ToList();
+        AddRolePermissionPairs("admin", code =>
+            !code.Contains(":delete", StringComparison.OrdinalIgnoreCase) &&
+            !code.Contains(":revoke", StringComparison.OrdinalIgnoreCase) &&
+            !code.Contains("tenant:", StringComparison.OrdinalIgnoreCase));
 
-            rolePermissions.AddRange(adminPermissions.Select(p => new SysRolePermission
-            {
-                RoleId = adminRole.BasicId,
-                PermissionId = p.BasicId
-            }));
+        AddRolePermissionPairs("dept_admin", code =>
+            code.StartsWith("user:", StringComparison.OrdinalIgnoreCase) ||
+            code.StartsWith("department:", StringComparison.OrdinalIgnoreCase) ||
+            (code.StartsWith("role:", StringComparison.OrdinalIgnoreCase)
+                && !code.Contains(":delete", StringComparison.OrdinalIgnoreCase)));
+
+        AddRolePermissionPairs("dept_manager", code =>
+            code.Contains(":read", StringComparison.OrdinalIgnoreCase) ||
+            code.Contains(":view", StringComparison.OrdinalIgnoreCase) ||
+            (code.StartsWith("user:", StringComparison.OrdinalIgnoreCase)
+                && (code.Contains(":update", StringComparison.OrdinalIgnoreCase)
+                    || code.Contains(":create", StringComparison.OrdinalIgnoreCase))));
+
+        AddRolePermissionPairs("employee", code =>
+            code.Contains(":read", StringComparison.OrdinalIgnoreCase)
+            || code.Contains(":view", StringComparison.OrdinalIgnoreCase));
+
+        AddRolePermissionPairs("guest", code =>
+            string.Equals(code, "user:read", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(code, "department:read", StringComparison.OrdinalIgnoreCase));
+
+        if (requiredPairs.Count == 0)
+        {
+            Logger.LogWarning("未解析到任何角色权限关系，跳过角色权限关系种子数据");
+            return;
         }
 
-        // 部门管理员权限（用户、角色、部门的管理权限）
-        var deptAdminRole = roles.FirstOrDefault(r => r.RoleCode == "dept_admin");
-        if (deptAdminRole != null)
-        {
-            var deptAdminPermissions = permissions.Where(p =>
-                p.PermissionCode.StartsWith("user:") ||
-                p.PermissionCode.StartsWith("department:") ||
-                (p.PermissionCode.StartsWith("role:") && !p.PermissionCode.Contains(":delete"))
-            ).ToList();
+        var targetRoleIds = requiredPairs.Select(pair => pair.RoleId).Distinct().ToArray();
+        var targetPermissionIds = requiredPairs.Select(pair => pair.PermissionId).Distinct().ToArray();
+        var existingPairs = await DbContext.GetClient()
+            .Queryable<SysRolePermission>()
+            .Where(mapping => targetRoleIds.Contains(mapping.RoleId) && targetPermissionIds.Contains(mapping.PermissionId))
+            .Select(mapping => new { mapping.RoleId, mapping.PermissionId })
+            .ToListAsync();
 
-            rolePermissions.AddRange(deptAdminPermissions.Select(p => new SysRolePermission
+        var existingSet = existingPairs
+            .Select(pair => $"{pair.RoleId}_{pair.PermissionId}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        var rolePermissions = requiredPairs
+            .Where(pair => !existingSet.Contains($"{pair.RoleId}_{pair.PermissionId}"))
+            .Select(pair => new SysRolePermission
             {
-                RoleId = deptAdminRole.BasicId,
-                PermissionId = p.BasicId
-            }));
-        }
+                RoleId = pair.RoleId,
+                PermissionId = pair.PermissionId
+            })
+            .ToList();
 
-        // 部门经理权限（查看和基本管理）
-        var deptManagerRole = roles.FirstOrDefault(r => r.RoleCode == "dept_manager");
-        if (deptManagerRole != null)
+        if (rolePermissions.Count == 0)
         {
-            var deptManagerPermissions = permissions.Where(p =>
-                p.PermissionCode.Contains(":read") ||
-                p.PermissionCode.Contains(":view") ||
-                (p.PermissionCode.StartsWith("user:") && (p.PermissionCode.Contains(":update") || p.PermissionCode.Contains(":create")))
-            ).ToList();
-
-            rolePermissions.AddRange(deptManagerPermissions.Select(p => new SysRolePermission
-            {
-                RoleId = deptManagerRole.BasicId,
-                PermissionId = p.BasicId
-            }));
-        }
-
-        // 普通员工权限（仅查看）
-        var employeeRole = roles.FirstOrDefault(r => r.RoleCode == "employee");
-        if (employeeRole != null)
-        {
-            var employeePermissions = permissions.Where(p =>
-                p.PermissionCode.Contains(":read") ||
-                p.PermissionCode.Contains(":view")
-            ).ToList();
-
-            rolePermissions.AddRange(employeePermissions.Select(p => new SysRolePermission
-            {
-                RoleId = employeeRole.BasicId,
-                PermissionId = p.BasicId
-            }));
-        }
-
-        // 访客权限（极少数查看权限）
-        var guestRole = roles.FirstOrDefault(r => r.RoleCode == "guest");
-        if (guestRole != null)
-        {
-            var guestPermissions = permissions.Where(p =>
-                p.PermissionCode == "user:read" ||
-                p.PermissionCode == "department:read"
-            ).ToList();
-
-            rolePermissions.AddRange(guestPermissions.Select(p => new SysRolePermission
-            {
-                RoleId = guestRole.BasicId,
-                PermissionId = p.BasicId
-            }));
+            Logger.LogInformation("角色权限关系数据已存在，跳过新增");
+            return;
         }
 
         await BulkInsertAsync(rolePermissions);
-        Logger.LogInformation($"成功初始化 {rolePermissions.Count} 个角色权限关系");
+        Logger.LogInformation("成功补齐 {Count} 个角色权限关系", rolePermissions.Count);
+
+        void AddRolePermissionPairs(string roleCode, Func<string, bool> permissionPredicate)
+        {
+            if (!roleMap.TryGetValue(roleCode, out var roleId))
+            {
+                return;
+            }
+
+            foreach (var (permissionCode, permissionId) in permissionMap)
+            {
+                if (permissionPredicate(permissionCode))
+                {
+                    requiredPairs.Add((roleId, permissionId));
+                }
+            }
+        }
     }
 }

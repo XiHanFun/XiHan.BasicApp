@@ -19,6 +19,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -50,6 +51,7 @@ public class DictAppService
     /// <returns></returns>
     public async Task<DictDto?> GetDictByCodeAsync(string dictCode, long? tenantId = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dictCode);
         var entity = await _dictRepository.GetByDictCodeAsync(dictCode, tenantId);
         return entity?.Adapt<DictDto>();
     }
@@ -62,6 +64,11 @@ public class DictAppService
     /// <returns></returns>
     public async Task<IReadOnlyList<DictItemDto>> GetDictItemsAsync(long dictId, long? tenantId = null)
     {
+        if (dictId <= 0)
+        {
+            throw new ArgumentException("字典 ID 无效", nameof(dictId));
+        }
+
         var entities = await _dictRepository.GetDictItemsAsync(dictId, tenantId);
         return entities.Select(static entity => entity.Adapt<DictItemDto>()!).ToArray();
     }
@@ -73,6 +80,11 @@ public class DictAppService
     /// <returns></returns>
     public async Task<DictItemDto?> GetDictItemByIdAsync(long dictItemId)
     {
+        if (dictItemId <= 0)
+        {
+            throw new ArgumentException("字典项 ID 无效", nameof(dictItemId));
+        }
+
         var entity = await _dictRepository.GetDictItemByIdAsync(dictItemId);
         return entity?.Adapt<DictItemDto>();
     }
@@ -186,7 +198,7 @@ public class DictAppService
     {
         if (dictItemId <= 0)
         {
-            return false;
+            throw new ArgumentException("字典项 ID 无效", nameof(dictItemId));
         }
 
         var dictItem = await _dictRepository.GetDictItemByIdAsync(dictItemId);
@@ -248,7 +260,7 @@ public class DictAppService
         var existing = await _dictRepository.GetByDictCodeAsync(dictCode, tenantId);
         if (existing is not null && (!excludeDictId.HasValue || existing.BasicId != excludeDictId.Value))
         {
-            throw new InvalidOperationException($"字典编码 '{dictCode}' 已存在");
+            throw new BusinessException(message: $"字典编码 '{dictCode}' 已存在");
         }
     }
 
@@ -266,7 +278,7 @@ public class DictAppService
 
         if (existing is not null && (!excludeDictItemId.HasValue || existing.BasicId != excludeDictItemId.Value))
         {
-            throw new InvalidOperationException($"字典项编码 '{itemCode}' 已存在");
+            throw new BusinessException(message: $"字典项编码 '{itemCode}' 已存在");
         }
     }
 }

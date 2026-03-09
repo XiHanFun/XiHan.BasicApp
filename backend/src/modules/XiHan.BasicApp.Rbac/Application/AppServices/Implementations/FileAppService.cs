@@ -93,6 +93,11 @@ public class FileAppService
     /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
+        if (id <= 0)
+        {
+            throw new ArgumentException("文件 ID 无效", nameof(id));
+        }
+
         var entity = await _fileRepository.GetByIdAsync(id);
         if (entity is null)
         {

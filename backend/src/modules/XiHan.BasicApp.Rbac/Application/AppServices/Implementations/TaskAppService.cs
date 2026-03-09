@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -73,7 +74,7 @@ public class TaskAppService
         var exists = await _taskRepository.IsTaskCodeExistsAsync(normalizedCode, input.TenantId);
         if (exists)
         {
-            throw new InvalidOperationException($"任务编码 '{normalizedCode}' 已存在");
+            throw new BusinessException(message: $"任务编码 '{normalizedCode}' 已存在");
         }
 
         var dto = await base.CreateAsync(input);
@@ -101,6 +102,11 @@ public class TaskAppService
     /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
+        if (id <= 0)
+        {
+            throw new ArgumentException("任务 ID 无效", nameof(id));
+        }
+
         var entity = await _taskRepository.GetByIdAsync(id);
         if (entity is null)
         {

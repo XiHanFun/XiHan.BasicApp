@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Authorization.Policies;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -124,7 +125,7 @@ public class RbacPolicyStore : IPolicyStore
         var existing = await _configRepository.GetByConfigKeyAsync(configKey, tenantId, cancellationToken);
         if (existing is not null)
         {
-            throw new InvalidOperationException($"策略 '{policy.Name}' 已存在");
+            throw new BusinessException(message: $"策略 '{policy.Name}' 已存在");
         }
 
         var payload = SerializePolicy(policy);
@@ -162,7 +163,7 @@ public class RbacPolicyStore : IPolicyStore
 
         var configKey = BuildPolicyConfigKey(policy.Name);
         var existing = await _configRepository.GetByConfigKeyAsync(configKey, _currentTenant.Id, cancellationToken)
-            ?? throw new InvalidOperationException($"策略 '{policy.Name}' 不存在");
+            ?? throw new BusinessException(message: $"策略 '{policy.Name}' 不存在");
 
         existing.ConfigName = NormalizeName(policy.Name);
         existing.ConfigValue = SerializePolicy(policy);

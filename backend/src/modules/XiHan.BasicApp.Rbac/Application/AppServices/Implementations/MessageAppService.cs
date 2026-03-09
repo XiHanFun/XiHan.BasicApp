@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -71,13 +72,13 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         var channels = command.Channels;
         if (channels == 0)
         {
-            throw new InvalidOperationException("至少需要指定一个消息通道");
+            throw new ArgumentException("至少需要指定一个消息通道", nameof(command.Channels));
         }
 
         var title = command.Title.Trim();
         if (string.IsNullOrWhiteSpace(title))
         {
-            throw new InvalidOperationException("消息标题不能为空");
+            throw new ArgumentException("消息标题不能为空", nameof(command.Title));
         }
 
         var content = string.IsNullOrWhiteSpace(command.Content) ? null : command.Content.Trim();
@@ -87,7 +88,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
 
         if (command.IsGlobal && (hasEmail || hasSms))
         {
-            throw new InvalidOperationException("邮件和短信暂不支持全员发送，请指定接收用户");
+            throw new BusinessException(message: "邮件和短信暂不支持全员发送，请指定接收用户");
         }
 
         var recipientIds = command.RecipientUserIds
@@ -97,12 +98,12 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
 
         if (!command.IsGlobal && recipientIds.Length == 0)
         {
-            throw new InvalidOperationException("非全员消息必须指定接收用户");
+            throw new BusinessException(message: "非全员消息必须指定接收用户");
         }
 
         if ((hasEmail || hasSms) && recipientIds.Length == 0)
         {
-            throw new InvalidOperationException("邮件或短信通道必须指定接收用户");
+            throw new BusinessException(message: "邮件或短信通道必须指定接收用户");
         }
 
         long? resolvedTenantId = command.TenantId;
@@ -114,7 +115,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
 
             if (resolvedTenantId.HasValue && sender.TenantId != resolvedTenantId.Value)
             {
-                throw new InvalidOperationException("发送用户与租户不一致");
+                throw new BusinessException(message: "发送用户与租户不一致");
             }
 
             resolvedTenantId ??= sender.TenantId;
@@ -126,13 +127,13 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
             var users = await _userRepository.GetByIdsAsync(recipientIds);
             if (users.Count != recipientIds.Length)
             {
-                throw new InvalidOperationException("存在无效接收用户 ID");
+                throw new BusinessException(message: "存在无效接收用户 ID");
             }
 
             recipients = users.ToArray();
             if (resolvedTenantId.HasValue && recipients.Any(user => user.TenantId != resolvedTenantId.Value))
             {
-                throw new InvalidOperationException("接收用户与租户不一致");
+                throw new BusinessException(message: "接收用户与租户不一致");
             }
 
             if (!resolvedTenantId.HasValue)
@@ -140,7 +141,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                 var tenantIds = recipients.Select(user => user.TenantId).Distinct().ToArray();
                 if (tenantIds.Length > 1)
                 {
-                    throw new InvalidOperationException("跨租户群发必须显式指定租户");
+                    throw new BusinessException(message: "跨租户群发必须显式指定租户");
                 }
 
                 resolvedTenantId = tenantIds[0];
@@ -176,7 +177,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                 var missingEmailUsers = recipients.Where(user => string.IsNullOrWhiteSpace(user.Email)).Select(user => user.BasicId).ToArray();
                 if (missingEmailUsers.Length > 0)
                 {
-                    throw new InvalidOperationException($"以下用户缺少邮箱，无法发送邮件: {string.Join(',', missingEmailUsers)}");
+                    throw new BusinessException(message: $"以下用户缺少邮箱，无法发送邮件: {string.Join(',', missingEmailUsers)}");
                 }
 
                 var fromEmail = sender?.Email?.Trim();
@@ -222,7 +223,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                 var missingPhoneUsers = recipients.Where(user => string.IsNullOrWhiteSpace(user.Phone)).Select(user => user.BasicId).ToArray();
                 if (missingPhoneUsers.Length > 0)
                 {
-                    throw new InvalidOperationException($"以下用户缺少手机号，无法发送短信: {string.Join(',', missingPhoneUsers)}");
+                    throw new BusinessException(message: $"以下用户缺少手机号，无法发送短信: {string.Join(',', missingPhoneUsers)}");
                 }
 
                 var smsContent = string.IsNullOrWhiteSpace(content) ? title : content;
@@ -283,7 +284,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         ArgumentNullException.ThrowIfNull(command);
         if (command.EmailId <= 0)
         {
-            throw new InvalidOperationException("邮件ID必须大于0");
+            throw new ArgumentException("邮件 ID 无效", nameof(command.EmailId));
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -321,7 +322,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         ArgumentNullException.ThrowIfNull(command);
         if (command.SmsId <= 0)
         {
-            throw new InvalidOperationException("短信ID必须大于0");
+            throw new ArgumentException("短信 ID 无效", nameof(command.SmsId));
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);

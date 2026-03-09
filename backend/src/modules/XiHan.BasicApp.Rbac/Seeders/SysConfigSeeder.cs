@@ -36,7 +36,7 @@ public class SysConfigSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 18;
+    public override int Order => 20;
 
     /// <summary>
     /// 种子数据名称

@@ -36,7 +36,7 @@ public class SysDictItemSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 17;
+    public override int Order => 19;
 
     /// <summary>
     /// 种子数据名称

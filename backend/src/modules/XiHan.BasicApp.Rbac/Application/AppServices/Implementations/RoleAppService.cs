@@ -24,6 +24,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
@@ -97,7 +98,7 @@ public class RoleAppService
     {
         if (roleId <= 0)
         {
-            return [];
+            throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
         var relations = await _roleRepository.GetRolePermissionsAsync(roleId, tenantId);
@@ -121,7 +122,7 @@ public class RoleAppService
     {
         if (roleId <= 0)
         {
-            return [];
+            throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
         var relations = await _roleRepository.GetRoleMenusAsync(roleId, tenantId);
@@ -145,7 +146,7 @@ public class RoleAppService
     {
         if (roleId <= 0)
         {
-            return [];
+            throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
         return await _roleRepository.GetCustomDataScopeDepartmentIdsAsync(roleId, tenantId);
@@ -174,7 +175,7 @@ public class RoleAppService
             var permissions = await _permissionRepository.GetByIdsAsync(permissionIds);
             if (permissions.Count != permissionIds.Length)
             {
-                throw new InvalidOperationException("存在无效权限 ID");
+                throw new BusinessException(message: "存在无效权限 ID");
             }
         }
 
@@ -209,7 +210,7 @@ public class RoleAppService
             var menus = await _menuRepository.GetByIdsAsync(menuIds);
             if (menus.Count != menuIds.Length)
             {
-                throw new InvalidOperationException("存在无效菜单 ID");
+                throw new BusinessException(message: "存在无效菜单 ID");
             }
         }
 
@@ -244,7 +245,7 @@ public class RoleAppService
             var departments = await _departmentRepository.GetByIdsAsync(departmentIds);
             if (departments.Count != departmentIds.Length)
             {
-                throw new InvalidOperationException("存在无效部门 ID");
+                throw new BusinessException(message: "存在无效部门 ID");
             }
         }
 
@@ -336,7 +337,7 @@ public class RoleAppService
     {
         if (roleId <= 0)
         {
-            return false;
+            throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);

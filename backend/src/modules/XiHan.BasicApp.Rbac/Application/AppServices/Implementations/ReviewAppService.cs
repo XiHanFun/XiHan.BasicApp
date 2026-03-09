@@ -19,6 +19,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -46,6 +47,7 @@ public class ReviewAppService
     /// </summary>
     public async Task<ReviewDto?> GetByReviewCodeAsync(string reviewCode, long? tenantId = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reviewCode);
         var entity = await _reviewRepository.GetByReviewCodeAsync(reviewCode, tenantId);
         return entity?.Adapt<ReviewDto>();
     }
@@ -61,7 +63,7 @@ public class ReviewAppService
         var exists = await _reviewRepository.IsReviewCodeExistsAsync(normalizedCode, input.TenantId);
         if (exists)
         {
-            throw new InvalidOperationException($"审查编码 '{normalizedCode}' 已存在");
+            throw new BusinessException(message: $"审查编码 '{normalizedCode}' 已存在");
         }
 
         return await base.CreateAsync(input);

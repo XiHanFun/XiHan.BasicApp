@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
@@ -122,7 +123,7 @@ public class DepartmentAppService
     {
         if (id <= 0)
         {
-            return false;
+            throw new ArgumentException("部门 ID 无效", nameof(id));
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -203,7 +204,7 @@ public class DepartmentAppService
         var existing = await _departmentRepository.GetByDepartmentCodeAsync(departmentCode, tenantId);
         if (existing is not null && (!excludeDepartmentId.HasValue || existing.BasicId != excludeDepartmentId.Value))
         {
-            throw new InvalidOperationException($"部门编码 '{departmentCode}' 已存在");
+            throw new BusinessException(message: $"部门编码 '{departmentCode}' 已存在");
         }
     }
 

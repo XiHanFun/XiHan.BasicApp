@@ -19,6 +19,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -53,6 +54,7 @@ public class ConfigAppService
     /// <returns></returns>
     public async Task<ConfigDto?> GetConfigByKeyAsync(string configKey, long? tenantId = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
         var entity = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
         return entity?.Adapt<ConfigDto>();
     }
@@ -144,7 +146,7 @@ public class ConfigAppService
         var existing = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
         if (existing is not null && (!excludeConfigId.HasValue || existing.BasicId != excludeConfigId.Value))
         {
-            throw new InvalidOperationException($"配置键 '{configKey}' 已存在");
+            throw new BusinessException(message: $"配置键 '{configKey}' 已存在");
         }
     }
 }

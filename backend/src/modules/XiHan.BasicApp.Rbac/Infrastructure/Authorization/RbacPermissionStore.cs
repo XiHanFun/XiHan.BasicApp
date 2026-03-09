@@ -18,6 +18,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -119,11 +120,11 @@ public class RbacPermissionStore : IPermissionStore
         var user = await _userRepository.GetByIdAsync(parsedUserId, cancellationToken);
         if (user is null || !IsTenantMatched(user.TenantId))
         {
-            throw new InvalidOperationException($"用户 '{userId}' 不存在");
+            throw new BusinessException(message: $"用户 '{userId}' 不存在");
         }
 
         var permission = await _permissionRepository.GetByPermissionCodeAsync(permissionName.Trim(), tenantId, cancellationToken)
-            ?? throw new InvalidOperationException($"权限 '{permissionName}' 不存在");
+            ?? throw new BusinessException(message: $"权限 '{permissionName}' 不存在");
 
         var query = DbClient.Queryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == parsedUserId && mapping.PermissionId == permission.BasicId);
@@ -196,11 +197,11 @@ public class RbacPermissionStore : IPermissionStore
         var role = await _roleRepository.GetByIdAsync(parsedRoleId, cancellationToken);
         if (role is null || !IsTenantMatched(role.TenantId))
         {
-            throw new InvalidOperationException($"角色 '{roleId}' 不存在");
+            throw new BusinessException(message: $"角色 '{roleId}' 不存在");
         }
 
         var permission = await _permissionRepository.GetByPermissionCodeAsync(permissionName.Trim(), tenantId, cancellationToken)
-            ?? throw new InvalidOperationException($"权限 '{permissionName}' 不存在");
+            ?? throw new BusinessException(message: $"权限 '{permissionName}' 不存在");
 
         var query = DbClient.Queryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == parsedRoleId && mapping.PermissionId == permission.BasicId);

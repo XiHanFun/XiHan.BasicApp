@@ -22,6 +22,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -71,7 +72,7 @@ public class NotificationAppService
     {
         if (userId <= 0)
         {
-            return [];
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         var entities = await _notificationRepository.GetUserNotificationsAsync(userId, includeRead, tenantId);
@@ -88,7 +89,7 @@ public class NotificationAppService
     {
         if (userId <= 0)
         {
-            return 0;
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         return await _messageCacheService.GetUnreadCountAsync(
@@ -108,7 +109,7 @@ public class NotificationAppService
     {
         if (notificationId <= 0 || userId <= 0)
         {
-            return false;
+            throw new ArgumentException("通知 ID 或用户 ID 无效");
         }
 
         var changed = await _notificationRepository.MarkAsReadAsync(notificationId, userId, tenantId);
@@ -130,7 +131,7 @@ public class NotificationAppService
     {
         if (userId <= 0)
         {
-            return 0;
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         var count = await _notificationRepository.MarkAllAsReadAsync(userId, tenantId);
@@ -153,7 +154,7 @@ public class NotificationAppService
     {
         if (notificationId <= 0 || userId <= 0)
         {
-            return false;
+            throw new ArgumentException("通知 ID 或用户 ID 无效");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -200,7 +201,7 @@ public class NotificationAppService
 
         if (command.IsGlobal && command.RecipientUserIds.Count > 0)
         {
-            throw new InvalidOperationException("全员通知不允许指定接收人");
+            throw new BusinessException(message: "全员通知不允许指定接收人");
         }
 
         var recipientIds = command.RecipientUserIds
@@ -210,7 +211,7 @@ public class NotificationAppService
 
         if (!command.IsGlobal && recipientIds.Length == 0)
         {
-            throw new InvalidOperationException("非全员通知必须指定至少一个接收人");
+            throw new BusinessException(message: "非全员通知必须指定至少一个接收人");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -225,7 +226,7 @@ public class NotificationAppService
 
             if (resolvedTenantId.HasValue && sender.TenantId != resolvedTenantId.Value)
             {
-                throw new InvalidOperationException("发送用户与通知租户不一致");
+                throw new BusinessException(message: "发送用户与通知租户不一致");
             }
 
             resolvedTenantId ??= sender.TenantId;
@@ -237,14 +238,14 @@ public class NotificationAppService
             var entities = await _userRepository.GetByIdsAsync(recipientIds);
             if (entities.Count != recipientIds.Length)
             {
-                throw new InvalidOperationException("存在无效接收用户 ID");
+                throw new BusinessException(message: "存在无效接收用户 ID");
             }
 
             recipients = entities.ToArray();
 
             if (resolvedTenantId.HasValue && recipients.Any(user => user.TenantId != resolvedTenantId.Value))
             {
-                throw new InvalidOperationException("接收用户与通知租户不一致");
+                throw new BusinessException(message: "接收用户与通知租户不一致");
             }
 
             if (!resolvedTenantId.HasValue)
@@ -252,7 +253,7 @@ public class NotificationAppService
                 var distinctTenantIds = recipients.Select(user => user.TenantId).Distinct().ToArray();
                 if (distinctTenantIds.Length > 1)
                 {
-                    throw new InvalidOperationException("跨租户通知必须显式指定租户");
+                    throw new BusinessException(message: "跨租户通知必须显式指定租户");
                 }
 
                 resolvedTenantId = distinctTenantIds[0];
@@ -262,7 +263,7 @@ public class NotificationAppService
         var sendTime = DateTimeOffset.UtcNow;
         if (command.ExpireTime.HasValue && command.ExpireTime <= sendTime)
         {
-            throw new InvalidOperationException("过期时间必须晚于当前时间");
+            throw new BusinessException(message: "过期时间必须晚于当前时间");
         }
 
         var count = 0;
@@ -463,22 +464,22 @@ public class NotificationAppService
     {
         if (string.IsNullOrWhiteSpace(title))
         {
-            throw new InvalidOperationException("通知标题不能为空");
+            throw new BusinessException(message: "通知标题不能为空");
         }
 
         if (!isGlobal && (!recipientUserId.HasValue || recipientUserId <= 0))
         {
-            throw new InvalidOperationException("非全员通知必须指定接收用户");
+            throw new BusinessException(message: "非全员通知必须指定接收用户");
         }
 
         if (isGlobal && recipientUserId.HasValue)
         {
-            throw new InvalidOperationException("全员通知不允许指定接收用户");
+            throw new BusinessException(message: "全员通知不允许指定接收用户");
         }
 
         if (expireTime.HasValue && expireTime <= sendTime)
         {
-            throw new InvalidOperationException("过期时间必须晚于发送时间");
+            throw new BusinessException(message: "过期时间必须晚于发送时间");
         }
     }
 
@@ -506,12 +507,12 @@ public class NotificationAppService
         var users = await _userRepository.GetByIdsAsync(userIds);
         if (users.Count != userIds.Length)
         {
-            throw new InvalidOperationException("通知用户不存在");
+            throw new BusinessException(message: "通知用户不存在");
         }
 
         if (tenantId.HasValue && users.Any(user => user.TenantId != tenantId.Value))
         {
-            throw new InvalidOperationException("通知用户与租户不一致");
+            throw new BusinessException(message: "通知用户与租户不一致");
         }
     }
 }

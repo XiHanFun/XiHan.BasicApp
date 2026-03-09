@@ -21,6 +21,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -120,11 +121,11 @@ public class RbacUserStore : IUserStore
         }
 
         var existingUser = await _userRepository.GetByIdAsync(parsedUserId, cancellationToken)
-            ?? throw new InvalidOperationException($"用户 {user.UserId} 不存在");
+            ?? throw new BusinessException(message: $"用户 {user.UserId} 不存在");
 
         if (!IsTenantMatched(existingUser.TenantId))
         {
-            throw new InvalidOperationException($"用户 {user.UserId} 不在当前租户上下文中");
+            throw new BusinessException(message: $"用户 {user.UserId} 不在当前租户上下文中");
         }
 
         existingUser.UserName = string.IsNullOrWhiteSpace(user.Username) ? existingUser.UserName : user.Username.Trim();
@@ -162,11 +163,11 @@ public class RbacUserStore : IUserStore
         }
 
         var user = await _userRepository.GetByIdAsync(parsedUserId, cancellationToken)
-            ?? throw new InvalidOperationException($"用户 {userId} 不存在");
+            ?? throw new BusinessException(message: $"用户 {userId} 不存在");
 
         if (!IsTenantMatched(user.TenantId))
         {
-            throw new InvalidOperationException($"用户 {userId} 不在当前租户上下文中");
+            throw new BusinessException(message: $"用户 {userId} 不在当前租户上下文中");
         }
 
         user.Password = passwordHash;

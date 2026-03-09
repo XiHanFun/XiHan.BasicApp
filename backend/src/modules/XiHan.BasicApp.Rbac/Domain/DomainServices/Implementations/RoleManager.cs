@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
@@ -53,7 +54,7 @@ public class RoleManager : IRoleManager
         var exists = await _roleRepository.IsRoleCodeExistsAsync(roleCode, excludeRoleId, tenantId, cancellationToken);
         if (exists)
         {
-            throw new InvalidOperationException($"角色编码 '{roleCode}' 已存在");
+            throw new BusinessException(message: $"角色编码 '{roleCode}' 已存在");
         }
     }
 
