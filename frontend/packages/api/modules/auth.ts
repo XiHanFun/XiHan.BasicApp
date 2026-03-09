@@ -6,9 +6,9 @@ import requestClient from '../request'
 function normalizeUserInfo(raw: any): UserInfo {
   const payload = unwrapPayload<any>(raw)
   return {
-    basicId: payload?.basicId ?? payload?.userId ?? 0,
-    userName: payload?.userName ?? payload?.username ?? '',
-    nickName: payload?.nickName ?? payload?.nickname ?? '',
+    basicId: payload?.basicId ?? 0,
+    userName: payload?.userName ?? '',
+    nickName: payload?.nickName ?? '',
     avatar: payload?.avatar ?? '',
     email: payload?.email ?? '',
     phone: payload?.phone ?? '',
@@ -81,8 +81,7 @@ export async function getPermissionsApi(): Promise<PermissionInfo> {
 export async function getAccessCodesApi() {
   try {
     return await requestClient.get<string[]>(API_CONTRACT.auth.codes)
-  }
-  catch {
+  } catch {
     const authPermission = await getPermissionsApi()
     return authPermission.permissions
   }
