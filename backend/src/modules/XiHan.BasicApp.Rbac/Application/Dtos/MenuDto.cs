@@ -24,12 +24,12 @@ namespace XiHan.BasicApp.Rbac.Application.Dtos;
 public class MenuDto : BasicAppDto
 {
     /// <summary>
-    /// 资源ID
+    /// 关联资源ID
     /// </summary>
     public long? ResourceId { get; set; }
 
     /// <summary>
-    /// 父级ID
+    /// 父级菜单ID
     /// </summary>
     public long? ParentId { get; set; }
 
@@ -49,24 +49,59 @@ public class MenuDto : BasicAppDto
     public MenuType MenuType { get; set; } = MenuType.Directory;
 
     /// <summary>
-    /// 路径
+    /// 路由地址
     /// </summary>
     public string? Path { get; set; }
 
     /// <summary>
-    /// 组件
+    /// 组件路径
     /// </summary>
     public string? Component { get; set; }
 
     /// <summary>
-    /// 图标
+    /// 路由名称
+    /// </summary>
+    public string? RouteName { get; set; }
+
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
+    public string? Redirect { get; set; }
+
+    /// <summary>
+    /// 菜单图标
     /// </summary>
     public string? Icon { get; set; }
+
+    /// <summary>
+    /// 菜单标题
+    /// </summary>
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// 是否外链
+    /// </summary>
+    public bool IsExternal { get; set; }
+
+    /// <summary>
+    /// 外链地址
+    /// </summary>
+    public string? ExternalUrl { get; set; }
+
+    /// <summary>
+    /// 是否缓存
+    /// </summary>
+    public bool IsCache { get; set; }
 
     /// <summary>
     /// 是否可见
     /// </summary>
     public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// 是否固定标签
+    /// </summary>
+    public bool IsAffix { get; set; }
 
     /// <summary>
     /// 状态
@@ -77,6 +112,16 @@ public class MenuDto : BasicAppDto
     /// 排序
     /// </summary>
     public int Sort { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 子菜单
+    /// </summary>
+    public List<MenuDto> Children { get; set; } = [];
 }
 
 /// <summary>
@@ -85,12 +130,12 @@ public class MenuDto : BasicAppDto
 public class MenuCreateDto : BasicAppCDto
 {
     /// <summary>
-    /// 资源ID
+    /// 关联资源ID
     /// </summary>
     public long? ResourceId { get; set; }
 
     /// <summary>
-    /// 父级ID
+    /// 父级菜单ID
     /// </summary>
     public long? ParentId { get; set; }
 
@@ -114,27 +159,66 @@ public class MenuCreateDto : BasicAppCDto
     public MenuType MenuType { get; set; } = MenuType.Directory;
 
     /// <summary>
-    /// 路径
+    /// 路由地址
     /// </summary>
     [StringLength(200, ErrorMessage = "路径长度不能超过 200")]
     public string? Path { get; set; }
 
     /// <summary>
-    /// 组件
+    /// 组件路径
     /// </summary>
     [StringLength(200, ErrorMessage = "组件路径长度不能超过 200")]
     public string? Component { get; set; }
 
     /// <summary>
-    /// 图标
+    /// 路由名称
+    /// </summary>
+    [StringLength(100, ErrorMessage = "路由名称长度不能超过 100")]
+    public string? RouteName { get; set; }
+
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
+    [StringLength(200, ErrorMessage = "重定向地址长度不能超过 200")]
+    public string? Redirect { get; set; }
+
+    /// <summary>
+    /// 菜单图标
     /// </summary>
     [StringLength(100, ErrorMessage = "图标长度不能超过 100")]
     public string? Icon { get; set; }
 
     /// <summary>
+    /// 菜单标题
+    /// </summary>
+    [StringLength(100, ErrorMessage = "标题长度不能超过 100")]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// 是否外链
+    /// </summary>
+    public bool IsExternal { get; set; }
+
+    /// <summary>
+    /// 外链地址
+    /// </summary>
+    [StringLength(500, ErrorMessage = "外链地址长度不能超过 500")]
+    public string? ExternalUrl { get; set; }
+
+    /// <summary>
+    /// 是否缓存
+    /// </summary>
+    public bool IsCache { get; set; }
+
+    /// <summary>
     /// 是否可见
     /// </summary>
     public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// 是否固定标签
+    /// </summary>
+    public bool IsAffix { get; set; }
 
     /// <summary>
     /// 排序
@@ -159,12 +243,12 @@ public class MenuCreateDto : BasicAppCDto
 public class MenuUpdateDto : BasicAppUDto
 {
     /// <summary>
-    /// 资源ID
+    /// 关联资源ID
     /// </summary>
     public long? ResourceId { get; set; }
 
     /// <summary>
-    /// 父级ID
+    /// 父级菜单ID
     /// </summary>
     public long? ParentId { get; set; }
 
@@ -188,27 +272,66 @@ public class MenuUpdateDto : BasicAppUDto
     public MenuType MenuType { get; set; } = MenuType.Directory;
 
     /// <summary>
-    /// 路径
+    /// 路由地址
     /// </summary>
     [StringLength(200, ErrorMessage = "路径长度不能超过 200")]
     public string? Path { get; set; }
 
     /// <summary>
-    /// 组件
+    /// 组件路径
     /// </summary>
     [StringLength(200, ErrorMessage = "组件路径长度不能超过 200")]
     public string? Component { get; set; }
 
     /// <summary>
-    /// 图标
+    /// 路由名称
+    /// </summary>
+    [StringLength(100, ErrorMessage = "路由名称长度不能超过 100")]
+    public string? RouteName { get; set; }
+
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
+    [StringLength(200, ErrorMessage = "重定向地址长度不能超过 200")]
+    public string? Redirect { get; set; }
+
+    /// <summary>
+    /// 菜单图标
     /// </summary>
     [StringLength(100, ErrorMessage = "图标长度不能超过 100")]
     public string? Icon { get; set; }
 
     /// <summary>
+    /// 菜单标题
+    /// </summary>
+    [StringLength(100, ErrorMessage = "标题长度不能超过 100")]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// 是否外链
+    /// </summary>
+    public bool IsExternal { get; set; }
+
+    /// <summary>
+    /// 外链地址
+    /// </summary>
+    [StringLength(500, ErrorMessage = "外链地址长度不能超过 500")]
+    public string? ExternalUrl { get; set; }
+
+    /// <summary>
+    /// 是否缓存
+    /// </summary>
+    public bool IsCache { get; set; }
+
+    /// <summary>
     /// 是否可见
     /// </summary>
     public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// 是否固定标签
+    /// </summary>
+    public bool IsAffix { get; set; }
 
     /// <summary>
     /// 状态

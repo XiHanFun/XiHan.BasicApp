@@ -44,6 +44,16 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     }
 
     /// <summary>
+    /// 获取所有菜单
+    /// </summary>
+    public async Task<IReadOnlyList<SysMenu>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await CreateTenantQueryable()
+            .OrderBy(menu => menu.Sort)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 根据菜单编码获取菜单
     /// </summary>
     /// <param name="menuCode"></param>

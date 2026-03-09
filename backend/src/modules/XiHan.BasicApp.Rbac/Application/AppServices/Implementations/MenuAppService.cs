@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
@@ -43,6 +44,42 @@ public class MenuAppService
         : base(menuRepository)
     {
         _menuRepository = menuRepository;
+    }
+
+    /// <summary>
+    /// 获取所有菜单树
+    /// </summary>
+    [HttpGet]
+    public async Task<IReadOnlyList<MenuDto>> GetListAsync()
+    {
+        var menus = await _menuRepository.GetAllAsync();
+        var allDtos = menus
+            .OrderBy(static m => m.Sort)
+            .ThenBy(static m => m.BasicId)
+            .Select(static m =>
+            {
+                var dto = m.Adapt<MenuDto>()!;
+                dto.Children ??= [];
+                return dto;
+            })
+            .ToList();
+
+        var map = allDtos.ToDictionary(static d => d.BasicId);
+        var roots = new List<MenuDto>();
+
+        foreach (var dto in allDtos)
+        {
+            if (dto.ParentId.HasValue && map.TryGetValue(dto.ParentId.Value, out var parent))
+            {
+                parent.Children.Add(dto);
+            }
+            else
+            {
+                roots.Add(dto);
+            }
+        }
+
+        return roots;
     }
 
     /// <summary>
@@ -134,8 +171,15 @@ public class MenuAppService
             MenuType = createDto.MenuType,
             Path = createDto.Path,
             Component = createDto.Component,
+            RouteName = createDto.RouteName,
+            Redirect = createDto.Redirect,
             Icon = createDto.Icon,
+            Title = createDto.Title,
+            IsExternal = createDto.IsExternal,
+            ExternalUrl = createDto.ExternalUrl,
+            IsCache = createDto.IsCache,
             IsVisible = createDto.IsVisible,
+            IsAffix = createDto.IsAffix,
             Sort = createDto.Sort,
             Remark = createDto.Remark
         };
@@ -143,11 +187,6 @@ public class MenuAppService
         return Task.FromResult(entity);
     }
 
-    /// <summary>
-    /// 映射更新 DTO 到实体
-    /// </summary>
-    /// <param name="updateDto"></param>
-    /// <param name="entity"></param>
     protected override Task MapDtoToEntityAsync(MenuUpdateDto updateDto, SysMenu entity)
     {
         entity.ResourceId = updateDto.ResourceId;
@@ -157,8 +196,15 @@ public class MenuAppService
         entity.MenuType = updateDto.MenuType;
         entity.Path = updateDto.Path;
         entity.Component = updateDto.Component;
+        entity.RouteName = updateDto.RouteName;
+        entity.Redirect = updateDto.Redirect;
         entity.Icon = updateDto.Icon;
+        entity.Title = updateDto.Title;
+        entity.IsExternal = updateDto.IsExternal;
+        entity.ExternalUrl = updateDto.ExternalUrl;
+        entity.IsCache = updateDto.IsCache;
         entity.IsVisible = updateDto.IsVisible;
+        entity.IsAffix = updateDto.IsAffix;
         entity.Status = updateDto.Status;
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
