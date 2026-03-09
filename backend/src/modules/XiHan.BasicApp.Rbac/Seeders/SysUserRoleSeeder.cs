@@ -120,7 +120,7 @@ public class SysUserRoleSeeder : DataSeederBase
         }
 
         await BulkInsertAsync(userRoles);
-        Logger.LogInformation("成功补齐 {Count} 个用户角色关系", userRoles.Count);
+        Logger.LogInformation("成功初始化 {Count} 个用户角色关系", userRoles.Count);
     }
 
     /// <summary>

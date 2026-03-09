@@ -47,6 +47,12 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        if (await HasDataAsync<SysRolePermission>(r => true))
+        {
+            Logger.LogInformation("系统角色权限关系数据已存在，跳过种子数据");
+            return;
+        }
+
         var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
         var permissions = await DbContext.GetClient().Queryable<SysPermission>().ToListAsync();
 
@@ -150,7 +156,7 @@ public class SysRolePermissionSeeder : DataSeederBase
         }
 
         await BulkInsertAsync(rolePermissions);
-        Logger.LogInformation("成功补齐 {Count} 个角色权限关系", rolePermissions.Count);
+        Logger.LogInformation("成功初始化 {Count} 个角色权限关系", rolePermissions.Count);
 
         void AddRolePermissionPairs(string roleCode, Func<string, bool> permissionPredicate)
         {

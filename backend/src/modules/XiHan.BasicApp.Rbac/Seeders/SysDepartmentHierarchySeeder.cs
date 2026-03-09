@@ -50,6 +50,12 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        if (await HasDataAsync<SysDepartmentHierarchy>(r => true))
+        {
+            Logger.LogInformation("系统资源数据已存在，跳过种子数据");
+            return;
+        }
+
         var db = DbContext.GetClient();
         var departments = await db.Queryable<SysDepartment>().ToListAsync();
         if (departments.Count == 0)
@@ -57,8 +63,6 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
             Logger.LogInformation("部门数据为空，跳过部门层级种子数据");
             return;
         }
-
-        await db.Deleteable<SysDepartmentHierarchy>().ExecuteCommandAsync();
 
         var rows = BuildHierarchyRows(departments);
         if (rows.Count == 0)
