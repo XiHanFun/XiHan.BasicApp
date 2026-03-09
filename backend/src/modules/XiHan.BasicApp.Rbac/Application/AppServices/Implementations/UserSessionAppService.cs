@@ -81,10 +81,10 @@ public class UserSessionAppService
     /// <summary>
     /// 更新用户会话
     /// </summary>
-    public override async Task<UserSessionDto> UpdateAsync(long id, UserSessionUpdateDto input)
+    public override async Task<UserSessionDto> UpdateAsync(UserSessionUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(id, input);
+        return await base.UpdateAsync(input);
     }
 
     /// <summary>

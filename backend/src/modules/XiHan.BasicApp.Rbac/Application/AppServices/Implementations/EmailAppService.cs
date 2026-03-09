@@ -62,10 +62,10 @@ public class EmailAppService
     /// <summary>
     /// 更新邮件
     /// </summary>
-    public override async Task<EmailDto> UpdateAsync(long id, EmailUpdateDto input)
+    public override async Task<EmailDto> UpdateAsync(EmailUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(id, input);
+        return await base.UpdateAsync(input);
     }
 
     /// <summary>

@@ -72,10 +72,10 @@ public class ReviewAppService
     /// <summary>
     /// 更新审查
     /// </summary>
-    public override async Task<ReviewDto> UpdateAsync(long id, ReviewUpdateDto input)
+    public override async Task<ReviewDto> UpdateAsync(ReviewUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(id, input);
+        return await base.UpdateAsync(input);
     }
 
     /// <summary>

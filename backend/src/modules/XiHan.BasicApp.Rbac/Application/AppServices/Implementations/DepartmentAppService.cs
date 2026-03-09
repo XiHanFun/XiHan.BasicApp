@@ -95,16 +95,16 @@ public class DepartmentAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<DepartmentDto> UpdateAsync(long id, DepartmentUpdateDto input)
+    public override async Task<DepartmentDto> UpdateAsync(DepartmentUpdateDto input)
     {
         input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var department = await _departmentRepository.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"未找到部门: {id}");
+        var department = await _departmentRepository.GetByIdAsync(input.BasicId)
+                         ?? throw new KeyNotFoundException($"未找到部门: {input.BasicId}");
 
         var normalizedCode = input.DepartmentCode.Trim();
-        await EnsureDepartmentCodeUniqueAsync(normalizedCode, id, department.TenantId);
+        await EnsureDepartmentCodeUniqueAsync(normalizedCode, input.BasicId, department.TenantId);
 
         await MapDtoToEntityAsync(input, department);
         var updated = await _departmentRepository.UpdateAsync(department);

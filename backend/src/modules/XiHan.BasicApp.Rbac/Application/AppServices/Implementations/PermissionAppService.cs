@@ -108,15 +108,15 @@ public class PermissionAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<PermissionDto> UpdateAsync(long id, PermissionUpdateDto input)
+    public override async Task<PermissionDto> UpdateAsync(PermissionUpdateDto input)
     {
         input.ValidateAnnotations();
 
-        var permission = await _permissionRepository.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"未找到权限: {id}");
+        var permission = await _permissionRepository.GetByIdAsync(input.BasicId)
+                         ?? throw new KeyNotFoundException($"未找到权限: {input.BasicId}");
 
         var normalizedCode = input.PermissionCode.Trim();
-        await EnsurePermissionCodeUniqueAsync(normalizedCode, id, permission.TenantId);
+        await EnsurePermissionCodeUniqueAsync(normalizedCode, input.BasicId, permission.TenantId);
 
         await MapDtoToEntityAsync(input, permission);
         var updated = await _permissionRepository.UpdateAsync(permission);

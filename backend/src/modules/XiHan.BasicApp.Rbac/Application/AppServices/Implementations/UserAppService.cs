@@ -361,17 +361,16 @@ public class UserAppService
     /// <summary>
     /// 更新用户
     /// </summary>
-    /// <param name="userId"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<UserDto> UpdateAsync(long userId, UserUpdateDto input)
+    public override async Task<UserDto> UpdateAsync(UserUpdateDto input)
     {
         input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
-        var user = await _userRepository.GetByIdAsync(userId)
-                   ?? throw new KeyNotFoundException($"未找到用户: {userId}");
+        var user = await _userRepository.GetByIdAsync(input.BasicId)
+                   ?? throw new KeyNotFoundException($"未找到用户: {input.BasicId}");
 
         user.RealName = input.RealName;
         user.NickName = input.NickName;
@@ -418,5 +417,4 @@ public class UserAppService
         await uow.CompleteAsync();
         return true;
     }
-
 }

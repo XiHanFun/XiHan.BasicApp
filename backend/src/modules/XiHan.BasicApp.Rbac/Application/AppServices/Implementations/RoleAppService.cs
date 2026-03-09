@@ -299,13 +299,13 @@ public class RoleAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<RoleDto> UpdateAsync(long id, RoleUpdateDto input)
+    public override async Task<RoleDto> UpdateAsync(RoleUpdateDto input)
     {
         input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var role = await _roleRepository.GetByIdAsync(id)
-                   ?? throw new KeyNotFoundException($"未找到角色: {id}");
+        var role = await _roleRepository.GetByIdAsync(input.BasicId)
+                   ?? throw new KeyNotFoundException($"未找到角色: {input.BasicId}");
 
         role.RoleName = input.RoleName;
         role.RoleDescription = input.RoleDescription;
@@ -357,5 +357,4 @@ public class RoleAppService
     {
         return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
-
 }

@@ -85,12 +85,12 @@ public class TaskAppService
     /// <summary>
     /// 更新任务
     /// </summary>
-    public override async Task<TaskDto> UpdateAsync(long id, TaskUpdateDto input)
+    public override async Task<TaskDto> UpdateAsync(TaskUpdateDto input)
     {
         input.ValidateAnnotations();
-        var entity = await _taskRepository.GetByIdAsync(id)
-                     ?? throw new KeyNotFoundException($"未找到任务: {id}");
-        var dto = await base.UpdateAsync(id, input);
+        var entity = await _taskRepository.GetByIdAsync(input.BasicId)
+                     ?? throw new KeyNotFoundException($"未找到任务: {input.BasicId}");
+        var dto = await base.UpdateAsync(input);
         await _lookupCacheService.InvalidateTaskLookupAsync(entity.TenantId);
         return dto;
     }
