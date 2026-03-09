@@ -21,7 +21,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, ref } from 'vue'
-import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '~/api'
+import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '@/api'
 import { MENU_TYPE, STATUS_OPTIONS } from '~/constants'
 import { listToTree } from '~/utils'
 

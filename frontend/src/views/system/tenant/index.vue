@@ -25,7 +25,7 @@ import {
   deleteTenantApi,
   getTenantPageApi,
   updateTenantApi,
-} from '~/api'
+} from '@/api'
 import {
   DEFAULT_PAGE_SIZE,
   STATUS_OPTIONS,

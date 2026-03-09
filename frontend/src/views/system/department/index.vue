@@ -25,7 +25,7 @@ import {
   deleteDepartmentApi,
   getDepartmentTreeApi,
   updateDepartmentApi,
-} from '~/api'
+} from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { getOptionLabel, getStatusType } from '~/utils'
 

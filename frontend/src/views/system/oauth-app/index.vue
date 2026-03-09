@@ -21,7 +21,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createOAuthAppApi, deleteOAuthAppApi, getOAuthAppPageApi, updateOAuthAppApi } from '~/api'
+import { createOAuthAppApi, deleteOAuthAppApi, getOAuthAppPageApi, updateOAuthAppApi } from '@/api'
 import { DEFAULT_PAGE_SIZE, OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 

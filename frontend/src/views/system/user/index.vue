@@ -27,7 +27,7 @@ import {
   getUserPageApi,
   updateUserApi,
   updateUserStatusApi,
-} from '~/api'
+} from '@/api'
 import { DEFAULT_PAGE_SIZE, GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getStatusType } from '~/utils'
 

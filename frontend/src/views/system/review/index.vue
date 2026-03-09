@@ -20,7 +20,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createReviewApi, deleteReviewApi, getReviewPageApi, updateReviewApi } from '~/api'
+import { createReviewApi, deleteReviewApi, getReviewPageApi, updateReviewApi } from '@/api'
 import {
   DEFAULT_PAGE_SIZE,
   REVIEW_RESULT_OPTIONS,

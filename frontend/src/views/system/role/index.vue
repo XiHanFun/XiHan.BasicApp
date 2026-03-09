@@ -20,7 +20,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createRoleApi, deleteRoleApi, getRolePageApi, updateRoleApi } from '~/api'
+import { createRoleApi, deleteRoleApi, getRolePageApi, updateRoleApi } from '@/api'
 import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getStatusType } from '~/utils'
 

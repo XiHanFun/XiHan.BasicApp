@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, h, onMounted, reactive, ref } from 'vue'
-import { NCard, NDataTable, NPagination, NRadioButton, NRadioGroup } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import type { SysLogItem } from '~/types'
+import { NCard, NDataTable, NPagination, NRadioButton, NRadioGroup } from 'naive-ui'
+import { computed, h, onMounted, reactive, ref } from 'vue'
+import { getAccessLogsApi, getAuditLogsApi, getExceptionLogsApi, getOperationLogsApi } from '@/api'
 import { formatDate } from '~/utils'
-import { getAccessLogsApi, getAuditLogsApi, getExceptionLogsApi, getOperationLogsApi } from '~/api'
 
 const loading = ref(false)
 const rows = ref<SysLogItem[]>([])
@@ -21,7 +21,7 @@ const columns: DataTableColumns<SysLogItem> = [
     title: '时间',
     key: 'createdTime',
     width: 180,
-    render: (row) => h('span', null, formatDate(row.createdTime ?? '')),
+    render: row => h('span', null, formatDate(row.createdTime ?? '')),
   },
 ]
 
@@ -38,7 +38,8 @@ async function fetchData() {
     const data = await loaders.value[activeType.value](query)
     rows.value = data.items
     total.value = data.total
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
