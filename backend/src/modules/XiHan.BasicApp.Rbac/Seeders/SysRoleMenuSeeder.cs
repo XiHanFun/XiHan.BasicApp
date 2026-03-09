@@ -48,6 +48,12 @@ public class SysRoleMenuSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        if (await HasDataAsync<SysRoleMenu>(r => true))
+        {
+            Logger.LogInformation("系统角色菜单关系数据已存在，跳过种子数据");
+            return;
+        }
+
         var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
         var menus = await DbContext.GetClient().Queryable<SysMenu>().ToListAsync();
 
@@ -156,6 +162,6 @@ public class SysRoleMenuSeeder : DataSeederBase
         }
 
         await BulkInsertAsync(roleMenus);
-        Logger.LogInformation("成功补齐 {Count} 个角色菜单关系", roleMenus.Count);
+        Logger.LogInformation("成功初始化 {Count} 个角色菜单关系", roleMenus.Count);
     }
 }
