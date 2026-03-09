@@ -274,6 +274,62 @@ public class UserAppService
     }
 
     /// <summary>
+    /// 修改用户状态
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task ChangeStatusAsync(ChangeUserStatusCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.UserId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(command.UserId));
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var user = await _userRepository.GetByIdAsync(command.UserId)
+                   ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
+
+        if (command.Status == YesOrNo.Yes)
+        {
+            user.Enable();
+        }
+        else
+        {
+            user.Disable();
+        }
+
+        await _userRepository.UpdateAsync(user);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 重置用户密码
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task ResetPasswordAsync(ResetUserPasswordCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.UserId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(command.UserId));
+        }
+
+        if (string.IsNullOrWhiteSpace(command.NewPassword))
+        {
+            throw new ArgumentException("新密码不能为空", nameof(command.NewPassword));
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var user = await _userRepository.GetByIdAsync(command.UserId)
+                   ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
+
+        await _userManager.ChangePasswordAsync(user, command.NewPassword);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
     /// 创建用户
     /// </summary>
     /// <param name="input"></param>

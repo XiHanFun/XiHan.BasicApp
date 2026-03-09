@@ -62,4 +62,14 @@ public interface IUserAppService
     /// 分配用户部门
     /// </summary>
     Task AssignDepartmentsAsync(AssignUserDepartmentsCommand command);
+
+    /// <summary>
+    /// 修改用户状态
+    /// </summary>
+    Task ChangeStatusAsync(ChangeUserStatusCommand command);
+
+    /// <summary>
+    /// 重置用户密码
+    /// </summary>
+    Task ResetPasswordAsync(ResetUserPasswordCommand command);
 }
