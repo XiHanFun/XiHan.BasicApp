@@ -35,7 +35,7 @@ public class SysUserRoleSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 15;
+    public override int Order => 16;
 
     /// <summary>
     /// 种子数据名称
@@ -47,14 +47,6 @@ public class SysUserRoleSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        // 检查是否已有用户角色关系数据
-        if (await HasDataAsync<SysUserRole>(ur => true))
-        {
-            Logger.LogInformation("系统用户角色关系数据已存在，跳过种子数据");
-            return;
-        }
-
-        // 获取用户
         var users = await DbContext.GetClient().Queryable<SysUser>().ToListAsync();
         var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
 
@@ -64,39 +56,86 @@ public class SysUserRoleSeeder : DataSeederBase
             return;
         }
 
-        var userMap = users.ToDictionary(u => u.UserName, u => u.BasicId);
-        var roleMap = roles.ToDictionary(r => r.RoleCode, r => r.BasicId);
+        var userMap = users
+            .Where(user => !string.IsNullOrWhiteSpace(user.UserName))
+            .GroupBy(user => user.UserName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(user => user.TenantId.HasValue ? 1 : 0)
+                    .ThenBy(user => user.BasicId)
+                    .First()
+                    .BasicId,
+                StringComparer.OrdinalIgnoreCase);
 
-        var userRoles = new List<SysUserRole>();
+        var roleMap = roles
+            .Where(role => !string.IsNullOrWhiteSpace(role.RoleCode))
+            .GroupBy(role => role.RoleCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(role => role.TenantId.HasValue ? 1 : 0)
+                    .ThenBy(role => role.BasicId)
+                    .First()
+                    .BasicId,
+                StringComparer.OrdinalIgnoreCase);
 
-        // admin -> super_admin
-        AddUserRole(userRoles, userMap, roleMap, "superadmin", "super_admin");
+        var requiredPairs = new List<(long UserId, long RoleId)>();
+        AddUserRole(requiredPairs, userMap, roleMap, "superadmin", "super_admin");
+        AddUserRole(requiredPairs, userMap, roleMap, "systemadmin", "admin");
+        AddUserRole(requiredPairs, userMap, roleMap, "test", "employee");
+        AddUserRole(requiredPairs, userMap, roleMap, "demo", "guest");
 
-        // system -> admin
-        AddUserRole(userRoles, userMap, roleMap, "systemadmin", "admin");
+        if (requiredPairs.Count == 0)
+        {
+            Logger.LogWarning("未解析到任何用户角色关系，跳过用户角色关系种子数据");
+            return;
+        }
 
-        // test -> employee
-        AddUserRole(userRoles, userMap, roleMap, "test", "employee");
+        var targetUserIds = requiredPairs.Select(pair => pair.UserId).Distinct().ToArray();
+        var targetRoleIds = requiredPairs.Select(pair => pair.RoleId).Distinct().ToArray();
+        var existingPairs = await DbContext.GetClient()
+            .Queryable<SysUserRole>()
+            .Where(mapping => targetUserIds.Contains(mapping.UserId) && targetRoleIds.Contains(mapping.RoleId))
+            .Select(mapping => new { mapping.UserId, mapping.RoleId })
+            .ToListAsync();
 
-        // demo -> guest
-        AddUserRole(userRoles, userMap, roleMap, "demo", "guest");
+        var existingSet = existingPairs
+            .Select(pair => $"{pair.UserId}_{pair.RoleId}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        var userRoles = requiredPairs
+            .Where(pair => !existingSet.Contains($"{pair.UserId}_{pair.RoleId}"))
+            .Select(pair => new SysUserRole
+            {
+                UserId = pair.UserId,
+                RoleId = pair.RoleId
+            })
+            .ToList();
+
+        if (userRoles.Count == 0)
+        {
+            Logger.LogInformation("用户角色关系数据已存在，跳过新增");
+            return;
+        }
 
         await BulkInsertAsync(userRoles);
-        Logger.LogInformation($"成功初始化 {userRoles.Count} 个用户角色关系");
+        Logger.LogInformation("成功补齐 {Count} 个用户角色关系", userRoles.Count);
     }
 
     /// <summary>
     /// 添加用户角色关系
     /// </summary>
-    private static void AddUserRole(List<SysUserRole> userRoles, Dictionary<string, long> userMap, Dictionary<string, long> roleMap, string userName, string roleCode)
+    private static void AddUserRole(
+        ICollection<(long UserId, long RoleId)> target,
+        IReadOnlyDictionary<string, long> userMap,
+        IReadOnlyDictionary<string, long> roleMap,
+        string userName,
+        string roleCode)
     {
         if (userMap.TryGetValue(userName, out var userId) && roleMap.TryGetValue(roleCode, out var roleId))
         {
-            userRoles.Add(new SysUserRole
-            {
-                UserId = userId,
-                RoleId = roleId
-            });
+            target.Add((userId, roleId));
         }
     }
 }

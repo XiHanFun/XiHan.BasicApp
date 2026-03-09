@@ -18,6 +18,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Authorization.Roles;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -121,7 +122,7 @@ public class RbacRoleStore : IRoleStore
 
         var tenantId = _currentTenant.Id;
         var role = await _roleRepository.GetByRoleCodeAsync(roleName.Trim(), tenantId, cancellationToken)
-            ?? throw new InvalidOperationException($"角色 '{roleName}' 不存在");
+            ?? throw new BusinessException(message: $"角色 '{roleName}' 不存在");
 
         var query = DbClient.Queryable<SysUserRole>()
             .Where(mapping => mapping.UserId == parsedUserId && mapping.RoleId == role.BasicId);
@@ -260,7 +261,7 @@ public class RbacRoleStore : IRoleStore
         var roleCode = role.Name.Trim();
         if (await _roleRepository.IsRoleCodeExistsAsync(roleCode, null, tenantId, cancellationToken))
         {
-            throw new InvalidOperationException($"角色 '{roleCode}' 已存在");
+            throw new BusinessException(message: $"角色 '{roleCode}' 已存在");
         }
 
         var entity = new SysRole
@@ -292,11 +293,11 @@ public class RbacRoleStore : IRoleStore
         }
 
         var entity = await _roleRepository.GetByIdAsync(parsedRoleId, cancellationToken)
-            ?? throw new InvalidOperationException($"角色 '{role.Id}' 不存在");
+            ?? throw new BusinessException(message: $"角色 '{role.Id}' 不存在");
 
         if (!IsTenantMatched(entity.TenantId))
         {
-            throw new InvalidOperationException($"角色 '{role.Id}' 不在当前租户上下文中");
+            throw new BusinessException(message: $"角色 '{role.Id}' 不在当前租户上下文中");
         }
 
         var roleCode = string.IsNullOrWhiteSpace(role.Name) ? entity.RoleCode : role.Name.Trim();
@@ -305,7 +306,7 @@ public class RbacRoleStore : IRoleStore
             var exists = await _roleRepository.IsRoleCodeExistsAsync(roleCode, entity.BasicId, _currentTenant.Id, cancellationToken);
             if (exists)
             {
-                throw new InvalidOperationException($"角色 '{roleCode}' 已存在");
+                throw new BusinessException(message: $"角色 '{roleCode}' 已存在");
             }
         }
 

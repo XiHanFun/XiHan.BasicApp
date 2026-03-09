@@ -30,10 +30,10 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddCodeGenerationDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SysResourceSeeder>();       // Order = 20
-        services.AddDataSeeder<SysMenuSeeder>();           // Order = 21
-        services.AddDataSeeder<SysPermissionSeeder>();     // Order = 22
-        services.AddDataSeeder<SysRolePermissionSeeder>(); // Order = 23
+        services.AddDataSeeder<SysResourceSeeder>();       // Order = 30
+        services.AddDataSeeder<SysMenuSeeder>();           // Order = 31
+        services.AddDataSeeder<SysPermissionSeeder>();     // Order = 32
+        services.AddDataSeeder<SysRolePermissionSeeder>(); // Order = 33
         return services;
     }
 }

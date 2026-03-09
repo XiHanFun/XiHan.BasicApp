@@ -141,16 +141,16 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysPermissionSeeder>();        // Order = 2
 
         services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 10
-        services.AddDataSeeder<SysDepartmentHierarchySeeder>(); // Order = 10
-        services.AddDataSeeder<SysRoleSeeder>();              // Order = 11
-        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 12
-        services.AddDataSeeder<SysUserSeeder>();              // Order = 13
-        services.AddDataSeeder<SysMenuSeeder>();              // Order = 14
-        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 15
-        services.AddDataSeeder<SysRoleMenuSeeder>();          // Order = 16
-        services.AddDataSeeder<SysDictSeeder>();              // Order = 17
-        services.AddDataSeeder<SysDictItemSeeder>();          // Order = 18
-        services.AddDataSeeder<SysConfigSeeder>();            // Order = 19
+        services.AddDataSeeder<SysDepartmentHierarchySeeder>(); // Order = 11
+        services.AddDataSeeder<SysRoleSeeder>();              // Order = 12
+        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 13
+        services.AddDataSeeder<SysUserSeeder>();              // Order = 14
+        services.AddDataSeeder<SysMenuSeeder>();              // Order = 15
+        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 16
+        services.AddDataSeeder<SysRoleMenuSeeder>();          // Order = 17
+        services.AddDataSeeder<SysDictSeeder>();              // Order = 18
+        services.AddDataSeeder<SysDictItemSeeder>();          // Order = 19
+        services.AddDataSeeder<SysConfigSeeder>();            // Order = 20
         return services;
     }
 

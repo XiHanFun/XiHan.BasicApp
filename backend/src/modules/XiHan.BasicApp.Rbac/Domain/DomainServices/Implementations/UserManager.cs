@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.ValueObjects;
 using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.Framework.Authentication.Password;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
@@ -111,7 +112,7 @@ public class UserManager : IUserManager
         var exists = await _userRepository.IsUserNameExistsAsync(userName, excludeUserId, tenantId, cancellationToken);
         if (exists)
         {
-            throw new InvalidOperationException($"用户名 '{userName}' 已存在");
+            throw new BusinessException(message: $"用户名 '{userName}' 已存在");
         }
     }
 

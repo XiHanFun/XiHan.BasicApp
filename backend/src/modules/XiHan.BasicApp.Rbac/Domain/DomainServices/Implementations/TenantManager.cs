@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Domain.DomainServices.Implementations;
 
@@ -64,7 +65,7 @@ public class TenantManager : ITenantManager
         var exists = await _tenantRepository.IsTenantCodeExistsAsync(tenantCode, excludeTenantId, cancellationToken);
         if (exists)
         {
-            throw new InvalidOperationException($"租户编码 '{tenantCode}' 已存在");
+            throw new BusinessException(message: $"租户编码 '{tenantCode}' 已存在");
         }
     }
 

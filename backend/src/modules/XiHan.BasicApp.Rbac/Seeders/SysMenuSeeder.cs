@@ -36,7 +36,7 @@ public class SysMenuSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 14;
+    public override int Order => 15;
 
     /// <summary>
     /// 种子数据名称

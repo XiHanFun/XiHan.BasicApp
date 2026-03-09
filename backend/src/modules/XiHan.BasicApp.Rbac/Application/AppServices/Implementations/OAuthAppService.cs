@@ -20,6 +20,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
 
@@ -73,7 +74,7 @@ public class OAuthAppService
         var exists = await _oauthAppRepository.IsClientIdExistsAsync(normalizedClientId, input.TenantId);
         if (exists)
         {
-            throw new InvalidOperationException($"客户端ID '{normalizedClientId}' 已存在");
+            throw new BusinessException(message: $"客户端ID '{normalizedClientId}' 已存在");
         }
 
         var dto = await base.CreateAsync(input);
@@ -101,6 +102,11 @@ public class OAuthAppService
     /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
+        if (id <= 0)
+        {
+            throw new ArgumentException("OAuth 应用 ID 无效", nameof(id));
+        }
+
         var entity = await _oauthAppRepository.GetByIdAsync(id);
         if (entity is null)
         {

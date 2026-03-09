@@ -46,6 +46,7 @@ public class UserSessionAppService
     /// </summary>
     public async Task<UserSessionDto?> GetBySessionIdAsync(string sessionId, long? tenantId = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         var entity = await _userSessionRepository.GetBySessionIdAsync(sessionId, tenantId);
         return entity?.Adapt<UserSessionDto>();
     }
@@ -55,6 +56,11 @@ public class UserSessionAppService
     /// </summary>
     public async Task<int> RevokeUserSessionsAsync(long userId, string reason, long? tenantId = null)
     {
+        if (userId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
+        }
+
         if (string.IsNullOrWhiteSpace(reason))
         {
             throw new ArgumentException("撤销原因不能为空", nameof(reason));

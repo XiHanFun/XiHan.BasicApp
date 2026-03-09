@@ -36,7 +36,7 @@ public class SysPermissionSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 22;
+    public override int Order => 32;
 
     /// <summary>
     /// 种子数据名称

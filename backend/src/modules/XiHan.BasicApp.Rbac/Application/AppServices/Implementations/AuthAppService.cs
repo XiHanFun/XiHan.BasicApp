@@ -37,6 +37,7 @@ using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Caching.Distributed.Abstracts;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
@@ -451,7 +452,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var currentPassword = PasswordValueObject.FromHash(user.Password);
         if (!currentPassword.Verify(command.OldPassword, _passwordHasher))
         {
-            throw new InvalidOperationException("原密码错误");
+            throw new BusinessException(message: "原密码错误");
         }
 
         await _userManager.ChangePasswordAsync(user, command.NewPassword);
@@ -467,6 +468,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public async Task<ApiResponse> GetPermissionCodesAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
+        if (query.UserId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
+        }
+
         var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
             query.UserId,
             query.TenantId,
@@ -481,6 +487,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public async Task<ApiResponse> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
+        if (query.UserId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
+        }
+
         var departmentIds = await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
             query.UserId,
             query.TenantId,

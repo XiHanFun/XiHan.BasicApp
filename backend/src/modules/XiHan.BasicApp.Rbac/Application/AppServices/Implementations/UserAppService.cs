@@ -22,6 +22,7 @@ using XiHan.BasicApp.Rbac.Domain.Enums;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -90,7 +91,7 @@ public class UserAppService
     {
         if (userId <= 0)
         {
-            return [];
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         var relations = await _userRepository.GetUserRolesAsync(userId, tenantId);
@@ -114,7 +115,7 @@ public class UserAppService
     {
         if (userId <= 0)
         {
-            return [];
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         var relations = await _userRepository.GetUserPermissionsAsync(userId, tenantId);
@@ -139,7 +140,7 @@ public class UserAppService
     {
         if (userId <= 0)
         {
-            return [];
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         var relations = await _userRepository.GetUserDepartmentsAsync(userId, tenantId);
@@ -177,7 +178,7 @@ public class UserAppService
             var roles = await _roleRepository.GetByIdsAsync(roleIds);
             if (roles.Count != roleIds.Length)
             {
-                throw new InvalidOperationException("存在无效角色 ID");
+                throw new BusinessException(message: "存在无效角色 ID");
             }
         }
 
@@ -214,7 +215,7 @@ public class UserAppService
             var permissions = await _permissionRepository.GetByIdsAsync(permissionIds);
             if (permissions.Count != permissionIds.Length)
             {
-                throw new InvalidOperationException("存在无效权限 ID");
+                throw new BusinessException(message: "存在无效权限 ID");
             }
         }
 
@@ -251,7 +252,7 @@ public class UserAppService
             var departments = await _departmentRepository.GetByIdsAsync(departmentIds);
             if (departments.Count != departmentIds.Length)
             {
-                throw new InvalidOperationException("存在无效部门 ID");
+                throw new BusinessException(message: "存在无效部门 ID");
             }
         }
 
@@ -259,7 +260,7 @@ public class UserAppService
             && departmentIds.Length > 0
             && !departmentIds.Contains(command.MainDepartmentId.Value))
         {
-            throw new InvalidOperationException("主部门必须在分配的部门范围内");
+            throw new BusinessException(message: "主部门必须在分配的部门范围内");
         }
 
         await _userRepository.ReplaceUserDepartmentsAsync(
@@ -403,7 +404,7 @@ public class UserAppService
     {
         if (userId <= 0)
         {
-            return false;
+            throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);

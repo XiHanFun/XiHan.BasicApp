@@ -21,6 +21,7 @@ using XiHan.BasicApp.Rbac.Domain.Entities;
 using XiHan.BasicApp.Rbac.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices.Implementations;
@@ -58,6 +59,11 @@ public class PermissionAppService
     /// <returns></returns>
     public async Task<IReadOnlyList<PermissionDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null)
     {
+        if (roleId <= 0)
+        {
+            throw new ArgumentException("角色 ID 无效", nameof(roleId));
+        }
+
         var permissions = await _permissionRepository.GetRolePermissionsAsync(roleId, tenantId);
         return permissions.Select(static permission => permission.Adapt<PermissionDto>()!).ToArray();
     }
@@ -70,6 +76,11 @@ public class PermissionAppService
     public async Task<IReadOnlyList<PermissionDto>> GetUserPermissionsAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
+        if (query.UserId <= 0)
+        {
+            throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
+        }
+
         var permissions = await _permissionRepository.GetUserPermissionsAsync(query.UserId, query.TenantId);
         return permissions.Select(static permission => permission.Adapt<PermissionDto>()!).ToArray();
     }
@@ -122,7 +133,7 @@ public class PermissionAppService
     {
         if (id <= 0)
         {
-            return false;
+            throw new ArgumentException("权限 ID 无效", nameof(id));
         }
 
         var permission = await _permissionRepository.GetByIdAsync(id);
@@ -197,7 +208,7 @@ public class PermissionAppService
         var existing = await _permissionRepository.GetByPermissionCodeAsync(permissionCode, tenantId);
         if (existing is not null && (!excludePermissionId.HasValue || existing.BasicId != excludePermissionId.Value))
         {
-            throw new InvalidOperationException($"权限编码 '{permissionCode}' 已存在");
+            throw new BusinessException(message: $"权限编码 '{permissionCode}' 已存在");
         }
     }
 
