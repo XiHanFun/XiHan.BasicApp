@@ -56,17 +56,23 @@ public class SysResourceSeeder : DataSeederBase
 
         var resources = new List<SysResource>
         {
+            // 目录资源
             new() { ParentId = null, ResourceCode = "system", ResourceName = "系统管理", ResourceType = ResourceType.Menu, ResourcePath = "/system", Icon = "setting", Description = "系统管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 1 },
             new() { ParentId = null, ResourceCode = "platform", ResourceName = "平台管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform", Icon = "appstore", Description = "平台管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 2 },
-            new() { ParentId = null, ResourceCode = "log", ResourceName = "日志管理", ResourceType = ResourceType.Menu, ResourcePath = "/log", Icon = "file-text", Description = "日志管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 3 },
+            new() { ParentId = null, ResourceCode = "messaging", ResourceName = "消息中心", ResourceType = ResourceType.Menu, ResourcePath = "/messaging", Icon = "message", Description = "消息中心目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 3 },
+            new() { ParentId = null, ResourceCode = "log", ResourceName = "日志管理", ResourceType = ResourceType.Menu, ResourcePath = "/log", Icon = "file-text", Description = "日志管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 4 },
 
+            // 系统管理
             new() { ParentId = null, ResourceCode = "user", ResourceName = "账号管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/user", Icon = "user", Description = "账号管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 100 },
             new() { ParentId = null, ResourceCode = "role", ResourceName = "角色管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/role", Icon = "team", Description = "角色管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 101 },
             new() { ParentId = null, ResourceCode = "permission", ResourceName = "权限管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/permission", Icon = "safety", Description = "权限管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 102 },
             new() { ParentId = null, ResourceCode = "department", ResourceName = "机构管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/org", Icon = "apartment", Description = "机构管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 103 },
             new() { ParentId = null, ResourceCode = "notice", ResourceName = "通知公告", ResourceType = ResourceType.Menu, ResourcePath = "/system/notice", Icon = "notification", Description = "通知公告功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 104 },
             new() { ParentId = null, ResourceCode = "oauth_app", ResourceName = "三方账号", ResourceType = ResourceType.Menu, ResourcePath = "/system/weChatUser", Icon = "link", Description = "三方账号管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 105 },
+            new() { ParentId = null, ResourceCode = "user_session", ResourceName = "会话管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/session", Icon = "safety-certificate", Description = "在线会话管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 106 },
+            new() { ParentId = null, ResourceCode = "review", ResourceName = "审核管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/review", Icon = "audit", Description = "审核管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 107 },
 
+            // 平台管理
             new() { ParentId = null, ResourceCode = "tenant", ResourceName = "租户管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/tenant", Icon = "cluster", Description = "租户管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 200 },
             new() { ParentId = null, ResourceCode = "menu", ResourceName = "菜单管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/menu", Icon = "menu", Description = "菜单管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 201 },
             new() { ParentId = null, ResourceCode = "config", ResourceName = "参数配置", ResourceType = ResourceType.Menu, ResourcePath = "/platform/config", Icon = "setting", Description = "系统参数配置", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 202 },
@@ -78,11 +84,18 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "file", ResourceName = "文件管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/file", Icon = "folder-open", Description = "文件管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 208 },
             new() { ParentId = null, ResourceCode = "plugin", ResourceName = "动态插件", ResourceType = ResourceType.Menu, ResourcePath = "/platform/plugin", Icon = "deployment-unit", Description = "动态插件管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 209 },
 
+            // 消息中心
+            new() { ParentId = null, ResourceCode = "message", ResourceName = "消息管理", ResourceType = ResourceType.Menu, ResourcePath = "/messaging/message", Icon = "bell", Description = "站内消息管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 250 },
+            new() { ParentId = null, ResourceCode = "email", ResourceName = "邮件管理", ResourceType = ResourceType.Menu, ResourcePath = "/messaging/email", Icon = "mail", Description = "邮件发送管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 251 },
+            new() { ParentId = null, ResourceCode = "sms", ResourceName = "短信管理", ResourceType = ResourceType.Menu, ResourcePath = "/messaging/sms", Icon = "comment", Description = "短信发送管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 252 },
+
+            // 日志管理
             new() { ParentId = null, ResourceCode = "access_log", ResourceName = "访问日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/vislog", Icon = "global", Description = "访问日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 300 },
             new() { ParentId = null, ResourceCode = "operation_log", ResourceName = "操作日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/oplog", Icon = "history", Description = "操作日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 301 },
             new() { ParentId = null, ResourceCode = "exception_log", ResourceName = "异常日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/exlog", Icon = "warning", Description = "异常日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 302 },
             new() { ParentId = null, ResourceCode = "audit_log", ResourceName = "差异日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/difflog", Icon = "diff", Description = "差异日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 303 },
 
+            // API 资源
             new() { ParentId = null, ResourceCode = "user_api", ResourceName = "用户API", ResourceType = ResourceType.Api, ResourcePath = "/api/users", Description = "用户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 500 },
             new() { ParentId = null, ResourceCode = "role_api", ResourceName = "角色API", ResourceType = ResourceType.Api, ResourcePath = "/api/roles", Description = "角色管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 501 },
             new() { ParentId = null, ResourceCode = "permission_api", ResourceName = "权限API", ResourceType = ResourceType.Api, ResourcePath = "/api/permissions", Description = "权限管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 502 },
@@ -99,8 +112,9 @@ public class SysResourceSeeder : DataSeederBase
         };
 
         await BulkInsertAsync(resources);
-        await UpdateResourceParentIdAsync("system", ["user", "role", "permission", "department", "notice", "oauth_app"]);
+        await UpdateResourceParentIdAsync("system", ["user", "role", "permission", "department", "notice", "oauth_app", "user_session", "review"]);
         await UpdateResourceParentIdAsync("platform", ["tenant", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
+        await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);
         Logger.LogInformation("成功初始化 {Count} 个系统资源", resources.Count);
     }
