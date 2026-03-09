@@ -7,7 +7,7 @@ import { Icon } from '@iconify/vue'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
-import { useAppStore, useLayoutBridgeStore } from '~/stores'
+import { useAccessStore, useAppStore, useLayoutBridgeStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
 import SidebarBrand from './sidebar/SidebarBrand.vue'
 import SidebarCollapseButton from './sidebar/SidebarCollapseButton.vue'
@@ -80,6 +80,7 @@ interface Props {
 }
 
 const appStore = useAppStore()
+const accessStore = useAccessStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const { t, te } = useI18n()
 const {
@@ -392,8 +393,9 @@ function handleHeaderMixPrimaryUpdate(key: string) {
 }
 
 function handleBrandClick() {
-  if (route.path !== HOME_PATH)
-    router.push(HOME_PATH)
+  const targetPath = accessStore.homePath || HOME_PATH
+  if (route.path !== targetPath)
+    router.push(targetPath)
 }
 
 function handleToggleCollapse() {

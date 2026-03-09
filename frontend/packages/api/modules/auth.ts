@@ -42,9 +42,9 @@ function normalizeLoginConfig(raw: any): LoginConfig {
 function normalizePermission(raw: any): PermissionInfo {
   const payload = unwrapPayload<any>(raw)
   return {
-    roles: payload?.roles ?? [],
-    permissions: payload?.permissions ?? [],
-    menus: payload?.menus ?? [],
+    roles: payload?.roles ?? payload?.Roles ?? [],
+    permissions: payload?.permissions ?? payload?.Permissions ?? [],
+    menus: payload?.menus ?? payload?.Menus ?? [],
   }
 }
 

@@ -1,8 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { HOME_PATH } from '~/constants'
 import { coreRoutes } from '~/router/routes/core'
-import { analyticsRoute, workspaceRoute } from './modules/dashboard'
-import { playgroundRoutes } from './modules/playground'
-import { systemRoutes } from './modules/system'
 
 const BasicLayout = () => import('~/layouts/basic/index.vue')
 
@@ -11,12 +9,17 @@ export const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'RootLayout',
     component: BasicLayout,
-    redirect: '/workspace',
     children: [
-      workspaceRoute,
-      analyticsRoute,
-      playgroundRoutes,
-      systemRoutes,
+      {
+        path: 'dashboard',
+        name: 'DashboardWorkspace',
+        component: () => import('@/views/dashboard/workspace/index.vue'),
+        meta: {
+          title: 'menu.workspace',
+          icon: 'mdi:view-dashboard-outline',
+          affixTab: true,
+        },
+      },
       {
         path: 'profile',
         name: 'Profile',

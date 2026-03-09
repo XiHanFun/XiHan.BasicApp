@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      await router.replace(redirect ? decodeURIComponent(redirect) : HOME_PATH)
+      await router.replace(redirect ? decodeURIComponent(redirect) : accessStore.homePath || HOME_PATH)
     } finally {
       loginLoading.value = false
     }
