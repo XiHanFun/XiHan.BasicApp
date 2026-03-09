@@ -1,10 +1,7 @@
 import type { LoginConfig, LoginParams, LoginResult, PermissionInfo, UserInfo } from '~/types'
 import { API_CONTRACT } from '../contract'
+import { unwrapPayload } from '../helpers'
 import requestClient from '../request'
-
-function unwrapPayload<T>(raw: any): T {
-  return (raw?.data ?? raw) as T
-}
 
 function normalizeUserInfo(raw: any): UserInfo {
   const payload = unwrapPayload<any>(raw)
@@ -57,7 +54,7 @@ export function getLoginConfigApi() {
 
 export async function loginApi(data: LoginParams): Promise<LoginResult> {
   const raw = await requestClient.post<any>(API_CONTRACT.auth.login, {
-    username: data.username,
+    userName: data.username,
     password: data.password,
     tenantId: data.tenantId,
   })
@@ -82,8 +79,13 @@ export async function getPermissionsApi(): Promise<PermissionInfo> {
 }
 
 export async function getAccessCodesApi() {
-  const authPermission = await getPermissionsApi()
-  return authPermission.permissions
+  try {
+    return await requestClient.get<string[]>(API_CONTRACT.auth.codes)
+  }
+  catch {
+    const authPermission = await getPermissionsApi()
+    return authPermission.permissions
+  }
 }
 
 export function logoutApi() {

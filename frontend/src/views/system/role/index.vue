@@ -89,8 +89,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateRoleApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateRoleApi(formData.value.basicId, formData.value)
     } else {
       await createRoleApi(formData.value)
     }
@@ -169,7 +169,7 @@ const columns: DataTableColumns<SysRole> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该角色？',
@@ -234,7 +234,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :scroll-x="800"
         :pagination="false"
         size="small"

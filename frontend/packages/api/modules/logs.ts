@@ -1,11 +1,24 @@
 import type { PageResult, SysLogItem } from '~/types'
 import { API_CONTRACT } from '../contract'
-import { normalizePageResult } from '../helpers'
+import { buildPageRequest, normalizePageResult, toNumber } from '../helpers'
 import requestClient from '../request'
 
 async function getLogPage(url: string, payload: Record<string, any>) {
-  const data = await requestClient.post<any>(url, payload)
-  return normalizePageResult<SysLogItem>(data)
+  const page = Math.max(1, toNumber(payload.page, 1))
+  const pageSize = Math.max(1, toNumber(payload.pageSize, 20))
+
+  try {
+    const data = await requestClient.post<any>(url, buildPageRequest(payload))
+    return normalizePageResult<SysLogItem>(data)
+  }
+  catch {
+    return {
+      items: [],
+      total: 0,
+      page,
+      pageSize,
+    }
+  }
 }
 
 export function getAccessLogsApi(payload: Record<string, any>): Promise<PageResult<SysLogItem>> {

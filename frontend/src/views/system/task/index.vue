@@ -127,8 +127,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateTaskApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateTaskApi(formData.value.basicId, formData.value)
     } else {
       await createTaskApi(formData.value)
     }
@@ -219,7 +219,7 @@ const columns: DataTableColumns<SysTask> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该任务？',
@@ -306,7 +306,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1250"
         size="small"
@@ -341,7 +341,7 @@ onMounted(fetchData)
         <NFormItem label="任务编码" path="taskCode">
           <NInput
             v-model:value="formData.taskCode"
-            :disabled="!!formData.id"
+            :disabled="!!formData.basicId"
             placeholder="请输入任务编码"
           />
         </NFormItem>

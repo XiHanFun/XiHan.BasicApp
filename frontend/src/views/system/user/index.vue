@@ -111,7 +111,7 @@ async function handleDelete(id: string) {
 async function handleStatusChange(row: SysUser) {
   const newStatus = row.status === 1 ? 0 : 1
   try {
-    await updateUserStatusApi(row.id, newStatus)
+    await updateUserStatusApi(row.basicId, newStatus)
     row.status = newStatus
     message.success('状态更新成功')
   } catch {
@@ -122,8 +122,8 @@ async function handleStatusChange(row: SysUser) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateUserApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateUserApi(formData.value.basicId, formData.value)
     } else {
       await createUserApi(formData.value)
     }
@@ -223,7 +223,7 @@ const columns: DataTableColumns<SysUser> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该用户？',
@@ -297,7 +297,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :scroll-x="900"
         :pagination="false"
         size="small"
@@ -334,11 +334,11 @@ onMounted(fetchData)
         <NFormItem label="用户名" path="username">
           <NInput
             v-model:value="formData.username"
-            :disabled="!!formData.id"
+            :disabled="!!formData.basicId"
             placeholder="请输入用户名"
           />
         </NFormItem>
-        <NFormItem v-if="!formData.id" label="密码" path="password">
+        <NFormItem v-if="!formData.basicId" label="密码" path="password">
           <NInput
             v-model:value="formData.password"
             type="password"

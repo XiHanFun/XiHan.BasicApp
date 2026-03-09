@@ -127,8 +127,8 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.id) {
-      await updateReviewApi(formData.value.id, formData.value)
+    if (formData.value.basicId) {
+      await updateReviewApi(formData.value.basicId, formData.value)
     } else {
       await createReviewApi(formData.value)
     }
@@ -214,7 +214,7 @@ const columns: DataTableColumns<SysReview> = [
             h(
               NPopconfirm,
               {
-                onPositiveClick: () => handleDelete(row.id),
+                onPositiveClick: () => handleDelete(row.basicId),
               },
               {
                 default: () => '确认删除该审查？',
@@ -301,7 +301,7 @@ onMounted(fetchData)
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :row-key="(row) => row.id"
+        :row-key="(row) => row.basicId"
         :pagination="false"
         :scroll-x="1250"
         size="small"
@@ -336,7 +336,7 @@ onMounted(fetchData)
         <NFormItem label="审查编码" path="reviewCode">
           <NInput
             v-model:value="formData.reviewCode"
-            :disabled="!!formData.id"
+            :disabled="!!formData.basicId"
             placeholder="请输入审查编码"
           />
         </NFormItem>
