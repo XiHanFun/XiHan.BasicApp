@@ -47,8 +47,18 @@ public class ServerInfoDto
     /// </summary>
     public IReadOnlyList<NetworkInfo> NetworkInfos { get; set; } = [];
 
-    /// <summary>
-    /// 采集时间
-    /// </summary>
-    public DateTimeOffset CollectedAt { get; set; } = DateTimeOffset.UtcNow;
+/// <summary>
+/// 主板信息
+/// </summary>
+public BoardInfo BoardInfo { get; set; } = new();
+
+/// <summary>
+/// GPU 信息
+/// </summary>
+public IReadOnlyList<GpuInfo> GpuInfos { get; set; } = [];
+
+/// <summary>
+/// 采集时间
+/// </summary>
+public DateTimeOffset CollectedAt { get; set; } = DateTimeOffset.UtcNow;
 }
