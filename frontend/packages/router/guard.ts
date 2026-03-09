@@ -101,7 +101,7 @@ export function setupRouterGuard(router: Router) {
         const dynamicMenus = permissionInfo.menus
         accessStore.setAccessRoutes(dynamicMenus)
         installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
-        return next({ ...to, replace: true })
+        return next({ path: to.fullPath, replace: true })
       }
       catch {
         accessStore.setAccessRoutes([])
