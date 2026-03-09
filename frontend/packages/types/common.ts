@@ -12,10 +12,12 @@ export interface PageResult<T = any> {
 }
 
 export interface ApiResponse<T = any> {
-  code: number
+  code: number | string
   message: string
   data: T
-  success: boolean
+  isSuccess: boolean
+  traceId?: string
+  timestamp?: string
 }
 
 export interface SelectOption {
