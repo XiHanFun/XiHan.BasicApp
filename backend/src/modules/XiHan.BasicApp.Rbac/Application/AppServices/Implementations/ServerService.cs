@@ -31,11 +31,8 @@ public class ServerService : ApplicationServiceBase, IServerService
     /// </summary>
     public Task<ServerInfoDto> GetServerInfoAsync(
         bool includeDisk = true,
-        bool includeNetwork = true,
-        CancellationToken cancellationToken = default)
+        bool includeNetwork = true)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var result = new ServerInfoDto
         {
             RuntimeInfo = OsPlatformHelper.RuntimeInfos,
@@ -52,27 +49,24 @@ public class ServerService : ApplicationServiceBase, IServerService
     /// <summary>
     /// 获取运行时信息
     /// </summary>
-    public Task<RuntimeInfo> GetRuntimeInfoAsync(CancellationToken cancellationToken = default)
+    public Task<RuntimeInfo> GetRuntimeInfoAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(OsPlatformHelper.RuntimeInfos);
     }
 
     /// <summary>
     /// 获取 CPU 信息
     /// </summary>
-    public Task<CpuInfo> GetCpuInfoAsync(CancellationToken cancellationToken = default)
+    public Task<CpuInfo> GetCpuInfoAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(CpuHelper.CpuInfos);
     }
 
     /// <summary>
     /// 获取内存信息
     /// </summary>
-    public Task<RamInfo> GetMemoryInfoAsync(CancellationToken cancellationToken = default)
+    public Task<RamInfo> GetMemoryInfoAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(RamHelper.RamInfos);
     }
 }
