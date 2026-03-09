@@ -85,12 +85,12 @@ public class OAuthAppService
     /// <summary>
     /// 更新 OAuth 应用
     /// </summary>
-    public override async Task<OAuthAppDto> UpdateAsync(long id, OAuthAppUpdateDto input)
+    public override async Task<OAuthAppDto> UpdateAsync(OAuthAppUpdateDto input)
     {
         input.ValidateAnnotations();
-        var entity = await _oauthAppRepository.GetByIdAsync(id)
-                     ?? throw new KeyNotFoundException($"未找到 OAuth 应用: {id}");
-        var dto = await base.UpdateAsync(id, input);
+        var entity = await _oauthAppRepository.GetByIdAsync(input.BasicId)
+                     ?? throw new KeyNotFoundException($"未找到 OAuth 应用: {input.BasicId}");
+        var dto = await base.UpdateAsync(input);
         await _lookupCacheService.InvalidateOAuthAppLookupAsync(entity.TenantId);
         return dto;
     }

@@ -17,6 +17,7 @@ using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.BasicApp.Rbac.Application.UseCases.Commands;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
 
@@ -24,7 +25,7 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices;
 /// 租户应用服务
 /// </summary>
 public interface ITenantAppService
-    : ICrudApplicationService<TenantDto, long, TenantCreateDto, TenantUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<SysTenant, TenantDto, long, TenantCreateDto, TenantUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据租户编码获取租户

@@ -16,6 +16,7 @@ using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.BasicApp.Rbac.Application.UseCases.Queries;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
 
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices;
 /// 菜单应用服务
 /// </summary>
 public interface IMenuAppService
-    : ICrudApplicationService<MenuDto, long, MenuCreateDto, MenuUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<SysMenu, MenuDto, long, MenuCreateDto, MenuUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据角色ID获取菜单

@@ -76,12 +76,12 @@ public class FileAppService
     /// <summary>
     /// 更新文件
     /// </summary>
-    public override async Task<FileDto> UpdateAsync(long id, FileUpdateDto input)
+    public override async Task<FileDto> UpdateAsync(FileUpdateDto input)
     {
         input.ValidateAnnotations();
-        var entity = await _fileRepository.GetByIdAsync(id)
-                     ?? throw new KeyNotFoundException($"未找到文件: {id}");
-        var dto = await base.UpdateAsync(id, input);
+        var entity = await _fileRepository.GetByIdAsync(input.BasicId)
+                     ?? throw new KeyNotFoundException($"未找到文件: {input.BasicId}");
+        var dto = await base.UpdateAsync(input);
         await _lookupCacheService.InvalidateFileLookupAsync(entity.TenantId);
         return dto;
     }

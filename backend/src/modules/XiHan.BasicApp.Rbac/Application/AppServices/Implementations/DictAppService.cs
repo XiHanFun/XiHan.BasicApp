@@ -110,15 +110,15 @@ public class DictAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<DictDto> UpdateAsync(long id, DictUpdateDto input)
+    public override async Task<DictDto> UpdateAsync(DictUpdateDto input)
     {
         input.ValidateAnnotations();
 
-        var dict = await _dictRepository.GetByIdAsync(id)
-                   ?? throw new KeyNotFoundException($"未找到字典: {id}");
+        var dict = await _dictRepository.GetByIdAsync(input.BasicId)
+                   ?? throw new KeyNotFoundException($"未找到字典: {input.BasicId}");
 
         var normalizedCode = input.DictCode.Trim();
-        await EnsureDictCodeUniqueAsync(normalizedCode, id, dict.TenantId);
+        await EnsureDictCodeUniqueAsync(normalizedCode, input.BasicId, dict.TenantId);
 
         await MapDtoToEntityAsync(input, dict);
         var updated = await _dictRepository.UpdateAsync(dict);

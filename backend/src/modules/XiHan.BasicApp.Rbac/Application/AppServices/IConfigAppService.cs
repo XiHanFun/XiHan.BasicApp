@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
 
@@ -22,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices;
 /// 配置应用服务
 /// </summary>
 public interface IConfigAppService
-    : ICrudApplicationService<ConfigDto, long, ConfigCreateDto, ConfigUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<SysConfig, ConfigDto, long, ConfigCreateDto, ConfigUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据配置键获取配置

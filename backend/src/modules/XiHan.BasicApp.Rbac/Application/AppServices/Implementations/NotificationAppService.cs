@@ -350,12 +350,12 @@ public class NotificationAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<NotificationDto> UpdateAsync(long id, NotificationUpdateDto input)
+    public override async Task<NotificationDto> UpdateAsync(NotificationUpdateDto input)
     {
         input.ValidateAnnotations();
 
-        var notification = await _notificationRepository.GetByIdAsync(id)
-                           ?? throw new KeyNotFoundException($"未找到通知: {id}");
+        var notification = await _notificationRepository.GetByIdAsync(input.BasicId)
+                           ?? throw new KeyNotFoundException($"未找到通知: {input.BasicId}");
 
         ValidateNotificationPayload(input.Title, input.IsGlobal, input.RecipientUserId, input.SendTime, input.ExpireTime);
         await EnsureUsersExistsAsync(input.RecipientUserId, input.SendUserId, notification.TenantId);

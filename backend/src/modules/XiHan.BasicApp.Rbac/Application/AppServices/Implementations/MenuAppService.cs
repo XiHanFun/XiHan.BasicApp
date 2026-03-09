@@ -101,16 +101,16 @@ public class MenuAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<MenuDto> UpdateAsync(long id, MenuUpdateDto input)
+    public override async Task<MenuDto> UpdateAsync(MenuUpdateDto input)
     {
         input.ValidateAnnotations();
 
-        var menu = await _menuRepository.GetByIdAsync(id)
-                   ?? throw new KeyNotFoundException($"未找到菜单: {id}");
+        var menu = await _menuRepository.GetByIdAsync(input.BasicId)
+                   ?? throw new KeyNotFoundException($"未找到菜单: {input.BasicId}");
 
         var normalizedCode = input.MenuCode.Trim();
-        await EnsureMenuCodeUniqueAsync(normalizedCode, id, menu.TenantId);
-        await EnsureValidParentAsync(input.ParentId, id, menu.TenantId);
+        await EnsureMenuCodeUniqueAsync(normalizedCode, input.BasicId, menu.TenantId);
+        await EnsureValidParentAsync(input.ParentId, input.BasicId, menu.TenantId);
 
         await MapDtoToEntityAsync(input, menu);
         var updated = await _menuRepository.UpdateAsync(menu);

@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Rbac.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
+using XiHan.BasicApp.Rbac.Domain.Entities;
 
 namespace XiHan.BasicApp.Rbac.Application.AppServices;
 
@@ -22,7 +23,7 @@ namespace XiHan.BasicApp.Rbac.Application.AppServices;
 /// 短信应用服务
 /// </summary>
 public interface ISmsAppService
-    : ICrudApplicationService<SmsDto, long, SmsCreateDto, SmsUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<SysSms, SmsDto, long, SmsCreateDto, SmsUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 获取待发送短信

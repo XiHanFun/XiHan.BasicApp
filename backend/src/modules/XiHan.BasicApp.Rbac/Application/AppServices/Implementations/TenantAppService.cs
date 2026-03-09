@@ -103,13 +103,13 @@ public class TenantAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<TenantDto> UpdateAsync(long id, TenantUpdateDto input)
+    public override async Task<TenantDto> UpdateAsync(TenantUpdateDto input)
     {
         input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var tenant = await _tenantRepository.GetByIdAsync(id)
-                     ?? throw new KeyNotFoundException($"未找到租户: {id}");
+        var tenant = await _tenantRepository.GetByIdAsync(input.BasicId)
+                     ?? throw new KeyNotFoundException($"未找到租户: {input.BasicId}");
 
         tenant.TenantName = input.TenantName.Trim();
         tenant.TenantShortName = input.TenantShortName;

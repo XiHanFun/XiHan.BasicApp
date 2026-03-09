@@ -80,15 +80,15 @@ public class ConfigAppService
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    public override async Task<ConfigDto> UpdateAsync(long id, ConfigUpdateDto input)
+    public override async Task<ConfigDto> UpdateAsync(ConfigUpdateDto input)
     {
         input.ValidateAnnotations();
 
-        var config = await _configRepository.GetByIdAsync(id)
-                     ?? throw new KeyNotFoundException($"未找到配置: {id}");
+        var config = await _configRepository.GetByIdAsync(input.BasicId)
+                     ?? throw new KeyNotFoundException($"未找到配置: {input.BasicId}");
 
         var normalizedKey = input.ConfigKey.Trim();
-        await EnsureConfigKeyUniqueAsync(normalizedKey, id, config.TenantId);
+        await EnsureConfigKeyUniqueAsync(normalizedKey, input.BasicId, config.TenantId);
 
         await MapDtoToEntityAsync(input, config);
         var updated = await _configRepository.UpdateAsync(config);

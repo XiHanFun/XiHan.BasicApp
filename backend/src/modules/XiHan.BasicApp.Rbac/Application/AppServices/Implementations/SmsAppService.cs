@@ -62,10 +62,10 @@ public class SmsAppService
     /// <summary>
     /// 更新短信
     /// </summary>
-    public override async Task<SmsDto> UpdateAsync(long id, SmsUpdateDto input)
+    public override async Task<SmsDto> UpdateAsync(SmsUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(id, input);
+        return await base.UpdateAsync(input);
     }
 
     /// <summary>
