@@ -33,17 +33,25 @@ export interface SysRole {
 export interface SysMenu {
   basicId: string
   parentId?: string
-  name: string
-  path: string
+  menuName: string
+  menuCode: string
+  menuType: number
+  path?: string
   component?: string
+  routeName?: string
+  redirect?: string
   icon?: string
-  type: number
-  permission?: string
+  title?: string
+  isExternal?: boolean
+  externalUrl?: string
+  isCache?: boolean
+  isVisible: boolean
+  isAffix?: boolean
   sort: number
   status: number
-  hidden: boolean
+  remark?: string
   children?: SysMenu[]
-  createTime: string
+  createTime?: string
 }
 
 export interface SysPermission {

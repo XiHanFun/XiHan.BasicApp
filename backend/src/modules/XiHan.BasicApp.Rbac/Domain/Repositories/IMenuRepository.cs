@@ -23,6 +23,11 @@ namespace XiHan.BasicApp.Rbac.Domain.Repositories;
 public interface IMenuRepository : IAggregateRootRepository<SysMenu, long>
 {
     /// <summary>
+    /// 获取所有菜单
+    /// </summary>
+    Task<IReadOnlyList<SysMenu>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 根据菜单编码获取菜单
     /// </summary>
     Task<SysMenu?> GetByMenuCodeAsync(string menuCode, long? tenantId = null, CancellationToken cancellationToken = default);

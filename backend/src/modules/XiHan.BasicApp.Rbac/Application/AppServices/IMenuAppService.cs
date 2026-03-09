@@ -27,6 +27,11 @@ public interface IMenuAppService
     : ICrudApplicationService<SysMenu, MenuDto, long, MenuCreateDto, MenuUpdateDto, BasicAppPRDto>
 {
     /// <summary>
+    /// 获取所有菜单列表
+    /// </summary>
+    Task<IReadOnlyList<MenuDto>> GetListAsync();
+
+    /// <summary>
     /// 根据角色ID获取菜单
     /// </summary>
     /// <param name="roleId"></param>
