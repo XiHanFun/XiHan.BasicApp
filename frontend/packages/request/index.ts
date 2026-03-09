@@ -136,7 +136,14 @@ export class RequestClient {
           if (status === BIZ_CODE.UNAUTHORIZED) {
             const originalRequest = error.config as InternalAxiosRequestConfig & {
               _retry?: boolean
+              _isRefresh?: boolean
             }
+
+            if (originalRequest?._isRefresh) {
+              this.forceLogout()
+              return Promise.reject(error)
+            }
+
             if (!originalRequest?._retry) {
               originalRequest._retry = true
               const nextToken = await this.refreshAccessToken()
@@ -145,14 +152,21 @@ export class RequestClient {
                 return this.instance(originalRequest)
               }
             }
-            LocalStorage.remove(TOKEN_KEY)
-            LocalStorage.remove(REFRESH_TOKEN_KEY)
-            window.location.href = LOGIN_PATH
+            this.forceLogout()
           }
         }
         return Promise.reject(error)
       },
     )
+  }
+
+  private forceLogout() {
+    LocalStorage.remove(TOKEN_KEY)
+    LocalStorage.remove(REFRESH_TOKEN_KEY)
+    this.pendingRequests.forEach(cb => cb(null))
+    this.pendingRequests = []
+    this.isRefreshing = false
+    window.location.href = LOGIN_PATH
   }
 
   private async refreshAccessToken(): Promise<string | null> {
@@ -168,9 +182,11 @@ export class RequestClient {
 
     this.isRefreshing = true
     try {
-      const { data } = await this.instance.post(this.resolveUrl('/auth/refreshtoken'), {
-        refreshToken,
-      })
+      const { data } = await this.instance.post(
+        this.resolveUrl('/auth/refreshtoken'),
+        { refreshToken },
+        { _isRefresh: true } as any,
+      )
       const payload = (data?.data ?? data) as {
         accessToken?: string
         refreshToken?: string
