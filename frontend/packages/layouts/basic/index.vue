@@ -141,6 +141,7 @@ const sidebarEnableState = computed(
       <div class="transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <div
           class="min-h-full"
+          :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
               ? { maxWidth: `${shell.appStore.contentMaxWidth}px`, margin: '0 auto' }

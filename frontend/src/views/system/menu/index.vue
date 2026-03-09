@@ -5,7 +5,6 @@ import { Icon } from '@iconify/vue'
 import {
   NButton,
   NCard,
-  NDataTable,
   NForm,
   NFormItem,
   NIcon,
@@ -20,10 +19,11 @@ import {
   NTreeSelect,
   useMessage,
 } from 'naive-ui'
-import { h, onMounted, ref } from 'vue'
+import { computed, h, onMounted, ref } from 'vue'
 import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '@/api'
+import { CrudProTable } from '~/components'
 import { MENU_TYPE, STATUS_OPTIONS } from '~/constants'
-import { listToTree } from '~/utils'
+import { filterTree, listToTree } from '~/utils'
 
 defineOptions({ name: 'SystemMenuPage' })
 
@@ -31,6 +31,7 @@ const message = useMessage()
 const loading = ref(false)
 const tableData = ref<SysMenu[]>([])
 const treeSelectOptions = ref<any[]>([])
+const keyword = ref('')
 
 const modalVisible = ref(false)
 const modalTitle = ref('新增菜单')
@@ -75,6 +76,14 @@ function buildTreeSelectOptions(list: SysMenu[]): any[] {
     children: item.children ? buildTreeSelectOptions(item.children) : undefined,
   }))
 }
+
+const displayTableData = computed(() => {
+  return filterTree(tableData.value, keyword.value, (node, normalizedKeyword) => {
+    return [node.name, node.path, node.permission]
+      .filter(Boolean)
+      .some(text => String(text).toLowerCase().includes(normalizedKeyword))
+  })
+})
 
 function handleAdd(parentId?: string) {
   modalTitle.value = '新增菜单'
@@ -262,21 +271,25 @@ onMounted(fetchData)
           </template>
           刷新
         </NButton>
+        <NInput
+          v-model:value="keyword"
+          class="ml-auto max-w-[280px]"
+          placeholder="搜索菜单名称/路径/权限标识"
+          clearable
+        />
       </div>
     </NCard>
 
-    <NCard :bordered="false">
-      <NDataTable
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :row-key="(row) => row.basicId"
-        :scroll-x="1000"
-        :pagination="false"
-        size="small"
-        :default-expand-all="true"
-      />
-    </NCard>
+    <CrudProTable
+      :columns="columns"
+      :data="displayTableData"
+      :loading="loading"
+      :row-key="(row) => row.basicId"
+      :scroll-x="1000"
+      :show-toolbar="false"
+      :show-pagination="false"
+      :default-expand-all="true"
+    />
 
     <NModal
       v-model:show="modalVisible"

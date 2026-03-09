@@ -7,9 +7,15 @@ import type {
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
 import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
-import { LocalStorage } from '~/utils'
+import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
 
 type AnyRecord = Record<string, any>
+type RequestMeta = {
+  requestId: string
+  startedAt: number
+  method: string
+  url: string
+}
 
 export class RequestClient {
   private instance: AxiosInstance
@@ -43,6 +49,19 @@ export class RequestClient {
     return input
   }
 
+  private createRequestId() {
+    return `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  }
+
+  private normalizeMethod(method: unknown) {
+    return String(method ?? 'GET').toUpperCase()
+  }
+
+  private tryExtractMeta(config: unknown): RequestMeta | null {
+    const raw = (config as AnyRecord | undefined)?._meta as RequestMeta | undefined
+    return raw ?? null
+  }
+
   private setupInterceptors() {
     this.instance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
@@ -50,14 +69,68 @@ export class RequestClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
+
+        const existingMeta = this.tryExtractMeta(config)
+        if (!existingMeta) {
+          const requestId = this.createRequestId()
+          const method = this.normalizeMethod(config.method)
+          const url = String(config.url ?? '')
+          const meta: RequestMeta = {
+            requestId,
+            startedAt: Date.now(),
+            method,
+            url,
+          }
+          Object.assign(config as AnyRecord, { _meta: meta })
+          config.headers['X-Request-Id'] = requestId
+
+          appendRequestLog({
+            requestId,
+            method,
+            url,
+            startedAt: meta.startedAt,
+            status: 'pending',
+          })
+        }
         return config
       },
       error => Promise.reject(error),
     )
 
     this.instance.interceptors.response.use(
-      (response: AxiosResponse<ApiResponse>) => response,
+      (response: AxiosResponse<ApiResponse>) => {
+        const meta = this.tryExtractMeta(response.config)
+        if (meta) {
+          const now = Date.now()
+          const payload = response.data as AnyRecord | undefined
+          updateRequestLog(meta.requestId, {
+            finishedAt: now,
+            duration: Math.max(0, now - meta.startedAt),
+            status: 'success',
+            statusCode: response.status,
+            responseCode: payload?.code,
+            message: payload?.message,
+            traceId: payload?.traceId,
+          })
+        }
+        return response
+      },
       async (error) => {
+        const meta = this.tryExtractMeta(error?.config)
+        if (meta) {
+          const now = Date.now()
+          const payload = error?.response?.data as AnyRecord | undefined
+          updateRequestLog(meta.requestId, {
+            finishedAt: now,
+            duration: Math.max(0, now - meta.startedAt),
+            status: 'error',
+            statusCode: error?.response?.status,
+            responseCode: payload?.code,
+            message: payload?.message ?? error?.message ?? '请求失败',
+            traceId: payload?.traceId,
+          })
+        }
+
         if (error.response) {
           const { status } = error.response
           if (status === BIZ_CODE.UNAUTHORIZED) {
@@ -95,7 +168,7 @@ export class RequestClient {
 
     this.isRefreshing = true
     try {
-      const { data } = await this.instance.post(this.resolveUrl('/auth/refresh-token'), {
+      const { data } = await this.instance.post(this.resolveUrl('/auth/refreshtoken'), {
         refreshToken,
       })
       const payload = (data?.data ?? data) as {
@@ -133,6 +206,7 @@ export class RequestClient {
     const response = await this.instance.request<ApiResponse<T> | T>(config)
     const { data } = response
     const typed = data as AnyRecord
+    const meta = this.tryExtractMeta(response.config)
 
     if (typed && typeof typed === 'object') {
       const responseData = typed.data
@@ -144,6 +218,18 @@ export class RequestClient {
       if (hasEnvelope) {
         if (responseSuccess === true || responseCode === BIZ_CODE.SUCCESS || responseCode === 0) {
           return responseData as T
+        }
+        if (meta) {
+          const now = Date.now()
+          updateRequestLog(meta.requestId, {
+            finishedAt: now,
+            duration: Math.max(0, now - meta.startedAt),
+            status: 'error',
+            statusCode: response.status,
+            responseCode,
+            message: (responseMessage as string) || '请求失败',
+            traceId: typed.traceId,
+          })
         }
         return Promise.reject(new Error((responseMessage as string) || '请求失败'))
       }

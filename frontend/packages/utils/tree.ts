@@ -54,6 +54,40 @@ export function findTreeNode<T extends { basicId: string; children?: T[] }>(
 }
 
 /**
+ * 按关键字过滤树，保留命中的节点和其祖先链路
+ */
+export function filterTree<T extends { children?: T[] }>(
+  tree: T[],
+  keyword: string,
+  matcher?: (node: T, normalizedKeyword: string) => boolean,
+): T[] {
+  const normalizedKeyword = keyword.trim().toLowerCase()
+  if (!normalizedKeyword) {
+    return tree
+  }
+
+  const defaultMatcher = (node: T) =>
+    JSON.stringify(node).toLowerCase().includes(normalizedKeyword)
+
+  const match = matcher ?? defaultMatcher
+
+  const dfs = (nodes: T[]): T[] => {
+    return nodes.reduce<T[]>((acc, node) => {
+      const children = Array.isArray(node.children) ? dfs(node.children) : []
+      if (match(node, normalizedKeyword) || children.length > 0) {
+        acc.push({
+          ...node,
+          ...(children.length > 0 ? { children } : {}),
+        } as T)
+      }
+      return acc
+    }, [])
+  }
+
+  return dfs(tree)
+}
+
+/**
  * 获取节点的所有父节点 id
  */
 export function getParentIds<T extends { basicId: string; parentId?: string }>(

@@ -11,7 +11,11 @@ const componentAliasMap: Record<string, string> = {
   'system/log/operation': 'system/logs/index',
   'system/log/exception': 'system/logs/index',
   'system/log/audit': 'system/logs/index',
-  'system/monitor/index': 'system/logs/index',
+  'system/monitor/index': 'system/server/index',
+  'system/cache/index': 'system/cache/index',
+  'system/message/index': 'system/message/index',
+  'system/oauthapp/index': 'system/oauth-app/index',
+  'system/o-auth-app/index': 'system/oauth-app/index',
 }
 
 const explicitComponentMap: Record<string, () => Promise<unknown>> = {
@@ -24,11 +28,16 @@ const explicitComponentMap: Record<string, () => Promise<unknown>> = {
   'system/log/operation': () => import('@/views/system/logs/index.vue'),
   'system/log/exception': () => import('@/views/system/logs/index.vue'),
   'system/log/audit': () => import('@/views/system/logs/index.vue'),
-  'system/monitor/index': () => import('@/views/system/logs/index.vue'),
+  'system/monitor/index': () => import('@/views/system/server/index.vue'),
+  'system/cache/index': () => import('@/views/system/cache/index.vue'),
+  'system/message/index': () => import('@/views/system/message/index.vue'),
+  'system/oauthapp/index': () => import('@/views/system/oauth-app/index.vue'),
+  'system/o-auth-app/index': () => import('@/views/system/oauth-app/index.vue'),
 }
 
 function toKebabCase(input: string) {
   return input
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/_/g, '-')
     .toLowerCase()
