@@ -31,35 +31,16 @@ export class RequestClient {
   }
 
   private resolveUrl(url: string) {
-    if (!url.startsWith('/')) return url
-    if (url.startsWith('/api/')) return url
+    if (!url.startsWith('/'))
+      return url
+    if (url.startsWith('/api/'))
+      return url
     return `${this.apiPrefix}${url}`
   }
 
-  private isPlainObject(value: unknown): value is AnyRecord {
-    return Object.prototype.toString.call(value) === '[object Object]'
-  }
-
-  private toPascalCaseKey(key: string) {
-    if (!key) return key
-    return `${key.slice(0, 1).toUpperCase()}${key.slice(1)}`
-  }
-
-  // XiHan 后端 JSON 绑定大小写严格，统一将请求体字段转为 PascalCase。
+  // 统一保持请求体字段原样（camelCase）。
   private normalizeRequestData<T = unknown>(input: T): T {
-    if (Array.isArray(input)) {
-      return input.map((item) => this.normalizeRequestData(item)) as T
-    }
-
-    if (!this.isPlainObject(input)) {
-      return input
-    }
-
-    const output: AnyRecord = {}
-    for (const [key, value] of Object.entries(input)) {
-      output[this.toPascalCaseKey(key)] = this.normalizeRequestData(value)
-    }
-    return output as T
+    return input
   }
 
   private setupInterceptors() {
@@ -71,7 +52,7 @@ export class RequestClient {
         }
         return config
       },
-      (error) => Promise.reject(error),
+      error => Promise.reject(error),
     )
 
     this.instance.interceptors.response.use(
@@ -103,7 +84,8 @@ export class RequestClient {
 
   private async refreshAccessToken(): Promise<string | null> {
     const refreshToken = LocalStorage.get<string>(REFRESH_TOKEN_KEY)
-    if (!refreshToken) return null
+    if (!refreshToken)
+      return null
 
     if (this.isRefreshing) {
       return new Promise((resolve) => {
@@ -114,35 +96,35 @@ export class RequestClient {
     this.isRefreshing = true
     try {
       const { data } = await this.instance.post(this.resolveUrl('/auth/refresh-token'), {
-        RefreshToken: refreshToken,
+        refreshToken,
       })
-      const payload = (data?.data ?? data?.Data ?? data) as {
-        AccessToken?: string
-        RefreshToken?: string
+      const payload = (data?.data ?? data) as {
         accessToken?: string
         refreshToken?: string
       }
-      const nextAccessToken = payload?.accessToken ?? payload?.AccessToken ?? null
+      const nextAccessToken = payload?.accessToken ?? null
       if (!nextAccessToken) {
-        this.pendingRequests.forEach((cb) => cb(null))
+        this.pendingRequests.forEach(cb => cb(null))
         this.pendingRequests = []
         return null
       }
 
       LocalStorage.set(TOKEN_KEY, nextAccessToken)
-      const nextRefreshToken = payload?.refreshToken ?? payload?.RefreshToken
+      const nextRefreshToken = payload?.refreshToken
       if (nextRefreshToken) {
         LocalStorage.set(REFRESH_TOKEN_KEY, nextRefreshToken)
       }
 
-      this.pendingRequests.forEach((cb) => cb(nextAccessToken))
+      this.pendingRequests.forEach(cb => cb(nextAccessToken))
       this.pendingRequests = []
       return nextAccessToken
-    } catch {
-      this.pendingRequests.forEach((cb) => cb(null))
+    }
+    catch {
+      this.pendingRequests.forEach(cb => cb(null))
       this.pendingRequests = []
       return null
-    } finally {
+    }
+    finally {
       this.isRefreshing = false
     }
   }
@@ -153,14 +135,14 @@ export class RequestClient {
     const typed = data as AnyRecord
 
     if (typed && typeof typed === 'object') {
-      const responseData = typed.data ?? typed.Data
-      const responseCode = typed.code ?? typed.Code
-      const responseSuccess = typed.success ?? typed.isSuccess ?? typed.IsSuccess
-      const responseMessage = typed.message ?? typed.Message
+      const responseData = typed.data
+      const responseCode = typed.code
+      const responseSuccess = typed.isSuccess
+      const responseMessage = typed.message
       const hasEnvelope = responseData !== undefined && (responseCode !== undefined || responseSuccess !== undefined)
 
       if (hasEnvelope) {
-        if (responseSuccess || responseCode === BIZ_CODE.SUCCESS || responseCode === 0) {
+        if (responseSuccess === true || responseCode === BIZ_CODE.SUCCESS || responseCode === 0) {
           return responseData as T
         }
         return Promise.reject(new Error((responseMessage as string) || '请求失败'))
