@@ -76,6 +76,7 @@ public class SysMenuSeeder : DataSeederBase
             new() { ResourceId = GetResourceId(resourceMap, "oauth_app"), ParentId = null, MenuName = "三方账号", MenuCode = "oauth_app", MenuType = MenuType.Menu, Path = "/system/weChatUser", Component = "System/OAuthApp/Index", RouteName = "SystemOAuthApp", Icon = "link", Title = "三方账号", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 105 },
             new() { ResourceId = GetResourceId(resourceMap, "user_session"), ParentId = null, MenuName = "会话管理", MenuCode = "user_session", MenuType = MenuType.Menu, Path = "/system/session", Component = "System/UserSession/Index", RouteName = "SystemUserSession", Icon = "shield-check", Title = "会话管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 106 },
             new() { ResourceId = GetResourceId(resourceMap, "review"), ParentId = null, MenuName = "审核管理", MenuCode = "review", MenuType = MenuType.Menu, Path = "/system/review", Component = "System/Review/Index", RouteName = "SystemReview", Icon = "clipboard-check", Title = "审核管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 107 },
+            new() { ResourceId = GetResourceId(resourceMap, "about"), ParentId = null, MenuName = "关于系统", MenuCode = "about", MenuType = MenuType.Menu, Path = "/about", Component = "Core/About/Index", RouteName = "About", Icon = "info", Title = "关于系统", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 999 },
 
             // 平台管理
             new() { ResourceId = GetResourceId(resourceMap, "platform"), ParentId = null, MenuName = "平台管理", MenuCode = "platform", MenuType = MenuType.Directory, Path = "/platform", Component = null, RouteName = null, Redirect = "/platform/menu", Icon = "layout-grid", Title = "平台管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
@@ -104,7 +105,7 @@ public class SysMenuSeeder : DataSeederBase
         };
 
         await BulkInsertAsync(menus);
-        await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);
+        await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "about"]);
         await UpdateMenuParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "file"]);
         await UpdateMenuParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);
