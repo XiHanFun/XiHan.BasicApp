@@ -64,8 +64,8 @@ public class SysMenuSeeder : DataSeederBase
         var resourceMap = resources.ToDictionary(r => r.ResourceCode, r => r.BasicId);
         var menus = new List<SysMenu>
         {
-            // 首页
-            new() { ResourceId = null, ParentId = null, MenuName = "首页", MenuCode = "dashboard", MenuType = MenuType.Menu, Path = "/dashboard", Component = "Dashboard/Index", RouteName = "Dashboard", Icon = "layout-dashboard", Title = "首页", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 1 },
+            // 工作台
+            new() { ResourceId = null, ParentId = null, MenuName = "工作台", MenuCode = "dashboard", MenuType = MenuType.Menu, Path = "/dashboard", Component = "Dashboard/Index", RouteName = "Dashboard", Icon = "layout-dashboard", Title = "工作台", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 1 },
 
             // 系统管理
             new() { ResourceId = GetResourceId(resourceMap, "system"), ParentId = null, MenuName = "系统管理", MenuCode = "system", MenuType = MenuType.Directory, Path = "/system", Component = null, RouteName = null, Redirect = "/system/user", Icon = "settings", Title = "系统管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 100 },
