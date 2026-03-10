@@ -91,7 +91,7 @@ function onAuxClick(event: MouseEvent) {
           v-if="index > 0 && !active"
           class="chrome-tab__divider absolute left-[7px] top-1/2 z-0 h-4 w-[1px] -translate-y-1/2"
         />
-        <div class="chrome-tab__background absolute inset-0 z-[-1] px-[6px] py-0">
+        <div class="chrome-tab__background absolute inset-0 z-0 px-[6px] py-0">
           <div class="chrome-tab__background-content h-full rounded-tl-[7px] rounded-tr-[7px]" />
           <svg
             class="chrome-tab__background-before absolute bottom-0 left-[-1px]"
@@ -117,7 +117,7 @@ function onAuxClick(event: MouseEvent) {
           <span class="chrome-tab__title">{{ item.displayTitle }}</span>
           <button
             v-if="item.closable && !item.pinned"
-            class="chrome-tab__close flex h-4 w-4 items-center justify-center rounded-full"
+            class="chrome-tab__close chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             type="button"
             aria-label="关闭标签页"
             @click.stop="emit('close', item.path, $event)"
@@ -128,7 +128,7 @@ function onAuxClick(event: MouseEvent) {
           </button>
           <button
             v-else-if="item.pinned && item.path !== HOME_PATH"
-            class="chrome-tab__pin flex h-4 w-4 items-center justify-center rounded-full"
+            class="chrome-tab__pin chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             type="button"
             aria-label="取消固定"
             @click.stop="emit('togglePin', item.path)"
@@ -150,7 +150,7 @@ function onAuxClick(event: MouseEvent) {
         <span class="flat-tab__title">{{ item.displayTitle }}</span>
         <button
           v-if="item.closable && !item.pinned"
-          class="flat-tab__close flex h-4 w-4 items-center justify-center rounded-full"
+          class="flat-tab__close flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           type="button"
           aria-label="关闭标签页"
           @click.stop="emit('close', item.path, $event)"
@@ -161,7 +161,7 @@ function onAuxClick(event: MouseEvent) {
         </button>
         <button
           v-else-if="item.pinned && item.path !== HOME_PATH"
-          class="flat-tab__pin flex h-4 w-4 items-center justify-center rounded-full"
+          class="flat-tab__pin flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           type="button"
           aria-label="取消固定"
           @click.stop="emit('togglePin', item.path)"
@@ -184,7 +184,7 @@ function onAuxClick(event: MouseEvent) {
 }
 
 .chrome-tab:not(.chrome-tab--dragging) {
-  cursor: pointer;
+  cursor: default;
 }
 
 .chrome-tab.is-active {
@@ -211,7 +211,11 @@ function onAuxClick(event: MouseEvent) {
 
 .chrome-tab__main {
   color: hsl(var(--muted-foreground));
-  transition: color 0.15s ease-in-out;
+  border-radius: 6px;
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 .chrome-tab__title {
@@ -221,48 +225,60 @@ function onAuxClick(event: MouseEvent) {
   white-space: nowrap;
 }
 
+.chrome-tab__action {
+  margin-left: 8px;
+}
+
 .chrome-tab__close {
   border: 0;
   background: transparent;
   padding: 0;
   color: currentcolor;
-  opacity: 0.65;
+  opacity: 0.72;
+  transform: scale(1);
+  cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.chrome-tab__close:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
 }
 
 .chrome-tab__pin {
   border: 0;
   background: transparent;
   padding: 0;
-  color: var(--tab-active-color);
-  opacity: 0.75;
-  cursor: pointer;
+  color: currentcolor;
+  opacity: 0.72;
+  transform: scale(1);
+  cursor: default;
   transition: all 0.2s ease;
 }
 
-.chrome-tab__pin:hover {
-  opacity: 1;
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
+.tab-item.chrome-tab:hover .chrome-tab__close,
+.tab-item.chrome-tab:hover .chrome-tab__pin,
+.tab-item.chrome-tab.is-active .chrome-tab__close,
+.tab-item.chrome-tab.is-active .chrome-tab__pin {
+  opacity: 0.92;
+  transform: scale(1);
 }
 
-.tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-content {
-  margin-left: 2px;
-  margin-right: 2px;
-  border-radius: 6px;
-  background: hsl(var(--accent));
+.chrome-tab__close:hover,
+.chrome-tab__pin:hover {
+  opacity: 1 !important;
+  background: color-mix(in srgb, hsl(var(--primary)) 20%, hsl(var(--background)));
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 28%);
+}
+
+.tab-item.chrome-tab:hover:not(.is-active) {
+  z-index: 2;
+  margin-bottom: -1px;
+  padding-bottom: 1px;
 }
 
 .tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__divider {
   opacity: 0;
 }
 
-.tab-item.chrome-tab.is-active .chrome-tab__main {
+.tab-item.chrome-tab.is-active .chrome-tab__main,
+.tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__main {
   color: var(--tab-active-color);
 }
 
@@ -275,6 +291,15 @@ function onAuxClick(event: MouseEvent) {
   fill: var(--tab-active-bg);
 }
 
+.tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-content {
+  background: color-mix(in srgb, hsl(var(--primary)) 8%, hsl(var(--accent)));
+}
+
+.tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-before,
+.tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-after {
+  fill: color-mix(in srgb, hsl(var(--primary)) 8%, hsl(var(--accent)));
+}
+
 .tab-item.chrome-tab.is-active + .tab-item.chrome-tab .chrome-tab__divider,
 .tab-item.chrome-tab:hover + .tab-item.chrome-tab .chrome-tab__divider {
   opacity: 0;
@@ -284,7 +309,7 @@ function onAuxClick(event: MouseEvent) {
 .flat-tab {
   font-size: 13px;
   font-weight: 500;
-  cursor: pointer;
+  cursor: default;
   color: hsl(var(--muted-foreground));
 }
 
@@ -295,28 +320,47 @@ function onAuxClick(event: MouseEvent) {
   max-width: 120px;
 }
 
+.flat-tab__action {
+  margin-left: 8px;
+}
+
 .flat-tab__close,
 .flat-tab__pin {
   border: 0;
   background: transparent;
   padding: 0;
   color: currentcolor;
-  opacity: 0.65;
-  cursor: pointer;
+  opacity: 0.72;
+  transform: scale(1);
+  cursor: default;
   flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
+.flat-tab__close {
+  cursor: pointer;
+}
+
+.tab-item.flat-tab:hover .flat-tab__close,
+.tab-item.flat-tab:hover .flat-tab__pin,
+.tab-item.flat-tab.is-active .flat-tab__close,
+.tab-item.flat-tab.is-active .flat-tab__pin {
+  opacity: 0.92;
+  transform: scale(1);
+}
+
 .flat-tab__close:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-  opacity: 1;
+  background: color-mix(in srgb, hsl(var(--primary)) 20%, hsl(var(--background)));
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 28%);
+  opacity: 1 !important;
 }
 
 .flat-tab__pin:hover {
-  opacity: 1;
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
+  opacity: 1 !important;
+  background: color-mix(in srgb, hsl(var(--primary)) 20%, hsl(var(--background)));
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 28%);
 }
 
 /* ---- Plain 风格 ---- */
@@ -336,7 +380,7 @@ function onAuxClick(event: MouseEvent) {
 }
 
 .flat-tab--plain:hover:not(.is-active) {
-  background: hsl(var(--accent));
+  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--accent)));
   color: hsl(var(--foreground));
 }
 
@@ -347,8 +391,8 @@ function onAuxClick(event: MouseEvent) {
 
 /* ---- Card 风格 ---- */
 .flat-tab--card {
-  height: calc(100% - 8px);
-  margin-top: 4px;
+  height: calc(100% - 4px);
+  margin-top: 2px;
   margin-left: 6px;
   border-radius: 6px;
   border: 1px solid hsl(var(--border));
@@ -359,8 +403,9 @@ function onAuxClick(event: MouseEvent) {
 }
 
 .flat-tab--card:hover:not(.is-active) {
-  background: hsl(var(--accent));
+  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--accent)));
   color: hsl(var(--foreground));
+  border-color: hsl(var(--primary) / 30%);
 }
 
 .flat-tab--card.is-active {
@@ -405,7 +450,7 @@ function onAuxClick(event: MouseEvent) {
 }
 
 .flat-tab--brisk:hover:not(.is-active) {
-  background: hsl(var(--accent));
+  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--accent)));
   color: hsl(var(--foreground));
 }
 
