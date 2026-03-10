@@ -13,10 +13,23 @@ const { t } = useI18n()
 const { setLocale } = useLocale()
 
 const transitionItems = computed(() => [
-  { value: 'fade', label: t('preference.general.animation.fade') },
+  // Slide family
   { value: 'slide-left', label: t('preference.general.animation.slide_left') },
+  { value: 'slide-right', label: t('preference.general.animation.slide_right') },
   { value: 'slide-up', label: t('preference.general.animation.slide_up') },
   { value: 'slide-down', label: t('preference.general.animation.slide_down') },
+  { value: 'skew-slide', label: t('preference.general.animation.skew_slide') },
+
+  // Fade family
+  { value: 'fade', label: t('preference.general.animation.fade') },
+  { value: 'zoom-fade', label: t('preference.general.animation.zoom_fade') },
+  { value: 'blur-fade', label: t('preference.general.animation.blur_fade') },
+
+  // Transform family
+  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
+  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
+  { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
+  { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
 ])
 
 const localeOptions = [
@@ -38,7 +51,7 @@ const localeOptions = [
           :options="localeOptions"
           size="small"
           style="width: 110px"
-          @update:value="v => setLocale(String(v))"
+          @update:value="(v) => setLocale(String(v))"
         />
       </div>
       <div class="pref-row">
@@ -105,7 +118,10 @@ const localeOptions = [
         </div>
         <NSwitch v-model:value="appStore.transitionEnable" />
       </div>
-      <div class="transition-grid" :class="{ 'pointer-events-none opacity-40': !appStore.transitionEnable }">
+      <div
+        class="transition-grid"
+        :class="{ 'pointer-events-none opacity-40': !appStore.transitionEnable }"
+      >
         <div
           v-for="item in transitionItems"
           :key="item.value"
@@ -253,5 +269,151 @@ const localeOptions = [
 }
 .anim-slide-down {
   animation: anim-slide-down 2.2s ease-in-out infinite;
+}
+
+/* 右滑入：从左侧边框外穿入 */
+@keyframes anim-slide-right {
+  0% {
+    transform: translateX(-115%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(115%);
+    opacity: 0;
+  }
+}
+.anim-slide-right {
+  animation: anim-slide-right 2.2s ease-in-out infinite;
+}
+
+/* 缩放淡入：轻微缩放配合透明度变化 */
+@keyframes anim-zoom-fade {
+  0%,
+  100% {
+    transform: scale(0.86);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-zoom-fade {
+  animation: anim-zoom-fade 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+/* 翻转淡入：模拟卡片翻面切换 */
+@keyframes anim-flip-fade {
+  0%,
+  100% {
+    transform: perspective(300px) rotateY(-22deg) scale(0.95);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: perspective(300px) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+.anim-flip-fade {
+  transform-origin: center;
+  animation: anim-flip-fade 2.1s ease-in-out infinite;
+}
+
+/* 放大进入：由小到大并淡入 */
+@keyframes anim-scale-up {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-scale-up {
+  animation: anim-scale-up 2s ease-in-out infinite;
+}
+
+/* 缩小离场风格：由大到正常并淡入 */
+@keyframes anim-scale-down {
+  0%,
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-scale-down {
+  animation: anim-scale-down 2.1s ease-in-out infinite;
+}
+
+/* 模糊淡入 */
+@keyframes anim-blur-fade {
+  0%,
+  100% {
+    filter: blur(5px);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+.anim-blur-fade {
+  animation: anim-blur-fade 2s ease-in-out infinite;
+}
+
+/* 旋转淡入 */
+@keyframes anim-rotate-fade {
+  0%,
+  100% {
+    transform: rotate(-10deg) scale(0.92);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+.anim-rotate-fade {
+  transform-origin: center;
+  animation: anim-rotate-fade 2s ease-in-out infinite;
+}
+
+/* 倾斜滑入 */
+@keyframes anim-skew-slide {
+  0% {
+    transform: translateX(115%) skewX(-12deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-115%) skewX(12deg);
+    opacity: 0;
+  }
+}
+.anim-skew-slide {
+  animation: anim-skew-slide 2.2s ease-in-out infinite;
 }
 </style>

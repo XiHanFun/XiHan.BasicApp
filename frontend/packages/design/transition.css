@@ -25,6 +25,22 @@
   opacity: 0;
 }
 
+/* 向右滑入 */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.slide-right-enter-from {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+
+.slide-right-leave-to {
+  transform: translateX(30px);
+  opacity: 0;
+}
+
 /* 展开收起过渡 */
 .collapse-enter-active,
 .collapse-leave-active {
@@ -75,6 +91,104 @@
 
 .slide-down-leave-to {
   transform: translateY(30px);
+  opacity: 0;
+}
+
+/* 缩放淡入 */
+.zoom-fade-enter-active,
+.zoom-fade-leave-active {
+  transition: all var(--transition-normal) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.zoom-fade-enter-from,
+.zoom-fade-leave-to {
+  transform: scale(0.96);
+  opacity: 0;
+}
+
+/* 翻转淡入 */
+.flip-fade-enter-active,
+.flip-fade-leave-active {
+  transition: all var(--transition-normal) ease;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.flip-fade-enter-from {
+  transform: perspective(1200px) rotateY(-10deg);
+  opacity: 0;
+}
+
+.flip-fade-leave-to {
+  transform: perspective(1200px) rotateY(10deg);
+  opacity: 0;
+}
+
+/* 放大进入 */
+.scale-up-enter-active,
+.scale-up-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.scale-up-enter-from,
+.scale-up-leave-to {
+  transform: scale(0.92);
+  opacity: 0;
+}
+
+/* 缩小进入 */
+.scale-down-enter-active,
+.scale-down-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.scale-down-enter-from,
+.scale-down-leave-to {
+  transform: scale(1.08);
+  opacity: 0;
+}
+
+/* 模糊淡入 */
+.blur-fade-enter-active,
+.blur-fade-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.blur-fade-enter-from,
+.blur-fade-leave-to {
+  filter: blur(4px);
+  opacity: 0;
+}
+
+/* 旋转淡入 */
+.rotate-fade-enter-active,
+.rotate-fade-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.rotate-fade-enter-from {
+  transform: rotate(-6deg) scale(0.96);
+  opacity: 0;
+}
+
+.rotate-fade-leave-to {
+  transform: rotate(6deg) scale(0.96);
+  opacity: 0;
+}
+
+/* 倾斜滑入 */
+.skew-slide-enter-active,
+.skew-slide-leave-active {
+  transition: all var(--transition-normal) ease;
+}
+
+.skew-slide-enter-from {
+  transform: translateX(30px) skewX(-8deg);
+  opacity: 0;
+}
+
+.skew-slide-leave-to {
+  transform: translateX(-30px) skewX(8deg);
   opacity: 0;
 }
 
