@@ -157,7 +157,7 @@ export const useAppStore = defineStore('app', () => {
   const navigationStyle = ref<'rounded' | 'plain'>(LocalStorage.get(NAV_STYLE_KEY) ?? 'rounded')
   const navigationSplit = ref<boolean>(LocalStorage.get<boolean>(NAV_SPLIT_KEY) ?? true)
   const navigationAccordion = ref<boolean>(LocalStorage.get<boolean>(NAV_ACCORDION_KEY) ?? true)
-  const contentCompact = ref<boolean>(LocalStorage.get<boolean>(CONTENT_COMPACT_KEY) ?? true)
+  const contentCompact = ref<boolean>(LocalStorage.get<boolean>(CONTENT_COMPACT_KEY) ?? false)
   const contentMaxWidth = ref<number>(LocalStorage.get<number>(CONTENT_MAX_WIDTH_KEY) ?? 1280)
 
   const tabbarEnabled = ref<boolean>(LocalStorage.get<boolean>(TAGS_BAR_KEY) ?? true)
