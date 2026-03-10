@@ -1,26 +1,24 @@
 export const API_CONTRACT = {
   auth: {
-    loginConfig: '/auth/loginConfig',
-    login: '/auth/login',
-    refreshToken: '/auth/refreshtoken',
-    currentUser: '/auth/currentUser',
-    permissions: '/auth/permissions',
-    logout: '/auth/logout',
-    codes: '/auth/permissioncodes',
-    userMenus: '/menu/usermenus',
+    loginConfig: '/Auth/LoginConfig',
+    login: '/Auth/Login',
+    refreshToken: '/Auth/RefreshToken',
+    currentUser: '/Auth/CurrentUser',
+    permissions: '/Auth/Permissions',
+    logout: '/Auth/Logout',
+    codes: '/Auth/PermissionCodes',
+    userMenus: '/Menu/UserMenus',
   },
   system: {
-    users: '/system/users',
-    roles: '/system/roles',
-    permissions: '/system/permissions',
-    menus: '/system/menus',
+    users: '/System/Users',
+    roles: '/System/Roles',
+    permissions: '/System/Permissions',
+    menus: '/System/Menus',
   },
-  logs: {
-    access: '/accesslogs',
-    operation: '/operationlogs',
-    exception: '/exceptionlogs',
-    audit: '/auditlogs',
-  },
+  accessLog: '/api/AccessLog',
+  operationLog: '/api/OperationLog',
+  exceptionLog: '/api/ExceptionLog',
+  auditLog: '/api/AuditLog',
 } as const
 
 export type ApiContract = typeof API_CONTRACT

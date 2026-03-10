@@ -124,6 +124,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageAppService, MessageAppService>();
         services.AddScoped<ICacheAppService, CacheAppService>();
         services.AddScoped<IServerService, ServerService>();
+        services.AddScoped<IAccessLogAppService, AccessLogAppService>();
+        services.AddScoped<IOperationLogAppService, OperationLogAppService>();
+        services.AddScoped<IExceptionLogAppService, ExceptionLogAppService>();
+        services.AddScoped<IAuditLogAppService, AuditLogAppService>();
 
         return services;
     }
