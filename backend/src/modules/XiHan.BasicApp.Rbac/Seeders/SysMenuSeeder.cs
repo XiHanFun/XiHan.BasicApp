@@ -103,7 +103,7 @@ public class SysMenuSeeder : DataSeederBase
             new() { ResourceId = GetResourceId(resourceMap, "audit_log"), ParentId = null, MenuName = "差异日志", MenuCode = "audit_log", MenuType = MenuType.Menu, Path = "/log/difflog", Component = "System/Log/Audit", RouteName = "AuditLog", Icon = "file-diff", Title = "差异日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 304 },
 
             // 关于系统
-            new() { ResourceId = GetResourceId(resourceMap, "about"), ParentId = null, MenuName = "关于系统", MenuCode = "about", MenuType = MenuType.Menu, Path = "/about", Component = "Core/About/Index", RouteName = "About", Icon = "info", Title = "关于系统", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 999 },
+            new() { ResourceId = GetResourceId(resourceMap, "about"), ParentId = null, MenuName = "关于系统", MenuCode = "about", MenuType = MenuType.Menu, Path = "/about", Component = "About/Index", RouteName = "About", Icon = "info", Title = "关于系统", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 999 },
         };
 
         await BulkInsertAsync(menus);
