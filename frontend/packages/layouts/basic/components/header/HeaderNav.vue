@@ -31,6 +31,11 @@ const shouldShowBreadcrumb = computed(() => {
   return true
 })
 
+function resolveIcon(icon: string) {
+  if (!icon) return icon
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
+
 function isLast(isHome: boolean, index?: number): boolean {
   if (isHome) return props.breadcrumbs.length === 0
   return index === props.breadcrumbs.length - 1
@@ -79,7 +84,7 @@ function isLast(isHome: boolean, index?: number): boolean {
         >
           <Icon
             v-if="appStore.breadcrumbShowIcon && item.icon"
-            :icon="item.icon!"
+            :icon="resolveIcon(item.icon!)"
             width="14"
             height="14"
             class="crumb-icon"
@@ -96,7 +101,7 @@ function isLast(isHome: boolean, index?: number): boolean {
       >
         <Icon
           v-if="appStore.breadcrumbShowIcon && item.icon"
-          :icon="item.icon!"
+          :icon="resolveIcon(item.icon!)"
           width="14"
           height="14"
           class="crumb-icon"

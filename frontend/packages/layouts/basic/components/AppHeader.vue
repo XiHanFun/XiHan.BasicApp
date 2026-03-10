@@ -116,7 +116,7 @@ const breadcrumbs = computed(() => {
         return {
           key: resolveFullPath(sibling.path, parent?.path ?? ''),
           label: te(siblingTitle) ? t(siblingTitle) : siblingTitle,
-          icon: siblingIcon ? () => h(Icon, { icon: siblingIcon }) : undefined,
+          icon: siblingIcon ? () => h(Icon, { icon: resolveIcon(siblingIcon) }) : undefined,
         }
       })
     const titleKey = String(item.meta?.title)
