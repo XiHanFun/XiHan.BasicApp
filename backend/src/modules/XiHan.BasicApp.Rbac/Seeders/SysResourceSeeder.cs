@@ -70,7 +70,6 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "oauth_app", ResourceName = "三方账号", ResourceType = ResourceType.Menu, ResourcePath = "/system/weChatUser", Icon = "link", Description = "三方账号管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 104 },
             new() { ParentId = null, ResourceCode = "user_session", ResourceName = "会话管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/session", Icon = "shield-check", Description = "在线会话管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 105 },
             new() { ParentId = null, ResourceCode = "review", ResourceName = "审核管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/review", Icon = "clipboard-check", Description = "审核管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 106 },
-            new() { ParentId = null, ResourceCode = "about", ResourceName = "关于系统", ResourceType = ResourceType.Menu, ResourcePath = "/about", Icon = "info", Description = "系统关于页面", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 999 },
 
             // 平台管理
             new() { ParentId = null, ResourceCode = "tenant", ResourceName = "租户管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/tenant", Icon = "server", Description = "租户管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 200 },
@@ -110,10 +109,13 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "operation_log_api", ResourceName = "操作日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/operation-logs", Description = "操作日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 601 },
             new() { ParentId = null, ResourceCode = "exception_log_api", ResourceName = "异常日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/exception-logs", Description = "异常日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 602 },
             new() { ParentId = null, ResourceCode = "audit_log_api", ResourceName = "差异日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/audit-logs", Description = "差异日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 603 }
+
+            // 关于系统
+            new() { ParentId = null, ResourceCode = "about", ResourceName = "关于系统", ResourceType = ResourceType.Menu, ResourcePath = "/about", Icon = "info", Description = "系统关于页面", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 999 },
         };
 
         await BulkInsertAsync(resources);
-        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "about"]);
+        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);
         await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
         await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);
