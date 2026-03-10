@@ -109,6 +109,7 @@ onMounted(fetchData)
       :pagination="{ page: query.page, pageSize: query.pageSize, total }"
       :show-toolbar="false"
       :scroll-x="2800"
+      max-height="calc(100vh - 280px)"
       @update:page="handlePageChange"
       @update:page-size="handlePageSizeChange"
     />

@@ -347,6 +347,7 @@ onMounted(fetchData)
       :loading="loading"
       :row-key="(row: SysMenu) => row.basicId"
       :scroll-x="1200"
+      max-height="calc(100vh - 280px)"
       :show-toolbar="false"
       :show-pagination="false"
       :default-expand-all="true"

@@ -27,6 +27,7 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   rowKey?: (row: any) => number | string
   scrollX?: number
+  maxHeight?: number | string
   storageKey?: string
   striped?: boolean
   size?: 'small' | 'medium' | 'large'
@@ -38,6 +39,7 @@ const props = withDefaults(defineProps<{
   loading: false,
   rowKey: undefined,
   scrollX: undefined,
+  maxHeight: undefined,
   storageKey: undefined,
   striped: true,
   size: 'small',
@@ -282,6 +284,7 @@ onBeforeUnmount(() => {
       :row-key="props.rowKey"
       :pagination="false"
       :scroll-x="props.scrollX"
+      :max-height="props.maxHeight"
       :default-expand-all="props.defaultExpandAll"
       :striped="props.striped"
       :size="props.size"
