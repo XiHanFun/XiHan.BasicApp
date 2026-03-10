@@ -1,40 +1,70 @@
 <script setup lang="ts">
+import type { MenuRoute } from '~/types'
 import { Icon } from '@iconify/vue'
 import { NEmpty, NIcon, NInput, NModal, NScrollbar } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
-import { useAppStore, useLayoutBridgeStore } from '~/stores'
+import { useAccessStore, useAppStore, useLayoutBridgeStore } from '~/stores'
 
 defineOptions({ name: 'AppGlobalSearch', inheritAttrs: false })
 
 const router = useRouter()
 const { t } = useI18n()
 const appStore = useAppStore()
+const accessStore = useAccessStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcutSearch)
 const visible = ref(false)
 const keyword = ref('')
 
-const routeItems = computed(() => {
-  const routes = router
-    .getRoutes()
-    .filter((item) => item.meta?.title && !item.meta?.hidden && item.path && item.name)
-    .map((item) => ({
-      name: String(item.name),
-      path: item.path,
-      title: t(String(item.meta.title), String(item.meta.title)),
-      icon: item.meta.icon as string | undefined,
-    }))
+interface SearchItem {
+  name: string
+  path: string
+  title: string
+  icon: string | undefined
+}
 
+function resolveIcon(icon: string) {
+  if (!icon) {
+    return icon
+  }
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
+
+function flattenMenuRoutes(routes: MenuRoute[]): SearchItem[] {
+  const result: SearchItem[] = []
+  for (const route of routes) {
+    if (route.meta?.hidden) {
+      continue
+    }
+    if (route.path && route.name && route.meta?.title && route.component) {
+      result.push({
+        name: route.name,
+        path: route.path,
+        title: t(route.meta.title, route.meta.title),
+        icon: route.meta.icon ? resolveIcon(route.meta.icon) : undefined,
+      })
+    }
+    if (route.children?.length) {
+      result.push(...flattenMenuRoutes(route.children))
+    }
+  }
+  return result
+}
+
+const routeItems = computed(() => {
+  const routes = flattenMenuRoutes(accessStore.accessRoutes)
   const text = keyword.value.trim().toLowerCase()
-  if (!text) return routes.slice(0, 20)
+  if (!text) {
+    return routes
+  }
   return routes.filter(
-    (item) =>
-      item.title.toLowerCase().includes(text) ||
-      item.path.toLowerCase().includes(text) ||
-      item.name.toLowerCase().includes(text),
+    item =>
+      item.title.toLowerCase().includes(text)
+      || item.path.toLowerCase().includes(text)
+      || item.name.toLowerCase().includes(text),
   )
 })
 
