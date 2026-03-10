@@ -2,6 +2,7 @@
 import type { TabItem } from '~/types'
 import { Icon } from '@iconify/vue'
 import { NIcon } from 'naive-ui'
+import { computed } from 'vue'
 import { HOME_PATH } from '~/constants'
 
 interface Props {
@@ -27,6 +28,38 @@ const emit = defineEmits<{
   middleClose: [path: string]
 }>()
 
+function resolveIcon(icon: string) {
+  if (!icon) {
+    return icon
+  }
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
+
+const tabClass = computed(() => {
+  if (props.styleType === 'chrome') {
+    return [
+      'chrome-tab -mr-3 h-9 items-center',
+      {
+        'is-active': props.active,
+        'is-last-tab': props.isLast,
+        'affix-tab': Boolean(props.item.pinned),
+        'draggable': props.draggable,
+      },
+    ]
+  }
+
+  return [
+    `flat-tab flat-tab--${props.styleType}`,
+    {
+      'is-active': props.active,
+      'affix-tab': Boolean(props.item.pinned),
+      'draggable': props.draggable,
+      'has-left-divider': props.index > 0 && props.styleType !== 'card',
+      'is-last': props.isLast && props.styleType !== 'card',
+    },
+  ]
+})
+
 function onAuxClick(event: MouseEvent) {
   if (event.button === 1 && props.item.closable && props.middleCloseEnabled !== false) {
     emit('middleClose', props.item.path)
@@ -42,28 +75,7 @@ function onAuxClick(event: MouseEvent) {
   -->
   <div
     class="tab-item group relative flex shrink-0 select-none"
-    :class="[
-      styleType === 'chrome'
-        ? [
-            'chrome-tab -mr-3 h-9 items-center',
-            {
-              'is-active': active,
-              'is-last-tab': isLast,
-              'affix-tab': Boolean(item.pinned),
-              draggable,
-            },
-          ]
-        : [
-            `flat-tab flat-tab--${styleType}`,
-            {
-              'is-active': active,
-              'affix-tab': Boolean(item.pinned),
-              draggable,
-              'has-left-divider': index > 0 && styleType !== 'card',
-              'is-last': isLast && styleType !== 'card',
-            },
-          ],
-    ]"
+    :class="tabClass"
     role="button"
     tabindex="0"
     @click="emit('jump', item.path)"
@@ -100,7 +112,7 @@ function onAuxClick(event: MouseEvent) {
           class="chrome-tab__main relative z-[2] mx-[12px] flex h-full min-w-[60px] items-center gap-1 pr-1"
         >
           <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
-            <Icon :icon="item.meta.icon as string" />
+            <Icon :icon="resolveIcon(item.meta.icon as string)" />
           </NIcon>
           <span class="chrome-tab__title">{{ item.displayTitle }}</span>
           <button
@@ -133,7 +145,7 @@ function onAuxClick(event: MouseEvent) {
     <template v-else>
       <div class="flat-tab__inner relative flex h-full items-center gap-1 px-4">
         <NIcon v-if="showIcon && item.meta?.icon" size="13" class="flex-shrink-0 opacity-70">
-          <Icon :icon="item.meta.icon as string" />
+          <Icon :icon="resolveIcon(item.meta.icon as string)" />
         </NIcon>
         <span class="flat-tab__title">{{ item.displayTitle }}</span>
         <button
