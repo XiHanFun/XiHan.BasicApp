@@ -22,7 +22,7 @@ import {
   getRuntimeInfoApi,
   getUserPageApi,
   getUserSessionPageApi,
-} from '~/api'
+} from '@/api'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
