@@ -2,6 +2,18 @@ import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router
 import { setupRouterGuard } from '~/router/guard'
 import { routes } from './routes'
 
+if (import.meta.env.VITE_ROUTER_HISTORY !== 'history') {
+  const base = import.meta.env.VITE_BASE || '/'
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`
+  const isRootPath = window.location.pathname === normalizedBase || window.location.pathname === '/'
+
+  // In hash mode, force canonical URL shape: /#/path
+  if (!isRootPath) {
+    const hash = window.location.hash || '#/'
+    window.history.replaceState({}, '', `${normalizedBase}${hash}`)
+  }
+}
+
 export const router = createRouter({
   history:
     import.meta.env.VITE_ROUTER_HISTORY === 'history'

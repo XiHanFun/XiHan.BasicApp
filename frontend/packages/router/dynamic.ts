@@ -5,9 +5,13 @@ const viewModules = import.meta.glob('@/views/**/*.vue')
 const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 
 const componentAliasMap: Record<string, string> = {
-  'dashboard/index': 'dashboard/workspace/index',
-  'system/monitor/index': 'system/server/index',
+  'dashboard/index': '_core/dashboard/index',
+  'core/dashboard/index': '_core/dashboard/index',
+  '_core/dashboard/index': '_core/dashboard/index',
+  'about/index': '_core/about/index',
   'core/about/index': '_core/about/index',
+  '_core/about/index': '_core/about/index',
+  'system/monitor/index': 'system/server/index',
   'system/cache/index': 'system/cache/index',
   'system/message/index': 'system/message/index',
   'system/oauthapp/index': 'system/oauth-app/index',
@@ -15,8 +19,10 @@ const componentAliasMap: Record<string, string> = {
 }
 
 const explicitComponentMap: Record<string, () => Promise<unknown>> = {
-  'dashboard/index': () => import('@/views/dashboard/workspace/index.vue'),
-  'dashboard/workspace/index': () => import('@/views/dashboard/workspace/index.vue'),
+  'dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
+  'core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
+  '_core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
+  'about/index': () => import('~/views/_core/about/index.vue'),
   'core/about/index': () => import('~/views/_core/about/index.vue'),
   '_core/about/index': () => import('~/views/_core/about/index.vue'),
   'system/log/access': () => import('@/views/system/log/access/index.vue'),
@@ -39,7 +45,9 @@ function toKebabCase(input: string) {
 }
 
 function resolveView(component?: string) {
-  if (!component) return null
+  if (!component) {
+    return null
+  }
 
   const normalized = component
     .replace(/^\/+/, '')
@@ -54,7 +62,9 @@ function resolveView(component?: string) {
     .join('/')
   const aliasPath = componentAliasMap[lowerPath] ?? componentAliasMap[kebabPath] ?? ''
   for (const key of [lowerPath, kebabPath, aliasPath]) {
-    if (!key) continue
+    if (!key) {
+      continue
+    }
     const explicit = explicitComponentMap[key]
     if (explicit) {
       return explicit
@@ -80,7 +90,9 @@ function resolveView(component?: string) {
 
   for (const key of keys) {
     const matched = viewModules[key]
-    if (matched) return matched
+    if (matched) {
+      return matched
+    }
   }
 
   return null
@@ -91,11 +103,11 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
     .filter((item) => !!item.path)
     .map((item) => {
       const component = resolveView(item.component)
-      const route: any = {
+      const route = {
         path: item.path,
         name: item.name,
         meta: item.meta as unknown as Record<string, unknown>,
-      }
+      } as unknown as RouteRecordRaw
 
       if (item.redirect) {
         route.redirect = item.redirect
@@ -114,6 +126,6 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
         route.component = fallbackView
       }
 
-      return route as RouteRecordRaw
+      return route
     })
 }

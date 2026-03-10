@@ -13,7 +13,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'dashboard',
         name: 'DashboardWorkspace',
-        component: () => import('@/views/dashboard/workspace/index.vue'),
+        component: () => import('~/views/_core/dashboard/index.vue'),
         meta: {
           title: 'menu.workspace',
           icon: 'mdi:view-dashboard-outline',
