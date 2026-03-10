@@ -294,6 +294,7 @@ onMounted(fetchData)
       :row-key="(row) => row.basicId"
       :pagination="{ page: pager.page, pageSize: pager.pageSize, total }"
       :scroll-x="1300"
+      max-height="calc(100vh - 330px)"
       @refresh="fetchData"
       @update:page="handlePageChange"
       @update:page-size="handlePageSizeChange"
