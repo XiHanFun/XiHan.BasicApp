@@ -5,12 +5,7 @@ const viewModules = import.meta.glob('@/views/**/*.vue')
 const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 
 const componentAliasMap: Record<string, string> = {
-  // 后端种子菜单兼容映射
   'dashboard/index': 'dashboard/workspace/index',
-  'system/log/access': 'system/logs/index',
-  'system/log/operation': 'system/logs/index',
-  'system/log/exception': 'system/logs/index',
-  'system/log/audit': 'system/logs/index',
   'system/monitor/index': 'system/server/index',
   'system/cache/index': 'system/cache/index',
   'system/message/index': 'system/message/index',
@@ -19,15 +14,12 @@ const componentAliasMap: Record<string, string> = {
 }
 
 const explicitComponentMap: Record<string, () => Promise<unknown>> = {
-  // Dashboard
   'dashboard/index': () => import('@/views/dashboard/workspace/index.vue'),
   'dashboard/workspace/index': () => import('@/views/dashboard/workspace/index.vue'),
-
-  // Log-like pages
-  'system/log/access': () => import('@/views/system/logs/index.vue'),
-  'system/log/operation': () => import('@/views/system/logs/index.vue'),
-  'system/log/exception': () => import('@/views/system/logs/index.vue'),
-  'system/log/audit': () => import('@/views/system/logs/index.vue'),
+  'system/log/access': () => import('@/views/system/log/access/index.vue'),
+  'system/log/operation': () => import('@/views/system/log/operation/index.vue'),
+  'system/log/exception': () => import('@/views/system/log/exception/index.vue'),
+  'system/log/audit': () => import('@/views/system/log/audit/index.vue'),
   'system/monitor/index': () => import('@/views/system/server/index.vue'),
   'system/cache/index': () => import('@/views/system/cache/index.vue'),
   'system/message/index': () => import('@/views/system/message/index.vue'),

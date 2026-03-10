@@ -112,14 +112,156 @@ export interface SysTenant {
   remark?: string
 }
 
-export interface SysLogItem {
+export interface SysAccessLog {
   basicId?: string
-  createdTime?: string
+  userId?: string
   userName?: string
-  operationName?: string
-  message?: string
-  ip?: string
-  [key: string]: any
+  sessionId?: string
+  resourcePath?: string
+  resourceName?: string
+  resourceType?: string
+  method?: string
+  accessResult?: string
+  statusCode?: number
+  accessIp?: string
+  accessLocation?: string
+  userAgent?: string
+  browser?: string
+  os?: string
+  device?: string
+  referer?: string
+  responseTime?: number
+  responseSize?: number
+  accessTime?: string
+  leaveTime?: string
+  stayTime?: number
+  errorMessage?: string
+  extendData?: string
+  remark?: string
+  createdTime?: string
+}
+
+export interface SysOperationLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  operationType?: string
+  module?: string
+  function?: string
+  title?: string
+  description?: string
+  method?: string
+  requestUrl?: string
+  requestParams?: string
+  responseResult?: string
+  executionTime?: number
+  operationIp?: string
+  operationLocation?: string
+  browser?: string
+  os?: string
+  status?: string
+  errorMessage?: string
+  operationTime?: string
+  createdTime?: string
+}
+
+export interface SysExceptionLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  requestId?: string
+  sessionId?: string
+  exceptionType?: string
+  exceptionMessage?: string
+  exceptionStackTrace?: string
+  innerExceptionType?: string
+  innerExceptionMessage?: string
+  innerExceptionStackTrace?: string
+  exceptionSource?: string
+  exceptionLocation?: string
+  severityLevel?: number
+  requestPath?: string
+  requestMethod?: string
+  controllerName?: string
+  actionName?: string
+  requestParams?: string
+  requestBody?: string
+  requestHeaders?: string
+  statusCode?: number
+  operationIp?: string
+  operationLocation?: string
+  userAgent?: string
+  browser?: string
+  os?: string
+  deviceType?: string
+  deviceInfo?: string
+  applicationName?: string
+  applicationVersion?: string
+  environmentName?: string
+  serverHostName?: string
+  threadId?: number
+  processId?: number
+  exceptionTime?: string
+  isHandled?: boolean
+  handledTime?: string
+  handledBy?: string
+  handledByName?: string
+  handledRemark?: string
+  businessModule?: string
+  businessId?: string
+  businessType?: string
+  errorCode?: string
+  extendData?: string
+  remark?: string
+  createdTime?: string
+}
+
+export interface SysAuditLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  realName?: string
+  departmentId?: string
+  departmentName?: string
+  auditType?: string
+  operationType?: string
+  entityType?: string
+  entityId?: string
+  entityName?: string
+  tableName?: string
+  primaryKey?: string
+  primaryKeyValue?: string
+  module?: string
+  function?: string
+  description?: string
+  beforeData?: string
+  afterData?: string
+  changedFields?: string
+  changeDescription?: string
+  requestPath?: string
+  requestMethod?: string
+  requestParams?: string
+  responseResult?: string
+  executionTime?: number
+  operationIp?: string
+  operationLocation?: string
+  browser?: string
+  os?: string
+  deviceType?: string
+  deviceInfo?: string
+  userAgent?: string
+  sessionId?: string
+  requestId?: string
+  businessId?: string
+  businessType?: string
+  isSuccess?: boolean
+  exceptionMessage?: string
+  exceptionStackTrace?: string
+  riskLevel?: number
+  auditTime?: string
+  extendData?: string
+  remark?: string
+  createdTime?: string
 }
 
 export interface SysFile {
