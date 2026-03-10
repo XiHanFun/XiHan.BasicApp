@@ -70,6 +70,7 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "oauth_app", ResourceName = "三方账号", ResourceType = ResourceType.Menu, ResourcePath = "/system/weChatUser", Icon = "link", Description = "三方账号管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 104 },
             new() { ParentId = null, ResourceCode = "user_session", ResourceName = "会话管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/session", Icon = "shield-check", Description = "在线会话管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 105 },
             new() { ParentId = null, ResourceCode = "review", ResourceName = "审核管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/review", Icon = "clipboard-check", Description = "审核管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 106 },
+            new() { ParentId = null, ResourceCode = "about", ResourceName = "关于系统", ResourceType = ResourceType.Menu, ResourcePath = "/about", Icon = "info", Description = "系统关于页面", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 999 },
 
             // 平台管理
             new() { ParentId = null, ResourceCode = "tenant", ResourceName = "租户管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/tenant", Icon = "server", Description = "租户管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 200 },
@@ -112,7 +113,7 @@ public class SysResourceSeeder : DataSeederBase
         };
 
         await BulkInsertAsync(resources);
-        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);
+        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "about"]);
         await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
         await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);

@@ -100,13 +100,14 @@ public class SysRoleMenuSeeder : DataSeederBase
                 "system", "user", "role", "department", "permission", "notice", "oauth_app", "user_session", "review",
                 "platform", "menu", "config", "dict", "task", "monitor", "cache", "file",
                 "messaging", "message", "email", "sms",
-                "log", "access_log", "operation_log", "exception_log", "audit_log"
+                "log", "access_log", "operation_log", "exception_log", "audit_log",
+                "about"
             ],
 
             // 其余角色按常用场景给出基础菜单，便于开箱联调
-            ["dept_admin"] = ["dashboard", "system", "user", "role", "department", "permission", "notice", "user_session", "review", "messaging", "message"],
-            ["dept_manager"] = ["dashboard", "system", "user", "department", "notice", "messaging", "message"],
-            ["employee"] = ["dashboard", "notice"],
+            ["dept_admin"] = ["dashboard", "system", "user", "role", "department", "permission", "notice", "user_session", "review", "messaging", "message", "about"],
+            ["dept_manager"] = ["dashboard", "system", "user", "department", "notice", "messaging", "message", "about"],
+            ["employee"] = ["dashboard", "notice", "about"],
             ["guest"] = ["dashboard"]
         };
 
