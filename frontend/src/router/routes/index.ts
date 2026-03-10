@@ -30,6 +30,15 @@ export const routes: RouteRecordRaw[] = [
           hidden: true,
         },
       },
+      {
+        path: 'about',
+        name: 'About',
+        component: () => import('~/views/_core/about/index.vue'),
+        meta: {
+          title: 'menu.about',
+          icon: 'lucide:info',
+        },
+      },
     ],
   },
   ...coreRoutes,

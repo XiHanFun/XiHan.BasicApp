@@ -6,7 +6,6 @@ import type {
   SysGpuInfo,
   SysMemoryInfo,
   SysNetworkInfo,
-  SysNuGetPackage,
   SysRuntimeInfo,
 } from '~/types'
 import { Icon } from '@iconify/vue'
@@ -30,7 +29,6 @@ import {
   getGpuInfoApi,
   getMemoryInfoApi,
   getNetworkInfoApi,
-  getNuGetPackagesApi,
   getRuntimeInfoApi,
 } from '@/api'
 
@@ -48,12 +46,10 @@ const diskInfos = ref<SysDiskInfo[]>([])
 const networkInfos = ref<SysNetworkInfo[]>([])
 const boardInfo = ref<SysBoardInfo | null>(null)
 const gpuInfos = ref<SysGpuInfo[]>([])
-const nugetPackages = ref<SysNuGetPackage[]>([])
 
 function fmtBytes(bytes: unknown) {
   const v = Number(bytes)
-  if (!Number.isFinite(v) || v <= 0)
-    return '-'
+  if (!Number.isFinite(v) || v <= 0) return '-'
   const u = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.min(Math.floor(Math.log(v) / Math.log(1024)), u.length - 1)
   return `${(v / 1024 ** i).toFixed(i === 0 ? 0 : 2)} ${u[i]}`
@@ -62,25 +58,20 @@ function fmtBytes(bytes: unknown) {
 function fmtUptime(raw: unknown) {
   const s = String(raw ?? '')
   const dm = s.match(/^(\d+)\.(\d+):(\d+):(\d+)/)
-  if (dm)
-    return `${dm[1]}天 ${dm[2]}时${dm[3]}分${dm[4]}秒`
+  if (dm) return `${dm[1]}天 ${dm[2]}时${dm[3]}分${dm[4]}秒`
   const hm = s.match(/^(\d+):(\d+):(\d+)/)
-  if (hm)
-    return `${hm[1]}时${hm[2]}分${hm[3].split('.')[0]}秒`
+  if (hm) return `${hm[1]}时${hm[2]}分${hm[3].split('.')[0]}秒`
   return s || '-'
 }
 
 function usageColor(pct: number) {
-  if (pct < 50)
-    return 'var(--color-success)'
-  if (pct < 80)
-    return 'var(--color-warning)'
+  if (pct < 50) return 'var(--color-success)'
+  if (pct < 80) return 'var(--color-warning)'
   return 'var(--color-error)'
 }
 
 function usagePct(used: number, total: number) {
-  if (total <= 0)
-    return 0
+  if (total <= 0) return 0
   return Math.round((used / total) * 1000) / 10
 }
 
@@ -135,7 +126,10 @@ const memDetails = computed(() => [
   { label: '总内存', value: fmtBytes(mem.value?.totalBytes) },
   { label: '已使用', value: fmtBytes(mem.value?.usedBytes) },
   { label: '可用', value: fmtBytes(mem.value?.availableBytes ?? mem.value?.freeBytes) },
-  { label: '可用率', value: mem.value?.availablePercentage != null ? `${mem.value.availablePercentage}%` : '-' },
+  {
+    label: '可用率',
+    value: mem.value?.availablePercentage != null ? `${mem.value.availablePercentage}%` : '-',
+  },
 ])
 
 const boardDetails = computed(() => [
@@ -161,12 +155,13 @@ const sysDetails = computed(() => [
 ])
 
 const activeNetworks = computed(() =>
-  networkInfos.value.filter(n =>
-    n.operationalStatus === 'Up'
-    && !n.name.includes('WFP')
-    && !n.name.includes('QoS')
-    && !n.name.includes('Filter')
-    && !n.name.includes('vSwitch'),
+  networkInfos.value.filter(
+    (n) =>
+      n.operationalStatus === 'Up' &&
+      !n.name.includes('WFP') &&
+      !n.name.includes('QoS') &&
+      !n.name.includes('Filter') &&
+      !n.name.includes('vSwitch'),
   ),
 )
 
@@ -175,7 +170,7 @@ const showSkeleton = computed(() => !initialized.value && loading.value)
 async function fetchData() {
   try {
     loading.value = true
-    const [rtRes, cpuRes, memRes, diskRes, netRes, boardRes, gpuRes, pkgRes] = await Promise.all([
+    const [rtRes, cpuRes, memRes, diskRes, netRes, boardRes, gpuRes] = await Promise.all([
       getRuntimeInfoApi(),
       getCpuInfoApi(),
       getMemoryInfoApi(),
@@ -183,7 +178,6 @@ async function fetchData() {
       getNetworkInfoApi(),
       getBoardInfoApi(),
       getGpuInfoApi(),
-      getNuGetPackagesApi(),
     ])
     runtimeInfo.value = rtRes ?? null
     cpuInfo.value = cpuRes ?? null
@@ -192,12 +186,9 @@ async function fetchData() {
     networkInfos.value = netRes ?? []
     boardInfo.value = boardRes ?? null
     gpuInfos.value = gpuRes ?? []
-    nugetPackages.value = pkgRes ?? []
-  }
-  catch {
+  } catch {
     message.error('获取服务器信息失败')
-  }
-  finally {
+  } finally {
     loading.value = false
     initialized.value = true
   }
@@ -259,370 +250,374 @@ onUnmounted(() => {
     </template>
 
     <template v-else>
-    <!-- 系统概览 -->
-    <div class="sv-banner">
-      <div class="sv-banner-head">
-        <div class="sv-banner-title">
-          <Icon icon="lucide:server" width="18" />
-          <span>系统概览</span>
+      <!-- 系统概览 -->
+      <div class="sv-banner">
+        <div class="sv-banner-head">
+          <div class="sv-banner-title">
+            <Icon icon="lucide:server" width="18" />
+            <span>系统概览</span>
+          </div>
+          <div class="sv-banner-actions">
+            <NTag size="small" type="success" :bordered="false" round>
+              <template #icon>
+                <Icon icon="lucide:activity" width="12" />
+              </template>
+              运行正常
+            </NTag>
+            <NButton
+              size="tiny"
+              quaternary
+              :loading="loading"
+              class="sv-refresh-btn"
+              @click="fetchData"
+            >
+              <template #icon>
+                <Icon icon="lucide:refresh-cw" width="14" />
+              </template>
+            </NButton>
+          </div>
         </div>
-        <div class="sv-banner-actions">
-          <NTag size="small" type="success" :bordered="false" round>
-            <template #icon>
-              <Icon icon="lucide:activity" width="12" />
+        <div class="sv-overview-grid">
+          <div v-for="item in overviewItems" :key="item.title" class="sv-overview-item">
+            <div class="sv-overview-icon">
+              <Icon :icon="item.icon" width="18" />
+            </div>
+            <div class="sv-overview-body">
+              <div class="sv-overview-label">
+                {{ item.title }}
+              </div>
+              <div class="sv-overview-value" :title="item.value">
+                {{ item.value }}
+              </div>
+              <div class="sv-overview-sub">
+                {{ item.sub }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CPU & 内存 -->
+      <NGrid cols="1 m:2" responsive="screen" :x-gap="12" :y-gap="12">
+        <NGridItem>
+          <NCard :bordered="false" size="small" class="sv-card">
+            <template #header>
+              <div class="sv-card-header">
+                <Icon icon="lucide:cpu" width="16" />
+                <span>CPU 性能</span>
+              </div>
             </template>
-            运行正常
-          </NTag>
-          <NButton size="tiny" quaternary :loading="loading" class="sv-refresh-btn" @click="fetchData">
-            <template #icon>
-              <Icon icon="lucide:refresh-cw" width="14" />
-            </template>
-          </NButton>
-        </div>
-      </div>
-      <div class="sv-overview-grid">
-        <div v-for="item in overviewItems" :key="item.title" class="sv-overview-item">
-          <div class="sv-overview-icon">
-            <Icon :icon="item.icon" width="18" />
-          </div>
-          <div class="sv-overview-body">
-            <div class="sv-overview-label">
-              {{ item.title }}
-            </div>
-            <div class="sv-overview-value" :title="item.value">
-              {{ item.value }}
-            </div>
-            <div class="sv-overview-sub">
-              {{ item.sub }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CPU & 内存 -->
-    <NGrid cols="1 m:2" responsive="screen" :x-gap="12" :y-gap="12">
-      <NGridItem>
-        <NCard :bordered="false" size="small" class="sv-card">
-          <template #header>
-            <div class="sv-card-header">
-              <Icon icon="lucide:cpu" width="16" />
-              <span>CPU 性能</span>
-            </div>
-          </template>
-          <div class="sv-perf">
-            <div class="sv-gauge">
-              <NProgress type="circle" :percentage="cpuPct" :color="usageColor(cpuPct)" rail-color="var(--border-color)" :stroke-width="8" :offset-degree="0">
-                <div class="sv-gauge-inner">
-                  <div class="sv-gauge-pct" :style="{ color: usageColor(cpuPct) }">
-                    {{ cpuPct }}<small>%</small>
+            <div class="sv-perf">
+              <div class="sv-gauge">
+                <NProgress
+                  type="circle"
+                  :percentage="cpuPct"
+                  :color="usageColor(cpuPct)"
+                  rail-color="var(--border-color)"
+                  :stroke-width="8"
+                  :offset-degree="0"
+                >
+                  <div class="sv-gauge-inner">
+                    <div class="sv-gauge-pct" :style="{ color: usageColor(cpuPct) }">
+                      {{ cpuPct }}
+                      <small>%</small>
+                    </div>
+                    <div class="sv-gauge-label">CPU 使用率</div>
                   </div>
-                  <div class="sv-gauge-label">
-                    CPU 使用率
-                  </div>
-                </div>
-              </NProgress>
-            </div>
-            <div class="sv-details">
-              <div v-for="d in cpuDetails" :key="d.label" class="sv-detail-row">
-                <span class="sv-detail-label">
-                  {{ d.label }}
-                </span>
-                <span class="sv-detail-value">
-                  {{ d.value }}
-                </span>
+                </NProgress>
               </div>
-            </div>
-          </div>
-        </NCard>
-      </NGridItem>
-      <NGridItem>
-        <NCard :bordered="false" size="small" class="sv-card">
-          <template #header>
-            <div class="sv-card-header">
-              <Icon icon="lucide:memory-stick" width="16" />
-              <span>内存使用</span>
-            </div>
-          </template>
-          <div class="sv-perf">
-            <div class="sv-gauge">
-              <NProgress type="circle" :percentage="memPct" :color="usageColor(memPct)" rail-color="var(--border-color)" :stroke-width="8" :offset-degree="0">
-                <div class="sv-gauge-inner">
-                  <div class="sv-gauge-pct" :style="{ color: usageColor(memPct) }">
-                    {{ memPct }}<small>%</small>
-                  </div>
-                  <div class="sv-gauge-label">
-                    内存使用
-                  </div>
-                </div>
-              </NProgress>
-            </div>
-            <div class="sv-details">
-              <div v-for="d in memDetails" :key="d.label" class="sv-detail-row">
-                <span class="sv-detail-label">
-                  {{ d.label }}
-                </span>
-                <span class="sv-detail-value">
-                  {{ d.value }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </NCard>
-      </NGridItem>
-    </NGrid>
-
-    <!-- 磁盘 -->
-    <NCard :bordered="false" size="small" class="sv-card">
-      <template #header>
-        <div class="sv-card-header">
-          <Icon icon="lucide:hard-drive" width="16" />
-          <span>磁盘使用</span>
-        </div>
-      </template>
-      <div v-if="!diskInfos.length" class="sv-empty">
-        暂无数据
-      </div>
-      <NGrid v-else cols="1 s:2 l:3" responsive="screen" :x-gap="10" :y-gap="10">
-        <NGridItem v-for="disk in diskInfos" :key="disk.diskName">
-          <div class="sv-disk-item">
-            <div class="sv-disk-head">
-              <span class="sv-disk-name">
-                {{ disk.diskName }}
-              </span>
-              <div class="sv-disk-head-right">
-                <NTag size="tiny" :bordered="false">
-                  {{ disk.typeName }}
-                </NTag>
-                <span class="sv-disk-pct" :style="{ color: usageColor(usagePct(disk.usedSpace, disk.totalSpace)) }">
-                  {{ usagePct(disk.usedSpace, disk.totalSpace) }}%
-                </span>
-              </div>
-            </div>
-            <NProgress
-              type="line"
-              :percentage="usagePct(disk.usedSpace, disk.totalSpace)"
-              :color="usageColor(usagePct(disk.usedSpace, disk.totalSpace))"
-              rail-color="var(--border-color)"
-              :height="6"
-              :show-indicator="false"
-            />
-            <div class="sv-disk-stats">
-              <span>已用 {{ fmtBytes(disk.usedSpace) }}</span>
-              <span>共 {{ fmtBytes(disk.totalSpace) }}</span>
-              <span>可用 {{ fmtBytes(disk.freeSpace) }}</span>
-            </div>
-          </div>
-        </NGridItem>
-      </NGrid>
-    </NCard>
-
-    <!-- 显卡 -->
-    <NCard :bordered="false" size="small" class="sv-card">
-      <template #header>
-        <div class="sv-card-header">
-          <Icon icon="lucide:monitor" width="16" />
-          <span>显卡信息</span>
-          <NTag v-if="gpuInfos.length" size="tiny" :bordered="false" class="ml-auto">
-            {{ gpuInfos.length }} 个
-          </NTag>
-        </div>
-      </template>
-      <div v-if="!gpuInfos.length" class="sv-empty">
-        暂无数据
-      </div>
-      <NCollapse v-else>
-        <NCollapseItem v-for="(gpu, idx) in gpuInfos" :key="idx" :name="idx">
-          <template #header>
-            <div class="sv-collapse-title">
-              <Icon icon="lucide:monitor" width="14" class="sv-collapse-title-icon" />
-              <span class="sv-collapse-title-text">
-                {{ gpu.name || `GPU ${idx}` }}
-              </span>
-              <NTag v-if="gpu.status" size="tiny" :type="gpu.status === 'OK' ? 'success' : 'error'" :bordered="false" class="ml-2">
-                {{ gpu.status }}
-              </NTag>
-            </div>
-          </template>
-          <div class="sv-collapse-body">
-            <div v-if="gpu.memoryBytes" class="sv-kv">
-              <span class="sv-kv-label">显存</span>
-              <span class="sv-kv-value">{{ fmtBytes(gpu.memoryBytes) }}</span>
-            </div>
-            <div v-if="gpu.driverVersion" class="sv-kv">
-              <span class="sv-kv-label">驱动版本</span>
-              <span class="sv-kv-value">{{ gpu.driverVersion }}</span>
-            </div>
-            <div v-if="gpu.videoModeDescription" class="sv-kv">
-              <span class="sv-kv-label">分辨率</span>
-              <span class="sv-kv-value">{{ gpu.videoModeDescription }}</span>
-            </div>
-            <div v-if="gpu.vendor" class="sv-kv">
-              <span class="sv-kv-label">厂商</span>
-              <span class="sv-kv-value">{{ gpu.vendor }}</span>
-            </div>
-            <div v-if="gpu.temperature != null" class="sv-kv">
-              <span class="sv-kv-label">温度</span>
-              <span class="sv-kv-value">{{ gpu.temperature }}°C</span>
-            </div>
-          </div>
-        </NCollapseItem>
-      </NCollapse>
-    </NCard>
-
-    <!-- 网络适配器 -->
-    <NCard :bordered="false" size="small" class="sv-card">
-      <template #header>
-        <div class="sv-card-header">
-          <Icon icon="lucide:network" width="16" />
-          <span>网络适配器</span>
-          <NTag v-if="activeNetworks.length" size="tiny" :bordered="false" class="ml-auto">
-            {{ activeNetworks.length }} 个活跃
-          </NTag>
-        </div>
-      </template>
-      <div v-if="!activeNetworks.length" class="sv-empty">
-        暂无数据
-      </div>
-      <NCollapse v-else>
-        <NCollapseItem v-for="net in activeNetworks" :key="net.name" :name="net.name">
-          <template #header>
-            <div class="sv-collapse-title">
-              <Icon icon="lucide:wifi" width="14" class="sv-collapse-title-icon sv-collapse-title-icon--success" />
-              <span class="sv-collapse-title-text">
-                {{ net.name }}
-              </span>
-              <NTag size="tiny" :bordered="false" class="ml-2">
-                {{ net.type }}
-              </NTag>
-            </div>
-          </template>
-          <NGrid cols="1 m:2" responsive="screen" :x-gap="10" :y-gap="8">
-            <NGridItem>
-              <div class="sv-collapse-body">
-                <div class="sv-kv">
-                  <span class="sv-kv-label">描述</span>
-                  <span class="sv-kv-value">{{ net.description || '-' }}</span>
-                </div>
-                <div class="sv-kv">
-                  <span class="sv-kv-label">物理地址</span>
-                  <span class="sv-kv-value">{{ net.physicalAddress || '-' }}</span>
-                </div>
-                <div class="sv-kv">
-                  <span class="sv-kv-label">速度</span>
-                  <span class="sv-kv-value">{{ net.speed }}</span>
-                </div>
-                <div v-if="net.iPv4Addresses?.length" class="sv-kv">
-                  <span class="sv-kv-label">IPv4</span>
-                  <span class="sv-kv-value">
-                    <NTag v-for="ip in net.iPv4Addresses" :key="ip.address" size="tiny" :bordered="false" class="mr-1">
-                      {{ ip.address }}
-                    </NTag>
+              <div class="sv-details">
+                <div v-for="d in cpuDetails" :key="d.label" class="sv-detail-row">
+                  <span class="sv-detail-label">
+                    {{ d.label }}
+                  </span>
+                  <span class="sv-detail-value">
+                    {{ d.value }}
                   </span>
                 </div>
               </div>
-            </NGridItem>
-            <NGridItem v-if="net.statistics">
-              <div class="sv-collapse-body">
-                <div class="sv-kv">
-                  <span class="sv-kv-label">接收</span>
-                  <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesReceived) }}</span>
-                </div>
-                <div class="sv-kv">
-                  <span class="sv-kv-label">发送</span>
-                  <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesSent) }}</span>
-                </div>
-                <div class="sv-kv">
-                  <span class="sv-kv-label">接收包</span>
-                  <span class="sv-kv-value">{{ net.statistics.packetsReceived?.toLocaleString() }}</span>
-                </div>
-                <div class="sv-kv">
-                  <span class="sv-kv-label">发送包</span>
-                  <span class="sv-kv-value">{{ net.statistics.packetsSent?.toLocaleString() }}</span>
+            </div>
+          </NCard>
+        </NGridItem>
+        <NGridItem>
+          <NCard :bordered="false" size="small" class="sv-card">
+            <template #header>
+              <div class="sv-card-header">
+                <Icon icon="lucide:memory-stick" width="16" />
+                <span>内存使用</span>
+              </div>
+            </template>
+            <div class="sv-perf">
+              <div class="sv-gauge">
+                <NProgress
+                  type="circle"
+                  :percentage="memPct"
+                  :color="usageColor(memPct)"
+                  rail-color="var(--border-color)"
+                  :stroke-width="8"
+                  :offset-degree="0"
+                >
+                  <div class="sv-gauge-inner">
+                    <div class="sv-gauge-pct" :style="{ color: usageColor(memPct) }">
+                      {{ memPct }}
+                      <small>%</small>
+                    </div>
+                    <div class="sv-gauge-label">内存使用</div>
+                  </div>
+                </NProgress>
+              </div>
+              <div class="sv-details">
+                <div v-for="d in memDetails" :key="d.label" class="sv-detail-row">
+                  <span class="sv-detail-label">
+                    {{ d.label }}
+                  </span>
+                  <span class="sv-detail-value">
+                    {{ d.value }}
+                  </span>
                 </div>
               </div>
-            </NGridItem>
-          </NGrid>
-        </NCollapseItem>
-      </NCollapse>
-    </NCard>
+            </div>
+          </NCard>
+        </NGridItem>
+      </NGrid>
 
-    <!-- 主板信息 -->
-    <NCard :bordered="false" size="small" class="sv-card">
-      <template #header>
-        <div class="sv-card-header">
-          <Icon icon="lucide:circuit-board" width="16" />
-          <span>主板信息</span>
-        </div>
-      </template>
-      <div class="sv-board-grid">
-        <div v-for="d in boardDetails" :key="d.label" class="sv-sys-item">
-          <div class="sv-sys-icon">
-            <Icon :icon="d.icon" width="14" />
+      <!-- 磁盘 -->
+      <NCard :bordered="false" size="small" class="sv-card">
+        <template #header>
+          <div class="sv-card-header">
+            <Icon icon="lucide:hard-drive" width="16" />
+            <span>磁盘使用</span>
           </div>
-          <span class="sv-sys-label">
-            {{ d.label }}
-          </span>
-          <span class="sv-sys-value" :title="String(d.value ?? '-')">
-            {{ d.value || '-' }}
-          </span>
-        </div>
-      </div>
-    </NCard>
+        </template>
+        <div v-if="!diskInfos.length" class="sv-empty">暂无数据</div>
+        <NGrid v-else cols="1 s:2 l:3" responsive="screen" :x-gap="10" :y-gap="10">
+          <NGridItem v-for="disk in diskInfos" :key="disk.diskName">
+            <div class="sv-disk-item">
+              <div class="sv-disk-head">
+                <span class="sv-disk-name">
+                  {{ disk.diskName }}
+                </span>
+                <div class="sv-disk-head-right">
+                  <NTag size="tiny" :bordered="false">
+                    {{ disk.typeName }}
+                  </NTag>
+                  <span
+                    class="sv-disk-pct"
+                    :style="{ color: usageColor(usagePct(disk.usedSpace, disk.totalSpace)) }"
+                  >
+                    {{ usagePct(disk.usedSpace, disk.totalSpace) }}%
+                  </span>
+                </div>
+              </div>
+              <NProgress
+                type="line"
+                :percentage="usagePct(disk.usedSpace, disk.totalSpace)"
+                :color="usageColor(usagePct(disk.usedSpace, disk.totalSpace))"
+                rail-color="var(--border-color)"
+                :height="6"
+                :show-indicator="false"
+              />
+              <div class="sv-disk-stats">
+                <span>已用 {{ fmtBytes(disk.usedSpace) }}</span>
+                <span>共 {{ fmtBytes(disk.totalSpace) }}</span>
+                <span>可用 {{ fmtBytes(disk.freeSpace) }}</span>
+              </div>
+            </div>
+          </NGridItem>
+        </NGrid>
+      </NCard>
 
-    <!-- 系统信息 -->
-    <NCard :bordered="false" size="small" class="sv-card">
-      <template #header>
-        <div class="sv-card-header">
-          <Icon icon="lucide:settings" width="16" />
-          <span>系统信息</span>
-        </div>
-      </template>
-      <div class="sv-sys-grid">
-        <div v-for="d in sysDetails" :key="d.label" class="sv-sys-item">
-          <div class="sv-sys-icon">
-            <Icon :icon="d.icon" width="14" />
+      <!-- 显卡 -->
+      <NCard :bordered="false" size="small" class="sv-card">
+        <template #header>
+          <div class="sv-card-header">
+            <Icon icon="lucide:monitor" width="16" />
+            <span>显卡信息</span>
+            <NTag v-if="gpuInfos.length" size="tiny" :bordered="false" class="ml-auto">
+              {{ gpuInfos.length }} 个
+            </NTag>
           </div>
-          <span class="sv-sys-label">
-            {{ d.label }}
-          </span>
-          <span class="sv-sys-value" :title="String(d.value ?? '-')">
-            {{ d.value ?? '-' }}
-          </span>
-        </div>
-      </div>
-    </NCard>
+        </template>
+        <div v-if="!gpuInfos.length" class="sv-empty">暂无数据</div>
+        <NCollapse v-else>
+          <NCollapseItem v-for="(gpu, idx) in gpuInfos" :key="idx" :name="idx">
+            <template #header>
+              <div class="sv-collapse-title">
+                <Icon icon="lucide:monitor" width="14" class="sv-collapse-title-icon" />
+                <span class="sv-collapse-title-text">
+                  {{ gpu.name || `GPU ${idx}` }}
+                </span>
+                <NTag
+                  v-if="gpu.status"
+                  size="tiny"
+                  :type="gpu.status === 'OK' ? 'success' : 'error'"
+                  :bordered="false"
+                  class="ml-2"
+                >
+                  {{ gpu.status }}
+                </NTag>
+              </div>
+            </template>
+            <div class="sv-collapse-body">
+              <div v-if="gpu.memoryBytes" class="sv-kv">
+                <span class="sv-kv-label">显存</span>
+                <span class="sv-kv-value">{{ fmtBytes(gpu.memoryBytes) }}</span>
+              </div>
+              <div v-if="gpu.driverVersion" class="sv-kv">
+                <span class="sv-kv-label">驱动版本</span>
+                <span class="sv-kv-value">{{ gpu.driverVersion }}</span>
+              </div>
+              <div v-if="gpu.videoModeDescription" class="sv-kv">
+                <span class="sv-kv-label">分辨率</span>
+                <span class="sv-kv-value">{{ gpu.videoModeDescription }}</span>
+              </div>
+              <div v-if="gpu.vendor" class="sv-kv">
+                <span class="sv-kv-label">厂商</span>
+                <span class="sv-kv-value">{{ gpu.vendor }}</span>
+              </div>
+              <div v-if="gpu.temperature != null" class="sv-kv">
+                <span class="sv-kv-label">温度</span>
+                <span class="sv-kv-value">{{ gpu.temperature }}°C</span>
+              </div>
+            </div>
+          </NCollapseItem>
+        </NCollapse>
+      </NCard>
 
-    <!-- NuGet 依赖包 -->
-    <NCard :bordered="false" size="small" class="sv-card">
-      <template #header>
-        <div class="sv-card-header">
-          <Icon icon="lucide:package" width="16" />
-          <span>NuGet 依赖包</span>
-          <NTag v-if="nugetPackages.length" size="small" :bordered="false" type="info" class="sv-pkg-count">
-            {{ nugetPackages.length }}
-          </NTag>
+      <!-- 网络适配器 -->
+      <NCard :bordered="false" size="small" class="sv-card">
+        <template #header>
+          <div class="sv-card-header">
+            <Icon icon="lucide:network" width="16" />
+            <span>网络适配器</span>
+            <NTag v-if="activeNetworks.length" size="tiny" :bordered="false" class="ml-auto">
+              {{ activeNetworks.length }} 个活跃
+            </NTag>
+          </div>
+        </template>
+        <div v-if="!activeNetworks.length" class="sv-empty">暂无数据</div>
+        <NCollapse v-else>
+          <NCollapseItem v-for="net in activeNetworks" :key="net.name" :name="net.name">
+            <template #header>
+              <div class="sv-collapse-title">
+                <Icon
+                  icon="lucide:wifi"
+                  width="14"
+                  class="sv-collapse-title-icon sv-collapse-title-icon--success"
+                />
+                <span class="sv-collapse-title-text">
+                  {{ net.name }}
+                </span>
+                <NTag size="tiny" :bordered="false" class="ml-2">
+                  {{ net.type }}
+                </NTag>
+              </div>
+            </template>
+            <NGrid cols="1 m:2" responsive="screen" :x-gap="10" :y-gap="8">
+              <NGridItem>
+                <div class="sv-collapse-body">
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">描述</span>
+                    <span class="sv-kv-value">{{ net.description || '-' }}</span>
+                  </div>
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">物理地址</span>
+                    <span class="sv-kv-value">{{ net.physicalAddress || '-' }}</span>
+                  </div>
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">速度</span>
+                    <span class="sv-kv-value">{{ net.speed }}</span>
+                  </div>
+                  <div v-if="net.iPv4Addresses?.length" class="sv-kv">
+                    <span class="sv-kv-label">IPv4</span>
+                    <span class="sv-kv-value">
+                      <NTag
+                        v-for="ip in net.iPv4Addresses"
+                        :key="ip.address"
+                        size="tiny"
+                        :bordered="false"
+                        class="mr-1"
+                      >
+                        {{ ip.address }}
+                      </NTag>
+                    </span>
+                  </div>
+                </div>
+              </NGridItem>
+              <NGridItem v-if="net.statistics">
+                <div class="sv-collapse-body">
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">接收</span>
+                    <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesReceived) }}</span>
+                  </div>
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">发送</span>
+                    <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesSent) }}</span>
+                  </div>
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">接收包</span>
+                    <span class="sv-kv-value">
+                      {{ net.statistics.packetsReceived?.toLocaleString() }}
+                    </span>
+                  </div>
+                  <div class="sv-kv">
+                    <span class="sv-kv-label">发送包</span>
+                    <span class="sv-kv-value">
+                      {{ net.statistics.packetsSent?.toLocaleString() }}
+                    </span>
+                  </div>
+                </div>
+              </NGridItem>
+            </NGrid>
+          </NCollapseItem>
+        </NCollapse>
+      </NCard>
+
+      <!-- 主板信息 -->
+      <NCard :bordered="false" size="small" class="sv-card">
+        <template #header>
+          <div class="sv-card-header">
+            <Icon icon="lucide:circuit-board" width="16" />
+            <span>主板信息</span>
+          </div>
+        </template>
+        <div class="sv-board-grid">
+          <div v-for="d in boardDetails" :key="d.label" class="sv-sys-item">
+            <div class="sv-sys-icon">
+              <Icon :icon="d.icon" width="14" />
+            </div>
+            <span class="sv-sys-label">
+              {{ d.label }}
+            </span>
+            <span class="sv-sys-value" :title="String(d.value ?? '-')">
+              {{ d.value || '-' }}
+            </span>
+          </div>
         </div>
-      </template>
-      <div v-if="!nugetPackages.length" class="sv-empty">
-        暂无数据
-      </div>
-      <div v-else class="sv-pkg-grid">
-        <div
-          v-for="pkg in nugetPackages"
-          :key="pkg.packageName"
-          class="sv-pkg-item"
-        >
-          <Icon icon="lucide:package" width="14" class="sv-pkg-icon" />
-          <span class="sv-pkg-name" :title="pkg.packageName">
-            {{ pkg.packageName }}
-          </span>
-          <NTag size="tiny" :bordered="false" class="sv-pkg-ver">
-            {{ pkg.packageVersion }}
-          </NTag>
+      </NCard>
+
+      <!-- 系统信息 -->
+      <NCard :bordered="false" size="small" class="sv-card">
+        <template #header>
+          <div class="sv-card-header">
+            <Icon icon="lucide:settings" width="16" />
+            <span>系统信息</span>
+          </div>
+        </template>
+        <div class="sv-sys-grid">
+          <div v-for="d in sysDetails" :key="d.label" class="sv-sys-item">
+            <div class="sv-sys-icon">
+              <Icon :icon="d.icon" width="14" />
+            </div>
+            <span class="sv-sys-label">
+              {{ d.label }}
+            </span>
+            <span class="sv-sys-value" :title="String(d.value ?? '-')">
+              {{ d.value ?? '-' }}
+            </span>
+          </div>
         </div>
-      </div>
-    </NCard>
+      </NCard>
     </template>
   </div>
 </template>
@@ -1010,66 +1005,10 @@ onUnmounted(() => {
   color: var(--text-tertiary);
 }
 
-/* ========== NuGet Packages ========== */
-.sv-pkg-count {
-  margin-left: 8px;
-  font-variant-numeric: tabular-nums;
-}
-
-.sv-pkg-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.sv-pkg-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
-  min-width: 0;
-  transition: border-color 0.2s;
-}
-
-.sv-pkg-item:hover {
-  border-color: hsl(var(--primary) / 30%);
-}
-
-.sv-pkg-icon {
-  flex-shrink: 0;
-  color: hsl(var(--primary) / 60%);
-}
-
-.sv-pkg-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-}
-
-.sv-pkg-ver {
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-  font-size: 11px;
-}
-
 /* ========== Responsive ========== */
 @media (max-width: 1280px) {
   .sv-overview-grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-
-  .sv-pkg-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1114,10 +1053,6 @@ onUnmounted(() => {
   }
 
   .sv-sys-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .sv-pkg-grid {
     grid-template-columns: 1fr;
   }
 }

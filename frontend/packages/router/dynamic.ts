@@ -7,6 +7,7 @@ const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 const componentAliasMap: Record<string, string> = {
   'dashboard/index': 'dashboard/workspace/index',
   'system/monitor/index': 'system/server/index',
+  'core/about/index': '_core/about/index',
   'system/cache/index': 'system/cache/index',
   'system/message/index': 'system/message/index',
   'system/oauthapp/index': 'system/oauth-app/index',
@@ -16,6 +17,8 @@ const componentAliasMap: Record<string, string> = {
 const explicitComponentMap: Record<string, () => Promise<unknown>> = {
   'dashboard/index': () => import('@/views/dashboard/workspace/index.vue'),
   'dashboard/workspace/index': () => import('@/views/dashboard/workspace/index.vue'),
+  'core/about/index': () => import('~/views/_core/about/index.vue'),
+  '_core/about/index': () => import('~/views/_core/about/index.vue'),
   'system/log/access': () => import('@/views/system/log/access/index.vue'),
   'system/log/operation': () => import('@/views/system/log/operation/index.vue'),
   'system/log/exception': () => import('@/views/system/log/exception/index.vue'),
@@ -47,12 +50,11 @@ function resolveView(component?: string) {
   const lowerPath = normalized.toLowerCase()
   const kebabPath = normalized
     .split('/')
-    .map(segment => toKebabCase(segment))
+    .map((segment) => toKebabCase(segment))
     .join('/')
   const aliasPath = componentAliasMap[lowerPath] ?? componentAliasMap[kebabPath] ?? ''
   for (const key of [lowerPath, kebabPath, aliasPath]) {
-    if (!key)
-      continue
+    if (!key) continue
     const explicit = explicitComponentMap[key]
     if (explicit) {
       return explicit
@@ -71,7 +73,7 @@ function resolveView(component?: string) {
     removeIndexSuffix(aliasPath),
   ])
 
-  const keys = Array.from(candidates).flatMap(path => [
+  const keys = Array.from(candidates).flatMap((path) => [
     `/src/views/${path}.vue`,
     `/src/views/${path}/index.vue`,
   ])
@@ -86,7 +88,7 @@ function resolveView(component?: string) {
 
 export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
   return menuRoutes
-    .filter(item => !!item.path)
+    .filter((item) => !!item.path)
     .map((item) => {
       const component = resolveView(item.component)
       const route: any = {
