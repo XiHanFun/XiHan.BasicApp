@@ -5,15 +5,20 @@ import { computed, ref } from 'vue'
 import EnumSelect from './EnumSelect.vue'
 import MultiSelect from './MultiSelect.vue'
 
-const props = withDefaults(defineProps<{
-  modelValue: Record<string, any>
-  fields: CrudSearchField[]
-  title?: string
-  defaultCollapsed?: boolean
-}>(), {
-  title: '查询条件',
-  defaultCollapsed: false,
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue: Record<string, any>
+    fields: CrudSearchField[]
+    title?: string
+    defaultCollapsed?: boolean
+    compact?: boolean
+  }>(),
+  {
+    title: '查询条件',
+    defaultCollapsed: false,
+    compact: true,
+  },
+)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Record<string, any>): void
@@ -67,7 +72,7 @@ function handleReset() {
 </script>
 
 <template>
-  <NCard :bordered="false">
+  <NCard :bordered="false" :class="{ 'x-query-panel--compact': props.compact }">
     <div class="mb-3 flex items-center gap-2">
       <span class="text-sm font-medium">{{ props.title }}</span>
       <NButton class="ml-auto" text type="primary" @click="collapsed = !collapsed">
@@ -111,15 +116,21 @@ function handleReset() {
         </div>
 
         <div class="ml-auto flex items-center gap-2">
-          <NButton type="primary" :disabled="actionDisabled" @click="handleSearch">
-            搜索
-          </NButton>
-          <NButton :disabled="actionDisabled" @click="handleReset">
-            重置
-          </NButton>
+          <NButton type="primary" :disabled="actionDisabled" @click="handleSearch">搜索</NButton>
+          <NButton :disabled="actionDisabled" @click="handleReset">重置</NButton>
           <slot name="actions" />
         </div>
       </div>
     </NCollapseTransition>
   </NCard>
 </template>
+
+<style scoped>
+.x-query-panel--compact :deep(.n-card-header) {
+  padding: 10px 12px;
+}
+
+.x-query-panel--compact :deep(.n-card__content) {
+  padding: 10px 12px;
+}
+</style>

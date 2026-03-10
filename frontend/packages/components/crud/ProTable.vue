@@ -20,34 +20,43 @@ interface ColumnSettingItem {
   locked: boolean
 }
 
-const props = withDefaults(defineProps<{
-  columns: DataTableColumns<any>
-  data: Record<string, any>[]
-  pagination?: PaginationConfig
-  loading?: boolean
-  rowKey?: (row: any) => number | string
-  scrollX?: number
-  maxHeight?: number | string
-  storageKey?: string
-  striped?: boolean
-  size?: 'small' | 'medium' | 'large'
-  defaultExpandAll?: boolean
-  showToolbar?: boolean
-  showRefresh?: boolean
-  showPagination?: boolean
-}>(), {
-  loading: false,
-  rowKey: undefined,
-  scrollX: undefined,
-  maxHeight: undefined,
-  storageKey: undefined,
-  striped: true,
-  size: 'small',
-  defaultExpandAll: false,
-  showToolbar: true,
-  showRefresh: true,
-  showPagination: true,
-})
+const props = withDefaults(
+  defineProps<{
+    columns: DataTableColumns<any>
+    data: Record<string, any>[]
+    pagination?: PaginationConfig
+    loading?: boolean
+    rowKey?: (row: any) => number | string
+    scrollX?: number
+    maxHeight?: number | string
+    storageKey?: string
+    striped?: boolean
+    size?: 'small' | 'medium' | 'large'
+    defaultExpandAll?: boolean
+    showToolbar?: boolean
+    showRefresh?: boolean
+    showPagination?: boolean
+    compact?: boolean
+    stickyPagination?: boolean
+    paginationBottomOffset?: number | string
+  }>(),
+  {
+    loading: false,
+    rowKey: undefined,
+    scrollX: undefined,
+    maxHeight: undefined,
+    storageKey: undefined,
+    striped: true,
+    size: 'small',
+    defaultExpandAll: false,
+    showToolbar: true,
+    showRefresh: true,
+    showPagination: true,
+    compact: true,
+    stickyPagination: false,
+    paginationBottomOffset: 0,
+  },
+)
 
 const emit = defineEmits<{
   (e: 'update:page', value: number): void
@@ -97,12 +106,12 @@ function applyPersistedSettings(defaultSettings: ColumnSettingItem[]) {
   if (!props.storageKey) {
     return defaultSettings
   }
-  const stored = LocalStorage.get<Array<{ key: string, visible: boolean }>>(props.storageKey)
+  const stored = LocalStorage.get<Array<{ key: string; visible: boolean }>>(props.storageKey)
   if (!stored || stored.length === 0) {
     return defaultSettings
   }
 
-  const defaultMap = new Map(defaultSettings.map(item => [item.key, item]))
+  const defaultMap = new Map(defaultSettings.map((item) => [item.key, item]))
   const merged: ColumnSettingItem[] = []
 
   for (const savedItem of stored) {
@@ -117,7 +126,7 @@ function applyPersistedSettings(defaultSettings: ColumnSettingItem[]) {
   }
 
   for (const defaultItem of defaultSettings) {
-    if (!merged.some(item => item.key === defaultItem.key)) {
+    if (!merged.some((item) => item.key === defaultItem.key)) {
       merged.push(defaultItem)
     }
   }
@@ -130,7 +139,7 @@ function persistSettings() {
   }
   LocalStorage.set(
     props.storageKey,
-    columnSettings.value.map(item => ({
+    columnSettings.value.map((item) => ({
       key: item.key,
       visible: item.visible,
     })),
@@ -148,21 +157,56 @@ const columnMap = computed(() => {
 
 const tableColumns = computed<DataTableColumns<any>>(() => {
   return columnSettings.value
-    .filter(item => item.visible)
-    .map(item => columnMap.value.get(item.key))
+    .filter((item) => item.visible)
+    .map((item) => columnMap.value.get(item.key))
     .filter(Boolean) as DataTableColumns<any>
 })
 
 const paginationConfig = computed<PaginationConfig>(() => {
-  return props.pagination ?? {
-    page: 1,
-    pageSize: 20,
-    total: 0,
-  }
+  return (
+    props.pagination ?? {
+      page: 1,
+      pageSize: 20,
+      total: 0,
+    }
+  )
 })
 
+const totalPages = computed(() => {
+  const pageSize = Math.max(1, paginationConfig.value.pageSize)
+  return Math.max(1, Math.ceil(paginationConfig.value.total / pageSize))
+})
+
+const canPrev = computed(() => paginationConfig.value.page > 1)
+const canNext = computed(() => paginationConfig.value.page < totalPages.value)
+
+const paginationStyle = computed(() => {
+  const offset =
+    typeof props.paginationBottomOffset === 'number'
+      ? `${props.paginationBottomOffset}px`
+      : props.paginationBottomOffset || '0px'
+
+  return {
+    '--x-pro-table-pagination-bottom': offset,
+  } as Record<string, string>
+})
+
+function handlePrevPage() {
+  if (!canPrev.value) {
+    return
+  }
+  emit('update:page', paginationConfig.value.page - 1)
+}
+
+function handleNextPage() {
+  if (!canNext.value) {
+    return
+  }
+  emit('update:page', paginationConfig.value.page + 1)
+}
+
 function updateColumnVisible(key: string, checked: boolean) {
-  columnSettings.value = columnSettings.value.map(item =>
+  columnSettings.value = columnSettings.value.map((item) =>
     item.key === key
       ? {
           ...item,
@@ -195,7 +239,11 @@ function initSortable() {
     handle: '.x-pro-table__drag',
     draggable: '.x-pro-table__item',
     onEnd(event) {
-      if (event.oldIndex === undefined || event.newIndex === undefined || event.oldIndex === event.newIndex) {
+      if (
+        event.oldIndex === undefined ||
+        event.newIndex === undefined ||
+        event.oldIndex === event.newIndex
+      ) {
         return
       }
       const next = [...columnSettings.value]
@@ -233,35 +281,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NCard :bordered="false">
+  <NCard :bordered="false" :class="{ 'x-pro-table--compact': props.compact }">
     <div v-if="props.showToolbar" class="mb-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <slot name="toolbar-left" />
       </div>
       <div class="flex items-center gap-2">
         <slot name="toolbar-right" />
-        <NButton v-if="props.showRefresh" size="small" @click="emit('refresh')">
-          刷新
-        </NButton>
+        <NButton v-if="props.showRefresh" size="small" @click="emit('refresh')">刷新</NButton>
         <NPopover v-model:show="settingsVisible" trigger="click" placement="bottom-end">
           <template #trigger>
-            <NButton size="small">
-              列设置
-            </NButton>
+            <NButton size="small">列设置</NButton>
           </template>
           <div class="x-pro-table__panel">
             <div class="x-pro-table__panel-header">
               <span class="text-xs text-gray-400">拖拽排序 / 勾选显示</span>
-              <NButton text size="tiny" type="primary" @click="resetColumnSettings">
-                重置
-              </NButton>
+              <NButton text size="tiny" type="primary" @click="resetColumnSettings">重置</NButton>
             </div>
             <div ref="settingsListRef" class="x-pro-table__list">
-              <div
-                v-for="item in columnSettings"
-                :key="item.key"
-                class="x-pro-table__item"
-              >
+              <div v-for="item in columnSettings" :key="item.key" class="x-pro-table__item">
                 <span class="x-pro-table__drag">::</span>
                 <NCheckbox
                   :checked="item.visible"
@@ -290,7 +328,13 @@ onBeforeUnmount(() => {
       :size="props.size"
     />
 
-    <div v-if="props.showPagination" class="mt-4 flex justify-end">
+    <div
+      v-if="props.showPagination"
+      class="mt-4 flex items-center justify-end gap-2"
+      :class="{ 'x-pro-table__pagination--sticky': props.stickyPagination }"
+      :style="paginationStyle"
+    >
+      <NButton size="small" :disabled="!canPrev" @click="handlePrevPage">上一页</NButton>
       <NPagination
         :page="paginationConfig.page"
         :page-size="paginationConfig.pageSize"
@@ -301,11 +345,26 @@ onBeforeUnmount(() => {
         @update:page="(page) => emit('update:page', page)"
         @update:page-size="(size) => emit('update:pageSize', size)"
       />
+      <NButton size="small" :disabled="!canNext" @click="handleNextPage">下一页</NButton>
     </div>
   </NCard>
 </template>
 
 <style scoped>
+.x-pro-table--compact :deep(.n-card-header) {
+  padding: 10px 12px;
+}
+
+.x-pro-table--compact :deep(.n-card__content) {
+  padding: 10px 12px;
+}
+
+.x-pro-table--compact :deep(.n-data-table-th),
+.x-pro-table--compact :deep(.n-data-table-td) {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
 .x-pro-table__panel {
   width: 260px;
 }
@@ -340,5 +399,14 @@ onBeforeUnmount(() => {
   user-select: none;
   letter-spacing: -1px;
   font-size: 12px;
+}
+
+.x-pro-table__pagination--sticky {
+  position: sticky;
+  bottom: var(--x-pro-table-pagination-bottom);
+  z-index: 6;
+  padding: 8px 0;
+  background: hsl(var(--background) / 0.92);
+  backdrop-filter: blur(4px);
 }
 </style>

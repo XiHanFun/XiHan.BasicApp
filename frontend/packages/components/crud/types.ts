@@ -11,3 +11,11 @@ export interface CrudSearchField {
   options?: SelectOption[]
   props?: Record<string, any>
 }
+
+export interface CrudPaginationConfig {
+  page: number
+  pageSize: number
+  total: number
+  pageSizes?: number[]
+  showQuickJumper?: boolean
+}
