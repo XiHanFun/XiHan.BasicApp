@@ -18,6 +18,7 @@ import {
   NGrid,
   NGridItem,
   NProgress,
+  NSkeleton,
   NTag,
   useMessage,
 } from 'naive-ui'
@@ -37,6 +38,7 @@ defineOptions({ name: 'SystemServerPage' })
 
 const message = useMessage()
 const loading = ref(false)
+const initialized = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
 
 const runtimeInfo = ref<SysRuntimeInfo | null>(null)
@@ -168,6 +170,8 @@ const activeNetworks = computed(() =>
   ),
 )
 
+const showSkeleton = computed(() => !initialized.value && loading.value)
+
 async function fetchData() {
   try {
     loading.value = true
@@ -195,6 +199,7 @@ async function fetchData() {
   }
   finally {
     loading.value = false
+    initialized.value = true
   }
 }
 
@@ -213,6 +218,47 @@ onUnmounted(() => {
 
 <template>
   <div class="sv-page">
+    <template v-if="showSkeleton">
+      <NCard :bordered="false" size="small" class="sv-card">
+        <div class="space-y-3">
+          <NSkeleton text :repeat="1" style="width: 180px" />
+          <NGrid cols="1 s:2 l:5" responsive="screen" :x-gap="10" :y-gap="10">
+            <NGridItem v-for="i in 5" :key="`ov-${i}`">
+              <div class="sv-skeleton-panel">
+                <NSkeleton circle size="36px" />
+                <div class="flex-1 space-y-2">
+                  <NSkeleton text style="width: 60%" />
+                  <NSkeleton text style="width: 85%" />
+                  <NSkeleton text style="width: 45%" />
+                </div>
+              </div>
+            </NGridItem>
+          </NGrid>
+        </div>
+      </NCard>
+
+      <NGrid cols="1 m:2" responsive="screen" :x-gap="12" :y-gap="12">
+        <NGridItem v-for="i in 2" :key="`perf-${i}`">
+          <NCard :bordered="false" size="small" class="sv-card">
+            <div class="sv-skeleton-panel-col">
+              <NSkeleton circle size="140px" />
+              <div class="w-full space-y-2">
+                <NSkeleton text :repeat="4" />
+              </div>
+            </div>
+          </NCard>
+        </NGridItem>
+      </NGrid>
+
+      <NCard v-for="i in 4" :key="`card-${i}`" :bordered="false" size="small" class="sv-card">
+        <div class="space-y-3">
+          <NSkeleton text style="width: 140px" />
+          <NSkeleton text :repeat="3" />
+        </div>
+      </NCard>
+    </template>
+
+    <template v-else>
     <!-- 系统概览 -->
     <div class="sv-banner">
       <div class="sv-banner-head">
@@ -577,6 +623,7 @@ onUnmounted(() => {
         </div>
       </div>
     </NCard>
+    </template>
   </div>
 </template>
 
@@ -585,6 +632,22 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.sv-skeleton-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+}
+
+.sv-skeleton-panel-col {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* ========== Banner ========== */
