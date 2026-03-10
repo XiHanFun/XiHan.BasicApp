@@ -14,7 +14,7 @@ const tabbarStore = useTabbarStore()
 
 <template>
   <RouterView v-slot="{ Component, route: currentRoute }">
-    <Transition :name="transitionName" mode="out-in">
+    <Transition :name="transitionName" mode="out-in" appear>
       <KeepAlive :include="currentRoute.meta?.keepAlive ? [currentRoute.name as string] : []">
         <component
           :is="Component"

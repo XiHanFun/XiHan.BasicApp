@@ -1,8 +1,8 @@
 :root {
   --popup-z-index: 2000;
   --font-family:
-    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, 'Noto Sans', sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   /* core design tokens (light default) */
   --background: 0 0% 100%;
@@ -66,6 +66,10 @@
   --z-modal: 1000;
   --z-message: 2000;
   --z-loading: 3000;
+
+  /* motion tokens */
+  --transition-fast: 0.2s;
+  --transition-normal: 0.32s;
 
   /* vben-compatible layout variables */
   --vben-header-height: var(--layout-header-height);
