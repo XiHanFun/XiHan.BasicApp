@@ -73,7 +73,7 @@ export function createUserApi(data: Partial<SysUser & { password?: string }>) {
 }
 
 export function updateUserApi(id: string, data: Partial<SysUser>) {
-  return requestClient.put<void>(`${USER_API}/Update/${id}`, toUserUpdatePayload(id, data))
+  return requestClient.put<void>(`${USER_API}/Update`, toUserUpdatePayload(id, data))
 }
 
 export function deleteUserApi(id: string) {
