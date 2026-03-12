@@ -12,7 +12,7 @@ export const DEFAULT_PAGE_SIZE = 20
 export const TOKEN_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000
 export const DEFAULT_THEME_COLOR = '#5887f7'
 export const DEFAULT_LAYOUT_MODE = 'side'
-export const DEFAULT_UI_RADIUS = 0.5
+export const DEFAULT_UI_RADIUS = 0.25
 export const DEFAULT_FONT_SIZE = 14
 
 export const LAYOUT_MODE_OPTIONS = [
