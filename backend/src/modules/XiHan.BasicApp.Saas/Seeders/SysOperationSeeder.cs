@@ -41,7 +41,7 @@ public class SysOperationSeeder : DataSeederBase
     /// <summary>
     /// 种子数据名称
     /// </summary>
-    public override string Name => "[Rbac]系统操作种子数据";
+    public override string Name => "[Saas]系统操作种子数据";
 
     /// <summary>
     /// 种子数据实现
