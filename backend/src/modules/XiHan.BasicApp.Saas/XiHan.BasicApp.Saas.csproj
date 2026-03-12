@@ -14,12 +14,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <FrameworkReference Include="Microsoft.AspNetCore.App" />
+      <Compile Remove="HttpApi\**" />
+      <EmbeddedResource Remove="HttpApi\**" />
+      <None Remove="HttpApi\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="HttpApi\OpenApi\" />
-      <Folder Include="HttpApi\WebHook\" />
+      <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
     <ItemGroup>
