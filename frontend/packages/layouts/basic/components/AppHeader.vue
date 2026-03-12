@@ -394,7 +394,23 @@ onBeforeUnmount(() => {
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected,
 .xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
-  background-color: hsl(var(--primary) / 15%);
+  background-color: transparent;
   border-radius: 6px;
+}
+
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-submenu
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--child-active::before,
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-submenu
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected::before,
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
+  background-color: hsl(var(--primary) / 0.15) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
 }
 </style>
