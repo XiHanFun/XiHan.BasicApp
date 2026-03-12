@@ -13,7 +13,7 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
-using XiHan.BasicApp.Rbac.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 

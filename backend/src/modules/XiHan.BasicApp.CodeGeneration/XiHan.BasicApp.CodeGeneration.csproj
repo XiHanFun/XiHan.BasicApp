@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\XiHan.BasicApp.Rbac\XiHan.BasicApp.Rbac.csproj" />
+      <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
     </ItemGroup>
 
 </Project>

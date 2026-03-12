@@ -12,7 +12,7 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Rbac;
+using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.CodeGeneration.Extensions;
 using XiHan.Framework.Core.Modularity;
 

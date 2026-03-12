@@ -16,8 +16,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration\XiHan.BasicApp.CodeGeneration.csproj" />
-      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Rbac\XiHan.BasicApp.Rbac.csproj" />
-      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Upgrade\XiHan.BasicApp.Upgrade.csproj" />
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
     </ItemGroup>
 
     <ItemGroup>

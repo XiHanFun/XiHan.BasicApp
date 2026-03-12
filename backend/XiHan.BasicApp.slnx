@@ -6,14 +6,11 @@
     <Project Path="src/framework/XiHan.BasicApp.Web.Core/XiHan.BasicApp.Web.Core.csproj" />
   </Folder>
   <Folder Name="/1.src/2.Modules/" Id="285740d0-396d-7347-2ab3-1e26ccd72e49" />
-  <Folder Name="/1.src/2.Modules/1.Rbac/">
-    <Project Path="src/modules/XiHan.BasicApp.Rbac/XiHan.BasicApp.Rbac.csproj" />
+  <Folder Name="/1.src/2.Modules/1.Saas/">
+    <Project Path="src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj" />
   </Folder>
   <Folder Name="/1.src/2.Modules/2.CodeGeneration/">
     <Project Path="src/modules/XiHan.BasicApp.CodeGeneration/XiHan.BasicApp.CodeGeneration.csproj" />
-  </Folder>
-  <Folder Name="/1.src/2.Modules/3.Upgrade/">
-    <Project Path="src/modules/XiHan.BasicApp.Upgrade/XiHan.BasicApp.Upgrade.csproj" />
   </Folder>
   <Folder Name="/1.src/3.Business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
   <Folder Name="/1.src/3.Business/1.Blog/" />
