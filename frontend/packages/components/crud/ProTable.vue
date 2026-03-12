@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { DataTableColumns } from 'naive-ui'
-import { NButton, NCard, NCheckbox, NDataTable, NPagination, NPopover } from 'naive-ui'
-import Sortable from 'sortablejs'
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { NButton, NCard, NDataTable, NPagination } from 'naive-ui'
+import { computed, ref, watch } from 'vue'
 import { LocalStorage } from '~/utils'
+import CrudColumnPropertySetter from './ColumnPropertySetter.vue'
+import type { ColumnPropertySettings, ColumnSettingItem, TableLayout } from './types'
 
 interface PaginationConfig {
   page: number
@@ -11,13 +12,6 @@ interface PaginationConfig {
   total: number
   pageSizes?: number[]
   showQuickJumper?: boolean
-}
-
-interface ColumnSettingItem {
-  key: string
-  title: string
-  visible: boolean
-  locked: boolean
 }
 
 const props = withDefaults(
@@ -31,7 +25,6 @@ const props = withDefaults(
     maxHeight?: number | string
     storageKey?: string
     striped?: boolean
-    size?: 'small' | 'medium' | 'large'
     defaultExpandAll?: boolean
     showToolbar?: boolean
     showRefresh?: boolean
@@ -47,7 +40,6 @@ const props = withDefaults(
     maxHeight: undefined,
     storageKey: undefined,
     striped: true,
-    size: 'small',
     defaultExpandAll: false,
     showToolbar: true,
     showRefresh: true,
@@ -64,11 +56,6 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-const columnSettings = ref<ColumnSettingItem[]>([])
-const settingsVisible = ref(false)
-const settingsListRef = ref<HTMLElement | null>(null)
-let sortableInstance: Sortable | null = null
-
 function resolveColumnKey(column: DataTableColumns<any>[number], index: number) {
   const key = (column as any)?.key
   if (key !== undefined && key !== null) {
@@ -81,7 +68,7 @@ function resolveColumnKey(column: DataTableColumns<any>[number], index: number) 
   return `__index__${index}`
 }
 
-function resolveColumnTitle(column: DataTableColumns<any>[number], index: number) {
+function resolveColumnTitle(column: DataTableColumns<any>[number], index: number): string {
   const title = (column as any)?.title
   if (typeof title === 'string' && title.trim().length > 0) {
     return title
@@ -93,84 +80,132 @@ function resolveColumnTitle(column: DataTableColumns<any>[number], index: number
   return `列${index + 1}`
 }
 
-function buildDefaultSettings() {
-  return props.columns.map((column, index) => ({
+function getDefaultFixed(column: DataTableColumns<any>[number]): 'left' | 'right' | false {
+  const fixed = (column as any)?.fixed
+  if (fixed === 'left' || fixed === 'right') {
+    return fixed
+  }
+  return false
+}
+
+const effectiveColumns = computed<DataTableColumns<any>>(() => {
+  const hasSelection = props.columns.some((col: any) => col?.type === 'selection')
+  const hasIndex = props.columns.some((col: any) => col?.type === 'index')
+  const result: DataTableColumns<any> = []
+  if (!hasSelection) {
+    result.push({ type: 'selection', fixed: 'left' } as any)
+  }
+  if (!hasIndex) {
+    result.push({ type: 'index', title: '序号', width: 60 } as any)
+  }
+  return [...result, ...props.columns]
+})
+
+function buildDefaultSettings(): ColumnPropertySettings {
+  const defaultGlobal = {
+    showCheckbox: true,
+    showIndex: true,
+    layout: 'default' as TableLayout,
+  }
+  const effectiveCols = effectiveColumns.value
+  const columns = effectiveCols.map((column, index) => ({
     key: resolveColumnKey(column, index),
     title: resolveColumnTitle(column, index),
     visible: true,
     locked: Boolean((column as any)?.type),
+    fixed: getDefaultFixed(column),
   }))
+  return { global: defaultGlobal, columns }
 }
 
-function applyPersistedSettings(defaultSettings: ColumnSettingItem[]) {
+function applyPersistedSettings(defaultSettings: ColumnPropertySettings): ColumnPropertySettings {
   if (!props.storageKey) {
     return defaultSettings
   }
-  const stored = LocalStorage.get<Array<{ key: string, visible: boolean }>>(props.storageKey)
-  if (!stored || stored.length === 0) {
+  const stored = LocalStorage.get<ColumnPropertySettings>(`${props.storageKey}_column_settings`)
+  if (!stored?.columns?.length) {
     return defaultSettings
   }
-
-  const defaultMap = new Map(defaultSettings.map(item => [item.key, item]))
-  const merged: ColumnSettingItem[] = []
-
-  for (const savedItem of stored) {
-    const base = defaultMap.get(savedItem.key)
-    if (!base) {
-      continue
+  const savedMap = new Map(stored.columns.map(c => [c.key, c]))
+  const mergedColumns = defaultSettings.columns.map(def => {
+    const saved = savedMap.get(def.key)
+    if (!saved) {
+      return def
     }
-    merged.push({
-      ...base,
-      visible: base.locked ? true : savedItem.visible !== false,
-    })
-  }
-
-  for (const defaultItem of defaultSettings) {
-    if (!merged.some(item => item.key === defaultItem.key)) {
-      merged.push(defaultItem)
+    return {
+      ...def,
+      visible: def.locked ? true : saved.visible !== false,
+      fixed: saved.fixed ?? def.fixed,
     }
+  })
+  return {
+    global: { ...defaultSettings.global, ...stored.global },
+    columns: mergedColumns,
   }
-  return merged
 }
 
 function persistSettings() {
   if (!props.storageKey) {
     return
   }
-  LocalStorage.set(
-    props.storageKey,
-    columnSettings.value.map(item => ({
-      key: item.key,
-      visible: item.visible,
-    })),
-  )
+  LocalStorage.set(`${props.storageKey}_column_settings`, columnSettings.value)
 }
+
+const columnSettings = ref<ColumnPropertySettings>(buildDefaultSettings())
 
 function syncSettings() {
   const defaults = buildDefaultSettings()
   columnSettings.value = applyPersistedSettings(defaults)
 }
 
-const columnMap = computed(() => {
-  return new Map(props.columns.map((column, index) => [resolveColumnKey(column, index), column]))
-})
+const columnMap = computed(() =>
+  new Map(effectiveColumns.value.map((col, i) => [resolveColumnKey(col, i), col])),
+)
+
+const layoutToSize = (layout: TableLayout): 'small' | 'medium' | 'large' => {
+  if (layout === 'compact') {
+    return 'small'
+  }
+  if (layout === 'loose') {
+    return 'large'
+  }
+  return 'medium'
+}
 
 const tableColumns = computed<DataTableColumns<any>>(() => {
-  return columnSettings.value
-    .filter(item => item.visible)
-    .map(item => columnMap.value.get(item.key))
+  const { global, columns } = columnSettings.value
+  const size = layoutToSize(global.layout)
+  return columns
+    .filter(item => {
+      if (!item.visible) {
+        return false
+      }
+      if (item.key === '__type__selection' && !global.showCheckbox) {
+        return false
+      }
+      if (item.key === '__type__index' && !global.showIndex) {
+        return false
+      }
+      return true
+    })
+    .map(item => {
+      const col = columnMap.value.get(item.key) as any
+      if (!col) {
+        return null
+      }
+      const fixed = item.fixed ?? false
+      return { ...col, fixed: fixed || undefined }
+    })
     .filter(Boolean) as DataTableColumns<any>
 })
 
-const paginationConfig = computed<PaginationConfig>(() => {
-  return (
-    props.pagination ?? {
-      page: 1,
-      pageSize: 20,
-      total: 0,
-    }
-  )
-})
+const tableSize = computed(() =>
+  layoutToSize(columnSettings.value.global.layout),
+)
+
+const paginationConfig = computed<PaginationConfig>(() =>
+  props.pagination ?? { page: 1, pageSize: 20, total: 0 },
+)
 
 const totalPages = computed(() => {
   const pageSize = Math.max(1, paginationConfig.value.pageSize)
@@ -180,16 +215,11 @@ const totalPages = computed(() => {
 const canPrev = computed(() => paginationConfig.value.page > 1)
 const canNext = computed(() => paginationConfig.value.page < totalPages.value)
 
-const paginationStyle = computed(() => {
-  const offset
-    = typeof props.paginationBottomOffset === 'number'
-      ? `${props.paginationBottomOffset}px`
-      : props.paginationBottomOffset || '0px'
-
-  return {
-    '--x-pro-table-pagination-bottom': offset,
-  } as Record<string, string>
-})
+const paginationStyle = computed(() => ({
+  '--x-pro-table-pagination-bottom': typeof props.paginationBottomOffset === 'number'
+    ? `${props.paginationBottomOffset}px`
+    : props.paginationBottomOffset || '0px',
+} as Record<string, string>))
 
 function handlePrevPage() {
   if (!canPrev.value) {
@@ -205,58 +235,9 @@ function handleNextPage() {
   emit('update:page', paginationConfig.value.page + 1)
 }
 
-function updateColumnVisible(key: string, checked: boolean) {
-  columnSettings.value = columnSettings.value.map(item =>
-    item.key === key
-      ? {
-          ...item,
-          visible: item.locked ? true : checked,
-        }
-      : item,
-  )
+watch(columnSettings, () => {
   persistSettings()
-}
-
-function resetColumnSettings() {
-  columnSettings.value = buildDefaultSettings()
-  persistSettings()
-}
-
-function destroySortable() {
-  if (sortableInstance) {
-    sortableInstance.destroy()
-    sortableInstance = null
-  }
-}
-
-function initSortable() {
-  if (!settingsListRef.value) {
-    return
-  }
-  destroySortable()
-  sortableInstance = Sortable.create(settingsListRef.value, {
-    animation: 150,
-    handle: '.x-pro-table__drag',
-    draggable: '.x-pro-table__item',
-    onEnd(event) {
-      if (
-        event.oldIndex === undefined
-        || event.newIndex === undefined
-        || event.oldIndex === event.newIndex
-      ) {
-        return
-      }
-      const next = [...columnSettings.value]
-      const moved = next.splice(event.oldIndex, 1)[0]
-      if (!moved) {
-        return
-      }
-      next.splice(event.newIndex, 0, moved)
-      columnSettings.value = next
-      persistSettings()
-    },
-  })
-}
+}, { deep: true })
 
 watch(
   () => props.columns,
@@ -265,19 +246,6 @@ watch(
   },
   { deep: true, immediate: true },
 )
-
-watch(settingsVisible, async (visible) => {
-  if (visible) {
-    await nextTick()
-    initSortable()
-    return
-  }
-  destroySortable()
-})
-
-onBeforeUnmount(() => {
-  destroySortable()
-})
 </script>
 
 <template>
@@ -291,33 +259,10 @@ onBeforeUnmount(() => {
         <NButton v-if="props.showRefresh" size="small" @click="emit('refresh')">
           刷新
         </NButton>
-        <NPopover v-model:show="settingsVisible" trigger="click" placement="bottom-end">
-          <template #trigger>
-            <NButton size="small">
-              列设置
-            </NButton>
-          </template>
-          <div class="x-pro-table__panel">
-            <div class="x-pro-table__panel-header">
-              <span class="text-xs text-gray-400">拖拽排序 / 勾选显示</span>
-              <NButton text size="tiny" type="primary" @click="resetColumnSettings">
-                重置
-              </NButton>
-            </div>
-            <div ref="settingsListRef" class="x-pro-table__list">
-              <div v-for="item in columnSettings" :key="item.key" class="x-pro-table__item">
-                <span class="x-pro-table__drag">::</span>
-                <NCheckbox
-                  :checked="item.visible"
-                  :disabled="item.locked"
-                  @update:checked="(checked) => updateColumnVisible(item.key, checked)"
-                >
-                  {{ item.title }}
-                </NCheckbox>
-              </div>
-            </div>
-          </div>
-        </NPopover>
+        <CrudColumnPropertySetter
+          v-model="columnSettings"
+          :columns="effectiveColumns"
+        />
       </div>
     </div>
 
@@ -331,7 +276,7 @@ onBeforeUnmount(() => {
       :max-height="props.maxHeight"
       :default-expand-all="props.defaultExpandAll"
       :striped="props.striped"
-      :size="props.size"
+      :size="tableSize"
     />
 
     <div
@@ -373,42 +318,6 @@ onBeforeUnmount(() => {
 .x-pro-table--compact :deep(.n-data-table-td) {
   padding-top: 6px !important;
   padding-bottom: 6px !important;
-}
-
-.x-pro-table__panel {
-  width: 260px;
-}
-
-.x-pro-table__panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.x-pro-table__list {
-  max-height: 320px;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.x-pro-table__item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid hsl(var(--border));
-}
-
-.x-pro-table__drag {
-  cursor: move;
-  color: hsl(var(--muted-foreground));
-  user-select: none;
-  letter-spacing: -1px;
-  font-size: 12px;
 }
 
 .x-pro-table__pagination--sticky {
