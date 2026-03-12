@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DropdownOption, MenuOption } from 'naive-ui'
+import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '@iconify/vue'
 import { NMenu, useMessage } from 'naive-ui'
@@ -64,6 +64,19 @@ function resolveIcon(icon: string) {
 
 function renderRouteIcon(icon: string) {
   return () => h(Icon, { icon: resolveIcon(icon) })
+}
+
+function renderTopMenuLabel(option: MenuOption | MenuGroupOption) {
+  const label = option.label
+  const children = (option as MenuOption).children
+  const hasChildren = Array.isArray(children) && children.length > 0
+  if (!hasChildren) {
+    return label
+  }
+  return h('span', { class: 'inline-flex items-center gap-0.5' }, [
+    label,
+    h(Icon, { icon: 'lucide:chevron-down', class: 'size-3.5 shrink-0 opacity-70' }),
+  ])
 }
 
 function translateMenuTitle(title: string, _fallback: string) {
@@ -305,6 +318,7 @@ onBeforeUnmount(() => {
         mode="horizontal"
         :value="topMenuActive"
         :options="topMenuOptions"
+        :render-label="renderTopMenuLabel"
         @update:value="(key: string | number) => handleTopMenuSelect(String(key))"
       />
     </div>
