@@ -16,8 +16,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XiHan.BasicApp.CodeGeneration;
-using XiHan.BasicApp.Rbac;
-using XiHan.BasicApp.Upgrade;
+using XiHan.BasicApp.Saas;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
@@ -32,8 +31,7 @@ namespace XiHan.BasicApp.WebHost;
 [DependsOn(
     // 应用模块依赖
     typeof(XiHanBasicAppRbacModule),
-    typeof(XiHanBasicAppCodeGenerationModule),
-    typeof(XiHanBasicAppUpgradeModule)
+    typeof(XiHanBasicAppCodeGenerationModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
