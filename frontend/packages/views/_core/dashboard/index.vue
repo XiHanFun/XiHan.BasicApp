@@ -81,8 +81,9 @@ const operationTypeMap: Record<string, { label: string, type: 'success' | 'info'
   Other: { label: '其他', type: 'default' },
 }
 
-function getOperationTag(type: string) {
-  return operationTypeMap[type] || { label: type || '未知', type: 'default' as const }
+function getOperationTag(type?: string) {
+  const key = type ?? ''
+  return operationTypeMap[key] || { label: key || '未知', type: 'default' as const }
 }
 
 async function fetchDashboardData() {
@@ -366,7 +367,7 @@ onUnmounted(() => {
                   </span>
                   <span class="log-meta-item">
                     <NIcon size="12"><Icon icon="lucide:clock" /></NIcon>
-                    {{ formatDate(log.operationTime || log.createdTime, 'MM-DD HH:mm') }}
+                    {{ formatDate(log.operationTime || log.createdTime || '', 'MM-DD HH:mm') }}
                   </span>
                 </div>
               </div>

@@ -216,7 +216,7 @@ onUnmounted(() => {
           <NGrid cols="1 s:2 l:5" responsive="screen" :x-gap="10" :y-gap="10">
             <NGridItem v-for="i in 5" :key="`ov-${i}`">
               <div class="sv-skeleton-panel">
-                <NSkeleton circle size="36px" />
+                <NSkeleton circle :width="36" :height="36" />
                 <div class="flex-1 space-y-2">
                   <NSkeleton text style="width: 60%" />
                   <NSkeleton text style="width: 85%" />
@@ -232,7 +232,7 @@ onUnmounted(() => {
         <NGridItem v-for="i in 2" :key="`perf-${i}`">
           <NCard :bordered="false" size="small" class="sv-card">
             <div class="sv-skeleton-panel-col">
-              <NSkeleton circle size="140px" />
+              <NSkeleton circle :width="140" :height="140" />
               <div class="w-full space-y-2">
                 <NSkeleton text :repeat="4" />
               </div>
