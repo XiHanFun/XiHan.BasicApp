@@ -146,6 +146,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysResourceSeeder>();          // Order = 1
         services.AddDataSeeder<SysPermissionSeeder>();        // Order = 2
 
+        services.AddDataSeeder<SysTenantSeeder>();            // Order = 9
         services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 10
         services.AddDataSeeder<SysDepartmentHierarchySeeder>(); // Order = 11
         services.AddDataSeeder<SysRoleSeeder>();              // Order = 12
