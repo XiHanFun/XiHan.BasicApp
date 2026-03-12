@@ -5,6 +5,7 @@ import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { registerApi } from '@/api'
 import { useTheme } from '~/hooks'
 
 defineOptions({ name: 'RegisterPage' })
@@ -83,12 +84,19 @@ async function handleRegister() {
       return
     }
     loading.value = true
-    // TODO: call register API
+    await registerApi({
+      username: formData.value.username,
+      password: formData.value.password,
+      nickName: formData.value.username,
+    })
     message.success(t('page.auth.register_success'))
     router.push('/auth/login')
   }
-  catch {
-    // validation failed
+  catch (err: unknown) {
+    const error = err as { message?: string }
+    if (error?.message) {
+      message.error(error.message)
+    }
   }
   finally {
     loading.value = false

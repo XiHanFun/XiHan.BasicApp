@@ -1,10 +1,12 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
 import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naive-ui'
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { sendPhoneLoginCodeApi } from '@/api'
 import { useTheme } from '~/hooks'
+import { useAuthStore } from '~/stores'
 
 defineOptions({ name: 'CodeLoginPage' })
 
@@ -12,10 +14,12 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
 const message = useMessage()
+const authStore = useAuthStore()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
+const defaultTenantId = 1
 
 const formData = ref({
   phone: '',
@@ -35,18 +39,27 @@ const rules: FormRules = {
 
 function handleSendCode() {
   formRef.value?.validate(
-    (errors) => {
+    async (errors) => {
       if (errors)
         return
-      countdown.value = 60
-      timer = setInterval(() => {
-        countdown.value--
-        if (countdown.value <= 0) {
-          clearInterval(timer!)
-          timer = null
+      try {
+        const response = await sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
+        countdown.value = 60
+        timer = setInterval(() => {
+          countdown.value--
+          if (countdown.value <= 0) {
+            clearInterval(timer!)
+            timer = null
+          }
+        }, 1000)
+        if (response.debugCode) {
+          formData.value.code = response.debugCode
         }
-      }, 1000)
-      message.success(t('page.auth.code_sent'))
+        message.success(t('page.auth.code_sent'))
+      } catch (err: unknown) {
+        const error = err as { message?: string }
+        message.error(error?.message || '发送验证码失败')
+      }
     },
     rule => rule?.key === 'phone',
   )
@@ -56,8 +69,16 @@ async function handleLogin() {
   try {
     await formRef.value?.validate()
     loading.value = true
-    // TODO: call phone login API
-    message.info('手机登录功能开发中')
+    await authStore.loginByPhoneCode({
+      phone: formData.value.phone,
+      code: formData.value.code,
+      tenantId: defaultTenantId,
+    })
+  } catch (err: unknown) {
+    const error = err as { message?: string }
+    if (error?.message) {
+      message.error(error.message)
+    }
   }
   finally {
     loading.value = false
@@ -81,7 +102,7 @@ onBeforeUnmount(() => {
   <div class="py-1">
     <div class="mb-8">
       <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
-        {{ t('page.auth.mobile_login') }} 📲
+        {{ t('page.auth.mobile_login') }} 馃摬
       </h1>
       <p
         class="mt-3 text-[15px] leading-7"

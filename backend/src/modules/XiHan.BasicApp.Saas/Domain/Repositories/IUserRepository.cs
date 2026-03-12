@@ -28,6 +28,16 @@ public interface IUserRepository : IAggregateRootRepository<SysUser, long>
     Task<SysUser?> GetByUserNameAsync(string userName, long? tenantId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 根据手机号获取用户
+    /// </summary>
+    Task<SysUser?> GetByPhoneAsync(string phone, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据邮箱获取用户
+    /// </summary>
+    Task<SysUser?> GetByEmailAsync(string email, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 校验用户名是否已存在
     /// </summary>
     Task<bool> IsUserNameExistsAsync(string userName, long? excludeUserId = null, long? tenantId = null, CancellationToken cancellationToken = default);

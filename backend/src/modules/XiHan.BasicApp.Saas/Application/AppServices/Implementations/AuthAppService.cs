@@ -19,6 +19,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -68,8 +69,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IPasswordHasher _passwordHasher;
     private readonly IDistributedCache<AuthRefreshTokenCacheItem> _refreshTokenCache;
     private readonly IDistributedCache<AuthSessionTokenMapCacheItem> _sessionTokenMapCache;
+    private readonly IDistributedCache<AuthVerificationCodeCacheItem> _verificationCodeCache;
     private readonly IConfiguration _configuration;
     private readonly JwtOptions _jwtOptions;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly ICurrentUser _currentUser;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -92,8 +95,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="passwordHasher"></param>
     /// <param name="refreshTokenCache"></param>
     /// <param name="sessionTokenMapCache"></param>
+    /// <param name="verificationCodeCache"></param>
     /// <param name="configuration"></param>
     /// <param name="jwtOptions"></param>
+    /// <param name="hostEnvironment"></param>
     /// <param name="currentUser"></param>
     /// <param name="clientInfoProvider"></param>
     /// <param name="httpContextAccessor"></param>
@@ -113,8 +118,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IPasswordHasher passwordHasher,
         IDistributedCache<AuthRefreshTokenCacheItem> refreshTokenCache,
         IDistributedCache<AuthSessionTokenMapCacheItem> sessionTokenMapCache,
+        IDistributedCache<AuthVerificationCodeCacheItem> verificationCodeCache,
         IConfiguration configuration,
         IOptions<JwtOptions> jwtOptions,
+        IHostEnvironment hostEnvironment,
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor,
@@ -134,8 +141,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _passwordHasher = passwordHasher;
         _refreshTokenCache = refreshTokenCache;
         _sessionTokenMapCache = sessionTokenMapCache;
+        _verificationCodeCache = verificationCodeCache;
         _configuration = configuration;
         _jwtOptions = jwtOptions.Value;
+        _hostEnvironment = hostEnvironment;
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
@@ -266,6 +275,230 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             ExpiresIn = tokenResult.ExpiresIn,
             IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
             ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+        };
+    }
+
+    /// <summary>
+    /// 用户注册
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task RegisterAsync(UserRegisterCommand command)
+    {
+        command.ValidateAnnotations();
+        command.UserName = command.UserName.Trim();
+        command.Email = string.IsNullOrWhiteSpace(command.Email) ? null : command.Email.Trim();
+        command.Phone = string.IsNullOrWhiteSpace(command.Phone) ? null : command.Phone.Trim();
+        command.NickName = string.IsNullOrWhiteSpace(command.NickName) ? null : command.NickName.Trim();
+        var tenantId = NormalizeTenantId(command.TenantId);
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        if (!string.IsNullOrWhiteSpace(command.Email))
+        {
+            var existingByEmail = await _userRepository.GetByEmailAsync(command.Email, tenantId);
+            if (existingByEmail is not null)
+            {
+                throw new BusinessException(message: "邮箱已被占用");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.Phone))
+        {
+            var existingByPhone = await _userRepository.GetByPhoneAsync(command.Phone, tenantId);
+            if (existingByPhone is not null)
+            {
+                throw new BusinessException(message: "手机号已被占用");
+            }
+        }
+
+        var user = new SysUser
+        {
+            TenantId = tenantId,
+            UserName = command.UserName,
+            RealName = command.UserName,
+            NickName = command.NickName ?? command.UserName,
+            Email = command.Email,
+            Phone = command.Phone,
+            Status = YesOrNo.Yes,
+            Language = "zh-CN"
+        };
+
+        var created = await _userManager.CreateAsync(user, command.Password);
+        var defaultRoleId = await ResolveDefaultRoleIdAsync(created.TenantId);
+        if (defaultRoleId.HasValue)
+        {
+            await _userRepository.ReplaceUserRolesAsync(created.BasicId, [defaultRoleId.Value], created.TenantId);
+        }
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 发送手机登录验证码
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task<AuthVerificationCodeDto> SendPhoneLoginCodeAsync(SendPhoneLoginCodeCommand command)
+    {
+        command.ValidateAnnotations();
+        var phone = command.Phone.Trim();
+        var tenantId = NormalizeTenantId(command.TenantId);
+        var expiresInSeconds = Math.Clamp(_configuration.GetValue("XiHan:Authentication:PhoneCodeExpiresInSeconds", 300), 60, 1800);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        var user = await _userRepository.GetByPhoneAsync(phone, tenantId);
+        if (user is not null && user.Status == YesOrNo.Yes)
+        {
+            var code = GenerateNumericCode(6);
+            var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+            await _verificationCodeCache.SetAsync(
+                BuildPhoneLoginCodeCacheKey(tenantId, phone),
+                new AuthVerificationCodeCacheItem
+                {
+                    Purpose = "PhoneLogin",
+                    Target = phone,
+                    TenantId = tenantId,
+                    Code = code,
+                    ExpireAt = expireAt
+                },
+                options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+                hideErrors: true);
+
+            return new AuthVerificationCodeDto
+            {
+                ExpiresInSeconds = expiresInSeconds,
+                DebugCode = exposeDebugSecrets ? code : null
+            };
+        }
+
+        return new AuthVerificationCodeDto
+        {
+            ExpiresInSeconds = expiresInSeconds
+        };
+    }
+
+    /// <summary>
+    /// 手机验证码登录
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task<AuthTokenDto> PhoneLoginAsync(PhoneLoginCommand command)
+    {
+        command.ValidateAnnotations();
+        var phone = command.Phone.Trim();
+        var code = command.Code.Trim();
+        var tenantId = NormalizeTenantId(command.TenantId);
+        var clientInfo = _clientInfoProvider.GetCurrent();
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        var cacheKey = BuildPhoneLoginCodeCacheKey(tenantId, phone);
+        var cachedCode = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+        if (cachedCode is null
+            || cachedCode.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cachedCode.Code, code, StringComparison.Ordinal))
+        {
+            await WriteLoginLogAsync(0, phone, tenantId, LoginResult.InvalidCredentials, clientInfo, "手机号或验证码错误");
+            await uow.CompleteAsync();
+            throw new UnauthorizedAccessException("手机号或验证码错误");
+        }
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
+
+        var user = await _userRepository.GetByPhoneAsync(phone, tenantId);
+        if (user is null)
+        {
+            await WriteLoginLogAsync(0, phone, tenantId, LoginResult.InvalidCredentials, clientInfo, "手机号或验证码错误");
+            await uow.CompleteAsync();
+            throw new UnauthorizedAccessException("手机号或验证码错误");
+        }
+
+        if (user.Status != YesOrNo.Yes)
+        {
+            await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.AccountDisabled, clientInfo, "账号已禁用");
+            await uow.CompleteAsync();
+            throw new BusinessException(message: "账号已禁用");
+        }
+
+        var security = await EnsureSecurityProfileAsync(user);
+        if (security.IsLocked && security.LockoutEndTime.HasValue && security.LockoutEndTime > DateTimeOffset.UtcNow)
+        {
+            await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.AccountLocked, clientInfo, "账号已锁定");
+            await uow.CompleteAsync();
+            throw new BusinessException(message: $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
+        }
+
+        var revokedSessionIds = await EnforceSessionPolicyAsync(user, security);
+
+        security.FailedLoginAttempts = 0;
+        security.IsLocked = false;
+        security.LockoutTime = null;
+        security.LockoutEndTime = null;
+        security.LastFailedLoginTime = null;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+
+        user.LastLoginTime = DateTimeOffset.UtcNow;
+        user.LastLoginIp = clientInfo.IpAddress;
+        await _userRepository.UpdateAsync(user);
+
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var sessionId = Guid.NewGuid().ToString("N");
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+        var refreshToken = tokenResult.RefreshToken;
+
+        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
+        await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.Success, clientInfo, "手机验证码登录成功");
+        await uow.CompleteAsync();
+
+        foreach (var revokedSessionId in revokedSessionIds)
+        {
+            await RemoveSessionTokenAsync(revokedSessionId);
+        }
+
+        await SaveRefreshTokenAsync(refreshToken, user, sessionId);
+
+        return new AuthTokenDto
+        {
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ExpiresIn = tokenResult.ExpiresIn,
+            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+        };
+    }
+
+    /// <summary>
+    /// 申请重置密码
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    public async Task<PasswordResetResultDto> RequestPasswordResetAsync(RequestPasswordResetCommand command)
+    {
+        command.ValidateAnnotations();
+        var email = command.Email.Trim();
+        var tenantId = NormalizeTenantId(command.TenantId);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var user = await _userRepository.GetByEmailAsync(email, tenantId);
+        if (user is null || user.Status != YesOrNo.Yes)
+        {
+            await uow.CompleteAsync();
+            return new PasswordResetResultDto { Accepted = true };
+        }
+
+        var temporaryPassword = GenerateTemporaryPassword();
+        await _userManager.ChangePasswordAsync(user, temporaryPassword);
+        await uow.CompleteAsync();
+
+        return new PasswordResetResultDto
+        {
+            Accepted = true,
+            TemporaryPassword = exposeDebugSecrets ? temporaryPassword : null
         };
     }
 
@@ -644,6 +877,18 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
+    /// 构建手机登录验证码缓存键
+    /// </summary>
+    /// <param name="tenantId"></param>
+    /// <param name="phone"></param>
+    /// <returns></returns>
+    private static string BuildPhoneLoginCodeCacheKey(long? tenantId, string phone)
+    {
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        return $"auth:phone-code:{tenantSegment}:{phone}";
+    }
+
+    /// <summary>
     /// 写入登录日志
     /// </summary>
     /// <param name="userId"></param>
@@ -654,11 +899,26 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <returns></returns>
     private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message)
     {
+        await WriteLoginLogAsync(userId, command.UserName, command.TenantId, loginResult, clientInfo, message);
+    }
+
+    /// <summary>
+    /// 写入登录日志
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="userName"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="loginResult"></param>
+    /// <param name="clientInfo"></param>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    private async Task WriteLoginLogAsync(long userId, string userName, long? tenantId, LoginResult loginResult, ClientInfo clientInfo, string message)
+    {
         var log = new SysLoginLog
         {
-            TenantId = command.TenantId,
+            TenantId = tenantId,
             UserId = userId,
-            UserName = command.UserName,
+            UserName = userName,
             LoginIp = clientInfo.IpAddress,
             LoginLocation = clientInfo.Location,
             Browser = clientInfo.Browser,
@@ -885,6 +1145,70 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         await _sessionTokenMapCache.RemoveAsync(sessionTokenMapCacheKey, hideErrors: true);
+    }
+
+    /// <summary>
+    /// 标准化租户ID（非正数视为 null）
+    /// </summary>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    private static long? NormalizeTenantId(long? tenantId)
+    {
+        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
+    }
+
+    /// <summary>
+    /// 生成数字验证码
+    /// </summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    private static string GenerateNumericCode(int length)
+    {
+        if (length <= 0)
+        {
+            return string.Empty;
+        }
+
+        var max = (int)Math.Pow(10, Math.Min(length, 9));
+        return RandomNumberGenerator.GetInt32(0, max).ToString($"D{length}");
+    }
+
+    /// <summary>
+    /// 生成临时密码
+    /// </summary>
+    /// <returns></returns>
+    private static string GenerateTemporaryPassword()
+    {
+        return $"Tmp@{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+    }
+
+    /// <summary>
+    /// 是否返回调试信息
+    /// </summary>
+    /// <returns></returns>
+    private bool ShouldExposeDebugSecrets()
+    {
+        return _hostEnvironment.IsDevelopment()
+               || _configuration.GetValue("XiHan:Authentication:ExposeDebugSecrets", false);
+    }
+
+    /// <summary>
+    /// 解析注册默认角色ID
+    /// </summary>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    private async Task<long?> ResolveDefaultRoleIdAsync(long? tenantId)
+    {
+        var role = await _roleRepository.GetByRoleCodeAsync("employee", tenantId);
+        role ??= await _roleRepository.GetByRoleCodeAsync("guest", tenantId);
+
+        if (role is null && tenantId.HasValue)
+        {
+            role = await _roleRepository.GetByRoleCodeAsync("employee", null);
+            role ??= await _roleRepository.GetByRoleCodeAsync("guest", null);
+        }
+
+        return role?.BasicId;
     }
 
     /// <summary>

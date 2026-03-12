@@ -62,3 +62,36 @@ public class AuthSessionTokenMapCacheItem
     /// </summary>
     public string RefreshTokenCacheKey { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// 登录验证码缓存项
+/// </summary>
+[CacheName("AuthVerificationCode")]
+[IgnoreMultiTenancy]
+public class AuthVerificationCodeCacheItem
+{
+    /// <summary>
+    /// 验证码用途
+    /// </summary>
+    public string Purpose { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 目标标识（手机号/邮箱）
+    /// </summary>
+    public string Target { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 租户ID
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 过期时间
+    /// </summary>
+    public DateTimeOffset ExpireAt { get; set; }
+}

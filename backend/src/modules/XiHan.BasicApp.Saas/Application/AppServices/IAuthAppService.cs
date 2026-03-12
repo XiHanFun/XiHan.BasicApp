@@ -35,6 +35,26 @@ public interface IAuthAppService : IApplicationService
     Task<AuthTokenDto> LoginAsync(UserLoginCommand command);
 
     /// <summary>
+    /// 用户注册
+    /// </summary>
+    Task RegisterAsync(UserRegisterCommand command);
+
+    /// <summary>
+    /// 发送手机登录验证码
+    /// </summary>
+    Task<AuthVerificationCodeDto> SendPhoneLoginCodeAsync(SendPhoneLoginCodeCommand command);
+
+    /// <summary>
+    /// 手机验证码登录
+    /// </summary>
+    Task<AuthTokenDto> PhoneLoginAsync(PhoneLoginCommand command);
+
+    /// <summary>
+    /// 申请重置密码
+    /// </summary>
+    Task<PasswordResetResultDto> RequestPasswordResetAsync(RequestPasswordResetCommand command);
+
+    /// <summary>
     /// 刷新令牌
     /// </summary>
     Task<AuthTokenDto> RefreshTokenAsync(RefreshTokenCommand command);

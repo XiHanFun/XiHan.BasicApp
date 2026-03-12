@@ -72,6 +72,38 @@ public class AuthTokenDto
 }
 
 /// <summary>
+/// 发送验证码结果
+/// </summary>
+public class AuthVerificationCodeDto
+{
+    /// <summary>
+    /// 验证码有效期（秒）
+    /// </summary>
+    public int ExpiresInSeconds { get; set; } = 300;
+
+    /// <summary>
+    /// 调试验证码（仅在开发模式或显式开启时返回）
+    /// </summary>
+    public string? DebugCode { get; set; }
+}
+
+/// <summary>
+/// 找回密码结果
+/// </summary>
+public class PasswordResetResultDto
+{
+    /// <summary>
+    /// 是否已受理
+    /// </summary>
+    public bool Accepted { get; set; } = true;
+
+    /// <summary>
+    /// 临时密码（仅在开发模式或显式开启时返回）
+    /// </summary>
+    public string? TemporaryPassword { get; set; }
+}
+
+/// <summary>
 /// 当前用户信息
 /// </summary>
 public class CurrentUserDto

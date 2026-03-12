@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -57,16 +58,41 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateTenantQueryable()
             .Where(user => user.UserName == userName);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(user => user.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(user => user.TenantId == null);
-        }
+        return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
+    }
 
-        return await query.FirstAsync(cancellationToken);
+    /// <summary>
+    /// 根据手机号获取用户
+    /// </summary>
+    /// <param name="phone"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysUser?> GetByPhoneAsync(string phone, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phone);
+
+        var query = CreateTenantQueryable()
+            .Where(user => user.Phone == phone);
+
+        return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 根据邮箱获取用户
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<SysUser?> GetByEmailAsync(string email, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        var query = CreateTenantQueryable()
+            .Where(user => user.Email == email);
+
+        return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
     }
 
     /// <summary>
@@ -331,5 +357,29 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         }).ToArray();
 
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 按租户优先级获取首个用户（优先指定租户，回退到全局租户）
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static async Task<SysUser?> FirstWithTenantFallbackAsync(
+        ISugarQueryable<SysUser> query,
+        long? tenantId,
+        CancellationToken cancellationToken)
+    {
+        if (tenantId.HasValue)
+        {
+            var tenantUser = await query.Where(user => user.TenantId == tenantId.Value).FirstAsync(cancellationToken);
+            if (tenantUser is not null)
+            {
+                return tenantUser;
+            }
+        }
+
+        return await query.Where(user => user.TenantId == null).FirstAsync(cancellationToken);
     }
 }
