@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysUpgradeLockEntity
+// FileName:SysUpgradeLock
 // Guid:0c1c58da-7d03-4b1c-8f5a-6d8e2a1c0f0e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统升级分布式锁实体
 /// </summary>
 [SugarTable("Sys_Upgrade_Lock", "系统升级分布式锁表")]
-public class SysUpgradeLockEntity : BasicAppCreationEntity
+public class SysUpgradeLock : BasicAppCreationEntity
 {
     /// <summary>
     /// 资源键
