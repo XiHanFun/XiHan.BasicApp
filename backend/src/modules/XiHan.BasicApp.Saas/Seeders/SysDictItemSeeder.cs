@@ -41,7 +41,7 @@ public class SysDictItemSeeder : DataSeederBase
     /// <summary>
     /// 种子数据名称
     /// </summary>
-    public override string Name => "[Rbac]系统字典项种子数据";
+    public override string Name => "[Saas]系统字典项种子数据";
 
     /// <summary>
     /// 种子数据实现
