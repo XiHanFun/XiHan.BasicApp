@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed } from 'vue'
 import { useTheme } from '~/hooks'

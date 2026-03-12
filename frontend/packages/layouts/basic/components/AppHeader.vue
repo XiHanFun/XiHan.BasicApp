@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { LayoutRouteRecord } from '../contracts'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -58,7 +58,8 @@ const isSplitMode = computed(
 const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
 
 function resolveIcon(icon: string) {
-  if (!icon) return icon
+  if (!icon)
+    return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 

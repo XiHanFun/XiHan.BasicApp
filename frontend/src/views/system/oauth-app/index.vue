@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysOAuthApp } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -67,9 +67,11 @@ async function fetchData() {
     const result = await getOAuthAppPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取 OAuth 应用列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -106,7 +108,8 @@ async function handleDelete(id: string) {
     await deleteOAuthAppApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -116,15 +119,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateOAuthAppApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createOAuthAppApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -145,7 +151,7 @@ const columns: DataTableColumns<SysOAuthApp> = [
     title: '应用类型',
     key: 'appType',
     width: 110,
-    render: (row) => getOptionLabel(OAUTH_APP_TYPE_OPTIONS, row.appType),
+    render: row => getOptionLabel(OAUTH_APP_TYPE_OPTIONS, row.appType),
   },
   {
     title: '授权类型',
@@ -157,7 +163,7 @@ const columns: DataTableColumns<SysOAuthApp> = [
     title: '跳过授权确认',
     key: 'skipConsent',
     width: 130,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.skipConsent ? 'success' : 'default', size: 'small', round: true },
@@ -168,7 +174,7 @@ const columns: DataTableColumns<SysOAuthApp> = [
     title: '状态',
     key: 'status',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
@@ -179,14 +185,14 @@ const columns: DataTableColumns<SysOAuthApp> = [
     title: '创建时间',
     key: 'createTime',
     width: 170,
-    render: (row) => formatDate(row.createTime ?? ''),
+    render: row => formatDate(row.createTime ?? ''),
   },
   {
     title: '操作',
     key: 'actions',
     width: 160,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -382,8 +388,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

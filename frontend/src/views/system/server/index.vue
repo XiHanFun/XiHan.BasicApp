@@ -8,7 +8,7 @@ import type {
   SysNetworkInfo,
   SysRuntimeInfo,
 } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -49,7 +49,8 @@ const gpuInfos = ref<SysGpuInfo[]>([])
 
 function fmtBytes(bytes: unknown) {
   const v = Number(bytes)
-  if (!Number.isFinite(v) || v <= 0) return '-'
+  if (!Number.isFinite(v) || v <= 0)
+    return '-'
   const u = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.min(Math.floor(Math.log(v) / Math.log(1024)), u.length - 1)
   return `${(v / 1024 ** i).toFixed(i === 0 ? 0 : 2)} ${u[i]}`
@@ -58,20 +59,25 @@ function fmtBytes(bytes: unknown) {
 function fmtUptime(raw: unknown) {
   const s = String(raw ?? '')
   const dm = s.match(/^(\d+)\.(\d+):(\d+):(\d+)/)
-  if (dm) return `${dm[1]}天 ${dm[2]}时${dm[3]}分${dm[4]}秒`
+  if (dm)
+    return `${dm[1]}天 ${dm[2]}时${dm[3]}分${dm[4]}秒`
   const hm = s.match(/^(\d+):(\d+):(\d+)/)
-  if (hm) return `${hm[1]}时${hm[2]}分${hm[3].split('.')[0]}秒`
+  if (hm)
+    return `${hm[1]}时${hm[2]}分${hm[3].split('.')[0]}秒`
   return s || '-'
 }
 
 function usageColor(pct: number) {
-  if (pct < 50) return 'var(--color-success)'
-  if (pct < 80) return 'var(--color-warning)'
+  if (pct < 50)
+    return 'var(--color-success)'
+  if (pct < 80)
+    return 'var(--color-warning)'
   return 'var(--color-error)'
 }
 
 function usagePct(used: number, total: number) {
-  if (total <= 0) return 0
+  if (total <= 0)
+    return 0
   return Math.round((used / total) * 1000) / 10
 }
 
@@ -156,12 +162,12 @@ const sysDetails = computed(() => [
 
 const activeNetworks = computed(() =>
   networkInfos.value.filter(
-    (n) =>
-      n.operationalStatus === 'Up' &&
-      !n.name.includes('WFP') &&
-      !n.name.includes('QoS') &&
-      !n.name.includes('Filter') &&
-      !n.name.includes('vSwitch'),
+    n =>
+      n.operationalStatus === 'Up'
+      && !n.name.includes('WFP')
+      && !n.name.includes('QoS')
+      && !n.name.includes('Filter')
+      && !n.name.includes('vSwitch'),
   ),
 )
 
@@ -186,9 +192,11 @@ async function fetchData() {
     networkInfos.value = netRes ?? []
     boardInfo.value = boardRes ?? null
     gpuInfos.value = gpuRes ?? []
-  } catch {
+  }
+  catch {
     message.error('获取服务器信息失败')
-  } finally {
+  }
+  finally {
     loading.value = false
     initialized.value = true
   }
@@ -324,7 +332,9 @@ onUnmounted(() => {
                       {{ cpuPct }}
                       <small>%</small>
                     </div>
-                    <div class="sv-gauge-label">使用率</div>
+                    <div class="sv-gauge-label">
+                      使用率
+                    </div>
                   </div>
                 </NProgress>
               </div>
@@ -364,7 +374,9 @@ onUnmounted(() => {
                       {{ memPct }}
                       <small>%</small>
                     </div>
-                    <div class="sv-gauge-label">使用率</div>
+                    <div class="sv-gauge-label">
+                      使用率
+                    </div>
                   </div>
                 </NProgress>
               </div>
@@ -391,7 +403,9 @@ onUnmounted(() => {
             <span>磁盘信息</span>
           </div>
         </template>
-        <div v-if="!diskInfos.length" class="sv-empty">暂无数据</div>
+        <div v-if="!diskInfos.length" class="sv-empty">
+          暂无数据
+        </div>
         <NGrid v-else cols="1 s:2 l:3" responsive="screen" :x-gap="10" :y-gap="10">
           <NGridItem v-for="disk in diskInfos" :key="disk.diskName">
             <div class="sv-disk-item">
@@ -440,7 +454,9 @@ onUnmounted(() => {
             </NTag>
           </div>
         </template>
-        <div v-if="!gpuInfos.length" class="sv-empty">暂无数据</div>
+        <div v-if="!gpuInfos.length" class="sv-empty">
+          暂无数据
+        </div>
         <NCollapse v-else>
           <NCollapseItem v-for="(gpu, idx) in gpuInfos" :key="idx" :name="idx">
             <template #header>
@@ -497,7 +513,9 @@ onUnmounted(() => {
             </NTag>
           </div>
         </template>
-        <div v-if="!activeNetworks.length" class="sv-empty">暂无数据</div>
+        <div v-if="!activeNetworks.length" class="sv-empty">
+          暂无数据
+        </div>
         <NCollapse v-else>
           <NCollapseItem v-for="net in activeNetworks" :key="net.name" :name="net.name">
             <template #header>

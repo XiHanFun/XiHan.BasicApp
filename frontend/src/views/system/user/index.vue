@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysUser } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NAvatar,
   NButton,
@@ -70,9 +70,11 @@ async function fetchData() {
     const result = await getUserPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取用户列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -103,7 +105,8 @@ async function handleDelete(id: string) {
     await deleteUserApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -114,7 +117,8 @@ async function handleStatusChange(row: SysUser) {
     await updateUserStatusApi(row.basicId, newStatus)
     row.status = newStatus
     message.success('状态更新成功')
-  } catch {
+  }
+  catch {
     message.error('状态更新失败')
   }
 }
@@ -124,15 +128,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateUserApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createUserApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -158,7 +165,7 @@ const columns: DataTableColumns<SysUser> = [
     title: '用户',
     key: 'username',
     width: 180,
-    render: (row) =>
+    render: row =>
       h('div', { class: 'flex items-center gap-2' }, [
         h(NAvatar, {
           round: true,
@@ -186,7 +193,7 @@ const columns: DataTableColumns<SysUser> = [
     title: '状态',
     key: 'status',
     width: 90,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: getStatusType(row.status), size: 'small', round: true },
@@ -197,14 +204,14 @@ const columns: DataTableColumns<SysUser> = [
     title: '创建时间',
     key: 'createTime',
     width: 170,
-    render: (row) => formatDate(row.createTime),
+    render: row => formatDate(row.createTime),
   },
   {
     title: '操作',
     key: 'actions',
     width: 160,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -364,8 +371,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

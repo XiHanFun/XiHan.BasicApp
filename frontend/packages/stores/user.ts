@@ -18,7 +18,8 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = info
     if (info) {
       LocalStorage.set(USER_INFO_KEY, info)
-    } else {
+    }
+    else {
       LocalStorage.remove(USER_INFO_KEY)
     }
   }
@@ -32,7 +33,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function hasAnyRole(roleList: string[]): boolean {
-    return roleList.some((role) => hasRole(role))
+    return roleList.some(role => hasRole(role))
   }
 
   function $reset() {

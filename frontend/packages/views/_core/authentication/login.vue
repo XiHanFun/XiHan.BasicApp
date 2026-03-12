@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
 import type { LoginConfig } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCheckbox,
@@ -61,8 +61,10 @@ const rules: FormRules = {
     {
       trigger: 'blur',
       validator: (_rule, value: string) => {
-        if (!loginConfig.value.tenantEnabled) return true
-        if (!value?.trim()) return new Error('请输入租户ID')
+        if (!loginConfig.value.tenantEnabled)
+          return true
+        if (!value?.trim())
+          return new Error('请输入租户ID')
         return true
       },
     },
@@ -75,14 +77,14 @@ const redirect = computed(() => {
 })
 
 const defaultOauthProviders = ['github', 'google']
-const oauthProviderMeta: Record<string, { icon: string; label: string }> = {
+const oauthProviderMeta: Record<string, { icon: string, label: string }> = {
   github: { icon: 'mdi:github', label: 'GitHub' },
   google: { icon: 'logos:google-icon', label: 'Google' },
 }
 
 const oauthProviders = computed(() => {
   const providers = (loginConfig.value.oauthProviders || [])
-    .map((provider) => provider.trim().toLowerCase())
+    .map(provider => provider.trim().toLowerCase())
     .filter(Boolean)
   return providers.length > 0 ? providers : defaultOauthProviders
 })
@@ -119,7 +121,8 @@ async function handleLogin() {
       },
       redirect.value,
     )
-  } catch (err: unknown) {
+  }
+  catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
@@ -128,7 +131,8 @@ async function handleLogin() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') handleLogin()
+  if (e.key === 'Enter')
+    handleLogin()
 }
 
 function goTo(path: string) {
@@ -138,7 +142,8 @@ function goTo(path: string) {
 onMounted(async () => {
   try {
     await loadLoginConfig()
-  } catch {
+  }
+  catch {
     message.error('加载登录配置失败')
   }
 })

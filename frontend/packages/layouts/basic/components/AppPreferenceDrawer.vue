@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NDrawer,
@@ -38,8 +38,10 @@ const isNarrowScreen = computed(() => viewportWidth.value < 960)
 const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
 const showFloatingFab = computed(() => {
   const position = appStore.widgetPreferencePosition
-  if (position === 'header') return false
-  if (position === 'fixed') return true
+  if (position === 'header')
+    return false
+  if (position === 'fixed')
+    return true
   return isNarrowScreen.value
     || contentMaximized.value
     || !appStore.headerShow

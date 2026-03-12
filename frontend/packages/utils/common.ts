@@ -4,7 +4,8 @@ import dayjs from 'dayjs'
  * 格式化日期时间
  */
 export function formatDate(date: string | Date | number, format = 'YYYY-MM-DD HH:mm:ss'): string {
-  if (!date) return '-'
+  if (!date)
+    return '-'
   return dayjs(date).format(format)
 }
 
@@ -12,7 +13,8 @@ export function formatDate(date: string | Date | number, format = 'YYYY-MM-DD HH
  * 格式化文件大小
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B'
+  if (bytes === 0)
+    return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -25,7 +27,8 @@ export function formatFileSize(bytes: number): string {
 export function debounce<T extends (...args: any[]) => any>(fn: T, delay = 300): T {
   let timer: ReturnType<typeof setTimeout> | null = null
   return ((...args: Parameters<T>) => {
-    if (timer) clearTimeout(timer)
+    if (timer)
+      clearTimeout(timer)
     timer = setTimeout(() => fn(...args), delay)
   }) as T
 }
@@ -48,9 +51,12 @@ export function throttle<T extends (...args: any[]) => any>(fn: T, delay = 300):
  * 深拷贝
  */
 export function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') return obj
-  if (obj instanceof Date) return new Date(obj.getTime()) as unknown as T
-  if (Array.isArray(obj)) return obj.map((item) => deepClone(item)) as unknown as T
+  if (obj === null || typeof obj !== 'object')
+    return obj
+  if (obj instanceof Date)
+    return new Date(obj.getTime()) as unknown as T
+  if (Array.isArray(obj))
+    return obj.map(item => deepClone(item)) as unknown as T
   const cloned = {} as T
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -64,10 +70,14 @@ export function deepClone<T>(obj: T): T {
  * 判断是否为空值
  */
 export function isEmpty(value: any): boolean {
-  if (value === null || value === undefined) return true
-  if (typeof value === 'string') return value.trim() === ''
-  if (Array.isArray(value)) return value.length === 0
-  if (typeof value === 'object') return Object.keys(value).length === 0
+  if (value === null || value === undefined)
+    return true
+  if (typeof value === 'string')
+    return value.trim() === ''
+  if (Array.isArray(value))
+    return value.length === 0
+  if (typeof value === 'object')
+    return Object.keys(value).length === 0
   return false
 }
 
@@ -100,7 +110,8 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text)
     return true
-  } catch {
+  }
+  catch {
     const el = document.createElement('textarea')
     el.value = text
     document.body.appendChild(el)
@@ -129,10 +140,10 @@ export function getStatusType(
  * 根据选项数组获取标签
  */
 export function getOptionLabel(
-  options: Array<{ label: string; value: number | string }>,
+  options: Array<{ label: string, value: number | string }>,
   value: number | string | null | undefined,
   fallback = '-',
 ) {
-  const matched = options.find((item) => item.value === value)
+  const matched = options.find(item => item.value === value)
   return matched?.label ?? fallback
 }

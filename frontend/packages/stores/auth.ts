@@ -26,7 +26,8 @@ export const useAuthStore = defineStore('auth', () => {
         getUserInfoApi(),
         getPermissionsApi(),
       ])
-    } catch (error) {
+    }
+    catch (error) {
       accessStore.$reset()
       userStore.$reset()
       throw error
@@ -59,7 +60,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const result = await loginApi(params)
       await afterLogin(result, redirect)
-    } finally {
+    }
+    finally {
       loginLoading.value = false
     }
   }
@@ -69,7 +71,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const result = await phoneLoginApi(params)
       await afterLogin(result, redirect)
-    } finally {
+    }
+    finally {
       loginLoading.value = false
     }
   }
@@ -78,7 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
     const { router } = await import('@/router')
     try {
       await logoutApi()
-    } catch {
+    }
+    catch {
       // ignore logout api error
     }
 

@@ -75,8 +75,8 @@ const emit = defineEmits<{
 }>()
 
 const stickySearchStyle = computed(() => {
-  const top =
-    typeof props.stickySearchTop === 'number'
+  const top
+    = typeof props.stickySearchTop === 'number'
       ? `${props.stickySearchTop}px`
       : props.stickySearchTop || '0px'
 

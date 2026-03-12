@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { MenuOption } from 'naive-ui'
-import { darkTheme, NConfigProvider } from 'naive-ui'
 import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
+import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
@@ -119,7 +119,8 @@ const extraPanelNaiveTheme = computed(() => {
 })
 
 function resolveIcon(icon: string) {
-  if (!icon) return icon
+  if (!icon)
+    return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 

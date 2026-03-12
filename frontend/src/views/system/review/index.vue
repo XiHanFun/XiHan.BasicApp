@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysReview } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -68,10 +68,14 @@ const formData = ref<Partial<SysReview>>({
 function getReviewStatusType(
   status: number,
 ): 'default' | 'info' | 'success' | 'warning' | 'error' {
-  if (status === 0) return 'warning'
-  if (status === 1) return 'info'
-  if (status === 2) return 'success'
-  if (status === 3) return 'error'
+  if (status === 0)
+    return 'warning'
+  if (status === 1)
+    return 'info'
+  if (status === 2)
+    return 'success'
+  if (status === 3)
+    return 'error'
   return 'default'
 }
 
@@ -81,9 +85,11 @@ async function fetchData() {
     const result = await getReviewPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取审查列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -119,7 +125,8 @@ async function handleDelete(id: string) {
     await deleteReviewApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -129,15 +136,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateReviewApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createReviewApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -147,7 +157,7 @@ const columns: DataTableColumns<SysReview> = [
     title: '审查编码',
     key: 'reviewCode',
     width: 150,
-    render: (row) =>
+    render: row =>
       h(NTag, { type: 'info', size: 'small', bordered: false }, { default: () => row.reviewCode }),
   },
   {
@@ -165,7 +175,7 @@ const columns: DataTableColumns<SysReview> = [
     title: '审查状态',
     key: 'reviewStatus',
     width: 110,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: getReviewStatusType(row.reviewStatus), size: 'small', round: true },
@@ -176,26 +186,26 @@ const columns: DataTableColumns<SysReview> = [
     title: '审查结果',
     key: 'reviewResult',
     width: 110,
-    render: (row) => getOptionLabel(REVIEW_RESULT_OPTIONS, row.reviewResult, '-'),
+    render: row => getOptionLabel(REVIEW_RESULT_OPTIONS, row.reviewResult, '-'),
   },
   {
     title: '当前层级',
     key: 'currentLevel',
     width: 100,
-    render: (row) => `${row.currentLevel}/${row.reviewLevel}`,
+    render: row => `${row.currentLevel}/${row.reviewLevel}`,
   },
   {
     title: '提交时间',
     key: 'submitTime',
     width: 170,
-    render: (row) => formatDate(row.submitTime),
+    render: row => formatDate(row.submitTime),
   },
   {
     title: '操作',
     key: 'actions',
     width: 160,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -386,8 +396,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

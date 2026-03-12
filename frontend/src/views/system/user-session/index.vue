@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysUserSession } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -16,8 +16,8 @@ import {
   NPopconfirm,
   NSelect,
   NSpace,
-  NTag,
   NSwitch,
+  NTag,
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
@@ -90,9 +90,11 @@ async function fetchData() {
     })
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取会话列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -142,9 +144,11 @@ async function handleConfirmRevoke() {
     message.success(`已撤销 ${count} 个会话`)
     revokeModalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('撤销会话失败')
-  } finally {
+  }
+  finally {
     revokeLoading.value = false
   }
 }
@@ -154,7 +158,8 @@ async function handleDelete(id: string) {
     await deleteUserSessionApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -164,15 +169,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateUserSessionApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createUserSessionApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -193,7 +201,7 @@ const columns: DataTableColumns<SysUserSession> = [
     title: '设备类型',
     key: 'deviceType',
     width: 120,
-    render: (row) => getOptionLabel(DEVICE_TYPE_OPTIONS, row.deviceType),
+    render: row => getOptionLabel(DEVICE_TYPE_OPTIONS, row.deviceType),
   },
   {
     title: '设备名称',
@@ -210,7 +218,7 @@ const columns: DataTableColumns<SysUserSession> = [
     title: '在线状态',
     key: 'isOnline',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.isOnline ? 'success' : 'default', size: 'small', round: true },
@@ -221,7 +229,7 @@ const columns: DataTableColumns<SysUserSession> = [
     title: '撤销状态',
     key: 'isRevoked',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.isRevoked ? 'error' : 'success', size: 'small', round: true },
@@ -232,14 +240,14 @@ const columns: DataTableColumns<SysUserSession> = [
     title: '最后活跃',
     key: 'lastActivityTime',
     width: 170,
-    render: (row) => formatDate(row.lastActivityTime),
+    render: row => formatDate(row.lastActivityTime),
   },
   {
     title: '操作',
     key: 'actions',
     width: 240,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -256,17 +264,17 @@ const columns: DataTableColumns<SysUserSession> = [
                 },
                 { default: () => '编辑' },
               ),
-              !row.isRevoked &&
-                h(
-                  NButton,
-                  {
-                    size: 'small',
-                    type: 'warning',
-                    ghost: true,
-                    onClick: () => handleOpenRevoke(row),
-                  },
-                  { default: () => '撤销' },
-                ),
+              !row.isRevoked
+              && h(
+                NButton,
+                {
+                  size: 'small',
+                  type: 'warning',
+                  ghost: true,
+                  onClick: () => handleOpenRevoke(row),
+                },
+                { default: () => '撤销' },
+              ),
               h(
                 NPopconfirm,
                 {
@@ -417,8 +425,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -445,8 +457,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="revokeModalVisible = false">取消</NButton>
-          <NButton type="warning" :loading="revokeLoading" @click="handleConfirmRevoke">确认撤销</NButton>
+          <NButton @click="revokeModalVisible = false">
+            取消
+          </NButton>
+          <NButton type="warning" :loading="revokeLoading" @click="handleConfirmRevoke">
+            确认撤销
+          </NButton>
         </NSpace>
       </template>
     </NModal>

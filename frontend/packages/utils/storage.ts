@@ -6,7 +6,8 @@ export const LocalStorage = {
     try {
       const value = localStorage.getItem(key)
       return value ? (JSON.parse(value) as T) : null
-    } catch {
+    }
+    catch {
       return null
     }
   },
@@ -14,7 +15,8 @@ export const LocalStorage = {
   set(key: string, value: unknown): void {
     try {
       localStorage.setItem(key, JSON.stringify(value))
-    } catch {
+    }
+    catch {
       // storage full or unavailable
     }
   },
@@ -40,7 +42,8 @@ export const SessionStorage = {
     try {
       const value = sessionStorage.getItem(key)
       return value ? (JSON.parse(value) as T) : null
-    } catch {
+    }
+    catch {
       return null
     }
   },
@@ -48,7 +51,8 @@ export const SessionStorage = {
   set(key: string, value: unknown): void {
     try {
       sessionStorage.setItem(key, JSON.stringify(value))
-    } catch {
+    }
+    catch {
       // storage full or unavailable
     }
   },

@@ -65,7 +65,7 @@ function routeTreeContainsMatched(
   }
 
   const children = node.children ?? []
-  return children.some((child) =>
+  return children.some(child =>
     routeTreeContainsMatched(currentPath, child, matchedNames, fullPath),
   )
 }
@@ -93,11 +93,11 @@ function buildMenuOptionsFromRoutes(
       continue
     }
 
-    const key =
-      config.keyBy === 'path'
+    const key
+      = config.keyBy === 'path'
         ? fullPath
-        : (toRouteNameKey(item.name) ??
-          (childOptions?.[0]?.key ? String(childOptions[0].key) : fullPath))
+        : (toRouteNameKey(item.name)
+          ?? (childOptions?.[0]?.key ? String(childOptions[0].key) : fullPath))
 
     if (!key) {
       continue
@@ -124,8 +124,8 @@ export function useLayoutMenuDomain() {
   const accessStore = useAccessStore()
 
   const staticRootChildren = computed<LayoutRouteRecord[]>(() => {
-    return (router.options.routes.find((item) => item.path === '/')?.children ??
-      []) as LayoutRouteRecord[]
+    return (router.options.routes.find(item => item.path === '/')?.children
+      ?? []) as LayoutRouteRecord[]
   })
 
   const baseMenuSource = computed<LayoutRouteRecord[]>(() => {
@@ -135,13 +135,13 @@ export function useLayoutMenuDomain() {
   })
 
   const visibleRootRoutes = computed(() => {
-    return baseMenuSource.value.filter((item) => !toLayoutMeta(item).hidden)
+    return baseMenuSource.value.filter(item => !toLayoutMeta(item).hidden)
   })
 
   function findMatchedRouteNameKey(candidates: LayoutRouteRecord[]) {
     for (const matchedRecord of route.matched) {
       const matchedName = toRouteNameKey(matchedRecord.name as RouteRecordName)
-      if (matchedName && candidates.some((item) => toRouteNameKey(item.name) === matchedName)) {
+      if (matchedName && candidates.some(item => toRouteNameKey(item.name) === matchedName)) {
         return matchedName
       }
     }
@@ -151,7 +151,7 @@ export function useLayoutMenuDomain() {
   function findMatchedRoutePath(candidates: LayoutRouteRecord[], parentPath = '') {
     const matchedNames = new Set(
       route.matched
-        .map((item) => toRouteNameKey(item.name as RouteRecordName))
+        .map(item => toRouteNameKey(item.name as RouteRecordName))
         .filter((item): item is string => Boolean(item)),
     )
 
@@ -166,22 +166,22 @@ export function useLayoutMenuDomain() {
   const activeRootKey = computed<string>(() => {
     const matchedNames = new Set(
       route.matched
-        .map((item) => toRouteNameKey(item.name as RouteRecordName))
+        .map(item => toRouteNameKey(item.name as RouteRecordName))
         .filter((item): item is string => Boolean(item)),
     )
-    const nestedMatchedRoot = visibleRootRoutes.value.find((item) =>
+    const nestedMatchedRoot = visibleRootRoutes.value.find(item =>
       routeTreeContainsMatched(route.path, item, matchedNames),
     )
     return (
-      findMatchedRouteNameKey(visibleRootRoutes.value) ??
-      toRouteNameKey(nestedMatchedRoot?.name) ??
-      toRouteNameKey(visibleRootRoutes.value[0]?.name) ??
-      ''
+      findMatchedRouteNameKey(visibleRootRoutes.value)
+      ?? toRouteNameKey(nestedMatchedRoot?.name)
+      ?? toRouteNameKey(visibleRootRoutes.value[0]?.name)
+      ?? ''
     )
   })
 
   const activeRootRoute = computed(() => {
-    return visibleRootRoutes.value.find((item) => toRouteNameKey(item.name) === activeRootKey.value)
+    return visibleRootRoutes.value.find(item => toRouteNameKey(item.name) === activeRootKey.value)
   })
 
   return {

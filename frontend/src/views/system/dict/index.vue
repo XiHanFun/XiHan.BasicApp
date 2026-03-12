@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysDict, SysDictItem } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -86,9 +86,11 @@ async function fetchData() {
     const result = await getDictPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取字典列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -118,7 +120,8 @@ async function handleDelete(id: string) {
     await deleteDictApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -128,15 +131,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateDictApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createDictApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -150,13 +156,16 @@ async function openItems(row: SysDict) {
 }
 
 async function fetchItems() {
-  if (!currentDictId.value) return
+  if (!currentDictId.value)
+    return
   try {
     itemLoading.value = true
     itemRows.value = await getDictItemsApi(currentDictId.value)
-  } catch {
+  }
+  catch {
     message.error('获取字典项失败')
-  } finally {
+  }
+  finally {
     itemLoading.value = false
   }
 }
@@ -185,7 +194,8 @@ async function handleDeleteItem(id: string) {
     await deleteDictItemApi(id)
     message.success('删除字典项成功')
     fetchItems()
-  } catch {
+  }
+  catch {
     message.error('删除字典项失败')
   }
 }
@@ -206,16 +216,19 @@ async function handleSubmitItem() {
 
     if (itemFormData.value.basicId) {
       await updateDictItemApi(itemFormData.value.basicId, payload)
-    } else {
+    }
+    else {
       await createDictItemApi(payload)
     }
 
     message.success('字典项操作成功')
     itemFormVisible.value = false
     fetchItems()
-  } catch {
+  }
+  catch {
     message.error('字典项操作失败')
-  } finally {
+  }
+  finally {
     itemSubmitLoading.value = false
   }
 }
@@ -230,7 +243,7 @@ const columns: DataTableColumns<SysDict> = [
     title: '字典编码',
     key: 'dictCode',
     width: 180,
-    render: (row) =>
+    render: row =>
       h(NTag, { type: 'info', size: 'small', bordered: false }, { default: () => row.dictCode }),
   },
   {
@@ -242,7 +255,7 @@ const columns: DataTableColumns<SysDict> = [
     title: '状态',
     key: 'status',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
@@ -259,14 +272,14 @@ const columns: DataTableColumns<SysDict> = [
     title: '创建时间',
     key: 'createTime',
     width: 170,
-    render: (row) => formatDate(row.createTime ?? ''),
+    render: row => formatDate(row.createTime ?? ''),
   },
   {
     title: '操作',
     key: 'actions',
     width: 240,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -333,7 +346,7 @@ const itemColumns: DataTableColumns<SysDictItem> = [
     title: '状态',
     key: 'status',
     width: 90,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
@@ -350,7 +363,7 @@ const itemColumns: DataTableColumns<SysDictItem> = [
     title: '操作',
     key: 'actions',
     width: 160,
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -498,8 +511,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -559,8 +576,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="itemFormVisible = false">取消</NButton>
-          <NButton type="primary" :loading="itemSubmitLoading" @click="handleSubmitItem">确认</NButton>
+          <NButton @click="itemFormVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="itemSubmitLoading" @click="handleSubmitItem">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

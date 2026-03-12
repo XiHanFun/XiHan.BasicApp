@@ -1,6 +1,6 @@
 import type { DropdownOption } from 'naive-ui'
 import type { TabItem } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NIcon } from 'naive-ui'
 import { h } from 'vue'
 import { HOME_PATH } from '~/constants'
@@ -10,19 +10,19 @@ export function createDropdownIcon(icon: string) {
 }
 
 export function getTabByPath(tabs: TabItem[], path: string) {
-  return tabs.find((item) => item.path === path)
+  return tabs.find(item => item.path === path)
 }
 
 export function getTabDisableState(tabs: TabItem[], path: string, closable: boolean) {
-  const currentIndex = tabs.findIndex((item) => item.path === path)
+  const currentIndex = tabs.findIndex(item => item.path === path)
   const leftTabs = tabs.slice(0, currentIndex)
   const rightTabs = tabs.slice(currentIndex + 1)
   const currentTab = getTabByPath(tabs, path)
 
-  const hasLeftClosable = leftTabs.some((item) => item.closable)
-  const hasRightClosable = rightTabs.some((item) => item.closable)
-  const hasOtherClosable = tabs.some((item) => item.closable && item.path !== path)
-  const hasAnyClosable = tabs.some((item) => item.closable)
+  const hasLeftClosable = leftTabs.some(item => item.closable)
+  const hasRightClosable = rightTabs.some(item => item.closable)
+  const hasOtherClosable = tabs.some(item => item.closable && item.path !== path)
+  const hasAnyClosable = tabs.some(item => item.closable)
 
   return {
     closeAllDisabled: !hasAnyClosable,

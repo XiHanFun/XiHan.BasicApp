@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HeaderToolbarPropsContract } from '../../contracts'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NAvatar, NDropdown } from 'naive-ui'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'

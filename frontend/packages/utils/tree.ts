@@ -1,13 +1,13 @@
 /**
  * 将平铺数据转换为树形结构
  */
-export function listToTree<T extends { basicId: string; parentId?: string; children?: T[] }>(
+export function listToTree<T extends { basicId: string, parentId?: string, children?: T[] }>(
   list: T[],
   parentId: string | null = null,
 ): T[] {
   return list
-    .filter((item) => item.parentId === parentId || (!item.parentId && parentId === null))
-    .map((item) => ({
+    .filter(item => item.parentId === parentId || (!item.parentId && parentId === null))
+    .map(item => ({
       ...item,
       children: listToTree(list, item.basicId),
     }))
@@ -29,7 +29,8 @@ export function treeToList<T extends { children?: T[] }>(tree: T[]): Omit<T, 'ch
     for (const node of nodes) {
       const { children, ...rest } = node
       result.push(rest as Omit<T, 'children'>)
-      if (children?.length) traverse(children)
+      if (children?.length)
+        traverse(children)
     }
   }
   traverse(tree)
@@ -39,15 +40,17 @@ export function treeToList<T extends { children?: T[] }>(tree: T[]): Omit<T, 'ch
 /**
  * 在树中查找节点
  */
-export function findTreeNode<T extends { basicId: string; children?: T[] }>(
+export function findTreeNode<T extends { basicId: string, children?: T[] }>(
   tree: T[],
   basicId: string,
 ): T | null {
   for (const node of tree) {
-    if (node.basicId === basicId) return node
+    if (node.basicId === basicId)
+      return node
     if (node.children) {
       const found = findTreeNode(node.children, basicId)
-      if (found) return found
+      if (found)
+        return found
     }
   }
   return null
@@ -90,11 +93,11 @@ export function filterTree<T extends { children?: T[] }>(
 /**
  * 获取节点的所有父节点 id
  */
-export function getParentIds<T extends { basicId: string; parentId?: string }>(
+export function getParentIds<T extends { basicId: string, parentId?: string }>(
   list: T[],
   basicId: string,
 ): string[] {
-  const map = new Map(list.map((item) => [item.basicId, item]))
+  const map = new Map(list.map(item => [item.basicId, item]))
   const result: string[] = []
   let current = map.get(basicId)
   while (current?.parentId) {

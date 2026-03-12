@@ -10,7 +10,7 @@ import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
 
 type AnyRecord = Record<string, any>
-type RequestMeta = {
+interface RequestMeta {
   requestId: string
   startedAt: number
   method: string

@@ -3,8 +3,8 @@ import type { LayoutMode } from '../contracts'
 import { computed, toRef } from 'vue'
 
 export function useLayout(layoutModeRef: Ref<string> | (() => string)) {
-  const currentLayout =
-    typeof layoutModeRef === 'function' ? computed(layoutModeRef) : toRef(layoutModeRef)
+  const currentLayout
+    = typeof layoutModeRef === 'function' ? computed(layoutModeRef) : toRef(layoutModeRef)
 
   const isSideNav = computed(() => currentLayout.value === 'side')
   const isSideMixedNav = computed(() => currentLayout.value === 'side-mixed')
@@ -22,11 +22,11 @@ export function useLayout(layoutModeRef: Ref<string> | (() => string)) {
 
   const isSideMode = computed(
     () =>
-      isMixedNav.value ||
-      isSideMixedNav.value ||
-      isSideNav.value ||
-      isHeaderMixedNav.value ||
-      isHeaderSidebarNav.value,
+      isMixedNav.value
+      || isSideMixedNav.value
+      || isSideNav.value
+      || isHeaderMixedNav.value
+      || isHeaderSidebarNav.value,
   )
 
   const isDualColumnMode = computed(() => isSideMixedNav.value || isHeaderMixedNav.value)

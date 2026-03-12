@@ -21,8 +21,10 @@ export const router = createRouter({
       : createWebHashHistory(import.meta.env.VITE_BASE || '/'),
   routes,
   scrollBehavior(to, _from, savedPosition) {
-    if (savedPosition) return savedPosition
-    if (to.hash) return { behavior: 'smooth', el: to.hash }
+    if (savedPosition)
+      return savedPosition
+    if (to.hash)
+      return { behavior: 'smooth', el: to.hash }
     return { left: 0, top: 0 }
   },
 })

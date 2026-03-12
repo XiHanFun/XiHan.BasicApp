@@ -1,4 +1,4 @@
-﻿<script lang="ts" setup>
+<script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
 import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naive-ui'
 import { onBeforeUnmount, ref } from 'vue'
@@ -56,7 +56,8 @@ function handleSendCode() {
           formData.value.code = response.debugCode
         }
         message.success(t('page.auth.code_sent'))
-      } catch (err: unknown) {
+      }
+      catch (err: unknown) {
         const error = err as { message?: string }
         message.error(error?.message || '发送验证码失败')
       }
@@ -74,7 +75,8 @@ async function handleLogin() {
       code: formData.value.code,
       tenantId: defaultTenantId,
     })
-  } catch (err: unknown) {
+  }
+  catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)

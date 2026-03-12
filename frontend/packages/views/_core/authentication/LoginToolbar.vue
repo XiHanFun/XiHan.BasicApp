@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownOption } from 'naive-ui'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NButton, NDropdown, NIcon, NPopover } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
