@@ -62,8 +62,8 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
         var now = DateTime.UtcNow;
         var expiryTime = now.Add(expiry);
 
-        var updated = await db.Updateable<SysUpgradeLockEntity>()
-            .SetColumns(l => new SysUpgradeLockEntity
+        var updated = await db.Updateable<SysUpgradeLock>()
+            .SetColumns(l => new SysUpgradeLock
             {
                 LockId = lockId,
                 ExpiryTime = expiryTime,
@@ -80,7 +80,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
 
         try
         {
-            var inserted = await db.Insertable(new SysUpgradeLockEntity
+            var inserted = await db.Insertable(new SysUpgradeLock
             {
                 ResourceKey = resourceKey,
                 LockId = lockId,
@@ -112,7 +112,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
     internal async Task ReleaseAsync(string resourceKey, string lockId)
     {
         var db = _dbContext.GetClient(_options.ConnectionConfigId);
-        await db.Deleteable<SysUpgradeLockEntity>()
+        await db.Deleteable<SysUpgradeLock>()
             .Where(l => l.ResourceKey == resourceKey && l.LockId == lockId)
             .ExecuteCommandAsync();
     }

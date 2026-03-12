@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysVersionEntity
+// FileName:SysVersion
 // Guid:6a5d1f62-2cfe-40f1-b42c-2f7a9d4a7c2e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统版本实体
 /// </summary>
 [SugarTable("Sys_Version", "系统版本表")]
-public class SysVersionEntity : BasicAppCreationEntity
+public class SysVersion : BasicAppCreationEntity
 {
     /// <summary>
     /// 应用版本

@@ -58,7 +58,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var db = GetDbClient();
         await Task.Run(() =>
         {
-            db.CodeFirst.InitTables<SysVersionEntity, SysMigrationHistory, SysUpgradeLockEntity>();
+            db.CodeFirst.InitTables<SysVersion, SysMigrationHistory, SysUpgradeLock>();
         }, cancellationToken);
     }
 
@@ -75,7 +75,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var db = GetDbClient();
         var tenantId = GetTenantId();
 
-        var query = db.Queryable<SysVersionEntity>();
+        var query = db.Queryable<SysVersion>();
         query = tenantId.HasValue
             ? query.Where(v => v.TenantId == tenantId)
             : query.Where(v => v.TenantId == null);
@@ -83,7 +83,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var version = await query.FirstAsync();
         if (version == null)
         {
-            var entity = new SysVersionEntity
+            var entity = new SysVersion
             {
                 TenantId = tenantId,
                 AppVersion = currentAppVersion,
@@ -141,8 +141,8 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         version.UpgradeStartTime = startTime;
 
         var db = GetDbClient();
-        await db.Updateable<SysVersionEntity>()
-            .SetColumns(v => new SysVersionEntity
+        await db.Updateable<SysVersion>()
+            .SetColumns(v => new SysVersion
             {
                 IsUpgrading = true,
                 UpgradeNode = nodeName,
@@ -167,8 +167,8 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         version.DbVersion = dbVersion;
 
         var db = GetDbClient();
-        await db.Updateable<SysVersionEntity>()
-            .SetColumns(v => new SysVersionEntity
+        await db.Updateable<SysVersion>()
+            .SetColumns(v => new SysVersion
             {
                 IsUpgrading = false,
                 AppVersion = appVersion,
@@ -189,8 +189,8 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         version.IsUpgrading = false;
 
         var db = GetDbClient();
-        await db.Updateable<SysVersionEntity>()
-            .SetColumns(v => new SysVersionEntity
+        await db.Updateable<SysVersion>()
+            .SetColumns(v => new SysVersion
             {
                 IsUpgrading = false
             })
@@ -210,8 +210,8 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         version.DbVersion = dbVersion;
 
         var db = GetDbClient();
-        await db.Updateable<SysVersionEntity>()
-            .SetColumns(v => new SysVersionEntity
+        await db.Updateable<SysVersion>()
+            .SetColumns(v => new SysVersion
             {
                 DbVersion = dbVersion
             })
@@ -269,7 +269,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
     /// </summary>
     /// <param name="entity">系统版本实体</param>
     /// <returns>升级版本状态</returns>
-    private static UpgradeVersionState MapVersion(SysVersionEntity entity)
+    private static UpgradeVersionState MapVersion(SysVersion entity)
     {
         return new UpgradeVersionState
         {
