@@ -232,7 +232,9 @@ onUnmounted(() => {
         <NGridItem v-for="i in 2" :key="`perf-${i}`">
           <NCard :bordered="false" size="small" class="sv-card">
             <div class="sv-skeleton-panel-col">
-              <NSkeleton circle :width="140" :height="140" />
+              <div class="sv-skeleton-circle">
+                <NSkeleton circle :width="160" :height="160" />
+              </div>
               <div class="w-full space-y-2">
                 <NSkeleton text :repeat="4" />
               </div>
@@ -304,7 +306,7 @@ onUnmounted(() => {
             <template #header>
               <div class="sv-card-header">
                 <Icon icon="lucide:cpu" width="16" />
-                <span>CPU 性能</span>
+                <span>CPU信息</span>
               </div>
             </template>
             <div class="sv-perf">
@@ -322,7 +324,7 @@ onUnmounted(() => {
                       {{ cpuPct }}
                       <small>%</small>
                     </div>
-                    <div class="sv-gauge-label">CPU 使用率</div>
+                    <div class="sv-gauge-label">使用率</div>
                   </div>
                 </NProgress>
               </div>
@@ -344,7 +346,7 @@ onUnmounted(() => {
             <template #header>
               <div class="sv-card-header">
                 <Icon icon="lucide:memory-stick" width="16" />
-                <span>内存使用</span>
+                <span>内存信息</span>
               </div>
             </template>
             <div class="sv-perf">
@@ -362,7 +364,7 @@ onUnmounted(() => {
                       {{ memPct }}
                       <small>%</small>
                     </div>
-                    <div class="sv-gauge-label">内存使用</div>
+                    <div class="sv-gauge-label">使用率</div>
                   </div>
                 </NProgress>
               </div>
@@ -386,7 +388,7 @@ onUnmounted(() => {
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:hard-drive" width="16" />
-            <span>磁盘使用</span>
+            <span>磁盘信息</span>
           </div>
         </template>
         <div v-if="!diskInfos.length" class="sv-empty">暂无数据</div>
@@ -484,12 +486,12 @@ onUnmounted(() => {
         </NCollapse>
       </NCard>
 
-      <!-- 网络适配器 -->
+      <!-- 网络信息 -->
       <NCard :bordered="false" size="small" class="sv-card">
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:network" width="16" />
-            <span>网络适配器</span>
+            <span>网络信息</span>
             <NTag v-if="activeNetworks.length" size="tiny" :bordered="false" class="ml-auto">
               {{ activeNetworks.length }} 个活跃
             </NTag>
@@ -645,6 +647,22 @@ onUnmounted(() => {
   gap: 16px;
 }
 
+.sv-skeleton-circle {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.sv-skeleton-circle .n-skeleton {
+  width: 160px !important;
+  height: 160px !important;
+  min-width: 160px !important;
+  min-height: 160px !important;
+  border-radius: 50% !important;
+}
+
 /* ========== Banner ========== */
 .sv-banner {
   padding: 16px 20px;
@@ -766,6 +784,9 @@ onUnmounted(() => {
   flex-shrink: 0;
   width: 160px;
   height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sv-gauge-inner {
@@ -796,6 +817,8 @@ onUnmounted(() => {
 .sv-details {
   flex: 1;
   min-width: 0;
+  max-width: 180px;
+  margin-inline: auto;
 }
 
 .sv-detail-row {
@@ -823,6 +846,7 @@ onUnmounted(() => {
 }
 
 .sv-detail-value {
+  flex-shrink: 0;
   font-weight: 500;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
