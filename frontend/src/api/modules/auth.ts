@@ -1,4 +1,14 @@
-import type { LoginConfig, LoginParams, LoginResult, PermissionInfo, UserInfo } from '~/types'
+import type {
+  LoginConfig,
+  LoginParams,
+  LoginResult,
+  PasswordResetResult,
+  PermissionInfo,
+  PhoneLoginParams,
+  RegisterParams,
+  UserInfo,
+  VerificationCodeResult,
+} from '~/types'
 import { API_CONTRACT } from '../contract'
 import { unwrapPayload } from '../helpers'
 import requestClient from '../request'
@@ -48,6 +58,22 @@ function normalizePermission(raw: any): PermissionInfo {
   }
 }
 
+function normalizeVerificationCode(raw: any): VerificationCodeResult {
+  const payload = unwrapPayload<any>(raw)
+  return {
+    expiresInSeconds: payload?.expiresInSeconds ?? 300,
+    debugCode: payload?.debugCode || undefined,
+  }
+}
+
+function normalizePasswordReset(raw: any): PasswordResetResult {
+  const payload = unwrapPayload<any>(raw)
+  return {
+    accepted: payload?.accepted ?? true,
+    temporaryPassword: payload?.temporaryPassword || undefined,
+  }
+}
+
 export function getLoginConfigApi() {
   return requestClient.get<any>(API_CONTRACT.auth.loginConfig).then(normalizeLoginConfig)
 }
@@ -59,6 +85,42 @@ export async function loginApi(data: LoginParams): Promise<LoginResult> {
     tenantId: data.tenantId,
   })
   return normalizeToken(raw)
+}
+
+export async function registerApi(data: RegisterParams): Promise<void> {
+  await requestClient.post(API_CONTRACT.auth.register, {
+    userName: data.username,
+    password: data.password,
+    nickName: data.nickName,
+    email: data.email,
+    phone: data.phone,
+    tenantId: data.tenantId,
+  })
+}
+
+export async function sendPhoneLoginCodeApi(phone: string, tenantId?: null | number): Promise<VerificationCodeResult> {
+  const raw = await requestClient.post<any>(API_CONTRACT.auth.sendPhoneLoginCode, {
+    phone,
+    tenantId,
+  })
+  return normalizeVerificationCode(raw)
+}
+
+export async function phoneLoginApi(data: PhoneLoginParams): Promise<LoginResult> {
+  const raw = await requestClient.post<any>(API_CONTRACT.auth.phoneLogin, {
+    phone: data.phone,
+    code: data.code,
+    tenantId: data.tenantId,
+  })
+  return normalizeToken(raw)
+}
+
+export async function requestPasswordResetApi(email: string, tenantId?: null | number): Promise<PasswordResetResult> {
+  const raw = await requestClient.post<any>(API_CONTRACT.auth.requestPasswordReset, {
+    email,
+    tenantId,
+  })
+  return normalizePasswordReset(raw)
 }
 
 export async function refreshTokenApi(refreshToken: string): Promise<LoginResult> {

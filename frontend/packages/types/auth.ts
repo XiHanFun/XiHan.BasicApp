@@ -28,6 +28,31 @@ export interface LoginParams {
   tenantId?: null | number
 }
 
+export interface RegisterParams {
+  username: string
+  password: string
+  nickName?: string
+  email?: string
+  phone?: string
+  tenantId?: null | number
+}
+
+export interface PhoneLoginParams {
+  phone: string
+  code: string
+  tenantId?: null | number
+}
+
+export interface VerificationCodeResult {
+  expiresInSeconds: number
+  debugCode?: string
+}
+
+export interface PasswordResetResult {
+  accepted: boolean
+  temporaryPassword?: string
+}
+
 export interface LoginResult {
   accessToken: string
   refreshToken: string
