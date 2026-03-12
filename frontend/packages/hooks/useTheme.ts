@@ -84,9 +84,11 @@ function generatePrimaryScale(hex: string) {
  * 而 Naive UI 内部的 TinyColor 只支持老式逗号语法 "hsl(H, S%, L%)"。
  */
 function getCssColorVar(varName: string, fallback = ''): string {
-  if (typeof document === 'undefined') return fallback
+  if (typeof document === 'undefined')
+    return fallback
   const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
-  if (!raw) return fallback
+  if (!raw)
+    return fallback
   // "142 71% 45%" → "hsl(142, 71%, 45%)"
   const parts = raw.split(/\s+/)
   if (parts.length >= 3) {
@@ -121,7 +123,8 @@ export function useTheme() {
 
   /** 将当前 uiRadius 同步到根元素 CSS 变量，供非 Naive UI 的自定义元素使用 */
   function syncRadiusCssVars(r: number) {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined')
+      return
     const { radius, cardRadius } = calcRadius(r)
     document.documentElement.style.setProperty('--radius', radius)
     document.documentElement.style.setProperty('--radius-card', cardRadius)
@@ -179,7 +182,8 @@ export function useTheme() {
   }
 
   function animateThemeTransition(mode: 'light' | 'dark', e?: MouseEvent) {
-    if (appStore.themeMode === mode) return
+    if (appStore.themeMode === mode)
+      return
 
     // 无动画或浏览器不支持：直接切换，抑制 CSS 过渡一帧
     if (!appStore.themeAnimationEnabled || !('startViewTransition' in document)) {

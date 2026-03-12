@@ -116,8 +116,12 @@ function handleReset() {
         </div>
 
         <div class="ml-auto flex items-center gap-2">
-          <NButton type="primary" :disabled="actionDisabled" @click="handleSearch">搜索</NButton>
-          <NButton :disabled="actionDisabled" @click="handleReset">重置</NButton>
+          <NButton type="primary" :disabled="actionDisabled" @click="handleSearch">
+            搜索
+          </NButton>
+          <NButton :disabled="actionDisabled" @click="handleReset">
+            重置
+          </NButton>
           <slot name="actions" />
         </div>
       </div>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NConfigProvider, NDialogProvider, NIcon, NInput, NLoadingBarProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'

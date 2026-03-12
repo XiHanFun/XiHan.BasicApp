@@ -106,12 +106,12 @@ function applyPersistedSettings(defaultSettings: ColumnSettingItem[]) {
   if (!props.storageKey) {
     return defaultSettings
   }
-  const stored = LocalStorage.get<Array<{ key: string; visible: boolean }>>(props.storageKey)
+  const stored = LocalStorage.get<Array<{ key: string, visible: boolean }>>(props.storageKey)
   if (!stored || stored.length === 0) {
     return defaultSettings
   }
 
-  const defaultMap = new Map(defaultSettings.map((item) => [item.key, item]))
+  const defaultMap = new Map(defaultSettings.map(item => [item.key, item]))
   const merged: ColumnSettingItem[] = []
 
   for (const savedItem of stored) {
@@ -126,7 +126,7 @@ function applyPersistedSettings(defaultSettings: ColumnSettingItem[]) {
   }
 
   for (const defaultItem of defaultSettings) {
-    if (!merged.some((item) => item.key === defaultItem.key)) {
+    if (!merged.some(item => item.key === defaultItem.key)) {
       merged.push(defaultItem)
     }
   }
@@ -139,7 +139,7 @@ function persistSettings() {
   }
   LocalStorage.set(
     props.storageKey,
-    columnSettings.value.map((item) => ({
+    columnSettings.value.map(item => ({
       key: item.key,
       visible: item.visible,
     })),
@@ -157,8 +157,8 @@ const columnMap = computed(() => {
 
 const tableColumns = computed<DataTableColumns<any>>(() => {
   return columnSettings.value
-    .filter((item) => item.visible)
-    .map((item) => columnMap.value.get(item.key))
+    .filter(item => item.visible)
+    .map(item => columnMap.value.get(item.key))
     .filter(Boolean) as DataTableColumns<any>
 })
 
@@ -181,8 +181,8 @@ const canPrev = computed(() => paginationConfig.value.page > 1)
 const canNext = computed(() => paginationConfig.value.page < totalPages.value)
 
 const paginationStyle = computed(() => {
-  const offset =
-    typeof props.paginationBottomOffset === 'number'
+  const offset
+    = typeof props.paginationBottomOffset === 'number'
       ? `${props.paginationBottomOffset}px`
       : props.paginationBottomOffset || '0px'
 
@@ -206,7 +206,7 @@ function handleNextPage() {
 }
 
 function updateColumnVisible(key: string, checked: boolean) {
-  columnSettings.value = columnSettings.value.map((item) =>
+  columnSettings.value = columnSettings.value.map(item =>
     item.key === key
       ? {
           ...item,
@@ -240,9 +240,9 @@ function initSortable() {
     draggable: '.x-pro-table__item',
     onEnd(event) {
       if (
-        event.oldIndex === undefined ||
-        event.newIndex === undefined ||
-        event.oldIndex === event.newIndex
+        event.oldIndex === undefined
+        || event.newIndex === undefined
+        || event.oldIndex === event.newIndex
       ) {
         return
       }
@@ -288,15 +288,21 @@ onBeforeUnmount(() => {
       </div>
       <div class="flex items-center gap-2">
         <slot name="toolbar-right" />
-        <NButton v-if="props.showRefresh" size="small" @click="emit('refresh')">刷新</NButton>
+        <NButton v-if="props.showRefresh" size="small" @click="emit('refresh')">
+          刷新
+        </NButton>
         <NPopover v-model:show="settingsVisible" trigger="click" placement="bottom-end">
           <template #trigger>
-            <NButton size="small">列设置</NButton>
+            <NButton size="small">
+              列设置
+            </NButton>
           </template>
           <div class="x-pro-table__panel">
             <div class="x-pro-table__panel-header">
               <span class="text-xs text-gray-400">拖拽排序 / 勾选显示</span>
-              <NButton text size="tiny" type="primary" @click="resetColumnSettings">重置</NButton>
+              <NButton text size="tiny" type="primary" @click="resetColumnSettings">
+                重置
+              </NButton>
             </div>
             <div ref="settingsListRef" class="x-pro-table__list">
               <div v-for="item in columnSettings" :key="item.key" class="x-pro-table__item">
@@ -334,7 +340,9 @@ onBeforeUnmount(() => {
       :class="{ 'x-pro-table__pagination--sticky': props.stickyPagination }"
       :style="paginationStyle"
     >
-      <NButton size="small" :disabled="!canPrev" @click="handlePrevPage">上一页</NButton>
+      <NButton size="small" :disabled="!canPrev" @click="handlePrevPage">
+        上一页
+      </NButton>
       <NPagination
         :page="paginationConfig.page"
         :page-size="paginationConfig.pageSize"
@@ -345,7 +353,9 @@ onBeforeUnmount(() => {
         @update:page="(page) => emit('update:page', page)"
         @update:page-size="(size) => emit('update:pageSize', size)"
       />
-      <NButton size="small" :disabled="!canNext" @click="handleNextPage">下一页</NButton>
+      <NButton size="small" :disabled="!canNext" @click="handleNextPage">
+        下一页
+      </NButton>
     </div>
   </NCard>
 </template>

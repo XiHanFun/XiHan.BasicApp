@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 'naive-ui'
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { registerApi } from '@/api'
 import { useTheme } from '~/hooks'
 
@@ -28,12 +28,17 @@ const formData = ref({
 
 const passwordStrength = computed(() => {
   const pwd = formData.value.password
-  if (!pwd) return 0
+  if (!pwd)
+    return 0
   let score = 0
-  if (pwd.length >= 8) score++
-  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++
-  if (/\d/.test(pwd)) score++
-  if (/[^a-zA-Z0-9]/.test(pwd)) score++
+  if (pwd.length >= 8)
+    score++
+  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd))
+    score++
+  if (/\d/.test(pwd))
+    score++
+  if (/[^a-z0-9]/i.test(pwd))
+    score++
   return score
 })
 
@@ -104,7 +109,8 @@ async function handleRegister() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') handleRegister()
+  if (e.key === 'Enter')
+    handleRegister()
 }
 </script>
 

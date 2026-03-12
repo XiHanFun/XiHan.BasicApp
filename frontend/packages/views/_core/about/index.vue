@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { SysNuGetPackage } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NCard, NTag, NText } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -22,12 +22,12 @@ const lastBuildTime = PackageJson.lastBuildTime ?? '-'
 const description = PackageJson.description ?? '-'
 const license = PackageJson.license ?? '-'
 const homepage = PackageJson.homepage ?? ''
-const repository =
-  typeof PackageJson.repository === 'string'
+const repository
+  = typeof PackageJson.repository === 'string'
     ? PackageJson.repository
     : (PackageJson.repository?.url ?? '')
-const author =
-  typeof PackageJson.author === 'string' ? PackageJson.author : (PackageJson.author?.name ?? '-')
+const author
+  = typeof PackageJson.author === 'string' ? PackageJson.author : (PackageJson.author?.name ?? '-')
 
 const dependencyCount = Object.keys(dependencies).length
 const devDependencyCount = Object.keys(devDependencies).length
@@ -94,7 +94,8 @@ const backendDependencies = ref<SysNuGetPackage[]>([])
 async function fetchBackendDependencies() {
   try {
     backendDependencies.value = (await getNuGetPackagesApi()) ?? []
-  } catch {
+  }
+  catch {
     backendDependencies.value = []
   }
 }
@@ -116,7 +117,7 @@ onMounted(() => {
       </div>
       <div class="ab-hero">
         <div class="ab-logo">
-          <img :src="appLogo" :alt="appName" class="ab-logo-img" />
+          <img :src="appLogo" :alt="appName" class="ab-logo-img">
         </div>
         <div class="ab-hero-main">
           <div class="ab-hero-line1" :title="`${appName} | ${description}`">
@@ -125,9 +126,15 @@ onMounted(() => {
             <span class="ab-hero-desc">{{ description }}</span>
           </div>
           <div class="ab-hero-line2">
-            <NTag size="small" :bordered="false" type="primary">Enterprise Ready</NTag>
-            <NTag size="small" :bordered="false" type="success">Composable Architecture</NTag>
-            <NTag size="small" :bordered="false" type="info">Modern Stack</NTag>
+            <NTag size="small" :bordered="false" type="primary">
+              Enterprise Ready
+            </NTag>
+            <NTag size="small" :bordered="false" type="success">
+              Composable Architecture
+            </NTag>
+            <NTag size="small" :bordered="false" type="info">
+              Modern Stack
+            </NTag>
           </div>
         </div>
       </div>
@@ -207,7 +214,9 @@ onMounted(() => {
           </NTag>
         </div>
       </template>
-      <div v-if="!backendDependencies.length" class="ab-empty">暂无数据</div>
+      <div v-if="!backendDependencies.length" class="ab-empty">
+        暂无数据
+      </div>
       <div v-else class="ab-pkg-grid">
         <div v-for="pkg in backendDependencies" :key="pkg.packageName" class="ab-pkg-item">
           <Icon icon="lucide:package" width="14" class="ab-pkg-icon" />
@@ -231,7 +240,9 @@ onMounted(() => {
           </NTag>
         </div>
       </template>
-      <div v-if="!dependencyCount" class="ab-empty">暂无数据</div>
+      <div v-if="!dependencyCount" class="ab-empty">
+        暂无数据
+      </div>
       <div v-else class="ab-pkg-grid">
         <div v-for="(value, key) in dependencies" :key="String(key)" class="ab-pkg-item">
           <Icon icon="lucide:package" width="14" class="ab-pkg-icon" />
@@ -255,7 +266,9 @@ onMounted(() => {
           </NTag>
         </div>
       </template>
-      <div v-if="!devDependencyCount" class="ab-empty">暂无数据</div>
+      <div v-if="!devDependencyCount" class="ab-empty">
+        暂无数据
+      </div>
       <div v-else class="ab-pkg-grid">
         <div v-for="(value, key) in devDependencies" :key="String(key)" class="ab-pkg-item">
           <Icon icon="lucide:package" width="14" class="ab-pkg-icon" />

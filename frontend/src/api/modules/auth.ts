@@ -143,7 +143,8 @@ export async function getPermissionsApi(): Promise<PermissionInfo> {
 export async function getAccessCodesApi() {
   try {
     return await requestClient.get<string[]>(API_CONTRACT.auth.codes)
-  } catch {
+  }
+  catch {
     const authPermission = await getPermissionsApi()
     return authPermission.permissions
   }

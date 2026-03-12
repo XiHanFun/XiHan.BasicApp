@@ -40,7 +40,8 @@ export const useAccessStore = defineStore('access', () => {
     accessToken.value = token
     if (token) {
       LocalStorage.set(TOKEN_KEY, token)
-    } else {
+    }
+    else {
       LocalStorage.remove(TOKEN_KEY)
     }
   }
@@ -49,7 +50,8 @@ export const useAccessStore = defineStore('access', () => {
     refreshToken.value = token
     if (token) {
       LocalStorage.set(REFRESH_TOKEN_KEY, token)
-    } else {
+    }
+    else {
       LocalStorage.remove(REFRESH_TOKEN_KEY)
     }
   }

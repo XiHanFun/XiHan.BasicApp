@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysMenu } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -21,7 +21,7 @@ import {
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
 import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '@/api'
-import { CrudProTable } from '~/components'
+import { CrudProTable, IconPicker } from '~/components'
 import { MENU_TYPE, STATUS_OPTIONS } from '~/constants'
 import { filterTree } from '~/utils'
 
@@ -38,23 +38,23 @@ const submitLoading = ref(false)
 
 function defaultForm(): Partial<SysMenu> {
   return {
-  parentId: undefined,
-  menuName: '',
-  menuCode: '',
-  menuType: MENU_TYPE.MENU,
-  path: '',
-  component: '',
-  routeName: '',
-  redirect: '',
-  icon: '',
-  title: '',
-  isExternal: false,
-  isCache: true,
-  isVisible: true,
-  isAffix: false,
-  sort: 100,
-  status: 1,
-  remark: '',
+    parentId: undefined,
+    menuName: '',
+    menuCode: '',
+    menuType: MENU_TYPE.MENU,
+    path: '',
+    component: '',
+    routeName: '',
+    redirect: '',
+    icon: '',
+    title: '',
+    isExternal: false,
+    isCache: true,
+    isVisible: true,
+    isAffix: false,
+    sort: 100,
+    status: 1,
+    remark: '',
   }
 }
 
@@ -201,7 +201,7 @@ const columns: DataTableColumns<SysMenu> = [
     key: 'menuType',
     width: 80,
     align: 'center',
-    render: row => {
+    render: (row) => {
       const map: Record<number, { label: string, type: 'default' | 'info' | 'success' }> = {
         [MENU_TYPE.DIR]: { label: '目录', type: 'default' },
         [MENU_TYPE.MENU]: { label: '菜单', type: 'info' },
@@ -401,15 +401,7 @@ onMounted(fetchData)
         </div>
         <div v-if="formData.menuType !== MENU_TYPE.BUTTON" class="grid grid-cols-2 gap-x-4">
           <NFormItem label="图标" path="icon">
-            <div class="flex items-center gap-2 w-full">
-              <NInput v-model:value="formData.icon" placeholder="如: user" class="flex-1" />
-              <Icon
-                v-if="formData.icon"
-                :icon="resolveIcon(formData.icon)"
-                width="20"
-                class="flex-shrink-0 text-[var(--primary-color)]"
-              />
-            </div>
+            <IconPicker v-model="formData.icon" placeholder="选择图标" class="w-full" />
           </NFormItem>
           <NFormItem label="排序" path="sort">
             <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" class="w-full" />

@@ -4,14 +4,14 @@ import type { LayoutEventName } from '~/constants'
 import type { useAppStore, useUserStore } from '~/stores'
 import type { MenuMeta, MenuRoute } from '~/types'
 
-export type LayoutMode =
-  | 'side'
-  | 'side-mixed'
-  | 'top'
-  | 'mix'
-  | 'header-mix'
-  | 'header-sidebar'
-  | 'full'
+export type LayoutMode
+  = | 'side'
+    | 'side-mixed'
+    | 'top'
+    | 'mix'
+    | 'header-mix'
+    | 'header-sidebar'
+    | 'full'
 
 export type HeaderMode = 'fixed' | 'static' | 'auto' | 'auto-scroll'
 
@@ -38,7 +38,7 @@ export interface HeaderToolbarPropsContract {
   isFullscreen: boolean
   showPreferencesInHeader?: boolean
   timezoneOptions: DropdownOption[]
-  localeOptions: Array<{ label: string; key: string }>
+  localeOptions: Array<{ label: string, key: string }>
   userOptions: DropdownOption[]
 }
 

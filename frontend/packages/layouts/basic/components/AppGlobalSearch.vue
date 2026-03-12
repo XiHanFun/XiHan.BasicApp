@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MenuRoute } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NEmpty, NIcon, NInput, NModal, NScrollbar } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

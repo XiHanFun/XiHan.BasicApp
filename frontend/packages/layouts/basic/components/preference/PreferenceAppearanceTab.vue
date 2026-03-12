@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -29,7 +29,8 @@ const sidebarSubDarkDisabled = computed(
 const headerDarkDisabled = computed(() => isDark.value)
 
 watch(() => appStore.sidebarDark, (val) => {
-  if (!val) appStore.sidebarSubDark = false
+  if (!val)
+    appStore.sidebarSubDark = false
 })
 
 interface PreferenceAppearanceTabProps {

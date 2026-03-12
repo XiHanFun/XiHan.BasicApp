@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LayoutBreadcrumbItem } from '../../contracts'
 import type { useAppStore } from '~/stores'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NBreadcrumb, NBreadcrumbItem, NDropdown } from 'naive-ui'
 import { computed } from 'vue'
 
@@ -18,26 +18,31 @@ const emit = defineEmits<{
 }>()
 
 const allCrumbs = computed(() => {
-  const result: Array<{ key: string; isHome?: boolean; index?: number }> = []
-  if (props.appStore.breadcrumbShowHome) result.push({ key: 'home', isHome: true })
+  const result: Array<{ key: string, isHome?: boolean, index?: number }> = []
+  if (props.appStore.breadcrumbShowHome)
+    result.push({ key: 'home', isHome: true })
   props.breadcrumbs.forEach((_, i) => result.push({ key: String(i), index: i }))
   return result
 })
 
 const shouldShowBreadcrumb = computed(() => {
   // 没有任何面包屑项时不渲染
-  if (allCrumbs.value.length === 0) return false
-  if (props.appStore.breadcrumbHideOnlyOne && allCrumbs.value.length <= 1) return false
+  if (allCrumbs.value.length === 0)
+    return false
+  if (props.appStore.breadcrumbHideOnlyOne && allCrumbs.value.length <= 1)
+    return false
   return true
 })
 
 function resolveIcon(icon: string) {
-  if (!icon) return icon
+  if (!icon)
+    return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
 function isLast(isHome: boolean, index?: number): boolean {
-  if (isHome) return props.breadcrumbs.length === 0
+  if (isHome)
+    return props.breadcrumbs.length === 0
   return index === props.breadcrumbs.length - 1
 }
 </script>

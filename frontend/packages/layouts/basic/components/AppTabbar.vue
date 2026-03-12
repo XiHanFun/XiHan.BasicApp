@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DropdownOption } from 'naive-ui'
 import type { TabItem } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { useDebounceFn } from '@vueuse/core'
 import { NButton, NDropdown, NIcon } from 'naive-ui'
 import Sortable from 'sortablejs'

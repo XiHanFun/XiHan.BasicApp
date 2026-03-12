@@ -34,7 +34,8 @@ async function handleSubmit() {
     const result = await requestPasswordResetApi(formData.value.email, 1)
     if (result.temporaryPassword) {
       message.success(`${t('page.auth.reset_link_sent')}（临时密码：${result.temporaryPassword}）`)
-    } else {
+    }
+    else {
       message.success(t('page.auth.reset_link_sent'))
     }
   }

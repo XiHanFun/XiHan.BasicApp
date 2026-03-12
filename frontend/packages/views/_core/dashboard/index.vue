@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { SysCpuInfo, SysMemoryInfo, SysOperationLog, SysRuntimeInfo } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NCard,
   NGrid,
@@ -42,7 +42,8 @@ const recentLogs = ref<SysOperationLog[]>([])
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 function formatBytes(bytes: number) {
-  if (bytes === 0) return '0 B'
+  if (bytes === 0)
+    return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -51,12 +52,18 @@ function formatBytes(bytes: number) {
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 6) return '夜深了'
-  if (h < 9) return '早上好'
-  if (h < 12) return '上午好'
-  if (h < 14) return '中午好'
-  if (h < 18) return '下午好'
-  if (h < 22) return '晚上好'
+  if (h < 6)
+    return '夜深了'
+  if (h < 9)
+    return '早上好'
+  if (h < 12)
+    return '上午好'
+  if (h < 14)
+    return '中午好'
+  if (h < 18)
+    return '下午好'
+  if (h < 22)
+    return '晚上好'
   return '夜深了'
 })
 
@@ -97,12 +104,18 @@ async function fetchDashboardData() {
       getOperationLogPageApi({ page: 1, pageSize: 8 }),
     ])
 
-    if (runtime.status === 'fulfilled') runtimeInfo.value = runtime.value
-    if (cpu.status === 'fulfilled') cpuInfo.value = cpu.value
-    if (memory.status === 'fulfilled') memoryInfo.value = memory.value
-    if (users.status === 'fulfilled') userTotal.value = users.value.total
-    if (sessions.status === 'fulfilled') onlineCount.value = sessions.value.total
-    if (logs.status === 'fulfilled') recentLogs.value = logs.value.items
+    if (runtime.status === 'fulfilled')
+      runtimeInfo.value = runtime.value
+    if (cpu.status === 'fulfilled')
+      cpuInfo.value = cpu.value
+    if (memory.status === 'fulfilled')
+      memoryInfo.value = memory.value
+    if (users.status === 'fulfilled')
+      userTotal.value = users.value.total
+    if (sessions.status === 'fulfilled')
+      onlineCount.value = sessions.value.total
+    if (logs.status === 'fulfilled')
+      recentLogs.value = logs.value.items
   }
   finally {
     loading.value = false
@@ -114,8 +127,10 @@ async function refreshHardware() {
     getCpuInfoApi(),
     getMemoryInfoApi(),
   ])
-  if (cpu.status === 'fulfilled') cpuInfo.value = cpu.value
-  if (memory.status === 'fulfilled') memoryInfo.value = memory.value
+  if (cpu.status === 'fulfilled')
+    cpuInfo.value = cpu.value
+  if (memory.status === 'fulfilled')
+    memoryInfo.value = memory.value
 }
 
 onMounted(() => {
@@ -163,8 +178,8 @@ onUnmounted(() => {
                 type="circle"
                 :percentage="cpuInfo?.usagePercentage ?? 0"
                 :stroke-width="6"
-                :indicator-text-color="'hsl(var(--foreground))'"
-                :rail-color="'hsl(var(--muted) / 0.5)'"
+                indicator-text-color="hsl(var(--foreground))"
+                rail-color="hsl(var(--muted) / 0.5)"
                 :color="(cpuInfo?.usagePercentage ?? 0) > 80 ? '#d03050' : '#18a058'"
                 style="width: 64px; height: 64px;"
               />
@@ -188,8 +203,8 @@ onUnmounted(() => {
                 type="circle"
                 :percentage="memoryInfo?.usagePercentage ?? 0"
                 :stroke-width="6"
-                :indicator-text-color="'hsl(var(--foreground))'"
-                :rail-color="'hsl(var(--muted) / 0.5)'"
+                indicator-text-color="hsl(var(--foreground))"
+                rail-color="hsl(var(--muted) / 0.5)"
                 :color="(memoryInfo?.usagePercentage ?? 0) > 80 ? '#d03050' : '#2080f0'"
                 style="width: 64px; height: 64px;"
               />

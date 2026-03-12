@@ -78,7 +78,8 @@ const navDisabled = computed(() => isFullContent.value)
 const navSplitDisabled = computed(() => navDisabled.value || !isMixedNav.value)
 
 const breadcrumbDisabled = computed(() => {
-  if (isFullContent.value || !appStore.headerShow) return true
+  if (isFullContent.value || !appStore.headerShow)
+    return true
   return !['side', 'side-mixed', 'header-sidebar'].includes(layout.value)
 })
 const breadcrumbItemDisabled = computed(() => breadcrumbDisabled.value || !appStore.breadcrumbEnabled)
@@ -97,7 +98,8 @@ watch(() => appStore.sidebarShow, (val) => {
 })
 
 watch(() => appStore.sidebarCollapsed, (val) => {
-  if (!val) appStore.sidebarExpandOnHover = false
+  if (!val)
+    appStore.sidebarExpandOnHover = false
 })
 </script>
 

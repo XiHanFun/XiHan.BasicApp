@@ -2,10 +2,14 @@ import { createPinia } from 'pinia'
 
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
+import { setupIconifyOffline } from '~/iconify'
 import App from '~/app.vue'
 import { setupI18n } from '~/locales'
 import { router } from './router'
 import '~/design/global.css'
+
+// Iconify 离线图标：预加载图标集，避免运行时请求 API
+setupIconifyOffline()
 
 async function bootstrap() {
   const app = createApp(App)

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { TabItem } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NIcon } from 'naive-ui'
 import { computed } from 'vue'
 import { HOME_PATH } from '~/constants'

@@ -369,7 +369,7 @@ export const useAppStore = defineStore('app', () => {
   function setBrandLogo(logo: string) {
     save(BRAND_LOGO_KEY, brandLogo, logo)
   }
-  function setBranding(branding: { title?: string; logo?: string }) {
+  function setBranding(branding: { title?: string, logo?: string }) {
     if (branding.title) {
       setBrandTitle(branding.title)
     }

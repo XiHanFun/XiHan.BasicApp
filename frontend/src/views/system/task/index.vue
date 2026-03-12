@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysTask } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -68,10 +68,14 @@ const formData = ref<Partial<SysTask>>({
 function getRunTaskStatusType(
   status: number,
 ): 'default' | 'info' | 'success' | 'warning' | 'error' {
-  if (status === 0) return 'warning'
-  if (status === 1) return 'info'
-  if (status === 2) return 'success'
-  if (status === 3) return 'error'
+  if (status === 0)
+    return 'warning'
+  if (status === 1)
+    return 'info'
+  if (status === 2)
+    return 'success'
+  if (status === 3)
+    return 'error'
   return 'default'
 }
 
@@ -81,9 +85,11 @@ async function fetchData() {
     const result = await getTaskPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取任务列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -119,7 +125,8 @@ async function handleDelete(id: string) {
     await deleteTaskApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -129,15 +136,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateTaskApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createTaskApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -147,7 +157,7 @@ const columns: DataTableColumns<SysTask> = [
     title: '任务编码',
     key: 'taskCode',
     width: 150,
-    render: (row) =>
+    render: row =>
       h(NTag, { type: 'info', size: 'small', bordered: false }, { default: () => row.taskCode }),
   },
   {
@@ -165,13 +175,13 @@ const columns: DataTableColumns<SysTask> = [
     title: '触发方式',
     key: 'triggerType',
     width: 110,
-    render: (row) => getOptionLabel(TRIGGER_TYPE_OPTIONS, row.triggerType),
+    render: row => getOptionLabel(TRIGGER_TYPE_OPTIONS, row.triggerType),
   },
   {
     title: '运行状态',
     key: 'runTaskStatus',
     width: 110,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: getRunTaskStatusType(row.runTaskStatus), size: 'small', round: true },
@@ -182,7 +192,7 @@ const columns: DataTableColumns<SysTask> = [
     title: '启用状态',
     key: 'status',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
@@ -193,14 +203,14 @@ const columns: DataTableColumns<SysTask> = [
     title: '创建时间',
     key: 'createTime',
     width: 170,
-    render: (row) => formatDate(row.createTime ?? ''),
+    render: row => formatDate(row.createTime ?? ''),
   },
   {
     title: '操作',
     key: 'actions',
     width: 160,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -380,8 +390,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

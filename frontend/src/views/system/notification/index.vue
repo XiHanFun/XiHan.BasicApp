@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysNotification } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -79,9 +79,11 @@ async function fetchData() {
     const result = await getNotificationPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取通知列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -95,7 +97,8 @@ async function handleLoadUnreadCount() {
   try {
     unreadCount.value = await getUnreadNotificationCountApi(actionUserId.value)
     message.success(`未读通知：${unreadCount.value}`)
-  } catch {
+  }
+  catch {
     message.error('获取未读数量失败')
   }
 }
@@ -110,7 +113,8 @@ async function handleMarkAllRead() {
     const count = await markAllNotificationsReadApi(actionUserId.value)
     message.success(`已标记 ${count} 条通知为已读`)
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('标记全部已读失败')
   }
 }
@@ -143,7 +147,8 @@ async function handleDelete(id: string) {
     await deleteNotificationApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -159,10 +164,12 @@ async function handleMarkRead(row: SysNotification) {
     if (ok) {
       message.success('已标记为已读')
       fetchData()
-    } else {
+    }
+    else {
       message.warning('标记失败')
     }
-  } catch {
+  }
+  catch {
     message.error('标记已读失败')
   }
 }
@@ -172,15 +179,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateNotificationApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createNotificationApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -196,13 +206,13 @@ const columns: DataTableColumns<SysNotification> = [
     title: '通知类型',
     key: 'notificationType',
     width: 120,
-    render: (row) => getOptionLabel(NOTIFICATION_TYPE_OPTIONS, row.notificationType),
+    render: row => getOptionLabel(NOTIFICATION_TYPE_OPTIONS, row.notificationType),
   },
   {
     title: '通知状态',
     key: 'notificationStatus',
     width: 110,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         {
@@ -227,31 +237,31 @@ const columns: DataTableColumns<SysNotification> = [
     title: '发送时间',
     key: 'sendTime',
     width: 170,
-    render: (row) => formatDate(row.sendTime),
+    render: row => formatDate(row.sendTime),
   },
   {
     title: '操作',
     key: 'actions',
     width: 260,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
         {
           default: () =>
             [
-              row.notificationStatus === 0 &&
-                h(
-                  NButton,
-                  {
-                    size: 'small',
-                    type: 'warning',
-                    ghost: true,
-                    onClick: () => handleMarkRead(row),
-                  },
-                  { default: () => '已读' },
-                ),
+              row.notificationStatus === 0
+              && h(
+                NButton,
+                {
+                  size: 'small',
+                  type: 'warning',
+                  ghost: true,
+                  onClick: () => handleMarkRead(row),
+                },
+                { default: () => '已读' },
+              ),
               h(
                 NButton,
                 {
@@ -339,9 +349,15 @@ onMounted(fetchData)
       </div>
       <div class="mt-3 flex flex-wrap items-center gap-2">
         <NInputNumber v-model:value="actionUserId" :min="1" placeholder="用户ID" class="w-36" />
-        <NButton @click="handleLoadUnreadCount">查询未读数</NButton>
-        <NButton @click="handleMarkAllRead">全部已读</NButton>
-        <NTag size="small" type="info">未读：{{ unreadCount }}</NTag>
+        <NButton @click="handleLoadUnreadCount">
+          查询未读数
+        </NButton>
+        <NButton @click="handleMarkAllRead">
+          全部已读
+        </NButton>
+        <NTag size="small" type="info">
+          未读：{{ unreadCount }}
+        </NTag>
       </div>
     </NCard>
 
@@ -422,8 +438,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

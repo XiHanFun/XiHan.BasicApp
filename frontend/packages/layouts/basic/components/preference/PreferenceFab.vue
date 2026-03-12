@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NButton, NIcon } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 

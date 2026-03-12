@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import { NButton, NIcon } from 'naive-ui'
 import { onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useTheme } from '~/hooks'
 
 defineOptions({ name: 'QrCodeLoginPage' })
@@ -15,7 +15,8 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 function drawQrPlaceholder(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d')
-  if (!ctx) return
+  if (!ctx)
+    return
   const context = ctx
 
   const size = 200
@@ -43,10 +44,10 @@ function drawQrPlaceholder(canvas: HTMLCanvasElement) {
 
   for (let row = 0; row < cells; row++) {
     for (let col = 0; col < cells; col++) {
-      const isCorner =
-        (row < 7 && col < 7) ||
-        (row < 7 && col >= cells - 7) ||
-        (row >= cells - 7 && col < 7)
+      const isCorner
+        = (row < 7 && col < 7)
+          || (row < 7 && col >= cells - 7)
+          || (row >= cells - 7 && col < 7)
 
       if (isCorner || random() > 0.55) {
         context.fillRect(
@@ -74,11 +75,13 @@ function drawQrPlaceholder(canvas: HTMLCanvasElement) {
 }
 
 onMounted(() => {
-  if (canvasRef.value) drawQrPlaceholder(canvasRef.value)
+  if (canvasRef.value)
+    drawQrPlaceholder(canvasRef.value)
 })
 
 watch(isDark, () => {
-  if (canvasRef.value) drawQrPlaceholder(canvasRef.value)
+  if (canvasRef.value)
+    drawQrPlaceholder(canvasRef.value)
 })
 </script>
 

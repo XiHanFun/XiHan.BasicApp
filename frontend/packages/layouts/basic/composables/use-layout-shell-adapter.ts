@@ -79,7 +79,8 @@ export function useLayoutShellAdapter() {
   })
 
   const sidebarEnableState = computed(() => {
-    if (isMobile.value) return true
+    if (isMobile.value)
+      return true
     return !isHeaderNav.value && appStore.sidebarShow
   })
 
@@ -88,9 +89,12 @@ export function useLayoutShellAdapter() {
   })
 
   const getSidebarWidth = computed(() => {
-    if (contentMaximized.value) return 0
-    if (!appStore.sidebarShow) return 0
-    if (!sidebarEnableState.value) return 0
+    if (contentMaximized.value)
+      return 0
+    if (!appStore.sidebarShow)
+      return 0
+    if (!sidebarEnableState.value)
+      return 0
 
     if ((isHeaderMixedNav.value || isSideMixedNav.value) && !isMobile.value) {
       return SIDEBAR_MIXED_WIDTH
@@ -107,10 +111,10 @@ export function useLayoutShellAdapter() {
 
   const headerFixed = computed(() => {
     return (
-      isMixedNav.value ||
-      headerMode.value === 'fixed' ||
-      isHeaderAutoScrollMode.value ||
-      isHeaderAutoMode.value
+      isMixedNav.value
+      || headerMode.value === 'fixed'
+      || isHeaderAutoScrollMode.value
+      || isHeaderAutoMode.value
     )
   })
 
@@ -125,17 +129,17 @@ export function useLayoutShellAdapter() {
     let sidebarAndExtraWidth = 'unset'
 
     if (
-      headerFixed.value &&
-      currentLayout.value !== 'top' &&
-      currentLayout.value !== 'mix' &&
-      currentLayout.value !== 'header-sidebar' &&
-      showSidebar.value &&
-      !isMobile.value
+      headerFixed.value
+      && currentLayout.value !== 'top'
+      && currentLayout.value !== 'mix'
+      && currentLayout.value !== 'header-sidebar'
+      && showSidebar.value
+      && !isMobile.value
     ) {
-      const isSideNavEffective =
-        (isSideMixedNav.value || isHeaderMixedNav.value) &&
-        appStore.sidebarExpandOnHover &&
-        sidebarExtraVisible.value
+      const isSideNavEffective
+        = (isSideMixedNav.value || isHeaderMixedNav.value)
+          && appStore.sidebarExpandOnHover
+          && sidebarExtraVisible.value
 
       if (isSideNavEffective) {
         const sideCollapseW = sidebarCollapse.value
@@ -144,9 +148,10 @@ export function useLayoutShellAdapter() {
         const sideW = sidebarExtraCollapse.value ? SIDEBAR_COLLAPSE_WIDTH : sidebarWidth.value
         sidebarAndExtraWidth = `${sideCollapseW + sideW}px`
         width = `calc(100% - ${sidebarAndExtraWidth})`
-      } else {
-        sidebarAndExtraWidth =
-          sidebarExpandOnHovering.value && !appStore.sidebarExpandOnHover
+      }
+      else {
+        sidebarAndExtraWidth
+          = sidebarExpandOnHovering.value && !appStore.sidebarExpandOnHover
             ? `${getSideCollapseWidth.value}px`
             : `${getSidebarWidth.value}px`
         width = `calc(100% - ${sidebarAndExtraWidth})`
@@ -162,7 +167,8 @@ export function useLayoutShellAdapter() {
 
     if (maximized || !isMixedNav.value || !appStore.sidebarShow) {
       width = '100%'
-    } else if (sidebarEnableState.value) {
+    }
+    else if (sidebarEnableState.value) {
       const onHoveringWidth = appStore.sidebarExpandOnHover
         ? sidebarWidth.value
         : getSideCollapseWidth.value
@@ -170,7 +176,8 @@ export function useLayoutShellAdapter() {
       marginLeft = sidebarCollapse.value ? getSideCollapseWidth.value : onHoveringWidth
 
       width = `calc(100% - ${sidebarCollapse.value ? getSidebarWidth.value : onHoveringWidth}px)`
-    } else {
+    }
+    else {
       width = '100%'
     }
 
@@ -183,10 +190,10 @@ export function useLayoutShellAdapter() {
     const marginTop = maximized
       ? (appStore.tabbarEnabled && !isFullContent.value ? `${tabbarHeight.value}px` : '0')
       : (
-          fixed &&
-            !isFullContent.value &&
-            !headerIsHidden.value &&
-            (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
+          fixed
+          && !isFullContent.value
+          && !headerIsHidden.value
+          && (!isHeaderAutoMode.value || scrollY.value < headerWrapperHeight.value)
             ? `${headerWrapperHeight.value}px`
             : '0'
         )
@@ -219,23 +226,25 @@ export function useLayoutShellAdapter() {
 
   const sidebarZIndex = computed(() => {
     let offset = isMobile.value || isSideMode.value ? 1 : -1
-    if (isMixedNav.value) offset += 1
+    if (isMixedNav.value)
+      offset += 1
     return Z_INDEX_BASE + offset
   })
 
   const footerWidth = computed(() => {
-    if (!appStore.footerFixed) return '100%'
+    if (!appStore.footerFixed)
+      return '100%'
     return mainStyle.value.width
   })
 
   const showHeaderToggleButton = computed(() => {
     return (
-      isMobile.value ||
-      (appStore.widgetSidebarToggle &&
-        isSideMode.value &&
-        !isSideMixedNav.value &&
-        !isMixedNav.value &&
-        !isMobile.value)
+      isMobile.value
+      || (appStore.widgetSidebarToggle
+        && isSideMode.value
+        && !isSideMixedNav.value
+        && !isMixedNav.value
+        && !isMobile.value)
     )
   })
 
@@ -247,7 +256,8 @@ export function useLayoutShellAdapter() {
   const transitionName = computed(() => (appStore.transitionEnable ? appStore.transitionName : ''))
 
   const effectiveCollapsed = computed(() => {
-    if (isMobile.value || isDualColumnMode.value) return false
+    if (isMobile.value || isDualColumnMode.value)
+      return false
     if (!appStore.sidebarExpandOnHover && sidebarCollapse.value) {
       return !sidebarExpandOnHovering.value
     }
@@ -256,10 +266,10 @@ export function useLayoutShellAdapter() {
 
   const floatingSidebarMode = computed(() => {
     return (
-      !appStore.sidebarExpandOnHover &&
-      sidebarCollapse.value &&
-      !isMobile.value &&
-      !isDualColumnMode.value
+      !appStore.sidebarExpandOnHover
+      && sidebarCollapse.value
+      && !isMobile.value
+      && !isDualColumnMode.value
     )
   })
 
@@ -272,21 +282,27 @@ export function useLayoutShellAdapter() {
   })
 
   const siderWidth = computed(() => {
-    if (isMobile.value) return expandedSidebarWidth.value
-    if (isDualColumnMode.value) return SIDEBAR_MIXED_WIDTH + appStore.sidebarWidth
-    if (floatingSidebarMode.value && floatingSidebarExpand.value) return expandedSidebarWidth.value
-    if (floatingSidebarMode.value) return getSideCollapseWidth.value
-    if (effectiveCollapsed.value) return getSideCollapseWidth.value
+    if (isMobile.value)
+      return expandedSidebarWidth.value
+    if (isDualColumnMode.value)
+      return SIDEBAR_MIXED_WIDTH + appStore.sidebarWidth
+    if (floatingSidebarMode.value && floatingSidebarExpand.value)
+      return expandedSidebarWidth.value
+    if (floatingSidebarMode.value)
+      return getSideCollapseWidth.value
+    if (effectiveCollapsed.value)
+      return getSideCollapseWidth.value
     return currentLayout.value === 'mix' ? 224 : sidebarWidth.value
   })
 
   const showSider = computed(() => {
-    if (isMobile.value) return mobileSidebarOpen.value
+    if (isMobile.value)
+      return mobileSidebarOpen.value
     return (
-      !contentMaximized.value &&
-      !isFullContent.value &&
-      currentLayout.value !== 'top' &&
-      appStore.sidebarShow
+      !contentMaximized.value
+      && !isFullContent.value
+      && currentLayout.value !== 'top'
+      && appStore.sidebarShow
     )
   })
 
@@ -307,7 +323,8 @@ export function useLayoutShellAdapter() {
   let lastScrollY = 0
 
   function handleAutoScrollHeader() {
-    if (headerMode.value !== 'auto-scroll' || isMixedNav.value || isFullContent.value) return
+    if (headerMode.value !== 'auto-scroll' || isMixedNav.value || isFullContent.value)
+      return
 
     if (scrollY.value < headerWrapperHeight.value) {
       headerIsHidden.value = false
@@ -325,8 +342,10 @@ export function useLayoutShellAdapter() {
 
   // --- Event handlers ---
   function handleSidebarMouseEnter(e: MouseEvent) {
-    if (e?.offsetX < 10) return
-    if (appStore.sidebarExpandOnHover) return
+    if (e?.offsetX < 10)
+      return
+    if (appStore.sidebarExpandOnHover)
+      return
     if (!sidebarExpandOnHovering.value) {
       sidebarCollapse.value = false
     }
@@ -334,7 +353,8 @@ export function useLayoutShellAdapter() {
   }
 
   function handleSidebarMouseLeave() {
-    if (appStore.sidebarExpandOnHover) return
+    if (appStore.sidebarExpandOnHover)
+      return
     sidebarExpandOnHovering.value = false
     sidebarCollapse.value = true
     sidebarExtraVisible.value = false
@@ -348,7 +368,8 @@ export function useLayoutShellAdapter() {
   function handleHeaderToggle() {
     if (isMobile.value) {
       mobileSidebarOpen.value = !mobileSidebarOpen.value
-    } else {
+    }
+    else {
       appStore.setSidebarShow(!appStore.sidebarShow)
     }
   }
@@ -403,7 +424,8 @@ export function useLayoutShellAdapter() {
   watch(
     () => isMobile.value,
     (val) => {
-      if (val) sidebarCollapse.value = true
+      if (val)
+        sidebarCollapse.value = true
     },
     { immediate: true },
   )
@@ -411,7 +433,8 @@ export function useLayoutShellAdapter() {
   watch(
     () => route.fullPath,
     () => {
-      if (isNarrowScreen.value) mobileSidebarOpen.value = false
+      if (isNarrowScreen.value)
+        mobileSidebarOpen.value = false
     },
   )
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysEmail } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -62,11 +62,16 @@ const formData = ref<Partial<SysEmail>>({
 })
 
 function getEmailStatusType(status: number): 'default' | 'info' | 'success' | 'warning' | 'error' {
-  if (status === 0) return 'warning'
-  if (status === 1) return 'info'
-  if (status === 2) return 'success'
-  if (status === 3) return 'error'
-  if (status === 4) return 'default'
+  if (status === 0)
+    return 'warning'
+  if (status === 1)
+    return 'info'
+  if (status === 2)
+    return 'success'
+  if (status === 3)
+    return 'error'
+  if (status === 4)
+    return 'default'
   return 'default'
 }
 
@@ -76,9 +81,11 @@ async function fetchData() {
     const result = await getEmailPageApi(queryParams)
     tableData.value = result.items
     total.value = result.total
-  } catch {
+  }
+  catch {
     message.error('获取邮件列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -90,9 +97,11 @@ async function handleLoadPending() {
     tableData.value = pending
     total.value = pending.length
     queryParams.page = 1
-  } catch {
+  }
+  catch {
     message.error('获取待发送邮件失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -124,7 +133,8 @@ async function handleDelete(id: string) {
     await deleteEmailApi(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -134,15 +144,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await updateEmailApi(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await createEmailApi(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -170,13 +183,13 @@ const columns: DataTableColumns<SysEmail> = [
     title: '类型',
     key: 'emailType',
     width: 110,
-    render: (row) => getOptionLabel(EMAIL_TYPE_OPTIONS, row.emailType),
+    render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, row.emailType),
   },
   {
     title: '状态',
     key: 'emailStatus',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: getEmailStatusType(row.emailStatus), size: 'small', round: true },
@@ -187,14 +200,14 @@ const columns: DataTableColumns<SysEmail> = [
     title: '发送时间',
     key: 'sendTime',
     width: 170,
-    render: (row) => formatDate(row.sendTime ?? ''),
+    render: row => formatDate(row.sendTime ?? ''),
   },
   {
     title: '操作',
     key: 'actions',
     width: 160,
     fixed: 'right',
-    render: (row) =>
+    render: row =>
       h(
         NSpace,
         { size: 'small' },
@@ -265,7 +278,9 @@ onMounted(fetchData)
           </template>
           搜索
         </NButton>
-        <NButton @click="handleLoadPending">待发送</NButton>
+        <NButton @click="handleLoadPending">
+          待发送
+        </NButton>
         <NButton
           @click="
             () => {
@@ -354,8 +369,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysTenant } from '~/types'
-import { Icon } from '@iconify/vue'
+import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -306,7 +306,9 @@ onMounted(fetchData)
           </template>
           搜索
         </NButton>
-        <NButton @click="handleReset">重置</NButton>
+        <NButton @click="handleReset">
+          重置
+        </NButton>
         <NButton class="ml-auto" type="primary" @click="handleAdd">
           <template #icon>
             <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
@@ -390,8 +392,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>

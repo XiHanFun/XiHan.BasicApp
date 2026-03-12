@@ -58,7 +58,7 @@ function resolveView(component?: string) {
   const lowerPath = normalized.toLowerCase()
   const kebabPath = normalized
     .split('/')
-    .map((segment) => toKebabCase(segment))
+    .map(segment => toKebabCase(segment))
     .join('/')
   const aliasPath = componentAliasMap[lowerPath] ?? componentAliasMap[kebabPath] ?? ''
   for (const key of [lowerPath, kebabPath, aliasPath]) {
@@ -83,7 +83,7 @@ function resolveView(component?: string) {
     removeIndexSuffix(aliasPath),
   ])
 
-  const keys = Array.from(candidates).flatMap((path) => [
+  const keys = Array.from(candidates).flatMap(path => [
     `/src/views/${path}.vue`,
     `/src/views/${path}/index.vue`,
   ])
@@ -100,7 +100,7 @@ function resolveView(component?: string) {
 
 export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
   return menuRoutes
-    .filter((item) => !!item.path)
+    .filter(item => !!item.path)
     .map((item) => {
       const component = resolveView(item.component)
       const route = {
