@@ -59,8 +59,6 @@ public class SysResourceSeeder : DataSeederBase
             // 目录资源
             new() { ParentId = null, ResourceCode = "system", ResourceName = "系统管理", ResourceType = ResourceType.Menu, ResourcePath = "/system", Icon = "settings", Description = "系统管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 1 },
             new() { ParentId = null, ResourceCode = "platform", ResourceName = "平台管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform", Icon = "layout-grid", Description = "平台管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 2 },
-            new() { ParentId = null, ResourceCode = "messaging", ResourceName = "消息中心", ResourceType = ResourceType.Menu, ResourcePath = "/messaging", Icon = "message-square", Description = "消息中心目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 3 },
-            new() { ParentId = null, ResourceCode = "log", ResourceName = "日志管理", ResourceType = ResourceType.Menu, ResourcePath = "/log", Icon = "file-text", Description = "日志管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 4 },
 
             // 系统管理
             new() { ParentId = null, ResourceCode = "user", ResourceName = "账号管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/user", Icon = "user", Description = "账号管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 100 },
@@ -70,6 +68,8 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "oauth_app", ResourceName = "三方账号", ResourceType = ResourceType.Menu, ResourcePath = "/system/weChatUser", Icon = "link", Description = "三方账号管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 104 },
             new() { ParentId = null, ResourceCode = "user_session", ResourceName = "会话管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/session", Icon = "shield-check", Description = "在线会话管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 105 },
             new() { ParentId = null, ResourceCode = "review", ResourceName = "审核管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/review", Icon = "clipboard-check", Description = "审核管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 106 },
+            new() { ParentId = null, ResourceCode = "messaging", ResourceName = "消息中心", ResourceType = ResourceType.Menu, ResourcePath = "/messaging", Icon = "message-square", Description = "消息中心目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 107 },
+            new() { ParentId = null, ResourceCode = "log", ResourceName = "日志管理", ResourceType = ResourceType.Menu, ResourcePath = "/log", Icon = "file-text", Description = "日志管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 108 },
 
             // 平台管理
             new() { ParentId = null, ResourceCode = "tenant", ResourceName = "租户管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/tenant", Icon = "server", Description = "租户管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 200 },
@@ -115,10 +115,11 @@ public class SysResourceSeeder : DataSeederBase
         };
 
         await BulkInsertAsync(resources);
-        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);
-        await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
         await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);
+        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "messaging", "log"]);
+        await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
+
         Logger.LogInformation("成功初始化 {Count} 个系统资源", resources.Count);
     }
 
