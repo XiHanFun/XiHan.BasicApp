@@ -6,6 +6,7 @@
 // FileName:SysTenantSeeder
 // Guid:5a3ff7e7-9cb6-4f25-8d5f-0fd2fdaf7b65
 // Author:zhaifanhua
+// Email:me@zhaifanhua.com
 // CreateTime:2026/03/13 00:00:00
 // ----------------------------------------------------------------
 

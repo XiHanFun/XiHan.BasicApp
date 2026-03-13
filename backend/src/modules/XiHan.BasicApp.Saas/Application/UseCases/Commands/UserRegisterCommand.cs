@@ -6,6 +6,7 @@
 // FileName:UserRegisterCommand
 // Guid:0f5d865b-6143-4823-a385-7b70609c26c1
 // Author:zhaifanhua
+// Email:me@zhaifanhua.com
 // CreateTime:2026/03/13 00:00:00
 // ----------------------------------------------------------------
 
