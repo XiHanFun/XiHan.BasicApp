@@ -8,6 +8,11 @@ import type { ApiResponse } from '~/types'
 import axios from 'axios'
 import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
+import {
+  applyApiSecurityToRequest,
+  resolveApiSecurityRuntimeConfig,
+  tryDecryptSecureResponse,
+} from './security'
 
 type AnyRecord = Record<string, any>
 interface RequestMeta {
@@ -22,6 +27,7 @@ export class RequestClient {
   private apiPrefix: string
   private isRefreshing = false
   private pendingRequests: Array<(token: string | null) => void> = []
+  private readonly securityConfig = resolveApiSecurityRuntimeConfig()
 
   constructor(config?: AxiosRequestConfig & { apiPrefix?: string }) {
     this.apiPrefix = config?.apiPrefix ?? '/api'
@@ -64,7 +70,7 @@ export class RequestClient {
 
   private setupInterceptors() {
     this.instance.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
+      async (config: InternalAxiosRequestConfig) => {
         const token = LocalStorage.get<string>(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
@@ -92,13 +98,23 @@ export class RequestClient {
             status: 'pending',
           })
         }
+
+        if (this.securityConfig.enabled) {
+          const requestUri = this.instance.getUri(config)
+          await applyApiSecurityToRequest(config, requestUri, this.securityConfig)
+        }
+
         return config
       },
       error => Promise.reject(error),
     )
 
     this.instance.interceptors.response.use(
-      (response: AxiosResponse<ApiResponse>) => {
+      async (response: AxiosResponse<ApiResponse>) => {
+        if (this.securityConfig.enabled) {
+          await tryDecryptSecureResponse(response, this.securityConfig)
+        }
+
         const meta = this.tryExtractMeta(response.config)
         if (meta) {
           const now = Date.now()
@@ -116,6 +132,15 @@ export class RequestClient {
         return response
       },
       async (error) => {
+        if (this.securityConfig.enabled && error?.response) {
+          try {
+            await tryDecryptSecureResponse(error.response, this.securityConfig)
+          }
+          catch {
+            // 解密失败时不阻断原始错误流程
+          }
+        }
+
         const meta = this.tryExtractMeta(error?.config)
         if (meta) {
           const now = Date.now()
