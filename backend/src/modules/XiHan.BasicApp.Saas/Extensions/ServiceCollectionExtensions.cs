@@ -41,6 +41,7 @@ using XiHan.Framework.MultiTenancy.ConfigurationStore;
 using XiHan.Framework.Settings.Stores;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Web.Api.Logging.Writers;
+using XiHan.Framework.Web.Api.Security.OpenApi;
 using XiHan.BasicApp.Saas.Infrastructure.UpgradeAdapters;
 
 namespace XiHan.BasicApp.Saas.Extensions;
@@ -172,6 +173,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRoleStore, RbacRoleStore>();
         services.AddScoped<IPermissionStore, RbacPermissionStore>();
         services.AddScoped<IPolicyStore, RbacPolicyStore>();
+        services.AddScoped<IOpenApiSecurityClientStore, RbacOpenApiSecurityClientStore>();
         services.AddScoped<ITenantStore, RbacTenantStore>();
         services.AddScoped<ISettingStore, RbacSettingStore>();
         services.AddScoped<IAccessLogWriter, RbacAccessLogWriter>();
