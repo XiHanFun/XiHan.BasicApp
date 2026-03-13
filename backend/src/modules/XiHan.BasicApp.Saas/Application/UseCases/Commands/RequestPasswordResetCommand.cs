@@ -6,6 +6,7 @@
 // FileName:RequestPasswordResetCommand
 // Guid:2fd0812f-90b8-47f7-9b2f-c4994fef7e48
 // Author:zhaifanhua
+// Email:me@zhaifanhua.com
 // CreateTime:2026/03/13 00:00:00
 // ----------------------------------------------------------------
 
