@@ -16,7 +16,9 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Security;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
@@ -33,15 +35,20 @@ public class OAuthAppService
         IOAuthAppService
 {
     private readonly IOAuthAppRepository _oauthAppRepository;
+    private readonly IConfigRepository _configRepository;
     private readonly IRbacLookupCacheService _lookupCacheService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public OAuthAppService(IOAuthAppRepository oauthAppRepository, IRbacLookupCacheService lookupCacheService)
+    public OAuthAppService(
+        IOAuthAppRepository oauthAppRepository,
+        IConfigRepository configRepository,
+        IRbacLookupCacheService lookupCacheService)
         : base(oauthAppRepository)
     {
         _oauthAppRepository = oauthAppRepository;
+        _configRepository = configRepository;
         _lookupCacheService = lookupCacheService;
     }
 
@@ -61,6 +68,83 @@ public class OAuthAppService
                 var entity = await _oauthAppRepository.GetByClientIdAsync(normalizedClientId, tenantId, token);
                 return entity?.Adapt<OAuthAppDto>();
             });
+    }
+
+    /// <summary>
+    /// 获取 OpenAPI 安全配置
+    /// </summary>
+    public async Task<OAuthAppOpenApiSecurityDto> GetOpenApiSecurityAsync(long appId)
+    {
+        if (appId <= 0)
+        {
+            throw new ArgumentException("OAuth 应用 ID 无效", nameof(appId));
+        }
+
+        var app = await _oauthAppRepository.GetByIdAsync(appId)
+                  ?? throw new KeyNotFoundException($"未找到 OAuth 应用: {appId}");
+        var config = await LoadOpenApiConfigAsync(app.ClientId, app.TenantId);
+        var normalized = OpenApiClientSecurityConfigHelper.Normalize(config, app.ClientSecret);
+
+        return ToOpenApiSecurityDto(app.BasicId, normalized);
+    }
+
+    /// <summary>
+    /// 更新 OpenAPI 安全配置
+    /// </summary>
+    public async Task<OAuthAppOpenApiSecurityDto> UpdateOpenApiSecurityAsync(OAuthAppOpenApiSecurityUpdateDto input)
+    {
+        input.ValidateAnnotations();
+        var app = await _oauthAppRepository.GetByIdAsync(input.BasicId)
+                  ?? throw new KeyNotFoundException($"未找到 OAuth 应用: {input.BasicId}");
+
+        var normalized = OpenApiClientSecurityConfigHelper.Normalize(
+            new OpenApiClientSecurityConfig
+            {
+                IsEnabled = input.IsEnabled,
+                SignatureAlgorithm = input.SignatureAlgorithm,
+                ContentSignatureAlgorithm = input.ContentSignatureAlgorithm,
+                EncryptionAlgorithm = input.EncryptionAlgorithm,
+                EncryptKey = input.EncryptKey,
+                PublicKey = input.PublicKey,
+                Sm2PublicKey = input.Sm2PublicKey,
+                AllowResponseEncryption = input.AllowResponseEncryption,
+                IpWhitelist = input.IpWhitelist
+            },
+            app.ClientSecret);
+
+        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(app.ClientId);
+        var existing = await _configRepository.GetByConfigKeyAsync(configKey, app.TenantId);
+        if (existing is null)
+        {
+            await _configRepository.AddAsync(new SysConfig
+            {
+                TenantId = app.TenantId,
+                ConfigName = OpenApiClientSecurityConfigHelper.BuildConfigName(app.ClientId),
+                ConfigGroup = OpenApiClientSecurityConfigHelper.ConfigGroup,
+                ConfigKey = configKey,
+                ConfigValue = OpenApiClientSecurityConfigHelper.Serialize(normalized),
+                ConfigType = ConfigType.Application,
+                DataType = ConfigDataType.Json,
+                ConfigDescription = OpenApiClientSecurityConfigHelper.BuildConfigDescription(app.ClientId),
+                IsBuiltIn = false,
+                IsEncrypted = false,
+                Status = normalized.IsEnabled ? YesOrNo.Yes : YesOrNo.No
+            });
+        }
+        else
+        {
+            existing.ConfigName = OpenApiClientSecurityConfigHelper.BuildConfigName(app.ClientId);
+            existing.ConfigGroup = OpenApiClientSecurityConfigHelper.ConfigGroup;
+            existing.ConfigValue = OpenApiClientSecurityConfigHelper.Serialize(normalized);
+            existing.ConfigType = ConfigType.Application;
+            existing.DataType = ConfigDataType.Json;
+            existing.ConfigDescription = OpenApiClientSecurityConfigHelper.BuildConfigDescription(app.ClientId);
+            existing.Status = normalized.IsEnabled ? YesOrNo.Yes : YesOrNo.No;
+            await _configRepository.UpdateAsync(existing);
+        }
+
+        await _lookupCacheService.InvalidateOAuthAppLookupAsync(app.TenantId);
+        return ToOpenApiSecurityDto(app.BasicId, normalized);
     }
 
     /// <summary>
@@ -113,9 +197,17 @@ public class OAuthAppService
             return false;
         }
 
+        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(entity.ClientId);
+        var config = await _configRepository.GetByConfigKeyAsync(configKey, entity.TenantId);
+
         var deleted = await base.DeleteAsync(id);
         if (deleted)
         {
+            if (config is not null)
+            {
+                await _configRepository.DeleteAsync(config);
+            }
+
             await _lookupCacheService.InvalidateOAuthAppLookupAsync(entity.TenantId);
         }
 
@@ -167,5 +259,29 @@ public class OAuthAppService
         entity.Status = updateDto.Status;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
+    }
+
+    private async Task<OpenApiClientSecurityConfig?> LoadOpenApiConfigAsync(string clientId, long? tenantId)
+    {
+        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(clientId);
+        var config = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
+        return OpenApiClientSecurityConfigHelper.Deserialize(config?.ConfigValue);
+    }
+
+    private static OAuthAppOpenApiSecurityDto ToOpenApiSecurityDto(long appId, OpenApiClientSecurityConfig config)
+    {
+        return new OAuthAppOpenApiSecurityDto
+        {
+            BasicId = appId,
+            IsEnabled = config.IsEnabled,
+            SignatureAlgorithm = config.SignatureAlgorithm,
+            ContentSignatureAlgorithm = config.ContentSignatureAlgorithm,
+            EncryptionAlgorithm = config.EncryptionAlgorithm,
+            EncryptKey = config.EncryptKey,
+            PublicKey = config.PublicKey,
+            Sm2PublicKey = config.Sm2PublicKey,
+            AllowResponseEncryption = config.AllowResponseEncryption,
+            IpWhitelist = config.IpWhitelist
+        };
     }
 }

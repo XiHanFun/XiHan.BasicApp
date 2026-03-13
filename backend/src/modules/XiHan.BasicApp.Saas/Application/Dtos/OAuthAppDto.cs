@@ -84,6 +84,11 @@ public class OAuthAppDto : BasicAppDto
     public bool SkipConsent { get; set; }
 
     /// <summary>
+    /// 租户标识
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -256,4 +261,116 @@ public class OAuthAppUpdateDto : BasicAppUDto
     /// </summary>
     [StringLength(500, ErrorMessage = "备注长度不能超过 500")]
     public string? Remark { get; set; }
+}
+
+/// <summary>
+/// OAuth 应用 OpenAPI 安全配置 DTO
+/// </summary>
+public class OAuthAppOpenApiSecurityDto : BasicAppDto
+{
+    /// <summary>
+    /// 是否启用 OpenAPI 安全策略
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 请求签名算法
+    /// </summary>
+    public string SignatureAlgorithm { get; set; } = "HMACSHA256";
+
+    /// <summary>
+    /// 内容签名算法
+    /// </summary>
+    public string ContentSignatureAlgorithm { get; set; } = "SHA256";
+
+    /// <summary>
+    /// 加密算法
+    /// </summary>
+    public string EncryptionAlgorithm { get; set; } = "AES-CBC";
+
+    /// <summary>
+    /// 加密密钥（为空时回退客户端密钥）
+    /// </summary>
+    public string? EncryptKey { get; set; }
+
+    /// <summary>
+    /// RSA 公钥（用于 RSASHA256）
+    /// </summary>
+    public string? PublicKey { get; set; }
+
+    /// <summary>
+    /// SM2 公钥（用于 SM2）
+    /// </summary>
+    public string? Sm2PublicKey { get; set; }
+
+    /// <summary>
+    /// 是否允许响应加密
+    /// </summary>
+    public bool AllowResponseEncryption { get; set; } = true;
+
+    /// <summary>
+    /// IP 白名单，支持逗号/分号/换行分隔
+    /// </summary>
+    public string? IpWhitelist { get; set; }
+}
+
+/// <summary>
+/// 更新 OAuth 应用 OpenAPI 安全配置 DTO
+/// </summary>
+public class OAuthAppOpenApiSecurityUpdateDto : BasicAppUDto
+{
+    /// <summary>
+    /// 是否启用 OpenAPI 安全策略
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 请求签名算法
+    /// </summary>
+    [Required(ErrorMessage = "请求签名算法不能为空")]
+    [StringLength(50, ErrorMessage = "请求签名算法长度不能超过 50")]
+    public string SignatureAlgorithm { get; set; } = "HMACSHA256";
+
+    /// <summary>
+    /// 内容签名算法
+    /// </summary>
+    [Required(ErrorMessage = "内容签名算法不能为空")]
+    [StringLength(50, ErrorMessage = "内容签名算法长度不能超过 50")]
+    public string ContentSignatureAlgorithm { get; set; } = "SHA256";
+
+    /// <summary>
+    /// 加密算法
+    /// </summary>
+    [Required(ErrorMessage = "加密算法不能为空")]
+    [StringLength(50, ErrorMessage = "加密算法长度不能超过 50")]
+    public string EncryptionAlgorithm { get; set; } = "AES-CBC";
+
+    /// <summary>
+    /// 加密密钥（为空时回退客户端密钥）
+    /// </summary>
+    [StringLength(1000, ErrorMessage = "加密密钥长度不能超过 1000")]
+    public string? EncryptKey { get; set; }
+
+    /// <summary>
+    /// RSA 公钥（用于 RSASHA256）
+    /// </summary>
+    [StringLength(10000, ErrorMessage = "RSA 公钥长度不能超过 10000")]
+    public string? PublicKey { get; set; }
+
+    /// <summary>
+    /// SM2 公钥（用于 SM2）
+    /// </summary>
+    [StringLength(10000, ErrorMessage = "SM2 公钥长度不能超过 10000")]
+    public string? Sm2PublicKey { get; set; }
+
+    /// <summary>
+    /// 是否允许响应加密
+    /// </summary>
+    public bool AllowResponseEncryption { get; set; } = true;
+
+    /// <summary>
+    /// IP 白名单，支持逗号/分号/换行分隔
+    /// </summary>
+    [StringLength(4000, ErrorMessage = "IP 白名单长度不能超过 4000")]
+    public string? IpWhitelist { get; set; }
 }

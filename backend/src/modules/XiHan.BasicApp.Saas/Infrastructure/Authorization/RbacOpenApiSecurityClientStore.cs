@@ -15,6 +15,7 @@
 using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Security;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -28,6 +29,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
 public class RbacOpenApiSecurityClientStore : IOpenApiSecurityClientStore
 {
     private readonly IOAuthAppRepository _oauthAppRepository;
+    private readonly IConfigRepository _configRepository;
     private readonly IRbacLookupCacheService _lookupCacheService;
     private readonly ICurrentTenant _currentTenant;
     private readonly IOptionsMonitor<XiHanOpenApiSecurityOptions> _optionsMonitor;
@@ -37,11 +39,13 @@ public class RbacOpenApiSecurityClientStore : IOpenApiSecurityClientStore
     /// </summary>
     public RbacOpenApiSecurityClientStore(
         IOAuthAppRepository oauthAppRepository,
+        IConfigRepository configRepository,
         IRbacLookupCacheService lookupCacheService,
         ICurrentTenant currentTenant,
         IOptionsMonitor<XiHanOpenApiSecurityOptions> optionsMonitor)
     {
         _oauthAppRepository = oauthAppRepository;
+        _configRepository = configRepository;
         _lookupCacheService = lookupCacheService;
         _currentTenant = currentTenant;
         _optionsMonitor = optionsMonitor;
@@ -61,6 +65,9 @@ public class RbacOpenApiSecurityClientStore : IOpenApiSecurityClientStore
             string.Equals(item.AccessKey, normalizedAccessKey, StringComparison.OrdinalIgnoreCase));
 
         var oauthClient = await FindOAuthClientAsync(normalizedAccessKey, _currentTenant.Id, cancellationToken);
+        var persistedConfig = oauthClient is null
+            ? null
+            : await LoadOpenApiConfigAsync(oauthClient.ClientId, oauthClient.TenantId, cancellationToken);
         if (oauthClient is null && configuredClient is null)
         {
             return null;
@@ -76,40 +83,69 @@ public class RbacOpenApiSecurityClientStore : IOpenApiSecurityClientStore
             return null;
         }
 
-        if (oauthClient is null)
+        var effectiveSecretKey = oauthClient?.ClientSecret ?? configuredClient?.SecretKey;
+        if (string.IsNullOrWhiteSpace(effectiveSecretKey))
         {
-            return new OpenApiSecurityClient
-            {
-                AccessKey = configuredClient!.AccessKey,
-                SecretKey = configuredClient.SecretKey,
-                EncryptKey = configuredClient.EncryptKey,
-                PublicKey = configuredClient.PublicKey,
-                Sm2PublicKey = configuredClient.Sm2PublicKey,
-                SignatureAlgorithm = configuredClient.SignatureAlgorithm,
-                ContentSignatureAlgorithm = configuredClient.ContentSignatureAlgorithm,
-                EncryptionAlgorithm = configuredClient.EncryptionAlgorithm,
-                AllowResponseEncryption = configuredClient.AllowResponseEncryption,
-                IpWhitelist = [.. configuredClient.IpWhitelist],
-                IsEnabled = true
-            };
+            return null;
         }
 
-        var mergedEncryptKey = string.IsNullOrWhiteSpace(configuredClient?.EncryptKey)
-            ? oauthClient.ClientSecret
-            : configuredClient.EncryptKey;
+        var mergedConfig = OpenApiClientSecurityConfigHelper.Normalize(
+            new OpenApiClientSecurityConfig
+            {
+                IsEnabled = persistedConfig?.IsEnabled ?? true,
+                SignatureAlgorithm = FirstNonEmpty(
+                    persistedConfig?.SignatureAlgorithm,
+                    configuredClient?.SignatureAlgorithm,
+                    options.DefaultSignatureAlgorithm,
+                    "HMACSHA256") ?? "HMACSHA256",
+                ContentSignatureAlgorithm = FirstNonEmpty(
+                    persistedConfig?.ContentSignatureAlgorithm,
+                    configuredClient?.ContentSignatureAlgorithm,
+                    options.DefaultContentSignatureAlgorithm,
+                    "SHA256") ?? "SHA256",
+                EncryptionAlgorithm = FirstNonEmpty(
+                    persistedConfig?.EncryptionAlgorithm,
+                    configuredClient?.EncryptionAlgorithm,
+                    options.DefaultEncryptionAlgorithm,
+                    "AES-CBC") ?? "AES-CBC",
+                EncryptKey = FirstNonEmpty(
+                    persistedConfig?.EncryptKey,
+                    configuredClient?.EncryptKey,
+                    effectiveSecretKey),
+                PublicKey = FirstNonEmpty(
+                    persistedConfig?.PublicKey,
+                    configuredClient?.PublicKey),
+                Sm2PublicKey = FirstNonEmpty(
+                    persistedConfig?.Sm2PublicKey,
+                    configuredClient?.Sm2PublicKey),
+                AllowResponseEncryption = persistedConfig?.AllowResponseEncryption
+                    ?? configuredClient?.AllowResponseEncryption
+                    ?? true,
+                IpWhitelist = string.IsNullOrWhiteSpace(persistedConfig?.IpWhitelist)
+                    ? JoinIpWhitelist(configuredClient?.IpWhitelist)
+                    : persistedConfig?.IpWhitelist
+            },
+            effectiveSecretKey);
+
+        if (!mergedConfig.IsEnabled)
+        {
+            return null;
+        }
+
+        var ipWhitelist = OpenApiClientSecurityConfigHelper.ParseIpWhitelist(mergedConfig.IpWhitelist);
 
         return new OpenApiSecurityClient
         {
-            AccessKey = oauthClient.ClientId,
-            SecretKey = oauthClient.ClientSecret,
-            EncryptKey = mergedEncryptKey,
-            PublicKey = configuredClient?.PublicKey,
-            Sm2PublicKey = configuredClient?.Sm2PublicKey,
-            SignatureAlgorithm = configuredClient?.SignatureAlgorithm,
-            ContentSignatureAlgorithm = configuredClient?.ContentSignatureAlgorithm,
-            EncryptionAlgorithm = configuredClient?.EncryptionAlgorithm,
-            AllowResponseEncryption = configuredClient?.AllowResponseEncryption ?? true,
-            IpWhitelist = configuredClient is null ? [] : [.. configuredClient.IpWhitelist],
+            AccessKey = oauthClient?.ClientId ?? configuredClient!.AccessKey,
+            SecretKey = effectiveSecretKey,
+            EncryptKey = mergedConfig.EncryptKey ?? effectiveSecretKey,
+            PublicKey = mergedConfig.PublicKey,
+            Sm2PublicKey = mergedConfig.Sm2PublicKey,
+            SignatureAlgorithm = mergedConfig.SignatureAlgorithm,
+            ContentSignatureAlgorithm = mergedConfig.ContentSignatureAlgorithm,
+            EncryptionAlgorithm = mergedConfig.EncryptionAlgorithm,
+            AllowResponseEncryption = mergedConfig.AllowResponseEncryption,
+            IpWhitelist = [.. ipWhitelist],
             IsEnabled = true
         };
     }
@@ -149,9 +185,43 @@ public class RbacOpenApiSecurityClientStore : IOpenApiSecurityClientStore
                 {
                     ClientId = entity.ClientId,
                     ClientSecret = entity.ClientSecret,
+                    TenantId = entity.TenantId,
                     Status = entity.Status
                 };
             },
             cancellationToken);
+    }
+
+    private async Task<OpenApiClientSecurityConfig?> LoadOpenApiConfigAsync(
+        string clientId,
+        long? tenantId,
+        CancellationToken cancellationToken)
+    {
+        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(clientId);
+        var config = await _configRepository.GetByConfigKeyAsync(configKey, tenantId, cancellationToken);
+        return OpenApiClientSecurityConfigHelper.Deserialize(config?.ConfigValue);
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+        }
+
+        return null;
+    }
+
+    private static string? JoinIpWhitelist(IReadOnlyCollection<string>? values)
+    {
+        if (values is null || values.Count == 0)
+        {
+            return null;
+        }
+
+        return string.Join(",", values.Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()));
     }
 }

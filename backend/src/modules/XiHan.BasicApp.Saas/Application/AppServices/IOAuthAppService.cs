@@ -29,4 +29,14 @@ public interface IOAuthAppService
     /// 根据客户端ID获取应用
     /// </summary>
     Task<OAuthAppDto?> GetByClientIdAsync(string clientId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取 OpenAPI 安全配置
+    /// </summary>
+    Task<OAuthAppOpenApiSecurityDto> GetOpenApiSecurityAsync(long appId);
+
+    /// <summary>
+    /// 更新 OpenAPI 安全配置
+    /// </summary>
+    Task<OAuthAppOpenApiSecurityDto> UpdateOpenApiSecurityAsync(OAuthAppOpenApiSecurityUpdateDto input);
 }
