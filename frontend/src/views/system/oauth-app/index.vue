@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysOAuthApp } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
   NDataTable,
+  NDivider,
   NForm,
   NFormItem,
   NIcon,
@@ -21,8 +21,24 @@ import {
   useMessage,
 } from 'naive-ui'
 import { h, onMounted, reactive, ref } from 'vue'
-import { createOAuthAppApi, deleteOAuthAppApi, getOAuthAppPageApi, updateOAuthAppApi } from '@/api'
-import { DEFAULT_PAGE_SIZE, OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import {
+  createOAuthAppApi,
+  deleteOAuthAppApi,
+  getOAuthAppDetailApi,
+  getOAuthAppOpenApiSecurityApi,
+  getOAuthAppPageApi,
+  updateOAuthAppApi,
+  updateOAuthAppOpenApiSecurityApi,
+} from '@/api'
+import {
+  DEFAULT_PAGE_SIZE,
+  OAUTH_APP_TYPE_OPTIONS,
+  OPENAPI_CONTENT_SIGN_ALGORITHM_OPTIONS,
+  OPENAPI_ENCRYPT_ALGORITHM_OPTIONS,
+  OPENAPI_SIGNATURE_ALGORITHM_OPTIONS,
+  STATUS_OPTIONS,
+} from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemOAuthAppPage' })
@@ -41,7 +57,7 @@ const queryParams = reactive({
 })
 
 const modalVisible = ref(false)
-const modalTitle = ref('新增 OAuth 应用')
+const modalTitle = ref('新增 OpenAPI 客户端')
 const submitLoading = ref(false)
 
 const formData = ref<Partial<SysOAuthApp>>({
@@ -58,6 +74,15 @@ const formData = ref<Partial<SysOAuthApp>>({
   authorizationCodeLifetime: 300,
   skipConsent: false,
   status: 1,
+  openApiSecurityEnabled: true,
+  openApiSignatureAlgorithm: 'HMACSHA256',
+  openApiContentSignAlgorithm: 'SHA256',
+  openApiEncryptionAlgorithm: 'AES-CBC',
+  openApiEncryptKey: '',
+  openApiPublicKey: '',
+  openApiSm2PublicKey: '',
+  openApiAllowResponseEncryption: true,
+  openApiIpWhitelist: '',
   remark: '',
 })
 
@@ -69,7 +94,7 @@ async function fetchData() {
     total.value = result.total
   }
   catch {
-    message.error('获取 OAuth 应用列表失败')
+    message.error('获取 OpenAPI 客户端列表失败')
   }
   finally {
     loading.value = false
@@ -77,7 +102,7 @@ async function fetchData() {
 }
 
 function handleAdd() {
-  modalTitle.value = '新增 OAuth 应用'
+  modalTitle.value = '新增 OpenAPI 客户端'
   formData.value = {
     appName: '',
     appDescription: '',
@@ -92,15 +117,37 @@ function handleAdd() {
     authorizationCodeLifetime: 300,
     skipConsent: false,
     status: 1,
+    openApiSecurityEnabled: true,
+    openApiSignatureAlgorithm: 'HMACSHA256',
+    openApiContentSignAlgorithm: 'SHA256',
+    openApiEncryptionAlgorithm: 'AES-CBC',
+    openApiEncryptKey: '',
+    openApiPublicKey: '',
+    openApiSm2PublicKey: '',
+    openApiAllowResponseEncryption: true,
+    openApiIpWhitelist: '',
     remark: '',
   }
   modalVisible.value = true
 }
 
-function handleEdit(row: SysOAuthApp) {
-  modalTitle.value = '编辑 OAuth 应用'
-  formData.value = { ...row }
-  modalVisible.value = true
+async function handleEdit(row: SysOAuthApp) {
+  modalTitle.value = '编辑 OpenAPI 客户端'
+  try {
+    submitLoading.value = true
+    const [detail, security] = await Promise.all([
+      getOAuthAppDetailApi(row.basicId),
+      getOAuthAppOpenApiSecurityApi(row.basicId),
+    ])
+    formData.value = { ...detail, ...security }
+    modalVisible.value = true
+  }
+  catch {
+    message.error('获取客户端详情失败')
+  }
+  finally {
+    submitLoading.value = false
+  }
 }
 
 async function handleDelete(id: string) {
@@ -117,13 +164,20 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
+    let saved: SysOAuthApp | undefined
     if (formData.value.basicId) {
-      await updateOAuthAppApi(formData.value.basicId, formData.value)
+      saved = await updateOAuthAppApi(formData.value.basicId, formData.value)
     }
     else {
-      await createOAuthAppApi(formData.value)
+      saved = await createOAuthAppApi(formData.value)
     }
-    message.success('操作成功')
+
+    const appId = saved?.basicId ?? formData.value.basicId
+    if (!appId) {
+      throw new Error('未获取到应用ID')
+    }
+    await updateOAuthAppOpenApiSecurityApi(appId, formData.value)
+    message.success('保存成功')
     modalVisible.value = false
     fetchData()
   }
@@ -137,18 +191,18 @@ async function handleSubmit() {
 
 const columns: DataTableColumns<SysOAuthApp> = [
   {
-    title: '应用名称',
+    title: '客户端名称',
     key: 'appName',
     width: 180,
   },
   {
-    title: '客户端ID',
+    title: 'AccessKey',
     key: 'clientId',
     width: 200,
     ellipsis: { tooltip: true },
   },
   {
-    title: '应用类型',
+    title: '客户端类型',
     key: 'appType',
     width: 110,
     render: row => getOptionLabel(OAUTH_APP_TYPE_OPTIONS, row.appType),
@@ -214,7 +268,7 @@ const columns: DataTableColumns<SysOAuthApp> = [
                 onPositiveClick: () => handleDelete(row.basicId),
               },
               {
-                default: () => '确认删除该应用？',
+                default: () => '确认删除该客户端？',
                 trigger: () =>
                   h(
                     NButton,
@@ -238,7 +292,7 @@ onMounted(fetchData)
       <div class="flex flex-wrap items-center gap-3">
         <NInput
           v-model:value="queryParams.keyword"
-          placeholder="搜索应用名称/客户端ID"
+          placeholder="搜索客户端名称/AccessKey"
           style="width: 240px"
           clearable
           @keydown.enter="fetchData"
@@ -280,7 +334,7 @@ onMounted(fetchData)
           <template #icon>
             <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
           </template>
-          新增应用
+          新增客户端
         </NButton>
       </div>
     </NCard>
@@ -318,12 +372,12 @@ onMounted(fetchData)
       v-model:show="modalVisible"
       :title="modalTitle"
       preset="card"
-      style="width: 680px"
+      style="width: 760px"
       :auto-focus="false"
     >
       <NForm :model="formData" label-placement="left" label-width="120px">
-        <NFormItem label="应用名称" path="appName">
-          <NInput v-model:value="formData.appName" placeholder="请输入应用名称" />
+        <NFormItem label="客户端名称" path="appName">
+          <NInput v-model:value="formData.appName" placeholder="请输入客户端名称" />
         </NFormItem>
         <NFormItem label="应用描述" path="appDescription">
           <NInput
@@ -333,17 +387,17 @@ onMounted(fetchData)
             placeholder="可选"
           />
         </NFormItem>
-        <NFormItem label="客户端ID" path="clientId">
+        <NFormItem label="AccessKey" path="clientId">
           <NInput
             v-model:value="formData.clientId"
             :disabled="!!formData.basicId"
-            placeholder="请输入客户端ID"
+            placeholder="请输入 AccessKey"
           />
         </NFormItem>
-        <NFormItem label="客户端密钥" path="clientSecret">
-          <NInput v-model:value="formData.clientSecret" placeholder="请输入客户端密钥" />
+        <NFormItem label="SecretKey" path="clientSecret">
+          <NInput v-model:value="formData.clientSecret" placeholder="请输入 SecretKey" />
         </NFormItem>
-        <NFormItem label="应用类型" path="appType">
+        <NFormItem label="客户端类型" path="appType">
           <NSelect v-model:value="formData.appType" :options="OAUTH_APP_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="授权类型" path="grantTypes">
@@ -384,6 +438,65 @@ onMounted(fetchData)
         </NFormItem>
         <NFormItem label="状态" path="status">
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+        </NFormItem>
+        <NDivider title-placement="left">
+          OpenAPI 安全策略
+        </NDivider>
+        <NFormItem label="启用安全" path="openApiSecurityEnabled">
+          <NSwitch v-model:value="formData.openApiSecurityEnabled" />
+        </NFormItem>
+        <NFormItem label="签名算法" path="openApiSignatureAlgorithm">
+          <NSelect
+            v-model:value="formData.openApiSignatureAlgorithm"
+            :options="OPENAPI_SIGNATURE_ALGORITHM_OPTIONS"
+          />
+        </NFormItem>
+        <NFormItem label="内容签名" path="openApiContentSignAlgorithm">
+          <NSelect
+            v-model:value="formData.openApiContentSignAlgorithm"
+            :options="OPENAPI_CONTENT_SIGN_ALGORITHM_OPTIONS"
+          />
+        </NFormItem>
+        <NFormItem label="加密算法" path="openApiEncryptionAlgorithm">
+          <NSelect
+            v-model:value="formData.openApiEncryptionAlgorithm"
+            :options="OPENAPI_ENCRYPT_ALGORITHM_OPTIONS"
+          />
+        </NFormItem>
+        <NFormItem label="加密密钥" path="openApiEncryptKey">
+          <NInput
+            v-model:value="formData.openApiEncryptKey"
+            type="textarea"
+            :rows="2"
+            placeholder="留空则默认复用 SecretKey。AES 建议 16/24/32 位，BLOWFISH 建议 8~56 位。"
+          />
+        </NFormItem>
+        <NFormItem v-if="formData.openApiSignatureAlgorithm === 'RSASHA256'" label="RSA 公钥" path="openApiPublicKey">
+          <NInput
+            v-model:value="formData.openApiPublicKey"
+            type="textarea"
+            :rows="4"
+            placeholder="PEM/Base64 格式公钥，仅 RSASHA256 需要"
+          />
+        </NFormItem>
+        <NFormItem v-if="formData.openApiSignatureAlgorithm === 'SM2'" label="SM2 公钥" path="openApiSm2PublicKey">
+          <NInput
+            v-model:value="formData.openApiSm2PublicKey"
+            type="textarea"
+            :rows="4"
+            placeholder="SM2 公钥，仅 SM2 签名需要"
+          />
+        </NFormItem>
+        <NFormItem label="响应加密" path="openApiAllowResponseEncryption">
+          <NSwitch v-model:value="formData.openApiAllowResponseEncryption" />
+        </NFormItem>
+        <NFormItem label="IP 白名单" path="openApiIpWhitelist">
+          <NInput
+            v-model:value="formData.openApiIpWhitelist"
+            type="textarea"
+            :rows="3"
+            placeholder="多个 IP 用逗号、分号或换行分隔；留空表示不限制"
+          />
         </NFormItem>
       </NForm>
       <template #footer>

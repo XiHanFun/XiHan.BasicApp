@@ -353,7 +353,17 @@ export interface SysOAuthApp {
   refreshTokenLifetime: number
   authorizationCodeLifetime: number
   skipConsent: boolean
+  tenantId?: string
   status: number
+  openApiSecurityEnabled?: boolean
+  openApiSignatureAlgorithm?: string
+  openApiContentSignAlgorithm?: string
+  openApiEncryptionAlgorithm?: string
+  openApiEncryptKey?: string
+  openApiPublicKey?: string
+  openApiSm2PublicKey?: string
+  openApiAllowResponseEncryption?: boolean
+  openApiIpWhitelist?: string
   createTime?: string
   updateTime?: string
   remark?: string

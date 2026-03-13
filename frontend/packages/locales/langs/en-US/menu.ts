@@ -16,7 +16,7 @@ export default {
   email: 'Email Management',
   sms: 'SMS Management',
   task: 'Task Scheduler',
-  oauthApp: 'OAuth Applications',
+  oauthApp: 'OpenAPI Clients',
   review: 'Review Management',
   userSession: 'Session Management',
   logs: 'Logs Center',
