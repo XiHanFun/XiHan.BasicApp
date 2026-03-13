@@ -19,10 +19,25 @@ function normalizeOAuthApp(raw: Record<string, any>): SysOAuthApp {
     refreshTokenLifetime: toNumber(raw.refreshTokenLifetime, 2592000),
     authorizationCodeLifetime: toNumber(raw.authorizationCodeLifetime, 300),
     skipConsent: Boolean(raw.skipConsent),
+    tenantId: raw.tenantId === null || raw.tenantId === undefined ? undefined : toId(raw.tenantId),
     status: toNumber(raw.status, 1),
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
     remark: raw.remark ?? undefined,
+  }
+}
+
+function normalizeOpenApiSecurity(raw: Record<string, any>): Partial<SysOAuthApp> {
+  return {
+    openApiSecurityEnabled: raw.isEnabled === undefined ? true : Boolean(raw.isEnabled),
+    openApiSignatureAlgorithm: raw.signatureAlgorithm ?? 'HMACSHA256',
+    openApiContentSignAlgorithm: raw.contentSignatureAlgorithm ?? 'SHA256',
+    openApiEncryptionAlgorithm: raw.encryptionAlgorithm ?? 'AES-CBC',
+    openApiEncryptKey: raw.encryptKey ?? '',
+    openApiPublicKey: raw.publicKey ?? '',
+    openApiSm2PublicKey: raw.sm2PublicKey ?? '',
+    openApiAllowResponseEncryption: raw.allowResponseEncryption === undefined ? true : Boolean(raw.allowResponseEncryption),
+    openApiIpWhitelist: raw.ipWhitelist ?? '',
   }
 }
 
@@ -52,6 +67,21 @@ function toOAuthUpdatePayload(id: string, data: Partial<SysOAuthApp>) {
   }
 }
 
+function toOpenApiSecurityPayload(id: string, data: Partial<SysOAuthApp>) {
+  return {
+    basicId: toNumber(id, 0),
+    isEnabled: data.openApiSecurityEnabled !== false,
+    signatureAlgorithm: data.openApiSignatureAlgorithm ?? 'HMACSHA256',
+    contentSignatureAlgorithm: data.openApiContentSignAlgorithm ?? 'SHA256',
+    encryptionAlgorithm: data.openApiEncryptionAlgorithm ?? 'AES-CBC',
+    encryptKey: data.openApiEncryptKey ?? '',
+    publicKey: data.openApiPublicKey ?? '',
+    sm2PublicKey: data.openApiSm2PublicKey ?? '',
+    allowResponseEncryption: data.openApiAllowResponseEncryption !== false,
+    ipWhitelist: data.openApiIpWhitelist ?? '',
+  }
+}
+
 export async function getOAuthAppPageApi(
   params: OAuthAppPageQuery,
 ): Promise<PageResult<SysOAuthApp>> {
@@ -75,13 +105,17 @@ export function getOAuthAppDetailApi(id: string) {
 }
 
 export function createOAuthAppApi(data: Partial<SysOAuthApp>) {
-  return requestClient.post<void>(`${OAUTH_API}/Create`, toOAuthCreatePayload(data))
+  return requestClient
+    .post<any>(`${OAUTH_API}/Create`, toOAuthCreatePayload(data))
+    .then(raw => normalizeOAuthApp(raw))
 }
 
 export function updateOAuthAppApi(id: string, data: Partial<SysOAuthApp>) {
-  return requestClient.put<void>(`${OAUTH_API}/Update`, toOAuthUpdatePayload(id, data), {
-    params: { id },
-  })
+  return requestClient
+    .put<any>(`${OAUTH_API}/Update`, toOAuthUpdatePayload(id, data), {
+      params: { id },
+    })
+    .then(raw => normalizeOAuthApp(raw))
 }
 
 export function deleteOAuthAppApi(id: string) {
@@ -94,4 +128,16 @@ export function getOAuthAppByClientIdApi(clientId: string, tenantId?: number) {
   return requestClient
     .get<any>(`${OAUTH_API}/ByClientId/${clientId}/${tenantId ?? 0}`)
     .then(raw => (raw ? normalizeOAuthApp(raw) : null))
+}
+
+export function getOAuthAppOpenApiSecurityApi(id: string) {
+  return requestClient
+    .get<any>(`${OAUTH_API}/OpenApiSecurity`, { params: { appId: id } })
+    .then(raw => normalizeOpenApiSecurity(raw))
+}
+
+export function updateOAuthAppOpenApiSecurityApi(id: string, data: Partial<SysOAuthApp>) {
+  return requestClient
+    .put<any>(`${OAUTH_API}/UpdateOpenApiSecurity`, toOpenApiSecurityPayload(id, data))
+    .then(raw => normalizeOpenApiSecurity(raw))
 }

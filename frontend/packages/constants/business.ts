@@ -142,6 +142,26 @@ export const OAUTH_APP_TYPE_OPTIONS = [
   { label: '服务应用', value: 3 },
 ]
 
+export const OPENAPI_SIGNATURE_ALGORITHM_OPTIONS = [
+  { label: 'HMACSHA256', value: 'HMACSHA256' },
+  { label: 'HMACSHA512', value: 'HMACSHA512' },
+  { label: 'HMACSHA1', value: 'HMACSHA1' },
+  { label: 'RSASHA256', value: 'RSASHA256' },
+  { label: 'SM2', value: 'SM2' },
+]
+
+export const OPENAPI_CONTENT_SIGN_ALGORITHM_OPTIONS = [
+  { label: 'SHA256', value: 'SHA256' },
+  { label: 'SHA512', value: 'SHA512' },
+  { label: 'MD5', value: 'MD5' },
+]
+
+export const OPENAPI_ENCRYPT_ALGORITHM_OPTIONS = [
+  { label: 'AES-CBC', value: 'AES-CBC' },
+  { label: 'BLOWFISH', value: 'BLOWFISH' },
+  { label: 'NONE', value: 'NONE' },
+]
+
 // ==================== 审查 ====================
 
 export const REVIEW_STATUS_OPTIONS = [

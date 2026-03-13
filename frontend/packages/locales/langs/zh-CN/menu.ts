@@ -16,7 +16,7 @@ export default {
   email: '邮件管理',
   sms: '短信管理',
   task: '任务调度',
-  oauthApp: 'OAuth 应用',
+  oauthApp: 'OpenAPI 管理',
   review: '审查管理',
   userSession: '会话管理',
   logs: '日志中心',
