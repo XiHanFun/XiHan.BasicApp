@@ -265,6 +265,10 @@ watch(
 </template>
 
 <style scoped>
+.preference-drawer-content {
+  font-size: 14px;
+}
+
 :deep(.preference-scrollbar) {
   height: 100%;
 }

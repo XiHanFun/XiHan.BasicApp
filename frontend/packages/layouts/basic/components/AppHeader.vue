@@ -3,7 +3,7 @@ import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '~/iconify'
 import { NMenu, useMessage } from 'naive-ui'
-import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
 import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
@@ -37,6 +37,18 @@ const {
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
 } = useLayoutMenuDomain()
+
+const historyIndex = ref(0)
+const historyLength = ref(0)
+
+function updateHistoryState() {
+  const state = window.history.state
+  historyIndex.value = state?.position ?? 0
+  historyLength.value = window.history.length
+}
+
+const canGoBack = computed(() => historyIndex.value > 0)
+const canGoForward = computed(() => historyIndex.value < historyLength.value - 1)
 
 const isFullscreen = ref(false)
 const currentTimezone = ref(
@@ -293,14 +305,39 @@ onMounted(() => {
   }
   syncFullscreenState()
   document.addEventListener('fullscreenchange', syncFullscreenState)
+  updateHistoryState()
+  window.addEventListener('popstate', updateHistoryState)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
+  window.removeEventListener('popstate', updateHistoryState)
+})
+
+watch(() => route.fullPath, () => {
+  updateHistoryState()
 })
 </script>
 
 <template>
+  <!-- Back / Forward buttons -->
+  <template v-if="appStore.breadcrumbNavButtons">
+    <XihanIconButton
+      class="my-0 rounded-md"
+      :disabled="!canGoBack"
+      @click="router.back()"
+    >
+      <Icon icon="lucide:arrow-left" class="size-4" />
+    </XihanIconButton>
+    <XihanIconButton
+      class="my-0 rounded-md"
+      :disabled="!canGoForward"
+      @click="router.forward()"
+    >
+      <Icon icon="lucide:arrow-right" class="size-4" />
+    </XihanIconButton>
+  </template>
+
   <!-- Refresh button (left widget) -->
   <XihanIconButton
     v-if="appStore.widgetRefresh"

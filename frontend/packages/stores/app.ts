@@ -7,6 +7,7 @@ import {
   BREADCRUMB_HIDE_ONLY_ONE_KEY,
   BREADCRUMB_SHOW_HOME_KEY,
   BREADCRUMB_SHOW_ICON_KEY,
+  BREADCRUMB_NAV_BUTTONS_KEY,
   BREADCRUMB_STYLE_KEY,
   CHECK_UPDATES_KEY,
   COLOR_WEAKNESS_ENABLED_KEY,
@@ -193,6 +194,9 @@ export const useAppStore = defineStore('app', () => {
   const breadcrumbStyle = ref<'normal' | 'background'>(
     LocalStorage.get(BREADCRUMB_STYLE_KEY) ?? 'background',
   )
+  const breadcrumbNavButtons = ref<boolean>(
+    LocalStorage.get<boolean>(BREADCRUMB_NAV_BUTTONS_KEY) ?? true,
+  )
 
   const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
@@ -304,6 +308,7 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(BREADCRUMB_SHOW_ICON_KEY, breadcrumbShowIcon)
   bindPersist(BREADCRUMB_HIDE_ONLY_ONE_KEY, breadcrumbHideOnlyOne)
   bindPersist(BREADCRUMB_STYLE_KEY, breadcrumbStyle)
+  bindPersist(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons)
   bindPersist(SEARCH_ENABLED_KEY, searchEnabled)
   bindPersist(DYNAMIC_TITLE_KEY, dynamicTitle)
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates)
@@ -441,6 +446,9 @@ export const useAppStore = defineStore('app', () => {
   }
   function setBreadcrumbStyle(v: 'normal' | 'background') {
     save(BREADCRUMB_STYLE_KEY, breadcrumbStyle, v)
+  }
+  function setBreadcrumbNavButtons(v: boolean) {
+    save(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons, v)
   }
 
   function setSearchEnabled(v: boolean) {
@@ -651,6 +659,7 @@ export const useAppStore = defineStore('app', () => {
     breadcrumbShowIcon,
     breadcrumbHideOnlyOne,
     breadcrumbStyle,
+    breadcrumbNavButtons,
     searchEnabled,
     dynamicTitle,
     enableCheckUpdates,
@@ -715,6 +724,7 @@ export const useAppStore = defineStore('app', () => {
     setBreadcrumbShowIcon,
     setBreadcrumbHideOnlyOne,
     setBreadcrumbStyle,
+    setBreadcrumbNavButtons,
     setSearchEnabled,
     setDynamicTitle,
     setEnableCheckUpdates,

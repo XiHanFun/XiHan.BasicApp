@@ -164,6 +164,7 @@
   padding: 0 6px;
   margin: 1px 0;
   height: 38px;
+  font-size: 13px;
   transition: background-color 0.15s ease;
 }
 

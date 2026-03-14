@@ -162,6 +162,8 @@ export default {
       style_background: 'Background',
       hide_only_one_tip:
         'Automatically hide the breadcrumb when the current path has only one level',
+      nav_buttons: 'Show Back/Forward Buttons',
+      nav_buttons_tip: 'Show browser-like back and forward buttons next to the breadcrumb',
     },
     tabbar: {
       title: 'Tabbar',
@@ -191,7 +193,7 @@ export default {
       middle_click_close_tip: 'Click a tab with the middle mouse button to close it quickly',
     },
     widget: {
-      title: 'Widgets',
+      title: 'Toolbar',
       global_search: 'Global Search',
       theme_toggle: 'Theme Toggle',
       language_toggle: 'Language Toggle',
