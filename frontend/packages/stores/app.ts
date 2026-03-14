@@ -214,7 +214,7 @@ export const useAppStore = defineStore('app', () => {
   const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
   const frostedGlassEnabled = ref<boolean>(LocalStorage.get<boolean>(FROSTED_GLASS_ENABLED_KEY) ?? false)
-  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 10)
+  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 20)
 
   const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
