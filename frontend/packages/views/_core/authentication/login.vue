@@ -38,15 +38,15 @@ const loginConfig = ref<LoginConfig>({
 })
 
 const accountOptions = [
-  { label: 'Super', value: 'superadmin' },
+  { label: 'SuperAdmin', value: 'superadmin' },
   { label: 'Admin', value: 'admin' },
-  { label: 'User', value: 'user' },
+  { label: 'Test', value: 'test' },
 ]
 
 const formData = ref({
   selectAccount: 'superadmin',
   username: 'superadmin',
-  password: 'Admin@123',
+  password: 'SuperAdmin@123',
   tenantId: '1',
 })
 
@@ -61,10 +61,8 @@ const rules: FormRules = {
     {
       trigger: 'blur',
       validator: (_rule, value: string) => {
-        if (!loginConfig.value.tenantEnabled)
-          return true
-        if (!value?.trim())
-          return new Error('请输入租户ID')
+        if (!loginConfig.value.tenantEnabled) return true
+        if (!value?.trim()) return new Error('请输入租户ID')
         return true
       },
     },
@@ -77,14 +75,14 @@ const redirect = computed(() => {
 })
 
 const defaultOauthProviders = ['github', 'google']
-const oauthProviderMeta: Record<string, { icon: string, label: string }> = {
+const oauthProviderMeta: Record<string, { icon: string; label: string }> = {
   github: { icon: 'mdi:github', label: 'GitHub' },
   google: { icon: 'logos:google-icon', label: 'Google' },
 }
 
 const oauthProviders = computed(() => {
   const providers = (loginConfig.value.oauthProviders || [])
-    .map(provider => provider.trim().toLowerCase())
+    .map((provider) => provider.trim().toLowerCase())
     .filter(Boolean)
   return providers.length > 0 ? providers : defaultOauthProviders
 })
@@ -121,8 +119,7 @@ async function handleLogin() {
       },
       redirect.value,
     )
-  }
-  catch (err: unknown) {
+  } catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
@@ -131,8 +128,7 @@ async function handleLogin() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter')
-    handleLogin()
+  if (e.key === 'Enter') handleLogin()
 }
 
 function goTo(path: string) {
@@ -142,8 +138,7 @@ function goTo(path: string) {
 onMounted(async () => {
   try {
     await loadLoginConfig()
-  }
-  catch {
+  } catch {
     message.error('加载登录配置失败')
   }
 })
@@ -216,11 +211,11 @@ onMounted(async () => {
       >
         <NInput v-model:value="formData.tenantId" size="large" placeholder="请输入租户ID" />
       </NFormItem>
-      <div class="mb-5 flex items-center justify-between text-sm">
+      <div class="flex justify-between items-center mb-5 text-sm">
         <NCheckbox v-model:checked="rememberMe">
           {{ t('page.login.remember_me') }}
         </NCheckbox>
-        <span class="link-primary cursor-pointer" @click="goTo('/auth/forget-password')">
+        <span class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
           {{ t('page.login.forgot_password') }}?
         </span>
       </div>
@@ -239,7 +234,7 @@ onMounted(async () => {
     <NDivider :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'">
       {{ t('page.auth.third_party_login') }}
     </NDivider>
-    <div class="flex flex-wrap items-center justify-center gap-3">
+    <div class="flex flex-wrap gap-3 justify-center items-center">
       <NButton
         v-for="provider in oauthProviders"
         :key="provider"
@@ -254,11 +249,11 @@ onMounted(async () => {
     </div>
 
     <p
-      class="mt-6 text-center text-sm"
+      class="mt-6 text-sm text-center"
       :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.no_account') }}
-      <span class="link-primary cursor-pointer" @click="goTo('/auth/register')">
+      <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
         {{ t('page.login.register') }}
       </span>
     </p>
