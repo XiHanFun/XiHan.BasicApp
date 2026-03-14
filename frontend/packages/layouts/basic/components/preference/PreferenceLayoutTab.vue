@@ -456,42 +456,41 @@ watch(() => appStore.sidebarCollapsed, (val) => {
       </div>
     </NCard>
 
-    <!-- 小部件 -->
+    <!-- 工具栏 -->
     <NCard size="small" :bordered="false">
       <div class="section-title">
         {{ t('preference.layout.widget.title') }}
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.layout.widget.global_search') }}</span>
-        <NSwitch v-model:value="appStore.searchEnabled" />
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.breadcrumb.nav_buttons') }}</span>
+          <PrefTip :content="t('preference.layout.breadcrumb.nav_buttons_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.breadcrumbNavButtons" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.layout.widget.theme_toggle') }}</span>
-        <NSwitch v-model:value="appStore.widgetThemeToggle" />
-      </div>
-      <div class="pref-row">
-        <span>{{ t('preference.layout.widget.language_toggle') }}</span>
-        <NSwitch v-model:value="appStore.widgetLanguageToggle" />
-      </div>
-      <div class="pref-row">
-        <span>{{ t('preference.layout.widget.fullscreen') }}</span>
-        <NSwitch v-model:value="appStore.widgetFullscreen" />
-      </div>
-      <div class="pref-row">
-        <span>{{ t('preference.layout.widget.notification') }}</span>
-        <NSwitch v-model:value="appStore.widgetNotification" />
-      </div>
-      <div class="pref-row">
-        <span>{{ t('preference.layout.widget.lock_screen') }}</span>
-        <NSwitch v-model:value="appStore.widgetLockScreen" />
+        <span>{{ t('preference.layout.widget.refresh') }}</span>
+        <NSwitch v-model:value="appStore.widgetRefresh" />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.sidebar_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetSidebarToggle" />
       </div>
       <div class="pref-row">
-        <span>{{ t('preference.layout.widget.refresh') }}</span>
-        <NSwitch v-model:value="appStore.widgetRefresh" />
+        <span>{{ t('preference.layout.widget.global_search') }}</span>
+        <NSwitch v-model:value="appStore.searchEnabled" />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.layout.widget.language_toggle') }}</span>
+        <NSwitch v-model:value="appStore.widgetLanguageToggle" />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.layout.widget.theme_toggle') }}</span>
+        <NSwitch v-model:value="appStore.widgetThemeToggle" />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.layout.widget.fullscreen') }}</span>
+        <NSwitch v-model:value="appStore.widgetFullscreen" />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.preference_position') }}</span>
@@ -501,6 +500,14 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           size="small"
           style="width: 110px"
         />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.layout.widget.notification') }}</span>
+        <NSwitch v-model:value="appStore.widgetNotification" />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.layout.widget.lock_screen') }}</span>
+        <NSwitch v-model:value="appStore.widgetLockScreen" />
       </div>
     </NCard>
 

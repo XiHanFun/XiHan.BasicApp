@@ -74,6 +74,7 @@ export const SIDEBAR_DARK_KEY = `${STORAGE_PREFIX}sidebar_dark`
 export const SIDEBAR_SUB_DARK_KEY = `${STORAGE_PREFIX}sidebar_sub_dark`
 export const HEADER_DARK_KEY = `${STORAGE_PREFIX}header_dark`
 export const NAV_ACCORDION_KEY = `${STORAGE_PREFIX}nav_accordion`
+export const BREADCRUMB_NAV_BUTTONS_KEY = `${STORAGE_PREFIX}breadcrumb_nav_buttons`
 export const TABBAR_SCROLL_RESPONSE_KEY = `${STORAGE_PREFIX}tabbar_scroll_response`
 export const TABBAR_MIDDLE_CLICK_CLOSE_KEY = `${STORAGE_PREFIX}tabbar_middle_click_close`
 export const TABBAR_SHOW_ICON_KEY = `${STORAGE_PREFIX}tabbar_show_icon`
