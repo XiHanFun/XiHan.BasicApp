@@ -227,6 +227,9 @@ export default {
     dynamic_title_tip: '页面标题随当前路由名称动态更新，便于在多个浏览器标签页中区分',
     watermark_tip: '在页面正文区域叠加半透明水印文字',
     check_updates_tip: '定期检测是否有新版本可用，有更新时在底部显示提示',
+    frosted_glass: '磨砂效果',
+    frosted_glass_tip: '在整个页面叠加类似磨砂质感的噪点纹理，效果与偏好设置中的色块一致',
+    frosted_glass_intensity: '纹理强度',
     animation: {
       title: '动画',
       transition_progress: '页面切换进度条',

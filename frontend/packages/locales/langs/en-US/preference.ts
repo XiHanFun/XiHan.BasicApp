@@ -237,6 +237,9 @@ export default {
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
     check_updates_tip:
       'Periodically check for new versions and show a notification when an update is available',
+    frosted_glass: 'Frosted Glass',
+    frosted_glass_tip: 'Apply a frosted grain noise texture across the entire page, same as the color swatches in preferences',
+    frosted_glass_intensity: 'Texture Intensity',
     animation: {
       title: 'Animation',
       transition_progress: 'Page Progress Bar',
