@@ -57,7 +57,10 @@
     "sortablejs": "^1.15.7",
     "vue": "^3.5.30",
     "vue-i18n": "^11.3.0",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "vxe-pc-ui": "^4.13.6",
+    "vxe-table": "^4.18.2",
+    "xe-utils": "^4.0.4"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.19.0",
