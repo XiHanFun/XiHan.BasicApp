@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import { Icon } from '~/iconify'
-import { NConfigProvider, NDialogProvider, NIcon, NInput, NLoadingBarProvider, NMessageProvider, NNotificationProvider } from 'naive-ui'
+import {
+  NConfigProvider,
+  NDialogProvider,
+  NIcon,
+  NInput,
+  NLoadingBarProvider,
+  NMessageProvider,
+  NNotificationProvider,
+} from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'
 import { useNaiveLocale, useTheme } from '~/hooks'
@@ -18,14 +26,14 @@ const { naiveLocale, naiveDateLocale } = useNaiveLocale()
 // 水印：动态生成 SVG data URI，全屏 repeat 平铺
 const watermarkStyle = computed(() => {
   const text = appStore.watermarkText || 'XiHan BasicApp'
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140">
-    <text transform="rotate(-25, 100, 70)" x="10" y="80"
-      fill="#808080" fill-opacity="0.18" font-size="13" font-family="sans-serif">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220">
+    <text transform="rotate(-25, 160, 110)" x="40" y="120"
+      fill="#808080" fill-opacity="0.18" font-size="16" font-family="sans-serif">
       ${text}
     </text>
   </svg>`
   const encoded = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
-  return { backgroundImage: encoded, backgroundSize: '200px 140px' }
+  return { backgroundImage: encoded, backgroundSize: '320px 220px' }
 })
 
 // 同步 html class 以支持 Tailwind dark mode
@@ -42,9 +50,11 @@ watchEffect(() => {
   document.documentElement.style.fontSize = `${appStore.fontSize}px`
   document.documentElement.classList.toggle('frosted-glass', appStore.frostedGlassEnabled)
   if (appStore.frostedGlassEnabled) {
-    document.documentElement.style.setProperty('--frosted-intensity', `${appStore.frostedGlassIntensity / 100}`)
-  }
-  else {
+    document.documentElement.style.setProperty(
+      '--frosted-intensity',
+      `${appStore.frostedGlassIntensity / 100}`,
+    )
+  } else {
     document.documentElement.style.removeProperty('--frosted-intensity')
   }
 })
@@ -90,8 +100,7 @@ function confirmLock() {
   if (lockPwdNew.value) {
     sessionStorage.setItem(LOCK_PWD_SESS_KEY, btoa(lockPwdNew.value))
     hasLockPwd.value = true
-  }
-  else {
+  } else {
     sessionStorage.removeItem(LOCK_PWD_SESS_KEY)
     hasLockPwd.value = false
   }
@@ -135,8 +144,7 @@ function releaselock() {
 }
 
 function handleGlobalShortcuts(e: KeyboardEvent) {
-  if (!appStore.shortcutEnable)
-    return
+  if (!appStore.shortcutEnable) return
 
   // Ctrl/Cmd + K：全局搜索
   if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -162,8 +170,7 @@ function handleGlobalShortcuts(e: KeyboardEvent) {
 
   // Esc：无密码时直接解锁
   if (e.key === 'Escape' && lockMode.value === 'locked') {
-    if (!sessionStorage.getItem(LOCK_PWD_SESS_KEY))
-      releaselock()
+    if (!sessionStorage.getItem(LOCK_PWD_SESS_KEY)) releaselock()
   }
 }
 
@@ -211,11 +218,7 @@ onUnmounted(() => {
           <NDialogProvider>
             <RouterView />
             <!-- 水印：SVG data URI repeat 平铺，全屏均匀分布 -->
-            <div
-              v-if="appStore.watermarkEnabled"
-              class="watermark-layer"
-              :style="watermarkStyle"
-            />
+            <div v-if="appStore.watermarkEnabled" class="watermark-layer" :style="watermarkStyle" />
             <!-- 锁屏遮罩 -->
             <Teleport to="body">
               <div v-if="lockMode !== 'off'" class="lock-screen-mask">
@@ -223,18 +226,19 @@ onUnmounted(() => {
                   <!-- 用户信息 -->
                   <img
                     class="lock-screen-avatar"
-                    :src="userStore.avatar || `https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
+                    :src="
+                      userStore.avatar ||
+                      `https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`
+                    "
                     :alt="userStore.nickname"
-                  >
+                  />
                   <div class="lock-screen-name">
                     {{ userStore.nickname || userStore.username }}
                   </div>
 
                   <!-- ① 设置密码阶段 -->
                   <template v-if="lockMode === 'setting'">
-                    <div class="lock-screen-hint">
-                      设置本次锁屏密码（可留空跳过）
-                    </div>
+                    <div class="lock-screen-hint">设置本次锁屏密码（可留空跳过）</div>
                     <form class="lock-screen-input-wrap" @submit.prevent="confirmLock">
                       <NInput
                         v-model:value="lockPwdNew"
@@ -267,7 +271,7 @@ onUnmounted(() => {
                         {{ lockPwdError }}
                       </div>
                       <button type="submit" class="unlock-btn" style="margin-top: 12px">
-                        <NIcon size="15" style="vertical-align: -2px; margin-right: 5px;">
+                        <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                           <Icon icon="lucide:lock" />
                         </NIcon>
                         确认锁屏
@@ -280,7 +284,11 @@ onUnmounted(() => {
                     <div class="lock-screen-hint">
                       {{ hasLockPwd ? '请输入锁屏密码' : '按下解锁按钮继续' }}
                     </div>
-                    <form v-if="hasLockPwd" class="lock-screen-input-wrap" @submit.prevent="doUnlock">
+                    <form
+                      v-if="hasLockPwd"
+                      class="lock-screen-input-wrap"
+                      @submit.prevent="doUnlock"
+                    >
                       <NInput
                         v-model:value="unlockPwd"
                         type="password"
@@ -298,14 +306,14 @@ onUnmounted(() => {
                         {{ unlockError }}
                       </div>
                       <button type="submit" class="unlock-btn" style="margin-top: 12px">
-                        <NIcon size="15" style="vertical-align: -2px; margin-right: 5px;">
+                        <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                           <Icon icon="lucide:lock-open" />
                         </NIcon>
                         解锁
                       </button>
                     </form>
                     <button v-else class="unlock-btn" @click="doUnlock">
-                      <NIcon size="15" style="vertical-align: -2px; margin-right: 5px;">
+                      <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                         <Icon icon="lucide:lock-open" />
                       </NIcon>
                       解锁
