@@ -201,7 +201,7 @@ export const useAppStore = defineStore('app', () => {
     LocalStorage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
   )
   const transitionEnable = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
-  const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'fade')
+  const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'slide-left')
   const transitionProgress = ref<boolean>(
     LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true,
   )
