@@ -1,2 +1,5 @@
+export * from './useGlobalShortcuts'
+export * from './useHtmlStyle'
 export * from './useIsMobile'
+export * from './useLockScreen'
 export * from './useScrollLock'
