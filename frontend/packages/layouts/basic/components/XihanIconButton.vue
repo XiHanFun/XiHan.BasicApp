@@ -47,8 +47,14 @@ withDefaults(defineProps<{
   color: hsl(var(--foreground));
 }
 
-.xihan-icon-btn:active {
+.xihan-icon-btn:active:not(:disabled) {
   background: hsl(var(--accent) / 80%);
+}
+
+.xihan-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .xihan-icon-btn--active {
