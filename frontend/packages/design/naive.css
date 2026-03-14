@@ -54,7 +54,10 @@
   box-shadow: none !important;
 }
 
-.xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header,
+.xihan-top-menu
+  .n-menu--horizontal
+  .n-menu-item-content.n-menu-item-content--selected
+  .n-menu-item-content-header,
 .xihan-top-menu
   .n-menu--horizontal
   .n-submenu
@@ -69,7 +72,12 @@
   background-color: hsl(var(--accent)) !important;
 }
 
-/* 侧边菜单：统一 vben 风格 item 尺寸 */
+/* 水平菜单：仅一级显示展开箭头，二级及以下隐藏 */
+.xihan-top-menu .n-menu.n-menu--horizontal .n-submenu-children .n-menu-item-content__arrow {
+  display: none !important;
+}
+
+/* 侧边菜单：统一 item 尺寸 */
 .app-sidebar-menu .n-menu-item-content,
 .app-sidebar-menu .n-submenu > .n-menu-item > .n-menu-item-content {
   height: 38px !important;

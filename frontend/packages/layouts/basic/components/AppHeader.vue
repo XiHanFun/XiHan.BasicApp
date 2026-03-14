@@ -58,8 +58,7 @@ const isSplitMode = computed(
 const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
 
 function resolveIcon(icon: string) {
-  if (!icon)
-    return icon
+  if (!icon) return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
@@ -71,12 +70,17 @@ function renderTopMenuLabel(option: MenuOption | MenuGroupOption) {
   const label = option.label
   const children = (option as MenuOption).children
   const hasChildren = Array.isArray(children) && children.length > 0
-  if (!hasChildren) {
+  const key = (option as MenuOption).key
+  const isTopLevel = key != null && topLevelKeys.value.has(key)
+  if (!hasChildren || !isTopLevel) {
     return label
   }
-  return h('span', { class: 'inline-flex items-center gap-0.5' }, [
+  return h('span', { class: 'inline-flex items-center gap-1' }, [
     label,
-    h(Icon, { icon: 'lucide:chevron-down', class: 'size-3.5 shrink-0 opacity-70' }),
+    h(Icon, {
+      icon: 'lucide:chevron-down',
+      class: 'size-4 shrink-0 opacity-70',
+    }),
   ])
 }
 
@@ -91,14 +95,18 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     iconRenderer: renderRouteIcon,
   })
   if (isSplitMode.value) {
-    return options.map(item => ({ ...item, children: undefined }))
+    return options.map((item) => ({ ...item, children: undefined }))
   }
   return options
 })
 
+const topLevelKeys = computed(() => new Set(
+  topMenuOptions.value.map((opt: MenuOption) => opt.key).filter(Boolean),
+))
+
 function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
   const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const firstVisibleChild = routeItem.children?.find(child => !toLayoutMeta(child).hidden)
+  const firstVisibleChild = routeItem.children?.find((child) => !toLayoutMeta(child).hidden)
   if (!firstVisibleChild) {
     return fullPath
   }
@@ -110,20 +118,20 @@ const topMenuActive = computed(() => {
     return String(route.meta?.activePath || route.path || '')
   }
   return (
-    findMatchedRoutePath(topMenuSource.value)
-    ?? resolveFullPath(topMenuSource.value.find(item => !toLayoutMeta(item).hidden)?.path ?? '')
+    findMatchedRoutePath(topMenuSource.value) ??
+    resolveFullPath(topMenuSource.value.find((item) => !toLayoutMeta(item).hidden)?.path ?? '')
   )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter(item => item.meta?.title && !item.meta?.hidden)
+  const matched = route.matched.filter((item) => item.meta?.title && !item.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
   return matched.map((item, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
+      .filter((sibling) => sibling.meta?.title && !sibling.meta?.hidden)
       .map((sibling) => {
         const siblingTitle = String(sibling.meta?.title ?? '')
         const siblingIcon = sibling.meta?.icon as string | undefined
@@ -248,7 +256,7 @@ function handleTopMenuSelect(path: string) {
     router.push(path)
     return
   }
-  const rootMenu = topMenuSource.value.find(item => resolveFullPath(item.path) === path)
+  const rootMenu = topMenuSource.value.find((item) => resolveFullPath(item.path) === path)
   if (!rootMenu) {
     return
   }
@@ -303,7 +311,7 @@ onBeforeUnmount(() => {
   </XihanIconButton>
 
   <!-- Breadcrumb -->
-  <div v-if="showBreadcrumb" class="flex-center hidden lg:block">
+  <div v-if="showBreadcrumb" class="hidden flex-center lg:block">
     <HeaderNav
       :app-store="appStore"
       :breadcrumbs="breadcrumbs"
@@ -313,8 +321,8 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Menu area -->
-  <div :class="`menu-align-${appStore.headerMenuAlign}`" class="flex min-w-0 flex-1 items-center">
-    <div v-if="showTopMenu" class="xihan-top-menu hidden min-w-0 items-center lg:flex">
+  <div :class="`menu-align-${appStore.headerMenuAlign}`" class="flex flex-1 items-center min-w-0">
+    <div v-if="showTopMenu" class="hidden items-center min-w-0 xihan-top-menu lg:flex">
       <NMenu
         mode="horizontal"
         :value="topMenuActive"
@@ -393,7 +401,10 @@ onBeforeUnmount(() => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected {
   background-color: transparent;
   border-radius: 6px;
 }
@@ -408,7 +419,10 @@ onBeforeUnmount(() => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected::before,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
+.xihan-top-menu
+  .n-menu.n-menu--horizontal
+  > .n-menu-item
+  > .n-menu-item-content.n-menu-item-content--selected::before {
   background-color: hsl(var(--primary) / 0.15) !important;
   border-radius: 6px !important;
   box-shadow: none !important;
