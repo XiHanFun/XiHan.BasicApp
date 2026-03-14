@@ -3,7 +3,7 @@ import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '~/iconify'
 import { NMenu, useMessage } from 'naive-ui'
-import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
 import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
@@ -38,17 +38,17 @@ const {
   findMatchedRoutePath,
 } = useLayoutMenuDomain()
 
-const historyIndex = ref(0)
-const historyLength = ref(0)
+const hasBack = ref(false)
+const hasForward = ref(false)
 
 function updateHistoryState() {
   const state = window.history.state
-  historyIndex.value = state?.position ?? 0
-  historyLength.value = window.history.length
+  hasBack.value = state?.back != null
+  hasForward.value = state?.forward != null
 }
 
-const canGoBack = computed(() => historyIndex.value > 0)
-const canGoForward = computed(() => historyIndex.value < historyLength.value - 1)
+const canGoBack = computed(() => hasBack.value)
+const canGoForward = computed(() => hasForward.value)
 
 const isFullscreen = ref(false)
 const currentTimezone = ref(
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
 })
 
 watch(() => route.fullPath, () => {
-  updateHistoryState()
+  nextTick(() => updateHistoryState())
 })
 </script>
 

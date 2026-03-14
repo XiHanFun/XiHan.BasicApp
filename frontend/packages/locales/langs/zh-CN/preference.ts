@@ -157,7 +157,7 @@ export default {
       style_background: '背景',
       hide_only_one_tip: '当前路径层级只有一项时，自动隐藏整个面包屑',
       nav_buttons: '显示前进/后退按钮',
-      nav_buttons_tip: '在面包屑导航旁显示类似浏览器的前进和后退按钮',
+      nav_buttons_tip: '在工具栏中显示浏览历史的前进、后退导航按钮',
     },
     tabbar: {
       title: '标签栏',

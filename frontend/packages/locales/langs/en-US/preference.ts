@@ -163,7 +163,7 @@ export default {
       hide_only_one_tip:
         'Automatically hide the breadcrumb when the current path has only one level',
       nav_buttons: 'Show Back/Forward Buttons',
-      nav_buttons_tip: 'Show browser-like back and forward buttons next to the breadcrumb',
+      nav_buttons_tip: 'Display back and forward navigation buttons for browsing history in the toolbar',
     },
     tabbar: {
       title: 'Tabbar',
