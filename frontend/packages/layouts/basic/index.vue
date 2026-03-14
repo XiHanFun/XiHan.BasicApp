@@ -162,8 +162,8 @@ const sidebarEnableState = computed(
           width: shell.footerWidth.value,
           zIndex: shell.appStore.footerFixed ? 199 : undefined,
         }"
-        class="footer-bar bottom-0 flex w-full border-t border-border bg-background px-4 text-xs text-muted-foreground transition-all duration-200"
-        :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-1 py-2' : 'flex-row items-center'"
+        class="footer-bar bottom-0 flex w-full border-t border-border bg-background text-xs text-muted-foreground transition-all duration-200"
+        :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-0.5 px-3 py-1' : 'flex-row items-center px-4'"
       >
         <!-- Left: Dev version info -->
         <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
@@ -219,6 +219,10 @@ const sidebarEnableState = computed(
 <style scoped>
 .footer-bar {
   gap: 8px;
+}
+
+.footer-bar.flex-col {
+  gap: 4px;
 }
 
 .footer-section-left {
