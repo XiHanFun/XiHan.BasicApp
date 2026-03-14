@@ -108,7 +108,7 @@
   background: hsl(var(--overlay));
 }
 
-/* menu align helpers compatible with vben layout */
+/* menu align helpers compatible with xihan layout */
 .menu-align-start {
   --menu-align: start;
 }
