@@ -79,7 +79,7 @@ function renderTopMenuLabel(option: MenuOption | MenuGroupOption) {
     label,
     h(Icon, {
       icon: 'lucide:chevron-down',
-      class: 'size-4 shrink-0 opacity-70',
+      class: 'size-6 shrink-0 opacity-70',
     }),
   ])
 }
