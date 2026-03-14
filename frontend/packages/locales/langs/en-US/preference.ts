@@ -23,9 +23,9 @@ export default {
     },
     color: {
       title: 'Color',
-      custom: 'Custom',
+      default_or_custom: 'Default or Custom',
       default: 'Default',
-      picker: 'Picker',
+      custom: 'Custom',
       family: {
         red: 'Red',
         orange: 'Orange',

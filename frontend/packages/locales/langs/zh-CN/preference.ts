@@ -23,9 +23,9 @@ export default {
     },
     color: {
       title: '颜色',
-      custom: '自定义',
+      default_or_custom: '默认或自定义',
       default: '默认',
-      picker: '取色器',
+      custom: '自定义',
       family: {
         red: '红',
         orange: '橙',

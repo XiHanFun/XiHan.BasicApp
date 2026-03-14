@@ -95,11 +95,10 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         {{ t('preference.appearance.color.title') }}
       </div>
       <div class="space-y-1.5">
-        <!-- 自定义分组（默认色 + 取色器），置于所有色系上方 -->
+        <!-- 默认或自定义 -->
         <div class="color-group-row">
-          <span class="color-group-label">{{ t('preference.appearance.color.custom') }}</span>
+          <span class="color-group-label">{{ t('preference.appearance.color.default_or_custom') }}</span>
           <div class="color-group-swatches w-full">
-            <!-- 默认色 -->
             <div class="color-item">
               <button
                 type="button"
@@ -112,7 +111,6 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
               </button>
               <span class="theme-color-label">{{ t('preference.appearance.color.default') }}</span>
             </div>
-            <!-- 取色器 -->
             <div class="color-item">
               <div
                 class="theme-color-card custom-color-card"
@@ -136,7 +134,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
                   </template>
                 </NColorPicker>
               </div>
-              <span class="theme-color-label">{{ t('preference.appearance.color.picker') }}</span>
+              <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
             </div>
           </div>
         </div>
