@@ -84,3 +84,5 @@ export const FOOTER_SHOW_DEV_INFO_KEY = `${STORAGE_PREFIX}footer_show_dev_info`
 export const COPYRIGHT_DATE_KEY = `${STORAGE_PREFIX}copyright_date`
 export const COPYRIGHT_ICP_KEY = `${STORAGE_PREFIX}copyright_icp`
 export const COPYRIGHT_ICP_URL_KEY = `${STORAGE_PREFIX}copyright_icp_url`
+export const FROSTED_GLASS_ENABLED_KEY = `${STORAGE_PREFIX}frosted_glass_enabled`
+export const FROSTED_GLASS_INTENSITY_KEY = `${STORAGE_PREFIX}frosted_glass_intensity`

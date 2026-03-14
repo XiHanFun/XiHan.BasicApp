@@ -40,6 +40,13 @@ watchEffect(() => {
       ? 'invert(0.8) hue-rotate(180deg)'
       : ''
   document.documentElement.style.fontSize = `${appStore.fontSize}px`
+  document.documentElement.classList.toggle('frosted-glass', appStore.frostedGlassEnabled)
+  if (appStore.frostedGlassEnabled) {
+    document.documentElement.style.setProperty('--frosted-intensity', `${appStore.frostedGlassIntensity / 100}`)
+  }
+  else {
+    document.documentElement.style.removeProperty('--frosted-intensity')
+  }
 })
 
 // ── 锁屏 ──────────────────────────────────────────────────────────────────────

@@ -20,6 +20,8 @@ import {
   COPYRIGHT_NAME_KEY,
   COPYRIGHT_SITE_KEY,
   DEFAULT_FONT_SIZE,
+  FROSTED_GLASS_ENABLED_KEY,
+  FROSTED_GLASS_INTENSITY_KEY,
   DEFAULT_LAYOUT_MODE,
   DEFAULT_LOCALE,
   DEFAULT_THEME,
@@ -211,6 +213,9 @@ export const useAppStore = defineStore('app', () => {
   )
   const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
+  const frostedGlassEnabled = ref<boolean>(LocalStorage.get<boolean>(FROSTED_GLASS_ENABLED_KEY) ?? false)
+  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 10)
+
   const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
     LocalStorage.get<boolean>(COLOR_WEAKNESS_ENABLED_KEY) ?? false,
@@ -317,6 +322,8 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(TRANSITION_NAME_KEY, transitionName)
   bindPersist(TRANSITION_PROGRESS_KEY, transitionProgress)
   bindPersist(TRANSITION_LOADING_KEY, transitionLoading)
+  bindPersist(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled)
+  bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity)
   bindPersist(GRAYSCALE_ENABLED_KEY, grayscaleEnabled)
   bindPersist(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled)
   bindPersist(WATERMARK_ENABLED_KEY, watermarkEnabled)
@@ -474,6 +481,13 @@ export const useAppStore = defineStore('app', () => {
   }
   function setTransitionLoading(v: boolean) {
     save(TRANSITION_LOADING_KEY, transitionLoading, v)
+  }
+
+  function setFrostedGlassEnabled(v: boolean) {
+    save(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled, v)
+  }
+  function setFrostedGlassIntensity(v: number) {
+    save(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, Math.min(100, Math.max(0, v)))
   }
 
   function setGrayscaleEnabled(v: boolean) {
@@ -668,6 +682,8 @@ export const useAppStore = defineStore('app', () => {
     transitionName,
     transitionProgress,
     transitionLoading,
+    frostedGlassEnabled,
+    frostedGlassIntensity,
     grayscaleEnabled,
     colorWeaknessEnabled,
     watermarkEnabled,
@@ -733,6 +749,8 @@ export const useAppStore = defineStore('app', () => {
     setTransitionName,
     setTransitionProgress,
     setTransitionLoading,
+    setFrostedGlassEnabled,
+    setFrostedGlassIntensity,
     setGrayscaleEnabled,
     setColorWeaknessEnabled,
     setWatermarkEnabled,
