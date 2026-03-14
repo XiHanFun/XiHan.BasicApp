@@ -269,6 +269,10 @@ watch(
   font-size: 14px;
 }
 
+:deep(.n-drawer-footer) {
+  padding: 8px 16px !important;
+}
+
 :deep(.preference-scrollbar) {
   height: 100%;
 }
