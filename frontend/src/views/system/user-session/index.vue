@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysUserSession } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -10,7 +9,6 @@ import {
   NFormItem,
   NIcon,
   NInput,
-  NInputNumber,
   NModal,
   NPagination,
   NPopconfirm,
@@ -29,6 +27,7 @@ import {
   updateUserSessionApi,
 } from '@/api'
 import { DEFAULT_PAGE_SIZE, DEVICE_TYPE_OPTIONS } from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemUserSessionPage' })
@@ -66,7 +65,7 @@ const formData = ref<Partial<SysUserSession & { revokedReason?: string }>>({
 const revokeModalVisible = ref(false)
 const revokeLoading = ref(false)
 const revokeFormData = ref({
-  userId: undefined as number | undefined,
+  userId: undefined as string | undefined,
   reason: '管理员手动撤销',
 })
 
@@ -130,7 +129,7 @@ function handleOpenRevoke(row: SysUserSession) {
 }
 
 async function handleConfirmRevoke() {
-  if (!revokeFormData.value.userId || !revokeFormData.value.reason.trim()) {
+  if (!revokeFormData.value.userId?.trim() || !revokeFormData.value.reason.trim()) {
     message.warning('请填写用户ID与撤销原因')
     return
   }
@@ -138,7 +137,7 @@ async function handleConfirmRevoke() {
   try {
     revokeLoading.value = true
     const count = await revokeUserSessionsApi(
-      revokeFormData.value.userId,
+      revokeFormData.value.userId.trim(),
       revokeFormData.value.reason.trim(),
     )
     message.success(`已撤销 ${count} 个会话`)
@@ -398,7 +397,7 @@ onMounted(fetchData)
     >
       <NForm :model="formData" label-placement="left" label-width="95px">
         <NFormItem label="用户ID" path="userId">
-          <NInputNumber v-model:value="formData.userId" :disabled="!!formData.basicId" :min="1" class="w-full" />
+          <NInput v-model:value="formData.userId" :disabled="!!formData.basicId" placeholder="用户 ID" class="w-full" />
         </NFormItem>
         <NFormItem label="会话ID" path="sessionId">
           <NInput
@@ -444,7 +443,7 @@ onMounted(fetchData)
     >
       <NForm :model="revokeFormData" label-placement="left" label-width="88px">
         <NFormItem label="用户ID" path="userId">
-          <NInputNumber v-model:value="revokeFormData.userId" :min="1" class="w-full" />
+          <NInput v-model:value="revokeFormData.userId" placeholder="用户 ID" class="w-full" />
         </NFormItem>
         <NFormItem label="撤销原因" path="reason">
           <NInput

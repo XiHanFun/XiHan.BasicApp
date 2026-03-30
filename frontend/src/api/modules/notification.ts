@@ -9,10 +9,10 @@ function normalizeNotification(raw: Record<string, any>): SysNotification {
     basicId: toId(raw.basicId),
     recipientUserId: raw.recipientUserId === null || raw.recipientUserId === undefined
       ? undefined
-      : toNumber(raw.recipientUserId, 0),
+      : toId(raw.recipientUserId),
     sendUserId: raw.sendUserId === null || raw.sendUserId === undefined
       ? undefined
-      : toNumber(raw.sendUserId, 0),
+      : toId(raw.sendUserId),
     notificationType: toNumber(raw.notificationType, 0),
     title: raw.title ?? '',
     content: raw.content ?? '',
@@ -50,7 +50,7 @@ function toNotificationUpdatePayload(id: string, data: Partial<SysNotification>)
     notificationStatus: toNumber(data.notificationStatus, 0),
     readTime: data.readTime ?? null,
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
@@ -93,7 +93,7 @@ export function deleteNotificationApi(id: string) {
   })
 }
 
-export function getUserNotificationsApi(userId: number, includeRead = true, tenantId?: number) {
+export function getUserNotificationsApi(userId: string | number, includeRead = true, tenantId?: number) {
   return requestClient
     .get<any[]>(`${NOTIFICATION_API}/UserNotifications/${userId}/${tenantId ?? 0}`, {
       params: { includeRead },
@@ -101,11 +101,11 @@ export function getUserNotificationsApi(userId: number, includeRead = true, tena
     .then(list => (Array.isArray(list) ? list.map(item => normalizeNotification(item)) : []))
 }
 
-export function getUnreadNotificationCountApi(userId: number, tenantId?: number) {
+export function getUnreadNotificationCountApi(userId: string | number, tenantId?: number) {
   return requestClient.get<number>(`${NOTIFICATION_API}/UnreadCount/${userId}/${tenantId ?? 0}`)
 }
 
-export function markNotificationReadApi(notificationId: number, userId: number, tenantId?: number) {
+export function markNotificationReadApi(notificationId: string, userId: string | number, tenantId?: number) {
   return requestClient.post<boolean>(`${NOTIFICATION_API}/MarkAsRead`, undefined, {
     params: {
       notificationId,
@@ -115,7 +115,7 @@ export function markNotificationReadApi(notificationId: number, userId: number, 
   })
 }
 
-export function markAllNotificationsReadApi(userId: number, tenantId?: number) {
+export function markAllNotificationsReadApi(userId: string | number, tenantId?: number) {
   return requestClient.post<number>(`${NOTIFICATION_API}/MarkAllAsRead`, undefined, {
     params: {
       userId,
@@ -124,7 +124,7 @@ export function markAllNotificationsReadApi(userId: number, tenantId?: number) {
   })
 }
 
-export function confirmNotificationApi(notificationId: number, userId: number, tenantId?: number) {
+export function confirmNotificationApi(notificationId: string, userId: string | number, tenantId?: number) {
   return requestClient.post<boolean>(`${NOTIFICATION_API}/Confirm`, undefined, {
     params: {
       notificationId,
@@ -139,13 +139,13 @@ export interface PushNotificationPayload {
   content?: string
   notificationType: number
   isGlobal: boolean
-  recipientUserIds: number[]
-  sendUserId?: number
+  recipientUserIds: string[]
+  sendUserId?: string
   needConfirm?: boolean
   icon?: string
   link?: string
   businessType?: string
-  businessId?: number
+  businessId?: string
   expireTime?: string
   tenantId?: number
   remark?: string

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysNotification } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -10,7 +9,6 @@ import {
   NFormItem,
   NIcon,
   NInput,
-  NInputNumber,
   NModal,
   NPagination,
   NPopconfirm,
@@ -36,6 +34,7 @@ import {
   NOTIFICATION_TYPE_OPTIONS,
   STATUS_OPTIONS,
 } from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemNotificationPage' })
@@ -53,7 +52,7 @@ const queryParams = reactive({
   notificationStatus: undefined as number | undefined,
 })
 
-const actionUserId = ref<number | undefined>(undefined)
+const actionUserId = ref<string | undefined>(undefined)
 const unreadCount = ref(0)
 
 const modalVisible = ref(false)
@@ -89,13 +88,13 @@ async function fetchData() {
 }
 
 async function handleLoadUnreadCount() {
-  if (!actionUserId.value) {
+  if (!actionUserId.value?.trim()) {
     message.warning('请先输入用户ID')
     return
   }
 
   try {
-    unreadCount.value = await getUnreadNotificationCountApi(actionUserId.value)
+    unreadCount.value = await getUnreadNotificationCountApi(actionUserId.value.trim())
     message.success(`未读通知：${unreadCount.value}`)
   }
   catch {
@@ -104,13 +103,13 @@ async function handleLoadUnreadCount() {
 }
 
 async function handleMarkAllRead() {
-  if (!actionUserId.value) {
+  if (!actionUserId.value?.trim()) {
     message.warning('请先输入用户ID')
     return
   }
 
   try {
-    const count = await markAllNotificationsReadApi(actionUserId.value)
+    const count = await markAllNotificationsReadApi(actionUserId.value.trim())
     message.success(`已标记 ${count} 条通知为已读`)
     fetchData()
   }
@@ -160,7 +159,7 @@ async function handleMarkRead(row: SysNotification) {
   }
 
   try {
-    const ok = await markNotificationReadApi(Number(row.basicId), row.recipientUserId)
+    const ok = await markNotificationReadApi(row.basicId, row.recipientUserId)
     if (ok) {
       message.success('已标记为已读')
       fetchData()
@@ -348,7 +347,7 @@ onMounted(fetchData)
         </NButton>
       </div>
       <div class="mt-3 flex flex-wrap items-center gap-2">
-        <NInputNumber v-model:value="actionUserId" :min="1" placeholder="用户ID" class="w-36" />
+        <NInput v-model:value="actionUserId" placeholder="用户ID" class="w-36" />
         <NButton @click="handleLoadUnreadCount">
           查询未读数
         </NButton>
@@ -413,15 +412,15 @@ onMounted(fetchData)
           <NSelect v-model:value="formData.notificationType" :options="NOTIFICATION_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="接收用户ID" path="recipientUserId">
-          <NInputNumber
+          <NInput
             v-model:value="formData.recipientUserId"
             :disabled="formData.isGlobal"
-            :min="1"
+            placeholder="用户 ID"
             class="w-full"
           />
         </NFormItem>
         <NFormItem label="发送用户ID" path="sendUserId">
-          <NInputNumber v-model:value="formData.sendUserId" :min="1" class="w-full" />
+          <NInput v-model:value="formData.sendUserId" placeholder="用户 ID" class="w-full" />
         </NFormItem>
         <NFormItem label="通知状态" path="notificationStatus">
           <NSelect v-model:value="formData.notificationStatus" :options="NOTIFICATION_STATUS_OPTIONS" />

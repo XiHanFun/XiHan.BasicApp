@@ -6,7 +6,7 @@ const DEPARTMENT_API = '/api/Department'
 
 function normalizeDepartment(raw: Record<string, any>): SysDepartment {
   const leaderId
-    = raw.leaderId === null || raw.leaderId === undefined ? undefined : toNumber(raw.leaderId, 0)
+    = raw.leaderId === null || raw.leaderId === undefined ? undefined : toId(raw.leaderId)
 
   return {
     basicId: toId(raw.basicId),
@@ -15,7 +15,7 @@ function normalizeDepartment(raw: Record<string, any>): SysDepartment {
     departmentCode: raw.departmentCode ?? '',
     departmentType: toNumber(raw.departmentType, 6),
     leaderId,
-    leader: raw.leaderName ?? raw.leader ?? (leaderId === undefined ? undefined : String(leaderId)),
+    leader: raw.leaderName ?? raw.leader ?? (leaderId === undefined ? undefined : leaderId),
     phone: raw.phone ?? '',
     email: raw.email ?? '',
     address: raw.address ?? undefined,
@@ -33,11 +33,11 @@ function toDepartmentCreatePayload(data: Partial<SysDepartment>) {
     parentId:
       data.parentId === undefined || data.parentId === null || data.parentId === ''
         ? null
-        : toNumber(data.parentId, 0),
+        : toId(data.parentId),
     departmentName: data.departmentName ?? '',
     departmentCode: data.departmentCode ?? '',
     departmentType: toNumber(data.departmentType, 6),
-    leaderId: data.leaderId === undefined ? null : toNumber(data.leaderId, 0),
+    leaderId: data.leaderId === undefined ? null : toId(data.leaderId),
     phone: data.phone ?? '',
     email: data.email ?? '',
     address: data.address ?? '',
@@ -51,7 +51,7 @@ function toDepartmentUpdatePayload(id: string, data: Partial<SysDepartment>) {
   return {
     ...toDepartmentCreatePayload(data),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

@@ -9,10 +9,10 @@ function normalizeEmail(raw: Record<string, any>): SysEmail {
     basicId: toId(raw.basicId),
     sendUserId: raw.sendUserId === null || raw.sendUserId === undefined
       ? undefined
-      : toNumber(raw.sendUserId, 0),
+      : toId(raw.sendUserId),
     receiveUserId: raw.receiveUserId === null || raw.receiveUserId === undefined
       ? undefined
-      : toNumber(raw.receiveUserId, 0),
+      : toId(raw.receiveUserId),
     emailType: toNumber(raw.emailType, 0),
     fromEmail: raw.fromEmail ?? '',
     toEmail: raw.toEmail ?? '',
@@ -48,7 +48,7 @@ function toEmailUpdatePayload(id: string, data: Partial<SysEmail>) {
     ...toEmailCreatePayload(data),
     emailStatus: toNumber(data.emailStatus, 0),
     sendTime: data.sendTime ?? null,
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

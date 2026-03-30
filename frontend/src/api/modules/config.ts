@@ -34,7 +34,7 @@ function toConfigUpdatePayload(id: string, data: Partial<SysConfig>) {
   return {
     ...toConfigCreatePayload(data),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

@@ -1,4 +1,5 @@
 import type { MenuRoute, SysMenu } from '~/types'
+import { toId } from '../helpers'
 import requestClient from '../request'
 
 const MENU_API = '/api/Menu'
@@ -70,7 +71,7 @@ const STATUS_NAMES = ['No', 'Yes']
 
 function toCreatePayload(data: Partial<SysMenu>) {
   return {
-    parentId: data.parentId ? Number(data.parentId) : null,
+    parentId: data.parentId ? toId(data.parentId) : null,
     menuName: data.menuName ?? '',
     menuCode: data.menuCode ?? '',
     menuType: MENU_TYPE_NAMES[data.menuType ?? 1] ?? 'Menu',
@@ -93,7 +94,7 @@ function toCreatePayload(data: Partial<SysMenu>) {
 function toUpdatePayload(data: Partial<SysMenu>) {
   return {
     ...toCreatePayload(data),
-    basicId: data.basicId ? Number(data.basicId) : 0,
+    basicId: data.basicId ? toId(data.basicId) : '',
     status: STATUS_NAMES[data.status ?? 1] ?? 'Yes',
   }
 }

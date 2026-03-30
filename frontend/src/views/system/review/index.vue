@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysReview } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -27,6 +26,7 @@ import {
   REVIEW_STATUS_OPTIONS,
   STATUS_OPTIONS,
 } from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemReviewPage' })
@@ -379,10 +379,10 @@ onMounted(fetchData)
           <NInputNumber v-model:value="formData.priority" :min="1" :max="5" class="w-full" />
         </NFormItem>
         <NFormItem label="提交人ID" path="submitUserId">
-          <NInputNumber v-model:value="formData.submitUserId" :min="1" class="w-full" />
+          <NInput v-model:value="formData.submitUserId" placeholder="用户 ID" class="w-full" />
         </NFormItem>
         <NFormItem label="当前审查人ID" path="currentReviewUserId">
-          <NInputNumber v-model:value="formData.currentReviewUserId" :min="1" class="w-full" />
+          <NInput v-model:value="formData.currentReviewUserId" placeholder="用户 ID" class="w-full" />
         </NFormItem>
         <NFormItem label="审查层级" path="reviewLevel">
           <NInputNumber v-model:value="formData.reviewLevel" :min="1" :max="10" class="w-full" />

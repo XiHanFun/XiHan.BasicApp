@@ -50,7 +50,7 @@ function toTaskUpdatePayload(id: string, data: Partial<SysTask>) {
     ...toTaskCreatePayload(data),
     runTaskStatus: toNumber(data.runTaskStatus, 0),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
