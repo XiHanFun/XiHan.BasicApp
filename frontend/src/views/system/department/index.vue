@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysDepartment } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -27,6 +26,7 @@ import {
   updateDepartmentApi,
 } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { Icon } from '~/iconify'
 import { getOptionLabel, getStatusType } from '~/utils'
 
 defineOptions({ name: 'SystemDepartmentPage' })
@@ -328,7 +328,7 @@ onMounted(fetchData)
           <NSelect v-model:value="formData.departmentType" :options="DEPARTMENT_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="负责人ID" path="leaderId">
-          <NInputNumber v-model:value="formData.leaderId" :min="1" class="w-full" />
+          <NInput v-model:value="formData.leaderId" placeholder="负责人用户 ID" class="w-full" />
         </NFormItem>
         <NFormItem label="联系电话" path="phone">
           <NInput v-model:value="formData.phone" placeholder="请输入联系电话" />

@@ -63,13 +63,13 @@ function toOAuthUpdatePayload(id: string, data: Partial<SysOAuthApp>) {
   return {
     ...toOAuthCreatePayload(data),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
 function toOpenApiSecurityPayload(id: string, data: Partial<SysOAuthApp>) {
   return {
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
     isEnabled: data.openApiSecurityEnabled !== false,
     signatureAlgorithm: data.openApiSignatureAlgorithm ?? 'HMACSHA256',
     contentSignatureAlgorithm: data.openApiContentSignAlgorithm ?? 'SHA256',

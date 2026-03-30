@@ -22,9 +22,9 @@ function normalizeDict(raw: Record<string, any>): SysDict {
 function normalizeDictItem(raw: Record<string, any>): SysDictItem {
   return {
     basicId: toId(raw.basicId),
-    dictId: toNumber(raw.dictId, 0),
+    dictId: toId(raw.dictId),
     dictCode: raw.dictCode ?? '',
-    parentId: raw.parentId === null || raw.parentId === undefined ? undefined : toNumber(raw.parentId, 0),
+    parentId: raw.parentId === null || raw.parentId === undefined ? undefined : toId(raw.parentId),
     itemCode: raw.itemCode ?? '',
     itemName: raw.itemName ?? '',
     itemValue: raw.itemValue ?? '',
@@ -51,15 +51,15 @@ function toDictUpdatePayload(id: string, data: Partial<SysDict>) {
     ...toDictCreatePayload(data),
     status: toNumber(data.status, 1),
     remark: data.remark ?? '',
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
 function toDictItemCreatePayload(data: Partial<SysDictItem>) {
   return {
-    dictId: toNumber(data.dictId, 0),
+    dictId: toId(data.dictId),
     dictCode: data.dictCode ?? '',
-    parentId: data.parentId ? toNumber(data.parentId, 0) : null,
+    parentId: data.parentId ? toId(data.parentId) : null,
     itemCode: data.itemCode ?? '',
     itemName: data.itemName ?? '',
     itemValue: data.itemValue ?? '',
@@ -72,7 +72,7 @@ function toDictItemUpdatePayload(id: string, data: Partial<SysDictItem>) {
     ...toDictItemCreatePayload(data),
     status: toNumber(data.status, 1),
     remark: data.remark ?? '',
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

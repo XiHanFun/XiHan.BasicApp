@@ -7,8 +7,8 @@ const PERMISSION_API = '/api/Permission'
 function normalizePermission(raw: Record<string, any>): SysPermission {
   return {
     basicId: toId(raw.basicId),
-    resourceId: toNumber(raw.resourceId, 0),
-    operationId: toNumber(raw.operationId, 0),
+    resourceId: toId(raw.resourceId),
+    operationId: toId(raw.operationId),
     permissionName: raw.permissionName ?? '',
     permissionCode: raw.permissionCode ?? '',
     permissionDescription: raw.permissionDescription ?? raw.description ?? '',
@@ -27,8 +27,8 @@ function normalizePermission(raw: Record<string, any>): SysPermission {
 
 function toPermissionCreatePayload(data: Partial<SysPermission>) {
   return {
-    resourceId: Math.max(1, toNumber(data.resourceId, 1)),
-    operationId: Math.max(1, toNumber(data.operationId, 1)),
+    resourceId: toId(data.resourceId ?? '1') || '1',
+    operationId: toId(data.operationId ?? '1') || '1',
     permissionCode: data.permissionCode ?? '',
     permissionName: data.permissionName ?? '',
     permissionDescription: data.permissionDescription ?? data.description ?? '',
@@ -44,7 +44,7 @@ function toPermissionUpdatePayload(id: string, data: Partial<SysPermission>) {
   return {
     ...toPermissionCreatePayload(data),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

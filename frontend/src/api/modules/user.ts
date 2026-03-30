@@ -44,7 +44,7 @@ function toUserUpdatePayload(id: string, data: Partial<SysUser>) {
     status: toNumber(data.status, 1),
     avatar: data.avatar ?? '',
     remark: data.remark ?? '',
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
@@ -86,14 +86,14 @@ export async function batchDeleteUserApi(ids: string[]) {
 
 export function updateUserStatusApi(id: string, status: number) {
   return requestClient.post<void>(`${USER_API}/ChangeStatus`, {
-    userId: toNumber(id, 0),
+    userId: toId(id),
     status: toNumber(status, 1),
   })
 }
 
 export function resetUserPasswordApi(id: string, password: string) {
   return requestClient.post<void>(`${USER_API}/ResetPassword`, {
-    userId: toNumber(id, 0),
+    userId: toId(id),
     newPassword: password,
   })
 }

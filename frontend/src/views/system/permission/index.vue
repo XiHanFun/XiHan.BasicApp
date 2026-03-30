@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysPermission } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -28,6 +27,7 @@ import {
   updatePermissionApi,
 } from '@/api'
 import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate, getStatusType } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
@@ -52,8 +52,8 @@ const formData = ref<Partial<SysPermission>>({
   permissionCode: '',
   permissionName: '',
   permissionDescription: '',
-  resourceId: 1,
-  operationId: 1,
+  resourceId: '1',
+  operationId: '1',
   isRequireAudit: false,
   priority: 0,
   sort: 100,
@@ -81,8 +81,8 @@ function handleAdd() {
     permissionCode: '',
     permissionName: '',
     permissionDescription: '',
-    resourceId: 1,
-    operationId: 1,
+    resourceId: '1',
+    operationId: '1',
     isRequireAudit: false,
     priority: 0,
     sort: 100,
@@ -322,10 +322,10 @@ onMounted(fetchData)
         </NFormItem>
         <div class="grid grid-cols-2 gap-x-3">
           <NFormItem label="资源ID" path="resourceId">
-            <NInputNumber v-model:value="formData.resourceId" :min="1" class="w-full" />
+            <NInput v-model:value="formData.resourceId" placeholder="资源 ID" class="w-full" />
           </NFormItem>
           <NFormItem label="操作ID" path="operationId">
-            <NInputNumber v-model:value="formData.operationId" :min="1" class="w-full" />
+            <NInput v-model:value="formData.operationId" placeholder="操作 ID" class="w-full" />
           </NFormItem>
           <NFormItem label="优先级" path="priority">
             <NInputNumber v-model:value="formData.priority" :min="0" class="w-full" />

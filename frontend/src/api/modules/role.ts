@@ -36,7 +36,7 @@ function toRoleUpdatePayload(id: string, data: Partial<SysRole>) {
     dataScope: 0,
     status: toNumber(data.status, 1),
     sort: toNumber(data.sort, 0),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
@@ -88,7 +88,7 @@ export function deleteRoleApi(id: string) {
 
 export function assignRolePermissionsApi(id: string, permissions: string[]) {
   return requestClient.post<void>(`${ROLE_API}/AssignPermissions`, {
-    roleId: toNumber(id, 0),
-    permissionIds: permissions.map(item => toNumber(item, 0)).filter(item => item > 0),
+    roleId: toId(id),
+    permissionIds: permissions.map(item => toId(item)).filter(item => item.length > 0),
   })
 }

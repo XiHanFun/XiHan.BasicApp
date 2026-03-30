@@ -7,8 +7,8 @@ const SMS_API = '/api/Sms'
 function normalizeSms(raw: Record<string, any>): SysSms {
   return {
     basicId: toId(raw.basicId),
-    senderId: raw.senderId === null || raw.senderId === undefined ? undefined : toNumber(raw.senderId, 0),
-    receiverId: raw.receiverId === null || raw.receiverId === undefined ? undefined : toNumber(raw.receiverId, 0),
+    senderId: raw.senderId === null || raw.senderId === undefined ? undefined : toId(raw.senderId),
+    receiverId: raw.receiverId === null || raw.receiverId === undefined ? undefined : toId(raw.receiverId),
     smsType: toNumber(raw.smsType, 0),
     toPhone: raw.toPhone ?? '',
     content: raw.content ?? '',
@@ -31,7 +31,7 @@ function toSmsCreatePayload(data: Partial<SysSms>) {
     smsType: toNumber(data.smsType, 0),
     toPhone: data.toPhone ?? '',
     content: data.content ?? '',
-    templateId: data.templateId ? toNumber(data.templateId, 0) : null,
+    templateId: data.templateId ? toId(data.templateId) : null,
     templateParams: data.templateParams ?? '',
     provider: data.provider ?? '',
     scheduledTime: data.scheduledTime ?? null,
@@ -44,7 +44,7 @@ function toSmsUpdatePayload(id: string, data: Partial<SysSms>) {
     ...toSmsCreatePayload(data),
     smsStatus: toNumber(data.smsStatus, 0),
     sendTime: data.sendTime ?? null,
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

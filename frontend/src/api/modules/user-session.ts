@@ -7,7 +7,7 @@ const USER_SESSION_API = '/api/UserSession'
 function normalizeUserSession(raw: Record<string, any>): SysUserSession {
   return {
     basicId: toId(raw.basicId),
-    userId: toNumber(raw.userId, 0),
+    userId: toId(raw.userId),
     sessionId: raw.sessionId ?? '',
     deviceType: toNumber(raw.deviceType, 0),
     deviceName: raw.deviceName ?? undefined,
@@ -26,7 +26,7 @@ function normalizeUserSession(raw: Record<string, any>): SysUserSession {
 
 function toUserSessionCreatePayload(data: Partial<SysUserSession>) {
   return {
-    userId: toNumber(data.userId, 0),
+    userId: toId(data.userId),
     sessionId: data.sessionId ?? '',
     deviceType: toNumber(data.deviceType, 0),
     deviceName: data.deviceName ?? '',
@@ -47,7 +47,7 @@ function toUserSessionUpdatePayload(id: string, data: Partial<SysUserSession>) {
     revokedAt: data.revokedAt ?? null,
     logoutTime: data.logoutTime ?? null,
     remark: data.remark ?? '',
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
@@ -96,7 +96,7 @@ export function getUserSessionBySessionIdApi(sessionId: string, tenantId?: numbe
     .then(raw => (raw ? normalizeUserSession(raw) : null))
 }
 
-export function revokeUserSessionsApi(userId: number, reason: string, tenantId?: number) {
+export function revokeUserSessionsApi(userId: string | number, reason: string, tenantId?: number) {
   return requestClient.post<number>(`${USER_SESSION_API}/RevokeUserSessions`, undefined, {
     params: {
       userId,

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DataTableColumns } from 'naive-ui'
 import type { SysDict, SysDictItem } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
   NCard,
@@ -31,6 +30,7 @@ import {
   updateDictItemApi,
 } from '@/api'
 import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemDictPage' })
@@ -210,7 +210,7 @@ async function handleSubmitItem() {
     itemSubmitLoading.value = true
     const payload = {
       ...itemFormData.value,
-      dictId: Number(currentDictId.value),
+      dictId: currentDictId.value,
       dictCode: currentDictCode.value,
     }
 
@@ -565,7 +565,7 @@ onMounted(fetchData)
           <NInput v-model:value="itemFormData.itemValue" placeholder="请输入项值" />
         </NFormItem>
         <NFormItem label="父级ID" path="parentId">
-          <NInputNumber v-model:value="itemFormData.parentId" :min="1" class="w-full" />
+          <NInput v-model:value="itemFormData.parentId" placeholder="父级项 ID（可选）" class="w-full" />
         </NFormItem>
         <NFormItem label="排序" path="sort">
           <NInputNumber v-model:value="itemFormData.sort" :min="0" :max="9999" class="w-full" />

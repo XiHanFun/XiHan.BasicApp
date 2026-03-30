@@ -51,7 +51,7 @@ function toFileUpdatePayload(id: string, data: FilePayload) {
   return {
     ...toFileCreatePayload(data),
     status: toNumber(data.status, 0),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

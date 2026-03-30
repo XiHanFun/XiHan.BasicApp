@@ -18,11 +18,11 @@ function normalizeReview(raw: Record<string, any>): SysReview {
     priority: toNumber(raw.priority, 3),
     submitUserId: raw.submitUserId === null || raw.submitUserId === undefined
       ? undefined
-      : toNumber(raw.submitUserId, 0),
+      : toId(raw.submitUserId),
     submitTime: raw.submitTime ?? '',
     currentReviewUserId: raw.currentReviewUserId === null || raw.currentReviewUserId === undefined
       ? undefined
-      : toNumber(raw.currentReviewUserId, 0),
+      : toId(raw.currentReviewUserId),
     reviewLevel: toNumber(raw.reviewLevel, 1),
     currentLevel: toNumber(raw.currentLevel, 1),
     status: toNumber(raw.status, 1),
@@ -54,7 +54,7 @@ function toReviewUpdatePayload(id: string, data: Partial<SysReview>) {
     reviewStatus: toNumber(data.reviewStatus, 0),
     reviewResult: data.reviewResult ?? null,
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 

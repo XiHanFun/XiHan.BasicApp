@@ -49,7 +49,7 @@ function toTenantUpdatePayload(id: string, data: Partial<SysTenant>) {
     expireTime: data.expireTime ?? data.expiredTime ?? null,
     status: toNumber(data.status, 1),
     remark: data.remark ?? '',
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
@@ -94,7 +94,7 @@ export function deleteTenantApi(id: string) {
 
 export function changeTenantStatusApi(id: string, tenantStatus: number) {
   return requestClient.post<void>(`${TENANT_API}/ChangeStatus`, {
-    tenantId: toNumber(id, 0),
+    tenantId: toId(id),
     tenantStatus: toNumber(tenantStatus, 0),
   })
 }

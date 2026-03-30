@@ -56,8 +56,8 @@ export interface SysMenu {
 
 export interface SysPermission {
   basicId: string
-  resourceId: number
-  operationId: number
+  resourceId: string
+  operationId: string
   permissionName: string
   permissionCode: string
   permissionDescription?: string
@@ -79,7 +79,7 @@ export interface SysDepartment {
   departmentName: string
   departmentCode?: string
   departmentType?: number
-  leaderId?: number
+  leaderId?: string
   leader?: string
   phone?: string
   email?: string
@@ -286,8 +286,8 @@ export interface SysFile {
 
 export interface SysEmail {
   basicId: string
-  sendUserId?: number
-  receiveUserId?: number
+  sendUserId?: string
+  receiveUserId?: string
   emailType: number
   fromEmail: string
   toEmail: string
@@ -304,8 +304,8 @@ export interface SysEmail {
 
 export interface SysSms {
   basicId: string
-  senderId?: number
-  receiverId?: number
+  senderId?: string
+  receiverId?: string
   smsType: number
   toPhone: string
   content: string
@@ -378,9 +378,9 @@ export interface SysReview {
   reviewStatus: number
   reviewResult?: number
   priority: number
-  submitUserId?: number
+  submitUserId?: string
   submitTime: string
-  currentReviewUserId?: number
+  currentReviewUserId?: string
   reviewLevel: number
   currentLevel: number
   status: number
@@ -391,7 +391,7 @@ export interface SysReview {
 
 export interface SysUserSession {
   basicId: string
-  userId: number
+  userId: string
   sessionId: string
   deviceType: number
   deviceName?: string
@@ -435,9 +435,9 @@ export interface SysDict {
 
 export interface SysDictItem {
   basicId: string
-  dictId: number
+  dictId: string
   dictCode: string
-  parentId?: number
+  parentId?: string
   itemCode: string
   itemName: string
   itemValue?: string
@@ -450,8 +450,8 @@ export interface SysDictItem {
 
 export interface SysNotification {
   basicId: string
-  recipientUserId?: number
-  sendUserId?: number
+  recipientUserId?: string
+  sendUserId?: string
   notificationType: number
   title: string
   content?: string
@@ -668,8 +668,8 @@ export interface DepartmentPageQuery extends PageQuery {
 
 export interface PermissionPageQuery extends PageQuery {
   status?: number | undefined
-  resourceId?: number | undefined
-  operationId?: number | undefined
+  resourceId?: string | undefined
+  operationId?: string | undefined
 }
 
 export interface TenantPageQuery extends PageQuery {
