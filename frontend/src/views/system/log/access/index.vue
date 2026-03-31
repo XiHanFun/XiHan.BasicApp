@@ -21,14 +21,16 @@ function handleQueryApi(
   page: VxeGridPropTypes.ProxyAjaxQueryPageParams,
   _sort: VxeGridPropTypes.ProxyAjaxQuerySortCheckedParams,
 ) {
-  return requestClient.post(
-    '/api/AccessLog/Page',
-    buildPageRequest({
-      page: page.currentPage,
-      pageSize: page.pageSize,
-      keyword: queryParams.keyword,
-    }),
-  ).then(flattenPageResponse)
+  return requestClient
+    .post(
+      '/api/AccessLog/Page',
+      buildPageRequest({
+        page: page.currentPage,
+        pageSize: page.pageSize,
+        keyword: queryParams.keyword,
+      }),
+    )
+    .then(flattenPageResponse)
 }
 
 const options = useVxeTable(
@@ -70,10 +72,20 @@ const options = useVxeTable(
         formatter: ({ cellValue }) => formatDate(cellValue),
         sortable: true,
       },
-      { field: 'leaveTime', title: '离开时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue) },
+      {
+        field: 'leaveTime',
+        title: '离开时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
       { field: 'stayTime', title: '停留(s)', width: 90 },
       { field: 'errorMessage', title: '错误消息', minWidth: 200, showOverflow: 'tooltip' },
-      { field: 'createdTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue) },
+      {
+        field: 'createdTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
     ],
   },
   {
@@ -102,15 +114,14 @@ async function handleClear() {
     await clearAccessLogApi()
     message.success('清空成功')
     xGrid.value?.commitProxy('reload')
-  }
-  catch {
+  } catch {
     message.error('清空失败')
   }
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-2 overflow-hidden p-3">
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
     <vxe-card style="padding: 10px 16px">
       <div class="flex gap-3 items-center">
         <vxe-input
@@ -120,9 +131,7 @@ async function handleClear() {
           style="width: 260px"
           @keyup.enter="handleSearch"
         />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -130,9 +139,7 @@ async function handleClear() {
         <template #toolbar_buttons>
           <NPopconfirm @positive-click="handleClear">
             <template #trigger>
-              <NButton type="error" size="small">
-                清空日志
-              </NButton>
+              <NButton type="error" size="small">清空日志</NButton>
             </template>
             确认清空所有访问日志？
           </NPopconfirm>

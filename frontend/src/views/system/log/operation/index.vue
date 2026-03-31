@@ -63,7 +63,12 @@ const options = useVxeTable(
         formatter: ({ cellValue }) => formatDate(cellValue),
         sortable: true,
       },
-      { field: 'createdTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue) },
+      {
+        field: 'createdTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
     ],
   },
   {
@@ -99,7 +104,7 @@ async function handleClear() {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-2 overflow-hidden p-3">
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
     <vxe-card style="padding: 10px 16px">
       <div class="flex gap-3 items-center">
         <vxe-input
@@ -123,10 +128,7 @@ async function handleClear() {
           </NPopconfirm>
         </template>
         <template #col_status="{ row }">
-          <NTag
-            :type="row.status === 'Yes' ? 'success' : 'error'"
-            size="small"
-          >
+          <NTag :type="row.status === 'Yes' ? 'success' : 'error'" size="small">
             {{ row.status === 'Yes' ? '成功' : '失败' }}
           </NTag>
         </template>
