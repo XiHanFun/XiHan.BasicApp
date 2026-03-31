@@ -1,23 +1,13 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
 import type { LoginConfig } from '~/types'
-import { Icon } from '~/iconify'
-import {
-  NButton,
-  NCheckbox,
-  NDivider,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NSelect,
-  useMessage,
-} from 'naive-ui'
+import { NButton, NCheckbox, NDivider, NForm, NFormItem, NIcon, NInput, useMessage } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { getLoginConfigApi } from '@/api'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAuthStore } from '~/stores'
 
 defineOptions({ name: 'LoginPage' })
@@ -37,14 +27,7 @@ const loginConfig = ref<LoginConfig>({
   oauthProviders: [],
 })
 
-const accountOptions = [
-  { label: 'SuperAdmin', value: 'superadmin' },
-  { label: 'Admin', value: 'admin' },
-  { label: 'Test', value: 'test' },
-]
-
 const formData = ref({
-  selectAccount: 'superadmin',
   username: 'superadmin',
   password: 'SuperAdmin@123',
   tenantId: '1',
@@ -93,11 +76,6 @@ function getOauthProviderLabel(provider: string) {
 
 function getOauthProviderIcon(provider: string) {
   return oauthProviderMeta[provider]?.icon ?? 'lucide:link-2'
-}
-
-function handleSelectAccount(value: string) {
-  formData.value.username = value
-  formData.value.password = 'Admin@123'
 }
 
 async function loadLoginConfig() {
@@ -167,15 +145,6 @@ onMounted(async () => {
       :show-label="false"
       @keydown="handleKeydown"
     >
-      <NFormItem path="selectAccount" :show-feedback="false" class="!mb-6">
-        <NSelect
-          v-model:value="formData.selectAccount"
-          :options="accountOptions"
-          :placeholder="t('page.auth.select_account')"
-          size="large"
-          @update:value="handleSelectAccount"
-        />
-      </NFormItem>
       <NFormItem path="username" :show-feedback="false" class="!mb-6">
         <NInput
           v-model:value="formData.username"

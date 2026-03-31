@@ -81,9 +81,8 @@ const sidebarEnableState = computed(
     <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
       <!-- Header + Tabbar wrapper -->
       <div
-        :class="{ 'shadow-[0_16px_24px_hsl(var(--background))]': shell.scrollY.value > 20 }"
         :style="shell.headerWrapperStyle.value"
-        class="overflow-hidden transition-all duration-200"
+        class="overflow-hidden"
       >
         <!-- Header -->
         <header

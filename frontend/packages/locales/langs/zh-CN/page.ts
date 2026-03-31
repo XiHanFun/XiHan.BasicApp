@@ -16,7 +16,7 @@ export default {
   auth: {
     slogan_title: '企业 SaaS 中后台内核',
     slogan_desc: '工程化、智能化、国际化',
-    welcome_back: '欢迎回来 👋🏻',
+    welcome_back: '欢迎回来',
     login_subtitle: '请输入您的账号密码以登录管理系统',
     select_account: '选择演示账号',
     mobile_login: '手机登录',
@@ -36,14 +36,14 @@ export default {
     qrcode_subtitle: '使用手机扫描二维码快速登录',
     qrcode_prompt: '打开手机APP，扫描二维码后即可登录',
     // 忘记密码
-    forget_password_title: '忘记密码 🤦🏻‍♂️',
+    forget_password_title: '忘记密码',
     forget_password_subtitle: '输入您的注册邮箱，我们将发送密码重置链接',
     email_placeholder: '请输入邮箱地址',
     email_invalid: '请输入有效的邮箱地址',
     send_reset_link: '发送重置链接',
     reset_link_sent: '重置链接已发送到您的邮箱',
     // 注册
-    create_account_title: '创建账号 🚀',
+    create_account_title: '创建账号',
     register_subtitle: '填写以下信息创建您的管理账号',
     username_min_length: '用户名至少3个字符',
     password_min_length: '密码至少6个字符',

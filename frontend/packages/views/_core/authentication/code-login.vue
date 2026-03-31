@@ -40,8 +40,7 @@ const rules: FormRules = {
 function handleSendCode() {
   formRef.value?.validate(
     async (errors) => {
-      if (errors)
-        return
+      if (errors) return
       try {
         const response = await sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
         countdown.value = 60
@@ -56,13 +55,12 @@ function handleSendCode() {
           formData.value.code = response.debugCode
         }
         message.success(t('page.auth.code_sent'))
-      }
-      catch (err: unknown) {
+      } catch (err: unknown) {
         const error = err as { message?: string }
         message.error(error?.message || '发送验证码失败')
       }
     },
-    rule => rule?.key === 'phone',
+    (rule) => rule?.key === 'phone',
   )
 }
 
@@ -75,26 +73,22 @@ async function handleLogin() {
       code: formData.value.code,
       tenantId: defaultTenantId,
     })
-  }
-  catch (err: unknown) {
+  } catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
     }
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter')
-    handleLogin()
+  if (e.key === 'Enter') handleLogin()
 }
 
 onBeforeUnmount(() => {
-  if (!timer)
-    return
+  if (!timer) return
   clearInterval(timer)
   timer = null
 })
@@ -104,7 +98,7 @@ onBeforeUnmount(() => {
   <div class="py-1">
     <div class="mb-8">
       <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
-        {{ t('page.auth.mobile_login') }} 馃摬
+        {{ t('page.auth.mobile_login') }}
       </h1>
       <p
         class="mt-3 text-[15px] leading-7"

@@ -16,13 +16,13 @@ export default {
   auth: {
     slogan_title: 'Enterprise SaaS Back-End Core',
     slogan_desc: 'Engineered · Intelligent · Internationalized',
-    welcome_back: 'Welcome back 👋🏻',
+    welcome_back: 'Welcome back',
     login_subtitle: 'Enter your credentials to access the admin panel',
     select_account: 'Select demo account',
     mobile_login: 'Phone Login',
     qrcode_login: 'QR Login',
     third_party_login: 'Third-party login',
-    no_account: 'Don\'t have an account?',
+    no_account: "Don't have an account?",
     back_to_login: 'Back to login',
     // Code login
     code_login_subtitle: 'Enter your phone number to receive a verification code',
@@ -36,14 +36,14 @@ export default {
     qrcode_subtitle: 'Scan the QR code with your phone to log in',
     qrcode_prompt: 'Open your mobile app and scan the QR code to log in',
     // Forget password
-    forget_password_title: 'Forgot Password 🤦🏻‍♂️',
+    forget_password_title: 'Forgot Password',
     forget_password_subtitle: 'Enter your registered email to receive a reset link',
     email_placeholder: 'Enter email address',
     email_invalid: 'Please enter a valid email address',
     send_reset_link: 'Send Reset Link',
     reset_link_sent: 'Reset link has been sent to your email',
     // Register
-    create_account_title: 'Create Account 🚀',
+    create_account_title: 'Create Account',
     register_subtitle: 'Fill in the details below to create your account',
     username_min_length: 'Username must be at least 3 characters',
     password_min_length: 'Password must be at least 6 characters',
@@ -66,7 +66,7 @@ export default {
   },
   dashboard: {
     welcome: 'Welcome back',
-    today_visitors: 'Today\'s Visitors',
+    today_visitors: "Today's Visitors",
     total_users: 'Total Users',
     online_count: 'Online Users',
     system_version: 'System Version',
