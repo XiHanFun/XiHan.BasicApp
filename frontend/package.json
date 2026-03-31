@@ -32,19 +32,19 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "reinstall": "pnpm run clean:modules && pnpm install",
-    "clean": "rimraf dist",
-    "clean:modules": "rimraf node_modules",
     "dev": "vite --mode development",
-    "build": "vue-tsc --noEmit && vite build --mode production",
-    "build:dev": "vite build --mode development",
-    "rebuild": "pnpm run clean && pnpm run build",
-    "rebuild:dev": "pnpm run clean && pnpm run build:dev",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{ts,vue,json}\" \"packages/**/*.{ts,json}\""
+    "format": "prettier --write \"src/**/*.{ts,vue,json}\" \"packages/**/*.{ts,json}\"",
+    "clean": "rimraf dist",
+    "clean:modules": "rimraf node_modules",
+    "build": "vue-tsc --noEmit && vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "reinstall": "pnpm run clean:modules && pnpm install",
+    "rebuild": "pnpm run clean && pnpm run build",
+    "rebuild:dev": "pnpm run clean && pnpm run build:dev"
   },
   "dependencies": {
     "@iconify/vue": "^4.3.0",
