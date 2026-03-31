@@ -85,11 +85,7 @@ const {
           <div class="lock-screen-hint">
             {{ hasLockPwd ? '请输入锁屏密码' : '按下解锁按钮继续' }}
           </div>
-          <form
-            v-if="hasLockPwd"
-            class="lock-screen-input-wrap"
-            @submit.prevent="doUnlock"
-          >
+          <form v-if="hasLockPwd" class="lock-screen-input-wrap" @submit.prevent="doUnlock">
             <NInput
               v-model:value="unlockPwd"
               type="password"
