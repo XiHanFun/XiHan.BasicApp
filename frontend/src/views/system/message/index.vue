@@ -1,156 +1,163 @@
-<script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { SysEmail, SysSms } from '~/types'
+<script lang="ts" setup>
 import {
   NButton,
-  NCard,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
+  NModal,
+  NSelect,
   NSpace,
+  NTabPane,
+  NTabs,
+  NTag,
   useMessage,
 } from 'naive-ui'
 import { ref } from 'vue'
-import { getPendingEmailsByMessageApi, getPendingSmsByMessageApi, sendMessageApi } from '@/api'
-import { CrudProTable, XJsonViewer } from '~/components'
+import {
+  getPendingEmailsByMessageApi,
+  getPendingSmsByMessageApi,
+  sendMessageApi,
+} from '@/api'
+import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemMessagePage' })
 
 const message = useMessage()
-const loadingEmail = ref(false)
-const loadingSms = ref(false)
-const sending = ref(false)
-const tenantId = ref<number | null>(null)
-const maxCount = ref(20)
-const pendingEmails = ref<SysEmail[]>([])
-const pendingSms = ref<SysSms[]>([])
-const sendResult = ref('')
-const sendPayload = ref(
-  JSON.stringify(
-    {
-      recipientUserIds: [],
-      channels: ['notification'],
-      title: '系统通知',
-      content: '这是一条统一消息测试内容',
-      tenantId: null,
-    },
-    null,
-    2,
-  ),
-)
+const activeTab = ref('send')
+const sendLoading = ref(false)
+const pendingLoading = ref(false)
 
-const emailColumns: DataTableColumns<SysEmail> = [
-  { title: 'ID', key: 'basicId', width: 100 },
-  { title: '收件人', key: 'toEmail', width: 180 },
-  { title: '主题', key: 'subject', minWidth: 180 },
-  { title: '状态', key: 'emailStatus', width: 90 },
-  { title: '计划时间', key: 'scheduledTime', width: 170 },
+const CHANNEL_OPTIONS = [
+  { label: '邮件', value: 'Email' },
+  { label: '短信', value: 'Sms' },
 ]
 
-const smsColumns: DataTableColumns<SysSms> = [
-  { title: 'ID', key: 'basicId', width: 100 },
-  { title: '手机号', key: 'toPhone', width: 160 },
-  { title: '内容', key: 'content', minWidth: 220, ellipsis: { tooltip: true } },
-  { title: '状态', key: 'smsStatus', width: 90 },
-  { title: '计划时间', key: 'scheduledTime', width: 170 },
-]
+const sendForm = ref({
+  channel: 'Email',
+  to: '',
+  subject: '',
+  content: '',
+  isHtml: false,
+})
 
-async function loadPendingEmails() {
-  try {
-    loadingEmail.value = true
-    pendingEmails.value = await getPendingEmailsByMessageApi(maxCount.value, tenantId.value ?? undefined)
-  }
-  catch {
-    message.error('加载待分发邮件失败')
-  }
-  finally {
-    loadingEmail.value = false
-  }
-}
-
-async function loadPendingSms() {
-  try {
-    loadingSms.value = true
-    pendingSms.value = await getPendingSmsByMessageApi(maxCount.value, tenantId.value ?? undefined)
-  }
-  catch {
-    message.error('加载待分发短信失败')
-  }
-  finally {
-    loadingSms.value = false
-  }
-}
+const pendingTenantId = ref(0)
+const pendingMaxCount = ref(10)
+const pendingEmails = ref<any[]>([])
+const pendingSms = ref<any[]>([])
 
 async function handleSend() {
+  if (!sendForm.value.to || !sendForm.value.content) {
+    message.warning('请填写完整信息')
+    return
+  }
   try {
-    sending.value = true
-    const payload = JSON.parse(sendPayload.value)
-    const result = await sendMessageApi(payload)
+    sendLoading.value = true
+    await sendMessageApi({
+      channel: sendForm.value.channel,
+      to: sendForm.value.to,
+      subject: sendForm.value.subject,
+      content: sendForm.value.content,
+      isHtml: sendForm.value.isHtml,
+    })
     message.success('发送成功')
-    sendResult.value = JSON.stringify(result, null, 2)
+    sendForm.value = { channel: 'Email', to: '', subject: '', content: '', isHtml: false }
   }
   catch {
-    message.error('发送失败，请检查 JSON 格式与字段')
+    message.error('发送失败')
   }
   finally {
-    sending.value = false
+    sendLoading.value = false
+  }
+}
+
+async function fetchPending() {
+  try {
+    pendingLoading.value = true
+    const [emails, sms] = await Promise.all([
+      getPendingEmailsByMessageApi(pendingTenantId.value, pendingMaxCount.value),
+      getPendingSmsByMessageApi(pendingTenantId.value, pendingMaxCount.value),
+    ])
+    pendingEmails.value = Array.isArray(emails) ? emails : []
+    pendingSms.value = Array.isArray(sms) ? sms : []
+  }
+  catch {
+    message.error('获取待处理消息失败')
+  }
+  finally {
+    pendingLoading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="space-y-3">
-    <NCard title="统一消息发送" :bordered="false" size="small">
-      <NForm label-placement="left" label-width="90px">
-        <NFormItem label="消息命令">
-          <NInput
-            v-model:value="sendPayload"
-            type="textarea"
-            :rows="8"
-            placeholder="请输入 SendMessageCommand JSON"
-          />
-        </NFormItem>
-      </NForm>
-      <NButton type="primary" size="small" :loading="sending" @click="handleSend">
-        发送消息
-      </NButton>
-    </NCard>
-
-    <XJsonViewer title="发送结果" :raw-text="sendResult || '暂无发送结果'" :max-height="220" />
-
-    <NCard title="待分发队列" :bordered="false" size="small">
-      <NSpace align="center" class="mb-3">
-        <span class="text-sm text-gray-500">租户ID</span>
-        <NInputNumber v-model:value="tenantId" clearable />
-        <span class="text-sm text-gray-500">最大数量</span>
-        <NInputNumber v-model:value="maxCount" :min="1" :max="200" />
-        <NButton size="small" @click="loadPendingEmails">
-          刷新邮件
-        </NButton>
-        <NButton size="small" @click="loadPendingSms">
-          刷新短信
-        </NButton>
-      </NSpace>
-
-      <div class="space-y-3">
-        <CrudProTable
-          :columns="emailColumns"
-          :data="pendingEmails"
-          :loading="loadingEmail"
-          :row-key="(row) => row.basicId"
-          :show-toolbar="false"
-          :show-pagination="false"
-        />
-        <CrudProTable
-          :columns="smsColumns"
-          :data="pendingSms"
-          :loading="loadingSms"
-          :row-key="(row) => row.basicId"
-          :show-toolbar="false"
-          :show-pagination="false"
-        />
-      </div>
-    </NCard>
+  <div class="h-full flex flex-col">
+    <vxe-card>
+      <NTabs v-model:value="activeTab" type="line">
+        <NTabPane name="send" tab="发送消息">
+          <NForm :model="sendForm" label-placement="left" label-width="80px" style="max-width: 600px" class="mt-4">
+            <NFormItem label="发送渠道">
+              <NSelect v-model:value="sendForm.channel" :options="CHANNEL_OPTIONS" />
+            </NFormItem>
+            <NFormItem label="收件人">
+              <NInput v-model:value="sendForm.to" :placeholder="sendForm.channel === 'Email' ? '邮箱地址' : '手机号'" />
+            </NFormItem>
+            <NFormItem v-if="sendForm.channel === 'Email'" label="主题">
+              <NInput v-model:value="sendForm.subject" placeholder="邮件主题" />
+            </NFormItem>
+            <NFormItem label="内容">
+              <NInput v-model:value="sendForm.content" type="textarea" :rows="5" placeholder="消息内容" />
+            </NFormItem>
+            <NFormItem>
+              <NButton type="primary" :loading="sendLoading" @click="handleSend">
+                发送
+              </NButton>
+            </NFormItem>
+          </NForm>
+        </NTabPane>
+        <NTabPane name="pending" tab="待处理队列">
+          <div class="mt-4">
+            <div class="flex items-center gap-3 mb-4">
+              <NInputNumber v-model:value="pendingTenantId" :min="0" placeholder="租户ID" style="width: 120px" />
+              <NInputNumber v-model:value="pendingMaxCount" :min="1" :max="100" placeholder="数量" style="width: 120px" />
+              <NButton type="primary" :loading="pendingLoading" @click="fetchPending">
+                查询
+              </NButton>
+            </div>
+            <div v-if="pendingEmails.length" class="mb-4">
+              <h4 class="mb-2 font-medium">
+                待发送邮件 ({{ pendingEmails.length }})
+              </h4>
+              <div v-for="(item, i) in pendingEmails" :key="i" class="rounded border p-3 mb-2">
+                <div class="flex items-center gap-2">
+                  <NTag type="info" size="small">
+                    邮件
+                  </NTag>
+                  <span class="font-medium">{{ item.subject || item.toEmail }}</span>
+                  <span class="ml-auto text-xs text-gray-400">{{ formatDate(item.createTime) }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-if="pendingSms.length">
+              <h4 class="mb-2 font-medium">
+                待发送短信 ({{ pendingSms.length }})
+              </h4>
+              <div v-for="(item, i) in pendingSms" :key="i" class="rounded border p-3 mb-2">
+                <div class="flex items-center gap-2">
+                  <NTag type="warning" size="small">
+                    短信
+                  </NTag>
+                  <span class="font-medium">{{ item.toPhone }}</span>
+                  <span class="ml-auto text-xs text-gray-400">{{ formatDate(item.createTime) }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-if="!pendingEmails.length && !pendingSms.length && !pendingLoading" class="py-8 text-center text-gray-400">
+              暂无待处理消息
+            </div>
+          </div>
+        </NTabPane>
+      </NTabs>
+    </vxe-card>
   </div>
 </template>

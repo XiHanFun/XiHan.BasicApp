@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { DataTableColumns } from 'naive-ui'
-import type { CrudSearchField } from '~/components'
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
 import type { SysConfig } from '~/types'
 import {
   NButton,
@@ -9,124 +8,118 @@ import {
   NInput,
   NModal,
   NPopconfirm,
+  NSelect,
   NSpace,
   NTag,
   useMessage,
 } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import { createConfigApi, deleteConfigApi, getConfigPageApi, updateConfigApi } from '@/api'
-import { CrudEnumSelect, CrudProTable, CrudQueryPanel } from '~/components'
+import { reactive, ref } from 'vue'
+import { createConfigApi, deleteConfigApi, updateConfigApi } from '@/api'
+import requestClient from '@/api/request'
+import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
 import {
   CONFIG_DATA_TYPE_OPTIONS,
   CONFIG_TYPE_OPTIONS,
-  DEFAULT_PAGE_SIZE,
   STATUS_OPTIONS,
 } from '~/constants'
+import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemConfigPage' })
 
-interface QueryFormModel {
-  keyword: string
-  configType?: number
-  status?: number
+const message = useMessage()
+const xGrid = ref<VxeGridInstance>()
+
+const queryParams = reactive({
+  keyword: '',
+  configType: undefined as number | undefined,
+  status: undefined as number | undefined,
+})
+
+function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
+  return requestClient.post('/api/Config/Page', buildPageRequest({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+    configType: queryParams.configType,
+    status: queryParams.status,
+  }, {
+    keywordFields: ['ConfigName', 'ConfigKey', 'ConfigValue'],
+    filterFieldMap: { configType: 'ConfigType', status: 'Status' },
+  })).then(flattenPageResponse)
 }
 
-const message = useMessage()
-const loading = ref(false)
-const tableData = ref<SysConfig[]>([])
-const total = ref(0)
-
-const queryForm = ref<QueryFormModel>({
-  keyword: '',
-  configType: undefined,
-  status: undefined,
+const options = useVxeTable<SysConfig>({
+  id: 'sys_config',
+  name: '系统配置',
+  columns: [
+    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+    { field: 'configName', title: '配置名称', minWidth: 160, showOverflow: 'tooltip', sortable: true },
+    { field: 'configGroup', title: '配置组', minWidth: 120, showOverflow: 'tooltip' },
+    { field: 'configKey', title: '配置键', minWidth: 200, showOverflow: 'tooltip', sortable: true },
+    { field: 'configValue', title: '配置值', minWidth: 220, showOverflow: 'tooltip' },
+    { field: 'defaultValue', title: '默认值', minWidth: 140, showOverflow: 'tooltip' },
+    {
+      field: 'configType',
+      title: '配置类型',
+      width: 120,
+      formatter: ({ cellValue }) => getOptionLabel(CONFIG_TYPE_OPTIONS, cellValue),
+    },
+    {
+      field: 'dataType',
+      title: '数据类型',
+      width: 120,
+      formatter: ({ cellValue }) => getOptionLabel(CONFIG_DATA_TYPE_OPTIONS, cellValue),
+    },
+    { field: 'configDescription', title: '描述', minWidth: 160, showOverflow: 'tooltip' },
+    {
+      field: 'isBuiltIn',
+      title: '内置',
+      width: 70,
+      slots: { default: 'col_builtIn' },
+    },
+    {
+      field: 'status',
+      title: '状态',
+      width: 80,
+      slots: { default: 'col_status' },
+    },
+    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
+    {
+      title: '操作',
+      width: 140,
+      fixed: 'right',
+      slots: { default: 'col_actions' },
+    },
+  ],
+}, {
+  proxyConfig: {
+    autoLoad: true,
+    ajax: {
+      query: ({ page }) => handleQueryApi(page),
+    },
+  },
 })
 
-const pager = reactive({
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
-})
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
+}
 
-const searchFields: CrudSearchField[] = [
-  {
-    key: 'keyword',
-    type: 'input',
-    placeholder: '搜索配置名称/配置键',
-    width: 260,
-  },
-  {
-    key: 'configType',
-    type: 'select',
-    options: CONFIG_TYPE_OPTIONS,
-    placeholder: '配置类型',
-    width: 140,
-  },
-  {
-    key: 'status',
-    type: 'select',
-    options: STATUS_OPTIONS,
-    placeholder: '状态',
-    width: 120,
-  },
-]
+function handleReset() {
+  queryParams.keyword = ''
+  queryParams.configType = undefined
+  queryParams.status = undefined
+  xGrid.value?.commitProxy('reload')
+}
+
+// ==================== 表单弹窗 ====================
 
 const modalVisible = ref(false)
 const modalTitle = ref('新增配置')
 const submitLoading = ref(false)
+const formData = ref<Partial<SysConfig>>({})
 
-const formData = ref<Partial<SysConfig>>({
-  configName: '',
-  configKey: '',
-  configValue: '',
-  configType: 0,
-  dataType: 0,
-  status: 1,
-  remark: '',
-})
-
-async function fetchData() {
-  try {
-    loading.value = true
-    const result = await getConfigPageApi({
-      page: pager.page,
-      pageSize: pager.pageSize,
-      ...queryForm.value,
-    })
-    tableData.value = result.items
-    total.value = result.total
-  }
-  catch {
-    message.error('获取配置列表失败')
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function handleSearch() {
-  pager.page = 1
-  fetchData()
-}
-
-function handleReset() {
-  pager.page = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  pager.page = page
-  fetchData()
-}
-
-function handlePageSizeChange(pageSize: number) {
-  pager.page = 1
-  pager.pageSize = pageSize
-  fetchData()
-}
-
-function handleAdd() {
-  modalTitle.value = '新增配置'
+function resetForm() {
   formData.value = {
     configName: '',
     configKey: '',
@@ -136,6 +129,11 @@ function handleAdd() {
     status: 1,
     remark: '',
   }
+}
+
+function handleAdd() {
+  modalTitle.value = '新增配置'
+  resetForm()
   modalVisible.value = true
 }
 
@@ -149,7 +147,7 @@ async function handleDelete(id: string) {
   try {
     await deleteConfigApi(id)
     message.success('删除成功')
-    fetchData()
+    xGrid.value?.commitProxy('query')
   }
   catch {
     message.error('删除失败')
@@ -167,7 +165,7 @@ async function handleSubmit() {
     }
     message.success('操作成功')
     modalVisible.value = false
-    fetchData()
+    xGrid.value?.commitProxy('query')
   }
   catch {
     message.error('操作失败')
@@ -176,133 +174,75 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
-
-const columns: DataTableColumns<SysConfig> = [
-  {
-    title: '配置名称',
-    key: 'configName',
-    width: 180,
-  },
-  {
-    title: '配置键',
-    key: 'configKey',
-    width: 210,
-    render: row =>
-      h(NTag, { type: 'info', size: 'small', bordered: false }, { default: () => row.configKey }),
-  },
-  {
-    title: '配置值',
-    key: 'configValue',
-    minWidth: 220,
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '配置类型',
-    key: 'configType',
-    width: 120,
-    render: row => getOptionLabel(CONFIG_TYPE_OPTIONS, row.configType),
-  },
-  {
-    title: '数据类型',
-    key: 'dataType',
-    width: 120,
-    render: row => getOptionLabel(CONFIG_DATA_TYPE_OPTIONS, row.dataType),
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 100,
-    render: row =>
-      h(
-        NTag,
-        { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
-        { default: () => (row.status === 1 ? '启用' : '禁用') },
-      ),
-  },
-  {
-    title: '创建时间',
-    key: 'createTime',
-    width: 170,
-    render: row => formatDate(row.createTime ?? ''),
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 160,
-    fixed: 'right',
-    render: row =>
-      h(
-        NSpace,
-        { size: 'small' },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                size: 'small',
-                type: 'primary',
-                ghost: true,
-                onClick: () => handleEdit(row),
-              },
-              { default: () => '编辑' },
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.basicId),
-              },
-              {
-                default: () => '确认删除该配置？',
-                trigger: () =>
-                  h(
-                    NButton,
-                    { size: 'small', type: 'error', ghost: true },
-                    { default: () => '删除' },
-                  ),
-              },
-            ),
-          ],
-        },
-      ),
-  },
-]
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-4">
-    <CrudQueryPanel
-      v-model="queryForm"
-      title="配置查询"
-      :fields="searchFields"
-      @search="handleSearch"
-      @reset="handleReset"
-    >
-      <template #actions>
-        <NButton type="primary" @click="handleAdd">
-          新增配置
+  <div class="h-full flex flex-col">
+    <vxe-card class="mb-2" style="padding: 10px 16px">
+      <div class="flex items-center gap-3 flex-wrap">
+        <vxe-input
+          v-model="queryParams.keyword"
+          placeholder="搜索配置名称/配置键"
+          clearable
+          style="width: 260px"
+          @keyup.enter="handleSearch"
+        />
+        <NSelect
+          v-model:value="queryParams.configType"
+          :options="CONFIG_TYPE_OPTIONS"
+          placeholder="配置类型"
+          clearable
+          style="width: 140px"
+        />
+        <NSelect
+          v-model:value="queryParams.status"
+          :options="STATUS_OPTIONS"
+          placeholder="状态"
+          clearable
+          style="width: 120px"
+        />
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
         </NButton>
-      </template>
-    </CrudQueryPanel>
-
-    <CrudProTable
-      storage-key="system_config_table_columns"
-      :columns="columns"
-      :data="tableData"
-      :loading="loading"
-      :row-key="(row) => row.basicId"
-      :pagination="{ page: pager.page, pageSize: pager.pageSize, total }"
-      :scroll-x="1300"
-      max-height="calc(100vh - 330px)"
-      @refresh="fetchData"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    >
-      <template #toolbar-left>
-        <span class="text-xs text-gray-400">共 {{ total }} 条</span>
-      </template>
-    </CrudProTable>
+        <NButton size="small" @click="handleReset">
+          重置
+        </NButton>
+      </div>
+    </vxe-card>
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options">
+        <template #toolbar_buttons>
+          <NButton type="primary" size="small" @click="handleAdd">
+            新增配置
+          </NButton>
+        </template>
+        <template #col_builtIn="{ row }">
+          <NTag :type="row.isBuiltIn ? 'info' : 'default'" size="small">
+            {{ row.isBuiltIn ? '是' : '否' }}
+          </NTag>
+        </template>
+        <template #col_status="{ row }">
+          <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </NTag>
+        </template>
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton size="small" type="primary" text @click="handleEdit(row)">
+              编辑
+            </NButton>
+            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+              <template #trigger>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
+              </template>
+              确认删除该配置？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
 
     <NModal
       v-model:show="modalVisible"
@@ -319,21 +259,19 @@ onMounted(fetchData)
           <NInput v-model:value="formData.configKey" placeholder="如: system.theme.color" />
         </NFormItem>
         <NFormItem label="配置值" path="configValue">
-          <NInput
-            v-model:value="formData.configValue"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入配置值"
-          />
+          <NInput v-model:value="formData.configValue" type="textarea" :rows="3" placeholder="请输入配置值" />
         </NFormItem>
         <NFormItem label="配置类型" path="configType">
-          <CrudEnumSelect v-model="formData.configType" :options="CONFIG_TYPE_OPTIONS" />
+          <NSelect v-model:value="formData.configType" :options="CONFIG_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="数据类型" path="dataType">
-          <CrudEnumSelect v-model="formData.dataType" :options="CONFIG_DATA_TYPE_OPTIONS" />
+          <NSelect v-model:value="formData.dataType" :options="CONFIG_DATA_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="状态" path="status">
-          <CrudEnumSelect v-model="formData.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput v-model:value="formData.remark" type="textarea" :rows="2" placeholder="备注" />
         </NFormItem>
       </NForm>
       <template #footer>

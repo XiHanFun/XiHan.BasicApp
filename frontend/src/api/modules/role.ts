@@ -7,9 +7,11 @@ const ROLE_API = '/api/Role'
 function normalizeRole(raw: Record<string, any>): SysRole {
   return {
     basicId: toId(raw.basicId),
-    name: raw.name ?? raw.roleName ?? '',
-    code: raw.code ?? raw.roleCode ?? '',
-    description: raw.description ?? raw.roleDescription ?? '',
+    roleName: raw.roleName ?? raw.name ?? '',
+    roleCode: raw.roleCode ?? raw.code ?? '',
+    roleDescription: raw.roleDescription ?? raw.description ?? '',
+    roleType: raw.roleType !== undefined && raw.roleType !== null ? toNumber(raw.roleType, 0) : undefined,
+    dataScope: raw.dataScope !== undefined && raw.dataScope !== null ? toNumber(raw.dataScope, 0) : undefined,
     status: toNumber(raw.status, 1),
     sort: toNumber(raw.sort, 0),
     permissions: Array.isArray(raw.permissions) ? raw.permissions : [],
@@ -20,20 +22,20 @@ function normalizeRole(raw: Record<string, any>): SysRole {
 
 function toRoleCreatePayload(data: Partial<SysRole>) {
   return {
-    roleCode: data.code ?? '',
-    roleName: data.name ?? '',
-    roleDescription: data.description ?? '',
-    roleType: 0,
-    dataScope: 0,
+    roleCode: data.roleCode ?? '',
+    roleName: data.roleName ?? '',
+    roleDescription: data.roleDescription ?? '',
+    roleType: toNumber(data.roleType, 0),
+    dataScope: toNumber(data.dataScope, 0),
     sort: toNumber(data.sort, 0),
   }
 }
 
 function toRoleUpdatePayload(id: string, data: Partial<SysRole>) {
   return {
-    roleName: data.name ?? '',
-    roleDescription: data.description ?? '',
-    dataScope: 0,
+    roleName: data.roleName ?? '',
+    roleDescription: data.roleDescription ?? '',
+    dataScope: toNumber(data.dataScope, 0),
     status: toNumber(data.status, 1),
     sort: toNumber(data.sort, 0),
     basicId: toId(id),
