@@ -1,13 +1,30 @@
 import type { App } from 'vue'
+import { useOsTheme } from 'naive-ui'
+import { watch } from 'vue'
 import VxeUI from 'vxe-pc-ui'
 import VxeUITable from 'vxe-table'
+import { THEME_AUTO } from '~/constants'
 import { i18n } from '~/locales'
+import { useAppStore } from '~/stores'
 
 import 'vxe-pc-ui/lib/style.css'
 import 'vxe-table/lib/style.css'
 
 export function setupVxeTable(app: App) {
   VxeUI.setI18n((key, args) => i18n.global.t(key, args))
+
+  const appStore = useAppStore()
+  const osTheme = useOsTheme()
+
+  function syncTheme() {
+    const mode = appStore.themeMode
+    const dark = mode === THEME_AUTO ? osTheme.value === 'dark' : mode === 'dark'
+    VxeUI.setTheme(dark ? 'dark' : 'light')
+  }
+
+  syncTheme()
+  watch(() => appStore.themeMode, syncTheme)
+  watch(osTheme, syncTheme)
 
   VxeUITable.setConfig({
     size: 'small',
