@@ -15,8 +15,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 function drawQrPlaceholder(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d')
-  if (!ctx)
-    return
+  if (!ctx) return
   const context = ctx
 
   const size = 200
@@ -44,18 +43,11 @@ function drawQrPlaceholder(canvas: HTMLCanvasElement) {
 
   for (let row = 0; row < cells; row++) {
     for (let col = 0; col < cells; col++) {
-      const isCorner
-        = (row < 7 && col < 7)
-          || (row < 7 && col >= cells - 7)
-          || (row >= cells - 7 && col < 7)
+      const isCorner =
+        (row < 7 && col < 7) || (row < 7 && col >= cells - 7) || (row >= cells - 7 && col < 7)
 
       if (isCorner || random() > 0.55) {
-        context.fillRect(
-          margin + col * cellSize,
-          margin + row * cellSize,
-          cellSize,
-          cellSize,
-        )
+        context.fillRect(margin + col * cellSize, margin + row * cellSize, cellSize, cellSize)
       }
     }
   }
@@ -75,13 +67,11 @@ function drawQrPlaceholder(canvas: HTMLCanvasElement) {
 }
 
 onMounted(() => {
-  if (canvasRef.value)
-    drawQrPlaceholder(canvasRef.value)
+  if (canvasRef.value) drawQrPlaceholder(canvasRef.value)
 })
 
 watch(isDark, () => {
-  if (canvasRef.value)
-    drawQrPlaceholder(canvasRef.value)
+  if (canvasRef.value) drawQrPlaceholder(canvasRef.value)
 })
 </script>
 
@@ -89,7 +79,7 @@ watch(isDark, () => {
   <div class="py-1">
     <div class="mb-8">
       <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
-        {{ t('page.auth.qrcode_login') }} 📱
+        {{ t('page.auth.qrcode_login') }}
       </h1>
       <p
         class="mt-3 text-[15px] leading-7"
@@ -101,13 +91,13 @@ watch(isDark, () => {
 
     <div class="flex flex-col items-center py-4">
       <div
-        class="relative flex items-center justify-center rounded-2xl border-2 p-4"
+        class="flex relative justify-center items-center p-4 rounded-2xl border-2"
         :class="isDark ? 'border-white/20 bg-white/5' : 'border-[hsl(var(--border))] bg-white/90'"
       >
         <canvas ref="canvasRef" class="rounded-xl" style="width: 216px; height: 216px" />
-        <div class="absolute inset-0 flex items-center justify-center">
+        <div class="flex absolute inset-0 justify-center items-center">
           <div
-            class="flex h-12 w-12 items-center justify-center rounded-xl"
+            class="flex justify-center items-center w-12 h-12 rounded-xl"
             :class="isDark ? 'bg-[#0b1220]' : 'bg-white'"
           >
             <NIcon :size="24" :class="isDark ? 'text-white' : 'text-[hsl(var(--primary))]'">

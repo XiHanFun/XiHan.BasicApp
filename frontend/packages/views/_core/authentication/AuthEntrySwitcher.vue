@@ -18,30 +18,18 @@ const entryList = computed(() => [
 
 const activePath = computed(() => {
   const path = route.path
-  return entryList.value.some(item => item.path === path) ? path : '/auth/login'
+  return entryList.value.some((item) => item.path === path) ? path : '/auth/login'
 })
 
 function goTo(path: string) {
-  if (route.path === path)
-    return
+  if (route.path === path) return
   router.push(path)
 }
 </script>
 
 <template>
-  <NTabs
-    class="entry-switcher"
-    type="segment"
-    animated
-    :value="activePath"
-    @update:value="goTo"
-  >
-    <NTabPane
-      v-for="item in entryList"
-      :key="item.path"
-      :name="item.path"
-      :tab="item.label"
-    />
+  <NTabs class="entry-switcher" type="segment" animated :value="activePath" @update:value="goTo">
+    <NTabPane v-for="item in entryList" :key="item.path" :name="item.path" :tab="item.label" />
   </NTabs>
 </template>
 

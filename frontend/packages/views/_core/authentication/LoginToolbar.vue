@@ -42,10 +42,8 @@ const localeOptions = [
 const currentAlign = ref<LoginFormAlign>('right')
 
 function getLayoutIcon(align: LoginFormAlign) {
-  if (align === 'left')
-    return 'lucide:panel-left'
-  if (align === 'center')
-    return 'lucide:layout-panel-top'
+  if (align === 'left') return 'lucide:panel-left'
+  if (align === 'center') return 'lucide:layout-panel-top'
   return 'lucide:panel-right'
 }
 
@@ -58,7 +56,8 @@ const layoutOptions = computed<DropdownOption[]>(() => [
   {
     key: 'center',
     label: '居中',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:layout-panel-top' }) }),
+    icon: () =>
+      h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:layout-panel-top' }) }),
   },
   {
     key: 'right',
@@ -100,17 +99,18 @@ function handleLayoutSelect(key: string) {
           :class="{ 'is-active': appStore.themeColor === preset.color }"
           :style="{ backgroundColor: preset.color }"
           :title="preset.label"
-          @click="() => { setThemeColor(preset.color); showColorPicker = false }"
+          @click="
+            () => {
+              setThemeColor(preset.color)
+              showColorPicker = false
+            }
+          "
         />
       </div>
     </NPopover>
 
     <!-- 布局 -->
-    <NDropdown
-      :options="layoutOptions"
-      placement="bottom-end"
-      @select="handleLayoutSelect"
-    >
+    <NDropdown :options="layoutOptions" placement="bottom-end" @select="handleLayoutSelect">
       <NButton quaternary circle size="small" class="toolbar-btn">
         <template #icon>
           <NIcon size="16">
@@ -125,7 +125,7 @@ function handleLayoutSelect(key: string) {
       v-if="appStore.widgetLanguageToggle"
       :options="localeOptions"
       placement="bottom-end"
-      @select="key => setLocale(String(key))"
+      @select="(key) => setLocale(String(key))"
     >
       <NButton quaternary circle size="small" class="toolbar-btn">
         <template #icon>
