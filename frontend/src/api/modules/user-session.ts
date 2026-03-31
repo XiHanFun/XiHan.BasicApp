@@ -8,7 +8,8 @@ function normalizeUserSession(raw: Record<string, any>): SysUserSession {
   return {
     basicId: toId(raw.basicId),
     userId: toId(raw.userId),
-    sessionId: raw.sessionId ?? '',
+    sessionId: raw.sessionId ?? raw.userSessionId ?? '',
+    userSessionId: raw.userSessionId ?? raw.sessionId ?? '',
     deviceType: toNumber(raw.deviceType, 0),
     deviceName: raw.deviceName ?? undefined,
     ipAddress: raw.ipAddress ?? undefined,

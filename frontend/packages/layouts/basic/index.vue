@@ -138,9 +138,9 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="transition-[margin-top] duration-200" :style="shell.contentStyle.value">
+      <div class="flex-1 overflow-auto transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <div
-          class="min-h-full"
+          class="h-full"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact

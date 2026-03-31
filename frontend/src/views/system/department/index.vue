@@ -1,13 +1,11 @@
 <script lang="ts" setup>
-import type { DataTableColumns } from 'naive-ui'
+import type { VxeGridInstance } from 'vxe-table'
 import type { SysDepartment } from '~/types'
 import {
+  NCascader,
   NButton,
-  NCard,
-  NDataTable,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
@@ -15,64 +13,50 @@ import {
   NSelect,
   NSpace,
   NTag,
-  NTreeSelect,
   useMessage,
 } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import {
-  createDepartmentApi,
-  deleteDepartmentApi,
-  getDepartmentTreeApi,
-  updateDepartmentApi,
-} from '@/api'
+import { computed, onMounted, ref } from 'vue'
+import { createDepartmentApi, deleteDepartmentApi, getDepartmentPageApi, updateDepartmentApi } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
-import { Icon } from '~/iconify'
-import { getOptionLabel, getStatusType } from '~/utils'
+import { useVxeTable } from '~/hooks'
+import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemDepartmentPage' })
 
 const message = useMessage()
+const xGrid = ref<VxeGridInstance>()
 const loading = ref(false)
 const tableData = ref<SysDepartment[]>([])
-const treeSelectOptions = ref<any[]>([])
 
-const queryParams = reactive({
-  keyword: '',
-  status: undefined as number | undefined,
-  departmentType: undefined as number | undefined,
+const treeOptions = computed(() => {
+  const items = tableData.value
+  const map = new Map<string, SysDepartment[]>()
+  for (const item of items) {
+    const pid = item.parentId || ''
+    if (!map.has(pid)) {
+      map.set(pid, [])
+    }
+    map.get(pid)!.push(item)
+  }
+  function toNodes(parentId: string): any[] {
+    return (map.get(parentId) ?? []).map(c => ({
+      label: c.departmentName,
+      value: c.basicId,
+      children: map.has(c.basicId) ? toNodes(c.basicId) : undefined,
+    }))
+  }
+  return [{ label: '顶级部门', value: '', children: toNodes('') }]
 })
-
-const modalVisible = ref(false)
-const modalTitle = ref('新增部门')
-const submitLoading = ref(false)
-
-const formData = ref<Partial<SysDepartment>>({
-  parentId: undefined,
-  departmentName: '',
-  departmentCode: '',
-  departmentType: 6,
-  leaderId: undefined,
-  phone: '',
-  email: '',
-  address: '',
-  sort: 100,
-  status: 1,
-  remark: '',
-})
-
-function buildTreeSelectOptions(list: SysDepartment[]): any[] {
-  return list.map(item => ({
-    label: item.departmentName,
-    value: item.basicId,
-    children: item.children?.length ? buildTreeSelectOptions(item.children) : undefined,
-  }))
-}
 
 async function fetchData() {
   try {
     loading.value = true
-    tableData.value = await getDepartmentTreeApi(queryParams)
-    treeSelectOptions.value = buildTreeSelectOptions(tableData.value)
+    const result = await getDepartmentPageApi({ page: 1, pageSize: 9999 })
+    tableData.value = (result.items ?? []).map((item: any) => ({
+      ...item,
+      basicId: String(item.basicId),
+      parentId: item.parentId ? String(item.parentId) : '',
+    }))
   }
   catch {
     message.error('获取部门列表失败')
@@ -82,21 +66,77 @@ async function fetchData() {
   }
 }
 
-function handleAdd(parentId?: string | null) {
-  modalTitle.value = '新增部门'
+const options = useVxeTable<SysDepartment>({
+  id: 'sys_department',
+  name: '部门管理',
+  data: [],
+  columns: [
+    { field: 'departmentName', title: '部门名称', minWidth: 220, treeNode: true, showOverflow: 'tooltip' },
+    { field: 'departmentCode', title: '部门编码', minWidth: 140, showOverflow: 'tooltip' },
+    {
+      field: 'departmentType',
+      title: '类型',
+      width: 100,
+      formatter: ({ cellValue }) => getOptionLabel(DEPARTMENT_TYPE_OPTIONS, cellValue),
+    },
+    { field: 'leader', title: '负责人', minWidth: 120, showOverflow: 'tooltip' },
+    { field: 'phone', title: '电话', minWidth: 130, showOverflow: 'tooltip' },
+    { field: 'email', title: '邮箱', minWidth: 180, showOverflow: 'tooltip' },
+    { field: 'address', title: '地址', minWidth: 180, showOverflow: 'tooltip' },
+    { field: 'sort', title: '排序', width: 70 },
+    {
+      field: 'status',
+      title: '状态',
+      width: 80,
+      slots: { default: 'col_status' },
+    },
+    {
+      title: '操作',
+      width: 200,
+      fixed: 'right',
+      slots: { default: 'col_actions' },
+    },
+  ],
+}, {
+  pagerConfig: { enabled: false },
+  treeConfig: {
+    transform: true,
+    rowField: 'basicId',
+    parentField: 'parentId',
+    expandAll: false,
+  },
+  toolbarConfig: {
+    slots: { buttons: 'toolbar_buttons' },
+    refresh: true,
+    zoom: true,
+    custom: true,
+  },
+})
+
+const modalVisible = ref(false)
+const modalTitle = ref('新增部门')
+const submitLoading = ref(false)
+const formData = ref<Partial<SysDepartment>>({})
+
+function resetForm() {
   formData.value = {
-    parentId: parentId ?? undefined,
+    parentId: '',
     departmentName: '',
     departmentCode: '',
     departmentType: 6,
-    leaderId: undefined,
+    leader: '',
     phone: '',
     email: '',
-    address: '',
-    sort: 100,
+    sort: 0,
     status: 1,
     remark: '',
   }
+}
+
+function handleAdd(parentId?: string) {
+  modalTitle.value = '新增部门'
+  resetForm()
+  if (parentId) formData.value.parentId = parentId
   modalVisible.value = true
 }
 
@@ -138,185 +178,51 @@ async function handleSubmit() {
   }
 }
 
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.status = undefined
-  queryParams.departmentType = undefined
-  fetchData()
-}
-
-const columns: DataTableColumns<SysDepartment> = [
-  {
-    title: '部门名称',
-    key: 'departmentName',
-    width: 220,
-  },
-  {
-    title: '部门编码',
-    key: 'departmentCode',
-    width: 170,
-  },
-  {
-    title: '部门类型',
-    key: 'departmentType',
-    width: 120,
-    render: row => getOptionLabel(DEPARTMENT_TYPE_OPTIONS, row.departmentType ?? 6),
-  },
-  {
-    title: '负责人ID',
-    key: 'leaderId',
-    width: 110,
-    align: 'center',
-    render: row => row.leaderId ?? '-',
-  },
-  {
-    title: '联系电话',
-    key: 'phone',
-    width: 140,
-  },
-  {
-    title: '排序',
-    key: 'sort',
-    width: 80,
-    align: 'center',
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 90,
-    render: row =>
-      h(
-        NTag,
-        { type: getStatusType(row.status ?? 1), size: 'small', round: true },
-        { default: () => (row.status === 1 ? '启用' : '禁用') },
-      ),
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 220,
-    fixed: 'right',
-    render: row =>
-      h(
-        NSpace,
-        { size: 'small' },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                size: 'small',
-                ghost: true,
-                onClick: () => handleAdd(row.basicId),
-              },
-              { default: () => '添加子项' },
-            ),
-            h(
-              NButton,
-              {
-                size: 'small',
-                type: 'primary',
-                ghost: true,
-                onClick: () => handleEdit(row),
-              },
-              { default: () => '编辑' },
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.basicId),
-              },
-              {
-                default: () => '确认删除该部门？',
-                trigger: () =>
-                  h(
-                    NButton,
-                    { size: 'small', type: 'error', ghost: true },
-                    { default: () => '删除' },
-                  ),
-              },
-            ),
-          ],
-        },
-      ),
-  },
-]
-
 onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-4">
-    <NCard :bordered="false">
-      <div class="flex flex-wrap items-center gap-3">
-        <NInput
-          v-model:value="queryParams.keyword"
-          placeholder="搜索部门名称/编码/联系方式"
-          style="width: 260px"
-          clearable
-          @keydown.enter="fetchData"
-        />
-        <NSelect
-          v-model:value="queryParams.departmentType"
-          :options="DEPARTMENT_TYPE_OPTIONS"
-          placeholder="部门类型"
-          style="width: 130px"
-          clearable
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="STATUS_OPTIONS"
-          placeholder="状态"
-          style="width: 110px"
-          clearable
-        />
-        <NButton type="primary" @click="fetchData">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" width="14" /></NIcon>
-          </template>
-          搜索
-        </NButton>
-        <NButton @click="handleReset">
-          重置
-        </NButton>
-        <NButton class="ml-auto" type="primary" @click="() => handleAdd()">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
-          </template>
-          新增部门
-        </NButton>
-      </div>
-    </NCard>
+  <div class="h-full flex flex-col">
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options" :data="tableData" :loading="loading">
+        <template #toolbar_buttons>
+          <NButton type="primary" size="small" @click="handleAdd()">
+            新增部门
+          </NButton>
+          <NButton size="small" class="ml-2" @click="fetchData">
+            刷新
+          </NButton>
+        </template>
+        <template #col_status="{ row }">
+          <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </NTag>
+        </template>
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton size="small" type="info" text @click="handleAdd(row.basicId)">
+              新增子部门
+            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">
+              编辑
+            </NButton>
+            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+              <template #trigger>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
+              </template>
+              确认删除该部门？子部门也会一并删除。
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
 
-    <NCard :bordered="false">
-      <NDataTable
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :pagination="false"
-        :default-expand-all="true"
-        :row-key="(row) => row.basicId"
-        :scroll-x="1300"
-        size="small"
-        striped
-      />
-    </NCard>
-
-    <NModal
-      v-model:show="modalVisible"
-      :title="modalTitle"
-      preset="card"
-      style="width: 620px"
-      :auto-focus="false"
-    >
+    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 560px" :auto-focus="false">
       <NForm :model="formData" label-placement="left" label-width="90px">
         <NFormItem label="上级部门" path="parentId">
-          <NTreeSelect
-            v-model:value="formData.parentId"
-            :options="[{ label: '根部门', value: null }, ...treeSelectOptions]"
-            clearable
-            placeholder="不选则创建顶级部门"
-          />
+          <NCascader v-model:value="formData.parentId" :options="treeOptions" check-strategy="child" placeholder="无则为顶级" clearable style="width: 100%" />
         </NFormItem>
         <NFormItem label="部门名称" path="departmentName">
           <NInput v-model:value="formData.departmentName" placeholder="请输入部门名称" />
@@ -327,25 +233,17 @@ onMounted(fetchData)
         <NFormItem label="部门类型" path="departmentType">
           <NSelect v-model:value="formData.departmentType" :options="DEPARTMENT_TYPE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="负责人ID" path="leaderId">
-          <NInput v-model:value="formData.leaderId" placeholder="负责人用户 ID" class="w-full" />
+        <NFormItem label="负责人" path="leader">
+          <NInput v-model:value="formData.leader" placeholder="负责人姓名" />
         </NFormItem>
         <NFormItem label="联系电话" path="phone">
-          <NInput v-model:value="formData.phone" placeholder="请输入联系电话" />
+          <NInput v-model:value="formData.phone" placeholder="联系电话" />
         </NFormItem>
         <NFormItem label="邮箱" path="email">
-          <NInput v-model:value="formData.email" placeholder="请输入邮箱" />
-        </NFormItem>
-        <NFormItem label="地址" path="address">
-          <NInput
-            v-model:value="formData.address"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入地址"
-          />
+          <NInput v-model:value="formData.email" placeholder="邮箱" />
         </NFormItem>
         <NFormItem label="排序" path="sort">
-          <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" class="w-full" />
+          <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem label="状态" path="status">
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />

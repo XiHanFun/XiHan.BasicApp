@@ -7,13 +7,16 @@ const USER_API = '/api/User'
 function normalizeUser(raw: Record<string, any>): SysUser {
   return {
     basicId: toId(raw.basicId),
-    username: raw.username ?? raw.userName ?? '',
-    nickname: raw.nickname ?? raw.nickName ?? raw.realName ?? '',
+    userName: raw.userName ?? raw.username ?? '',
+    nickName: raw.nickName ?? raw.nickname ?? '',
+    realName: raw.realName ?? undefined,
     avatar: raw.avatar ?? undefined,
     email: raw.email ?? undefined,
     phone: raw.phone ?? undefined,
     gender: toNumber(raw.gender, 0),
     status: toNumber(raw.status, 1),
+    lastLoginTime: raw.lastLoginTime ?? undefined,
+    lastLoginIp: raw.lastLoginIp ?? undefined,
     roles: Array.isArray(raw.roles) ? raw.roles : [],
     deptId: raw.deptId ? toId(raw.deptId) : undefined,
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? '',
@@ -24,10 +27,10 @@ function normalizeUser(raw: Record<string, any>): SysUser {
 
 function toUserCreatePayload(data: Partial<SysUser & { password?: string }>) {
   return {
-    userName: (data.username ?? '').trim(),
+    userName: (data.userName ?? '').trim(),
     password: data.password ?? '',
-    realName: data.nickname ?? '',
-    nickName: data.nickname ?? '',
+    realName: data.realName ?? data.nickName ?? '',
+    nickName: data.nickName ?? '',
     email: data.email ?? '',
     phone: data.phone ?? '',
     gender: toNumber(data.gender, 0),
@@ -36,8 +39,8 @@ function toUserCreatePayload(data: Partial<SysUser & { password?: string }>) {
 
 function toUserUpdatePayload(id: string, data: Partial<SysUser>) {
   return {
-    realName: data.nickname ?? '',
-    nickName: data.nickname ?? '',
+    realName: data.realName ?? data.nickName ?? '',
+    nickName: data.nickName ?? '',
     email: data.email ?? '',
     phone: data.phone ?? '',
     gender: toNumber(data.gender, 0),

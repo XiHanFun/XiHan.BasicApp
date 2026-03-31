@@ -4,13 +4,16 @@ import type { PageQuery } from './common'
 
 export interface SysUser {
   basicId: string
-  username: string
-  nickname: string
+  userName: string
+  nickName: string
+  realName?: string
   avatar?: string
   email?: string
   phone?: string
   gender: number
   status: number
+  lastLoginTime?: string
+  lastLoginIp?: string
   roles: string[]
   deptId?: string
   createTime: string
@@ -20,9 +23,11 @@ export interface SysUser {
 
 export interface SysRole {
   basicId: string
-  name: string
-  code: string
-  description?: string
+  roleName: string
+  roleCode: string
+  roleDescription?: string
+  roleType?: number
+  dataScope?: number
   status: number
   sort: number
   permissions: string[]
@@ -393,6 +398,7 @@ export interface SysUserSession {
   basicId: string
   userId: string
   sessionId: string
+  userSessionId?: string
   deviceType: number
   deviceName?: string
   ipAddress?: string

@@ -1,74 +1,107 @@
 <script lang="ts" setup>
-import type { DataTableColumns } from 'naive-ui'
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
 import type { SysRole } from '~/types'
-import { Icon } from '~/iconify'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
   NTag,
   useMessage,
 } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import { createRoleApi, deleteRoleApi, getRolePageApi, updateRoleApi } from '@/api'
-import { DEFAULT_PAGE_SIZE, STATUS_OPTIONS } from '~/constants'
-import { formatDate, getStatusType } from '~/utils'
+import { reactive, ref } from 'vue'
+import { assignRolePermissionsApi, createRoleApi, deleteRoleApi, updateRoleApi } from '@/api'
+import requestClient from '@/api/request'
+import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { STATUS_OPTIONS } from '~/constants'
+import { useVxeTable } from '~/hooks'
+import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemRolePage' })
 
 const message = useMessage()
-
-const loading = ref(false)
-const tableData = ref<SysRole[]>([])
-const total = ref(0)
+const xGrid = ref<VxeGridInstance>()
 
 const queryParams = reactive({
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
   keyword: '',
   status: undefined as number | undefined,
 })
 
+function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
+  return requestClient.post('/api/Role/Page', buildPageRequest({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+    status: queryParams.status,
+  }, {
+    keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
+    filterFieldMap: { status: 'Status' },
+  })).then(flattenPageResponse)
+}
+
+const options = useVxeTable<SysRole>({
+  id: 'sys_role',
+  name: '角色管理',
+  columns: [
+    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+    { field: 'roleName', title: '角色名称', minWidth: 150, showOverflow: 'tooltip', sortable: true },
+    { field: 'roleCode', title: '角色编码', minWidth: 150, showOverflow: 'tooltip' },
+    { field: 'roleDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
+    { field: 'roleType', title: '角色类型', width: 100 },
+    { field: 'dataScope', title: '数据范围', width: 100 },
+    { field: 'sort', title: '排序', width: 70 },
+    {
+      field: 'status',
+      title: '状态',
+      width: 80,
+      slots: { default: 'col_status' },
+    },
+    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
+    {
+      title: '操作',
+      width: 140,
+      fixed: 'right',
+      slots: { default: 'col_actions' },
+    },
+  ],
+}, {
+  proxyConfig: {
+    autoLoad: true,
+    ajax: {
+      query: ({ page }) => handleQueryApi(page),
+    },
+  },
+})
+
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
+}
+
+function handleReset() {
+  queryParams.keyword = ''
+  queryParams.status = undefined
+  xGrid.value?.commitProxy('reload')
+}
+
+// ==================== CRUD ====================
+
 const modalVisible = ref(false)
 const modalTitle = ref('新增角色')
 const submitLoading = ref(false)
+const formData = ref<Partial<SysRole>>({})
 
-const formData = ref<Partial<SysRole>>({
-  name: '',
-  code: '',
-  description: '',
-  status: 1,
-  sort: 100,
-})
-
-async function fetchData() {
-  try {
-    loading.value = true
-    const result = await getRolePageApi(queryParams)
-    tableData.value = result.items
-    total.value = result.total
-  }
-  catch {
-    message.error('获取角色列表失败')
-  }
-  finally {
-    loading.value = false
-  }
+function resetForm() {
+  formData.value = { roleName: '', roleCode: '', roleDescription: '', status: 1, sort: 100 }
 }
 
 function handleAdd() {
   modalTitle.value = '新增角色'
-  formData.value = { name: '', code: '', description: '', status: 1, sort: 100 }
+  resetForm()
   modalVisible.value = true
 }
 
@@ -82,7 +115,7 @@ async function handleDelete(id: string) {
   try {
     await deleteRoleApi(id)
     message.success('删除成功')
-    fetchData()
+    xGrid.value?.commitProxy('query')
   }
   catch {
     message.error('删除失败')
@@ -100,7 +133,7 @@ async function handleSubmit() {
     }
     message.success('操作成功')
     modalVisible.value = false
-    fetchData()
+    xGrid.value?.commitProxy('query')
   }
   catch {
     message.error('操作失败')
@@ -109,187 +142,77 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
-
-const columns: DataTableColumns<SysRole> = [
-  {
-    title: '角色名称',
-    key: 'name',
-    width: 150,
-  },
-  {
-    title: '角色编码',
-    key: 'code',
-    width: 150,
-    render: row =>
-      h(NTag, { type: 'info', size: 'small', bordered: false }, { default: () => row.code }),
-  },
-  {
-    title: '描述',
-    key: 'description',
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '排序',
-    key: 'sort',
-    width: 80,
-    align: 'center',
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 90,
-    render: row =>
-      h(
-        NTag,
-        { type: getStatusType(row.status), size: 'small', round: true },
-        { default: () => (row.status === 1 ? '启用' : '禁用') },
-      ),
-  },
-  {
-    title: '创建时间',
-    key: 'createTime',
-    width: 170,
-    render: row => formatDate(row.createTime),
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 160,
-    fixed: 'right',
-    render: row =>
-      h(
-        NSpace,
-        { size: 'small' },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                size: 'small',
-                type: 'primary',
-                ghost: true,
-                onClick: () => handleEdit(row),
-              },
-              { default: () => '编辑' },
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.basicId),
-              },
-              {
-                default: () => '确认删除该角色？',
-                trigger: () =>
-                  h(
-                    NButton,
-                    { size: 'small', type: 'error', ghost: true },
-                    { default: () => '删除' },
-                  ),
-              },
-            ),
-          ],
-        },
-      ),
-  },
-]
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-4">
-    <NCard :bordered="false">
-      <div class="flex flex-wrap items-center gap-3">
-        <NInput
-          v-model:value="queryParams.keyword"
+  <div class="h-full flex flex-col">
+    <vxe-card class="mb-2" style="padding: 10px 16px">
+      <div class="flex items-center gap-3 flex-wrap">
+        <vxe-input
+          v-model="queryParams.keyword"
           placeholder="搜索角色名称/编码"
-          style="width: 200px"
           clearable
-          @keydown.enter="fetchData"
+          style="width: 240px"
+          @keyup.enter="handleSearch"
         />
         <NSelect
           v-model:value="queryParams.status"
           :options="STATUS_OPTIONS"
-          placeholder="全部状态"
-          style="width: 110px"
+          placeholder="状态"
           clearable
+          style="width: 120px"
         />
-        <NButton type="primary" @click="fetchData">
-          搜索
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
         </NButton>
-        <NButton
-          @click="
-            () => {
-              queryParams.keyword = ''
-              queryParams.status = undefined
-              fetchData()
-            }
-          "
-        >
+        <NButton size="small" @click="handleReset">
           重置
         </NButton>
-        <NButton class="ml-auto" type="primary" @click="handleAdd">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
-          </template>
-          新增角色
-        </NButton>
       </div>
-    </NCard>
+    </vxe-card>
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options">
+        <template #toolbar_buttons>
+          <NButton type="primary" size="small" @click="handleAdd">
+            新增角色
+          </NButton>
+        </template>
+        <template #col_status="{ row }">
+          <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </NTag>
+        </template>
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton size="small" type="primary" text @click="handleEdit(row)">
+              编辑
+            </NButton>
+            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+              <template #trigger>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
+              </template>
+              确认删除该角色？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
 
-    <NCard :bordered="false">
-      <NDataTable
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :row-key="(row) => row.basicId"
-        :scroll-x="800"
-        :pagination="false"
-        size="small"
-        striped
-      />
-      <div class="mt-4 flex justify-end">
-        <NPagination
-          v-model:page="queryParams.page"
-          v-model:page-size="queryParams.pageSize"
-          :item-count="total"
-          :page-sizes="[10, 20, 50]"
-          show-size-picker
-          @update:page="fetchData"
-          @update:page-size="
-            () => {
-              queryParams.page = 1
-              fetchData()
-            }
-          "
-        />
-      </div>
-    </NCard>
-
-    <NModal
-      v-model:show="modalVisible"
-      :title="modalTitle"
-      preset="card"
-      style="width: 480px"
-      :auto-focus="false"
-    >
+    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 480px" :auto-focus="false">
       <NForm :model="formData" label-placement="left" label-width="80px">
-        <NFormItem label="角色名称" path="name">
-          <NInput v-model:value="formData.name" placeholder="请输入角色名称" />
+        <NFormItem label="角色名称" path="roleName">
+          <NInput v-model:value="formData.roleName" placeholder="请输入角色名称" />
         </NFormItem>
-        <NFormItem label="角色编码" path="code">
-          <NInput v-model:value="formData.code" placeholder="如: admin, editor" />
+        <NFormItem label="角色编码" path="roleCode">
+          <NInput v-model:value="formData.roleCode" :disabled="!!formData.basicId" placeholder="如: admin, editor" />
         </NFormItem>
-        <NFormItem label="描述" path="description">
-          <NInput
-            v-model:value="formData.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入角色描述"
-          />
+        <NFormItem label="描述" path="roleDescription">
+          <NInput v-model:value="formData.roleDescription" type="textarea" :rows="3" placeholder="角色描述" />
         </NFormItem>
         <NFormItem label="排序" path="sort">
-          <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" />
+          <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" style="width: 100%" />
         </NFormItem>
         <NFormItem label="状态" path="status">
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />

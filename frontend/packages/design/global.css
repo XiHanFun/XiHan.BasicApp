@@ -128,6 +128,19 @@ html.theme-switching *::after {
   transition: none !important;
 }
 
+/* vxe-card 默认 inline-flex，改为 flex 让其铺满宽度 */
+.vxe-card {
+  display: flex;
+  width: 100%;
+}
+
+/* 确保 vxe-card 内部 body-content 高度传递给 vxe-grid */
+.vxe-card--body-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* 磨砂纹理效果 */
 html.frosted-glass::after {
   content: '';
