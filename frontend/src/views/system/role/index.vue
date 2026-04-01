@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysRole } from '~/types'
+import type { SysRole } from '@/api/modules/role'
 import {
   NButton,
   NForm,
@@ -15,9 +15,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { assignRolePermissionsApi, createRoleApi, deleteRoleApi, updateRoleApi } from '@/api'
-import requestClient from '@/api/request'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { roleApi } from '@/api'
 import { STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -33,15 +31,12 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Role/Page', buildPageRequest({
+  return roleApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     status: queryParams.status,
-  }, {
-    keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
-    filterFieldMap: { status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysRole>({
@@ -113,7 +108,7 @@ function handleEdit(row: SysRole) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteRoleApi(id)
+    await roleApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -126,10 +121,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateRoleApi(formData.value.basicId, formData.value)
+      await roleApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createRoleApi(formData.value)
+      await roleApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

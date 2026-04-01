@@ -1,50 +1,155 @@
-import type {
-  SysBoardInfo,
-  SysCpuInfo,
-  SysDiskInfo,
-  SysGpuInfo,
-  SysMemoryInfo,
-  SysNetworkInfo,
-  SysNuGetPackage,
-  SysRuntimeInfo,
-  SysServerInfo,
-} from '~/types'
-import requestClient from '../request'
+import { useBaseApi } from '../base'
 
-const SERVER_API = '/api/Server'
+const api = useBaseApi('Server')
 
-export function getServerInfoApi(params?: { includeDisk?: boolean, includeNetwork?: boolean }) {
-  return requestClient.get<SysServerInfo>(`${SERVER_API}/ServerInfo`, { params })
+export interface SysRuntimeInfo {
+  osName: string
+  osDescription: string
+  osVersion: string
+  osArchitecture: string
+  processArchitecture: string
+  frameworkDescription: string
+  runtimeVersion: string
+  is64BitOperatingSystem: boolean
+  is64BitProcess: boolean
+  isInteractive: boolean
+  interactiveMode: string
+  processorCount: number
+  systemDirectory: string
+  currentDirectory: string
+  machineName: string
+  userName: string
+  userDomainName: string
+  workingSet: number
+  systemStartTime: string
+  systemUptime: string
+  processStartTime: string
+  processUptime: string
+  processId: number
+  processName: string
+  clrVersion: string
+  environmentVariableCount: number
+  commandLineArgs: string[]
 }
 
-export function getRuntimeInfoApi() {
-  return requestClient.get<SysRuntimeInfo>(`${SERVER_API}/RuntimeInfo`)
+export interface SysCpuInfo {
+  processorName: string
+  processorArchitecture: string
+  physicalCoreCount: number
+  logicalCoreCount: number
+  baseClockSpeed: number
+  cacheBytes: number
+  usagePercentage: number
 }
 
-export function getCpuInfoApi() {
-  return requestClient.get<SysCpuInfo>(`${SERVER_API}/CpuInfo`)
+export interface SysMemoryInfo {
+  totalBytes: number
+  usedBytes: number
+  freeBytes: number
+  availableBytes: number
+  buffersCachedBytes: number
+  usagePercentage: number
+  availablePercentage: number
 }
 
-export function getMemoryInfoApi() {
-  return requestClient.get<SysMemoryInfo>(`${SERVER_API}/MemoryInfo`)
+export interface SysDiskInfo {
+  diskName: string
+  typeName: string
+  totalSpace: number
+  freeSpace: number
+  usedSpace: number
+  availableRate: number
 }
 
-export function getDiskInfoApi() {
-  return requestClient.get<SysDiskInfo[]>(`${SERVER_API}/DiskInfo`)
+export interface SysNetworkIpAddress {
+  address: string
+  subnetMask: string
+  prefixLength: number
 }
 
-export function getNetworkInfoApi() {
-  return requestClient.get<SysNetworkInfo[]>(`${SERVER_API}/NetworkInfo`)
+export interface SysNetworkStatistics {
+  bytesReceived: number
+  bytesSent: number
+  packetsReceived: number
+  packetsSent: number
+  incomingPacketsDiscarded: number
+  outgoingPacketsDiscarded: number
+  incomingPacketsWithErrors: number
+  outgoingPacketsWithErrors: number
 }
 
-export function getBoardInfoApi() {
-  return requestClient.get<SysBoardInfo>(`${SERVER_API}/BoardInfo`)
+export interface SysNetworkInfo {
+  name: string
+  description: string
+  type: string
+  operationalStatus: string
+  speed: string
+  physicalAddress: string
+  supportsMulticast: boolean
+  isReceiveOnly: boolean
+  dnsAddresses: string[]
+  gatewayAddresses: string[]
+  dhcpServerAddresses: string[]
+  iPv4Addresses: SysNetworkIpAddress[]
+  iPv6Addresses: SysNetworkIpAddress[]
+  statistics?: SysNetworkStatistics
 }
 
-export function getGpuInfoApi() {
-  return requestClient.get<SysGpuInfo[]>(`${SERVER_API}/GpuInfo`)
+export interface SysBoardInfo {
+  product: string
+  manufacturer: string
+  serialNumber: string
+  version: string
 }
 
-export function getNuGetPackagesApi() {
-  return requestClient.get<SysNuGetPackage[]>(`${SERVER_API}/NuGetPackages`)
+export interface SysGpuInfo {
+  name: string
+  description: string
+  vendor: string
+  deviceId: string
+  busInfo: string
+  driverVersion: string
+  memoryBytes: number
+  temperature?: number
+  videoModeDescription: string
+  status: string
+  utilizationPercentage?: number
+  memoryUtilizationPercentage?: number
+}
+
+export interface SysServerInfo {
+  runtimeInfo: SysRuntimeInfo
+  cpuInfo: SysCpuInfo
+  memoryInfo: SysMemoryInfo
+  diskInfos: SysDiskInfo[]
+  networkInfos: SysNetworkInfo[]
+  boardInfo: SysBoardInfo
+  gpuInfos: SysGpuInfo[]
+  collectedAt: string
+}
+
+export interface SysNuGetPackage {
+  packageName: string
+  packageVersion: string
+}
+
+export const serverApi = {
+  getServerInfo: (params?: { includeDisk?: boolean, includeNetwork?: boolean }) =>
+    api.request.get<SysServerInfo>(`${api.baseUrl}ServerInfo`, { params }),
+
+  getRuntimeInfo: () => api.request.get<SysRuntimeInfo>(`${api.baseUrl}RuntimeInfo`),
+
+  getCpuInfo: () => api.request.get<SysCpuInfo>(`${api.baseUrl}CpuInfo`),
+
+  getMemoryInfo: () => api.request.get<SysMemoryInfo>(`${api.baseUrl}MemoryInfo`),
+
+  getDiskInfo: () => api.request.get<SysDiskInfo[]>(`${api.baseUrl}DiskInfo`),
+
+  getNetworkInfo: () => api.request.get<SysNetworkInfo[]>(`${api.baseUrl}NetworkInfo`),
+
+  getBoardInfo: () => api.request.get<SysBoardInfo>(`${api.baseUrl}BoardInfo`),
+
+  getGpuInfo: () => api.request.get<SysGpuInfo[]>(`${api.baseUrl}GpuInfo`),
+
+  getNuGetPackages: () => api.request.get<SysNuGetPackage[]>(`${api.baseUrl}NuGetPackages`),
 }

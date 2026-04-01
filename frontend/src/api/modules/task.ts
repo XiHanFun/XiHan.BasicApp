@@ -1,8 +1,33 @@
-import type { PageResult, SysTask, TaskPageQuery } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const TASK_API = '/api/Task'
+const api = useBaseApi('Task')
+
+export interface SysTask {
+  basicId: string
+  taskCode: string
+  taskName: string
+  taskDescription?: string
+  taskGroup?: string
+  taskClass: string
+  taskMethod?: string
+  taskParams?: string
+  triggerType: number
+  cronExpression?: string
+  runTaskStatus: number
+  priority: number
+  status: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface TaskPageQuery extends PageQuery {
+  triggerType?: number
+  runTaskStatus?: number
+  status?: number
+}
 
 function normalizeTask(raw: Record<string, any>): SysTask {
   return {
@@ -25,7 +50,7 @@ function normalizeTask(raw: Record<string, any>): SysTask {
   }
 }
 
-function toTaskCreatePayload(data: Partial<SysTask>) {
+function toCreatePayload(data: Partial<SysTask>) {
   return {
     taskCode: data.taskCode ?? '',
     taskName: data.taskName ?? '',
@@ -45,19 +70,18 @@ function toTaskCreatePayload(data: Partial<SysTask>) {
   }
 }
 
-function toTaskUpdatePayload(id: string, data: Partial<SysTask>) {
+function toUpdatePayload(id: string, data: Partial<SysTask>) {
   return {
-    ...toTaskCreatePayload(data),
+    ...toCreatePayload(data),
     runTaskStatus: toNumber(data.runTaskStatus, 0),
     status: toNumber(data.status, 1),
     basicId: toId(id),
   }
 }
 
-export async function getTaskPageApi(params: TaskPageQuery): Promise<PageResult<SysTask>> {
-  const data = await requestClient.post<any>(
-    `${TASK_API}/Page`,
-    buildPageRequest(params, {
+export const taskApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['TaskCode', 'TaskName', 'TaskClass'],
       filterFieldMap: {
         triggerType: 'TriggerType',
@@ -65,36 +89,19 @@ export async function getTaskPageApi(params: TaskPageQuery): Promise<PageResult<
         status: 'Status',
       },
     }),
-  )
-  return normalizePageResult(data, normalizeTask)
-}
 
-export function getTaskDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${TASK_API}/ById`, { params: { id } })
-    .then(raw => normalizeTask(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeTask),
 
-export function createTaskApi(data: Partial<SysTask>) {
-  return requestClient.post<void>(`${TASK_API}/Create`, toTaskCreatePayload(data))
-}
+  create: (data: Partial<SysTask>) => api.create(toCreatePayload(data)),
 
-export function updateTaskApi(id: string, data: Partial<SysTask>) {
-  return requestClient.put<void>(`${TASK_API}/Update`, toTaskUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysTask>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteTaskApi(id: string) {
-  return requestClient.delete<void>(`${TASK_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getTaskByCodeApi(taskCode: string, tenantId?: number) {
-  return requestClient
-    .get<any>(`${TASK_API}/ByTaskCode/${tenantId ?? 0}`, {
-      params: { taskCode },
-    })
-    .then(raw => (raw ? normalizeTask(raw) : null))
+  getByCode: (taskCode: string, tenantId?: number) =>
+    api.request
+      .get<any>(`${api.baseUrl}ByTaskCode/${tenantId ?? 0}`, { params: { taskCode } })
+      .then((raw: any) => (raw ? normalizeTask(raw) : null)),
 }

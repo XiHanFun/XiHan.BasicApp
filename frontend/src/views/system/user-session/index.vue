@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysUserSession } from '~/types'
+import type { SysUserSession } from '@/api'
 import {
   NButton,
   NPopconfirm,
@@ -10,9 +10,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { deleteUserSessionApi, revokeUserSessionsApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { userSessionApi } from '@/api'
 import { DEVICE_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -34,16 +32,13 @@ const ONLINE_OPTIONS = [
 ]
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/UserSession/Page', buildPageRequest({
+  return userSessionApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     deviceType: queryParams.deviceType,
     isOnline: queryParams.isOnline,
-  }, {
-    keywordFields: ['UserSessionId', 'DeviceName', 'IpAddress'],
-    filterFieldMap: { deviceType: 'DeviceType', isOnline: 'IsOnline' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysUserSession>({
@@ -105,7 +100,7 @@ function handleReset() {
 
 async function handleRevoke(row: SysUserSession) {
   try {
-    await revokeUserSessionsApi(row.userId, '管理员强制下线')
+    await userSessionApi.revokeUserSessions(row.userId, '管理员强制下线')
     message.success('撤销成功')
     xGrid.value?.commitProxy('query')
   }
@@ -116,7 +111,7 @@ async function handleRevoke(row: SysUserSession) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteUserSessionApi(id)
+    await userSessionApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }

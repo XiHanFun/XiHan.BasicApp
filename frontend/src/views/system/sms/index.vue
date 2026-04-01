@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysSms } from '~/types'
+import type { SysSms } from '@/api'
 import {
   NButton,
   NForm,
@@ -14,9 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createSmsApi, deleteSmsApi, updateSmsApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { smsApi } from '@/api'
 import { SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -33,16 +31,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Sms/Page', buildPageRequest({
+  return smsApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     smsType: queryParams.smsType,
     smsStatus: queryParams.smsStatus,
-  }, {
-    keywordFields: ['ToPhone', 'Content'],
-    filterFieldMap: { smsType: 'SmsType', smsStatus: 'SmsStatus' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysSms>({
@@ -113,7 +108,7 @@ function handleEdit(row: SysSms) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteSmsApi(id)
+    await smsApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -126,8 +121,8 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId)
-      await updateSmsApi(formData.value.basicId, formData.value)
-    else await createSmsApi(formData.value)
+      await smsApi.update(formData.value.basicId, formData.value)
+    else await smsApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')

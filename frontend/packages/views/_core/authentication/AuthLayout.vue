@@ -84,7 +84,7 @@ const appAuthorUrl = __APP_AUTHOR_URL__
               <div
                 class="mb-7 flex h-[78px] w-[78px] items-center justify-center rounded-3xl bg-[hsl(var(--card))] p-2 shadow-xl shadow-[hsl(var(--foreground)/0.08)]"
               >
-                <img :src="appLogo" :alt="appTitle" class="object-contain w-12 h-12" />
+                <img :src="appLogo" :alt="appTitle" class="object-contain w-12 h-12">
               </div>
               <p
                 class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { VxeGridInstance } from 'vxe-table'
-import type { SysDepartment } from '~/types'
+import type { SysDepartment } from '@/api/modules/department'
 import {
-  NCascader,
   NButton,
+  NCascader,
   NForm,
   NFormItem,
   NInput,
@@ -16,7 +16,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
-import { createDepartmentApi, deleteDepartmentApi, getDepartmentPageApi, updateDepartmentApi } from '@/api'
+import { departmentApi } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -51,7 +51,7 @@ const treeOptions = computed(() => {
 async function fetchData() {
   try {
     loading.value = true
-    const result = await getDepartmentPageApi({ page: 1, pageSize: 9999 })
+    const result = await departmentApi.page({ page: 1, pageSize: 9999 })
     tableData.value = (result.items ?? []).map((item: any) => ({
       ...item,
       basicId: String(item.basicId),
@@ -136,7 +136,8 @@ function resetForm() {
 function handleAdd(parentId?: string) {
   modalTitle.value = '新增部门'
   resetForm()
-  if (parentId) formData.value.parentId = parentId
+  if (parentId)
+    formData.value.parentId = parentId
   modalVisible.value = true
 }
 
@@ -148,7 +149,7 @@ function handleEdit(row: SysDepartment) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteDepartmentApi(id)
+    await departmentApi.delete(id)
     message.success('删除成功')
     fetchData()
   }
@@ -161,10 +162,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateDepartmentApi(formData.value.basicId, formData.value)
+      await departmentApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createDepartmentApi(formData.value)
+      await departmentApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

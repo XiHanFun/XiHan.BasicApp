@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysReview } from '~/types'
+import type { SysReview } from '@/api'
 import {
   NButton,
   NModal,
@@ -11,9 +11,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { deleteReviewApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { reviewApi } from '@/api'
 import { REVIEW_RESULT_OPTIONS, REVIEW_STATUS_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -32,16 +30,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Review/Page', buildPageRequest({
+  return reviewApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     reviewStatus: queryParams.reviewStatus,
     status: queryParams.status,
-  }, {
-    keywordFields: ['ReviewCode', 'ReviewTitle', 'ReviewType'],
-    filterFieldMap: { reviewStatus: 'ReviewStatus', status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysReview>({
@@ -105,7 +100,7 @@ function handleDetail(row: Record<string, any>) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteReviewApi(id)
+    await reviewApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }

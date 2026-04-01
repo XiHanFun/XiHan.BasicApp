@@ -1,8 +1,39 @@
-import type { PageResult, SysAccessLog } from '~/types'
-import { buildPageRequest, normalizePageResult, toId } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId } from '../helpers'
 
-const API = '/api/AccessLog'
+const api = useBaseApi('AccessLog')
+
+// -------- 类型 --------
+export interface SysAccessLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  sessionId?: string
+  resourcePath?: string
+  resourceName?: string
+  resourceType?: string
+  method?: string
+  accessResult?: string
+  statusCode?: number
+  accessIp?: string
+  accessLocation?: string
+  userAgent?: string
+  browser?: string
+  os?: string
+  device?: string
+  referer?: string
+  responseTime?: number
+  responseSize?: number
+  accessTime?: string
+  leaveTime?: string
+  stayTime?: number
+  errorMessage?: string
+  extendData?: string
+  remark?: string
+  createdTime?: string
+}
 
 function normalize(raw: Record<string, any>): SysAccessLog {
   return {
@@ -35,12 +66,12 @@ function normalize(raw: Record<string, any>): SysAccessLog {
   }
 }
 
-export function getAccessLogPageApi(params: Record<string, any>): Promise<PageResult<SysAccessLog>> {
-  return requestClient
-    .post<any>(`${API}/Page`, buildPageRequest(params))
-    .then(data => normalizePageResult(data, normalize))
-}
-
-export function clearAccessLogApi() {
-  return requestClient.delete<boolean>(`${API}/Clear`)
+// -------- API --------
+export const accessLogApi = {
+  page: (params: PageQuery & Record<string, any>) =>
+    api.page(params).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalize(item)),
+    })),
+  clear: () => api.clear(),
 }

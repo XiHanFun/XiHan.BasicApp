@@ -1,31 +1,38 @@
-import type { PageResult, SysUser, UserPageQuery } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const USER_API = '/api/User'
+const api = useBaseApi('User')
 
-function normalizeUser(raw: Record<string, any>): SysUser {
-  return {
-    basicId: toId(raw.basicId),
-    userName: raw.userName ?? raw.username ?? '',
-    nickName: raw.nickName ?? raw.nickname ?? '',
-    realName: raw.realName ?? undefined,
-    avatar: raw.avatar ?? undefined,
-    email: raw.email ?? undefined,
-    phone: raw.phone ?? undefined,
-    gender: toNumber(raw.gender, 0),
-    status: toNumber(raw.status, 1),
-    lastLoginTime: raw.lastLoginTime ?? undefined,
-    lastLoginIp: raw.lastLoginIp ?? undefined,
-    roles: Array.isArray(raw.roles) ? raw.roles : [],
-    deptId: raw.deptId ? toId(raw.deptId) : undefined,
-    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? '',
-    updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
-    remark: raw.remark ?? undefined,
-  }
+// -------- 类型 --------
+
+export interface SysUser {
+  basicId: string
+  userName: string
+  nickName: string
+  realName?: string
+  avatar?: string
+  email?: string
+  phone?: string
+  gender: number
+  status: number
+  lastLoginTime?: string
+  lastLoginIp?: string
+  roles: string[]
+  deptId?: string
+  createTime: string
+  updateTime?: string
+  remark?: string
 }
 
-function toUserCreatePayload(data: Partial<SysUser & { password?: string }>) {
+export interface UserPageQuery extends PageQuery {
+  status?: number
+  roleId?: string
+}
+
+// -------- 内部 --------
+
+function toCreatePayload(data: Partial<SysUser & { password?: string }>) {
   return {
     userName: (data.userName ?? '').trim(),
     password: data.password ?? '',
@@ -37,7 +44,7 @@ function toUserCreatePayload(data: Partial<SysUser & { password?: string }>) {
   }
 }
 
-function toUserUpdatePayload(id: string, data: Partial<SysUser>) {
+function toUpdatePayload(id: string, data: Partial<SysUser>) {
   return {
     realName: data.realName ?? data.nickName ?? '',
     nickName: data.nickName ?? '',
@@ -51,52 +58,49 @@ function toUserUpdatePayload(id: string, data: Partial<SysUser>) {
   }
 }
 
-export async function getUserPageApi(params: UserPageQuery): Promise<PageResult<SysUser>> {
-  const data = await requestClient.post<any>(
-    `${USER_API}/Page`,
-    buildPageRequest(params, {
+// -------- API --------
+
+export const userApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['UserName', 'NickName', 'Email', 'Phone'],
-      filterFieldMap: {
-        status: 'Status',
-        roleId: 'RoleId',
-      },
+      filterFieldMap: { status: 'Status', roleId: 'RoleId' },
     }),
-  )
-  return normalizePageResult(data, normalizeUser)
+
+  detail: (id: string) => api.detail(id),
+
+  create: (data: Partial<SysUser & { password?: string }>) =>
+    api.create(toCreatePayload(data)),
+
+  update: (id: string, data: Partial<SysUser>) =>
+    api.update(toUpdatePayload(id, data)),
+
+  delete: (id: string) => api.deletePath(id),
+
+  batchDelete: (ids: string[]) =>
+    Promise.all(ids.map(id => api.deletePath(id))),
+
+  changeStatus: (id: string, status: number) =>
+    api.request.post(`${api.baseUrl}ChangeStatus`, {
+      userId: toId(id),
+      status: toNumber(status, 1),
+    }),
+
+  resetPassword: (id: string, password: string) =>
+    api.request.post(`${api.baseUrl}ResetPassword`, {
+      userId: toId(id),
+      newPassword: password,
+    }),
 }
 
-export function getUserDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${USER_API}/ById`, { params: { id } })
-    .then(raw => normalizeUser(raw))
+export function getUserPageApi(params: UserPageQuery) {
+  return userApi.page(params as Record<string, any>)
 }
 
-export function createUserApi(data: Partial<SysUser & { password?: string }>) {
-  return requestClient.post<void>(`${USER_API}/Create`, toUserCreatePayload(data))
-}
-
-export function updateUserApi(id: string, data: Partial<SysUser>) {
-  return requestClient.put<void>(`${USER_API}/Update`, toUserUpdatePayload(id, data))
-}
-
-export function deleteUserApi(id: string) {
-  return requestClient.delete<void>(`${USER_API}/Delete/${id}`)
-}
-
-export async function batchDeleteUserApi(ids: string[]) {
-  await Promise.all(ids.map(id => deleteUserApi(id)))
-}
-
-export function updateUserStatusApi(id: string, status: number) {
-  return requestClient.post<void>(`${USER_API}/ChangeStatus`, {
-    userId: toId(id),
-    status: toNumber(status, 1),
-  })
-}
-
-export function resetUserPasswordApi(id: string, password: string) {
-  return requestClient.post<void>(`${USER_API}/ResetPassword`, {
-    userId: toId(id),
-    newPassword: password,
-  })
-}
+export const getUserDetailApi = userApi.detail
+export const createUserApi = userApi.create
+export const updateUserApi = userApi.update
+export const deleteUserApi = userApi.delete
+export const batchDeleteUserApi = userApi.batchDelete
+export const updateUserStatusApi = userApi.changeStatus
+export const resetUserPasswordApi = userApi.resetPassword

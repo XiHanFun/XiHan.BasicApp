@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysFile } from '~/types'
+import type { SysFile } from '@/api'
 import {
   NButton,
   NPopconfirm,
@@ -9,9 +9,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { deleteFileApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { fileApi } from '@/api'
 import { FILE_STATUS_OPTIONS, FILE_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
@@ -28,16 +26,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/File/Page', buildPageRequest({
+  return fileApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     fileType: queryParams.fileType,
     status: queryParams.status,
-  }, {
-    keywordFields: ['FileName', 'OriginalName', 'MimeType'],
-    filterFieldMap: { fileType: 'FileType', status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysFile>({
@@ -101,7 +96,7 @@ function handleReset() {
 
 async function handleDelete(id: string) {
   try {
-    await deleteFileApi(id)
+    await fileApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }

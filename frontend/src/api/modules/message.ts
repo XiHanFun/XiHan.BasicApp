@@ -1,28 +1,24 @@
-import type { MessageDispatchResult, SysEmail, SysSms } from '~/types'
-import requestClient from '../request'
+import type { SysEmail } from './email'
+import type { SysSms } from './sms'
+import { useBaseApi } from '../base'
 
-const MESSAGE_API = '/api/Message'
+const api = useBaseApi('Message')
 
-export function sendMessageApi(command: Record<string, any>) {
-  return requestClient.post<MessageDispatchResult>(`${MESSAGE_API}/Send`, command)
-}
+export interface MessageDispatchResult extends Record<string, any> {}
 
-export function getPendingEmailsByMessageApi(maxCount = 100, tenantId?: number) {
-  return requestClient.get<SysEmail[]>(`${MESSAGE_API}/PendingEmails/${tenantId ?? 0}`, {
-    params: { maxCount },
-  })
-}
+export const messageApi = {
+  send: (command: Record<string, any>) =>
+    api.request.post<MessageDispatchResult>(`${api.baseUrl}Send`, command),
 
-export function getPendingSmsByMessageApi(maxCount = 100, tenantId?: number) {
-  return requestClient.get<SysSms[]>(`${MESSAGE_API}/PendingSms/${tenantId ?? 0}`, {
-    params: { maxCount },
-  })
-}
+  getPendingEmails: (maxCount = 100, tenantId?: number) =>
+    api.request.get<SysEmail[]>(`${api.baseUrl}PendingEmails/${tenantId ?? 0}`, { params: { maxCount } }),
 
-export function updateEmailDispatchStatusApi(command: Record<string, any>) {
-  return requestClient.put<void>(`${MESSAGE_API}/EmailDispatchStatus`, command)
-}
+  getPendingSms: (maxCount = 100, tenantId?: number) =>
+    api.request.get<SysSms[]>(`${api.baseUrl}PendingSms/${tenantId ?? 0}`, { params: { maxCount } }),
 
-export function updateSmsDispatchStatusApi(command: Record<string, any>) {
-  return requestClient.put<void>(`${MESSAGE_API}/SmsDispatchStatus`, command)
+  updateEmailDispatchStatus: (command: Record<string, any>) =>
+    api.request.put(`${api.baseUrl}EmailDispatchStatus`, command),
+
+  updateSmsDispatchStatus: (command: Record<string, any>) =>
+    api.request.put(`${api.baseUrl}SmsDispatchStatus`, command),
 }

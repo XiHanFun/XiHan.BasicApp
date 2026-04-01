@@ -1,8 +1,34 @@
-import type { PageResult, SysOperationLog } from '~/types'
-import { buildPageRequest, normalizePageResult, toId } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId } from '../helpers'
 
-const API = '/api/OperationLog'
+const api = useBaseApi('OperationLog')
+
+// -------- 类型 --------
+export interface SysOperationLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  operationType?: string
+  module?: string
+  function?: string
+  title?: string
+  description?: string
+  method?: string
+  requestUrl?: string
+  requestParams?: string
+  responseResult?: string
+  executionTime?: number
+  operationIp?: string
+  operationLocation?: string
+  browser?: string
+  os?: string
+  status?: string
+  errorMessage?: string
+  operationTime?: string
+  createdTime?: string
+}
 
 function normalize(raw: Record<string, any>): SysOperationLog {
   return {
@@ -30,12 +56,12 @@ function normalize(raw: Record<string, any>): SysOperationLog {
   }
 }
 
-export function getOperationLogPageApi(params: Record<string, any>): Promise<PageResult<SysOperationLog>> {
-  return requestClient
-    .post<any>(`${API}/Page`, buildPageRequest(params))
-    .then(data => normalizePageResult(data, normalize))
-}
-
-export function clearOperationLogApi() {
-  return requestClient.delete<boolean>(`${API}/Clear`)
+// -------- API --------
+export const operationLogApi = {
+  page: (params: PageQuery & Record<string, any>) =>
+    api.page(params).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalize(item)),
+    })),
+  clear: () => api.clear(),
 }

@@ -1,8 +1,45 @@
-import type { DictPageQuery, PageResult, SysDict, SysDictItem } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const DICT_API = '/api/Dict'
+const api = useBaseApi('Dict')
+
+// -------- 类型 --------
+
+export interface SysDict {
+  basicId: string
+  dictCode: string
+  dictName: string
+  dictType: string
+  dictDescription?: string
+  status: number
+  sort: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SysDictItem {
+  basicId: string
+  dictId: string
+  dictCode: string
+  parentId?: string
+  itemCode: string
+  itemName: string
+  itemValue?: string
+  status: number
+  sort: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface DictPageQuery extends PageQuery {
+  dictType?: string
+  status?: number
+}
+
+// -------- 内部 --------
 
 function normalizeDict(raw: Record<string, any>): SysDict {
   return {
@@ -76,64 +113,40 @@ function toDictItemUpdatePayload(id: string, data: Partial<SysDictItem>) {
   }
 }
 
-export async function getDictPageApi(params: DictPageQuery): Promise<PageResult<SysDict>> {
-  const data = await requestClient.post<any>(
-    `${DICT_API}/Page`,
-    buildPageRequest(params, {
+// -------- API --------
+
+export const dictApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['DictCode', 'DictName', 'DictType', 'DictDescription'],
-      filterFieldMap: {
-        dictType: 'DictType',
-        status: 'Status',
-      },
+      filterFieldMap: { dictType: 'DictType', status: 'Status' },
     }),
-  )
-  return normalizePageResult(data, normalizeDict)
-}
 
-export function getDictDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${DICT_API}/ById`, { params: { id } })
-    .then(raw => normalizeDict(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeDict),
 
-export function createDictApi(data: Partial<SysDict>) {
-  return requestClient.post<void>(`${DICT_API}/Create`, toDictCreatePayload(data))
-}
+  create: (data: Partial<SysDict>) => api.create(toDictCreatePayload(data)),
 
-export function updateDictApi(id: string, data: Partial<SysDict>) {
-  return requestClient.put<void>(`${DICT_API}/Update`, toDictUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysDict>) =>
+    api.request.put(`${api.baseUrl}Update`, toDictUpdatePayload(id, data), { params: { id } }),
 
-export function deleteDictApi(id: string) {
-  return requestClient.delete<void>(`${DICT_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getDictByCodeApi(dictCode: string, tenantId?: number) {
-  return requestClient
-    .get<any>(`${DICT_API}/DictByCode/${tenantId ?? 0}`, {
-      params: { dictCode },
-    })
-    .then(raw => (raw ? normalizeDict(raw) : null))
-}
+  getByCode: (dictCode: string, tenantId?: number) =>
+    api.request
+      .get<any>(`${api.baseUrl}DictByCode/${tenantId ?? 0}`, { params: { dictCode } })
+      .then((raw: any) => (raw ? normalizeDict(raw) : null)),
 
-export function getDictItemsApi(dictId: string, tenantId?: number) {
-  return requestClient
-    .get<any[]>(`${DICT_API}/DictItems/${dictId}/${tenantId ?? 0}`)
-    .then(list => (Array.isArray(list) ? list.map(item => normalizeDictItem(item)) : []))
-}
+  getItems: (dictId: string, tenantId?: number) =>
+    api.request
+      .get<any[]>(`${api.baseUrl}DictItems/${dictId}/${tenantId ?? 0}`)
+      .then((list: any[]) => (Array.isArray(list) ? list.map(normalizeDictItem) : [])),
 
-export function createDictItemApi(data: Partial<SysDictItem>) {
-  return requestClient.post<void>(`${DICT_API}/Item`, toDictItemCreatePayload(data))
-}
+  createItem: (data: Partial<SysDictItem>) =>
+    api.request.post(`${api.baseUrl}Item`, toDictItemCreatePayload(data)),
 
-export function updateDictItemApi(dictItemId: string, data: Partial<SysDictItem>) {
-  return requestClient.put<void>(`${DICT_API}/Item/${dictItemId}`, toDictItemUpdatePayload(dictItemId, data))
-}
+  updateItem: (id: string, data: Partial<SysDictItem>) =>
+    api.request.put(`${api.baseUrl}Item/${id}`, toDictItemUpdatePayload(id, data)),
 
-export function deleteDictItemApi(dictItemId: string) {
-  return requestClient.delete<void>(`${DICT_API}/Item/${dictItemId}`)
+  deleteItem: (id: string) => api.request.delete(`${api.baseUrl}Item/${id}`),
 }

@@ -1,25 +1,33 @@
-import type { ConfigPageQuery, PageResult, SysConfig } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const CONFIG_API = '/api/Config'
+const api = useBaseApi('Config')
 
-function normalizeConfig(raw: Record<string, any>): SysConfig {
-  return {
-    basicId: toId(raw.basicId),
-    configName: raw.configName ?? '',
-    configKey: raw.configKey ?? '',
-    configValue: raw.configValue ?? '',
-    configType: toNumber(raw.configType, 0),
-    dataType: toNumber(raw.dataType, 0),
-    status: toNumber(raw.status, 1),
-    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
-    updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
-    remark: raw.remark ?? undefined,
-  }
+// -------- 类型 --------
+
+export interface SysConfig {
+  basicId: string
+  configName: string
+  configKey: string
+  configValue?: string
+  configType: number
+  dataType: number
+  status: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
 }
 
-function toConfigCreatePayload(data: Partial<SysConfig>) {
+export interface ConfigPageQuery extends PageQuery {
+  configType?: number
+  dataType?: number
+  status?: number
+}
+
+// -------- 内部 --------
+
+function toCreatePayload(data: Partial<SysConfig>) {
   return {
     configName: data.configName ?? '',
     configKey: data.configKey ?? '',
@@ -30,55 +38,32 @@ function toConfigCreatePayload(data: Partial<SysConfig>) {
   }
 }
 
-function toConfigUpdatePayload(id: string, data: Partial<SysConfig>) {
+function toUpdatePayload(id: string, data: Partial<SysConfig>) {
   return {
-    ...toConfigCreatePayload(data),
+    ...toCreatePayload(data),
     status: toNumber(data.status, 1),
     basicId: toId(id),
   }
 }
 
-export async function getConfigPageApi(params: ConfigPageQuery): Promise<PageResult<SysConfig>> {
-  const data = await requestClient.post<any>(
-    `${CONFIG_API}/Page`,
-    buildPageRequest(params, {
+// -------- API --------
+
+export const configApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['ConfigName', 'ConfigKey', 'ConfigValue'],
-      filterFieldMap: {
-        configType: 'ConfigType',
-        dataType: 'DataType',
-        status: 'Status',
-      },
+      filterFieldMap: { configType: 'ConfigType', dataType: 'DataType', status: 'Status' },
     }),
-  )
-  return normalizePageResult(data, normalizeConfig)
-}
 
-export function getConfigDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${CONFIG_API}/ById`, { params: { id } })
-    .then(raw => normalizeConfig(raw))
-}
+  detail: (id: string) => api.detail(id),
 
-export function createConfigApi(data: Partial<SysConfig>) {
-  return requestClient.post<void>(`${CONFIG_API}/Create`, toConfigCreatePayload(data))
-}
+  create: (data: Partial<SysConfig>) => api.create(toCreatePayload(data)),
 
-export function updateConfigApi(id: string, data: Partial<SysConfig>) {
-  return requestClient.put<void>(`${CONFIG_API}/Update`, toConfigUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysConfig>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteConfigApi(id: string) {
-  return requestClient.delete<void>(`${CONFIG_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getConfigByKeyApi(configKey: string, tenantId?: number) {
-  return requestClient
-    .get<any>(`${CONFIG_API}/ConfigByKey/${tenantId ?? 0}`, {
-      params: { configKey },
-    })
-    .then(raw => (raw ? normalizeConfig(raw) : null))
+  getByKey: (configKey: string, tenantId?: number) =>
+    api.request.get(`${api.baseUrl}ConfigByKey/${tenantId ?? 0}`, { params: { configKey } }),
 }

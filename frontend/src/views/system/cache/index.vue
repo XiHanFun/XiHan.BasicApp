@@ -10,14 +10,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { ref } from 'vue'
-import {
-  existsCacheApi,
-  getCacheKeysApi,
-  getCacheStringApi,
-  removeCacheApi,
-  removeCacheByPatternApi,
-  setCacheStringApi,
-} from '@/api'
+import { cacheApi } from '@/api'
 import { XJsonViewer } from '~/components'
 
 defineOptions({ name: 'SystemCachePage' })
@@ -38,7 +31,7 @@ async function handleGet() {
     message.warning('请输入缓存键')
     return
   }
-  const result = await getCacheStringApi(key.value.trim())
+  const result = await cacheApi.getString(key.value.trim())
   setOutput('缓存值', result)
 }
 
@@ -47,7 +40,7 @@ async function handleSet() {
     message.warning('请输入缓存键')
     return
   }
-  await setCacheStringApi({
+  await cacheApi.setString({
     key: key.value.trim(),
     value: value.value,
     expireSeconds: expireSeconds.value,
@@ -60,7 +53,7 @@ async function handleExists() {
     message.warning('请输入缓存键')
     return
   }
-  const exists = await existsCacheApi(key.value.trim())
+  const exists = await cacheApi.exists(key.value.trim())
   setOutput('键存在检查', { key: key.value.trim(), exists })
 }
 
@@ -69,17 +62,17 @@ async function handleRemove() {
     message.warning('请输入缓存键')
     return
   }
-  await removeCacheApi(key.value.trim())
+  await cacheApi.remove(key.value.trim())
   message.success('删除成功')
 }
 
 async function handleKeys() {
-  const keys = await getCacheKeysApi(pattern.value || '*')
+  const keys = await cacheApi.getKeys(pattern.value || '*')
   setOutput('键列表', keys)
 }
 
 async function handleRemoveByPattern() {
-  const count = await removeCacheByPatternApi(pattern.value || '*')
+  const count = await cacheApi.removeByPattern(pattern.value || '*')
   setOutput('按模式删除结果', { removedCount: count })
 }
 </script>

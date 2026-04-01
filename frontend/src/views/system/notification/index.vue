@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysNotification } from '~/types'
+import type { SysNotification } from '@/api'
 import {
   NButton,
   NForm,
@@ -15,9 +15,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createNotificationApi, deleteNotificationApi, updateNotificationApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { notificationApi } from '@/api'
 import { NOTIFICATION_STATUS_OPTIONS, NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -34,16 +32,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Notification/Page', buildPageRequest({
+  return notificationApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     notificationType: queryParams.notificationType,
     notificationStatus: queryParams.notificationStatus,
-  }, {
-    keywordFields: ['Title', 'Content'],
-    filterFieldMap: { notificationType: 'NotificationType', notificationStatus: 'NotificationStatus' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysNotification>({
@@ -119,7 +114,7 @@ function handleEdit(row: SysNotification) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteNotificationApi(id)
+    await notificationApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -132,8 +127,8 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId)
-      await updateNotificationApi(formData.value.basicId, formData.value)
-    else await createNotificationApi(formData.value)
+      await notificationApi.update(formData.value.basicId, formData.value)
+    else await notificationApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')

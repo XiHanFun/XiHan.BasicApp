@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysPermission } from '~/types'
+import type { SysPermission } from '~/api'
 import {
   NButton,
   NForm,
@@ -15,9 +15,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPermissionApi, deletePermissionApi, updatePermissionApi } from '@/api'
-import requestClient from '@/api/request'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { permissionApi } from '@/api'
 import { STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -33,15 +31,12 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Permission/Page', buildPageRequest({
+  return permissionApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     status: queryParams.status,
-  }, {
-    keywordFields: ['PermissionName', 'PermissionCode', 'PermissionDescription'],
-    filterFieldMap: { status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysPermission>({
@@ -124,7 +119,7 @@ function handleEdit(row: SysPermission) {
 
 async function handleDelete(id: string) {
   try {
-    await deletePermissionApi(id)
+    await permissionApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -137,10 +132,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updatePermissionApi(formData.value.basicId, formData.value)
+      await permissionApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createPermissionApi(formData.value)
+      await permissionApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

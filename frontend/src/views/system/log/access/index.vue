@@ -2,9 +2,7 @@
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
 import { NButton, NPopconfirm, NTag, useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { clearAccessLogApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { accessLogApi } from '@/api'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
 
@@ -21,16 +19,11 @@ function handleQueryApi(
   page: VxeGridPropTypes.ProxyAjaxQueryPageParams,
   _sort: VxeGridPropTypes.ProxyAjaxQuerySortCheckedParams,
 ) {
-  return requestClient
-    .post(
-      '/api/AccessLog/Page',
-      buildPageRequest({
-        page: page.currentPage,
-        pageSize: page.pageSize,
-        keyword: queryParams.keyword,
-      }),
-    )
-    .then(flattenPageResponse)
+  return accessLogApi.page({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+  })
 }
 
 const options = useVxeTable(
@@ -111,10 +104,11 @@ function handleSearch() {
 
 async function handleClear() {
   try {
-    await clearAccessLogApi()
+    await accessLogApi.clear()
     message.success('清空成功')
     xGrid.value?.commitProxy('reload')
-  } catch {
+  }
+  catch {
     message.error('清空失败')
   }
 }
@@ -131,7 +125,9 @@ async function handleClear() {
           style="width: 260px"
           @keyup.enter="handleSearch"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -139,7 +135,9 @@ async function handleClear() {
         <template #toolbar_buttons>
           <NPopconfirm @positive-click="handleClear">
             <template #trigger>
-              <NButton type="error" size="small">清空日志</NButton>
+              <NButton type="error" size="small">
+                清空日志
+              </NButton>
             </template>
             确认清空所有访问日志？
           </NPopconfirm>
