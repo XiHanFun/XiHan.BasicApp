@@ -59,10 +59,16 @@ function normalizeLoginResponse(raw: any): LoginResponse {
 
 function normalizeLoginConfig(raw: any): LoginConfig {
   const payload = unwrapPayload<any>(raw)
+  const rawProviders = payload?.oauthProviders ?? []
+  const oauthProviders = rawProviders.map((p: any) =>
+    typeof p === 'string'
+      ? { name: p, displayName: p }
+      : { name: p?.name ?? '', displayName: p?.displayName ?? p?.name ?? '' },
+  )
   return {
     loginMethods: payload?.loginMethods ?? ['password'],
     tenantEnabled: payload?.tenantEnabled ?? true,
-    oauthProviders: payload?.oauthProviders ?? [],
+    oauthProviders,
   }
 }
 

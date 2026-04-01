@@ -1,4 +1,4 @@
-import type { LoginParams, LoginToken, PhoneLoginParams } from '~/types'
+import type { LoginParams, LoginToken, OAuthProviderItem, PhoneLoginParams } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi, phoneLoginApi } from '@/api'
@@ -94,6 +94,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * 发起第三方登录（跳转到后端 OAuth 端点）
+   */
+  function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | number) {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+    const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
+    let url = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider.name)}`
+    if (tenantId && tenantId > 0) {
+      url += `&tenantId=${tenantId}`
+    }
+    window.location.href = url
+  }
+
+  /**
+   * 处理 OAuth 回调（前端 callback 页面调用）
+   */
+  async function handleOAuthCallback(token: LoginToken, redirect?: string) {
+    loginLoading.value = true
+    try {
+      await afterLogin(token, redirect)
+    }
+    finally {
+      loginLoading.value = false
+    }
+  }
+
   const STATIC_ROUTE_NAMES = new Set([
     'RootLayout',
     'DashboardWorkspace',
@@ -105,6 +131,7 @@ export const useAuthStore = defineStore('auth', () => {
     'QrCodeLogin',
     'ForgetPassword',
     'Register',
+    'OAuthCallback',
     'Forbidden',
     'ServerError',
     'NotFound',
@@ -138,6 +165,8 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading,
     login,
     loginByPhoneCode,
+    startOAuthLogin,
+    handleOAuthCallback,
     logout,
   }
 })

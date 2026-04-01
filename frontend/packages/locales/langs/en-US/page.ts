@@ -64,6 +64,12 @@ export default {
     register_success: 'Registration successful',
     already_have_account: 'Already have an account?',
     go_to_login: 'Sign in',
+    // OAuth callback
+    oauth_callback_title: 'Third-party Login',
+    oauth_callback_loading: 'Completing third-party login, please wait...',
+    oauth_callback_failed: 'Third-party login failed, please try again',
+    oauth_callback_missing_token: 'Login information missing, please login again',
+    oauth_callback_redirect: 'Redirecting back to login page...',
     // Password strength
     strength_weak: 'Weak',
     strength_medium: 'Medium',
