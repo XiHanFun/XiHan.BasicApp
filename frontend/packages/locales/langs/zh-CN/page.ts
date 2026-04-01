@@ -32,6 +32,11 @@ export default {
     code_length_tip: '请输入6位验证码',
     send_code: '获取验证码',
     code_sent: '验证码已发送',
+    // 双因素认证
+    two_factor_title: '双因素验证',
+    two_factor_subtitle: '您的账号已开启双因素认证，请输入认证器应用中的 6 位验证码',
+    two_factor_hint: '打开 Google Authenticator / Microsoft Authenticator 等应用查看验证码',
+    two_factor_verify: '验证并登录',
     // 扫码登录
     qrcode_subtitle: '使用手机扫描二维码快速登录',
     qrcode_prompt: '打开手机APP，扫描二维码后即可登录',

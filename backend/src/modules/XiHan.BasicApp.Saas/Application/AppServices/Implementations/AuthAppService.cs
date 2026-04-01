@@ -170,9 +170,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
-    /// 登录
+    /// 登录（返回令牌或双因素验证挑战）
     /// </summary>
-    public async Task<AuthTokenDto> LoginAsync(UserLoginCommand command)
+    public async Task<LoginResponseDto> LoginAsync(UserLoginCommand command)
     {
         command.ValidateAnnotations();
         command.UserName = command.UserName.Trim();
@@ -221,18 +221,21 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             }
 
             var twoFactorCode = command.TwoFactorCode?.Trim();
+
+            // 未提供验证码 → HTTP 200 + requiresTwoFactor，前端据此展示 OTP 输入
             if (string.IsNullOrWhiteSpace(twoFactorCode))
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.RequiresTwoFactor, clientInfo, "需要双因素认证");
                 await uow.CompleteAsync();
-                throw new UnauthorizedAccessException("请输入双因素验证码");
+                return new LoginResponseDto { RequiresTwoFactor = true };
             }
 
+            // 验证码错误 → BusinessException(400)，与凭据错误的 401 区分
             if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, twoFactorCode))
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "双因素验证码错误");
                 await uow.CompleteAsync();
-                throw new UnauthorizedAccessException("双因素验证码错误");
+                throw new BusinessException(message: "双因素验证码错误或已过期，请重新输入");
             }
         }
 
@@ -267,14 +270,18 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         await SaveRefreshTokenAsync(refreshToken, user, sessionId);
 
-        return new AuthTokenDto
+        return new LoginResponseDto
         {
-            AccessToken = tokenResult.AccessToken,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ExpiresIn = tokenResult.ExpiresIn,
-            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
-            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+            RequiresTwoFactor = false,
+            Token = new AuthTokenDto
+            {
+                AccessToken = tokenResult.AccessToken,
+                RefreshToken = tokenResult.RefreshToken,
+                TokenType = tokenResult.TokenType,
+                ExpiresIn = tokenResult.ExpiresIn,
+                IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
+                ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+            }
         };
     }
 
@@ -576,6 +583,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             UserName = user.UserName,
             NickName = user.NickName,
             Avatar = user.Avatar,
+            Email = user.Email,
+            Phone = user.Phone,
             TenantId = user.TenantId
         };
     }
@@ -707,6 +716,277 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             query.TenantId,
             token => _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
         return departmentIds;
+    }
+
+    /// <summary>
+    /// 获取当前用户完整档案
+    /// </summary>
+    public async Task<UserProfileDto> GetProfileAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId);
+
+        return new UserProfileDto
+        {
+            UserId = user.BasicId,
+            UserName = user.UserName,
+            RealName = user.RealName,
+            NickName = user.NickName,
+            Avatar = user.Avatar,
+            Email = user.Email,
+            Phone = user.Phone,
+            Gender = (int)user.Gender,
+            Birthday = user.Birthday,
+            TimeZone = user.TimeZone,
+            Language = user.Language,
+            Country = user.Country,
+            Remark = user.Remark,
+            TenantId = user.TenantId,
+            LastLoginTime = user.LastLoginTime,
+            LastLoginIp = user.LastLoginIp,
+            TwoFactorEnabled = security?.TwoFactorEnabled ?? false,
+            EmailVerified = security?.EmailVerified ?? false,
+            PhoneVerified = security?.PhoneVerified ?? false,
+            LastPasswordChangeTime = security?.LastPasswordChangeTime
+        };
+    }
+
+    /// <summary>
+    /// 更新当前用户个人资料
+    /// </summary>
+    public async Task UpdateProfileAsync(UpdateProfileCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        if (command.NickName is not null) user.NickName = command.NickName.Trim();
+        if (command.RealName is not null) user.RealName = command.RealName.Trim();
+        if (command.Avatar is not null) user.Avatar = command.Avatar.Trim();
+        if (command.Gender.HasValue) user.Gender = command.Gender.Value;
+        if (command.Birthday.HasValue) user.Birthday = command.Birthday.Value;
+        if (command.TimeZone is not null) user.TimeZone = command.TimeZone.Trim();
+        if (command.Language is not null) user.Language = command.Language.Trim();
+        if (command.Country is not null) user.Country = command.Country.Trim();
+        if (command.Remark is not null) user.Remark = command.Remark.Trim();
+
+        // 邮箱/手机号变更需要重新验证
+        if (command.Email is not null && !string.Equals(command.Email.Trim(), user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingByEmail = await _userRepository.GetByEmailAsync(command.Email.Trim(), user.TenantId);
+            if (existingByEmail is not null && existingByEmail.BasicId != user.BasicId)
+            {
+                throw new BusinessException(message: "该邮箱已被其他用户使用");
+            }
+
+            user.Email = command.Email.Trim();
+            var security = await EnsureSecurityProfileAsync(user);
+            security.EmailVerified = false;
+            await _userRepository.SaveSecurityAsync(security);
+        }
+
+        if (command.Phone is not null && !string.Equals(command.Phone.Trim(), user.Phone, StringComparison.Ordinal))
+        {
+            var existingByPhone = await _userRepository.GetByPhoneAsync(command.Phone.Trim(), user.TenantId);
+            if (existingByPhone is not null && existingByPhone.BasicId != user.BasicId)
+            {
+                throw new BusinessException(message: "该手机号已被其他用户使用");
+            }
+
+            user.Phone = command.Phone.Trim();
+            var security = await EnsureSecurityProfileAsync(user);
+            security.PhoneVerified = false;
+            await _userRepository.SaveSecurityAsync(security);
+        }
+
+        await _userRepository.UpdateAsync(user);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 获取当前用户活跃会话列表
+    /// </summary>
+    public async Task<IReadOnlyList<UserSessionItemDto>> GetSessionsAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var currentSessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
+        var sessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
+
+        return [.. sessions
+            .OrderByDescending(s => s.LastActivityTime)
+            .Select(s => new UserSessionItemDto
+            {
+                SessionId = s.UserSessionId,
+                DeviceName = s.DeviceName,
+                DeviceType = (int)s.DeviceType,
+                Browser = s.Browser,
+                OperatingSystem = s.OperatingSystem,
+                IpAddress = s.IpAddress,
+                Location = s.Location,
+                LoginTime = s.LoginTime,
+                LastActivityTime = s.LastActivityTime,
+                IsCurrent = string.Equals(s.UserSessionId, currentSessionId, StringComparison.Ordinal)
+            })];
+    }
+
+    /// <summary>
+    /// 撤销指定会话
+    /// </summary>
+    public async Task RevokeSessionAsync(RevokeSessionCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var session = await _userSessionRepository.GetBySessionIdAsync(command.SessionId, user.TenantId);
+        if (session is null || session.UserId != user.BasicId)
+        {
+            throw new BusinessException(message: "会话不存在或无权操作");
+        }
+
+        var currentSessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
+        if (string.Equals(session.UserSessionId, currentSessionId, StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "不能撤销当前会话，请使用退出登录");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        await MarkSessionRevokedAsync(command.SessionId, user.TenantId, "用户在个人中心主动撤销");
+        await uow.CompleteAsync();
+
+        await RemoveSessionTokenAsync(command.SessionId);
+    }
+
+    /// <summary>
+    /// 撤销当前用户其他所有会话
+    /// </summary>
+    public async Task RevokeOtherSessionsAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var currentSessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
+        var sessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
+        var otherSessionIds = sessions
+            .Where(s => !string.Equals(s.UserSessionId, currentSessionId, StringComparison.Ordinal))
+            .Select(s => s.UserSessionId)
+            .ToArray();
+
+        if (otherSessionIds.Length == 0) return;
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        await _userSessionRepository.RevokeSessionsAsync(otherSessionIds, "用户在个人中心撤销所有其他会话", user.TenantId);
+        await uow.CompleteAsync();
+
+        foreach (var sessionId in otherSessionIds)
+        {
+            await RemoveSessionTokenAsync(sessionId);
+        }
+    }
+
+    /// <summary>
+    /// 初始化双因素认证
+    /// </summary>
+    public async Task<TwoFactorSetupResultDto> Setup2FAAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var security = await EnsureSecurityProfileAsync(user);
+        if (security.TwoFactorEnabled)
+        {
+            throw new BusinessException(message: "双因素认证已启用，请先禁用再重新设置");
+        }
+
+        var secret = _otpService.GenerateTotpSecret();
+        var uri = _otpService.GenerateTotpUri(secret, "XiHan", user.UserName);
+
+        // 暂存密钥，等待用户验证后正式启用
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        security.TwoFactorSecret = secret;
+        await _userRepository.SaveSecurityAsync(security);
+        await uow.CompleteAsync();
+
+        return new TwoFactorSetupResultDto
+        {
+            SharedKey = secret,
+            AuthenticatorUri = uri
+        };
+    }
+
+    /// <summary>
+    /// 验证并启用双因素认证
+    /// </summary>
+    public async Task Enable2FAAsync(Enable2FACommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var security = await EnsureSecurityProfileAsync(user);
+        if (security.TwoFactorEnabled)
+        {
+            throw new BusinessException(message: "双因素认证已处于启用状态");
+        }
+
+        if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+        {
+            throw new BusinessException(message: "请先调用初始化接口获取密钥");
+        }
+
+        if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
+        {
+            throw new BusinessException(message: "验证码错误，请检查后重试");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        security.TwoFactorEnabled = true;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 验证并禁用双因素认证
+    /// </summary>
+    public async Task Disable2FAAsync(Disable2FACommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var security = await EnsureSecurityProfileAsync(user);
+        if (!security.TwoFactorEnabled)
+        {
+            throw new BusinessException(message: "双因素认证未启用");
+        }
+
+        if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+        {
+            throw new BusinessException(message: "双因素认证配置异常，请联系管理员");
+        }
+
+        if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
+        {
+            throw new BusinessException(message: "验证码错误，请检查后重试");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        security.TwoFactorEnabled = false;
+        security.TwoFactorSecret = null;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+        await uow.CompleteAsync();
     }
 
     /// <summary>

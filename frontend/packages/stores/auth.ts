@@ -1,4 +1,4 @@
-import type { LoginParams, LoginResult, PhoneLoginParams } from '~/types'
+import type { LoginParams, LoginToken, PhoneLoginParams } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi, phoneLoginApi } from '@/api'
@@ -14,7 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loginLoading = ref(false)
 
-  async function afterLogin(result: LoginResult, redirect?: string) {
+  async function afterLogin(result: LoginToken, redirect?: string) {
     const { router } = await import('@/router')
 
     accessStore.setAccessToken(result.accessToken)
@@ -65,11 +65,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function login(params: LoginParams, redirect?: string) {
+  /** 返回 true 表示需要双因素验证，false 表示登录完成 */
+  async function login(params: LoginParams, redirect?: string): Promise<boolean> {
     loginLoading.value = true
     try {
-      const result = await loginApi(params)
-      await afterLogin(result, redirect)
+      const response = await loginApi(params)
+      if (response.requiresTwoFactor) {
+        return true
+      }
+      if (response.token) {
+        await afterLogin(response.token, redirect)
+      }
+      return false
     }
     finally {
       loginLoading.value = false

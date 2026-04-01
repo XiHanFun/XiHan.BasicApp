@@ -30,9 +30,9 @@ public interface IAuthAppService : IApplicationService
     Task<LoginConfigDto> GetLoginConfigAsync();
 
     /// <summary>
-    /// 登录
+    /// 登录（返回令牌或双因素验证挑战）
     /// </summary>
-    Task<AuthTokenDto> LoginAsync(UserLoginCommand command);
+    Task<LoginResponseDto> LoginAsync(UserLoginCommand command);
 
     /// <summary>
     /// 用户注册
@@ -91,4 +91,44 @@ public interface IAuthAppService : IApplicationService
     /// 空集合表示不限部门（全量数据范围）。
     /// </remarks>
     Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
+
+    /// <summary>
+    /// 获取当前用户完整档案
+    /// </summary>
+    Task<UserProfileDto> GetProfileAsync();
+
+    /// <summary>
+    /// 更新当前用户个人资料
+    /// </summary>
+    Task UpdateProfileAsync(UpdateProfileCommand command);
+
+    /// <summary>
+    /// 获取当前用户活跃会话列表
+    /// </summary>
+    Task<IReadOnlyList<UserSessionItemDto>> GetSessionsAsync();
+
+    /// <summary>
+    /// 撤销指定会话
+    /// </summary>
+    Task RevokeSessionAsync(RevokeSessionCommand command);
+
+    /// <summary>
+    /// 撤销当前用户其他所有会话
+    /// </summary>
+    Task RevokeOtherSessionsAsync();
+
+    /// <summary>
+    /// 初始化双因素认证（生成密钥和二维码URI，尚未启用）
+    /// </summary>
+    Task<TwoFactorSetupResultDto> Setup2FAAsync();
+
+    /// <summary>
+    /// 验证并启用双因素认证
+    /// </summary>
+    Task Enable2FAAsync(Enable2FACommand command);
+
+    /// <summary>
+    /// 验证并禁用双因素认证
+    /// </summary>
+    Task Disable2FAAsync(Disable2FACommand command);
 }

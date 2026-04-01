@@ -32,6 +32,12 @@ export default {
     code_length_tip: 'Please enter a 6-digit code',
     send_code: 'Send Code',
     code_sent: 'Code sent successfully',
+    // Two-factor authentication
+    two_factor_title: 'Two-Factor Verification',
+    two_factor_subtitle:
+      'Your account has two-factor authentication enabled. Please enter the 6-digit code from your authenticator app',
+    two_factor_hint: 'Open Google Authenticator / Microsoft Authenticator to view the code',
+    two_factor_verify: 'Verify & Sign In',
     // QR login
     qrcode_subtitle: 'Scan the QR code with your phone to log in',
     qrcode_prompt: 'Open your mobile app and scan the QR code to log in',
