@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Icon } from '~/iconify'
-import { NButton, NIcon } from 'naive-ui'
+import { NFloatButton, NIcon } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'PreferenceFab' })
 defineProps<{ show: boolean }>()
@@ -11,30 +11,18 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div
+  <NFloatButton
     v-if="show"
-    class="preference-fab fixed z-[80]"
-    style="right: 12px; bottom: 88px"
+    type="primary"
+    :right="12"
+    :bottom="88"
+    :width="40"
+    :height="40"
+    :title="t('preference.drawer.title')"
+    @click="emit('click')"
   >
-    <NButton
-      circle
-      size="large"
-      type="primary"
-      :title="t('preference.drawer.title')"
-      @click="emit('click')"
-      @mousedown.prevent
-    >
-      <template #icon>
-        <NIcon size="20">
-          <Icon icon="lucide:settings-2" />
-        </NIcon>
-      </template>
-    </NButton>
-  </div>
+    <NIcon size="20">
+      <Icon icon="lucide:settings-2" />
+    </NIcon>
+  </NFloatButton>
 </template>
-
-<style scoped>
-.preference-fab {
-  filter: drop-shadow(0 4px 12px hsl(var(--primary) / 0.35));
-}
-</style>
