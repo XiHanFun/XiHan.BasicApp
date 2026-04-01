@@ -33,6 +33,7 @@ using XiHan.BasicApp.Saas.Domain.ValueObjects;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Caching.Distributed.Abstracts;
@@ -77,6 +78,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
+    private readonly IExternalLoginRepository _externalLoginRepository;
+    private readonly OAuthOptions _oauthOptions;
 
     /// <summary>
     /// 构造函数
@@ -97,12 +100,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="sessionTokenMapCache"></param>
     /// <param name="verificationCodeCache"></param>
     /// <param name="configuration"></param>
-    /// <param name="jwtOptions"></param>
     /// <param name="hostEnvironment"></param>
     /// <param name="currentUser"></param>
     /// <param name="clientInfoProvider"></param>
     /// <param name="httpContextAccessor"></param>
     /// <param name="unitOfWorkManager"></param>
+    /// <param name="externalLoginRepository"></param>
+    /// <param name="jwtOptions"></param>
+    /// <param name="oauthOptions"></param>
     public AuthAppService(
         IUserRepository userRepository,
         IUserManager userManager,
@@ -120,12 +125,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IDistributedCache<AuthSessionTokenMapCacheItem> sessionTokenMapCache,
         IDistributedCache<AuthVerificationCodeCacheItem> verificationCodeCache,
         IConfiguration configuration,
-        IOptions<JwtOptions> jwtOptions,
         IHostEnvironment hostEnvironment,
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor,
-        IUnitOfWorkManager unitOfWorkManager)
+        IUnitOfWorkManager unitOfWorkManager,
+        IExternalLoginRepository externalLoginRepository,
+        IOptions<JwtOptions> jwtOptions,
+        IOptions<OAuthOptions> oauthOptions)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -143,12 +150,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _sessionTokenMapCache = sessionTokenMapCache;
         _verificationCodeCache = verificationCodeCache;
         _configuration = configuration;
-        _jwtOptions = jwtOptions.Value;
         _hostEnvironment = hostEnvironment;
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
         _unitOfWorkManager = unitOfWorkManager;
+        _externalLoginRepository = externalLoginRepository;
+        _jwtOptions = jwtOptions.Value;
+        _oauthOptions = oauthOptions.Value;
     }
 
     /// <summary>
@@ -157,13 +166,25 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public Task<LoginConfigDto> GetLoginConfigAsync()
     {
         var loginMethods = _configuration.GetSection("XiHan:Authentication:LoginMethods").Get<string[]>();
-        var oauthProviders = _configuration.GetSection("XiHan:Authentication:OAuth:Providers").Get<string[]>();
+        var oauth = _oauthOptions;
+
+        var providers = oauth is { Enabled: true }
+            ? oauth.Providers
+                .Where(p => p.Enabled && !string.IsNullOrWhiteSpace(p.ClientId))
+                .DistinctBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(p => new OAuthProviderItemDto
+                {
+                    Name = p.Name.ToLowerInvariant(),
+                    DisplayName = p.DisplayName ?? p.Name
+                })
+                .ToList()
+            : [];
 
         var response = new LoginConfigDto
         {
             TenantEnabled = _configuration.GetValue("XiHan:MultiTenancy:Enabled", true),
             LoginMethods = loginMethods is { Length: > 0 } ? [.. loginMethods] : ["password"],
-            OauthProviders = oauthProviders is { Length: > 0 } ? [.. oauthProviders] : []
+            OauthProviders = providers
         };
 
         return Task.FromResult(response);
@@ -990,6 +1011,123 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
+    /// 处理第三方登录（查找或自动注册用户，签发令牌）
+    /// </summary>
+    public async Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command)
+    {
+        command.ValidateAnnotations();
+        var provider = command.Provider.Trim().ToLowerInvariant();
+        var providerKey = command.ProviderKey.Trim();
+        var tenantId = NormalizeTenantId(command.TenantId);
+        var clientInfo = _clientInfoProvider.GetCurrent();
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        // 查找已绑定的用户
+        var existingBinding = await _externalLoginRepository.FindByProviderAsync(provider, providerKey, tenantId);
+        SysUser? user = null;
+
+        if (existingBinding is not null)
+        {
+            user = await _userRepository.GetByIdAsync(existingBinding.UserId);
+
+            // 更新三方登录记录的最后登录时间
+            existingBinding.LastLoginTime = DateTimeOffset.UtcNow;
+            existingBinding.ProviderDisplayName = command.DisplayName ?? existingBinding.ProviderDisplayName;
+            existingBinding.AvatarUrl = command.AvatarUrl ?? existingBinding.AvatarUrl;
+            existingBinding.Email = command.Email ?? existingBinding.Email;
+            await _externalLoginRepository.UpdateAsync(existingBinding);
+        }
+
+        // 未绑定：尝试通过邮箱匹配已有用户，或自动创建新用户
+        if (user is null && !string.IsNullOrWhiteSpace(command.Email))
+        {
+            user = await _userRepository.GetByEmailAsync(command.Email, tenantId);
+        }
+
+        if (user is null)
+        {
+            // 自动创建用户
+            var userName = GenerateExternalUserName(provider, providerKey);
+            var tempPassword = GenerateTemporaryPassword();
+            user = new SysUser
+            {
+                TenantId = tenantId,
+                UserName = userName,
+                NickName = command.DisplayName ?? userName,
+                Email = command.Email,
+                Avatar = command.AvatarUrl,
+                Status = YesOrNo.Yes,
+                Language = "zh-CN"
+            };
+            user = await _userManager.CreateAsync(user, tempPassword);
+
+            var defaultRoleId = await ResolveDefaultRoleIdAsync(tenantId);
+            if (defaultRoleId.HasValue)
+            {
+                await _userRepository.ReplaceUserRolesAsync(user.BasicId, [defaultRoleId.Value], tenantId);
+            }
+        }
+
+        if (user.Status != YesOrNo.Yes)
+        {
+            await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.AccountDisabled, clientInfo, $"第三方登录({provider})失败：账号已禁用");
+            await uow.CompleteAsync();
+            throw new BusinessException(message: "账号已禁用");
+        }
+
+        // 创建绑定记录（如果还不存在）
+        if (existingBinding is null)
+        {
+            var newBinding = new SysExternalLogin
+            {
+                TenantId = tenantId,
+                UserId = user.BasicId,
+                Provider = provider,
+                ProviderKey = providerKey,
+                ProviderDisplayName = command.DisplayName,
+                Email = command.Email,
+                AvatarUrl = command.AvatarUrl,
+                LastLoginTime = DateTimeOffset.UtcNow
+            };
+            await _externalLoginRepository.AddAsync(newBinding);
+        }
+
+        var security = await EnsureSecurityProfileAsync(user);
+        var revokedSessionIds = await EnforceSessionPolicyAsync(user, security);
+
+        user.LastLoginTime = DateTimeOffset.UtcNow;
+        user.LastLoginIp = clientInfo.IpAddress;
+        await _userRepository.UpdateAsync(user);
+
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var sessionId = Guid.NewGuid().ToString("N");
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+
+        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
+        await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.Success, clientInfo, $"第三方登录({provider})成功");
+        await uow.CompleteAsync();
+
+        foreach (var revokedSessionId in revokedSessionIds)
+        {
+            await RemoveSessionTokenAsync(revokedSessionId);
+        }
+
+        await SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
+
+        return new AuthTokenDto
+        {
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ExpiresIn = tokenResult.ExpiresIn,
+            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+        };
+    }
+
+    /// <summary>
     /// 构建用户声明
     /// </summary>
     /// <param name="user"></param>
@@ -1166,6 +1304,51 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         var tenantSegment = tenantId?.ToString() ?? "0";
         return $"auth:phone-code:{tenantSegment}:{phone}";
+    }
+
+    /// <summary>
+    /// 标准化租户ID（非正数视为 null）
+    /// </summary>
+    /// <param name="tenantId"></param>
+    /// <returns></returns>
+    private static long? NormalizeTenantId(long? tenantId)
+    {
+        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
+    }
+
+    /// <summary>
+    /// 生成数字验证码
+    /// </summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    private static string GenerateNumericCode(int length)
+    {
+        if (length <= 0)
+        {
+            return string.Empty;
+        }
+
+        var max = (int)Math.Pow(10, Math.Min(length, 9));
+        return RandomNumberGenerator.GetInt32(0, max).ToString($"D{length}");
+    }
+
+    /// <summary>
+    /// 生成临时密码
+    /// </summary>
+    /// <returns></returns>
+    private static string GenerateTemporaryPassword()
+    {
+        return $"Tmp@{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+    }
+
+    /// <summary>
+    /// 为第三方登录用户生成唯一用户名
+    /// </summary>
+    private static string GenerateExternalUserName(string provider, string providerKey)
+    {
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            Encoding.UTF8.GetBytes($"{provider}:{providerKey}")))[..8].ToLowerInvariant();
+        return $"{provider}_{hash}";
     }
 
     /// <summary>
@@ -1425,41 +1608,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         await _sessionTokenMapCache.RemoveAsync(sessionTokenMapCacheKey, hideErrors: true);
-    }
-
-    /// <summary>
-    /// 标准化租户ID（非正数视为 null）
-    /// </summary>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    private static long? NormalizeTenantId(long? tenantId)
-    {
-        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
-    }
-
-    /// <summary>
-    /// 生成数字验证码
-    /// </summary>
-    /// <param name="length"></param>
-    /// <returns></returns>
-    private static string GenerateNumericCode(int length)
-    {
-        if (length <= 0)
-        {
-            return string.Empty;
-        }
-
-        var max = (int)Math.Pow(10, Math.Min(length, 9));
-        return RandomNumberGenerator.GetInt32(0, max).ToString($"D{length}");
-    }
-
-    /// <summary>
-    /// 生成临时密码
-    /// </summary>
-    /// <returns></returns>
-    private static string GenerateTemporaryPassword()
-    {
-        return $"Tmp@{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
     }
 
     /// <summary>

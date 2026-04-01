@@ -63,6 +63,12 @@ export default {
     register_success: '注册成功',
     already_have_account: '已有账号?',
     go_to_login: '去登录',
+    // 第三方登录回调
+    oauth_callback_title: '第三方登录',
+    oauth_callback_loading: '正在完成第三方登录，请稍候...',
+    oauth_callback_failed: '第三方登录失败，请重试',
+    oauth_callback_missing_token: '登录信息缺失，请重新登录',
+    oauth_callback_redirect: '即将返回登录页面...',
     // 密码强度
     strength_weak: '弱',
     strength_medium: '中',

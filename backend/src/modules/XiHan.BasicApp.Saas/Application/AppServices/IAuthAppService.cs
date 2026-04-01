@@ -131,4 +131,9 @@ public interface IAuthAppService : IApplicationService
     /// 验证并禁用双因素认证
     /// </summary>
     Task Disable2FAAsync(Disable2FACommand command);
+
+    /// <summary>
+    /// 处理第三方登录（查找或自动创建用户，签发令牌）
+    /// </summary>
+    Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command);
 }

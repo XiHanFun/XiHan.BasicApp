@@ -63,25 +63,22 @@ const redirect = computed(() => {
   return r ? decodeURIComponent(r) : undefined
 })
 
-const defaultOauthProviders = ['github', 'google']
-const oauthProviderMeta: Record<string, { icon: string, label: string }> = {
-  github: { icon: 'mdi:github', label: 'GitHub' },
-  google: { icon: 'logos:google-icon', label: 'Google' },
+const oauthProviderIcons: Record<string, string> = {
+  github: 'mdi:github',
+  google: 'logos:google-icon',
+  qq: 'ri:qq-fill',
 }
 
-const oauthProviders = computed(() => {
-  const providers = (loginConfig.value.oauthProviders || [])
-    .map(provider => provider.trim().toLowerCase())
-    .filter(Boolean)
-  return providers.length > 0 ? providers : defaultOauthProviders
-})
+const oauthProviders = computed(() => loginConfig.value.oauthProviders ?? [])
 
-function getOauthProviderLabel(provider: string) {
-  return oauthProviderMeta[provider]?.label ?? provider.toUpperCase()
+function getOauthProviderIcon(name: string) {
+  return oauthProviderIcons[name.toLowerCase()] ?? 'lucide:link-2'
 }
 
-function getOauthProviderIcon(provider: string) {
-  return oauthProviderMeta[provider]?.icon ?? 'lucide:link-2'
+function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
+  const parsedTenantId = Number(formData.value.tenantId)
+  const tenantId = loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId) ? parsedTenantId : undefined
+  authStore.startOAuthLogin(provider, tenantId)
 }
 
 async function loadLoginConfig() {
@@ -299,20 +296,24 @@ onMounted(async () => {
           </NButton>
         </NForm>
 
-        <NDivider :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'">
+        <NDivider
+          v-if="oauthProviders.length > 0"
+          :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'"
+        >
           {{ t('page.auth.third_party_login') }}
         </NDivider>
-        <div class="flex flex-wrap gap-3 justify-center items-center">
+        <div v-if="oauthProviders.length > 0" class="flex flex-wrap gap-3 justify-center items-center">
           <NButton
             v-for="provider in oauthProviders"
-            :key="provider"
+            :key="provider.name"
             secondary
             class="!h-10 !rounded-xl !px-4 !text-sm"
+            @click="handleOAuthLogin(provider)"
           >
             <template #icon>
-              <Icon :icon="getOauthProviderIcon(provider)" width="16" />
+              <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
             </template>
-            {{ getOauthProviderLabel(provider) }}
+            {{ provider.displayName }}
           </NButton>
         </div>
 

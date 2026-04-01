@@ -30,9 +30,25 @@ public class LoginConfigDto
     public bool TenantEnabled { get; set; } = true;
 
     /// <summary>
-    /// 三方登录提供商
+    /// 三方登录提供商详情
     /// </summary>
-    public string[] OauthProviders { get; set; } = [];
+    public List<OAuthProviderItemDto> OauthProviders { get; set; } = [];
+}
+
+/// <summary>
+/// OAuth 提供商信息（前端展示用）
+/// </summary>
+public class OAuthProviderItemDto
+{
+    /// <summary>
+    /// 提供商标识
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 显示名称
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
 }
 
 /// <summary>

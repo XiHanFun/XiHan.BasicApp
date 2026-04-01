@@ -30,6 +30,7 @@ using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Saas.Infrastructure.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Settings;
 using XiHan.BasicApp.Saas.Seeders;
+using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Authorization.Policies;
@@ -72,6 +73,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISmsRepository, SmsRepository>();
         services.AddScoped<ITaskRepository, TaskRepository>();
         services.AddScoped<IOAuthAppRepository, OAuthAppRepository>();
+        services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -169,6 +171,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
+        services.AddScoped<IExternalLoginStore, RbacExternalLoginStore>();
         services.AddScoped<IUserStore, RbacUserStore>();
         services.AddScoped<IRoleStore, RbacRoleStore>();
         services.AddScoped<IPermissionStore, RbacPermissionStore>();

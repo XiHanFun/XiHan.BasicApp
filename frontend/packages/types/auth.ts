@@ -16,10 +16,15 @@ export interface UserInfo {
   permissions: string[]
 }
 
+export interface OAuthProviderItem {
+  name: string
+  displayName: string
+}
+
 export interface LoginConfig {
   loginMethods: string[]
   tenantEnabled: boolean
-  oauthProviders: string[]
+  oauthProviders: OAuthProviderItem[]
 }
 
 export interface LoginParams {

@@ -12,12 +12,14 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
@@ -48,7 +50,7 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         var jwtOptions = config.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
         if (jwtOptions != null && !string.IsNullOrEmpty(jwtOptions.SecretKey))
         {
-            services.AddAuthentication(options =>
+            var authBuilder = services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -79,6 +81,19 @@ public class XiHanBasicAppWebHostModule : XiHanModule
                     }
                 };
             });
+
+            // 添加 OAuth 第三方登录所需的临时 Cookie scheme
+            var oauthOptions = config.GetSection(OAuthOptions.SectionName).Get<OAuthOptions>();
+            if (oauthOptions is { Enabled: true })
+            {
+                authBuilder.AddCookie("ExternalCookie", options =>
+                {
+                    options.Cookie.Name = ".XiHan.External";
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                });
+            }
 
             // 添加授权
             services.AddAuthorization();
