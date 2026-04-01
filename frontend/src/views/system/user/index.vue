@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysUser } from '~/types'
+import type { SysUser } from '@/api/modules/user'
 import {
   NButton,
   NForm,
@@ -14,15 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import {
-  createUserApi,
-  deleteUserApi,
-  resetUserPasswordApi,
-  updateUserApi,
-  updateUserStatusApi,
-} from '@/api'
-import requestClient from '@/api/request'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { userApi } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -38,15 +30,12 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/User/Page', buildPageRequest({
+  return userApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     status: queryParams.status,
-  }, {
-    keywordFields: ['UserName', 'NickName', 'Email', 'Phone'],
-    filterFieldMap: { status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysUser>({
@@ -139,7 +128,7 @@ function handleEdit(row: SysUser) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteUserApi(id)
+    await userApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -151,7 +140,7 @@ async function handleDelete(id: string) {
 async function handleToggleStatus(row: any) {
   const newStatus = row.status === 1 ? 0 : 1
   try {
-    await updateUserStatusApi(row.basicId, newStatus)
+    await userApi.changeStatus(row.basicId, newStatus)
     message.success('状态更新成功')
     xGrid.value?.commitProxy('query')
   }
@@ -176,7 +165,7 @@ async function confirmResetPwd() {
     return
   }
   try {
-    await resetUserPasswordApi(resetPwdUserId.value, resetPwdValue.value)
+    await userApi.resetPassword(resetPwdUserId.value, resetPwdValue.value)
     message.success('密码重置成功')
     resetPwdVisible.value = false
   }
@@ -189,10 +178,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateUserApi(formData.value.basicId, formData.value)
+      await userApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createUserApi(formData.value)
+      await userApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

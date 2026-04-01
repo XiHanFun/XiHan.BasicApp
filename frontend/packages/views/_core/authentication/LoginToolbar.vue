@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { DropdownOption } from 'naive-ui'
-import { Icon } from '~/iconify'
 import { NButton, NDropdown, NIcon, NPopover } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useLocale, useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 
 export type LoginFormAlign = 'left' | 'center' | 'right'
@@ -42,8 +42,10 @@ const localeOptions = [
 const currentAlign = ref<LoginFormAlign>('right')
 
 function getLayoutIcon(align: LoginFormAlign) {
-  if (align === 'left') return 'lucide:panel-left'
-  if (align === 'center') return 'lucide:layout-panel-top'
+  if (align === 'left')
+    return 'lucide:panel-left'
+  if (align === 'center')
+    return 'lucide:layout-panel-top'
   return 'lucide:panel-right'
 }
 

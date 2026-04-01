@@ -1,4 +1,3 @@
-export * from './contract'
 export * from './modules/access-log'
 export * from './modules/audit-log'
 export * from './modules/auth'

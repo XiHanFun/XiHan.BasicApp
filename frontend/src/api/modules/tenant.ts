@@ -1,33 +1,39 @@
-import type { PageResult, SysTenant, TenantPageQuery } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const TENANT_API = '/api/Tenant'
+const api = useBaseApi('Tenant')
 
-function normalizeTenant(raw: Record<string, any>): SysTenant {
-  const contactPerson = raw.contactPerson ?? raw.contactName ?? ''
+// -------- 类型 --------
 
-  return {
-    basicId: toId(raw.basicId),
-    tenantName: raw.tenantName ?? '',
-    tenantCode: raw.tenantCode ?? '',
-    tenantShortName: raw.tenantShortName ?? undefined,
-    contactPerson,
-    contactName: contactPerson,
-    contactPhone: raw.contactPhone ?? '',
-    contactEmail: raw.contactEmail ?? '',
-    isolationMode: toNumber(raw.isolationMode, 0),
-    tenantStatus: toNumber(raw.tenantStatus, 0),
-    status: toNumber(raw.status, 1),
-    expireTime: raw.expireTime ?? raw.expiredTime ?? undefined,
-    expiredTime: raw.expiredTime ?? raw.expireTime ?? undefined,
-    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
-    updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
-    remark: raw.remark ?? undefined,
-  }
+export interface SysTenant {
+  basicId: string
+  tenantName: string
+  tenantCode?: string
+  tenantShortName?: string
+  contactPerson?: string
+  contactName?: string
+  contactPhone?: string
+  contactEmail?: string
+  isolationMode?: number
+  tenantStatus?: number
+  status?: number
+  expireTime?: string
+  expiredTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
 }
 
-function toTenantCreatePayload(data: Partial<SysTenant>) {
+export interface TenantPageQuery extends PageQuery {
+  status?: number
+  tenantStatus?: number
+  isolationMode?: number
+}
+
+// -------- 内部 --------
+
+function toCreatePayload(data: Partial<SysTenant>) {
   return {
     tenantCode: data.tenantCode ?? '',
     tenantName: data.tenantName ?? '',
@@ -39,7 +45,7 @@ function toTenantCreatePayload(data: Partial<SysTenant>) {
   }
 }
 
-function toTenantUpdatePayload(id: string, data: Partial<SysTenant>) {
+function toUpdatePayload(id: string, data: Partial<SysTenant>) {
   return {
     tenantName: data.tenantName ?? '',
     tenantShortName: data.tenantShortName ?? '',
@@ -53,48 +59,27 @@ function toTenantUpdatePayload(id: string, data: Partial<SysTenant>) {
   }
 }
 
-export async function getTenantPageApi(
-  params: TenantPageQuery,
-): Promise<PageResult<SysTenant>> {
-  const data = await requestClient.post<any>(
-    `${TENANT_API}/Page`,
-    buildPageRequest(params, {
+// -------- API --------
+
+export const tenantApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['TenantName', 'TenantCode', 'ContactPerson', 'ContactPhone'],
-      filterFieldMap: {
-        status: 'Status',
-        tenantStatus: 'TenantStatus',
-        isolationMode: 'IsolationMode',
-      },
+      filterFieldMap: { status: 'Status', tenantStatus: 'TenantStatus', isolationMode: 'IsolationMode' },
     }),
-  )
-  return normalizePageResult(data, normalizeTenant)
-}
 
-export function getTenantDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${TENANT_API}/ById`, { params: { id } })
-    .then(raw => normalizeTenant(raw))
-}
+  detail: (id: string) => api.detail(id),
 
-export function createTenantApi(data: Partial<SysTenant>) {
-  return requestClient.post<void>(`${TENANT_API}/Create`, toTenantCreatePayload(data))
-}
+  create: (data: Partial<SysTenant>) => api.create(toCreatePayload(data)),
 
-export function updateTenantApi(id: string, data: Partial<SysTenant>) {
-  return requestClient.put<void>(`${TENANT_API}/Update`, toTenantUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysTenant>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteTenantApi(id: string) {
-  return requestClient.delete<void>(`${TENANT_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function changeTenantStatusApi(id: string, tenantStatus: number) {
-  return requestClient.post<void>(`${TENANT_API}/ChangeStatus`, {
-    tenantId: toId(id),
-    tenantStatus: toNumber(tenantStatus, 0),
-  })
+  changeStatus: (id: string, tenantStatus: number) =>
+    api.request.post(`${api.baseUrl}ChangeStatus`, {
+      tenantId: toId(id),
+      tenantStatus: toNumber(tenantStatus, 0),
+    }),
 }

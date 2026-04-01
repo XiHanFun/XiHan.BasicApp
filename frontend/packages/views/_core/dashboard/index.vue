@@ -10,10 +10,10 @@ import {
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  getAccessLogPageApi,
-  getOperationLogPageApi,
-  getUserPageApi,
-  getUserSessionPageApi,
+  accessLogApi,
+  operationLogApi,
+  userApi,
+  userSessionApi,
 } from '@/api'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
@@ -59,10 +59,10 @@ const quickLinks = [
 async function fetchDashboardData() {
   try {
     const [users, sessions, operations, accesses] = await Promise.allSettled([
-      getUserPageApi({ page: 1, pageSize: 1 }),
-      getUserSessionPageApi({ page: 1, pageSize: 1 }),
-      getOperationLogPageApi({ page: 1, pageSize: 1 }),
-      getAccessLogPageApi({ page: 1, pageSize: 1 }),
+      userApi.page({ page: 1, pageSize: 1 }),
+      userSessionApi.page({ page: 1, pageSize: 1 }),
+      operationLogApi.page({ page: 1, pageSize: 1 }),
+      accessLogApi.page({ page: 1, pageSize: 1 }),
     ])
 
     if (users.status === 'fulfilled')

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysTask } from '~/types'
+import type { SysTask } from '@/api'
 import {
   NButton,
   NForm,
@@ -15,9 +15,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createTaskApi, deleteTaskApi, updateTaskApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { taskApi } from '@/api'
 import { RUN_TASK_STATUS_OPTIONS, STATUS_OPTIONS, TRIGGER_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -34,16 +32,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Task/Page', buildPageRequest({
+  return taskApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     status: queryParams.status,
     runTaskStatus: queryParams.runTaskStatus,
-  }, {
-    keywordFields: ['TaskCode', 'TaskName', 'TaskGroup', 'TaskClass'],
-    filterFieldMap: { status: 'Status', runTaskStatus: 'RunTaskStatus' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysTask>({
@@ -136,7 +131,7 @@ function handleEdit(row: SysTask) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteTaskApi(id)
+    await taskApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -149,8 +144,8 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId)
-      await updateTaskApi(formData.value.basicId, formData.value)
-    else await createTaskApi(formData.value)
+      await taskApi.update(formData.value.basicId, formData.value)
+    else await taskApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')

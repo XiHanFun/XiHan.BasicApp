@@ -1,19 +1,47 @@
-import type { MenuRoute, SysMenu } from '~/types'
+import type { MenuRoute } from '~/types'
+import { useBaseApi } from '../base'
 import { toId } from '../helpers'
-import requestClient from '../request'
 
-const MENU_API = '/api/Menu'
+const api = useBaseApi('Menu')
+
+// -------- 类型 --------
+
+export interface SysMenu {
+  basicId: string
+  parentId?: string
+  menuName: string
+  menuCode: string
+  menuType: number
+  path?: string
+  component?: string
+  routeName?: string
+  redirect?: string
+  icon?: string
+  title?: string
+  isExternal?: boolean
+  externalUrl?: string
+  isCache?: boolean
+  isVisible: boolean
+  isAffix?: boolean
+  sort: number
+  status: number
+  remark?: string
+  children?: SysMenu[]
+  createTime?: string
+}
+
+// -------- 内部 --------
 
 const MENU_TYPE_MAP: Record<string, number> = { Directory: 0, Menu: 1, Button: 2 }
 const STATUS_MAP: Record<string, number> = { Yes: 1, No: 0 }
+const MENU_TYPE_NAMES = ['Directory', 'Menu', 'Button']
+const STATUS_NAMES = ['No', 'Yes']
 
 function resolveEnum(value: unknown, map: Record<string, number>, fallback: number): number {
-  if (typeof value === 'number') {
+  if (typeof value === 'number')
     return value
-  }
-  if (typeof value === 'string') {
+  if (typeof value === 'string')
     return map[value] ?? (Number(value) || fallback)
-  }
   return fallback
 }
 
@@ -66,9 +94,6 @@ function toMenuRoute(menu: SysMenu): MenuRoute {
   }
 }
 
-const MENU_TYPE_NAMES = ['Directory', 'Menu', 'Button']
-const STATUS_NAMES = ['No', 'Yes']
-
 function toCreatePayload(data: Partial<SysMenu>) {
   return {
     parentId: data.parentId ? toId(data.parentId) : null,
@@ -99,37 +124,42 @@ function toUpdatePayload(data: Partial<SysMenu>) {
   }
 }
 
-export function getMenuTreeApi() {
-  return getMenuListApi()
+// -------- API --------
+
+export const menuApi = {
+  tree: async (): Promise<SysMenu[]> => {
+    const data = await api.request.get<any[]>(`${api.baseUrl}List`)
+    return Array.isArray(data) ? data.map(normalizeMenu) : []
+  },
+
+  list: async (): Promise<SysMenu[]> => {
+    const data = await api.request.get<any[]>(`${api.baseUrl}List`)
+    return Array.isArray(data) ? data.map(normalizeMenu) : []
+  },
+
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeMenu),
+
+  create: (data: Partial<SysMenu>) =>
+    api.request.post(`${api.baseUrl}Create`, toCreatePayload(data)),
+
+  update: (data: Partial<SysMenu>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(data)),
+
+  delete: (id: string) => api.delete(id),
+
+  userMenuRoutes: async (): Promise<MenuRoute[]> => {
+    const data = await api.request.get<any[]>(`${api.baseUrl}UserMenus`)
+    if (!Array.isArray(data))
+      return []
+    return data.map(raw => toMenuRoute(normalizeMenu(raw)))
+  },
 }
 
-export async function getMenuListApi(): Promise<SysMenu[]> {
-  const data = await requestClient.get<any[]>(`${MENU_API}/List`)
-  return Array.isArray(data) ? data.map(normalizeMenu) : []
-}
-
-export function getMenuDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${MENU_API}/ById`, { params: { id } })
-    .then(raw => normalizeMenu(raw))
-}
-
-export function createMenuApi(data: Partial<SysMenu>) {
-  return requestClient.post<any>(`${MENU_API}/Create`, toCreatePayload(data))
-}
-
-export function updateMenuApi(_id: string, data: Partial<SysMenu>) {
-  return requestClient.put<any>(`${MENU_API}/Update`, toUpdatePayload(data))
-}
-
-export function deleteMenuApi(id: string) {
-  return requestClient.delete<boolean>(`${MENU_API}/Delete`, { params: { id } })
-}
-
-export async function getUserMenuRoutesApi() {
-  const data = await requestClient.get<any[]>(`${MENU_API}/UserMenus`)
-  if (!Array.isArray(data)) {
-    return []
-  }
-  return data.map(raw => toMenuRoute(normalizeMenu(raw)))
-}
+export const getMenuTreeApi = menuApi.tree
+export const getMenuListApi = menuApi.list
+export const getMenuDetailApi = menuApi.detail
+export const createMenuApi = menuApi.create
+export const updateMenuApi = (_id: string, data: Partial<SysMenu>) => menuApi.update(data)
+export const deleteMenuApi = menuApi.delete
+export const getUserMenuRoutesApi = menuApi.userMenuRoutes

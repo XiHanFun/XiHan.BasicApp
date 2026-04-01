@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysDict, SysDictItem } from '~/types'
+import type { SysDict, SysDictItem } from '~/api'
 import {
   NButton,
   NDrawer,
@@ -17,17 +17,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import {
-  createDictApi,
-  createDictItemApi,
-  deleteDictApi,
-  deleteDictItemApi,
-  getDictItemsApi,
-  updateDictApi,
-  updateDictItemApi,
-} from '@/api'
-import requestClient from '@/api/request'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { dictApi } from '@/api'
 import { STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -43,15 +33,12 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Dict/Page', buildPageRequest({
+  return dictApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     status: queryParams.status,
-  }, {
-    keywordFields: ['DictCode', 'DictName', 'DictDescription'],
-    filterFieldMap: { status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysDict>({
@@ -122,7 +109,7 @@ function handleEdit(row: SysDict) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteDictApi(id)
+    await dictApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -135,10 +122,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateDictApi(formData.value.basicId, formData.value)
+      await dictApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createDictApi(formData.value)
+      await dictApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
@@ -173,7 +160,7 @@ async function handleManageItems(row: SysDict) {
 async function fetchDictItems(dictId: string) {
   try {
     dictItemsLoading.value = true
-    dictItems.value = await getDictItemsApi(dictId)
+    dictItems.value = await dictApi.getItems(dictId)
   }
   catch {
     message.error('获取字典项失败')
@@ -184,7 +171,8 @@ async function fetchDictItems(dictId: string) {
 }
 
 function handleAddItem() {
-  if (!currentDict.value) return
+  if (!currentDict.value)
+    return
   itemModalTitle.value = '新增字典项'
   itemFormData.value = {
     dictId: currentDict.value.basicId,
@@ -206,9 +194,10 @@ function handleEditItem(row: SysDictItem) {
 
 async function handleDeleteItem(id: string) {
   try {
-    await deleteDictItemApi(id)
+    await dictApi.deleteItem(id)
     message.success('删除成功')
-    if (currentDict.value) fetchDictItems(currentDict.value.basicId)
+    if (currentDict.value)
+      fetchDictItems(currentDict.value.basicId)
   }
   catch {
     message.error('删除失败')
@@ -219,14 +208,15 @@ async function handleItemSubmit() {
   try {
     itemSubmitLoading.value = true
     if (itemFormData.value.basicId) {
-      await updateDictItemApi(itemFormData.value.basicId, itemFormData.value)
+      await dictApi.updateItem(itemFormData.value.basicId, itemFormData.value)
     }
     else {
-      await createDictItemApi(itemFormData.value)
+      await dictApi.createItem(itemFormData.value)
     }
     message.success('操作成功')
     itemModalVisible.value = false
-    if (currentDict.value) fetchDictItems(currentDict.value.basicId)
+    if (currentDict.value)
+      fetchDictItems(currentDict.value.basicId)
   }
   catch {
     message.error('操作失败')

@@ -1,10 +1,35 @@
-import type { FilePageQuery, PageResult, SysFile } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
+
+const api = useBaseApi('File')
+
+export interface SysFile {
+  basicId: string
+  fileName: string
+  originalName: string
+  fileExtension?: string
+  fileType: number
+  mimeType?: string
+  fileSize: number
+  fileHash?: string
+  isPublic: boolean
+  requireAuth: boolean
+  isTemporary: boolean
+  expiresAt?: string
+  status: number
+  tags?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface FilePageQuery extends PageQuery {
+  status?: number
+  fileType?: number
+}
 
 type FilePayload = Partial<SysFile> & { accessPermissions?: string }
-
-const FILE_API = '/api/File'
 
 function normalizeFile(raw: Record<string, any>): SysFile {
   return {
@@ -28,7 +53,7 @@ function normalizeFile(raw: Record<string, any>): SysFile {
   }
 }
 
-function toFileCreatePayload(data: FilePayload) {
+function toCreatePayload(data: FilePayload) {
   return {
     fileName: data.fileName ?? '',
     originalName: data.originalName ?? '',
@@ -47,54 +72,33 @@ function toFileCreatePayload(data: FilePayload) {
   }
 }
 
-function toFileUpdatePayload(id: string, data: FilePayload) {
+function toUpdatePayload(id: string, data: FilePayload) {
   return {
-    ...toFileCreatePayload(data),
+    ...toCreatePayload(data),
     status: toNumber(data.status, 0),
     basicId: toId(id),
   }
 }
 
-export async function getFilePageApi(params: FilePageQuery): Promise<PageResult<SysFile>> {
-  const data = await requestClient.post<any>(
-    `${FILE_API}/Page`,
-    buildPageRequest(params, {
+export const fileApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['FileName', 'OriginalName', 'FileHash'],
-      filterFieldMap: {
-        status: 'Status',
-        fileType: 'FileType',
-      },
+      filterFieldMap: { status: 'Status', fileType: 'FileType' },
     }),
-  )
-  return normalizePageResult(data, normalizeFile)
-}
 
-export function getFileDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${FILE_API}/ById`, { params: { id } })
-    .then(raw => normalizeFile(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeFile),
 
-export function createFileApi(data: FilePayload) {
-  return requestClient.post<void>(`${FILE_API}/Create`, toFileCreatePayload(data))
-}
+  create: (data: FilePayload) => api.create(toCreatePayload(data)),
 
-export function updateFileApi(id: string, data: FilePayload) {
-  return requestClient.put<void>(`${FILE_API}/Update`, toFileUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: FilePayload) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteFileApi(id: string) {
-  return requestClient.delete<void>(`${FILE_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getFileByHashApi(fileHash: string, tenantId?: number) {
-  return requestClient
-    .get<any>(`${FILE_API}/ByFileHash/${tenantId ?? 0}`, {
-      params: { fileHash },
-    })
-    .then(raw => (raw ? normalizeFile(raw) : null))
+  getByHash: (fileHash: string, tenantId?: number) =>
+    api.request
+      .get<any>(`${api.baseUrl}ByFileHash/${tenantId ?? 0}`, { params: { fileHash } })
+      .then((raw: any) => (raw ? normalizeFile(raw) : null)),
 }

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysConfig } from '~/types'
+import type { SysConfig } from '~/api'
 import {
   NButton,
   NForm,
@@ -14,9 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createConfigApi, deleteConfigApi, updateConfigApi } from '@/api'
-import requestClient from '@/api/request'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { configApi } from '@/api'
 import {
   CONFIG_DATA_TYPE_OPTIONS,
   CONFIG_TYPE_OPTIONS,
@@ -37,16 +35,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Config/Page', buildPageRequest({
+  return configApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     configType: queryParams.configType,
     status: queryParams.status,
-  }, {
-    keywordFields: ['ConfigName', 'ConfigKey', 'ConfigValue'],
-    filterFieldMap: { configType: 'ConfigType', status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysConfig>({
@@ -145,7 +140,7 @@ function handleEdit(row: SysConfig) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteConfigApi(id)
+    await configApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -158,10 +153,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateConfigApi(formData.value.basicId, formData.value)
+      await configApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createConfigApi(formData.value)
+      await configApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

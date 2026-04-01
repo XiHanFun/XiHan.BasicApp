@@ -18,11 +18,12 @@ const entryList = computed(() => [
 
 const activePath = computed(() => {
   const path = route.path
-  return entryList.value.some((item) => item.path === path) ? path : '/auth/login'
+  return entryList.value.some(item => item.path === path) ? path : '/auth/login'
 })
 
 function goTo(path: string) {
-  if (route.path === path) return
+  if (route.path === path)
+    return
   router.push(path)
 }
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysEmail } from '~/types'
+import type { SysEmail } from '@/api'
 import {
   NButton,
   NForm,
@@ -15,9 +15,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createEmailApi, deleteEmailApi, updateEmailApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { emailApi } from '@/api'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -34,16 +32,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Email/Page', buildPageRequest({
+  return emailApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     emailType: queryParams.emailType,
     emailStatus: queryParams.emailStatus,
-  }, {
-    keywordFields: ['FromEmail', 'ToEmail', 'Subject'],
-    filterFieldMap: { emailType: 'EmailType', emailStatus: 'EmailStatus' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysEmail>({
@@ -116,7 +111,7 @@ function handleEdit(row: SysEmail) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteEmailApi(id)
+    await emailApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -129,8 +124,8 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId)
-      await updateEmailApi(formData.value.basicId, formData.value)
-    else await createEmailApi(formData.value)
+      await emailApi.update(formData.value.basicId, formData.value)
+    else await emailApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')

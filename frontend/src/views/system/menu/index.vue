@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance } from 'vxe-table'
-import type { SysMenu } from '~/types'
+import type { SysMenu } from '@/api/modules/menu'
 import {
   NButton,
   NCascader,
@@ -17,7 +17,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
-import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '@/api'
+import { menuApi } from '@/api'
 import { IconPicker } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -77,7 +77,7 @@ const treeOptions = computed(() => {
 async function fetchData() {
   try {
     loading.value = true
-    const list = await getMenuListApi()
+    const list = await menuApi.list()
     const flat = flattenMenuTree(list)
     tableData.value = flat.map(item => ({
       ...item,
@@ -195,7 +195,7 @@ function handleEdit(row: SysMenu) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteMenuApi(id)
+    await menuApi.delete(id)
     message.success('删除成功')
     fetchData()
   }
@@ -208,10 +208,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateMenuApi(formData.value.basicId, formData.value)
+      await menuApi.update(formData.value)
     }
     else {
-      await createMenuApi(formData.value)
+      await menuApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

@@ -14,11 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { ref } from 'vue'
-import {
-  getPendingEmailsByMessageApi,
-  getPendingSmsByMessageApi,
-  sendMessageApi,
-} from '@/api'
+import { messageApi } from '@/api'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemMessagePage' })
@@ -53,7 +49,7 @@ async function handleSend() {
   }
   try {
     sendLoading.value = true
-    await sendMessageApi({
+    await messageApi.send({
       channel: sendForm.value.channel,
       to: sendForm.value.to,
       subject: sendForm.value.subject,
@@ -75,8 +71,8 @@ async function fetchPending() {
   try {
     pendingLoading.value = true
     const [emails, sms] = await Promise.all([
-      getPendingEmailsByMessageApi(pendingTenantId.value, pendingMaxCount.value),
-      getPendingSmsByMessageApi(pendingTenantId.value, pendingMaxCount.value),
+      messageApi.getPendingEmails(pendingMaxCount.value, pendingTenantId.value),
+      messageApi.getPendingSms(pendingMaxCount.value, pendingTenantId.value),
     ])
     pendingEmails.value = Array.isArray(emails) ? emails : []
     pendingSms.value = Array.isArray(sms) ? sms : []

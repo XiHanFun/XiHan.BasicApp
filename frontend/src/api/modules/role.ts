@@ -1,8 +1,30 @@
-import type { PageResult, RolePageQuery, SysRole } from '~/types'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
 import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
 
-const ROLE_API = '/api/Role'
+const api = useBaseApi('Role')
+
+// -------- 类型 --------
+
+export interface SysRole {
+  basicId: string
+  roleName: string
+  roleCode: string
+  roleDescription?: string
+  roleType?: number
+  dataScope?: number
+  status: number
+  sort: number
+  permissions: string[]
+  createTime: string
+  updateTime?: string
+}
+
+export interface RolePageQuery extends PageQuery {
+  status?: number
+}
+
+// -------- 内部 --------
 
 function normalizeRole(raw: Record<string, any>): SysRole {
   return {
@@ -20,7 +42,7 @@ function normalizeRole(raw: Record<string, any>): SysRole {
   }
 }
 
-function toRoleCreatePayload(data: Partial<SysRole>) {
+function toCreatePayload(data: Partial<SysRole>) {
   return {
     roleCode: data.roleCode ?? '',
     roleName: data.roleName ?? '',
@@ -31,7 +53,7 @@ function toRoleCreatePayload(data: Partial<SysRole>) {
   }
 }
 
-function toRoleUpdatePayload(id: string, data: Partial<SysRole>) {
+function toUpdatePayload(id: string, data: Partial<SysRole>) {
   return {
     roleName: data.roleName ?? '',
     roleDescription: data.roleDescription ?? '',
@@ -42,55 +64,55 @@ function toRoleUpdatePayload(id: string, data: Partial<SysRole>) {
   }
 }
 
-export async function getRolePageApi(params: RolePageQuery): Promise<PageResult<SysRole>> {
-  const data = await requestClient.post<any>(
-    `${ROLE_API}/Page`,
-    buildPageRequest(params, {
+// -------- API --------
+
+export const roleApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
-      filterFieldMap: {
-        status: 'Status',
-      },
+      filterFieldMap: { status: 'Status' },
+    }),
+
+  list: async () => {
+    const data = await api.request.post<any>(
+      `${api.baseUrl}Page`,
+      buildPageRequest({ page: 1, pageSize: 9999 }, { disablePaging: true }),
+    )
+    return normalizePageResult(data, normalizeRole).items
+  },
+
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeRole),
+
+  create: (data: Partial<SysRole>) =>
+    api.create(toCreatePayload(data)),
+
+  update: (id: string, data: Partial<SysRole>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
+
+  delete: (id: string) => api.deletePath(id),
+
+  assignPermissions: (id: string, permissions: string[]) =>
+    api.request.post(`${api.baseUrl}AssignPermissions`, {
+      roleId: toId(id),
+      permissionIds: permissions.map(item => toId(item)).filter(item => item.length > 0),
+    }),
+}
+
+export async function getRolePageApi(params: RolePageQuery) {
+  const data = await api.request.post<any>(
+    `${api.baseUrl}Page`,
+    buildPageRequest(params as Record<string, any>, {
+      keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
+      filterFieldMap: { status: 'Status' },
     }),
   )
   return normalizePageResult(data, normalizeRole)
 }
 
-export async function getRoleListApi() {
-  const data = await requestClient.post<any>(
-    `${ROLE_API}/Page`,
-    buildPageRequest(
-      { page: 1, pageSize: 9999 },
-      {
-        disablePaging: true,
-      },
-    ),
-  )
-  return normalizePageResult(data, normalizeRole).items
-}
-
-export function getRoleDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${ROLE_API}/ById`, { params: { id } })
-    .then(raw => normalizeRole(raw))
-}
-
-export function createRoleApi(data: Partial<SysRole>) {
-  return requestClient.post<void>(`${ROLE_API}/Create`, toRoleCreatePayload(data))
-}
-
-export function updateRoleApi(id: string, data: Partial<SysRole>) {
-  return requestClient.put<void>(`${ROLE_API}/Update`, toRoleUpdatePayload(id, data), {
-    params: { id },
-  })
-}
-
-export function deleteRoleApi(id: string) {
-  return requestClient.delete<void>(`${ROLE_API}/Delete/${id}`)
-}
-
-export function assignRolePermissionsApi(id: string, permissions: string[]) {
-  return requestClient.post<void>(`${ROLE_API}/AssignPermissions`, {
-    roleId: toId(id),
-    permissionIds: permissions.map(item => toId(item)).filter(item => item.length > 0),
-  })
-}
+export const getRoleListApi = roleApi.list
+export const getRoleDetailApi = roleApi.detail
+export const createRoleApi = roleApi.create
+export const updateRoleApi = roleApi.update
+export const deleteRoleApi = roleApi.delete
+export const assignRolePermissionsApi = roleApi.assignPermissions

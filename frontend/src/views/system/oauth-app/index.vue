@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysOAuthApp } from '~/types'
+import type { SysOAuthApp } from '@/api'
 import {
   NButton,
   NForm,
@@ -16,9 +16,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createOAuthAppApi, deleteOAuthAppApi, updateOAuthAppApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { oauthAppApi } from '@/api'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -35,16 +33,13 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/OAuth/Page', buildPageRequest({
+  return oauthAppApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     appType: queryParams.appType,
     status: queryParams.status,
-  }, {
-    keywordFields: ['AppName', 'ClientId', 'AppDescription'],
-    filterFieldMap: { appType: 'AppType', status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysOAuthApp>({
@@ -128,7 +123,7 @@ function handleEdit(row: SysOAuthApp) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteOAuthAppApi(id)
+    await oauthAppApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -141,8 +136,8 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId)
-      await updateOAuthAppApi(formData.value.basicId, formData.value)
-    else await createOAuthAppApi(formData.value)
+      await oauthAppApi.update(formData.value.basicId, formData.value)
+    else await oauthAppApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')

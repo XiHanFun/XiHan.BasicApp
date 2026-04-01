@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysTenant } from '~/types'
+import type { SysTenant } from '~/api'
 import {
   NButton,
   NForm,
@@ -14,9 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { changeTenantStatusApi, createTenantApi, deleteTenantApi, updateTenantApi } from '@/api'
-import requestClient from '@/api/request'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
+import { tenantApi } from '@/api'
 import { STATUS_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -32,15 +30,12 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient.post('/api/Tenant/Page', buildPageRequest({
+  return tenantApi.page({
     page: page.currentPage,
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     status: queryParams.status,
-  }, {
-    keywordFields: ['TenantName', 'TenantCode', 'ContactPerson', 'ContactPhone'],
-    filterFieldMap: { status: 'Status' },
-  })).then(flattenPageResponse)
+  })
 }
 
 const options = useVxeTable<SysTenant>({
@@ -133,7 +128,7 @@ function handleEdit(row: SysTenant) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteTenantApi(id)
+    await tenantApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
   }
@@ -146,10 +141,10 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateTenantApi(formData.value.basicId, formData.value)
+      await tenantApi.update(formData.value.basicId, formData.value)
     }
     else {
-      await createTenantApi(formData.value)
+      await tenantApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false

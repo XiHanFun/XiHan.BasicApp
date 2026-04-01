@@ -4,7 +4,7 @@ export interface AnyRecord {
   [key: string]: any
 }
 
-interface BuildPageRequestOptions {
+export interface BuildPageRequestOptions {
   disablePaging?: boolean
   filterFieldMap?: Record<string, string>
   keywordFields?: string[]

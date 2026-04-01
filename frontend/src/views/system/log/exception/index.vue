@@ -2,9 +2,7 @@
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
 import { NButton, NModal, NPopconfirm, NTag, useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { clearExceptionLogApi } from '@/api'
-import { buildPageRequest, flattenPageResponse } from '@/api/helpers'
-import requestClient from '@/api/request'
+import { exceptionLogApi } from '@/api'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
 
@@ -20,16 +18,11 @@ const queryParams = reactive({
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
-  return requestClient
-    .post(
-      '/api/ExceptionLog/Page',
-      buildPageRequest({
-        page: page.currentPage,
-        pageSize: page.pageSize,
-        keyword: queryParams.keyword,
-      }),
-    )
-    .then(flattenPageResponse)
+  return exceptionLogApi.page({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+  })
 }
 
 const options = useVxeTable(
@@ -123,16 +116,17 @@ function handleDetail(row: Record<string, any>) {
 
 async function handleClear() {
   try {
-    await clearExceptionLogApi()
+    await exceptionLogApi.clear()
     message.success('清空成功')
     xGrid.value?.commitProxy('reload')
-  } catch {
+  }
+  catch {
     message.error('清空失败')
   }
 }
 
 function getSeverityTag(level: number | undefined) {
-  const map: Record<number, { label: string; type: 'success' | 'warning' | 'error' | 'info' }> = {
+  const map: Record<number, { label: string, type: 'success' | 'warning' | 'error' | 'info' }> = {
     0: { label: '调试', type: 'info' },
     1: { label: '信息', type: 'success' },
     2: { label: '警告', type: 'warning' },
@@ -154,7 +148,9 @@ function getSeverityTag(level: number | undefined) {
           style="width: 320px"
           @keyup.enter="handleSearch"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -162,7 +158,9 @@ function getSeverityTag(level: number | undefined) {
         <template #toolbar_buttons>
           <NPopconfirm @positive-click="handleClear">
             <template #trigger>
-              <NButton type="error" size="small">清空日志</NButton>
+              <NButton type="error" size="small">
+                清空日志
+              </NButton>
             </template>
             确认清空所有异常日志？
           </NPopconfirm>
@@ -178,7 +176,9 @@ function getSeverityTag(level: number | undefined) {
           </NTag>
         </template>
         <template #col_actions="{ row }">
-          <NButton size="small" type="primary" text @click="handleDetail(row)">详情</NButton>
+          <NButton size="small" type="primary" text @click="handleDetail(row)">
+            详情
+          </NButton>
         </template>
       </vxe-grid>
     </vxe-card>
@@ -241,8 +241,7 @@ function getSeverityTag(level: number | undefined) {
           <span class="font-medium text-gray-500">堆栈信息：</span>
           <pre
             class="overflow-auto p-3 mt-1 max-h-60 text-xs bg-gray-100 rounded dark:bg-gray-800"
-            >{{ detailData.exceptionStackTrace }}</pre
-          >
+          >{{ detailData.exceptionStackTrace }}</pre>
         </div>
         <div v-if="detailData.innerExceptionType">
           <span class="font-medium text-gray-500">内部异常：</span>
@@ -252,8 +251,7 @@ function getSeverityTag(level: number | undefined) {
           <span class="font-medium text-gray-500">内部堆栈：</span>
           <pre
             class="overflow-auto p-3 mt-1 max-h-40 text-xs bg-gray-100 rounded dark:bg-gray-800"
-            >{{ detailData.innerExceptionStackTrace }}</pre
-          >
+          >{{ detailData.innerExceptionStackTrace }}</pre>
         </div>
       </div>
     </NModal>

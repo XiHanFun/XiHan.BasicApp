@@ -1,13 +1,46 @@
-import type { DepartmentPageQuery, PageResult, SysDepartment } from '~/types'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
 import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
 
-const DEPARTMENT_API = '/api/Department'
+const api = useBaseApi('Department')
+
+// -------- 类型 --------
+
+export interface SysDepartment {
+  basicId: string
+  parentId?: string | null
+  departmentName: string
+  departmentCode?: string
+  departmentType?: number
+  leaderId?: string
+  leader?: string
+  phone?: string
+  email?: string
+  address?: string
+  tenantId?: number
+  remark?: string
+  createTime?: string
+  updateTime?: string
+  sort?: number
+  status?: number
+  children?: SysDepartment[]
+}
+
+export interface DepartmentPageQuery extends PageQuery {
+  status?: number
+  departmentType?: number
+  parentId?: string
+}
+
+// -------- 内部 --------
+
+const PAGE_OPTIONS = {
+  keywordFields: ['DepartmentName', 'DepartmentCode', 'Phone', 'Email'],
+  filterFieldMap: { status: 'Status', departmentType: 'DepartmentType', parentId: 'ParentId' },
+}
 
 function normalizeDepartment(raw: Record<string, any>): SysDepartment {
-  const leaderId
-    = raw.leaderId === null || raw.leaderId === undefined ? undefined : toId(raw.leaderId)
-
+  const leaderId = raw.leaderId === null || raw.leaderId === undefined ? undefined : toId(raw.leaderId)
   return {
     basicId: toId(raw.basicId),
     parentId: raw.parentId === null || raw.parentId === undefined ? null : toId(raw.parentId),
@@ -28,12 +61,25 @@ function normalizeDepartment(raw: Record<string, any>): SysDepartment {
   }
 }
 
-function toDepartmentCreatePayload(data: Partial<SysDepartment>) {
+function buildTree(list: SysDepartment[]): SysDepartment[] {
+  const map = new Map<string, SysDepartment>()
+  const roots: SysDepartment[] = []
+  list.forEach(item => map.set(item.basicId, { ...item, children: [] }))
+  map.forEach((item) => {
+    const parentId = item.parentId ? String(item.parentId) : ''
+    if (parentId && map.has(parentId)) {
+      map.get(parentId)!.children!.push(item)
+    }
+    else {
+      roots.push(item)
+    }
+  })
+  return roots
+}
+
+function toCreatePayload(data: Partial<SysDepartment>) {
   return {
-    parentId:
-      data.parentId === undefined || data.parentId === null || data.parentId === ''
-        ? null
-        : toId(data.parentId),
+    parentId: data.parentId === undefined || data.parentId === null || data.parentId === '' ? null : toId(data.parentId),
     departmentName: data.departmentName ?? '',
     departmentCode: data.departmentCode ?? '',
     departmentType: toNumber(data.departmentType, 6),
@@ -47,89 +93,48 @@ function toDepartmentCreatePayload(data: Partial<SysDepartment>) {
   }
 }
 
-function toDepartmentUpdatePayload(id: string, data: Partial<SysDepartment>) {
+function toUpdatePayload(id: string, data: Partial<SysDepartment>) {
   return {
-    ...toDepartmentCreatePayload(data),
+    ...toCreatePayload(data),
     status: toNumber(data.status, 1),
     basicId: toId(id),
   }
 }
 
-function buildDepartmentTree(list: SysDepartment[]): SysDepartment[] {
-  const map = new Map<string, SysDepartment>()
-  const roots: SysDepartment[] = []
-  list.forEach((item) => {
-    map.set(item.basicId, { ...item, children: [] })
-  })
+// -------- API --------
 
-  map.forEach((item) => {
-    const parentId = item.parentId ? String(item.parentId) : ''
-    if (parentId && map.has(parentId)) {
-      map.get(parentId)!.children!.push(item)
-    }
-    else {
-      roots.push(item)
-    }
-  })
+export const departmentApi = {
+  page: (params: Record<string, any>) => api.page(params, PAGE_OPTIONS),
 
-  return roots
+  tree: async (params: Partial<DepartmentPageQuery> = {}) => {
+    const data = await api.request.post<any>(
+      `${api.baseUrl}Page`,
+      buildPageRequest({ page: 1, pageSize: 9999, ...params }, { disablePaging: true, ...PAGE_OPTIONS }),
+    )
+    return buildTree(normalizePageResult(data, normalizeDepartment).items)
+  },
+
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeDepartment),
+
+  create: (data: Partial<SysDepartment>) => api.create(toCreatePayload(data)),
+
+  update: (id: string, data: Partial<SysDepartment>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
+
+  delete: (id: string) => api.delete(id),
 }
 
-export async function getDepartmentPageApi(
-  params: DepartmentPageQuery,
-): Promise<PageResult<SysDepartment>> {
-  const data = await requestClient.post<any>(
-    `${DEPARTMENT_API}/Page`,
-    buildPageRequest(params, {
-      keywordFields: ['DepartmentName', 'DepartmentCode', 'Phone', 'Email'],
-      filterFieldMap: {
-        status: 'Status',
-        departmentType: 'DepartmentType',
-        parentId: 'ParentId',
-      },
-    }),
+export async function getDepartmentPageApi(params: DepartmentPageQuery) {
+  const data = await api.request.post<any>(
+    `${api.baseUrl}Page`,
+    buildPageRequest(params as Record<string, any>, PAGE_OPTIONS),
   )
   return normalizePageResult(data, normalizeDepartment)
 }
 
-export async function getDepartmentTreeApi(params: Partial<DepartmentPageQuery> = {}) {
-  const data = await requestClient.post<any>(
-    `${DEPARTMENT_API}/Page`,
-    buildPageRequest(
-      { page: 1, pageSize: 9999, ...params },
-      {
-        disablePaging: true,
-        keywordFields: ['DepartmentName', 'DepartmentCode', 'Phone', 'Email'],
-        filterFieldMap: {
-          status: 'Status',
-          departmentType: 'DepartmentType',
-          parentId: 'ParentId',
-        },
-      },
-    ),
-  )
-  const list = normalizePageResult(data, normalizeDepartment).items
-  return buildDepartmentTree(list)
-}
-
-export function getDepartmentDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${DEPARTMENT_API}/ById`, { params: { id } })
-    .then(raw => normalizeDepartment(raw))
-}
-
-export function createDepartmentApi(data: Partial<SysDepartment>) {
-  return requestClient.post<void>(`${DEPARTMENT_API}/Create`, toDepartmentCreatePayload(data))
-}
-
-export function updateDepartmentApi(id: string, data: Partial<SysDepartment>) {
-  return requestClient.put<void>(`${DEPARTMENT_API}/Update`, toDepartmentUpdatePayload(id, data), {
-    params: { id },
-  })
-}
-
-export function deleteDepartmentApi(id: string) {
-  return requestClient.delete<void>(`${DEPARTMENT_API}/Delete`, {
-    params: { id },
-  })
-}
+export const getDepartmentTreeApi = departmentApi.tree
+export const getDepartmentDetailApi = departmentApi.detail
+export const createDepartmentApi = departmentApi.create
+export const updateDepartmentApi = departmentApi.update
+export const deleteDepartmentApi = departmentApi.delete
