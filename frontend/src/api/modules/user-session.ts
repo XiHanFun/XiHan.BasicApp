@@ -7,11 +7,13 @@ const api = useBaseApi('UserSession')
 export interface SysUserSession {
   basicId: string
   userId: string
-  sessionId: string
-  userSessionId?: string
+  userSessionId: string
   deviceType: number
   deviceName?: string
+  browser?: string
+  operatingSystem?: string
   ipAddress?: string
+  location?: string
   loginTime: string
   lastActivityTime: string
   isOnline: boolean
@@ -33,11 +35,13 @@ function normalizeUserSession(raw: Record<string, any>): SysUserSession {
   return {
     basicId: toId(raw.basicId),
     userId: toId(raw.userId),
-    sessionId: raw.sessionId ?? raw.userSessionId ?? '',
-    userSessionId: raw.userSessionId ?? raw.sessionId ?? '',
+    userSessionId: raw.userSessionId ?? '',
     deviceType: toNumber(raw.deviceType, 0),
     deviceName: raw.deviceName ?? undefined,
+    browser: raw.browser ?? undefined,
+    operatingSystem: raw.operatingSystem ?? undefined,
     ipAddress: raw.ipAddress ?? undefined,
+    location: raw.location ?? undefined,
     loginTime: raw.loginTime ?? '',
     lastActivityTime: raw.lastActivityTime ?? '',
     isOnline: Boolean(raw.isOnline),
@@ -53,7 +57,7 @@ function normalizeUserSession(raw: Record<string, any>): SysUserSession {
 function toCreatePayload(data: Partial<SysUserSession>) {
   return {
     userId: toId(data.userId),
-    sessionId: data.sessionId ?? '',
+    sessionId: data.userSessionId ?? '',
     deviceType: toNumber(data.deviceType, 0),
     deviceName: data.deviceName ?? '',
     ipAddress: data.ipAddress ?? '',
@@ -80,7 +84,7 @@ function toUpdatePayload(id: string, data: Partial<SysUserSession>) {
 export const userSessionApi = {
   page: (params: Record<string, any>) =>
     api.page(params, {
-      keywordFields: ['SessionId', 'DeviceName', 'IpAddress'],
+      keywordFields: ['UserSessionId', 'DeviceName', 'IpAddress', 'Browser'],
       filterFieldMap: { deviceType: 'DeviceType', isOnline: 'IsOnline', isRevoked: 'IsRevoked' },
     }),
 
@@ -100,7 +104,7 @@ export const userSessionApi = {
       .then((raw: any) => (raw ? normalizeUserSession(raw) : null)),
 
   revokeUserSessions: (userId: string | number, reason: string, tenantId?: number) =>
-    api.request.post<number>(`${api.baseUrl}RevokeUserSessions`, undefined, {
-      params: { userId, reason, tenantId: tenantId ?? 0 },
+    api.request.post<number>(`${api.baseUrl}RevokeUserSessions/${userId}`, undefined, {
+      params: { reason, tenantId: tenantId ?? 0 },
     }),
 }
