@@ -39,39 +39,55 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   })
 }
 
-const options = useVxeTable<SysRole>({
-  id: 'sys_role',
-  name: '角色管理',
-  columns: [
-    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-    { field: 'roleName', title: '角色名称', minWidth: 150, showOverflow: 'tooltip', sortable: true },
-    { field: 'roleCode', title: '角色编码', minWidth: 150, showOverflow: 'tooltip' },
-    { field: 'roleDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
-    { field: 'roleType', title: '角色类型', width: 100 },
-    { field: 'dataScope', title: '数据范围', width: 100 },
-    { field: 'sort', title: '排序', width: 70 },
-    {
-      field: 'status',
-      title: '状态',
-      width: 80,
-      slots: { default: 'col_status' },
-    },
-    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
-    {
-      title: '操作',
-      width: 140,
-      fixed: 'right',
-      slots: { default: 'col_actions' },
-    },
-  ],
-}, {
-  proxyConfig: {
-    autoLoad: true,
-    ajax: {
-      query: ({ page }) => handleQueryApi(page),
+const options = useVxeTable<SysRole>(
+  {
+    id: 'sys_role',
+    name: '角色管理',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      {
+        field: 'roleName',
+        title: '角色名称',
+        minWidth: 150,
+        showOverflow: 'tooltip',
+        sortable: true,
+      },
+      { field: 'roleCode', title: '角色编码', minWidth: 150, showOverflow: 'tooltip' },
+      { field: 'roleDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'roleType', title: '角色类型', width: 100 },
+      { field: 'dataScope', title: '数据范围', width: 100 },
+      { field: 'sort', title: '排序', width: 70 },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 140,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page }) => handleQueryApi(page),
+      },
     },
   },
-})
+)
 
 function handleSearch() {
   xGrid.value?.commitProxy('reload')
@@ -111,8 +127,7 @@ async function handleDelete(id: string) {
     await roleApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -122,27 +137,24 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await roleApi.update(formData.value.basicId, formData.value)
-    }
-    else {
+    } else {
       await roleApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex flex-col h-full">
     <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex flex-wrap gap-3 items-center">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索角色名称/编码"
@@ -157,20 +169,14 @@ async function handleSubmit() {
           clearable
           style="width: 120px"
         />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          重置
-        </NButton>
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
-            新增角色
-          </NButton>
+          <NButton type="primary" size="small" @click="handleAdd">新增角色</NButton>
         </template>
         <template #col_status="{ row }">
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
@@ -179,14 +185,10 @@ async function handleSubmit() {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
-              编辑
-            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>
-                  删除
-                </NButton>
+                <NButton size="small" type="error" text>删除</NButton>
               </template>
               确认删除该角色？
             </NPopconfirm>
@@ -195,16 +197,31 @@ async function handleSubmit() {
       </vxe-grid>
     </vxe-card>
 
-    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 480px" :auto-focus="false">
+    <NModal
+      v-model:show="modalVisible"
+      :title="modalTitle"
+      preset="card"
+      style="width: 480px"
+      :auto-focus="false"
+    >
       <NForm :model="formData" label-placement="left" label-width="80px">
         <NFormItem label="角色名称" path="roleName">
           <NInput v-model:value="formData.roleName" placeholder="请输入角色名称" />
         </NFormItem>
         <NFormItem label="角色编码" path="roleCode">
-          <NInput v-model:value="formData.roleCode" :disabled="!!formData.basicId" placeholder="如: admin, editor" />
+          <NInput
+            v-model:value="formData.roleCode"
+            :disabled="!!formData.basicId"
+            placeholder="如: admin, editor"
+          />
         </NFormItem>
         <NFormItem label="描述" path="roleDescription">
-          <NInput v-model:value="formData.roleDescription" type="textarea" :rows="3" placeholder="角色描述" />
+          <NInput
+            v-model:value="formData.roleDescription"
+            type="textarea"
+            :rows="3"
+            placeholder="角色描述"
+          />
         </NFormItem>
         <NFormItem label="排序" path="sort">
           <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" style="width: 100%" />
@@ -215,12 +232,8 @@ async function handleSubmit() {
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>

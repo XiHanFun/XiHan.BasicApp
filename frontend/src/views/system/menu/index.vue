@@ -65,7 +65,7 @@ const treeOptions = computed(() => {
     map.get(pid)!.push(item)
   }
   function toNodes(parentId: string): any[] {
-    return (map.get(parentId) ?? []).map(c => ({
+    return (map.get(parentId) ?? []).map((c) => ({
       label: c.menuName,
       value: c.basicId,
       children: map.has(c.basicId) ? toNodes(c.basicId) : undefined,
@@ -79,77 +79,85 @@ async function fetchData() {
     loading.value = true
     const list = await menuApi.list()
     const flat = flattenMenuTree(list)
-    tableData.value = flat.map(item => ({
+    tableData.value = flat.map((item) => ({
       ...item,
       parentId: item.parentId || ROOT_ID,
     }))
-  }
-  catch {
+  } catch {
     message.error('获取菜单列表失败')
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
 
-const options = useVxeTable<SysMenu>({
-  id: 'sys_menu',
-  name: '菜单管理',
-  data: [],
-  columns: [
-    { field: 'menuName', title: '菜单名称', minWidth: 200, treeNode: true, showOverflow: 'tooltip' },
-    { field: 'menuCode', title: '权限标识', minWidth: 160, showOverflow: 'tooltip' },
-    {
-      field: 'menuType',
-      title: '类型',
-      width: 80,
-      slots: { default: 'col_type' },
-    },
-    { field: 'icon', title: '图标', width: 80, slots: { default: 'col_icon' } },
-    { field: 'path', title: '路由路径', minWidth: 180, showOverflow: 'tooltip' },
-    { field: 'component', title: '组件路径', minWidth: 180, showOverflow: 'tooltip' },
-    { field: 'routeName', title: '路由名称', minWidth: 130, showOverflow: 'tooltip' },
-    {
-      field: 'isVisible',
-      title: '可见',
-      width: 70,
-      slots: { default: 'col_visible' },
-    },
-    {
-      field: 'isCache',
-      title: '缓存',
-      width: 70,
-      slots: { default: 'col_cache' },
-    },
-    { field: 'sort', title: '排序', width: 70 },
-    {
-      field: 'status',
-      title: '状态',
-      width: 80,
-      slots: { default: 'col_status' },
-    },
-    {
-      title: '操作',
-      width: 200,
-      fixed: 'right',
-      slots: { default: 'col_actions' },
-    },
-  ],
-}, {
-  pagerConfig: { enabled: false },
-  treeConfig: {
-    transform: true,
-    rowField: 'basicId',
-    parentField: 'parentId',
-    expandAll: false,
+const options = useVxeTable<SysMenu>(
+  {
+    id: 'sys_menu',
+    name: '菜单管理',
+    data: [],
+    columns: [
+      {
+        field: 'menuName',
+        title: '菜单名称',
+        minWidth: 200,
+        treeNode: true,
+        showOverflow: 'tooltip',
+      },
+      { field: 'menuCode', title: '权限标识', minWidth: 160, showOverflow: 'tooltip' },
+      {
+        field: 'menuType',
+        title: '类型',
+        width: 80,
+        slots: { default: 'col_type' },
+      },
+      { field: 'icon', title: '图标', width: 80, slots: { default: 'col_icon' } },
+      { field: 'path', title: '路由路径', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'component', title: '组件路径', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'routeName', title: '路由名称', minWidth: 130, showOverflow: 'tooltip' },
+      {
+        field: 'isVisible',
+        title: '可见',
+        width: 70,
+        slots: { default: 'col_visible' },
+      },
+      {
+        field: 'isCache',
+        title: '缓存',
+        width: 70,
+        slots: { default: 'col_cache' },
+      },
+      { field: 'sort', title: '排序', width: 70 },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 200,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
   },
-  toolbarConfig: {
-    slots: { buttons: 'toolbar_buttons' },
-    refresh: true,
-    zoom: true,
-    custom: true,
+  {
+    pagerConfig: { enabled: false },
+    treeConfig: {
+      transform: true,
+      rowField: 'basicId',
+      parentField: 'parentId',
+      expandAll: false,
+    },
+    toolbarConfig: {
+      slots: { buttons: 'toolbar_buttons' },
+      refresh: true,
+      zoom: true,
+      custom: true,
+    },
   },
-})
+)
 
 const modalVisible = ref(false)
 const modalTitle = ref('新增菜单')
@@ -198,8 +206,7 @@ async function handleDelete(id: string) {
     await menuApi.delete(id)
     message.success('删除成功')
     fetchData()
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -209,18 +216,15 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await menuApi.update(formData.value)
-    }
-    else {
+    } else {
       await menuApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
@@ -229,19 +233,18 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex flex-col h-full">
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options" :data="tableData" :loading="loading">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd()">
-            新增菜单
-          </NButton>
-          <NButton size="small" class="ml-2" @click="fetchData">
-            刷新
-          </NButton>
+          <NButton type="primary" size="small" @click="handleAdd()">新增菜单</NButton>
+          <NButton size="small" class="ml-2" @click="fetchData">刷新</NButton>
         </template>
         <template #col_type="{ row }">
-          <NTag :type="row.menuType === 0 ? 'info' : row.menuType === 1 ? 'success' : 'warning'" size="small">
+          <NTag
+            :type="row.menuType === 0 ? 'info' : row.menuType === 1 ? 'success' : 'warning'"
+            size="small"
+          >
             {{ getOptionLabel(MENU_TYPE_OPTIONS, row.menuType) }}
           </NTag>
         </template>
@@ -268,17 +271,19 @@ onMounted(fetchData)
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton v-if="row.menuType !== 2" size="small" type="info" text @click="handleAdd(row.basicId)">
+            <NButton
+              v-if="row.menuType !== 2"
+              size="small"
+              type="info"
+              text
+              @click="handleAdd(row.basicId)"
+            >
               新增子项
             </NButton>
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
-              编辑
-            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>
-                  删除
-                </NButton>
+                <NButton size="small" type="error" text>删除</NButton>
               </template>
               确认删除该菜单？子菜单也会一并删除。
             </NPopconfirm>
@@ -287,7 +292,13 @@ onMounted(fetchData)
       </vxe-grid>
     </vxe-card>
 
-    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 700px" :auto-focus="false">
+    <NModal
+      v-model:show="modalVisible"
+      :title="modalTitle"
+      preset="card"
+      style="width: 700px"
+      :auto-focus="false"
+    >
       <NForm :model="formData" label-placement="left" label-width="90px">
         <NFormItem label="上级菜单" path="parentId">
           <NCascader
@@ -338,12 +349,8 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>

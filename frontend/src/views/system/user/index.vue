@@ -38,52 +38,73 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   })
 }
 
-const options = useVxeTable<SysUser>({
-  id: 'sys_user',
-  name: '用户管理',
-  columns: [
-    { type: 'checkbox', width: 40, fixed: 'left' },
-    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-    { field: 'userName', title: '用户名', minWidth: 130, showOverflow: 'tooltip', sortable: true },
-    { field: 'nickName', title: '昵称', minWidth: 130, showOverflow: 'tooltip' },
-    { field: 'realName', title: '真实姓名', minWidth: 120, showOverflow: 'tooltip' },
-    { field: 'email', title: '邮箱', minWidth: 200, showOverflow: 'tooltip' },
-    { field: 'phone', title: '手机号', minWidth: 130, showOverflow: 'tooltip' },
-    { field: 'lastLoginTime', title: '最后登录', width: 170, formatter: ({ cellValue }) => formatDate(cellValue) },
-    { field: 'lastLoginIp', title: '最后登录IP', minWidth: 130, showOverflow: 'tooltip' },
-    {
-      field: 'gender',
-      title: '性别',
-      width: 70,
-      formatter: ({ cellValue }) => {
-        const map: Record<number, string> = { 0: '未知', 1: '男', 2: '女' }
-        return map[cellValue] ?? '未知'
+const options = useVxeTable<SysUser>(
+  {
+    id: 'sys_user',
+    name: '用户管理',
+    columns: [
+      { type: 'checkbox', width: 40, fixed: 'left' },
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      {
+        field: 'userName',
+        title: '用户名',
+        minWidth: 130,
+        showOverflow: 'tooltip',
+        sortable: true,
+      },
+      { field: 'nickName', title: '昵称', minWidth: 130, showOverflow: 'tooltip' },
+      { field: 'realName', title: '真实姓名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'email', title: '邮箱', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'phone', title: '手机号', minWidth: 130, showOverflow: 'tooltip' },
+      {
+        field: 'lastLoginTime',
+        title: '最后登录',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+      { field: 'lastLoginIp', title: '最后登录IP', minWidth: 130, showOverflow: 'tooltip' },
+      {
+        field: 'gender',
+        title: '性别',
+        width: 70,
+        formatter: ({ cellValue }) => {
+          const map: Record<number, string> = { 0: '未知', 1: '男', 2: '女' }
+          return map[cellValue] ?? '未知'
+        },
+      },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 220,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page }) => handleQueryApi(page),
       },
     },
-    {
-      field: 'status',
-      title: '状态',
-      width: 80,
-      slots: { default: 'col_status' },
-    },
-    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
-    {
-      title: '操作',
-      width: 220,
-      fixed: 'right',
-      slots: { default: 'col_actions' },
-    },
-  ],
-}, {
-  proxyConfig: {
-    autoLoad: true,
-    ajax: {
-      query: ({ page }) => handleQueryApi(page),
-    },
+    checkboxConfig: { range: true, reserve: true },
+    rowConfig: { keyField: 'basicId' },
   },
-  checkboxConfig: { range: true, reserve: true },
-  rowConfig: { keyField: 'basicId' },
-})
+)
 
 function handleSearch() {
   xGrid.value?.commitProxy('reload')
@@ -131,8 +152,7 @@ async function handleDelete(id: string) {
     await userApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -143,8 +163,7 @@ async function handleToggleStatus(row: any) {
     await userApi.changeStatus(row.basicId, newStatus)
     message.success('状态更新成功')
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('状态更新失败')
   }
 }
@@ -168,8 +187,7 @@ async function confirmResetPwd() {
     await userApi.resetPassword(resetPwdUserId.value, resetPwdValue.value)
     message.success('密码重置成功')
     resetPwdVisible.value = false
-  }
-  catch {
+  } catch {
     message.error('密码重置失败')
   }
 }
@@ -179,27 +197,24 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await userApi.update(formData.value.basicId, formData.value)
-    }
-    else {
+    } else {
       await userApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex flex-col h-full">
     <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex flex-wrap gap-3 items-center">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索用户名/昵称/邮箱/手机"
@@ -214,20 +229,14 @@ async function handleSubmit() {
           clearable
           style="width: 120px"
         />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          重置
-        </NButton>
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
-            新增用户
-          </NButton>
+          <NButton type="primary" size="small" @click="handleAdd">新增用户</NButton>
         </template>
         <template #col_status="{ row }">
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
@@ -236,20 +245,14 @@ async function handleSubmit() {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
-              编辑
-            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
             <NButton size="small" type="warning" text @click="handleToggleStatus(row)">
               {{ row.status === 1 ? '禁用' : '启用' }}
             </NButton>
-            <NButton size="small" type="info" text @click="handleResetPwd(row)">
-              重置密码
-            </NButton>
+            <NButton size="small" type="info" text @click="handleResetPwd(row)">重置密码</NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>
-                  删除
-                </NButton>
+                <NButton size="small" type="error" text>删除</NButton>
               </template>
               确认删除该用户？
             </NPopconfirm>
@@ -258,13 +261,28 @@ async function handleSubmit() {
       </vxe-grid>
     </vxe-card>
 
-    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 520px" :auto-focus="false">
+    <NModal
+      v-model:show="modalVisible"
+      :title="modalTitle"
+      preset="card"
+      style="width: 520px"
+      :auto-focus="false"
+    >
       <NForm :model="formData" label-placement="left" label-width="80px">
         <NFormItem label="用户名" path="userName">
-          <NInput v-model:value="formData.userName" :disabled="!!formData.basicId" placeholder="请输入用户名" />
+          <NInput
+            v-model:value="formData.userName"
+            :disabled="!!formData.basicId"
+            placeholder="请输入用户名"
+          />
         </NFormItem>
         <NFormItem v-if="!formData.basicId" label="密码" path="password">
-          <NInput v-model:value="formData.password" type="password" show-password-on="click" placeholder="请输入初始密码" />
+          <NInput
+            v-model:value="formData.password"
+            type="password"
+            show-password-on="click"
+            placeholder="请输入初始密码"
+          />
         </NFormItem>
         <NFormItem label="昵称" path="nickName">
           <NInput v-model:value="formData.nickName" placeholder="请输入昵称" />
@@ -284,26 +302,29 @@ async function handleSubmit() {
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>
 
-    <NModal v-model:show="resetPwdVisible" title="重置密码" preset="card" style="width: 400px" :auto-focus="false">
-      <NInput v-model:value="resetPwdValue" type="password" show-password-on="click" placeholder="请输入新密码" />
+    <NModal
+      v-model:show="resetPwdVisible"
+      title="重置密码"
+      preset="card"
+      style="width: 400px"
+      :auto-focus="false"
+    >
+      <NInput
+        v-model:value="resetPwdValue"
+        type="password"
+        show-password-on="click"
+        placeholder="请输入新密码"
+      />
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="resetPwdVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" @click="confirmResetPwd">
-            确认重置
-          </NButton>
+          <NButton @click="resetPwdVisible = false">取消</NButton>
+          <NButton type="primary" @click="confirmResetPwd">确认重置</NButton>
         </NSpace>
       </template>
     </NModal>

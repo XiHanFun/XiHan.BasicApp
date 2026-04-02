@@ -40,42 +40,58 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   })
 }
 
-const options = useVxeTable<SysSms>({
-  id: 'sys_sms',
-  name: '短信管理',
-  columns: [
-    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-    { field: 'toPhone', title: '接收号码', minWidth: 140, showOverflow: 'tooltip' },
-    { field: 'content', title: '内容', minWidth: 260, showOverflow: 'tooltip' },
-    {
-      field: 'smsType',
-      title: '类型',
-      width: 100,
-      formatter: ({ cellValue }) => getOptionLabel(SMS_TYPE_OPTIONS, cellValue),
-    },
-    { field: 'provider', title: '服务商', minWidth: 100, showOverflow: 'tooltip' },
-    { field: 'templateId', title: '模板ID', minWidth: 120, showOverflow: 'tooltip' },
-    {
-      field: 'smsStatus',
-      title: '发送状态',
-      width: 100,
-      slots: { default: 'col_smsStatus' },
-    },
-    { field: 'sendTime', title: '发送时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
-    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
-    {
-      title: '操作',
-      width: 140,
-      fixed: 'right',
-      slots: { default: 'col_actions' },
-    },
-  ],
-}, {
-  proxyConfig: {
-    autoLoad: true,
-    ajax: { query: ({ page }) => handleQueryApi(page) },
+const options = useVxeTable<SysSms>(
+  {
+    id: 'sys_sms',
+    name: '短信管理',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      { field: 'toPhone', title: '接收号码', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'content', title: '内容', minWidth: 260, showOverflow: 'tooltip' },
+      {
+        field: 'smsType',
+        title: '类型',
+        width: 100,
+        formatter: ({ cellValue }) => getOptionLabel(SMS_TYPE_OPTIONS, cellValue),
+      },
+      { field: 'provider', title: '服务商', minWidth: 100, showOverflow: 'tooltip' },
+      { field: 'templateId', title: '模板ID', minWidth: 120, showOverflow: 'tooltip' },
+      {
+        field: 'smsStatus',
+        title: '发送状态',
+        width: 100,
+        slots: { default: 'col_smsStatus' },
+      },
+      {
+        field: 'sendTime',
+        title: '发送时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 140,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
   },
-})
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: { query: ({ page }) => handleQueryApi(page) },
+    },
+  },
+)
 
 function handleSearch() {
   xGrid.value?.commitProxy('reload')
@@ -111,8 +127,7 @@ async function handleDelete(id: string) {
     await smsApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -120,48 +135,63 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.basicId)
-      await smsApi.update(formData.value.basicId, formData.value)
+    if (formData.value.basicId) await smsApi.update(formData.value.basicId, formData.value)
     else await smsApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
 
 function getSmsStatusType(status: number) {
-  const map: Record<number, 'default' | 'info' | 'success' | 'warning' | 'error'> = { 0: 'default', 1: 'info', 2: 'success', 3: 'error', 4: 'warning' }
+  const map: Record<number, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
+    0: 'default',
+    1: 'info',
+    2: 'success',
+    3: 'error',
+    4: 'warning',
+  }
   return map[status] ?? 'default'
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex flex-col h-full">
     <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex items-center gap-3 flex-wrap">
-        <vxe-input v-model="queryParams.keyword" placeholder="搜索接收号码/内容" clearable style="width: 260px" @keyup.enter="handleSearch" />
-        <NSelect v-model:value="queryParams.smsType" :options="SMS_TYPE_OPTIONS" placeholder="短信类型" clearable style="width: 130px" />
-        <NSelect v-model:value="queryParams.smsStatus" :options="SMS_STATUS_OPTIONS" placeholder="发送状态" clearable style="width: 130px" />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          重置
-        </NButton>
+      <div class="flex flex-wrap gap-3 items-center">
+        <vxe-input
+          v-model="queryParams.keyword"
+          placeholder="搜索接收号码/内容"
+          clearable
+          style="width: 260px"
+          @keyup.enter="handleSearch"
+        />
+        <NSelect
+          v-model:value="queryParams.smsType"
+          :options="SMS_TYPE_OPTIONS"
+          placeholder="短信类型"
+          clearable
+          style="width: 130px"
+        />
+        <NSelect
+          v-model:value="queryParams.smsStatus"
+          :options="SMS_STATUS_OPTIONS"
+          placeholder="发送状态"
+          clearable
+          style="width: 130px"
+        />
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
-            新增短信
-          </NButton>
+          <NButton type="primary" size="small" @click="handleAdd">新增短信</NButton>
         </template>
         <template #col_smsStatus="{ row }">
           <NTag :type="getSmsStatusType(row.smsStatus)" size="small">
@@ -170,14 +200,10 @@ function getSmsStatusType(status: number) {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
-              编辑
-            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>
-                  删除
-                </NButton>
+                <NButton size="small" type="error" text>删除</NButton>
               </template>
               确认删除该短信记录？
             </NPopconfirm>
@@ -186,7 +212,13 @@ function getSmsStatusType(status: number) {
       </vxe-grid>
     </vxe-card>
 
-    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 520px" :auto-focus="false">
+    <NModal
+      v-model:show="modalVisible"
+      :title="modalTitle"
+      preset="card"
+      style="width: 520px"
+      :auto-focus="false"
+    >
       <NForm :model="formData" label-placement="left" label-width="80px">
         <NFormItem label="接收号码" path="toPhone">
           <NInput v-model:value="formData.toPhone" placeholder="手机号码" />
@@ -201,17 +233,18 @@ function getSmsStatusType(status: number) {
           <NInput v-model:value="formData.provider" placeholder="短信服务商" />
         </NFormItem>
         <NFormItem label="内容" path="content">
-          <NInput v-model:value="formData.content" type="textarea" :rows="4" placeholder="短信内容" />
+          <NInput
+            v-model:value="formData.content"
+            type="textarea"
+            :rows="4"
+            placeholder="短信内容"
+          />
         </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>
