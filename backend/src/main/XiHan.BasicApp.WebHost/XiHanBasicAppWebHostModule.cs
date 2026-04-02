@@ -18,12 +18,15 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Core.Extensions;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Extensions;
 
 namespace XiHan.BasicApp.WebHost;
 
@@ -71,6 +74,17 @@ public class XiHanBasicAppWebHostModule : XiHanModule
 
                 options.Events = new JwtBearerEvents
                 {
+                    // SignalR WebSocket/SSE 无法携带 Authorization Header，需从 query string 提取 token
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnAuthenticationFailed = context =>
                     {
                         if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
@@ -125,5 +139,12 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
+
+        // 映射 SignalR Hub 端点
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapXiHanHub<BasicAppNotificationHub>(SignalRConstants.HubPaths.Notification);
+            endpoints.MapXiHanHub<BasicAppChatHub>(SignalRConstants.HubPaths.Chat);
+        });
     }
 }

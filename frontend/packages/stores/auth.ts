@@ -2,6 +2,7 @@ import type { LoginParams, LoginToken, OAuthProviderItem, PhoneLoginParams } fro
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi, phoneLoginApi } from '@/api'
+import { useSignalR } from '~/composables'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
@@ -139,6 +140,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     const { router } = await import('@/router')
+
+    // 断开 SignalR 连接
+    const signalR = useSignalR()
+    await signalR.destroy()
+
     try {
       await logoutApi()
     }

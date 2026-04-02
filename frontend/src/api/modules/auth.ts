@@ -247,6 +247,31 @@ export const authApi = {
 
   disable2FA: (code: string) =>
     requestClient.post(`${AUTH}/Disable2FA`, { code }),
+
+  // 邮箱验证
+  sendEmailVerifyCode: async (): Promise<VerificationCodeResult> => {
+    const raw = await requestClient.post<any>(`${AUTH}/SendEmailVerifyCode`)
+    return normalizeVerificationCode(raw)
+  },
+
+  verifyEmail: (code: string) =>
+    requestClient.post(`${AUTH}/VerifyEmail`, { code }),
+
+  // 手机号验证
+  sendPhoneVerifyCode: async (): Promise<VerificationCodeResult> => {
+    const raw = await requestClient.post<any>(`${AUTH}/SendPhoneVerifyCode`)
+    return normalizeVerificationCode(raw)
+  },
+
+  verifyPhone: (code: string) =>
+    requestClient.post(`${AUTH}/VerifyPhone`, { code }),
+
+  // 账号管理
+  deactivateAccount: (password: string) =>
+    requestClient.post(`${AUTH}/DeactivateAccount`, { password }),
+
+  deleteAccount: (password: string) =>
+    requestClient.post(`${AUTH}/DeleteAccount`, { password }),
 }
 
 export const getLoginConfigApi = authApi.getLoginConfig
@@ -269,3 +294,9 @@ export const revokeOtherSessionsApi = authApi.revokeOtherSessions
 export const setup2FAApi = authApi.setup2FA
 export const enable2FAApi = authApi.enable2FA
 export const disable2FAApi = authApi.disable2FA
+export const sendEmailVerifyCodeApi = authApi.sendEmailVerifyCode
+export const verifyEmailApi = authApi.verifyEmail
+export const sendPhoneVerifyCodeApi = authApi.sendPhoneVerifyCode
+export const verifyPhoneApi = authApi.verifyPhone
+export const deactivateAccountApi = authApi.deactivateAccount
+export const deleteAccountApi = authApi.deleteAccount

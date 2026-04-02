@@ -29,17 +29,23 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, h, onMounted, ref, watch } from 'vue'
 import {
   changePasswordApi,
+  deactivateAccountApi,
+  deleteAccountApi,
   disable2FAApi,
   enable2FAApi,
   getProfileApi,
   getSessionsApi,
   revokeOtherSessionsApi,
   revokeSessionApi,
+  sendEmailVerifyCodeApi,
+  sendPhoneVerifyCodeApi,
   setup2FAApi,
   updateProfileApi,
+  verifyEmailApi,
+  verifyPhoneApi,
 } from '@/api'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
@@ -122,6 +128,105 @@ async function saveProfile() {
   }
   catch (e: any) { message.error(e?.message || '保存失败') }
   finally { profileSaving.value = false }
+}
+
+// ==================== 邮箱 / 手机验证 ====================
+
+const emailVerifying = ref(false)
+const emailVerifyCode = ref('')
+const emailCodeSending = ref(false)
+const emailCodeCountdown = ref(0)
+let emailTimer: ReturnType<typeof setInterval> | null = null
+
+const phoneVerifying = ref(false)
+const phoneVerifyCode = ref('')
+const phoneCodeSending = ref(false)
+const phoneCodeCountdown = ref(0)
+let phoneTimer: ReturnType<typeof setInterval> | null = null
+
+function startCountdown(type: 'email' | 'phone', seconds: number) {
+  const countdownRef = type === 'email' ? emailCodeCountdown : phoneCodeCountdown
+  countdownRef.value = seconds
+  const timer = setInterval(() => {
+    countdownRef.value--
+    if (countdownRef.value <= 0) {
+      clearInterval(timer)
+      if (type === 'email')
+        emailTimer = null
+      else phoneTimer = null
+    }
+  }, 1000)
+  if (type === 'email')
+    emailTimer = timer
+  else phoneTimer = timer
+}
+
+async function sendEmailCode() {
+  if (!profileForm.value.email) { message.warning('请先填写邮箱地址'); return }
+  emailCodeSending.value = true
+  try {
+    const res = await sendEmailVerifyCodeApi()
+    message.success('验证码已发送至邮箱')
+    emailVerifying.value = true
+    startCountdown('email', res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+  }
+  catch (e: any) { message.error(e?.message || '发送验证码失败') }
+  finally { emailCodeSending.value = false }
+}
+
+async function confirmEmailVerify() {
+  if (!emailVerifyCode.value || emailVerifyCode.value.length < 6) { message.warning('请输入完整的 6 位验证码'); return }
+  emailCodeSending.value = true
+  try {
+    await verifyEmailApi(emailVerifyCode.value)
+    message.success('邮箱验证成功')
+    emailVerifying.value = false
+    emailVerifyCode.value = ''
+    await loadProfile()
+  }
+  catch (e: any) { message.error(e?.message || '验证失败') }
+  finally { emailCodeSending.value = false }
+}
+
+function cancelEmailVerify() {
+  emailVerifying.value = false
+  emailVerifyCode.value = ''
+  if (emailTimer) { clearInterval(emailTimer); emailTimer = null }
+  emailCodeCountdown.value = 0
+}
+
+async function sendPhoneCode() {
+  if (!profileForm.value.phone) { message.warning('请先填写手机号码'); return }
+  phoneCodeSending.value = true
+  try {
+    const res = await sendPhoneVerifyCodeApi()
+    message.success('验证码已发送至手机')
+    phoneVerifying.value = true
+    startCountdown('phone', res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+  }
+  catch (e: any) { message.error(e?.message || '发送验证码失败') }
+  finally { phoneCodeSending.value = false }
+}
+
+async function confirmPhoneVerify() {
+  if (!phoneVerifyCode.value || phoneVerifyCode.value.length < 6) { message.warning('请输入完整的 6 位验证码'); return }
+  phoneCodeSending.value = true
+  try {
+    await verifyPhoneApi(phoneVerifyCode.value)
+    message.success('手机号验证成功')
+    phoneVerifying.value = false
+    phoneVerifyCode.value = ''
+    await loadProfile()
+  }
+  catch (e: any) { message.error(e?.message || '验证失败') }
+  finally { phoneCodeSending.value = false }
+}
+
+function cancelPhoneVerify() {
+  phoneVerifying.value = false
+  phoneVerifyCode.value = ''
+  if (phoneTimer) { clearInterval(phoneTimer); phoneTimer = null }
+  phoneCodeCountdown.value = 0
 }
 
 // ==================== 密码 ====================
@@ -265,19 +370,66 @@ const loginHistoryLoading = ref(false)
 
 // ==================== 账号管理 ====================
 
+const accountPassword = ref('')
+const accountActionLoading = ref(false)
+
 function handleDeactivateAccount() {
+  accountPassword.value = ''
   dialog.warning({
-    title: '停用账号', content: '停用后您将无法登录，但数据会保留。您可以联系管理员重新激活账号。确定继续？',
-    positiveText: '确认停用', negativeText: '取消',
-    onPositiveClick: () => { message.info('需要后端实现账号停用接口') },
+    title: '停用账号',
+    content: () => h('div', [
+      h('p', { style: 'margin-bottom: 12px' }, '停用后您将无法登录，但数据会保留。请输入密码确认：'),
+      h(NInput, {
+        type: 'password',
+        value: accountPassword.value,
+        placeholder: '请输入当前密码',
+        showPasswordOn: 'click',
+        'onUpdate:value': (v: string) => { accountPassword.value = v },
+      }),
+    ]),
+    positiveText: '确认停用',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      if (!accountPassword.value) { message.warning('请输入密码'); return false }
+      accountActionLoading.value = true
+      try {
+        await deactivateAccountApi(accountPassword.value)
+        message.success('账号已停用，即将退出登录')
+        setTimeout(() => { window.location.href = '/auth/login' }, 1500)
+      }
+      catch (e: any) { message.error(e?.message || '停用失败'); return false }
+      finally { accountActionLoading.value = false }
+    },
   })
 }
 
-function handleFreezeAccount() {
-  dialog.warning({
-    title: '冻结账号', content: '冻结后账号将进入只读状态，无法执行任何写操作。可随时解冻。确定继续？',
-    positiveText: '确认冻结', negativeText: '取消',
-    onPositiveClick: () => { message.info('需要后端实现账号冻结接口') },
+function handleDeleteAccount() {
+  accountPassword.value = ''
+  dialog.error({
+    title: '注销账号',
+    content: () => h('div', [
+      h('p', { style: 'margin-bottom: 12px; color: var(--color-error)' }, '注销后您的所有数据将被永久删除且无法恢复！请输入密码确认：'),
+      h(NInput, {
+        type: 'password',
+        value: accountPassword.value,
+        placeholder: '请输入当前密码',
+        showPasswordOn: 'click',
+        'onUpdate:value': (v: string) => { accountPassword.value = v },
+      }),
+    ]),
+    positiveText: '确认注销',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      if (!accountPassword.value) { message.warning('请输入密码'); return false }
+      accountActionLoading.value = true
+      try {
+        await deleteAccountApi(accountPassword.value)
+        message.success('账号已注销，即将退出')
+        setTimeout(() => { window.location.href = '/auth/login' }, 1500)
+      }
+      catch (e: any) { message.error(e?.message || '注销失败'); return false }
+      finally { accountActionLoading.value = false }
+    },
   })
 }
 
@@ -441,22 +593,74 @@ onMounted(() => { loadProfile() })
                       </NGridItem>
                       <NGridItem>
                         <NFormItem label="电子邮箱" path="email">
-                          <NInput v-model:value="profileForm.email" placeholder="your@email.com">
-                            <template #suffix>
-                              <NTag v-if="profile?.emailVerified" type="success" size="tiny" :bordered="false">已验证</NTag>
-                              <NTag v-else-if="profile?.email" type="warning" size="tiny" :bordered="false">未验证</NTag>
-                            </template>
-                          </NInput>
+                          <div class="pf-full">
+                            <NInputGroup>
+                              <NInput v-model:value="profileForm.email" placeholder="your@email.com">
+                                <template #suffix>
+                                  <NTag v-if="profile?.emailVerified" type="success" size="tiny" :bordered="false">已验证</NTag>
+                                  <NTag v-else-if="profile?.email" type="warning" size="tiny" :bordered="false">未验证</NTag>
+                                </template>
+                              </NInput>
+                              <NButton
+                                v-if="profile?.email && !profile?.emailVerified && !emailVerifying"
+                                type="primary" ghost
+                                :loading="emailCodeSending"
+                                @click="sendEmailCode"
+                              >
+                                发送验证码
+                              </NButton>
+                            </NInputGroup>
+                            <!-- 邮箱验证码输入 -->
+                            <div v-if="emailVerifying" class="pf-verify-row">
+                              <NInput v-model:value="emailVerifyCode" placeholder="请输入 6 位验证码" :maxlength="6" />
+                              <NButton type="primary" :loading="emailCodeSending" :disabled="emailVerifyCode.length < 6" @click="confirmEmailVerify">验证</NButton>
+                              <NButton
+                                :disabled="emailCodeCountdown > 0"
+                                :loading="emailCodeSending"
+                                quaternary
+                                @click="sendEmailCode"
+                              >
+                                {{ emailCodeCountdown > 0 ? `${emailCodeCountdown}s` : '重新发送' }}
+                              </NButton>
+                              <NButton quaternary @click="cancelEmailVerify">取消</NButton>
+                            </div>
+                          </div>
                         </NFormItem>
                       </NGridItem>
                       <NGridItem>
                         <NFormItem label="手机号码" path="phone">
-                          <NInput v-model:value="profileForm.phone" placeholder="您的手机号">
-                            <template #suffix>
-                              <NTag v-if="profile?.phoneVerified" type="success" size="tiny" :bordered="false">已验证</NTag>
-                              <NTag v-else-if="profile?.phone" type="warning" size="tiny" :bordered="false">未验证</NTag>
-                            </template>
-                          </NInput>
+                          <div class="pf-full">
+                            <NInputGroup>
+                              <NInput v-model:value="profileForm.phone" placeholder="您的手机号">
+                                <template #suffix>
+                                  <NTag v-if="profile?.phoneVerified" type="success" size="tiny" :bordered="false">已验证</NTag>
+                                  <NTag v-else-if="profile?.phone" type="warning" size="tiny" :bordered="false">未验证</NTag>
+                                </template>
+                              </NInput>
+                              <NButton
+                                v-if="profile?.phone && !profile?.phoneVerified && !phoneVerifying"
+                                type="primary" ghost
+                                :loading="phoneCodeSending"
+                                @click="sendPhoneCode"
+                              >
+                                发送验证码
+                              </NButton>
+                            </NInputGroup>
+                            <!-- 手机验证码输入 -->
+                            <div v-if="phoneVerifying" class="pf-verify-row">
+                              <NInput v-model:value="phoneVerifyCode" placeholder="请输入 6 位验证码" :maxlength="6" />
+                              <NButton type="primary" :loading="phoneCodeSending" :disabled="phoneVerifyCode.length < 6" @click="confirmPhoneVerify">验证</NButton>
+                              <NButton
+                                :disabled="phoneCodeCountdown > 0"
+                                :loading="phoneCodeSending"
+                                quaternary
+                                @click="sendPhoneCode"
+                              >
+                                {{ phoneCodeCountdown > 0 ? `${phoneCodeCountdown}s` : '重新发送' }}
+                              </NButton>
+                              <NButton quaternary @click="cancelPhoneVerify">取消</NButton>
+                            </div>
+                          </div>
                         </NFormItem>
                       </NGridItem>
                       <NGridItem><NFormItem label="性别"><NSelect v-model:value="profileForm.gender" :options="genderOptions" /></NFormItem></NGridItem>
@@ -661,20 +865,20 @@ onMounted(() => { loadProfile() })
                   </template>
                   <div class="pf-list">
                     <div class="pf-list-item">
-                      <div class="pf-list-icon"><Icon icon="lucide:snowflake" width="14" /></div>
+                      <div class="pf-list-icon"><Icon icon="lucide:user-x" width="14" /></div>
                       <div class="pf-list-body">
-                        <div class="pf-list-title">冻结账号</div>
-                        <div class="pf-list-desc">进入只读模式，可随时解冻</div>
-                      </div>
-                      <NButton size="small" @click="handleFreezeAccount">冻结</NButton>
-                    </div>
-                    <div class="pf-list-item">
-                      <div class="pf-list-icon pf-list-icon--danger"><Icon icon="lucide:user-x" width="14" /></div>
-                      <div class="pf-list-body">
-                        <div class="pf-list-title" style="color: var(--color-error)">停用账号</div>
+                        <div class="pf-list-title">停用账号</div>
                         <div class="pf-list-desc">无法登录，数据保留，需管理员恢复</div>
                       </div>
-                      <NButton size="small" type="error" ghost @click="handleDeactivateAccount">停用</NButton>
+                      <NButton size="small" type="warning" ghost @click="handleDeactivateAccount">停用</NButton>
+                    </div>
+                    <div class="pf-list-item">
+                      <div class="pf-list-icon pf-list-icon--danger"><Icon icon="lucide:trash-2" width="14" /></div>
+                      <div class="pf-list-body">
+                        <div class="pf-list-title" style="color: var(--color-error)">注销账号</div>
+                        <div class="pf-list-desc">永久删除所有数据，此操作不可恢复</div>
+                      </div>
+                      <NButton size="small" type="error" ghost @click="handleDeleteAccount">注销</NButton>
                     </div>
                   </div>
                 </NCard>
@@ -987,6 +1191,14 @@ onMounted(() => { loadProfile() })
 .pf-avatar-hint {
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+/* ===== Verify Row ===== */
+.pf-verify-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 /* ===== Password Strength ===== */

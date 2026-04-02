@@ -139,6 +139,12 @@ export default {
     open_source: '开源地址',
     open_source_desc: '项目已在 GitHub 开源，欢迎 Star 与贡献',
   },
+  signalr: {
+    force_logout_title: '会话已失效',
+    force_logout_reason: '您的账号已在其他设备登录，当前会话已下线',
+    force_logout_confirm: '确定',
+    new_notification: '新消息',
+  },
   menu: {
     title: '菜单管理',
     name: '菜单名称',

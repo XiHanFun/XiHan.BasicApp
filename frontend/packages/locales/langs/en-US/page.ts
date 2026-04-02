@@ -140,6 +140,12 @@ export default {
     open_source: 'Open Source',
     open_source_desc: 'This project is open source on GitHub, feel free to star and contribute',
   },
+  signalr: {
+    force_logout_title: 'Session Expired',
+    force_logout_reason: 'Your account has logged in on another device, current session is offline',
+    force_logout_confirm: 'OK',
+    new_notification: 'New Notification',
+  },
   menu: {
     title: 'Menu Management',
     name: 'Menu Name',

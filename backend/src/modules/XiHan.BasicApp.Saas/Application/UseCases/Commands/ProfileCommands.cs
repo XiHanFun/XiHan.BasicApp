@@ -126,3 +126,40 @@ public class Disable2FACommand
     [StringLength(10, MinimumLength = 4, ErrorMessage = "验证码长度必须在 4～10 之间")]
     public string Code { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// 验证邮箱命令
+/// </summary>
+public class VerifyEmailCommand
+{
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "验证码必须为 6 位")]
+    public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 停用账号命令
+/// </summary>
+public class DeactivateAccountCommand
+{
+    /// <summary>
+    /// 当前密码（二次确认）
+    /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 注销账号命令
+/// </summary>
+public class DeleteAccountCommand
+{
+    /// <summary>
+    /// 当前密码（二次确认）
+    /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    public string Password { get; set; } = string.Empty;
+}
