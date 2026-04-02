@@ -39,45 +39,61 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   })
 }
 
-const options = useVxeTable<SysPermission>({
-  id: 'sys_permission',
-  name: '权限管理',
-  columns: [
-    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-    { field: 'permissionName', title: '权限名称', minWidth: 160, showOverflow: 'tooltip', sortable: true },
-    { field: 'permissionCode', title: '权限编码', minWidth: 180, showOverflow: 'tooltip' },
-    { field: 'tags', title: '标签', minWidth: 120, showOverflow: 'tooltip' },
-    { field: 'permissionDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
-    { field: 'priority', title: '优先级', width: 80 },
-    {
-      field: 'isRequireAudit',
-      title: '需要审计',
-      width: 90,
-      slots: { default: 'col_audit' },
-    },
-    { field: 'sort', title: '排序', width: 70 },
-    {
-      field: 'status',
-      title: '状态',
-      width: 80,
-      slots: { default: 'col_status' },
-    },
-    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
-    {
-      title: '操作',
-      width: 140,
-      fixed: 'right',
-      slots: { default: 'col_actions' },
-    },
-  ],
-}, {
-  proxyConfig: {
-    autoLoad: true,
-    ajax: {
-      query: ({ page }) => handleQueryApi(page),
+const options = useVxeTable<SysPermission>(
+  {
+    id: 'sys_permission',
+    name: '权限管理',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      {
+        field: 'permissionName',
+        title: '权限名称',
+        minWidth: 160,
+        showOverflow: 'tooltip',
+        sortable: true,
+      },
+      { field: 'permissionCode', title: '权限编码', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'tags', title: '标签', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'permissionDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'priority', title: '优先级', width: 80 },
+      {
+        field: 'isRequireAudit',
+        title: '需要审计',
+        width: 90,
+        slots: { default: 'col_audit' },
+      },
+      { field: 'sort', title: '排序', width: 70 },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 140,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page }) => handleQueryApi(page),
+      },
     },
   },
-})
+)
 
 function handleSearch() {
   xGrid.value?.commitProxy('reload')
@@ -122,8 +138,7 @@ async function handleDelete(id: string) {
     await permissionApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -133,27 +148,24 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await permissionApi.update(formData.value.basicId, formData.value)
-    }
-    else {
+    } else {
       await permissionApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex flex-col h-full">
     <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex flex-wrap gap-3 items-center">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索权限名称/编码"
@@ -161,21 +173,21 @@ async function handleSubmit() {
           style="width: 260px"
           @keyup.enter="handleSearch"
         />
-        <NSelect v-model:value="queryParams.status" :options="STATUS_OPTIONS" placeholder="状态" clearable style="width: 120px" />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          重置
-        </NButton>
+        <NSelect
+          v-model:value="queryParams.status"
+          :options="STATUS_OPTIONS"
+          placeholder="状态"
+          clearable
+          style="width: 120px"
+        />
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
-            新增权限
-          </NButton>
+          <NButton type="primary" size="small" @click="handleAdd">新增权限</NButton>
         </template>
         <template #col_audit="{ row }">
           <NTag :type="row.isRequireAudit ? 'warning' : 'default'" size="small">
@@ -189,14 +201,10 @@ async function handleSubmit() {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
-              编辑
-            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>
-                  删除
-                </NButton>
+                <NButton size="small" type="error" text>删除</NButton>
               </template>
               确认删除该权限？
             </NPopconfirm>
@@ -205,7 +213,13 @@ async function handleSubmit() {
       </vxe-grid>
     </vxe-card>
 
-    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 560px" :auto-focus="false">
+    <NModal
+      v-model:show="modalVisible"
+      :title="modalTitle"
+      preset="card"
+      style="width: 560px"
+      :auto-focus="false"
+    >
       <NForm :model="formData" label-placement="left" label-width="90px">
         <NFormItem label="权限名称" path="permissionName">
           <NInput v-model:value="formData.permissionName" placeholder="请输入权限名称" />
@@ -217,7 +231,12 @@ async function handleSubmit() {
           <NInput v-model:value="formData.groupName" placeholder="权限分组名称" />
         </NFormItem>
         <NFormItem label="描述" path="permissionDescription">
-          <NInput v-model:value="formData.permissionDescription" type="textarea" :rows="2" placeholder="权限描述" />
+          <NInput
+            v-model:value="formData.permissionDescription"
+            type="textarea"
+            :rows="2"
+            placeholder="权限描述"
+          />
         </NFormItem>
         <NFormItem label="排序" path="sort">
           <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
@@ -228,12 +247,8 @@ async function handleSubmit() {
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>

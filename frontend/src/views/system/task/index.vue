@@ -41,52 +41,78 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   })
 }
 
-const options = useVxeTable<SysTask>({
-  id: 'sys_task',
-  name: '任务管理',
-  columns: [
-    { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-    { field: 'taskName', title: '任务名称', minWidth: 160, showOverflow: 'tooltip', sortable: true },
-    { field: 'taskCode', title: '任务编码', minWidth: 140, showOverflow: 'tooltip' },
-    { field: 'taskGroup', title: '分组', minWidth: 100, showOverflow: 'tooltip' },
-    { field: 'taskClass', title: '任务类', minWidth: 200, showOverflow: 'tooltip' },
-    {
-      field: 'triggerType',
-      title: '触发方式',
-      width: 110,
-      formatter: ({ cellValue }) => getOptionLabel(TRIGGER_TYPE_OPTIONS, cellValue),
-    },
-    { field: 'cronExpression', title: 'Cron 表达式', minWidth: 140, showOverflow: 'tooltip' },
-    { field: 'lastRunTime', title: '最后执行', width: 170, formatter: ({ cellValue }) => formatDate(cellValue) },
-    { field: 'nextRunTime', title: '下次执行', width: 170, formatter: ({ cellValue }) => formatDate(cellValue) },
-    {
-      field: 'runTaskStatus',
-      title: '运行状态',
-      width: 100,
-      slots: { default: 'col_runStatus' },
-    },
-    { field: 'priority', title: '优先级', width: 80 },
-    { field: 'executedCount', title: '已执行', width: 80 },
-    {
-      field: 'status',
-      title: '状态',
-      width: 80,
-      slots: { default: 'col_status' },
-    },
-    { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
-    {
-      title: '操作',
-      width: 140,
-      fixed: 'right',
-      slots: { default: 'col_actions' },
-    },
-  ],
-}, {
-  proxyConfig: {
-    autoLoad: true,
-    ajax: { query: ({ page }) => handleQueryApi(page) },
+const options = useVxeTable<SysTask>(
+  {
+    id: 'sys_task',
+    name: '任务管理',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      {
+        field: 'taskName',
+        title: '任务名称',
+        minWidth: 160,
+        showOverflow: 'tooltip',
+        sortable: true,
+      },
+      { field: 'taskCode', title: '任务编码', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'taskGroup', title: '分组', minWidth: 100, showOverflow: 'tooltip' },
+      { field: 'taskClass', title: '任务类', minWidth: 200, showOverflow: 'tooltip' },
+      {
+        field: 'triggerType',
+        title: '触发方式',
+        width: 110,
+        formatter: ({ cellValue }) => getOptionLabel(TRIGGER_TYPE_OPTIONS, cellValue),
+      },
+      { field: 'cronExpression', title: 'Cron 表达式', minWidth: 140, showOverflow: 'tooltip' },
+      {
+        field: 'lastRunTime',
+        title: '最后执行',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+      {
+        field: 'nextRunTime',
+        title: '下次执行',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+      {
+        field: 'runTaskStatus',
+        title: '运行状态',
+        width: 100,
+        slots: { default: 'col_runStatus' },
+      },
+      { field: 'priority', title: '优先级', width: 80 },
+      { field: 'executedCount', title: '已执行', width: 80 },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 140,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
   },
-})
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: { query: ({ page }) => handleQueryApi(page) },
+    },
+  },
+)
 
 function handleSearch() {
   xGrid.value?.commitProxy('reload')
@@ -134,8 +160,7 @@ async function handleDelete(id: string) {
     await taskApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -143,48 +168,64 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.basicId)
-      await taskApi.update(formData.value.basicId, formData.value)
+    if (formData.value.basicId) await taskApi.update(formData.value.basicId, formData.value)
     else await taskApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
 
 function getRunStatusType(status: number) {
-  const map: Record<number, 'default' | 'info' | 'success' | 'warning' | 'error'> = { 0: 'default', 1: 'info', 2: 'success', 3: 'error', 4: 'warning', 5: 'warning' }
+  const map: Record<number, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
+    0: 'default',
+    1: 'info',
+    2: 'success',
+    3: 'error',
+    4: 'warning',
+    5: 'warning',
+  }
   return map[status] ?? 'default'
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-2 overflow-hidden p-3">
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
     <vxe-card style="padding: 10px 16px">
-      <div class="flex items-center gap-3 flex-wrap">
-        <vxe-input v-model="queryParams.keyword" placeholder="搜索任务名称/编码/类名" clearable style="width: 280px" @keyup.enter="handleSearch" />
-        <NSelect v-model:value="queryParams.runTaskStatus" :options="RUN_TASK_STATUS_OPTIONS" placeholder="运行状态" clearable style="width: 130px" />
-        <NSelect v-model:value="queryParams.status" :options="STATUS_OPTIONS" placeholder="状态" clearable style="width: 120px" />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          重置
-        </NButton>
+      <div class="flex flex-wrap gap-3 items-center">
+        <vxe-input
+          v-model="queryParams.keyword"
+          placeholder="搜索任务名称/编码/类名"
+          clearable
+          style="width: 280px"
+          @keyup.enter="handleSearch"
+        />
+        <NSelect
+          v-model:value="queryParams.runTaskStatus"
+          :options="RUN_TASK_STATUS_OPTIONS"
+          placeholder="运行状态"
+          clearable
+          style="width: 130px"
+        />
+        <NSelect
+          v-model:value="queryParams.status"
+          :options="STATUS_OPTIONS"
+          placeholder="状态"
+          clearable
+          style="width: 120px"
+        />
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
-            新增任务
-          </NButton>
+          <NButton type="primary" size="small" @click="handleAdd">新增任务</NButton>
         </template>
         <template #col_runStatus="{ row }">
           <NTag :type="getRunStatusType(row.runTaskStatus)" size="small">
@@ -198,14 +239,10 @@ function getRunStatusType(status: number) {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
-              编辑
-            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>
-                  删除
-                </NButton>
+                <NButton size="small" type="error" text>删除</NButton>
               </template>
               确认删除该任务？
             </NPopconfirm>
@@ -214,7 +251,13 @@ function getRunStatusType(status: number) {
       </vxe-grid>
     </vxe-card>
 
-    <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 620px" :auto-focus="false">
+    <NModal
+      v-model:show="modalVisible"
+      :title="modalTitle"
+      preset="card"
+      style="width: 620px"
+      :auto-focus="false"
+    >
       <NForm :model="formData" label-placement="left" label-width="100px">
         <NFormItem label="任务名称" path="taskName">
           <NInput v-model:value="formData.taskName" placeholder="请输入任务名称" />
@@ -241,17 +284,18 @@ function getRunStatusType(status: number) {
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
         </NFormItem>
         <NFormItem label="描述" path="taskDescription">
-          <NInput v-model:value="formData.taskDescription" type="textarea" :rows="2" placeholder="任务描述" />
+          <NInput
+            v-model:value="formData.taskDescription"
+            type="textarea"
+            :rows="2"
+            placeholder="任务描述"
+          />
         </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>
