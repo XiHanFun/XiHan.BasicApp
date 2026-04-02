@@ -44,6 +44,8 @@ using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 using XiHan.Framework.Web.Core.Clients;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -80,6 +82,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IExternalLoginRepository _externalLoginRepository;
     private readonly OAuthOptions _oauthOptions;
+    private readonly IRealtimeNotificationService<Hubs.BasicAppNotificationHub> _realtimeNotifier;
 
     /// <summary>
     /// 构造函数
@@ -108,6 +111,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="externalLoginRepository"></param>
     /// <param name="jwtOptions"></param>
     /// <param name="oauthOptions"></param>
+    /// <param name="realtimeNotifier"></param>
     public AuthAppService(
         IUserRepository userRepository,
         IUserManager userManager,
@@ -132,7 +136,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IUnitOfWorkManager unitOfWorkManager,
         IExternalLoginRepository externalLoginRepository,
         IOptions<JwtOptions> jwtOptions,
-        IOptions<OAuthOptions> oauthOptions)
+        IOptions<OAuthOptions> oauthOptions,
+        IRealtimeNotificationService<Hubs.BasicAppNotificationHub> realtimeNotifier)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -158,6 +163,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _externalLoginRepository = externalLoginRepository;
         _jwtOptions = jwtOptions.Value;
         _oauthOptions = oauthOptions.Value;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     /// <summary>
@@ -288,6 +294,15 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await RemoveSessionTokenAsync(revokedSessionId);
         }
+
+        // 多端策略踢掉的旧会话，通过 SignalR 推送强制下线
+        if (revokedSessionIds.Count > 0)
+        {
+            await NotifyForceLogoutAsync(user.BasicId.ToString(), "您的账号已在其他设备登录", revokedSessionIds);
+        }
+
+        // 向已有在线设备推送新设备登录通知
+        await NotifyNewDeviceLoginAsync(user, clientInfo);
 
         await SaveRefreshTokenAsync(refreshToken, user, sessionId);
 
@@ -486,6 +501,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             await RemoveSessionTokenAsync(revokedSessionId);
         }
 
+        // 向已有在线设备推送新设备登录通知
+        await NotifyNewDeviceLoginAsync(user, clientInfo);
+
         await SaveRefreshTokenAsync(refreshToken, user, sessionId);
 
         return new AuthTokenDto
@@ -680,6 +698,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await RemoveSessionTokenAsync(sessionId);
         }
+
+        // 向其他在线设备推送登出通知
+        var clientInfo = _clientInfoProvider.GetCurrent();
+        await NotifyDeviceLogoutAsync(userId.ToString(), clientInfo);
     }
 
     /// <summary>
@@ -884,6 +906,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         await uow.CompleteAsync();
 
         await RemoveSessionTokenAsync(command.SessionId);
+
+        // 仅向被撤销的会话推送强制下线，避免当前会话也被踢
+        await NotifyForceLogoutAsync(user.BasicId.ToString(), "您的会话已被撤销", [command.SessionId]);
     }
 
     /// <summary>
@@ -911,6 +936,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await RemoveSessionTokenAsync(sessionId);
         }
+
+        // 仅向被撤销的其他会话推送强制下线
+        await NotifyForceLogoutAsync(user.BasicId.ToString(), "您的其他会话已全部下线", otherSessionIds);
     }
 
     /// <summary>
@@ -1007,6 +1035,145 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         security.TwoFactorSecret = null;
         security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
         await _userRepository.SaveSecurityAsync(security);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 发送邮箱验证码
+    /// </summary>
+    public async Task<AuthVerificationCodeDto> SendEmailVerifyCodeAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new BusinessException(message: "请先设置邮箱地址");
+        }
+
+        var security = await EnsureSecurityProfileAsync(user);
+        if (security.EmailVerified)
+        {
+            throw new BusinessException(message: "邮箱已验证，无需重复操作");
+        }
+
+        var expiresInSeconds = Math.Clamp(
+            _configuration.GetValue("XiHan:Authentication:EmailCodeExpiresInSeconds", 300), 60, 1800);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        var code = GenerateNumericCode(6);
+        var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+
+        await _verificationCodeCache.SetAsync(
+            BuildEmailVerifyCodeCacheKey(user.TenantId, user.Email),
+            new AuthVerificationCodeCacheItem
+            {
+                Purpose = "EmailVerify",
+                Target = user.Email,
+                TenantId = user.TenantId,
+                Code = code,
+                ExpireAt = expireAt
+            },
+            options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+            hideErrors: true);
+
+        // TODO: 接入实际邮件发送服务，将验证码发送到用户邮箱
+
+        return new AuthVerificationCodeDto
+        {
+            ExpiresInSeconds = expiresInSeconds,
+            DebugCode = exposeDebugSecrets ? code : null
+        };
+    }
+
+    /// <summary>
+    /// 验证邮箱
+    /// </summary>
+    public async Task VerifyEmailAsync(VerifyEmailCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new BusinessException(message: "请先设置邮箱地址");
+        }
+
+        var cacheKey = BuildEmailVerifyCodeCacheKey(user.TenantId, user.Email);
+        var cachedCode = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+
+        if (cachedCode is null
+            || cachedCode.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cachedCode.Code, command.Code.Trim(), StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "验证码错误或已过期");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        var security = await EnsureSecurityProfileAsync(user);
+        security.EmailVerified = true;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 停用当前账号
+    /// </summary>
+    public async Task DeactivateAccountAsync(DeactivateAccountCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        if (!currentPassword.Verify(command.Password, _passwordHasher))
+        {
+            throw new BusinessException(message: "密码错误");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        user.Status = YesOrNo.No;
+        await _userRepository.UpdateAsync(user);
+
+        // 撤销所有会话
+        await _userSessionRepository.RevokeUserSessionsAsync(user.BasicId, "账号停用", user.TenantId);
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 注销当前账号（软删除）
+    /// </summary>
+    public async Task DeleteAccountAsync(DeleteAccountCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        if (!currentPassword.Verify(command.Password, _passwordHasher))
+        {
+            throw new BusinessException(message: "密码错误");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        // 撤销所有会话
+        await _userSessionRepository.RevokeUserSessionsAsync(user.BasicId, "账号注销", user.TenantId);
+
+        // 软删除用户
+        await _userRepository.DeleteAsync(user);
+
         await uow.CompleteAsync();
     }
 
@@ -1113,6 +1280,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             await RemoveSessionTokenAsync(revokedSessionId);
         }
+
+        // 向已有在线设备推送新设备登录通知
+        await NotifyNewDeviceLoginAsync(user, clientInfo);
 
         await SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
 
@@ -1307,6 +1477,18 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
+    /// 构建邮箱验证码缓存键
+    /// </summary>
+    /// <param name="tenantId"></param>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    private static string BuildEmailVerifyCodeCacheKey(long? tenantId, string email)
+    {
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        return $"auth:email-verify:{tenantSegment}:{email.ToLowerInvariant()}";
+    }
+
+    /// <summary>
     /// 标准化租户ID（非正数视为 null）
     /// </summary>
     /// <param name="tenantId"></param>
@@ -1478,6 +1660,81 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         await _userSessionRepository.RevokeSessionsAsync(toRevokeSessionIds, "触发多端登录策略", user.TenantId);
         return toRevokeSessionIds;
+    }
+
+    /// <summary>
+    /// 通过 SignalR 向用户已有设备推送新设备上线通知
+    /// </summary>
+    private async Task NotifyNewDeviceLoginAsync(SysUser user, ClientInfo clientInfo)
+    {
+        try
+        {
+            var deviceDesc = !string.IsNullOrWhiteSpace(clientInfo.Browser)
+                ? $"{clientInfo.Browser} ({clientInfo.OperatingSystem})"
+                : clientInfo.OperatingSystem ?? "未知设备";
+
+            await _realtimeNotifier.SendToUserAsync(
+                user.BasicId.ToString(),
+                SignalRConstants.ClientMethods.ReceiveNotification,
+                new
+                {
+                    Type = "Warning",
+                    Title = "新设备登录",
+                    Content = $"您的账号刚刚在新设备上登录：{deviceDesc}，IP：{clientInfo.IpAddress ?? "未知"}。如非本人操作，请及时修改密码。"
+                });
+        }
+        catch
+        {
+            // 推送失败不影响登录流程
+        }
+    }
+
+    /// <summary>
+    /// 通过 SignalR 向用户其他设备推送登出通知
+    /// </summary>
+    private async Task NotifyDeviceLogoutAsync(string userId, ClientInfo clientInfo)
+    {
+        try
+        {
+            var deviceDesc = !string.IsNullOrWhiteSpace(clientInfo.Browser)
+                ? $"{clientInfo.Browser} ({clientInfo.OperatingSystem})"
+                : clientInfo.OperatingSystem ?? "未知设备";
+
+            await _realtimeNotifier.SendToUserAsync(
+                userId,
+                SignalRConstants.ClientMethods.ReceiveNotification,
+                new
+                {
+                    Type = "Info",
+                    Title = "设备已登出",
+                    Content = $"您的账号已在一台设备上登出：{deviceDesc}，IP：{clientInfo.IpAddress ?? "未知"}。"
+                });
+        }
+        catch
+        {
+            // 推送失败不影响登出流程
+        }
+    }
+
+    /// <summary>
+    /// 通过 SignalR 向指定用户推送强制下线消息
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="reason">下线原因</param>
+    /// <param name="targetSessionIds">需要被踢的会话ID列表，前端据此判断是否应处理；为空则全部处理</param>
+    private async Task NotifyForceLogoutAsync(string userId, string reason, IReadOnlyCollection<string>? targetSessionIds = null)
+    {
+        try
+        {
+            await _realtimeNotifier.SendToUserAsync(
+                userId,
+                SignalRConstants.ClientMethods.ForceLogout,
+                new { Reason = reason, Timestamp = DateTimeOffset.UtcNow, TargetSessionIds = targetSessionIds });
+        }
+        catch
+        {
+            // SignalR 推送失败不影响主流程（用户可能不在线）
+        }
     }
 
     /// <summary>

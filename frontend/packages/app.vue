@@ -30,7 +30,7 @@ useGlobalShortcuts()
   >
     <NLoadingBarProvider>
       <NMessageProvider placement="top" :duration="3000" :max="5">
-        <NNotificationProvider placement="top-right">
+        <NNotificationProvider placement="bottom-right" :max="5" :keep-alive-on-hover="false">
           <NDialogProvider>
             <RouterView />
             <AppWatermark />

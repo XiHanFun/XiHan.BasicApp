@@ -136,4 +136,24 @@ public interface IAuthAppService : IApplicationService
     /// 处理第三方登录（查找或自动创建用户，签发令牌）
     /// </summary>
     Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command);
+
+    /// <summary>
+    /// 发送邮箱验证码
+    /// </summary>
+    Task<AuthVerificationCodeDto> SendEmailVerifyCodeAsync();
+
+    /// <summary>
+    /// 验证邮箱
+    /// </summary>
+    Task VerifyEmailAsync(VerifyEmailCommand command);
+
+    /// <summary>
+    /// 停用当前账号
+    /// </summary>
+    Task DeactivateAccountAsync(DeactivateAccountCommand command);
+
+    /// <summary>
+    /// 注销当前账号（永久删除）
+    /// </summary>
+    Task DeleteAccountAsync(DeleteAccountCommand command);
 }
