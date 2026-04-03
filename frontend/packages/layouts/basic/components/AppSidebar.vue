@@ -3,7 +3,7 @@ import type { MenuOption } from 'naive-ui'
 import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '~/iconify'
-import { darkTheme, NConfigProvider } from 'naive-ui'
+import { darkTheme, NConfigProvider, NTag } from 'naive-ui'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
@@ -129,16 +129,40 @@ function translateTitle(title: string, _fallback: string) {
   return te(title) ? t(title) : title
 }
 
+const BADGE_TYPE_MAP: Record<string, 'default' | 'error' | 'info' | 'success' | 'warning'> = {
+  default: 'default',
+  success: 'success',
+  warning: 'warning',
+  error: 'error',
+  info: 'info',
+}
+
+function renderBadgeLabel(text: string, badge: { text?: string | number, type?: string, dot?: boolean }) {
+  if (badge.dot) {
+    return () =>
+      h('span', { style: 'display:flex;align-items:center;justify-content:space-between;width:100%' }, [
+        h('span', { class: 'truncate' }, text),
+        h('span', { style: 'width:8px;height:8px;border-radius:50%;background:hsl(var(--destructive));flex-shrink:0;margin-left:6px' }),
+      ])
+  }
+  const tagType = BADGE_TYPE_MAP[badge.type ?? ''] ?? 'default'
+  return () =>
+    h('span', { style: 'display:flex;align-items:center;justify-content:space-between;width:100%' }, [
+      h('span', { class: 'truncate' }, text),
+      h(NTag, { size: 'tiny', type: tagType, round: true, bordered: false, style: 'flex-shrink:0;margin-left:6px;font-size:11px;padding:0 6px;height:18px;line-height:18px' }, () => String(badge.text)),
+    ])
+}
+
+const menuBuildConfig = {
+  keyBy: 'path' as const,
+  translate: translateTitle,
+  iconRenderer: renderIcon,
+  badgeLabelRenderer: renderBadgeLabel,
+}
+
 function toPrimaryOptions(routeList: LayoutRouteRecord[], parentPath = '') {
-  return buildMenuOptionsFromRoutes(
-    routeList,
-    {
-      keyBy: 'path',
-      translate: translateTitle,
-      iconRenderer: renderIcon,
-    },
-    parentPath,
-  ).map((item) => ({ ...item, children: undefined }))
+  return buildMenuOptionsFromRoutes(routeList, menuBuildConfig, parentPath)
+    .map((item) => ({ ...item, children: undefined }))
 }
 
 // --- Standard menu ---
@@ -153,15 +177,7 @@ const menuOptions = computed(() => {
     isSplitMenuLayout.value && activeRootRoute.value
       ? resolveFullPath(activeRootRoute.value.path)
       : ''
-  return buildMenuOptionsFromRoutes(
-    menuSource.value,
-    {
-      keyBy: 'path',
-      translate: translateTitle,
-      iconRenderer: renderIcon,
-    },
-    parentPath,
-  )
+  return buildMenuOptionsFromRoutes(menuSource.value, menuBuildConfig, parentPath)
 })
 
 // --- Hover tracking for dual-column primary menus ---
@@ -199,11 +215,7 @@ const sideMixedSecondarySource = computed<LayoutRouteRecord[]>(() => {
 const sideMixedSecondaryOptions = computed(() =>
   buildMenuOptionsFromRoutes(
     sideMixedSecondarySource.value,
-    {
-      keyBy: 'path',
-      translate: translateTitle,
-      iconRenderer: renderIcon,
-    },
+    menuBuildConfig,
     sideMixedEffectiveTopKey.value,
   ),
 )
@@ -245,11 +257,7 @@ const headerMixSecondarySource = computed<LayoutRouteRecord[]>(() => {
 const headerMixSecondaryOptions = computed(() =>
   buildMenuOptionsFromRoutes(
     headerMixSecondarySource.value,
-    {
-      keyBy: 'path',
-      translate: translateTitle,
-      iconRenderer: renderIcon,
-    },
+    menuBuildConfig,
     headerMixEffectivePrimaryKey.value,
   ),
 )

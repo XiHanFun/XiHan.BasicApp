@@ -23,6 +23,9 @@ export interface SysMenu {
   isCache?: boolean
   isVisible: boolean
   isAffix?: boolean
+  badge?: string
+  badgeType?: string
+  badgeDot?: boolean
   sort: number
   status: number
   remark?: string
@@ -66,6 +69,9 @@ function normalizeMenu(raw: Record<string, any>): SysMenu {
     isCache: Boolean(raw.isCache),
     isVisible: raw.isVisible !== false && raw.isVisible !== 'false',
     isAffix: Boolean(raw.isAffix),
+    badge: raw.badge ?? undefined,
+    badgeType: raw.badgeType ?? undefined,
+    badgeDot: Boolean(raw.badgeDot),
     sort: Number(raw.sort ?? 0),
     status: resolveEnum(raw.status, STATUS_MAP, 1),
     remark: raw.remark ?? undefined,
@@ -87,6 +93,9 @@ function toMenuRoute(menu: SysMenu): MenuRoute {
       hidden: !menu.isVisible,
       order: menu.sort,
       permissions: menu.menuCode ? [menu.menuCode] : [],
+      badge: menu.badge || undefined,
+      badgeType: menu.badgeType || undefined,
+      dot: menu.badgeDot || undefined,
     },
     children: Array.isArray(menu.children)
       ? menu.children.map(c => toMenuRoute(c))
@@ -111,6 +120,9 @@ function toCreatePayload(data: Partial<SysMenu>) {
     isCache: data.isCache ?? true,
     isVisible: data.isVisible !== false,
     isAffix: data.isAffix ?? false,
+    badge: data.badge ?? '',
+    badgeType: data.badgeType ?? '',
+    badgeDot: data.badgeDot ?? false,
     sort: data.sort ?? 0,
     remark: data.remark ?? '',
   }
