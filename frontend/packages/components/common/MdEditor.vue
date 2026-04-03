@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { ToolbarNames } from 'md-editor-v3'
 import { MdEditor as Editor, MdPreview } from 'md-editor-v3'
+import { useAppStore } from '~/stores'
 import 'md-editor-v3/lib/style.css'
 
 defineOptions({ name: 'XMdEditor' })
@@ -7,7 +9,7 @@ defineOptions({ name: 'XMdEditor' })
 const props = withDefaults(defineProps<{
   /** 预览模式，不显示编辑区 */
   previewOnly?: boolean
-  /** 编辑器主题 */
+  /** 编辑器主题，不传则跟随系统 */
   theme?: 'light' | 'dark'
   /** 预览主题 */
   previewTheme?: 'default' | 'github' | 'vuepress' | 'mk-cute' | 'smart-blue' | 'cyanosis'
@@ -22,12 +24,12 @@ const props = withDefaults(defineProps<{
   /** 编辑器唯一 id，存在多个编辑器时须唯一 */
   editorId?: string
   /** 不显示的工具栏项 */
-  toolbarsExclude?: string[]
+  toolbarsExclude?: ToolbarNames[]
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
   previewOnly: false,
-  theme: 'light',
+  theme: undefined,
   previewTheme: 'default',
   codeTheme: 'atom',
   language: 'zh-CN',
@@ -38,14 +40,19 @@ const props = withDefaults(defineProps<{
   disabled: false,
 })
 
-const modelValue = defineModel<string>({ default: '' })
-
 const emit = defineEmits<{
   /** 保存快捷键触发 */
   save: [value: string]
   /** 图片上传 */
   uploadImg: [files: File[], callback: (urls: string[]) => void]
 }>()
+
+const modelValue = defineModel<string>({ default: '' })
+
+const appStore = useAppStore()
+
+/** 跟随系统暗色模式，外部可通过 theme prop 强制覆盖 */
+const resolvedTheme = computed(() => props.theme ?? (appStore.isDark ? 'dark' : 'light'))
 
 function handleSave(val: string) {
   emit('save', val)
@@ -61,7 +68,7 @@ function handleUploadImg(files: File[], callback: (urls: string[]) => void) {
     v-if="props.previewOnly"
     :model-value="modelValue"
     :editor-id="props.editorId"
-    :theme="props.theme"
+    :theme="resolvedTheme"
     :preview-theme="props.previewTheme"
     :code-theme="props.codeTheme"
     :language="props.language"
@@ -71,7 +78,7 @@ function handleUploadImg(files: File[], callback: (urls: string[]) => void) {
     v-else
     v-model="modelValue"
     :editor-id="props.editorId"
-    :theme="props.theme"
+    :theme="resolvedTheme"
     :preview-theme="props.previewTheme"
     :code-theme="props.codeTheme"
     :language="props.language"
