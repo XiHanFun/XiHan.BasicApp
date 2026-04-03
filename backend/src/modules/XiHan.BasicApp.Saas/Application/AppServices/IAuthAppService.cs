@@ -75,11 +75,6 @@ public interface IAuthAppService : IApplicationService
     Task LogoutAsync();
 
     /// <summary>
-    /// 修改密码
-    /// </summary>
-    Task ChangePasswordAsync(ChangePasswordCommand command);
-
-    /// <summary>
     /// 获取用户权限编码
     /// </summary>
     Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
@@ -93,67 +88,7 @@ public interface IAuthAppService : IApplicationService
     Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
 
     /// <summary>
-    /// 获取当前用户完整档案
-    /// </summary>
-    Task<UserProfileDto> GetProfileAsync();
-
-    /// <summary>
-    /// 更新当前用户个人资料
-    /// </summary>
-    Task UpdateProfileAsync(UpdateProfileCommand command);
-
-    /// <summary>
-    /// 获取当前用户活跃会话列表
-    /// </summary>
-    Task<IReadOnlyList<UserSessionItemDto>> GetSessionsAsync();
-
-    /// <summary>
-    /// 撤销指定会话
-    /// </summary>
-    Task RevokeSessionAsync(RevokeSessionCommand command);
-
-    /// <summary>
-    /// 撤销当前用户其他所有会话
-    /// </summary>
-    Task RevokeOtherSessionsAsync();
-
-    /// <summary>
-    /// 初始化双因素认证（生成密钥和二维码URI，尚未启用）
-    /// </summary>
-    Task<TwoFactorSetupResultDto> Setup2FAAsync();
-
-    /// <summary>
-    /// 验证并启用双因素认证
-    /// </summary>
-    Task Enable2FAAsync(Enable2FACommand command);
-
-    /// <summary>
-    /// 验证并禁用双因素认证
-    /// </summary>
-    Task Disable2FAAsync(Disable2FACommand command);
-
-    /// <summary>
     /// 处理第三方登录（查找或自动创建用户，签发令牌）
     /// </summary>
     Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command);
-
-    /// <summary>
-    /// 发送邮箱验证码
-    /// </summary>
-    Task<AuthVerificationCodeDto> SendEmailVerifyCodeAsync();
-
-    /// <summary>
-    /// 验证邮箱
-    /// </summary>
-    Task VerifyEmailAsync(VerifyEmailCommand command);
-
-    /// <summary>
-    /// 停用当前账号
-    /// </summary>
-    Task DeactivateAccountAsync(DeactivateAccountCommand command);
-
-    /// <summary>
-    /// 注销当前账号（永久删除）
-    /// </summary>
-    Task DeleteAccountAsync(DeleteAccountCommand command);
 }
