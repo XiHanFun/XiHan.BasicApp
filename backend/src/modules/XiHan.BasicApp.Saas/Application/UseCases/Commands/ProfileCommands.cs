@@ -107,6 +107,12 @@ public class RevokeSessionCommand
 public class Enable2FACommand
 {
     /// <summary>
+    /// 认证方式（1=TOTP 2=Email 3=Phone）
+    /// </summary>
+    [Required(ErrorMessage = "认证方式不能为空")]
+    public TwoFactorMethod Method { get; set; }
+
+    /// <summary>
     /// 验证码
     /// </summary>
     [Required(ErrorMessage = "验证码不能为空")]
@@ -120,11 +126,61 @@ public class Enable2FACommand
 public class Disable2FACommand
 {
     /// <summary>
+    /// 认证方式（与当前启用方式一致）
+    /// </summary>
+    [Required(ErrorMessage = "认证方式不能为空")]
+    public TwoFactorMethod Method { get; set; }
+
+    /// <summary>
     /// 验证码
     /// </summary>
     [Required(ErrorMessage = "验证码不能为空")]
     [StringLength(10, MinimumLength = 4, ErrorMessage = "验证码长度必须在 4～10 之间")]
     public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 发送 2FA 设置验证码命令（邮箱/手机方式启用或禁用时使用）
+/// </summary>
+public class Send2FAVerifyCodeCommand
+{
+    /// <summary>
+    /// 目标方式（2=Email 3=Phone）
+    /// </summary>
+    [Required(ErrorMessage = "认证方式不能为空")]
+    public TwoFactorMethod Method { get; set; }
+}
+
+/// <summary>
+/// 修改用户名命令
+/// </summary>
+public class ChangeUserNameCommand
+{
+    /// <summary>
+    /// 新用户名（3~30 字符，字母/数字/下划线，不能以数字开头）
+    /// </summary>
+    [Required(ErrorMessage = "用户名不能为空")]
+    [StringLength(30, MinimumLength = 3, ErrorMessage = "用户名长度必须在 3～30 之间")]
+    [RegularExpression(@"^[a-zA-Z_][a-zA-Z0-9_]{2,29}$", ErrorMessage = "用户名只能包含字母、数字、下划线，且不能以数字开头")]
+    public string UserName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 当前密码（身份验证）
+    /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 解除第三方账号绑定命令
+/// </summary>
+public class UnlinkExternalLoginCommand
+{
+    /// <summary>
+    /// 提供商名称（google、github 等）
+    /// </summary>
+    [Required(ErrorMessage = "提供商不能为空")]
+    public string Provider { get; set; } = string.Empty;
 }
 
 /// <summary>

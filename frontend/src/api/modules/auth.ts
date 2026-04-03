@@ -48,6 +48,9 @@ function normalizeLoginResponse(raw: any): LoginResponse {
   const tokenRaw = payload?.token
   return {
     requiresTwoFactor,
+    availableTwoFactorMethods: payload?.availableTwoFactorMethods ?? undefined,
+    twoFactorMethod: payload?.twoFactorMethod ?? undefined,
+    codeSent: payload?.codeSent ?? false,
     token: tokenRaw ? normalizeToken(tokenRaw) : null,
   }
 }
@@ -101,6 +104,7 @@ export const authApi = {
       password: data.password,
       tenantId: data.tenantId,
       twoFactorCode: data.twoFactorCode || undefined,
+      twoFactorMethod: data.twoFactorMethod || undefined,
     })
     return normalizeLoginResponse(raw)
   },

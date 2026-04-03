@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Domain.Enums;
+
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
@@ -100,9 +102,19 @@ public class UserProfileDto
     public string? LastLoginIp { get; set; }
 
     /// <summary>
+    /// 是否为系统内置账号
+    /// </summary>
+    public bool IsSystemAccount { get; set; }
+
+    /// <summary>
     /// 是否启用双因素认证
     /// </summary>
     public bool TwoFactorEnabled { get; set; }
+
+    /// <summary>
+    /// 双因素认证方式（Flags 位掩码：0=无 1=TOTP 2=邮箱 4=手机）
+    /// </summary>
+    public int TwoFactorMethod { get; set; }
 
     /// <summary>
     /// 邮箱是否验证
@@ -118,6 +130,16 @@ public class UserProfileDto
     /// 最后修改密码时间
     /// </summary>
     public DateTimeOffset? LastPasswordChangeTime { get; set; }
+
+    /// <summary>
+    /// 最后修改用户名时间
+    /// </summary>
+    public DateTimeOffset? LastUserNameChangeTime { get; set; }
+
+    /// <summary>
+    /// 是否可以修改用户名（非系统账号且满足 90 天冷却期）
+    /// </summary>
+    public bool CanChangeUserName { get; set; }
 }
 
 /// <summary>
@@ -190,4 +212,35 @@ public class TwoFactorSetupResultDto
     /// 认证器 URI（otpauth:// 格式，供二维码扫描）
     /// </summary>
     public string AuthenticatorUri { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 第三方登录绑定信息
+/// </summary>
+public class ExternalLoginItemDto
+{
+    /// <summary>
+    /// 提供商标识（google、github 等）
+    /// </summary>
+    public string Provider { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 提供商显示名称
+    /// </summary>
+    public string? ProviderDisplayName { get; set; }
+
+    /// <summary>
+    /// 三方邮箱
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 三方头像
+    /// </summary>
+    public string? AvatarUrl { get; set; }
+
+    /// <summary>
+    /// 最后登录时间
+    /// </summary>
+    public DateTimeOffset? LastLoginTime { get; set; }
 }

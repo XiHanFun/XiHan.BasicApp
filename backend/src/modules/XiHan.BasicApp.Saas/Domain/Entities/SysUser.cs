@@ -123,6 +123,12 @@ public partial class SysUser : BasicAppAggregateRoot
     public virtual string? Country { get; set; }
 
     /// <summary>
+    /// 是否为系统内置账号（不可修改用户名）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否系统内置账号")]
+    public virtual bool IsSystemAccount { get; set; } = false;
+
+    /// <summary>
     /// 备注
     /// </summary>
     [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]

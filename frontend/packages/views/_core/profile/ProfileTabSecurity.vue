@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
-import type { UserProfile, UserSessionItem } from '~/types'
+import type { ExternalLoginItem, UserProfile, UserSessionItem } from '~/types'
 import {
   NAlert,
   NButton,
@@ -31,10 +31,13 @@ import {
   deleteAccountApi,
   disable2FAApi,
   enable2FAApi,
+  getLinkedAccountsApi,
   getSessionsApi,
   revokeOtherSessionsApi,
   revokeSessionApi,
+  send2FASetupCodeApi,
   setup2FAApi,
+  unlinkAccountApi,
 } from '@/api'
 import { Icon } from '~/iconify'
 import { copyToClipboard, formatDate } from '~/utils'
@@ -44,6 +47,12 @@ const emit = defineEmits<{ updated: [] }>()
 
 const message = useMessage()
 const dialog = useDialog()
+
+// ==================== 2FA flags 常量（与后端 [Flags] 枚举对应） ====================
+
+const TF_TOTP = 1
+const TF_EMAIL = 2
+const TF_PHONE = 4
 
 // ==================== 密码 ====================
 
@@ -114,38 +123,100 @@ async function changePassword() {
   }
 }
 
-// ==================== 2FA ====================
+// ==================== 2FA 多方式独立开关 ====================
+
+const tfMethods = computed(() => props.profile?.twoFactorMethod ?? 0)
+const hasTotpEnabled = computed(() => (tfMethods.value & TF_TOTP) !== 0)
+const hasEmailEnabled = computed(() => (tfMethods.value & TF_EMAIL) !== 0)
+const hasPhoneEnabled = computed(() => (tfMethods.value & TF_PHONE) !== 0)
+const enabledCount = computed(() => {
+  let c = 0
+  if (hasTotpEnabled.value)
+    c++
+  if (hasEmailEnabled.value)
+    c++
+  if (hasPhoneEnabled.value)
+    c++
+  return c
+})
 
 const tfLoading = ref(false)
-const tfSetup = ref<{ sharedKey: string, authenticatorUri: string } | null>(null)
-const tfCode = ref<string[]>([])
-const tfCodeStr = computed(() => tfCode.value.join(''))
-const tfDisabling = ref(false)
 
-async function handleSetup2FA() {
+// TOTP 设置
+const tfTotpSetup = ref<{ sharedKey: string, authenticatorUri: string } | null>(null)
+const tfTotpSettingUp = ref(false)
+const tfTotpCode = ref<string[]>([])
+const tfTotpCodeStr = computed(() => tfTotpCode.value.join(''))
+
+// 邮箱/手机 设置
+const tfEmailSettingUp = ref(false)
+const tfPhoneSettingUp = ref(false)
+const tfEmailCode = ref<string[]>([])
+const tfPhoneCode = ref<string[]>([])
+const tfEmailCodeStr = computed(() => tfEmailCode.value.join(''))
+const tfPhoneCodeStr = computed(() => tfPhoneCode.value.join(''))
+
+// 禁用用验证码
+const tfDisableTarget = ref(0)
+const tfDisableCode = ref<string[]>([])
+const tfDisableCodeStr = computed(() => tfDisableCode.value.join(''))
+
+// 倒计时
+const tfCodeCountdown = ref(0)
+let tfCountdownTimer: ReturnType<typeof setInterval> | null = null
+
+function startTfCountdown(seconds: number) {
+  tfCodeCountdown.value = seconds
+  if (tfCountdownTimer)
+    clearInterval(tfCountdownTimer)
+  tfCountdownTimer = setInterval(() => {
+    tfCodeCountdown.value--
+    if (tfCodeCountdown.value <= 0) {
+      clearInterval(tfCountdownTimer!)
+      tfCountdownTimer = null
+    }
+  }, 1000)
+}
+
+function clearCountdown() {
+  if (tfCountdownTimer) {
+    clearInterval(tfCountdownTimer)
+    tfCountdownTimer = null
+  }
+  tfCodeCountdown.value = 0
+}
+
+// -- TOTP 启用流程 --
+
+async function startTotpSetup() {
+  tfTotpSettingUp.value = true
+  tfTotpCode.value = []
+  tfTotpSetup.value = null
   tfLoading.value = true
   try {
-    tfSetup.value = await setup2FAApi()
+    tfTotpSetup.value = await setup2FAApi()
   }
   catch (e: unknown) {
     message.error((e as Error)?.message || '初始化失败')
+    tfTotpSettingUp.value = false
   }
   finally {
     tfLoading.value = false
   }
 }
 
-async function handleEnable2FA() {
-  if (!tfCodeStr.value || tfCodeStr.value.length < 6) {
+async function confirmEnableTotp() {
+  if (!tfTotpCodeStr.value || tfTotpCodeStr.value.length < 6) {
     message.warning('请输入完整的 6 位验证码')
     return
   }
   tfLoading.value = true
   try {
-    await enable2FAApi(tfCodeStr.value)
-    message.success('双因素认证已启用')
-    tfSetup.value = null
-    tfCode.value = []
+    await enable2FAApi(TF_TOTP, tfTotpCodeStr.value)
+    message.success('TOTP 已启用')
+    tfTotpSetup.value = null
+    tfTotpCode.value = []
+    tfTotpSettingUp.value = false
     emit('updated')
   }
   catch (e: unknown) {
@@ -156,17 +227,137 @@ async function handleEnable2FA() {
   }
 }
 
-async function handleDisable2FA() {
-  if (!tfCodeStr.value || tfCodeStr.value.length < 6) {
+function cancelTotpSetup() {
+  tfTotpSettingUp.value = false
+  tfTotpSetup.value = null
+  tfTotpCode.value = []
+}
+
+// -- 邮箱/手机 启用流程 --
+
+async function sendSetupCode(method: number) {
+  tfLoading.value = true
+  try {
+    const res = await send2FASetupCodeApi(method)
+    message.success(method === TF_EMAIL ? '验证码已发送至邮箱' : '验证码已发送至手机')
+    startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '发送失败')
+  }
+  finally {
+    tfLoading.value = false
+  }
+}
+
+function startEmailSetup() {
+  tfEmailSettingUp.value = true
+  tfEmailCode.value = []
+  clearCountdown()
+  sendSetupCode(TF_EMAIL)
+}
+
+function startPhoneSetup() {
+  tfPhoneSettingUp.value = true
+  tfPhoneCode.value = []
+  clearCountdown()
+  sendSetupCode(TF_PHONE)
+}
+
+async function confirmEnableEmail() {
+  if (!tfEmailCodeStr.value || tfEmailCodeStr.value.length < 6) {
     message.warning('请输入完整的 6 位验证码')
     return
   }
   tfLoading.value = true
   try {
-    await disable2FAApi(tfCodeStr.value)
-    message.success('双因素认证已禁用')
-    tfCode.value = []
-    tfDisabling.value = false
+    await enable2FAApi(TF_EMAIL, tfEmailCodeStr.value)
+    message.success('邮箱两步验证已启用')
+    tfEmailSettingUp.value = false
+    tfEmailCode.value = []
+    clearCountdown()
+    emit('updated')
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '启用失败')
+  }
+  finally {
+    tfLoading.value = false
+  }
+}
+
+async function confirmEnablePhone() {
+  if (!tfPhoneCodeStr.value || tfPhoneCodeStr.value.length < 6) {
+    message.warning('请输入完整的 6 位验证码')
+    return
+  }
+  tfLoading.value = true
+  try {
+    await enable2FAApi(TF_PHONE, tfPhoneCodeStr.value)
+    message.success('手机两步验证已启用')
+    tfPhoneSettingUp.value = false
+    tfPhoneCode.value = []
+    clearCountdown()
+    emit('updated')
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '启用失败')
+  }
+  finally {
+    tfLoading.value = false
+  }
+}
+
+function cancelEmailSetup() {
+  tfEmailSettingUp.value = false
+  tfEmailCode.value = []
+  clearCountdown()
+}
+
+function cancelPhoneSetup() {
+  tfPhoneSettingUp.value = false
+  tfPhoneCode.value = []
+  clearCountdown()
+}
+
+// -- 禁用流程 --
+
+function startDisable(method: number) {
+  tfDisableTarget.value = method
+  tfDisableCode.value = []
+  clearCountdown()
+  if (method !== TF_TOTP) {
+    sendDisableCode(method)
+  }
+}
+
+async function sendDisableCode(method: number) {
+  tfLoading.value = true
+  try {
+    const res = await send2FASetupCodeApi(method)
+    message.success('验证码已发送')
+    startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '发送失败')
+  }
+  finally {
+    tfLoading.value = false
+  }
+}
+
+async function confirmDisable() {
+  if (!tfDisableCodeStr.value || tfDisableCodeStr.value.length < 6) {
+    message.warning('请输入完整的 6 位验证码')
+    return
+  }
+  tfLoading.value = true
+  try {
+    await disable2FAApi(tfDisableTarget.value, tfDisableCodeStr.value)
+    message.success('已禁用')
+    tfDisableTarget.value = 0
+    tfDisableCode.value = []
+    clearCountdown()
     emit('updated')
   }
   catch (e: unknown) {
@@ -177,19 +368,10 @@ async function handleDisable2FA() {
   }
 }
 
-function onToggle2FA(val: boolean) {
-  if (val) {
-    handleSetup2FA()
-  }
-  else {
-    tfDisabling.value = true
-    tfCode.value = []
-  }
-}
-
-function cancelDisable2FA() {
-  tfDisabling.value = false
-  tfCode.value = []
+function cancelDisable() {
+  tfDisableTarget.value = 0
+  tfDisableCode.value = []
+  clearCountdown()
 }
 
 // ==================== 会话 ====================
@@ -259,17 +441,52 @@ function deviceIcon(t: number) {
   return map[t] || 'lucide:help-circle'
 }
 
-// ==================== 登录记录 ====================
+// ==================== 第三方账号 ====================
 
-interface LoginRecord {
-  time: string
-  ip: string
-  location?: string
-  device?: string
-  status: 'success' | 'failed'
+const linkedAccounts = ref<ExternalLoginItem[]>([])
+const linkedLoading = ref(false)
+const linkedLoaded = ref(false)
+
+async function loadLinkedAccounts() {
+  linkedLoading.value = true
+  try {
+    linkedAccounts.value = await getLinkedAccountsApi()
+    linkedLoaded.value = true
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '加载失败')
+  }
+  finally {
+    linkedLoading.value = false
+  }
 }
-const loginHistory = ref<LoginRecord[]>([])
-const loginHistoryLoading = ref(false)
+
+async function handleUnlinkAccount(provider: string) {
+  try {
+    await unlinkAccountApi(provider)
+    message.success('已解除绑定')
+    await loadLinkedAccounts()
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '操作失败')
+  }
+}
+
+function providerIcon(name: string) {
+  const map: Record<string, string> = {
+    github: 'simple-icons:github',
+    google: 'simple-icons:google',
+    microsoft: 'simple-icons:microsoft',
+    qq: 'simple-icons:tencentqq',
+    wechat: 'simple-icons:wechat',
+    weibo: 'simple-icons:sinaweibo',
+  }
+  return map[name.toLowerCase()] || 'lucide:link'
+}
+
+function handleLinkNewAccount(_provider: string) {
+  message.info('绑定功能需要配合 OAuth 回调端点实现')
+}
 
 // ==================== 账号管理 ====================
 
@@ -287,7 +504,9 @@ function handleDeactivateAccount() {
         'value': accountPassword.value,
         'placeholder': '请输入当前密码',
         'showPasswordOn': 'click',
-        'onUpdate:value': (v: string) => { accountPassword.value = v },
+        'onUpdate:value': (v: string) => {
+          accountPassword.value = v
+        },
       }),
     ]),
     positiveText: '确认停用',
@@ -327,7 +546,9 @@ function handleDeleteAccount() {
         'value': accountPassword.value,
         'placeholder': '请输入当前密码',
         'showPasswordOn': 'click',
-        'onUpdate:value': (v: string) => { accountPassword.value = v },
+        'onUpdate:value': (v: string) => {
+          accountPassword.value = v
+        },
       }),
     ]),
     positiveText: '确认注销',
@@ -360,6 +581,7 @@ function handleDeleteAccount() {
 
 onMounted(() => {
   loadSessions()
+  loadLinkedAccounts()
 })
 </script>
 
@@ -413,74 +635,227 @@ onMounted(() => {
           <template #header>
             <div class="pf-card-header">
               <Icon icon="lucide:shield-check" width="16" />
-              <span>两步验证 (TOTP)</span>
+              <span>两步验证</span>
             </div>
           </template>
           <template #header-extra>
-            <NSwitch v-if="!tfDisabling" :value="profile?.twoFactorEnabled" :loading="tfLoading" @update:value="onToggle2FA" />
+            <NTag v-if="enabledCount > 0" type="success" size="small" :bordered="false">
+              {{ enabledCount }} 种已启用
+            </NTag>
           </template>
-          <div class="pf-hint" style="margin-bottom: 8px">
-            使用 Google / Microsoft Authenticator 等应用生成一次性验证码
+
+          <div class="pf-hint" style="margin-bottom: 12px">
+            您可以同时启用多种两步验证方式，登录时自由选择使用哪种
           </div>
-          <NTag v-if="profile?.twoFactorEnabled && !tfDisabling" type="success" size="small" :bordered="false">
-            <template #icon>
-              <NIcon>
-                <Icon icon="lucide:check-circle-2" />
-              </NIcon>
+
+          <!-- TOTP 方式 -->
+          <div class="pf-2fa-method">
+            <div class="pf-2fa-method-header">
+              <div class="pf-2fa-method-info">
+                <Icon icon="lucide:smartphone" width="16" />
+                <span>Authenticator App (TOTP)</span>
+              </div>
+              <NSwitch
+                :value="hasTotpEnabled"
+                :loading="tfLoading && (tfTotpSettingUp || tfDisableTarget === TF_TOTP)"
+                @update:value="(v: boolean) => v ? startTotpSetup() : startDisable(TF_TOTP)"
+              />
+            </div>
+
+            <!-- TOTP 设置中 -->
+            <template v-if="tfTotpSettingUp && !hasTotpEnabled">
+              <div v-if="tfTotpSetup" class="pf-2fa-setup">
+                <div class="pf-2fa-qr">
+                  <NQrCode
+                    :value="tfTotpSetup.authenticatorUri"
+                    :size="120"
+                    :padding="0"
+                    background-color="transparent"
+                    error-correction-level="M"
+                  />
+                  <span class="pf-hint">扫描二维码</span>
+                </div>
+                <div class="pf-2fa-manual">
+                  <span class="pf-hint">手动输入密钥：</span>
+                  <div class="pf-secret-row">
+                    <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
+                    <NTooltip>
+                      <template #trigger>
+                        <NButton size="small" quaternary @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => message.success('已复制'))">
+                          <template #icon>
+                            <NIcon>
+                              <Icon icon="lucide:copy" />
+                            </NIcon>
+                          </template>
+                        </NButton>
+                      </template>
+                      复制密钥
+                    </NTooltip>
+                  </div>
+                  <span class="pf-hint" style="margin-top: 10px; display: block">输入 6 位验证码：</span>
+                  <div class="pf-otp-row">
+                    <NInputOtp v-model:value="tfTotpCode" :length="6" @complete="confirmEnableTotp" />
+                    <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnableTotp">
+                      启用
+                    </NButton>
+                    <NButton size="small" quaternary @click="cancelTotpSetup">
+                      取消
+                    </NButton>
+                  </div>
+                </div>
+              </div>
             </template>
-            已启用
-          </NTag>
 
-          <template v-if="tfSetup && !profile?.twoFactorEnabled">
-            <NDivider style="margin: 12px 0" />
-            <div class="pf-2fa-setup">
-              <div class="pf-2fa-qr">
-                <NQrCode :value="tfSetup.authenticatorUri" :size="160" error-correction-level="M" />
-                <span class="pf-hint">扫描二维码</span>
+            <!-- TOTP 禁用流程 -->
+            <template v-if="tfDisableTarget === TF_TOTP">
+              <NAlert type="warning" :bordered="false" style="margin-top: 8px">
+                请输入 Authenticator App 中的 6 位验证码以禁用
+              </NAlert>
+              <div class="pf-otp-row">
+                <NInputOtp v-model:value="tfDisableCode" :length="6" @complete="confirmDisable" />
+                <NButton type="error" size="small" :loading="tfLoading" @click="confirmDisable">
+                  禁用
+                </NButton>
+                <NButton size="small" quaternary @click="cancelDisable">
+                  取消
+                </NButton>
               </div>
-              <div class="pf-2fa-manual">
-                <span class="pf-hint">无法扫码？手动输入密钥：</span>
-                <div class="pf-secret-row">
-                  <code class="pf-secret">{{ tfSetup.sharedKey }}</code>
-                  <NTooltip>
-                    <template #trigger>
-                      <NButton size="small" quaternary @click="copyToClipboard(tfSetup.sharedKey).then(() => message.success('已复制'))">
-                        <template #icon>
-                          <NIcon>
-                            <Icon icon="lucide:copy" />
-                          </NIcon>
-                        </template>
-                      </NButton>
-                    </template>
-                    复制密钥
-                  </NTooltip>
-                </div>
-                <span class="pf-hint" style="margin-top: 12px; display: block">输入 6 位验证码：</span>
-                <div class="pf-otp-row">
-                  <NInputOtp v-model:value="tfCode" :length="6" @complete="handleEnable2FA" />
-                  <NButton type="primary" :loading="tfLoading" @click="handleEnable2FA">
-                    启用
-                  </NButton>
-                </div>
-              </div>
-            </div>
-          </template>
+            </template>
+          </div>
 
-          <template v-if="tfDisabling">
-            <NDivider style="margin: 12px 0" />
-            <NAlert type="warning" :bordered="false" style="margin-bottom: 12px">
-              请输入认证器当前的 6 位验证码以确认身份
-            </NAlert>
-            <div class="pf-otp-row">
-              <NInputOtp v-model:value="tfCode" :length="6" @complete="handleDisable2FA" />
-              <NButton type="error" :loading="tfLoading" @click="handleDisable2FA">
-                禁用
-              </NButton>
-              <NButton quaternary @click="cancelDisable2FA">
-                取消
-              </NButton>
+          <NDivider style="margin: 8px 0" />
+
+          <!-- 邮箱方式 -->
+          <div class="pf-2fa-method">
+            <div class="pf-2fa-method-header">
+              <div class="pf-2fa-method-info">
+                <Icon icon="lucide:mail" width="16" />
+                <span>邮箱验证码</span>
+                <NTag v-if="!profile?.emailVerified" type="warning" size="tiny" :bordered="false">
+                  未验证
+                </NTag>
+              </div>
+              <NSwitch
+                :value="hasEmailEnabled"
+                :disabled="!profile?.emailVerified && !hasEmailEnabled"
+                :loading="tfLoading && (tfEmailSettingUp || tfDisableTarget === TF_EMAIL)"
+                @update:value="(v: boolean) => v ? startEmailSetup() : startDisable(TF_EMAIL)"
+              />
             </div>
-          </template>
+
+            <!-- 邮箱设置中 -->
+            <template v-if="tfEmailSettingUp && !hasEmailEnabled">
+              <div class="pf-hint" style="margin-top: 6px">
+                验证码已发送至 {{ profile?.email }}
+              </div>
+              <div class="pf-otp-row">
+                <NInputOtp v-model:value="tfEmailCode" :length="6" @complete="confirmEnableEmail" />
+                <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnableEmail">
+                  启用
+                </NButton>
+                <NButton
+                  size="small" quaternary
+                  :disabled="tfCodeCountdown > 0"
+                  @click="sendSetupCode(TF_EMAIL)"
+                >
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                </NButton>
+                <NButton size="small" quaternary @click="cancelEmailSetup">
+                  取消
+                </NButton>
+              </div>
+            </template>
+
+            <!-- 邮箱禁用流程 -->
+            <template v-if="tfDisableTarget === TF_EMAIL">
+              <NAlert type="warning" :bordered="false" style="margin-top: 8px">
+                验证码已发送至邮箱，请输入 6 位验证码以禁用
+              </NAlert>
+              <div class="pf-otp-row">
+                <NInputOtp v-model:value="tfDisableCode" :length="6" @complete="confirmDisable" />
+                <NButton type="error" size="small" :loading="tfLoading" @click="confirmDisable">
+                  禁用
+                </NButton>
+                <NButton
+                  size="small" quaternary
+                  :disabled="tfCodeCountdown > 0"
+                  @click="sendDisableCode(TF_EMAIL)"
+                >
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                </NButton>
+                <NButton size="small" quaternary @click="cancelDisable">
+                  取消
+                </NButton>
+              </div>
+            </template>
+          </div>
+
+          <NDivider style="margin: 8px 0" />
+
+          <!-- 手机方式 -->
+          <div class="pf-2fa-method">
+            <div class="pf-2fa-method-header">
+              <div class="pf-2fa-method-info">
+                <Icon icon="lucide:phone" width="16" />
+                <span>手机短信验证码</span>
+                <NTag v-if="!profile?.phoneVerified" type="warning" size="tiny" :bordered="false">
+                  未验证
+                </NTag>
+              </div>
+              <NSwitch
+                :value="hasPhoneEnabled"
+                :disabled="!profile?.phoneVerified && !hasPhoneEnabled"
+                :loading="tfLoading && (tfPhoneSettingUp || tfDisableTarget === TF_PHONE)"
+                @update:value="(v: boolean) => v ? startPhoneSetup() : startDisable(TF_PHONE)"
+              />
+            </div>
+
+            <!-- 手机设置中 -->
+            <template v-if="tfPhoneSettingUp && !hasPhoneEnabled">
+              <div class="pf-hint" style="margin-top: 6px">
+                验证码已发送至 {{ profile?.phone }}
+              </div>
+              <div class="pf-otp-row">
+                <NInputOtp v-model:value="tfPhoneCode" :length="6" @complete="confirmEnablePhone" />
+                <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnablePhone">
+                  启用
+                </NButton>
+                <NButton
+                  size="small" quaternary
+                  :disabled="tfCodeCountdown > 0"
+                  @click="sendSetupCode(TF_PHONE)"
+                >
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                </NButton>
+                <NButton size="small" quaternary @click="cancelPhoneSetup">
+                  取消
+                </NButton>
+              </div>
+            </template>
+
+            <!-- 手机禁用流程 -->
+            <template v-if="tfDisableTarget === TF_PHONE">
+              <NAlert type="warning" :bordered="false" style="margin-top: 8px">
+                验证码已发送至手机，请输入 6 位验证码以禁用
+              </NAlert>
+              <div class="pf-otp-row">
+                <NInputOtp v-model:value="tfDisableCode" :length="6" @complete="confirmDisable" />
+                <NButton type="error" size="small" :loading="tfLoading" @click="confirmDisable">
+                  禁用
+                </NButton>
+                <NButton
+                  size="small" quaternary
+                  :disabled="tfCodeCountdown > 0"
+                  @click="sendDisableCode(TF_PHONE)"
+                >
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                </NButton>
+                <NButton size="small" quaternary @click="cancelDisable">
+                  取消
+                </NButton>
+              </div>
+            </template>
+          </div>
         </NCard>
       </NGridItem>
 
@@ -546,52 +921,68 @@ onMounted(() => {
         </NCard>
       </NGridItem>
 
-      <!-- 登录记录 -->
-      <NGridItem>
+      <!-- 关联账号 -->
+      <NGridItem :span="2">
         <NCard :bordered="false" size="small" class="pf-card">
           <template #header>
             <div class="pf-card-header">
-              <Icon icon="lucide:history" width="16" />
-              <span>登录记录</span>
+              <Icon icon="lucide:link" width="16" />
+              <span>关联第三方账号</span>
             </div>
           </template>
           <template #header-extra>
-            <span class="pf-hint">最近 30 天</span>
-          </template>
-          <NSpin :show="loginHistoryLoading">
-            <NEmpty v-if="loginHistory.length === 0" description="暂无登录记录">
-              <template #extra>
-                <span class="pf-hint">需要后端实现登录记录接口</span>
+            <NButton size="tiny" quaternary @click="loadLinkedAccounts">
+              <template #icon>
+                <NIcon>
+                  <Icon icon="lucide:refresh-cw" />
+                </NIcon>
               </template>
-            </NEmpty>
+            </NButton>
+          </template>
+          <NSpin :show="linkedLoading">
+            <NEmpty v-if="linkedAccounts.length === 0 && linkedLoaded" description="暂无绑定的第三方账号" />
             <div v-else class="pf-list">
-              <div v-for="(r, i) in loginHistory" :key="i" class="pf-list-item">
-                <div class="pf-list-icon" :class="r.status === 'success' ? 'pf-list-icon--active' : 'pf-list-icon--danger'">
-                  <Icon :icon="r.status === 'success' ? 'lucide:log-in' : 'lucide:shield-x'" width="14" />
+              <div v-for="item in linkedAccounts" :key="item.provider" class="pf-list-item">
+                <div class="pf-list-icon">
+                  <Icon :icon="providerIcon(item.provider)" width="16" />
                 </div>
                 <div class="pf-list-body">
                   <div class="pf-list-title">
-                    {{ r.device || '未知设备' }}
+                    {{ item.providerDisplayName || item.provider }}
                   </div>
                   <div class="pf-list-desc">
-                    {{ r.ip }}
-                    <template v-if="r.location">
-                      · {{ r.location }}
+                    {{ item.email || '未关联邮箱' }}
+                    <template v-if="item.lastLoginTime">
+                      · 最后登录 {{ formatDate(item.lastLoginTime) }}
                     </template>
-                    · {{ formatDate(r.time) }}
                   </div>
                 </div>
-                <NTag :type="r.status === 'success' ? 'success' : 'error'" size="tiny" :bordered="false">
-                  {{ r.status === 'success' ? '成功' : '失败' }}
-                </NTag>
+                <NPopconfirm @positive-click="handleUnlinkAccount(item.provider)">
+                  <template #trigger>
+                    <NButton size="tiny" type="warning" text>
+                      解除绑定
+                    </NButton>
+                  </template>
+                  确定解除与 {{ item.providerDisplayName || item.provider }} 的绑定？
+                </NPopconfirm>
               </div>
+            </div>
+            <div style="margin-top: 10px">
+              <NButton size="small" dashed @click="handleLinkNewAccount('')">
+                <template #icon>
+                  <NIcon>
+                    <Icon icon="lucide:plus" />
+                  </NIcon>
+                </template>
+                绑定新账号
+              </NButton>
             </div>
           </NSpin>
         </NCard>
       </NGridItem>
 
       <!-- 账号管理 -->
-      <NGridItem>
+      <NGridItem :span="2">
         <NCard :bordered="false" size="small" class="pf-card">
           <template #header>
             <div class="pf-card-header">
@@ -667,9 +1058,28 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.pf-2fa-method {
+  padding: 6px 0;
+}
+
+.pf-2fa-method-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pf-2fa-method-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
 .pf-2fa-setup {
   display: flex;
   gap: 16px;
+  margin-top: 10px;
 }
 
 .pf-2fa-qr {
@@ -677,10 +1087,12 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--n-border-color, #e5e7eb);
   flex-shrink: 0;
+  width: fit-content;
 }
 
 .pf-2fa-manual {
