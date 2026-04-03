@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { NButton, NButtonGroup, NDivider, NPopover, NInput, NColorPicker } from 'naive-ui'
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
-import Underline from '@tiptap/extension-underline'
-import TextAlign from '@tiptap/extension-text-align'
-import Link from '@tiptap/extension-link'
-import Image from '@tiptap/extension-image'
-import TextStyle from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import Highlight from '@tiptap/extension-highlight'
+import Image from '@tiptap/extension-image'
+import Link from '@tiptap/extension-link'
+import Placeholder from '@tiptap/extension-placeholder'
+import TextAlign from '@tiptap/extension-text-align'
+import { TextStyle } from '@tiptap/extension-text-style'
+import Underline from '@tiptap/extension-underline'
+import StarterKit from '@tiptap/starter-kit'
+import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { NButton, NButtonGroup, NColorPicker, NDivider, NInput, NPopover } from 'naive-ui'
 
 defineOptions({ name: 'XRichTextEditor' })
 
@@ -52,7 +52,7 @@ const editor = useEditor({
 
 watch(modelValue, (val) => {
   if (editor.value && val !== editor.value.getHTML()) {
-    editor.value.commands.setContent(val, false)
+    editor.value.commands.setContent(val, { emitUpdate: false })
   }
 })
 
@@ -76,7 +76,9 @@ function setLink() {
 
 /** 插入图片 */
 function addImage() {
-  if (!imageUrl.value) return
+  if (!imageUrl.value) {
+    return
+  }
   editor.value?.chain().focus().setImage({ src: imageUrl.value }).run()
   imageUrl.value = ''
 }
@@ -113,32 +115,32 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('bold') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleBold().run()"
           title="粗体"
+          @click="editor!.chain().focus().toggleBold().run()"
         >
           <span class="font-bold">B</span>
         </NButton>
         <NButton
           :type="isActive('italic') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleItalic().run()"
           title="斜体"
+          @click="editor!.chain().focus().toggleItalic().run()"
         >
           <span class="italic">I</span>
         </NButton>
         <NButton
           :type="isActive('underline') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleUnderline().run()"
           title="下划线"
+          @click="editor!.chain().focus().toggleUnderline().run()"
         >
           <span class="underline">U</span>
         </NButton>
         <NButton
           :type="isActive('strike') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleStrike().run()"
           title="删除线"
+          @click="editor!.chain().focus().toggleStrike().run()"
         >
           <span class="line-through">S</span>
         </NButton>
@@ -181,24 +183,24 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive({ textAlign: 'left' }) ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().setTextAlign('left').run()"
           title="左对齐"
+          @click="editor!.chain().focus().setTextAlign('left').run()"
         >
           ≡
         </NButton>
         <NButton
           :type="isActive({ textAlign: 'center' }) ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().setTextAlign('center').run()"
           title="居中"
+          @click="editor!.chain().focus().setTextAlign('center').run()"
         >
           ≡
         </NButton>
         <NButton
           :type="isActive({ textAlign: 'right' }) ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().setTextAlign('right').run()"
           title="右对齐"
+          @click="editor!.chain().focus().setTextAlign('right').run()"
         >
           ≡
         </NButton>
@@ -211,16 +213,16 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('bulletList') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleBulletList().run()"
           title="无序列表"
+          @click="editor!.chain().focus().toggleBulletList().run()"
         >
           •
         </NButton>
         <NButton
           :type="isActive('orderedList') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleOrderedList().run()"
           title="有序列表"
+          @click="editor!.chain().focus().toggleOrderedList().run()"
         >
           1.
         </NButton>
@@ -233,23 +235,23 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('blockquote') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleBlockquote().run()"
           title="引用"
+          @click="editor!.chain().focus().toggleBlockquote().run()"
         >
           「」
         </NButton>
         <NButton
           :type="isActive('codeBlock') ? 'primary' : 'default'"
           quaternary
-          @click="editor!.chain().focus().toggleCodeBlock().run()"
           title="代码块"
+          @click="editor!.chain().focus().toggleCodeBlock().run()"
         >
           &lt;/&gt;
         </NButton>
         <NButton
           quaternary
-          @click="editor!.chain().focus().setHorizontalRule().run()"
           title="分隔线"
+          @click="editor!.chain().focus().setHorizontalRule().run()"
         >
           ─
         </NButton>
@@ -271,7 +273,9 @@ const headingLevels = [1, 2, 3, 4] as const
         </template>
         <div class="flex items-center gap-2">
           <NInput v-model:value="linkUrl" placeholder="https://" size="small" style="width: 200px" />
-          <NButton size="small" type="primary" @click="setLink">确定</NButton>
+          <NButton size="small" type="primary" @click="setLink">
+            确定
+          </NButton>
         </div>
       </NPopover>
 
@@ -284,7 +288,9 @@ const headingLevels = [1, 2, 3, 4] as const
         </template>
         <div class="flex items-center gap-2">
           <NInput v-model:value="imageUrl" placeholder="图片地址" size="small" style="width: 200px" />
-          <NButton size="small" type="primary" @click="addImage">确定</NButton>
+          <NButton size="small" type="primary" @click="addImage">
+            确定
+          </NButton>
         </div>
       </NPopover>
 
@@ -295,16 +301,16 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           quaternary
           :disabled="!editor!.can().undo()"
-          @click="editor!.chain().focus().undo().run()"
           title="撤销"
+          @click="editor!.chain().focus().undo().run()"
         >
           ↩
         </NButton>
         <NButton
           quaternary
           :disabled="!editor!.can().redo()"
-          @click="editor!.chain().focus().redo().run()"
           title="重做"
+          @click="editor!.chain().focus().redo().run()"
         >
           ↪
         </NButton>
@@ -331,13 +337,39 @@ const headingLevels = [1, 2, 3, 4] as const
   height: 0;
 }
 
-.x-rich-text-content :deep(.tiptap h1) { font-size: 1.75em; font-weight: 700; margin: 0.5em 0; }
-.x-rich-text-content :deep(.tiptap h2) { font-size: 1.5em; font-weight: 700; margin: 0.4em 0; }
-.x-rich-text-content :deep(.tiptap h3) { font-size: 1.25em; font-weight: 600; margin: 0.3em 0; }
-.x-rich-text-content :deep(.tiptap h4) { font-size: 1.1em; font-weight: 600; margin: 0.2em 0; }
+.x-rich-text-content :deep(.tiptap h1) {
+  font-size: 1.75em;
+  font-weight: 700;
+  margin: 0.5em 0;
+}
 
-.x-rich-text-content :deep(.tiptap ul) { list-style: disc; padding-left: 1.5em; }
-.x-rich-text-content :deep(.tiptap ol) { list-style: decimal; padding-left: 1.5em; }
+.x-rich-text-content :deep(.tiptap h2) {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin: 0.4em 0;
+}
+
+.x-rich-text-content :deep(.tiptap h3) {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 0.3em 0;
+}
+
+.x-rich-text-content :deep(.tiptap h4) {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0.2em 0;
+}
+
+.x-rich-text-content :deep(.tiptap ul) {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+
+.x-rich-text-content :deep(.tiptap ol) {
+  list-style: decimal;
+  padding-left: 1.5em;
+}
 
 .x-rich-text-content :deep(.tiptap blockquote) {
   border-left: 3px solid #d1d5db;
