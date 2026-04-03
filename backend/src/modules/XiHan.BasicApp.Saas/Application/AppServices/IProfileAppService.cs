@@ -74,7 +74,7 @@ public interface IProfileAppService : IApplicationService
     Task Disable2FAAsync(Disable2FACommand command);
 
     /// <summary>
-    /// 发送邮箱验证码（用于邮箱地址验证，非 2FA）
+    /// 发送邮箱验证码（验证当前已保存的邮箱）
     /// </summary>
     Task<AuthVerificationCodeDto> SendEmailVerifyCodeAsync();
 
@@ -82,6 +82,36 @@ public interface IProfileAppService : IApplicationService
     /// 验证邮箱
     /// </summary>
     Task VerifyEmailAsync(VerifyEmailCommand command);
+
+    /// <summary>
+    /// 发送手机验证码（验证当前已保存的手机号）
+    /// </summary>
+    Task<AuthVerificationCodeDto> SendPhoneVerifyCodeAsync();
+
+    /// <summary>
+    /// 验证手机
+    /// </summary>
+    Task VerifyPhoneAsync(VerifyPhoneCommand command);
+
+    /// <summary>
+    /// 换绑邮箱（发送验证码到新邮箱）
+    /// </summary>
+    Task<AuthVerificationCodeDto> SendChangeEmailCodeAsync(ChangeEmailCommand command);
+
+    /// <summary>
+    /// 确认换绑邮箱
+    /// </summary>
+    Task ConfirmChangeEmailAsync(ConfirmChangeEmailCommand command);
+
+    /// <summary>
+    /// 换绑手机（发送验证码到新手机）
+    /// </summary>
+    Task<AuthVerificationCodeDto> SendChangePhoneCodeAsync(ChangePhoneCommand command);
+
+    /// <summary>
+    /// 确认换绑手机
+    /// </summary>
+    Task ConfirmChangePhoneAsync(ConfirmChangePhoneCommand command);
 
     /// <summary>
     /// 修改用户名
@@ -97,6 +127,11 @@ public interface IProfileAppService : IApplicationService
     /// 解除第三方登录绑定
     /// </summary>
     Task UnlinkExternalLoginAsync(UnlinkExternalLoginCommand command);
+
+    /// <summary>
+    /// 获取当前用户的登录日志（分页）
+    /// </summary>
+    Task<LoginLogPageDto> GetLoginLogsAsync(int pageIndex = 1, int pageSize = 20);
 
     /// <summary>
     /// 停用当前账号

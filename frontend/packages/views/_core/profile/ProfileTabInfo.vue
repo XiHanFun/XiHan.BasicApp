@@ -21,6 +21,10 @@ import {
 import { computed, h, ref, watch } from 'vue'
 import {
   changeUserNameApi,
+  confirmChangeEmailApi,
+  confirmChangePhoneApi,
+  sendChangeEmailCodeApi,
+  sendChangePhoneCodeApi,
   sendEmailVerifyCodeApi,
   sendPhoneVerifyCodeApi,
   updateProfileApi,
@@ -120,8 +124,6 @@ const profileFormRef = ref<FormInst | null>(null)
 const profileForm = ref({
   nickName: '',
   realName: '',
-  email: '',
-  phone: '',
   gender: 0 as number,
   birthday: null as null | number,
   country: '',
@@ -155,8 +157,6 @@ function syncProfileForm() {
   profileForm.value = {
     nickName: p.nickName ?? '',
     realName: p.realName ?? '',
-    email: p.email ?? '',
-    phone: p.phone ?? '',
     gender: p.gender ?? 0,
     birthday: p.birthday ? new Date(p.birthday).getTime() : null,
     country: p.country ?? '',
@@ -181,8 +181,6 @@ async function saveProfile() {
       userStore.setUserInfo({
         ...userStore.userInfo,
         nickName: profileForm.value.nickName,
-        email: profileForm.value.email,
-        phone: profileForm.value.phone,
       })
     }
     emit('saved')
@@ -195,147 +193,187 @@ async function saveProfile() {
   }
 }
 
-// ==================== 邮箱验证 ====================
+// ==================== 邮箱/手机 通用状态 ====================
 
-const emailVerifying = ref(false)
-const emailVerifyCode = ref('')
-const emailCodeSending = ref(false)
-const emailCodeCountdown = ref(0)
-let emailTimer: ReturnType<typeof setInterval> | null = null
+type ContactTarget = 'email' | 'phone'
 
-// ==================== 手机验证 ====================
+// 验证当前地址
+const verifyLoading = ref(false)
+const verifyTarget = ref<ContactTarget | null>(null)
+const verifyCode = ref('')
+const verifyCountdown = ref(0)
+let verifyTimer: ReturnType<typeof setInterval> | null = null
 
-const phoneVerifying = ref(false)
-const phoneVerifyCode = ref('')
-const phoneCodeSending = ref(false)
-const phoneCodeCountdown = ref(0)
-let phoneTimer: ReturnType<typeof setInterval> | null = null
+// 换绑新地址
+const changeTarget = ref<ContactTarget | null>(null)
+const changeNewValue = ref('')
+const changePassword = ref('')
+const changeLoading = ref(false)
+const changeCodeSent = ref(false)
+const changeCode = ref('')
+const changeCountdown = ref(0)
+let changeTimer: ReturnType<typeof setInterval> | null = null
 
-// ==================== 通用倒计时 ====================
-
-function startCountdown(type: 'email' | 'phone', seconds: number) {
-  const countdownRef = type === 'email' ? emailCodeCountdown : phoneCodeCountdown
+function startTimer(
+  countdownRef: { value: number },
+  timerSetter: (t: ReturnType<typeof setInterval> | null) => void,
+  seconds: number,
+) {
   countdownRef.value = seconds
-  const timer = setInterval(() => {
+  const t = setInterval(() => {
     countdownRef.value--
     if (countdownRef.value <= 0) {
-      clearInterval(timer)
-      if (type === 'email')
-        emailTimer = null
-      else
-        phoneTimer = null
+      clearInterval(t)
+      timerSetter(null)
     }
   }, 1000)
-  if (type === 'email')
-    emailTimer = timer
-  else
-    phoneTimer = timer
+  timerSetter(t)
 }
 
-// ==================== 邮箱操作 ====================
+// ==================== 验证当前邮箱/手机 ====================
 
-async function sendEmailCode() {
-  if (!profileForm.value.email) {
-    message.warning('请先填写邮箱地址')
-    return
-  }
-  emailCodeSending.value = true
+async function sendVerifyCode(type: ContactTarget) {
+  verifyLoading.value = true
   try {
-    const res = await sendEmailVerifyCodeApi()
-    message.success('验证码已发送至邮箱')
-    emailVerifying.value = true
-    startCountdown('email', res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+    const res = type === 'email'
+      ? await sendEmailVerifyCodeApi()
+      : await sendPhoneVerifyCodeApi()
+    message.success(type === 'email' ? '验证码已发送至邮箱' : '验证码已发送至手机')
+    verifyTarget.value = type
+    verifyCode.value = ''
+    startTimer(
+      verifyCountdown,
+      t => (verifyTimer = t),
+      Math.min(res.expiresInSeconds, 60),
+    )
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发送验证码失败')
+    message.error((e as Error)?.message || '发送失败')
   }
   finally {
-    emailCodeSending.value = false
+    verifyLoading.value = false
   }
 }
 
-async function confirmEmailVerify() {
-  if (!emailVerifyCode.value || emailVerifyCode.value.length < 6) {
+async function confirmVerify() {
+  if (verifyCode.value.length < 6) {
     message.warning('请输入完整的 6 位验证码')
     return
   }
-  emailCodeSending.value = true
+  verifyLoading.value = true
   try {
-    await verifyEmailApi(emailVerifyCode.value)
-    message.success('邮箱验证成功')
-    emailVerifying.value = false
-    emailVerifyCode.value = ''
+    if (verifyTarget.value === 'email')
+      await verifyEmailApi(verifyCode.value)
+    else
+      await verifyPhoneApi(verifyCode.value)
+    message.success('验证成功')
+    cancelVerify()
     emit('saved')
   }
   catch (e: unknown) {
     message.error((e as Error)?.message || '验证失败')
   }
   finally {
-    emailCodeSending.value = false
+    verifyLoading.value = false
   }
 }
 
-function cancelEmailVerify() {
-  emailVerifying.value = false
-  emailVerifyCode.value = ''
-  if (emailTimer) {
-    clearInterval(emailTimer)
-    emailTimer = null
+function cancelVerify() {
+  verifyTarget.value = null
+  verifyCode.value = ''
+  verifyCountdown.value = 0
+  if (verifyTimer) {
+    clearInterval(verifyTimer)
+    verifyTimer = null
   }
-  emailCodeCountdown.value = 0
 }
 
-// ==================== 手机操作 ====================
+// ==================== 换绑邮箱/手机 ====================
 
-async function sendPhoneCode() {
-  if (!profileForm.value.phone) {
-    message.warning('请先填写手机号码')
+function openChangeDialog(type: ContactTarget) {
+  changeTarget.value = type
+  changeNewValue.value = ''
+  changePassword.value = ''
+  changeCodeSent.value = false
+  changeCode.value = ''
+  changeCountdown.value = 0
+  if (changeTimer) {
+    clearInterval(changeTimer)
+    changeTimer = null
+  }
+}
+
+async function sendChangeCode() {
+  if (!changeNewValue.value.trim()) {
+    message.warning(changeTarget.value === 'email' ? '请输入新邮箱' : '请输入新手机号')
     return
   }
-  phoneCodeSending.value = true
+  if (!changePassword.value) {
+    message.warning('请输入当前密码')
+    return
+  }
+  changeLoading.value = true
   try {
-    const res = await sendPhoneVerifyCodeApi()
-    message.success('验证码已发送至手机')
-    phoneVerifying.value = true
-    startCountdown('phone', res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+    const res = changeTarget.value === 'email'
+      ? await sendChangeEmailCodeApi({
+        newEmail: changeNewValue.value.trim(),
+        password: changePassword.value,
+      })
+      : await sendChangePhoneCodeApi({
+        newPhone: changeNewValue.value.trim(),
+        password: changePassword.value,
+      })
+    message.success('验证码已发送')
+    changeCodeSent.value = true
+    changeCode.value = ''
+    startTimer(
+      changeCountdown,
+      t => (changeTimer = t),
+      Math.min(res.expiresInSeconds, 60),
+    )
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发送验证码失败')
+    message.error((e as Error)?.message || '发送失败')
   }
   finally {
-    phoneCodeSending.value = false
+    changeLoading.value = false
   }
 }
 
-async function confirmPhoneVerify() {
-  if (!phoneVerifyCode.value || phoneVerifyCode.value.length < 6) {
+async function confirmChange() {
+  if (changeCode.value.length < 6) {
     message.warning('请输入完整的 6 位验证码')
     return
   }
-  phoneCodeSending.value = true
+  changeLoading.value = true
   try {
-    await verifyPhoneApi(phoneVerifyCode.value)
-    message.success('手机号验证成功')
-    phoneVerifying.value = false
-    phoneVerifyCode.value = ''
+    if (changeTarget.value === 'email')
+      await confirmChangeEmailApi(changeCode.value)
+    else
+      await confirmChangePhoneApi(changeCode.value)
+    message.success(changeTarget.value === 'email' ? '邮箱已更新' : '手机号已更新')
+    cancelChange()
     emit('saved')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '验证失败')
+    message.error((e as Error)?.message || '操作失败')
   }
   finally {
-    phoneCodeSending.value = false
+    changeLoading.value = false
   }
 }
 
-function cancelPhoneVerify() {
-  phoneVerifying.value = false
-  phoneVerifyCode.value = ''
-  if (phoneTimer) {
-    clearInterval(phoneTimer)
-    phoneTimer = null
+function cancelChange() {
+  changeTarget.value = null
+  changeNewValue.value = ''
+  changePassword.value = ''
+  changeCodeSent.value = false
+  changeCode.value = ''
+  changeCountdown.value = 0
+  if (changeTimer) {
+    clearInterval(changeTimer)
+    changeTimer = null
   }
-  phoneCodeCountdown.value = 0
 }
 </script>
 
@@ -410,11 +448,12 @@ function cancelPhoneVerify() {
                   <NInput v-model:value="profileForm.nickName" placeholder="您的昵称" />
                 </NFormItem>
               </NGridItem>
+              <!-- 邮箱 -->
               <NGridItem>
-                <NFormItem label="电子邮箱" path="email">
+                <NFormItem label="电子邮箱">
                   <div class="pf-full">
                     <NInputGroup>
-                      <NInput v-model:value="profileForm.email" placeholder="your@email.com">
+                      <NInput :value="profile?.email || '未设置'" disabled>
                         <template #suffix>
                           <NTag v-if="profile?.emailVerified" type="success" size="tiny" :bordered="false">
                             已验证
@@ -424,40 +463,41 @@ function cancelPhoneVerify() {
                           </NTag>
                         </template>
                       </NInput>
-                      <NButton
-                        v-if="profile?.email && !profile?.emailVerified && !emailVerifying"
-                        type="primary" ghost
-                        :loading="emailCodeSending"
-                        @click="sendEmailCode"
-                      >
-                        发送验证码
+                      <NButton type="primary" ghost @click="openChangeDialog('email')">
+                        {{ profile?.email ? '修改' : '绑定' }}
                       </NButton>
-                    </NInputGroup>
-                    <div v-if="emailVerifying" class="pf-verify-row">
-                      <NInput v-model:value="emailVerifyCode" placeholder="请输入 6 位验证码" :maxlength="6" />
-                      <NButton type="primary" :loading="emailCodeSending" :disabled="emailVerifyCode.length < 6" @click="confirmEmailVerify">
+                      <NButton
+                        v-if="profile?.email && !profile?.emailVerified"
+                        quaternary
+                        :loading="verifyLoading && verifyTarget === 'email'"
+                        @click="sendVerifyCode('email')"
+                      >
                         验证
                       </NButton>
-                      <NButton
-                        :disabled="emailCodeCountdown > 0"
-                        :loading="emailCodeSending"
-                        quaternary
-                        @click="sendEmailCode"
-                      >
-                        {{ emailCodeCountdown > 0 ? `${emailCodeCountdown}s` : '重新发送' }}
+                    </NInputGroup>
+                    <!-- 验证当前邮箱的验证码输入行 -->
+                    <div v-if="verifyTarget === 'email'" class="pf-verify-row">
+                      <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" />
+                      <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                        确认
                       </NButton>
-                      <NButton quaternary @click="cancelEmailVerify">
+                      <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('email')">
+                        {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
+                      </NButton>
+                      <NButton quaternary @click="cancelVerify">
                         取消
                       </NButton>
                     </div>
                   </div>
                 </NFormItem>
               </NGridItem>
+
+              <!-- 手机 -->
               <NGridItem>
-                <NFormItem label="手机号码" path="phone">
+                <NFormItem label="手机号码">
                   <div class="pf-full">
                     <NInputGroup>
-                      <NInput v-model:value="profileForm.phone" placeholder="您的手机号">
+                      <NInput :value="profile?.phone || '未设置'" disabled>
                         <template #suffix>
                           <NTag v-if="profile?.phoneVerified" type="success" size="tiny" :bordered="false">
                             已验证
@@ -467,35 +507,82 @@ function cancelPhoneVerify() {
                           </NTag>
                         </template>
                       </NInput>
-                      <NButton
-                        v-if="profile?.phone && !profile?.phoneVerified && !phoneVerifying"
-                        type="primary" ghost
-                        :loading="phoneCodeSending"
-                        @click="sendPhoneCode"
-                      >
-                        发送验证码
+                      <NButton type="primary" ghost @click="openChangeDialog('phone')">
+                        {{ profile?.phone ? '修改' : '绑定' }}
                       </NButton>
-                    </NInputGroup>
-                    <div v-if="phoneVerifying" class="pf-verify-row">
-                      <NInput v-model:value="phoneVerifyCode" placeholder="请输入 6 位验证码" :maxlength="6" />
-                      <NButton type="primary" :loading="phoneCodeSending" :disabled="phoneVerifyCode.length < 6" @click="confirmPhoneVerify">
+                      <NButton
+                        v-if="profile?.phone && !profile?.phoneVerified"
+                        quaternary
+                        :loading="verifyLoading && verifyTarget === 'phone'"
+                        @click="sendVerifyCode('phone')"
+                      >
                         验证
                       </NButton>
-                      <NButton
-                        :disabled="phoneCodeCountdown > 0"
-                        :loading="phoneCodeSending"
-                        quaternary
-                        @click="sendPhoneCode"
-                      >
-                        {{ phoneCodeCountdown > 0 ? `${phoneCodeCountdown}s` : '重新发送' }}
+                    </NInputGroup>
+                    <div v-if="verifyTarget === 'phone'" class="pf-verify-row">
+                      <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" />
+                      <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                        确认
                       </NButton>
-                      <NButton quaternary @click="cancelPhoneVerify">
+                      <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('phone')">
+                        {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
+                      </NButton>
+                      <NButton quaternary @click="cancelVerify">
                         取消
                       </NButton>
                     </div>
                   </div>
                 </NFormItem>
               </NGridItem>
+
+              <!-- 换绑对话框（邮箱/手机共用） -->
+              <Teleport to="body">
+                <div v-if="changeTarget" class="pf-change-overlay" @click.self="cancelChange">
+                  <NCard
+                    class="pf-change-dialog"
+                    :title="changeTarget === 'email' ? '修改邮箱' : '修改手机号'"
+                    size="small"
+                    closable
+                    @close="cancelChange"
+                  >
+                    <div class="pf-change-body">
+                      <template v-if="!changeCodeSent">
+                        <NInput
+                          v-model:value="changeNewValue"
+                          :placeholder="changeTarget === 'email' ? '新邮箱地址' : '新手机号'"
+                        />
+                        <NInput
+                          v-model:value="changePassword"
+                          type="password"
+                          placeholder="输入当前密码确认身份"
+                          show-password-on="click"
+                        />
+                        <NButton type="primary" block :loading="changeLoading" @click="sendChangeCode">
+                          发送验证码
+                        </NButton>
+                      </template>
+                      <template v-else>
+                        <p class="pf-change-hint">
+                          验证码已发送至 <strong>{{ changeNewValue }}</strong>
+                        </p>
+                        <NInput
+                          v-model:value="changeCode"
+                          placeholder="请输入 6 位验证码"
+                          :maxlength="6"
+                        />
+                        <NSpace :size="8">
+                          <NButton type="primary" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
+                            确认
+                          </NButton>
+                          <NButton :disabled="changeCountdown > 0" quaternary @click="sendChangeCode">
+                            {{ changeCountdown > 0 ? `${changeCountdown}s 后重发` : '重新发送' }}
+                          </NButton>
+                        </NSpace>
+                      </template>
+                    </div>
+                  </NCard>
+                </div>
+              </Teleport>
               <NGridItem>
                 <NFormItem label="性别">
                   <NSelect v-model:value="profileForm.gender" :options="genderOptions" />
@@ -568,5 +655,32 @@ function cancelPhoneVerify() {
   align-items: center;
   gap: 6px;
   margin-top: 6px;
+}
+
+.pf-change-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.35);
+}
+
+.pf-change-dialog {
+  width: 380px;
+  max-width: 90vw;
+}
+
+.pf-change-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf-change-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 </style>

@@ -41,20 +41,6 @@ public class UpdateProfileCommand
     public string? Avatar { get; set; }
 
     /// <summary>
-    /// 邮箱
-    /// </summary>
-    [EmailAddress(ErrorMessage = "邮箱格式不正确")]
-    [StringLength(100, ErrorMessage = "邮箱长度不能超过 100")]
-    public string? Email { get; set; }
-
-    /// <summary>
-    /// 手机号
-    /// </summary>
-    [Phone(ErrorMessage = "手机号格式不正确")]
-    [StringLength(20, ErrorMessage = "手机号长度不能超过 20")]
-    public string? Phone { get; set; }
-
-    /// <summary>
     /// 性别
     /// </summary>
     public UserGender? Gender { get; set; }
@@ -187,6 +173,85 @@ public class UnlinkExternalLoginCommand
 /// 验证邮箱命令
 /// </summary>
 public class VerifyEmailCommand
+{
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "验证码必须为 6 位")]
+    public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 验证手机命令
+/// </summary>
+public class VerifyPhoneCommand
+{
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "验证码必须为 6 位")]
+    public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 换绑邮箱命令（发送验证码到新邮箱）
+/// </summary>
+public class ChangeEmailCommand
+{
+    /// <summary>
+    /// 新邮箱地址
+    /// </summary>
+    [Required(ErrorMessage = "新邮箱不能为空")]
+    [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+    [StringLength(100, ErrorMessage = "邮箱长度不能超过 100")]
+    public string NewEmail { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 当前密码（身份验证）
+    /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 确认换绑邮箱命令（验证码校验后落库）
+/// </summary>
+public class ConfirmChangeEmailCommand
+{
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "验证码必须为 6 位")]
+    public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 换绑手机命令（发送验证码到新手机）
+/// </summary>
+public class ChangePhoneCommand
+{
+    /// <summary>
+    /// 新手机号
+    /// </summary>
+    [Required(ErrorMessage = "新手机号不能为空")]
+    [Phone(ErrorMessage = "手机号格式不正确")]
+    [StringLength(20, ErrorMessage = "手机号长度不能超过 20")]
+    public string NewPhone { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 当前密码（身份验证）
+    /// </summary>
+    [Required(ErrorMessage = "密码不能为空")]
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 确认换绑手机命令（验证码校验后落库）
+/// </summary>
+public class ConfirmChangePhoneCommand
 {
     /// <summary>
     /// 验证码

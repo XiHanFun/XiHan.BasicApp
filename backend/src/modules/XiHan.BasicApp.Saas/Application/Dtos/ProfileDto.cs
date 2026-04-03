@@ -244,3 +244,60 @@ public class ExternalLoginItemDto
     /// </summary>
     public DateTimeOffset? LastLoginTime { get; set; }
 }
+
+/// <summary>
+/// 登录日志项
+/// </summary>
+public class LoginLogItemDto
+{
+    /// <summary>
+    /// 登录时间
+    /// </summary>
+    public DateTimeOffset LoginTime { get; set; }
+
+    /// <summary>
+    /// 登录IP
+    /// </summary>
+    public string? LoginIp { get; set; }
+
+    /// <summary>
+    /// 登录地点
+    /// </summary>
+    public string? LoginLocation { get; set; }
+
+    /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统
+    /// </summary>
+    public string? Os { get; set; }
+
+    /// <summary>
+    /// 登录结果（0=成功 1=失败 2=锁定...）
+    /// </summary>
+    public int LoginResult { get; set; }
+
+    /// <summary>
+    /// 消息
+    /// </summary>
+    public string? Message { get; set; }
+}
+
+/// <summary>
+/// 登录日志分页结果
+/// </summary>
+public class LoginLogPageDto
+{
+    /// <summary>
+    /// 列表
+    /// </summary>
+    public List<LoginLogItemDto> Items { get; set; } = [];
+
+    /// <summary>
+    /// 总数
+    /// </summary>
+    public int Total { get; set; }
+}

@@ -32,8 +32,6 @@ export interface UpdateProfileParams {
   nickName?: string
   realName?: string
   avatar?: string
-  email?: string
-  phone?: string
   gender?: number
   birthday?: string
   timeZone?: string
@@ -46,6 +44,31 @@ export interface ChangePasswordParams {
   userId: number
   oldPassword: string
   newPassword: string
+}
+
+export interface ChangeEmailParams {
+  newEmail: string
+  password: string
+}
+
+export interface ChangePhoneParams {
+  newPhone: string
+  password: string
+}
+
+export interface LoginLogItem {
+  loginTime: string
+  loginIp?: string
+  loginLocation?: string
+  browser?: string
+  os?: string
+  loginResult: number
+  message?: string
+}
+
+export interface LoginLogPage {
+  items: LoginLogItem[]
+  total: number
 }
 
 export interface ChangeUserNameParams {

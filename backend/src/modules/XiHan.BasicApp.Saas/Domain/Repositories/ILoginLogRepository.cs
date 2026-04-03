@@ -26,4 +26,10 @@ public interface ILoginLogRepository : IRepositoryBase<SysLoginLog, long>
     /// 获取用户最近失败登录次数
     /// </summary>
     Task<int> GetRecentFailureCountAsync(string userName, int minutes, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按用户ID分页查询登录日志
+    /// </summary>
+    Task<(List<SysLoginLog> Items, int Total)> GetPagedByUserIdAsync(
+        long userId, long? tenantId, int pageIndex, int pageSize, CancellationToken cancellationToken = default);
 }

@@ -1,7 +1,11 @@
 import type {
+  ChangeEmailParams,
   ChangePasswordParams,
+  ChangePhoneParams,
   ChangeUserNameParams,
   ExternalLoginItem,
+  LoginLogItem,
+  LoginLogPage,
   TwoFactorSetupResult,
   UpdateProfileParams,
   UserProfile,
@@ -144,6 +148,43 @@ export const profileApi = {
   verifyPhone: (code: string) =>
     requestClient.post(`${PROFILE}/VerifyPhone`, { code }),
 
+  // ==================== 换绑邮箱/手机 ====================
+
+  sendChangeEmailCode: async (data: ChangeEmailParams): Promise<VerificationCodeResult> => {
+    const raw = await requestClient.post<any>(`${PROFILE}/SendChangeEmailCode`, data)
+    return normalizeVerificationCode(raw)
+  },
+
+  confirmChangeEmail: (code: string) =>
+    requestClient.post(`${PROFILE}/ConfirmChangeEmail`, { code }),
+
+  sendChangePhoneCode: async (data: ChangePhoneParams): Promise<VerificationCodeResult> => {
+    const raw = await requestClient.post<any>(`${PROFILE}/SendChangePhoneCode`, data)
+    return normalizeVerificationCode(raw)
+  },
+
+  confirmChangePhone: (code: string) =>
+    requestClient.post(`${PROFILE}/ConfirmChangePhone`, { code }),
+
+  // ==================== 登录日志 ====================
+
+  getLoginLogs: async (pageIndex = 1, pageSize = 20): Promise<LoginLogPage> => {
+    const raw = await requestClient.get<any>(`${PROFILE}/LoginLogs`, {
+      params: { pageIndex, pageSize },
+    })
+    const payload = unwrapPayload<any>(raw)
+    const items = (payload?.items ?? []).map((item: any): LoginLogItem => ({
+      loginTime: item?.loginTime ?? '',
+      loginIp: item?.loginIp ?? '',
+      loginLocation: item?.loginLocation ?? '',
+      browser: item?.browser ?? '',
+      os: item?.os ?? '',
+      loginResult: item?.loginResult ?? 0,
+      message: item?.message ?? '',
+    }))
+    return { items, total: payload?.total ?? 0 }
+  },
+
   // ==================== 第三方账号 ====================
 
   getLinkedAccounts: async (): Promise<ExternalLoginItem[]> => {
@@ -179,6 +220,11 @@ export const sendEmailVerifyCodeApi = profileApi.sendEmailVerifyCode
 export const verifyEmailApi = profileApi.verifyEmail
 export const sendPhoneVerifyCodeApi = profileApi.sendPhoneVerifyCode
 export const verifyPhoneApi = profileApi.verifyPhone
+export const sendChangeEmailCodeApi = profileApi.sendChangeEmailCode
+export const confirmChangeEmailApi = profileApi.confirmChangeEmail
+export const sendChangePhoneCodeApi = profileApi.sendChangePhoneCode
+export const confirmChangePhoneApi = profileApi.confirmChangePhone
+export const getLoginLogsApi = profileApi.getLoginLogs
 export const getLinkedAccountsApi = profileApi.getLinkedAccounts
 export const unlinkAccountApi = profileApi.unlinkAccount
 export const deactivateAccountApi = profileApi.deactivateAccount
