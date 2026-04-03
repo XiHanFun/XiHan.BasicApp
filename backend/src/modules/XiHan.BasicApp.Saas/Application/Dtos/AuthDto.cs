@@ -62,6 +62,21 @@ public class LoginResponseDto
     public bool RequiresTwoFactor { get; set; }
 
     /// <summary>
+    /// 可用的双因素认证方式列表（totp/email/phone），仅 RequiresTwoFactor 时有值
+    /// </summary>
+    public List<string>? AvailableTwoFactorMethods { get; set; }
+
+    /// <summary>
+    /// 当前选中的双因素方式（用户已选择后返回）
+    /// </summary>
+    public string? TwoFactorMethod { get; set; }
+
+    /// <summary>
+    /// 验证码是否已发送（邮箱/手机方式选中后为 true）
+    /// </summary>
+    public bool CodeSent { get; set; }
+
+    /// <summary>
     /// 令牌信息（仅在登录完成时返回，需要双因素验证时为 null）
     /// </summary>
     public AuthTokenDto? Token { get; set; }

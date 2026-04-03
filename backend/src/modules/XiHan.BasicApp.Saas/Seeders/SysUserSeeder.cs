@@ -74,7 +74,8 @@ public class SysUserSeeder : DataSeederBase
                 Phone = "13800138000",
                 Avatar = "/assets/avatars/superadmin.png",
                 Language = "zh-CN",
-                Status = YesOrNo.Yes
+                Status = YesOrNo.Yes,
+                IsSystemAccount = true
             },
             // 系统管理员
             new()
@@ -89,7 +90,8 @@ public class SysUserSeeder : DataSeederBase
                 Phone = "13800138001",
                 Avatar = "/assets/avatars/admin.png",
                 Language = "zh-CN",
-                Status = YesOrNo.Yes
+                Status = YesOrNo.Yes,
+                IsSystemAccount = true
             },
             // 测试用户
             new()

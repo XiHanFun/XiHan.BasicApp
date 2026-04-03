@@ -15,10 +15,12 @@ import {
   NSelect,
   NSpace,
   NTag,
+  useDialog,
   useMessage,
 } from 'naive-ui'
-import { ref, watch } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import {
+  changeUserNameApi,
   sendEmailVerifyCodeApi,
   sendPhoneVerifyCodeApi,
   updateProfileApi,
@@ -33,6 +35,82 @@ const emit = defineEmits<{ saved: [] }>()
 
 const userStore = useUserStore()
 const message = useMessage()
+const dialog = useDialog()
+
+// ==================== 用户名修改 ====================
+
+const usernameChangeLoading = ref(false)
+const newUserNameInput = ref('')
+const newUserNamePassword = ref('')
+
+const usernameHint = computed(() => {
+  if (!props.profile)
+    return ''
+  if (props.profile.isSystemAccount)
+    return '系统内置账号不可修改'
+  if (props.profile.lastUserNameChangeTime && !props.profile.canChangeUserName) {
+    const next = new Date(props.profile.lastUserNameChangeTime)
+    next.setDate(next.getDate() + 90)
+    const remaining = Math.ceil((next.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    return `还需等待 ${remaining} 天后可修改`
+  }
+  return ''
+})
+
+function handleChangeUserName() {
+  newUserNameInput.value = props.profile?.userName ?? ''
+  newUserNamePassword.value = ''
+  dialog.create({
+    title: '修改用户名',
+    content: () => h('div', { style: 'display:flex;flex-direction:column;gap:12px' }, [
+      h('p', { style: 'margin:0;color:var(--text-secondary);font-size:13px' }, '修改后 90 天内不可再次修改，请谨慎操作。'),
+      h(NInput, {
+        'value': newUserNameInput.value,
+        'placeholder': '新用户名（3~30位，字母/数字/下划线）',
+        'onUpdate:value': (v: string) => {
+          newUserNameInput.value = v
+        },
+      }),
+      h(NInput, {
+        'type': 'password',
+        'value': newUserNamePassword.value,
+        'placeholder': '输入当前密码确认身份',
+        'showPasswordOn': 'click',
+        'onUpdate:value': (v: string) => {
+          newUserNamePassword.value = v
+        },
+      }),
+    ]),
+    positiveText: '确认修改',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      if (!newUserNameInput.value.trim()) {
+        message.warning('请输入用户名')
+        return false
+      }
+      if (!newUserNamePassword.value) {
+        message.warning('请输入密码')
+        return false
+      }
+      usernameChangeLoading.value = true
+      try {
+        await changeUserNameApi({
+          userName: newUserNameInput.value.trim(),
+          password: newUserNamePassword.value,
+        })
+        message.success('用户名已修改')
+        emit('saved')
+      }
+      catch (e: unknown) {
+        message.error((e as Error)?.message || '修改失败')
+        return false
+      }
+      finally {
+        usernameChangeLoading.value = false
+      }
+    },
+  })
+}
 
 // ==================== 表单 ====================
 
@@ -304,13 +382,27 @@ function cancelPhoneVerify() {
             <NGrid cols="1 m:2" responsive="screen" :x-gap="16" :y-gap="0">
               <NGridItem>
                 <NFormItem label="用户名">
-                  <NInput :value="profile?.userName" disabled placeholder="---">
-                    <template #suffix>
-                      <NTag size="tiny" :bordered="false">
-                        不可修改
-                      </NTag>
-                    </template>
-                  </NInput>
+                  <NInputGroup>
+                    <NInput :value="profile?.userName" disabled placeholder="---">
+                      <template #suffix>
+                        <NTag v-if="profile?.isSystemAccount" type="info" size="tiny" :bordered="false">
+                          系统账号
+                        </NTag>
+                        <NTag v-else-if="!profile?.canChangeUserName && usernameHint" type="warning" size="tiny" :bordered="false">
+                          {{ usernameHint }}
+                        </NTag>
+                      </template>
+                    </NInput>
+                    <NButton
+                      v-if="profile?.canChangeUserName"
+                      type="primary"
+                      ghost
+                      :loading="usernameChangeLoading"
+                      @click="handleChangeUserName"
+                    >
+                      修改
+                    </NButton>
+                  </NInputGroup>
                 </NFormItem>
               </NGridItem>
               <NGridItem>

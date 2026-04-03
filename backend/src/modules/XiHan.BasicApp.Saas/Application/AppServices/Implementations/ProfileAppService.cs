@@ -49,6 +49,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
     private readonly IUserSessionRepository _userSessionRepository;
+    private readonly IExternalLoginRepository _externalLoginRepository;
     private readonly IOtpService _otpService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthTokenCacheHelper _authTokenCacheHelper;
@@ -61,12 +62,18 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private readonly IRealtimeNotificationService<Hubs.BasicAppNotificationHub> _realtimeNotifier;
 
     /// <summary>
+    /// 用户名修改冷却天数
+    /// </summary>
+    private const int UserNameChangeCooldownDays = 90;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ProfileAppService(
         IUserRepository userRepository,
         IUserManager userManager,
         IUserSessionRepository userSessionRepository,
+        IExternalLoginRepository externalLoginRepository,
         IOtpService otpService,
         IPasswordHasher passwordHasher,
         IAuthTokenCacheHelper authTokenCacheHelper,
@@ -81,6 +88,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         _userRepository = userRepository;
         _userManager = userManager;
         _userSessionRepository = userSessionRepository;
+        _externalLoginRepository = externalLoginRepository;
         _otpService = otpService;
         _passwordHasher = passwordHasher;
         _authTokenCacheHelper = authTokenCacheHelper;
@@ -103,6 +111,10 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
         var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId);
 
+        var canChangeUserName = !user.IsSystemAccount
+            && (security?.LastUserNameChangeTime is null
+                || security.LastUserNameChangeTime.Value.AddDays(UserNameChangeCooldownDays) <= DateTimeOffset.UtcNow);
+
         return new UserProfileDto
         {
             UserId = user.BasicId,
@@ -121,10 +133,14 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
             TenantId = user.TenantId,
             LastLoginTime = user.LastLoginTime,
             LastLoginIp = user.LastLoginIp,
+            IsSystemAccount = user.IsSystemAccount,
             TwoFactorEnabled = security?.TwoFactorEnabled ?? false,
+            TwoFactorMethod = (int)(security?.TwoFactorMethod ?? TwoFactorMethod.None),
             EmailVerified = security?.EmailVerified ?? false,
             PhoneVerified = security?.PhoneVerified ?? false,
-            LastPasswordChangeTime = security?.LastPasswordChangeTime
+            LastPasswordChangeTime = security?.LastPasswordChangeTime,
+            LastUserNameChangeTime = security?.LastUserNameChangeTime,
+            CanChangeUserName = canChangeUserName
         };
     }
 
@@ -291,7 +307,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     }
 
     /// <summary>
-    /// 初始化双因素认证
+    /// 初始化 TOTP 双因素认证（生成密钥和二维码URI）
     /// </summary>
     public async Task<TwoFactorSetupResultDto> Setup2FAAsync()
     {
@@ -299,9 +315,9 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
         var security = await EnsureSecurityProfileAsync(user);
-        if (security.TwoFactorEnabled)
+        if (security.TwoFactorMethod.HasFlag(TwoFactorMethod.Totp))
         {
-            throw new BusinessException(message: "双因素认证已启用，请先禁用再重新设置");
+            throw new BusinessException(message: "TOTP 认证已启用，请先禁用再重新设置");
         }
 
         var secret = _otpService.GenerateTotpSecret();
@@ -320,7 +336,45 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     }
 
     /// <summary>
-    /// 验证并启用双因素认证
+    /// 发送 2FA 设置验证码（邮箱/手机方式）
+    /// </summary>
+    public async Task<AuthVerificationCodeDto> Send2FASetupCodeAsync(Send2FAVerifyCodeCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        if (command.Method == TwoFactorMethod.Email)
+        {
+            if (string.IsNullOrWhiteSpace(user.Email))
+                throw new BusinessException(message: "请先设置邮箱地址");
+
+            var security = await EnsureSecurityProfileAsync(user);
+            if (!security.EmailVerified)
+                throw new BusinessException(message: "请先验证邮箱");
+        }
+        else if (command.Method == TwoFactorMethod.Phone)
+        {
+            if (string.IsNullOrWhiteSpace(user.Phone))
+                throw new BusinessException(message: "请先设置手机号");
+
+            var security = await EnsureSecurityProfileAsync(user);
+            if (!security.PhoneVerified)
+                throw new BusinessException(message: "请先验证手机号");
+        }
+        else
+        {
+            throw new BusinessException(message: "该方式不需要发送验证码，请使用 TOTP 初始化接口");
+        }
+
+        var target = command.Method == TwoFactorMethod.Email ? user.Email! : user.Phone!;
+        var purpose = $"2FA-Setup-{command.Method}";
+        return await SendVerificationCodeInternalAsync(user.TenantId, target, purpose);
+    }
+
+    /// <summary>
+    /// 验证并启用指定的双因素认证方式（按位添加，可同时启用多种）
     /// </summary>
     public async Task Enable2FAAsync(Enable2FACommand command)
     {
@@ -330,30 +384,48 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
         var security = await EnsureSecurityProfileAsync(user);
-        if (security.TwoFactorEnabled)
+
+        // 检查该方式是否已启用
+        if (security.TwoFactorMethod.HasFlag(command.Method))
         {
-            throw new BusinessException(message: "双因素认证已处于启用状态");
+            throw new BusinessException(message: "该认证方式已启用");
         }
 
-        if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+        switch (command.Method)
         {
-            throw new BusinessException(message: "请先调用初始化接口获取密钥");
-        }
+            case TwoFactorMethod.Totp:
+                if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+                    throw new BusinessException(message: "请先调用初始化接口获取密钥");
+                if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
+                    throw new BusinessException(message: "验证码错误，请检查后重试");
+                break;
 
-        if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
-        {
-            throw new BusinessException(message: "验证码错误，请检查后重试");
+            case TwoFactorMethod.Email:
+                if (string.IsNullOrWhiteSpace(user.Email))
+                    throw new BusinessException(message: "请先设置邮箱地址");
+                await VerifyCachedCodeAsync(user.TenantId, user.Email, $"2FA-Setup-{TwoFactorMethod.Email}", command.Code);
+                break;
+
+            case TwoFactorMethod.Phone:
+                if (string.IsNullOrWhiteSpace(user.Phone))
+                    throw new BusinessException(message: "请先设置手机号");
+                await VerifyCachedCodeAsync(user.TenantId, user.Phone, $"2FA-Setup-{TwoFactorMethod.Phone}", command.Code);
+                break;
+
+            default:
+                throw new BusinessException(message: "不支持的认证方式");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        security.TwoFactorEnabled = true;
+        security.TwoFactorMethod |= command.Method;
+        security.TwoFactorEnabled = security.TwoFactorMethod != TwoFactorMethod.None;
         security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
         await _userRepository.SaveSecurityAsync(security);
         await uow.CompleteAsync();
     }
 
     /// <summary>
-    /// 验证并禁用双因素认证
+    /// 验证并禁用指定的双因素认证方式（按位移除）
     /// </summary>
     public async Task Disable2FAAsync(Disable2FACommand command)
     {
@@ -363,24 +435,44 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
         var security = await EnsureSecurityProfileAsync(user);
-        if (!security.TwoFactorEnabled)
+
+        // 检查该方式是否已启用
+        if (!security.TwoFactorMethod.HasFlag(command.Method))
         {
-            throw new BusinessException(message: "双因素认证未启用");
+            throw new BusinessException(message: "该认证方式未启用");
         }
 
-        if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+        switch (command.Method)
         {
-            throw new BusinessException(message: "双因素认证配置异常，请联系管理员");
-        }
+            case TwoFactorMethod.Totp:
+                if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+                    throw new BusinessException(message: "双因素认证配置异常，请联系管理员");
+                if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
+                    throw new BusinessException(message: "验证码错误，请检查后重试");
+                break;
 
-        if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
-        {
-            throw new BusinessException(message: "验证码错误，请检查后重试");
+            case TwoFactorMethod.Email:
+                if (string.IsNullOrWhiteSpace(user.Email))
+                    throw new BusinessException(message: "邮箱未设置");
+                await VerifyCachedCodeAsync(user.TenantId, user.Email, $"2FA-Setup-{TwoFactorMethod.Email}", command.Code);
+                break;
+
+            case TwoFactorMethod.Phone:
+                if (string.IsNullOrWhiteSpace(user.Phone))
+                    throw new BusinessException(message: "手机号未设置");
+                await VerifyCachedCodeAsync(user.TenantId, user.Phone, $"2FA-Setup-{TwoFactorMethod.Phone}", command.Code);
+                break;
+
+            default:
+                throw new BusinessException(message: "双因素认证配置异常");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        security.TwoFactorEnabled = false;
-        security.TwoFactorSecret = null;
+        security.TwoFactorMethod &= ~command.Method;
+        security.TwoFactorEnabled = security.TwoFactorMethod != TwoFactorMethod.None;
+        // 仅当 TOTP 被移除时清除密钥
+        if (command.Method == TwoFactorMethod.Totp)
+            security.TwoFactorSecret = null;
         security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
         await _userRepository.SaveSecurityAsync(security);
         await uow.CompleteAsync();
@@ -468,6 +560,108 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
         await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
 
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 修改用户名
+    /// </summary>
+    public async Task ChangeUserNameAsync(ChangeUserNameCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        if (user.IsSystemAccount)
+        {
+            throw new BusinessException(message: "系统内置账号不允许修改用户名");
+        }
+
+        // 密码验证
+        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        if (!currentPassword.Verify(command.Password, _passwordHasher))
+        {
+            throw new BusinessException(message: "密码错误");
+        }
+
+        var security = await EnsureSecurityProfileAsync(user);
+
+        // 90 天冷却期校验
+        if (security.LastUserNameChangeTime.HasValue)
+        {
+            var nextAllowed = security.LastUserNameChangeTime.Value.AddDays(UserNameChangeCooldownDays);
+            if (nextAllowed > DateTimeOffset.UtcNow)
+            {
+                var remaining = (int)Math.Ceiling((nextAllowed - DateTimeOffset.UtcNow).TotalDays);
+                throw new BusinessException(message: $"用户名修改冷却期未过，还需等待 {remaining} 天");
+            }
+        }
+
+        var newUserName = command.UserName.Trim();
+
+        // 不允许与当前相同
+        if (string.Equals(newUserName, user.UserName, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new BusinessException(message: "新用户名与当前用户名相同");
+        }
+
+        // 租户内唯一性
+        var existingByName = await _userRepository.GetByUserNameAsync(newUserName, user.TenantId);
+        if (existingByName is not null)
+        {
+            throw new BusinessException(message: "该用户名已被其他用户使用");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        user.UserName = newUserName;
+        await _userRepository.UpdateAsync(user);
+
+        security.LastUserNameChangeTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 获取当前用户的第三方登录绑定列表
+    /// </summary>
+    public async Task<IReadOnlyList<ExternalLoginItemDto>> GetLinkedAccountsAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var logins = await _externalLoginRepository.GetByUserIdAsync(user.BasicId, user.TenantId);
+
+        return [.. logins.Select(l => new ExternalLoginItemDto
+        {
+            Provider = l.Provider,
+            ProviderDisplayName = l.ProviderDisplayName,
+            Email = l.Email,
+            AvatarUrl = l.AvatarUrl,
+            LastLoginTime = l.LastLoginTime
+        })];
+    }
+
+    /// <summary>
+    /// 解除第三方登录绑定
+    /// </summary>
+    public async Task UnlinkExternalLoginAsync(UnlinkExternalLoginCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        // 确保解绑后用户仍有可用登录方式（有密码或至少保留一个绑定）
+        var allLogins = await _externalLoginRepository.GetByUserIdAsync(user.BasicId, user.TenantId);
+        var hasPassword = !string.IsNullOrWhiteSpace(user.Password);
+        if (!hasPassword && allLogins.Count <= 1)
+        {
+            throw new BusinessException(message: "至少需要保留一种登录方式（密码或第三方账号）");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        await _externalLoginRepository.DeleteAsync(user.BasicId, command.Provider.Trim());
         await uow.CompleteAsync();
     }
 
@@ -607,6 +801,63 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     {
         var tenantSegment = tenantId?.ToString() ?? "0";
         return $"auth:email-verify:{tenantSegment}:{email.ToLowerInvariant()}";
+    }
+
+    private static string Build2FAVerifyCodeCacheKey(long? tenantId, string target, string purpose)
+    {
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        return $"auth:2fa:{purpose}:{tenantSegment}:{target.ToLowerInvariant()}";
+    }
+
+    /// <summary>
+    /// 通用验证码发送（供 2FA 设置和登录挑战共用）
+    /// </summary>
+    private async Task<AuthVerificationCodeDto> SendVerificationCodeInternalAsync(long? tenantId, string target, string purpose)
+    {
+        var expiresInSeconds = Math.Clamp(
+            _configuration.GetValue("XiHan:Authentication:TwoFactorCodeExpiresInSeconds", 300), 60, 1800);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        var code = GenerateNumericCode(6);
+        var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+
+        await _verificationCodeCache.SetAsync(
+            Build2FAVerifyCodeCacheKey(tenantId, target, purpose),
+            new AuthVerificationCodeCacheItem
+            {
+                Purpose = purpose,
+                Target = target,
+                TenantId = tenantId,
+                Code = code,
+                ExpireAt = expireAt
+            },
+            options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+            hideErrors: true);
+
+        // TODO: 根据 purpose 接入实际邮件/短信发送服务
+
+        return new AuthVerificationCodeDto
+        {
+            ExpiresInSeconds = expiresInSeconds,
+            DebugCode = exposeDebugSecrets ? code : null
+        };
+    }
+
+    /// <summary>
+    /// 通用缓存验证码校验
+    /// </summary>
+    private async Task VerifyCachedCodeAsync(long? tenantId, string target, string purpose, string code)
+    {
+        var cacheKey = Build2FAVerifyCodeCacheKey(tenantId, target, purpose);
+        var cached = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+
+        if (cached is null || cached.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cached.Code, code.Trim(), StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "验证码错误或已过期");
+        }
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
     }
 
     #endregion

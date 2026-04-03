@@ -17,10 +17,15 @@ export interface UserProfile {
   tenantId?: null | number
   lastLoginTime?: string
   lastLoginIp?: string
+  isSystemAccount: boolean
   twoFactorEnabled: boolean
+  /** 0=未启用 1=TOTP 2=邮箱 3=手机 */
+  twoFactorMethod: number
   emailVerified: boolean
   phoneVerified: boolean
   lastPasswordChangeTime?: string
+  lastUserNameChangeTime?: string
+  canChangeUserName: boolean
 }
 
 export interface UpdateProfileParams {
@@ -43,6 +48,11 @@ export interface ChangePasswordParams {
   newPassword: string
 }
 
+export interface ChangeUserNameParams {
+  userName: string
+  password: string
+}
+
 export interface UserSessionItem {
   sessionId: string
   deviceName?: string
@@ -59,4 +69,12 @@ export interface UserSessionItem {
 export interface TwoFactorSetupResult {
   sharedKey: string
   authenticatorUri: string
+}
+
+export interface ExternalLoginItem {
+  provider: string
+  providerDisplayName?: string
+  email?: string
+  avatarUrl?: string
+  lastLoginTime?: string
 }

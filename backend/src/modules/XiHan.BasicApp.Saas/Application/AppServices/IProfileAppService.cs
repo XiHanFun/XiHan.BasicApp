@@ -54,12 +54,17 @@ public interface IProfileAppService : IApplicationService
     Task RevokeOtherSessionsAsync();
 
     /// <summary>
-    /// 初始化双因素认证（生成密钥和二维码URI，尚未启用）
+    /// 初始化 TOTP 双因素认证（生成密钥和二维码URI，尚未启用）
     /// </summary>
     Task<TwoFactorSetupResultDto> Setup2FAAsync();
 
     /// <summary>
-    /// 验证并启用双因素认证
+    /// 发送 2FA 设置验证码（邮箱/手机方式）
+    /// </summary>
+    Task<AuthVerificationCodeDto> Send2FASetupCodeAsync(Send2FAVerifyCodeCommand command);
+
+    /// <summary>
+    /// 验证并启用双因素认证（支持 TOTP/邮箱/手机）
     /// </summary>
     Task Enable2FAAsync(Enable2FACommand command);
 
@@ -69,7 +74,7 @@ public interface IProfileAppService : IApplicationService
     Task Disable2FAAsync(Disable2FACommand command);
 
     /// <summary>
-    /// 发送邮箱验证码
+    /// 发送邮箱验证码（用于邮箱地址验证，非 2FA）
     /// </summary>
     Task<AuthVerificationCodeDto> SendEmailVerifyCodeAsync();
 
@@ -77,6 +82,21 @@ public interface IProfileAppService : IApplicationService
     /// 验证邮箱
     /// </summary>
     Task VerifyEmailAsync(VerifyEmailCommand command);
+
+    /// <summary>
+    /// 修改用户名
+    /// </summary>
+    Task ChangeUserNameAsync(ChangeUserNameCommand command);
+
+    /// <summary>
+    /// 获取当前用户的第三方登录绑定列表
+    /// </summary>
+    Task<IReadOnlyList<ExternalLoginItemDto>> GetLinkedAccountsAsync();
+
+    /// <summary>
+    /// 解除第三方登录绑定
+    /// </summary>
+    Task UnlinkExternalLoginAsync(UnlinkExternalLoginCommand command);
 
     /// <summary>
     /// 停用当前账号

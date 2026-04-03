@@ -236,25 +236,84 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         if (security.TwoFactorEnabled)
         {
-            if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+            // 计算用户已启用的所有 2FA 方式
+            var availableMethods = new List<string>();
+            if (security.TwoFactorMethod.HasFlag(Domain.Enums.TwoFactorMethod.Totp)
+                && !string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+                availableMethods.Add("totp");
+            if (security.TwoFactorMethod.HasFlag(Domain.Enums.TwoFactorMethod.Email)
+                && !string.IsNullOrWhiteSpace(user.Email))
+                availableMethods.Add("email");
+            if (security.TwoFactorMethod.HasFlag(Domain.Enums.TwoFactorMethod.Phone)
+                && !string.IsNullOrWhiteSpace(user.Phone))
+                availableMethods.Add("phone");
+
+            if (availableMethods.Count == 0)
             {
-                await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "账号未配置双因素密钥");
+                await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "无可用双因素认证方式");
                 await uow.CompleteAsync();
                 throw new BusinessException(message: "账号双因素认证配置异常，请联系管理员");
             }
 
+            var chosenMethod = command.TwoFactorMethod?.Trim().ToLowerInvariant();
             var twoFactorCode = command.TwoFactorCode?.Trim();
 
-            // 未提供验证码 → HTTP 200 + requiresTwoFactor，前端据此展示 OTP 输入
-            if (string.IsNullOrWhiteSpace(twoFactorCode))
+            // 阶段1：未选择方式 → 返回可用方式列表
+            if (string.IsNullOrWhiteSpace(chosenMethod))
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.RequiresTwoFactor, clientInfo, "需要双因素认证");
                 await uow.CompleteAsync();
-                return new LoginResponseDto { RequiresTwoFactor = true };
+                return new LoginResponseDto
+                {
+                    RequiresTwoFactor = true,
+                    AvailableTwoFactorMethods = availableMethods
+                };
             }
 
-            // 验证码错误 → BusinessException(400)，与凭据错误的 401 区分
-            if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, twoFactorCode))
+            // 校验用户选择的方式是否在可用列表中
+            if (!availableMethods.Contains(chosenMethod))
+            {
+                await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "不支持的双因素方式");
+                await uow.CompleteAsync();
+                throw new BusinessException(message: "所选认证方式不可用");
+            }
+
+            // 阶段2：已选方式但未提供验证码 → 对邮箱/手机发送验证码
+            if (string.IsNullOrWhiteSpace(twoFactorCode))
+            {
+                var codeSent = false;
+                if (chosenMethod == "email")
+                {
+                    await Send2FALoginCodeAsync(user.TenantId, user.Email!, "2FA-Login-Email");
+                    codeSent = true;
+                }
+                else if (chosenMethod == "phone")
+                {
+                    await Send2FALoginCodeAsync(user.TenantId, user.Phone!, "2FA-Login-Phone");
+                    codeSent = true;
+                }
+
+                await WriteLoginLogAsync(user.BasicId, command, LoginResult.RequiresTwoFactor, clientInfo, $"等待 {chosenMethod} 验证码");
+                await uow.CompleteAsync();
+                return new LoginResponseDto
+                {
+                    RequiresTwoFactor = true,
+                    AvailableTwoFactorMethods = availableMethods,
+                    TwoFactorMethod = chosenMethod,
+                    CodeSent = codeSent
+                };
+            }
+
+            // 阶段3：已选方式且提供了验证码 → 校验
+            var codeValid = chosenMethod switch
+            {
+                "totp" => _otpService.VerifyTotpCode(security.TwoFactorSecret!, twoFactorCode),
+                "email" => await Verify2FALoginCodeAsync(user.TenantId, user.Email!, "2FA-Login-Email", twoFactorCode),
+                "phone" => await Verify2FALoginCodeAsync(user.TenantId, user.Phone!, "2FA-Login-Phone", twoFactorCode),
+                _ => false
+            };
+
+            if (!codeValid)
             {
                 await WriteLoginLogAsync(user.BasicId, command, LoginResult.TwoFactorFailed, clientInfo, "双因素验证码错误");
                 await uow.CompleteAsync();
@@ -1391,6 +1450,55 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         };
 
         return await _userRepository.SaveSecurityAsync(security);
+    }
+
+    /// <summary>
+    /// 发送 2FA 登录验证码（邮箱/手机方式）
+    /// </summary>
+    private async Task Send2FALoginCodeAsync(long? tenantId, string target, string purpose)
+    {
+        var expiresInSeconds = Math.Clamp(
+            _configuration.GetValue("XiHan:Authentication:TwoFactorCodeExpiresInSeconds", 300), 60, 1800);
+
+        var code = GenerateNumericCode(6);
+        var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        var cacheKey = $"auth:2fa:{purpose}:{tenantSegment}:{target.ToLowerInvariant()}";
+
+        await _verificationCodeCache.SetAsync(
+            cacheKey,
+            new AuthVerificationCodeCacheItem
+            {
+                Purpose = purpose,
+                Target = target,
+                TenantId = tenantId,
+                Code = code,
+                ExpireAt = expireAt
+            },
+            options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+            hideErrors: true);
+
+        // TODO: 接入实际邮件/短信发送服务
+    }
+
+    /// <summary>
+    /// 验证 2FA 登录验证码
+    /// </summary>
+    private async Task<bool> Verify2FALoginCodeAsync(long? tenantId, string target, string purpose, string code)
+    {
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        var cacheKey = $"auth:2fa:{purpose}:{tenantSegment}:{target.ToLowerInvariant()}";
+
+        var cached = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+        if (cached is null || cached.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cached.Code, code.Trim(), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
+        return true;
     }
 
     /// <summary>
