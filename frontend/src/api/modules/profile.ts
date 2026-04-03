@@ -83,7 +83,7 @@ export const profileApi = {
   },
 
   updateProfile: (data: UpdateProfileParams) =>
-    requestClient.post(`${PROFILE}/UpdateProfile`, data),
+    requestClient.put(`${PROFILE}/Profile`, data),
 
   changePassword: (data: ChangePasswordParams) =>
     requestClient.post(`${PROFILE}/ChangePassword`, data),
@@ -161,7 +161,7 @@ export const profileApi = {
     requestClient.post(`${PROFILE}/DeactivateAccount`, { password }),
 
   deleteAccount: (password: string) =>
-    requestClient.post(`${PROFILE}/DeleteAccount`, { password }),
+    requestClient.delete(`${PROFILE}/Account`, { data: { password } }),
 }
 
 export const getProfileApi = profileApi.getProfile
