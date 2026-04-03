@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
-import type { ExternalLoginItem, UserProfile, UserSessionItem } from '~/types'
+import type { ExternalLoginItem, LoginLogItem, UserProfile, UserSessionItem } from '~/types'
 import {
   NAlert,
   NButton,
@@ -14,6 +14,7 @@ import {
   NIcon,
   NInput,
   NInputOtp,
+  NPagination,
   NPopconfirm,
   NQrCode,
   NSpace,
@@ -32,6 +33,7 @@ import {
   disable2FAApi,
   enable2FAApi,
   getLinkedAccountsApi,
+  getLoginLogsApi,
   getSessionsApi,
   revokeOtherSessionsApi,
   revokeSessionApi,
@@ -488,6 +490,37 @@ function handleLinkNewAccount(_provider: string) {
   message.info('绑定功能需要配合 OAuth 回调端点实现')
 }
 
+// ==================== 登录日志 ====================
+
+const loginLogs = ref<LoginLogItem[]>([])
+const loginLogTotal = ref(0)
+const loginLogPage = ref(1)
+const loginLogLoading = ref(false)
+
+const loginResultLabel: Record<number, string> = {
+  0: '成功',
+  1: '密码错误',
+  2: '账号锁定',
+  3: '账号禁用',
+  4: '需要两步验证',
+}
+
+async function loadLoginLogs(page = 1) {
+  loginLogLoading.value = true
+  try {
+    const res = await getLoginLogsApi(page, 10)
+    loginLogs.value = res.items
+    loginLogTotal.value = res.total
+    loginLogPage.value = page
+  }
+  catch {
+    // 静默处理
+  }
+  finally {
+    loginLogLoading.value = false
+  }
+}
+
 // ==================== 账号管理 ====================
 
 const accountPassword = ref('')
@@ -582,6 +615,7 @@ function handleDeleteAccount() {
 onMounted(() => {
   loadSessions()
   loadLinkedAccounts()
+  loadLoginLogs()
 })
 </script>
 
@@ -976,6 +1010,54 @@ onMounted(() => {
                 </template>
                 绑定新账号
               </NButton>
+            </div>
+          </NSpin>
+        </NCard>
+      </NGridItem>
+
+      <!-- 登录日志 -->
+      <NGridItem :span="2">
+        <NCard :bordered="false" size="small" class="pf-card">
+          <template #header>
+            <div class="pf-card-header">
+              <Icon icon="lucide:file-clock" width="16" />
+              <span>登录日志</span>
+            </div>
+          </template>
+          <NSpin :show="loginLogLoading">
+            <div v-if="loginLogs.length === 0 && !loginLogLoading" style="padding: 20px 0">
+              <NEmpty description="暂无登录记录" />
+            </div>
+            <div v-else class="pf-list">
+              <div v-for="(log, idx) in loginLogs" :key="idx" class="pf-list-item">
+                <div class="pf-list-icon" :class="{ 'pf-list-icon--danger': log.loginResult !== 0 }">
+                  <Icon :icon="log.loginResult === 0 ? 'lucide:log-in' : 'lucide:shield-alert'" width="14" />
+                </div>
+                <div class="pf-list-body">
+                  <div class="pf-list-title">
+                    <NTag :type="log.loginResult === 0 ? 'success' : 'error'" size="tiny" :bordered="false">
+                      {{ loginResultLabel[log.loginResult] || `状态${log.loginResult}` }}
+                    </NTag>
+                    <span v-if="log.message" style="margin-left: 6px; font-size: 12px; color: var(--text-secondary)">{{ log.message }}</span>
+                  </div>
+                  <div class="pf-list-desc">
+                    {{ log.loginIp || '未知IP' }}
+                    <template v-if="log.loginLocation"> · {{ log.loginLocation }}</template>
+                    <template v-if="log.browser"> · {{ log.browser }}</template>
+                    <template v-if="log.os"> · {{ log.os }}</template>
+                  </div>
+                </div>
+                <span class="pf-list-time">{{ formatDate(log.loginTime) }}</span>
+              </div>
+            </div>
+            <div v-if="loginLogTotal > 10" style="display: flex; justify-content: flex-end; margin-top: 12px">
+              <NPagination
+                :page="loginLogPage"
+                :page-size="10"
+                :item-count="loginLogTotal"
+                simple
+                @update:page="loadLoginLogs"
+              />
             </div>
           </NSpin>
         </NCard>

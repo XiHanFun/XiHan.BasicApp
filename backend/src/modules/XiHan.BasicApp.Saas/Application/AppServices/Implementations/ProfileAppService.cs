@@ -35,8 +35,10 @@ using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
+using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Web.RealTime.Constants;
 using XiHan.Framework.Web.RealTime.Services;
+using IAuthenticationService = XiHan.Framework.Authentication.Users.IAuthenticationService;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -50,6 +52,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private readonly IUserManager _userManager;
     private readonly IUserSessionRepository _userSessionRepository;
     private readonly IExternalLoginRepository _externalLoginRepository;
+    private readonly ILoginLogRepository _loginLogRepository;
     private readonly IOtpService _otpService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthTokenCacheHelper _authTokenCacheHelper;
@@ -59,6 +62,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private readonly ICurrentUser _currentUser;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
+    private readonly IAuthenticationService _authenticationService;
     private readonly IRealtimeNotificationService<Hubs.BasicAppNotificationHub> _realtimeNotifier;
 
     /// <summary>
@@ -74,6 +78,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         IUserManager userManager,
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
+        ILoginLogRepository loginLogRepository,
         IOtpService otpService,
         IPasswordHasher passwordHasher,
         IAuthTokenCacheHelper authTokenCacheHelper,
@@ -83,12 +88,14 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         ICurrentUser currentUser,
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWorkManager unitOfWorkManager,
+        IAuthenticationService authenticationService,
         IRealtimeNotificationService<Hubs.BasicAppNotificationHub> realtimeNotifier)
     {
         _userRepository = userRepository;
         _userManager = userManager;
         _userSessionRepository = userSessionRepository;
         _externalLoginRepository = externalLoginRepository;
+        _loginLogRepository = loginLogRepository;
         _otpService = otpService;
         _passwordHasher = passwordHasher;
         _authTokenCacheHelper = authTokenCacheHelper;
@@ -98,6 +105,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         _currentUser = currentUser;
         _httpContextAccessor = httpContextAccessor;
         _unitOfWorkManager = unitOfWorkManager;
+        _authenticationService = authenticationService;
         _realtimeNotifier = realtimeNotifier;
     }
 
@@ -166,34 +174,6 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         if (command.Country is not null) user.Country = command.Country.Trim();
         if (command.Remark is not null) user.Remark = command.Remark.Trim();
 
-        if (command.Email is not null && !string.Equals(command.Email.Trim(), user.Email, StringComparison.OrdinalIgnoreCase))
-        {
-            var existingByEmail = await _userRepository.GetByEmailAsync(command.Email.Trim(), user.TenantId);
-            if (existingByEmail is not null && existingByEmail.BasicId != user.BasicId)
-            {
-                throw new BusinessException(message: "该邮箱已被其他用户使用");
-            }
-
-            user.Email = command.Email.Trim();
-            var security = await EnsureSecurityProfileAsync(user);
-            security.EmailVerified = false;
-            await _userRepository.SaveSecurityAsync(security);
-        }
-
-        if (command.Phone is not null && !string.Equals(command.Phone.Trim(), user.Phone, StringComparison.Ordinal))
-        {
-            var existingByPhone = await _userRepository.GetByPhoneAsync(command.Phone.Trim(), user.TenantId);
-            if (existingByPhone is not null && existingByPhone.BasicId != user.BasicId)
-            {
-                throw new BusinessException(message: "该手机号已被其他用户使用");
-            }
-
-            user.Phone = command.Phone.Trim();
-            var security = await EnsureSecurityProfileAsync(user);
-            security.PhoneVerified = false;
-            await _userRepository.SaveSecurityAsync(security);
-        }
-
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
     }
@@ -212,6 +192,19 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         if (!currentPassword.Verify(command.OldPassword, _passwordHasher))
         {
             throw new BusinessException(message: "原密码错误");
+        }
+
+        // 密码策略校验
+        var validationResult = await _authenticationService.ValidatePasswordStrengthAsync(command.NewPassword);
+        if (!validationResult.IsValid)
+        {
+            throw new BusinessException(message: string.Join("；", validationResult.Errors));
+        }
+
+        // 新旧密码不能相同
+        if (currentPassword.Verify(command.NewPassword, _passwordHasher))
+        {
+            throw new BusinessException(message: "新密码不能与当前密码相同");
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -564,6 +557,290 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     }
 
     /// <summary>
+    /// 发送手机验证码（验证当前已保存的手机号）
+    /// </summary>
+    public async Task<AuthVerificationCodeDto> SendPhoneVerifyCodeAsync()
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        if (string.IsNullOrWhiteSpace(user.Phone))
+        {
+            throw new BusinessException(message: "请先设置手机号");
+        }
+
+        var security = await EnsureSecurityProfileAsync(user);
+        if (security.PhoneVerified)
+        {
+            throw new BusinessException(message: "手机号已验证，无需重复操作");
+        }
+
+        var expiresInSeconds = Math.Clamp(
+            _configuration.GetValue("XiHan:Authentication:PhoneCodeExpiresInSeconds", 300), 60, 1800);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        var code = GenerateNumericCode(6);
+        var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+
+        await _verificationCodeCache.SetAsync(
+            BuildPhoneVerifyCodeCacheKey(user.TenantId, user.Phone),
+            new AuthVerificationCodeCacheItem
+            {
+                Purpose = "PhoneVerify",
+                Target = user.Phone,
+                TenantId = user.TenantId,
+                Code = code,
+                ExpireAt = expireAt
+            },
+            options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+            hideErrors: true);
+
+        // TODO: 接入实际短信发送服务
+
+        return new AuthVerificationCodeDto
+        {
+            ExpiresInSeconds = expiresInSeconds,
+            DebugCode = exposeDebugSecrets ? code : null
+        };
+    }
+
+    /// <summary>
+    /// 验证手机
+    /// </summary>
+    public async Task VerifyPhoneAsync(VerifyPhoneCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        if (string.IsNullOrWhiteSpace(user.Phone))
+        {
+            throw new BusinessException(message: "请先设置手机号");
+        }
+
+        var cacheKey = BuildPhoneVerifyCodeCacheKey(user.TenantId, user.Phone);
+        var cachedCode = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+
+        if (cachedCode is null
+            || cachedCode.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cachedCode.Code, command.Code.Trim(), StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "验证码错误或已过期");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        var security = await EnsureSecurityProfileAsync(user);
+        security.PhoneVerified = true;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
+
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 换绑邮箱 — 第一步：验证密码、发送验证码到新邮箱
+    /// </summary>
+    public async Task<AuthVerificationCodeDto> SendChangeEmailCodeAsync(ChangeEmailCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        if (!currentPassword.Verify(command.Password, _passwordHasher))
+        {
+            throw new BusinessException(message: "密码错误");
+        }
+
+        var newEmail = command.NewEmail.Trim();
+        if (string.Equals(newEmail, user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new BusinessException(message: "新邮箱与当前邮箱相同");
+        }
+
+        var existingByEmail = await _userRepository.GetByEmailAsync(newEmail, user.TenantId);
+        if (existingByEmail is not null && existingByEmail.BasicId != user.BasicId)
+        {
+            throw new BusinessException(message: "该邮箱已被其他用户使用");
+        }
+
+        // 缓存中同时保存新邮箱地址，确认时使用
+        var expiresInSeconds = Math.Clamp(
+            _configuration.GetValue("XiHan:Authentication:EmailCodeExpiresInSeconds", 300), 60, 1800);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        var code = GenerateNumericCode(6);
+        var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+
+        await _verificationCodeCache.SetAsync(
+            BuildChangeContactCacheKey(user.TenantId, user.BasicId, "ChangeEmail"),
+            new AuthVerificationCodeCacheItem
+            {
+                Purpose = "ChangeEmail",
+                Target = newEmail,
+                TenantId = user.TenantId,
+                Code = code,
+                ExpireAt = expireAt
+            },
+            options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+            hideErrors: true);
+
+        // TODO: 接入实际邮件发送服务，将验证码发送到 newEmail
+
+        return new AuthVerificationCodeDto
+        {
+            ExpiresInSeconds = expiresInSeconds,
+            DebugCode = exposeDebugSecrets ? code : null
+        };
+    }
+
+    /// <summary>
+    /// 换绑邮箱 — 第二步：验证码校验后落库
+    /// </summary>
+    public async Task ConfirmChangeEmailAsync(ConfirmChangeEmailCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var cacheKey = BuildChangeContactCacheKey(user.TenantId, user.BasicId, "ChangeEmail");
+        var cached = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+
+        if (cached is null || cached.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cached.Code, command.Code.Trim(), StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "验证码错误或已过期");
+        }
+
+        var newEmail = cached.Target;
+
+        // 二次唯一性校验
+        var existingByEmail = await _userRepository.GetByEmailAsync(newEmail, user.TenantId);
+        if (existingByEmail is not null && existingByEmail.BasicId != user.BasicId)
+        {
+            throw new BusinessException(message: "该邮箱已被其他用户使用");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        user.Email = newEmail;
+        await _userRepository.UpdateAsync(user);
+
+        // 验证码验证通过即表明新邮箱归属确认，直接标记已验证
+        var security = await EnsureSecurityProfileAsync(user);
+        security.EmailVerified = true;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 换绑手机 — 第一步：验证密码、发送验证码到新手机
+    /// </summary>
+    public async Task<AuthVerificationCodeDto> SendChangePhoneCodeAsync(ChangePhoneCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        if (!currentPassword.Verify(command.Password, _passwordHasher))
+        {
+            throw new BusinessException(message: "密码错误");
+        }
+
+        var newPhone = command.NewPhone.Trim();
+        if (string.Equals(newPhone, user.Phone, StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "新手机号与当前手机号相同");
+        }
+
+        var existingByPhone = await _userRepository.GetByPhoneAsync(newPhone, user.TenantId);
+        if (existingByPhone is not null && existingByPhone.BasicId != user.BasicId)
+        {
+            throw new BusinessException(message: "该手机号已被其他用户使用");
+        }
+
+        var expiresInSeconds = Math.Clamp(
+            _configuration.GetValue("XiHan:Authentication:PhoneCodeExpiresInSeconds", 300), 60, 1800);
+        var exposeDebugSecrets = ShouldExposeDebugSecrets();
+
+        var code = GenerateNumericCode(6);
+        var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+
+        await _verificationCodeCache.SetAsync(
+            BuildChangeContactCacheKey(user.TenantId, user.BasicId, "ChangePhone"),
+            new AuthVerificationCodeCacheItem
+            {
+                Purpose = "ChangePhone",
+                Target = newPhone,
+                TenantId = user.TenantId,
+                Code = code,
+                ExpireAt = expireAt
+            },
+            options: new DistributedCacheEntryOptions { AbsoluteExpiration = expireAt },
+            hideErrors: true);
+
+        // TODO: 接入实际短信发送服务，将验证码发送到 newPhone
+
+        return new AuthVerificationCodeDto
+        {
+            ExpiresInSeconds = expiresInSeconds,
+            DebugCode = exposeDebugSecrets ? code : null
+        };
+    }
+
+    /// <summary>
+    /// 换绑手机 — 第二步：验证码校验后落库
+    /// </summary>
+    public async Task ConfirmChangePhoneAsync(ConfirmChangePhoneCommand command)
+    {
+        command.ValidateAnnotations();
+
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        var cacheKey = BuildChangeContactCacheKey(user.TenantId, user.BasicId, "ChangePhone");
+        var cached = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
+
+        if (cached is null || cached.ExpireAt <= DateTimeOffset.UtcNow
+            || !string.Equals(cached.Code, command.Code.Trim(), StringComparison.Ordinal))
+        {
+            throw new BusinessException(message: "验证码错误或已过期");
+        }
+
+        var newPhone = cached.Target;
+
+        var existingByPhone = await _userRepository.GetByPhoneAsync(newPhone, user.TenantId);
+        if (existingByPhone is not null && existingByPhone.BasicId != user.BasicId)
+        {
+            throw new BusinessException(message: "该手机号已被其他用户使用");
+        }
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+
+        user.Phone = newPhone;
+        await _userRepository.UpdateAsync(user);
+
+        var security = await EnsureSecurityProfileAsync(user);
+        security.PhoneVerified = true;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+
+        await _verificationCodeCache.RemoveAsync(cacheKey, hideErrors: true);
+        await uow.CompleteAsync();
+    }
+
+    /// <summary>
     /// 修改用户名
     /// </summary>
     public async Task ChangeUserNameAsync(ChangeUserNameCommand command)
@@ -663,6 +940,36 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         await _externalLoginRepository.DeleteAsync(user.BasicId, command.Provider.Trim());
         await uow.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 获取当前用户的登录日志（分页）
+    /// </summary>
+    public async Task<LoginLogPageDto> GetLoginLogsAsync(int pageIndex = 1, int pageSize = 20)
+    {
+        var user = await ResolveCurrentUserEntityAsync()
+                   ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+
+        pageIndex = Math.Max(1, pageIndex);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var (items, total) = await _loginLogRepository.GetPagedByUserIdAsync(
+            user.BasicId, user.TenantId, pageIndex, pageSize);
+
+        return new LoginLogPageDto
+        {
+            Total = total,
+            Items = [.. items.Select(log => new LoginLogItemDto
+            {
+                LoginTime = log.LoginTime,
+                LoginIp = log.LoginIp,
+                LoginLocation = log.LoginLocation,
+                Browser = log.Browser,
+                Os = log.Os,
+                LoginResult = (int)log.LoginResult,
+                Message = log.Message
+            })]
+        };
     }
 
     /// <summary>
@@ -801,6 +1108,21 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     {
         var tenantSegment = tenantId?.ToString() ?? "0";
         return $"auth:email-verify:{tenantSegment}:{email.ToLowerInvariant()}";
+    }
+
+    private static string BuildPhoneVerifyCodeCacheKey(long? tenantId, string phone)
+    {
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        return $"auth:phone-verify:{tenantSegment}:{phone}";
+    }
+
+    /// <summary>
+    /// 换绑联系方式的缓存键（按用户ID + purpose 维度，防止多次请求冲突）
+    /// </summary>
+    private static string BuildChangeContactCacheKey(long? tenantId, long userId, string purpose)
+    {
+        var tenantSegment = tenantId?.ToString() ?? "0";
+        return $"auth:{purpose}:{tenantSegment}:{userId}";
     }
 
     private static string Build2FAVerifyCodeCacheKey(long? tenantId, string target, string purpose)
