@@ -87,6 +87,8 @@ public class SysMenuSeeder : DataSeederBase
             new() { ResourceId = GetResourceId(resourceMap, "operation_log"), ParentId = null, MenuName = "操作日志", MenuCode = "operation_log", MenuType = MenuType.Menu, Path = "/log/oplog", Component = "System/Log/Operation", RouteName = "OperationLog", Icon = "history", Title = "操作日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 302 },
             new() { ResourceId = GetResourceId(resourceMap, "exception_log"), ParentId = null, MenuName = "异常日志", MenuCode = "exception_log", MenuType = MenuType.Menu, Path = "/log/exlog", Component = "System/Log/Exception", RouteName = "ExceptionLog", Icon = "alert-triangle", Title = "异常日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 303 },
             new() { ResourceId = GetResourceId(resourceMap, "audit_log"), ParentId = null, MenuName = "差异日志", MenuCode = "audit_log", MenuType = MenuType.Menu, Path = "/log/difflog", Component = "System/Log/Audit", RouteName = "AuditLog", Icon = "file-diff", Title = "差异日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 304 },
+            new() { ResourceId = GetResourceId(resourceMap, "login_log"), ParentId = null, MenuName = "登录日志", MenuCode = "login_log", MenuType = MenuType.Menu, Path = "/log/loginlog", Component = "System/Log/Login", RouteName = "LoginLog", Icon = "log-in", Title = "登录日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 305 },
+            new() { ResourceId = GetResourceId(resourceMap, "task_log"), ParentId = null, MenuName = "调度日志", MenuCode = "task_log", MenuType = MenuType.Menu, Path = "/log/tasklog", Component = "System/Log/Task", RouteName = "TaskLog", Icon = "calendar-clock", Title = "调度日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 306 },
 
             // 平台管理
             new() { ResourceId = GetResourceId(resourceMap, "platform"), ParentId = null, MenuName = "平台管理", MenuCode = "platform", MenuType = MenuType.Directory, Path = "/platform", Component = null, RouteName = null, Redirect = "/platform/menu", Icon = "layout-grid", Title = "平台管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
@@ -106,7 +108,7 @@ public class SysMenuSeeder : DataSeederBase
 
         await BulkInsertAsync(menus);
         await UpdateMenuParentIdAsync("messaging", ["message", "email", "sms"]);
-        await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);
+        await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log"]);
         await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "log", "messaging"]);
         await UpdateMenuParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "file"]);
 

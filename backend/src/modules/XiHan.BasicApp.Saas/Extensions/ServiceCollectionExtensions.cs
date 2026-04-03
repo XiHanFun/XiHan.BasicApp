@@ -135,6 +135,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOperationLogAppService, OperationLogAppService>();
         services.AddScoped<IExceptionLogAppService, ExceptionLogAppService>();
         services.AddScoped<IAuditLogAppService, AuditLogAppService>();
+        services.AddScoped<ILoginLogAppService, LoginLogAppService>();
+        services.AddScoped<ITaskLogAppService, TaskLogAppService>();
 
         return services;
     }
