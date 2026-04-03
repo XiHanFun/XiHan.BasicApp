@@ -1,14 +1,23 @@
 import type { MenuOption } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { LayoutRouteMeta, LayoutRouteRecord } from '../contracts'
 import type { MenuRoute } from '~/types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAccessStore } from '~/stores'
 
+interface BadgeInfo {
+  text?: string | number
+  type?: string
+  dot?: boolean
+}
+
 interface BuildMenuOptionsConfig {
   keyBy: 'name' | 'path'
   translate: (title: string, fallback: string) => string
   iconRenderer?: (icon: string) => MenuOption['icon']
+  /** 标签渲染器：将菜单文本与标签信息合并为带标签的 label */
+  badgeLabelRenderer?: (text: string, badge: BadgeInfo) => string | (() => VNodeChild)
 }
 
 type RouteRecordName = LayoutRouteRecord['name']
@@ -104,8 +113,18 @@ function buildMenuOptionsFromRoutes(
     }
 
     const fallback = toRouteNameKey(item.name) ?? fullPath
-    const label = meta.title ? config.translate(meta.title, fallback) : fallback
+    const rawLabel = meta.title ? config.translate(meta.title, fallback) : fallback
     const icon = meta.icon ? config.iconRenderer?.(meta.icon) : undefined
+
+    // 当菜单配置了标签且提供了标签渲染器时，生成带标签的 label
+    const hasBadge = meta.badge || meta.dot
+    const label = hasBadge && config.badgeLabelRenderer
+      ? config.badgeLabelRenderer(rawLabel, {
+          text: meta.badge,
+          type: meta.badgeType,
+          dot: meta.dot,
+        })
+      : rawLabel
 
     options.push({
       key,

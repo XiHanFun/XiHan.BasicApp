@@ -460,4 +460,19 @@ public class AuthMenuMetaDto
     /// 外链
     /// </summary>
     public string? Link { get; set; }
+
+    /// <summary>
+    /// 标签内容
+    /// </summary>
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型
+    /// </summary>
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点
+    /// </summary>
+    public bool Dot { get; set; }
 }

@@ -40,6 +40,14 @@ const STATUS_OPTIONS = [
   { label: '禁用', value: 0 },
 ]
 
+const BADGE_TYPE_OPTIONS = [
+  { label: '默认', value: 'default' },
+  { label: '成功', value: 'success' },
+  { label: '警告', value: 'warning' },
+  { label: '错误', value: 'error' },
+  { label: '信息', value: 'info' },
+]
+
 const ROOT_ID = ''
 
 function flattenMenuTree(items: SysMenu[]): SysMenu[] {
@@ -126,6 +134,12 @@ const options = useVxeTable<SysMenu>(
         width: 70,
         slots: { default: 'col_cache' },
       },
+      {
+        field: 'badge',
+        title: '标签',
+        width: 100,
+        slots: { default: 'col_badge' },
+      },
       { field: 'sort', title: '排序', width: 70 },
       {
         field: 'status',
@@ -180,6 +194,9 @@ function resetForm() {
     isCache: true,
     isVisible: true,
     isAffix: false,
+    badge: '',
+    badgeType: '',
+    badgeDot: false,
     sort: 0,
     status: 1,
     remark: '',
@@ -264,6 +281,15 @@ onMounted(fetchData)
             {{ row.isCache ? '是' : '否' }}
           </NTag>
         </template>
+        <template #col_badge="{ row }">
+          <template v-if="row.badgeDot">
+            <span class="inline-block w-2 h-2 rounded-full bg-red-500" title="圆点标签" />
+          </template>
+          <NTag v-else-if="row.badge" :type="row.badgeType || 'default'" size="small" round>
+            {{ row.badge }}
+          </NTag>
+          <span v-else class="text-gray-300">-</span>
+        </template>
         <template #col_status="{ row }">
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
             {{ row.status === 1 ? '启用' : '禁用' }}
@@ -333,6 +359,25 @@ onMounted(fetchData)
         </NFormItem>
         <NFormItem v-if="formData.menuType !== 2" label="图标" path="icon">
           <IconPicker v-model="formData.icon" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="标签内容" path="badge">
+          <NInput
+            v-model:value="formData.badge"
+            placeholder="如: New、3（为空则不显示）"
+            :disabled="formData.badgeDot"
+          />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="标签类型" path="badgeType">
+          <NSelect
+            v-model:value="formData.badgeType"
+            :options="BADGE_TYPE_OPTIONS"
+            placeholder="标签颜色"
+            clearable
+            :disabled="formData.badgeDot"
+          />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="仅显示圆点">
+          <NSwitch v-model:value="formData.badgeDot" />
         </NFormItem>
         <NFormItem label="排序" path="sort">
           <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />

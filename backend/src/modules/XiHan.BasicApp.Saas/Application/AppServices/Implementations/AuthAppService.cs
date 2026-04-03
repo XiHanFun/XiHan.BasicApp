@@ -1409,7 +1409,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                 AffixTab = menu.IsAffix,
                 Permissions = string.IsNullOrWhiteSpace(permissionCode) ? [] : [permissionCode],
                 Order = menu.Sort,
-                Link = menu.IsExternal ? menu.ExternalUrl : null
+                Link = menu.IsExternal ? menu.ExternalUrl : null,
+                Badge = menu.Badge,
+                BadgeType = menu.BadgeType,
+                Dot = menu.BadgeDot
             }
         };
     }

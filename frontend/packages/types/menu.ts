@@ -10,6 +10,7 @@ export interface MenuMeta {
   permissions?: string[]
   order?: number
   badge?: string | number
+  badgeType?: string
   dot?: boolean
   link?: string
 }

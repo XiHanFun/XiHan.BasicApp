@@ -130,8 +130,26 @@ public partial class SysMenu : BasicAppAggregateRoot
     public virtual bool IsAffix { get; set; } = false;
 
     /// <summary>
+    /// 标签内容（如 "New"、"3" 等，显示在侧栏菜单项右侧）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "标签内容", Length = 50, IsNullable = true)]
+    public virtual string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型（控制标签颜色：default/success/warning/error/info）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "标签类型", Length = 20, IsNullable = true)]
+    public virtual string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点（为 true 时忽略标签内容，仅显示小圆点）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "标签圆点")]
+    public virtual bool BadgeDot { get; set; } = false;
+
+    /// <summary>
     /// 菜单元数据（JSON格式，存储额外配置）
-    /// 例如：{"badge": "new", "activeMenu": "/system/user"}
+    /// 例如：{"activeMenu": "/system/user"}
     /// </summary>
     [SugarColumn(ColumnDescription = "菜单元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Metadata { get; set; }
