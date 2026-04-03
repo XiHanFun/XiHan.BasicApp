@@ -18,7 +18,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { menuApi } from '@/api'
-import { IconPicker } from '~/components'
+import { Icon, IconPicker } from '~/iconify'
 import { useVxeTable } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -267,7 +267,7 @@ onMounted(fetchData)
         </template>
         <template #col_icon="{ row }">
           <span v-if="row.icon" class="text-lg">
-            <iconify-icon :icon="row.icon" />
+            <Icon :icon="row.icon.includes(':') ? row.icon : `lucide:${row.icon}`" />
           </span>
           <span v-else class="text-gray-300">-</span>
         </template>
