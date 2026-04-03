@@ -1,6 +1,7 @@
 export * from './modules/access-log'
 export * from './modules/audit-log'
 export * from './modules/auth'
+export * from './modules/profile'
 export * from './modules/cache'
 export * from './modules/config'
 export * from './modules/department'
