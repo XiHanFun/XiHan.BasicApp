@@ -179,6 +179,9 @@ public class MenuAppService
             IsCache = createDto.IsCache,
             IsVisible = createDto.IsVisible,
             IsAffix = createDto.IsAffix,
+            Badge = createDto.Badge,
+            BadgeType = createDto.BadgeType,
+            BadgeDot = createDto.BadgeDot,
             Sort = createDto.Sort,
             Remark = createDto.Remark
         };
@@ -210,6 +213,9 @@ public class MenuAppService
         entity.IsCache = updateDto.IsCache;
         entity.IsVisible = updateDto.IsVisible;
         entity.IsAffix = updateDto.IsAffix;
+        entity.Badge = updateDto.Badge;
+        entity.BadgeType = updateDto.BadgeType;
+        entity.BadgeDot = updateDto.BadgeDot;
         entity.Status = updateDto.Status;
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
