@@ -72,6 +72,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddScoped<ISmsRepository, SmsRepository>();
         services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<ITaskLogRepository, TaskLogRepository>();
         services.AddScoped<IOAuthAppRepository, OAuthAppRepository>();
         services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
