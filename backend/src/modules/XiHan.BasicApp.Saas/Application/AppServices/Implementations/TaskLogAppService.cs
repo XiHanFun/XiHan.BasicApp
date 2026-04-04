@@ -14,14 +14,11 @@
 
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using SqlSugar;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
@@ -32,19 +29,15 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
 public class TaskLogAppService : ApplicationServiceBase, ITaskLogAppService
 {
-    private readonly ISqlSugarDbContext _dbContext;
-    private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
+    private readonly ITaskLogRepository _taskLogRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public TaskLogAppService(ISqlSugarDbContext dbContext, ISqlSugarSplitTableExecutor splitTableExecutor)
+    public TaskLogAppService(ITaskLogRepository taskLogRepository)
     {
-        _dbContext = dbContext;
-        _splitTableExecutor = splitTableExecutor;
+        _taskLogRepository = taskLogRepository;
     }
-
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 分页查询
@@ -52,16 +45,10 @@ public class TaskLogAppService : ApplicationServiceBase, ITaskLogAppService
     [HttpPost]
     public async Task<PageResultDtoBase<TaskLogDto>> PageAsync(BasicAppPRDto input)
     {
-        var pageIndex = input.Page.PageIndex;
-        var pageSize = input.Page.PageSize;
-        RefAsync<int> total = 0;
+        var pageData = await _taskLogRepository.GetPagedAsync(input);
 
-        var list = await _splitTableExecutor.CreateQueryable<SysTaskLog>(DbClient)
-            .OrderByDescending(static x => x.CreatedTime)
-            .ToPageListAsync(pageIndex, pageSize, total);
-
-        var dtos = list.Adapt<List<TaskLogDto>>() ?? [];
-        return PageResultDtoBase<TaskLogDto>.Create(dtos, pageIndex, pageSize, total);
+        var dtos = pageData.Adapt<PageResultDtoBase<TaskLogDto>>();
+        return dtos;
     }
 
     /// <summary>
@@ -70,6 +57,6 @@ public class TaskLogAppService : ApplicationServiceBase, ITaskLogAppService
     [HttpDelete]
     public async Task<bool> ClearAsync()
     {
-        return await DbClient.Deleteable<SysTaskLog>().SplitTable().ExecuteCommandAsync() > 0;
+        return await _taskLogRepository.ClearAsync();
     }
 }
