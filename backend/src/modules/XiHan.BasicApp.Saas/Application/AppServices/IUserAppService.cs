@@ -16,7 +16,6 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 用户应用服务
 /// </summary>
 public interface IUserAppService
-    : ICrudApplicationService<SysUser, UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据用户名获取用户

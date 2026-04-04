@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 字典应用服务
 /// </summary>
 public interface IDictAppService
-    : ICrudApplicationService<SysDict, DictDto, long, DictCreateDto, DictUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<DictDto, long, DictCreateDto, DictUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据字典编码获取字典

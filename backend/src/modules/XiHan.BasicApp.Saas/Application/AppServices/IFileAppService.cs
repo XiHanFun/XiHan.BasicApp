@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 文件应用服务
 /// </summary>
 public interface IFileAppService
-    : ICrudApplicationService<SysFile, FileDto, long, FileCreateDto, FileUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<FileDto, long, FileCreateDto, FileUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据哈希获取文件
