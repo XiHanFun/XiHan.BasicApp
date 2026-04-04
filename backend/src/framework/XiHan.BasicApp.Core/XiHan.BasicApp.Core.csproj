@@ -26,6 +26,7 @@
       <PackageReference Include="XiHan.Framework.Authorization" Version="$(XiHanFrameworkVersion)" />
       <PackageReference Include="XiHan.Framework.Bot" Version="$(XiHanFrameworkVersion)" />
       <PackageReference Include="XiHan.Framework.Caching" Version="$(XiHanFrameworkVersion)" />
+      <PackageReference Include="XiHan.Framework.Castle" Version="$(XiHanFrameworkVersion)" />
       <PackageReference Include="XiHan.Framework.Core" Version="$(XiHanFrameworkVersion)" />
       <PackageReference Include="XiHan.Framework.Data" Version="$(XiHanFrameworkVersion)" />
       <PackageReference Include="XiHan.Framework.DistributedIds" Version="$(XiHanFrameworkVersion)" />
