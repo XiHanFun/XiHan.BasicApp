@@ -74,7 +74,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IAuthTokenCacheHelper _authTokenCacheHelper;
     private readonly IDistributedCache<AuthVerificationCodeCacheItem> _verificationCodeCache;
     private readonly IConfiguration _configuration;
-    private readonly JwtOptions _jwtOptions;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly ICurrentUser _currentUser;
     private readonly IClientInfoProvider _clientInfoProvider;
@@ -108,7 +107,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="httpContextAccessor"></param>
     /// <param name="unitOfWorkManager"></param>
     /// <param name="externalLoginRepository"></param>
-    /// <param name="jwtOptions"></param>
     /// <param name="oauthOptions"></param>
     /// <param name="realtimeNotifier"></param>
     public AuthAppService(
@@ -133,7 +131,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWorkManager unitOfWorkManager,
         IExternalLoginRepository externalLoginRepository,
-        IOptions<JwtOptions> jwtOptions,
         IOptions<OAuthOptions> oauthOptions,
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotifier)
     {
@@ -158,7 +155,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _httpContextAccessor = httpContextAccessor;
         _unitOfWorkManager = unitOfWorkManager;
         _externalLoginRepository = externalLoginRepository;
-        _jwtOptions = jwtOptions.Value;
         _oauthOptions = oauthOptions.Value;
         _realtimeNotifier = realtimeNotifier;
     }
