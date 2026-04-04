@@ -90,7 +90,7 @@ public partial class SysUser
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysFile.CreatedId))]
+    [Navigate(NavigateType.OneToMany, nameof(CreatedId))]
     public virtual List<SysFile>? UploadedFiles { get; set; }
 
     /// <summary>

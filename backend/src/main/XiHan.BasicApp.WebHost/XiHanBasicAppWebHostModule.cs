@@ -104,7 +104,7 @@ public class XiHanBasicAppWebHostModule : XiHanModule
                 {
                     options.Cookie.Name = ".XiHan.External";
                     options.Cookie.HttpOnly = true;
-                    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
                 });
             }

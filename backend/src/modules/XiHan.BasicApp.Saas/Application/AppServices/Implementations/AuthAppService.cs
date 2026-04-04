@@ -30,6 +30,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.ValueObjects;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Jwt;
@@ -81,7 +82,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IExternalLoginRepository _externalLoginRepository;
     private readonly OAuthOptions _oauthOptions;
-    private readonly IRealtimeNotificationService<Hubs.BasicAppNotificationHub> _realtimeNotifier;
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotifier;
 
     /// <summary>
     /// 构造函数
@@ -134,7 +135,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IExternalLoginRepository externalLoginRepository,
         IOptions<JwtOptions> jwtOptions,
         IOptions<OAuthOptions> oauthOptions,
-        IRealtimeNotificationService<Hubs.BasicAppNotificationHub> realtimeNotifier)
+        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotifier)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -238,15 +239,23 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             // 计算用户已启用的所有 2FA 方式
             var availableMethods = new List<string>();
-            if (security.TwoFactorMethod.HasFlag(Domain.Enums.TwoFactorMethod.Totp)
+            if (security.TwoFactorMethod.HasFlag(TwoFactorMethod.Totp)
                 && !string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+            {
                 availableMethods.Add("totp");
-            if (security.TwoFactorMethod.HasFlag(Domain.Enums.TwoFactorMethod.Email)
+            }
+
+            if (security.TwoFactorMethod.HasFlag(TwoFactorMethod.Email)
                 && !string.IsNullOrWhiteSpace(user.Email))
+            {
                 availableMethods.Add("email");
-            if (security.TwoFactorMethod.HasFlag(Domain.Enums.TwoFactorMethod.Phone)
+            }
+
+            if (security.TwoFactorMethod.HasFlag(TwoFactorMethod.Phone)
                 && !string.IsNullOrWhiteSpace(user.Phone))
+            {
                 availableMethods.Add("phone");
+            }
 
             if (availableMethods.Count == 0)
             {
@@ -664,12 +673,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task<CurrentUserDto> GetCurrentUserAsync()
     {
-        var user = await ResolveCurrentUserEntityAsync();
-        if (user is null)
-        {
-            throw new UnauthorizedAccessException("未登录或登录已过期");
-        }
-
+        var user = await ResolveCurrentUserEntityAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
         return new CurrentUserDto
         {
             UserId = user.BasicId,
@@ -687,12 +691,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task<AuthPermissionDto> GetPermissionsAsync()
     {
-        var user = await ResolveCurrentUserEntityAsync();
-        if (user is null)
-        {
-            throw new UnauthorizedAccessException("未登录或登录已过期");
-        }
-
+        var user = await ResolveCurrentUserEntityAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
         var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
         var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
             user.BasicId,
@@ -766,7 +765,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         ArgumentNullException.ThrowIfNull(query);
         if (query.UserId <= 0)
         {
-            throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
+            throw new ArgumentException("用户 ID 无效", nameof(query));
         }
 
         var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
@@ -784,7 +783,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         ArgumentNullException.ThrowIfNull(query);
         if (query.UserId <= 0)
         {
-            throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
+            throw new ArgumentException("用户 ID 无效", nameof(query));
         }
 
         var departmentIds = await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
@@ -793,7 +792,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             token => _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
         return departmentIds;
     }
-
 
     /// <summary>
     /// 处理第三方登录（查找或自动注册用户，签发令牌）
@@ -967,7 +965,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="menus"></param>
     /// <param name="resourcePermissionMap"></param>
     /// <returns></returns>
-    private static IReadOnlyList<AuthMenuRouteDto> BuildMenuRoutes(
+    private static List<AuthMenuRouteDto> BuildMenuRoutes(
         IReadOnlyList<SysMenu> menus,
         IReadOnlyDictionary<long, string> resourcePermissionMap)
     {
@@ -1115,7 +1113,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     private static string GenerateExternalUserName(string provider, string providerKey)
     {
-        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+        var hash = Convert.ToHexString(SHA256.HashData(
             Encoding.UTF8.GetBytes($"{provider}:{providerKey}")))[..8].ToLowerInvariant();
         return $"{provider}_{hash}";
     }

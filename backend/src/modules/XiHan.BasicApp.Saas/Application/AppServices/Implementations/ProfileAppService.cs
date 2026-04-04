@@ -164,15 +164,50 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
-        if (command.NickName is not null) user.NickName = command.NickName.Trim();
-        if (command.RealName is not null) user.RealName = command.RealName.Trim();
-        if (command.Avatar is not null) user.Avatar = command.Avatar.Trim();
-        if (command.Gender.HasValue) user.Gender = command.Gender.Value;
-        if (command.Birthday.HasValue) user.Birthday = command.Birthday.Value;
-        if (command.TimeZone is not null) user.TimeZone = command.TimeZone.Trim();
-        if (command.Language is not null) user.Language = command.Language.Trim();
-        if (command.Country is not null) user.Country = command.Country.Trim();
-        if (command.Remark is not null) user.Remark = command.Remark.Trim();
+        if (command.NickName is not null)
+        {
+            user.NickName = command.NickName.Trim();
+        }
+
+        if (command.RealName is not null)
+        {
+            user.RealName = command.RealName.Trim();
+        }
+
+        if (command.Avatar is not null)
+        {
+            user.Avatar = command.Avatar.Trim();
+        }
+
+        if (command.Gender.HasValue)
+        {
+            user.Gender = command.Gender.Value;
+        }
+
+        if (command.Birthday.HasValue)
+        {
+            user.Birthday = command.Birthday.Value;
+        }
+
+        if (command.TimeZone is not null)
+        {
+            user.TimeZone = command.TimeZone.Trim();
+        }
+
+        if (command.Language is not null)
+        {
+            user.Language = command.Language.Trim();
+        }
+
+        if (command.Country is not null)
+        {
+            user.Country = command.Country.Trim();
+        }
+
+        if (command.Remark is not null)
+        {
+            user.Remark = command.Remark.Trim();
+        }
 
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
@@ -285,7 +320,10 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
             .Select(s => s.UserSessionId)
             .ToArray();
 
-        if (otherSessionIds.Length == 0) return;
+        if (otherSessionIds.Length == 0)
+        {
+            return;
+        }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         await _userSessionRepository.RevokeSessionsAsync(otherSessionIds, "用户在个人中心撤销所有其他会话", user.TenantId);
@@ -341,20 +379,28 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         if (command.Method == TwoFactorMethod.Email)
         {
             if (string.IsNullOrWhiteSpace(user.Email))
+            {
                 throw new BusinessException(message: "请先设置邮箱地址");
+            }
 
             var security = await EnsureSecurityProfileAsync(user);
             if (!security.EmailVerified)
+            {
                 throw new BusinessException(message: "请先验证邮箱");
+            }
         }
         else if (command.Method == TwoFactorMethod.Phone)
         {
             if (string.IsNullOrWhiteSpace(user.Phone))
+            {
                 throw new BusinessException(message: "请先设置手机号");
+            }
 
             var security = await EnsureSecurityProfileAsync(user);
             if (!security.PhoneVerified)
+            {
                 throw new BusinessException(message: "请先验证手机号");
+            }
         }
         else
         {
@@ -388,20 +434,32 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         {
             case TwoFactorMethod.Totp:
                 if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+                {
                     throw new BusinessException(message: "请先调用初始化接口获取密钥");
+                }
+
                 if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
+                {
                     throw new BusinessException(message: "验证码错误，请检查后重试");
+                }
+
                 break;
 
             case TwoFactorMethod.Email:
                 if (string.IsNullOrWhiteSpace(user.Email))
+                {
                     throw new BusinessException(message: "请先设置邮箱地址");
+                }
+
                 await VerifyCachedCodeAsync(user.TenantId, user.Email, $"2FA-Setup-{TwoFactorMethod.Email}", command.Code);
                 break;
 
             case TwoFactorMethod.Phone:
                 if (string.IsNullOrWhiteSpace(user.Phone))
+                {
                     throw new BusinessException(message: "请先设置手机号");
+                }
+
                 await VerifyCachedCodeAsync(user.TenantId, user.Phone, $"2FA-Setup-{TwoFactorMethod.Phone}", command.Code);
                 break;
 
@@ -439,20 +497,32 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         {
             case TwoFactorMethod.Totp:
                 if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+                {
                     throw new BusinessException(message: "双因素认证配置异常，请联系管理员");
+                }
+
                 if (!_otpService.VerifyTotpCode(security.TwoFactorSecret, command.Code.Trim()))
+                {
                     throw new BusinessException(message: "验证码错误，请检查后重试");
+                }
+
                 break;
 
             case TwoFactorMethod.Email:
                 if (string.IsNullOrWhiteSpace(user.Email))
+                {
                     throw new BusinessException(message: "邮箱未设置");
+                }
+
                 await VerifyCachedCodeAsync(user.TenantId, user.Email, $"2FA-Setup-{TwoFactorMethod.Email}", command.Code);
                 break;
 
             case TwoFactorMethod.Phone:
                 if (string.IsNullOrWhiteSpace(user.Phone))
+                {
                     throw new BusinessException(message: "手机号未设置");
+                }
+
                 await VerifyCachedCodeAsync(user.TenantId, user.Phone, $"2FA-Setup-{TwoFactorMethod.Phone}", command.Code);
                 break;
 
@@ -465,7 +535,10 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         security.TwoFactorEnabled = security.TwoFactorMethod != TwoFactorMethod.None;
         // 仅当 TOTP 被移除时清除密钥
         if (command.Method == TwoFactorMethod.Totp)
+        {
             security.TwoFactorSecret = null;
+        }
+
         security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
         await _userRepository.SaveSecurityAsync(security);
         await uow.CompleteAsync();
