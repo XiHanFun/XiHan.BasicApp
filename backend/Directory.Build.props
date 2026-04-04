@@ -1,0 +1,12 @@
+<Project>
+
+    <PropertyGroup>
+        <!-- 切换开关：true = 本地 ProjectReference，false = NuGet PackageReference -->
+        <UseLocalFramework>false</UseLocalFramework>
+        <!-- XiHan.Framework NuGet 包版本（UseLocalFramework=false 时生效） -->
+        <XiHanFrameworkVersion>2.4.0-preview.2</XiHanFrameworkVersion>
+        <!-- XiHan.Framework 源码根目录（UseLocalFramework=true 时生效） -->
+        <XiHanFrameworkSrcRoot>$(MSBuildThisFileDirectory)..\..\XiHan.Framework\framework\src</XiHanFrameworkSrcRoot>
+    </PropertyGroup>
+
+</Project>
