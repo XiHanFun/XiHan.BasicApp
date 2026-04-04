@@ -111,6 +111,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IUserAppService, UserAppService>();
         services.AddScoped<IRoleAppService, RoleAppService>();
+        services.AddScoped<IAuthSessionManager, AuthSessionManager>();
+        services.AddScoped<IAuthNotificationService, AuthNotificationService>();
         services.AddScoped<IAuthAppService, AuthAppService>();
         services.AddScoped<IProfileAppService, ProfileAppService>();
         services.AddScoped<IAuthTokenCacheHelper, AuthTokenCacheHelper>();
