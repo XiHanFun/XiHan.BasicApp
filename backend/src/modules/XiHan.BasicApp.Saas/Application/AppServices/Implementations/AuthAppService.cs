@@ -23,6 +23,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Helpers;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -30,7 +31,6 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.ValueObjects;
-using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Authentication.Jwt;
@@ -45,8 +45,6 @@ using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 using XiHan.Framework.Web.Core.Clients;
-using XiHan.Framework.Web.RealTime.Constants;
-using XiHan.Framework.Web.RealTime.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -66,7 +64,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IMenuRepository _menuRepository;
-    private readonly IUserSessionRepository _userSessionRepository;
     private readonly ILoginLogRepository _loginLogRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IOtpService _otpService;
@@ -81,34 +78,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IExternalLoginRepository _externalLoginRepository;
     private readonly OAuthOptions _oauthOptions;
-    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotifier;
+    private readonly IAuthSessionManager _authSessionManager;
+    private readonly IAuthNotificationService _authNotificationService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="userRepository"></param>
-    /// <param name="userManager"></param>
-    /// <param name="authorizationDomainService"></param>
-    /// <param name="authorizationCacheService"></param>
-    /// <param name="roleRepository"></param>
-    /// <param name="permissionRepository"></param>
-    /// <param name="menuRepository"></param>
-    /// <param name="userSessionRepository"></param>
-    /// <param name="loginLogRepository"></param>
-    /// <param name="jwtTokenService"></param>
-    /// <param name="otpService"></param>
-    /// <param name="passwordHasher"></param>
-    /// <param name="authTokenCacheHelper"></param>
-    /// <param name="verificationCodeCache"></param>
-    /// <param name="configuration"></param>
-    /// <param name="hostEnvironment"></param>
-    /// <param name="currentUser"></param>
-    /// <param name="clientInfoProvider"></param>
-    /// <param name="httpContextAccessor"></param>
-    /// <param name="unitOfWorkManager"></param>
-    /// <param name="externalLoginRepository"></param>
-    /// <param name="oauthOptions"></param>
-    /// <param name="realtimeNotifier"></param>
     public AuthAppService(
         IUserRepository userRepository,
         IUserManager userManager,
@@ -117,7 +92,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IMenuRepository menuRepository,
-        IUserSessionRepository userSessionRepository,
         ILoginLogRepository loginLogRepository,
         IJwtTokenService jwtTokenService,
         IOtpService otpService,
@@ -132,7 +106,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IUnitOfWorkManager unitOfWorkManager,
         IExternalLoginRepository externalLoginRepository,
         IOptions<OAuthOptions> oauthOptions,
-        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotifier)
+        IAuthSessionManager authSessionManager,
+        IAuthNotificationService authNotificationService)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -141,7 +116,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _menuRepository = menuRepository;
-        _userSessionRepository = userSessionRepository;
         _loginLogRepository = loginLogRepository;
         _jwtTokenService = jwtTokenService;
         _otpService = otpService;
@@ -156,7 +130,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _unitOfWorkManager = unitOfWorkManager;
         _externalLoginRepository = externalLoginRepository;
         _oauthOptions = oauthOptions.Value;
-        _realtimeNotifier = realtimeNotifier;
+        _authSessionManager = authSessionManager;
+        _authNotificationService = authNotificationService;
     }
 
     /// <summary>
@@ -326,58 +301,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             }
         }
 
-        var revokedSessionIds = await EnforceSessionPolicyAsync(user, security);
-
-        security.FailedLoginAttempts = 0;
-        security.IsLocked = false;
-        security.LockoutTime = null;
-        security.LockoutEndTime = null;
-        security.LastFailedLoginTime = null;
-        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
-        await _userRepository.SaveSecurityAsync(security);
-
-        user.LastLoginTime = DateTimeOffset.UtcNow;
-        user.LastLoginIp = clientInfo.IpAddress;
-        await _userRepository.UpdateAsync(user);
-
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
-        var sessionId = Guid.NewGuid().ToString("N");
-        var accessTokenJti = Guid.NewGuid().ToString("N");
-        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
-        var refreshToken = tokenResult.RefreshToken;
-
-        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
-        await WriteLoginLogAsync(user.BasicId, command, LoginResult.Success, clientInfo, "登录成功");
-        await uow.CompleteAsync();
-
-        foreach (var revokedSessionId in revokedSessionIds)
-        {
-            await _authTokenCacheHelper.RemoveSessionTokenAsync(revokedSessionId);
-        }
-
-        // 多端策略踢掉的旧会话，通过 SignalR 推送强制下线
-        if (revokedSessionIds.Count > 0)
-        {
-            await NotifyForceLogoutAsync(user.BasicId.ToString(), "您的账号已在其他设备登录", revokedSessionIds);
-        }
-
-        // 向已有在线设备推送新设备登录通知
-        await NotifyNewDeviceLoginAsync(user, clientInfo);
-
-        await _authTokenCacheHelper.SaveRefreshTokenAsync(refreshToken, user, sessionId);
+        var token = await IssueTokenAfterAuthAsync(user, security, clientInfo, uow, command.UserName, command.TenantId, "登录成功");
 
         return new LoginResponseDto
         {
             RequiresTwoFactor = false,
-            Token = new AuthTokenDto
-            {
-                AccessToken = tokenResult.AccessToken,
-                RefreshToken = tokenResult.RefreshToken,
-                TokenType = tokenResult.TokenType,
-                ExpiresIn = tokenResult.ExpiresIn,
-                IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
-                ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
-            }
+            Token = token
         };
     }
 
@@ -532,49 +461,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new BusinessException(message: $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
         }
 
-        var revokedSessionIds = await EnforceSessionPolicyAsync(user, security);
-
-        security.FailedLoginAttempts = 0;
-        security.IsLocked = false;
-        security.LockoutTime = null;
-        security.LockoutEndTime = null;
-        security.LastFailedLoginTime = null;
-        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
-        await _userRepository.SaveSecurityAsync(security);
-
-        user.LastLoginTime = DateTimeOffset.UtcNow;
-        user.LastLoginIp = clientInfo.IpAddress;
-        await _userRepository.UpdateAsync(user);
-
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
-        var sessionId = Guid.NewGuid().ToString("N");
-        var accessTokenJti = Guid.NewGuid().ToString("N");
-        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
-        var refreshToken = tokenResult.RefreshToken;
-
-        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
-        await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.Success, clientInfo, "手机验证码登录成功");
-        await uow.CompleteAsync();
-
-        foreach (var revokedSessionId in revokedSessionIds)
-        {
-            await _authTokenCacheHelper.RemoveSessionTokenAsync(revokedSessionId);
-        }
-
-        // 向已有在线设备推送新设备登录通知
-        await NotifyNewDeviceLoginAsync(user, clientInfo);
-
-        await _authTokenCacheHelper.SaveRefreshTokenAsync(refreshToken, user, sessionId);
-
-        return new AuthTokenDto
-        {
-            AccessToken = tokenResult.AccessToken,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ExpiresIn = tokenResult.ExpiresIn,
-            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
-            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
-        };
+        return await IssueTokenAfterAuthAsync(user, security, clientInfo, uow, user.UserName, tenantId, "手机验证码登录成功");
     }
 
     /// <summary>
@@ -629,8 +516,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new UnauthorizedAccessException("登录状态已失效，请重新登录");
         }
 
-        var existingSession = await _userSessionRepository.GetBySessionIdAsync(cachedToken.SessionId, user.TenantId);
-        if (existingSession is null || existingSession.IsRevoked || !existingSession.IsOnline)
+        var sessionValid = await _authSessionManager.IsSessionValidAsync(cachedToken.SessionId, user.TenantId);
+        if (!sessionValid)
         {
             await _authTokenCacheHelper.RemoveRefreshTokenDirectAsync(refreshToken);
             await _authTokenCacheHelper.RemoveSessionTokenMapDirectAsync(cachedToken.SessionId);
@@ -643,8 +530,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var tokenResult = _jwtTokenService.GenerateAccessToken(
             BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
 
+        var clientInfo = _clientInfoProvider.GetCurrent();
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
+        await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
         await uow.CompleteAsync();
 
         await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
@@ -713,7 +601,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             Roles = [.. roleCodes],
             Permissions = [.. permissionCodeSet.OrderBy(static code => code)],
-            Menus = BuildMenuRoutes(userMenus, resourcePermissionMap)
+            Menus = AuthMenuBuilder.BuildMenuRoutes(userMenus, resourcePermissionMap)
         };
     }
 
@@ -734,11 +622,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         if (!string.IsNullOrWhiteSpace(sessionId))
         {
-            await MarkSessionRevokedAsync(sessionId, tenantId, "用户主动退出");
+            await _authSessionManager.MarkSessionRevokedAsync(sessionId, tenantId, "用户主动退出");
         }
         else
         {
-            await _userSessionRepository.RevokeUserSessionsAsync(userId, "用户主动退出", tenantId);
+            await _authSessionManager.RevokeUserSessionsAsync(userId, "用户主动退出", tenantId);
         }
 
         await uow.CompleteAsync();
@@ -748,9 +636,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             await _authTokenCacheHelper.RemoveSessionTokenAsync(sessionId);
         }
 
-        // 向其他在线设备推送登出通知
         var clientInfo = _clientInfoProvider.GetCurrent();
-        await NotifyDeviceLogoutAsync(userId.ToString(), clientInfo);
+        await _authNotificationService.NotifyDeviceLogoutAsync(userId.ToString(), clientInfo);
     }
 
     /// <summary>
@@ -873,7 +760,30 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         var security = await EnsureSecurityProfileAsync(user);
-        var revokedSessionIds = await EnforceSessionPolicyAsync(user, security);
+        return await IssueTokenAfterAuthAsync(user, security, clientInfo, uow, user.UserName, tenantId, $"第三方登录({provider})成功");
+    }
+
+    /// <summary>
+    /// 认证通过后的统一令牌签发流程（密码登录、手机登录、第三方登录共用）
+    /// </summary>
+    private async Task<AuthTokenDto> IssueTokenAfterAuthAsync(
+        SysUser user,
+        SysUserSecurity security,
+        ClientInfo clientInfo,
+        IUnitOfWork uow,
+        string loginIdentifier,
+        long? tenantId,
+        string successMessage)
+    {
+        var revokedSessionIds = await _authSessionManager.EnforceSessionPolicyAsync(user, security);
+
+        security.FailedLoginAttempts = 0;
+        security.IsLocked = false;
+        security.LockoutTime = null;
+        security.LockoutEndTime = null;
+        security.LastFailedLoginTime = null;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
 
         user.LastLoginTime = DateTimeOffset.UtcNow;
         user.LastLoginIp = clientInfo.IpAddress;
@@ -884,8 +794,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var accessTokenJti = Guid.NewGuid().ToString("N");
         var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
 
-        await SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti);
-        await WriteLoginLogAsync(user.BasicId, user.UserName, tenantId, LoginResult.Success, clientInfo, $"第三方登录({provider})成功");
+        await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
+        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage);
         await uow.CompleteAsync();
 
         foreach (var revokedSessionId in revokedSessionIds)
@@ -893,9 +803,13 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             await _authTokenCacheHelper.RemoveSessionTokenAsync(revokedSessionId);
         }
 
-        // 向已有在线设备推送新设备登录通知
-        await NotifyNewDeviceLoginAsync(user, clientInfo);
+        if (revokedSessionIds.Count > 0)
+        {
+            await _authNotificationService.NotifyForceLogoutAsync(
+                user.BasicId.ToString(), "您的账号已在其他设备登录", revokedSessionIds);
+        }
 
+        await _authNotificationService.NotifyNewDeviceLoginAsync(user.BasicId.ToString(), clientInfo);
         await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
 
         return new AuthTokenDto
@@ -953,108 +867,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         return claims;
-    }
-
-    /// <summary>
-    /// 构建菜单树
-    /// </summary>
-    /// <param name="menus"></param>
-    /// <param name="resourcePermissionMap"></param>
-    /// <returns></returns>
-    private static List<AuthMenuRouteDto> BuildMenuRoutes(
-        IReadOnlyList<SysMenu> menus,
-        IReadOnlyDictionary<long, string> resourcePermissionMap)
-    {
-        var routeMenus = menus
-            .Where(menu => menu.MenuType != MenuType.Button)
-            .OrderBy(static menu => menu.Sort)
-            .ThenBy(static menu => menu.BasicId)
-            .ToList();
-        var menuMap = routeMenus.ToDictionary(static menu => menu.BasicId, menu => MapMenuRoute(menu, resourcePermissionMap));
-        var rootMenus = new List<AuthMenuRouteDto>();
-
-        foreach (var menu in routeMenus)
-        {
-            var route = menuMap[menu.BasicId];
-            if (menu.ParentId.HasValue && menuMap.TryGetValue(menu.ParentId.Value, out var parent))
-            {
-                parent.Children.Add(route);
-            }
-            else
-            {
-                rootMenus.Add(route);
-            }
-        }
-
-        SortMenuTree(rootMenus);
-        return rootMenus;
-    }
-
-    /// <summary>
-    /// 映射菜单路由
-    /// </summary>
-    /// <param name="menu"></param>
-    /// <param name="resourcePermissionMap"></param>
-    /// <returns></returns>
-    private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlyDictionary<long, string> resourcePermissionMap)
-    {
-        var permissionCode = menu.ResourceId.HasValue && resourcePermissionMap.TryGetValue(menu.ResourceId.Value, out var permission)
-            ? permission
-            : null;
-        return new AuthMenuRouteDto
-        {
-            Name = !string.IsNullOrWhiteSpace(menu.RouteName)
-                ? menu.RouteName
-                : !string.IsNullOrWhiteSpace(menu.MenuCode)
-                    ? menu.MenuCode
-                    : $"menu_{menu.BasicId}",
-            Path = !string.IsNullOrWhiteSpace(menu.Path) ? menu.Path : BuildFallbackMenuPath(menu),
-            Component = menu.Component,
-            Redirect = menu.Redirect,
-            Permission = permissionCode,
-            Meta = new AuthMenuMetaDto
-            {
-                Title = !string.IsNullOrWhiteSpace(menu.Title) ? menu.Title : menu.MenuName,
-                Icon = menu.Icon,
-                Hidden = !menu.IsVisible,
-                KeepAlive = menu.IsCache,
-                AffixTab = menu.IsAffix,
-                Permissions = string.IsNullOrWhiteSpace(permissionCode) ? [] : [permissionCode],
-                Order = menu.Sort,
-                Link = menu.IsExternal ? menu.ExternalUrl : null,
-                Badge = menu.Badge,
-                BadgeType = menu.BadgeType,
-                Dot = menu.BadgeDot
-            }
-        };
-    }
-
-    /// <summary>
-    /// 排序菜单树
-    /// </summary>
-    /// <param name="menus"></param>
-    private static void SortMenuTree(List<AuthMenuRouteDto> menus)
-    {
-        menus.Sort((left, right) => left.Meta.Order.CompareTo(right.Meta.Order));
-        foreach (var menu in menus.Where(static menu => menu.Children.Count > 0))
-        {
-            SortMenuTree(menu.Children);
-        }
-    }
-
-    /// <summary>
-    /// 构建兜底菜单路径
-    /// </summary>
-    /// <param name="menu"></param>
-    /// <returns></returns>
-    private static string BuildFallbackMenuPath(SysMenu menu)
-    {
-        var seed = string.IsNullOrWhiteSpace(menu.MenuCode) ? $"menu-{menu.BasicId}" : menu.MenuCode;
-        var normalized = seed
-            .Replace("_", "-", StringComparison.Ordinal)
-            .Replace(":", "-", StringComparison.Ordinal)
-            .ToLowerInvariant();
-        return menu.ParentId.HasValue ? normalized : $"/{normalized}";
     }
 
     /// <summary>
@@ -1198,198 +1010,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             .OrderBy(static role => role.Sort)
             .Select(static role => role.RoleCode)
             .Distinct(StringComparer.OrdinalIgnoreCase)];
-    }
-
-    /// <summary>
-    /// 按安全策略限制会话数量
-    /// </summary>
-    /// <param name="user"></param>
-    /// <param name="security"></param>
-    /// <returns>被撤销的会话ID集合</returns>
-    private async Task<IReadOnlyList<string>> EnforceSessionPolicyAsync(SysUser user, SysUserSecurity security)
-    {
-        var onlineSessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
-        if (onlineSessions.Count == 0)
-        {
-            return [];
-        }
-
-        List<string> toRevokeSessionIds;
-        if (!security.AllowMultiLogin)
-        {
-            toRevokeSessionIds = [.. onlineSessions.Select(session => session.UserSessionId)];
-        }
-        else if (security.MaxLoginDevices > 0 && onlineSessions.Count >= security.MaxLoginDevices)
-        {
-            var overflowCount = onlineSessions.Count - security.MaxLoginDevices + 1;
-            toRevokeSessionIds = [..
-                onlineSessions
-                    .OrderBy(session => session.LastActivityTime)
-                    .ThenBy(session => session.LoginTime)
-                    .Take(overflowCount)
-                    .Select(session => session.UserSessionId)];
-        }
-        else
-        {
-            return [];
-        }
-
-        if (toRevokeSessionIds.Count == 0)
-        {
-            return [];
-        }
-
-        await _userSessionRepository.RevokeSessionsAsync(toRevokeSessionIds, "触发多端登录策略", user.TenantId);
-        return toRevokeSessionIds;
-    }
-
-    /// <summary>
-    /// 通过 SignalR 向用户已有设备推送新设备上线通知
-    /// </summary>
-    private async Task NotifyNewDeviceLoginAsync(SysUser user, ClientInfo clientInfo)
-    {
-        try
-        {
-            var deviceDesc = !string.IsNullOrWhiteSpace(clientInfo.Browser)
-                ? $"{clientInfo.Browser} ({clientInfo.OperatingSystem})"
-                : clientInfo.OperatingSystem ?? "未知设备";
-
-            await _realtimeNotifier.SendToUserAsync(
-                user.BasicId.ToString(),
-                SignalRConstants.ClientMethods.ReceiveNotification,
-                new
-                {
-                    Type = "Warning",
-                    Title = "新设备登录",
-                    Content = $"您的账号刚刚在新设备上登录：{deviceDesc}，IP：{clientInfo.IpAddress ?? "未知"}。如非本人操作，请及时修改密码。"
-                });
-        }
-        catch
-        {
-            // 推送失败不影响登录流程
-        }
-    }
-
-    /// <summary>
-    /// 通过 SignalR 向用户其他设备推送登出通知
-    /// </summary>
-    private async Task NotifyDeviceLogoutAsync(string userId, ClientInfo clientInfo)
-    {
-        try
-        {
-            var deviceDesc = !string.IsNullOrWhiteSpace(clientInfo.Browser)
-                ? $"{clientInfo.Browser} ({clientInfo.OperatingSystem})"
-                : clientInfo.OperatingSystem ?? "未知设备";
-
-            await _realtimeNotifier.SendToUserAsync(
-                userId,
-                SignalRConstants.ClientMethods.ReceiveNotification,
-                new
-                {
-                    Type = "Info",
-                    Title = "设备已登出",
-                    Content = $"您的账号已在一台设备上登出：{deviceDesc}，IP：{clientInfo.IpAddress ?? "未知"}。"
-                });
-        }
-        catch
-        {
-            // 推送失败不影响登出流程
-        }
-    }
-
-    /// <summary>
-    /// 通过 SignalR 向指定用户推送强制下线消息
-    /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <param name="reason">下线原因</param>
-    /// <param name="targetSessionIds">需要被踢的会话ID列表，前端据此判断是否应处理；为空则全部处理</param>
-    private async Task NotifyForceLogoutAsync(string userId, string reason, IReadOnlyCollection<string>? targetSessionIds = null)
-    {
-        try
-        {
-            await _realtimeNotifier.SendToUserAsync(
-                userId,
-                SignalRConstants.ClientMethods.ForceLogout,
-                new { Reason = reason, Timestamp = DateTimeOffset.UtcNow, TargetSessionIds = targetSessionIds });
-        }
-        catch
-        {
-            // SignalR 推送失败不影响主流程（用户可能不在线）
-        }
-    }
-
-    /// <summary>
-    /// 保存或更新会话
-    /// </summary>
-    /// <param name="user"></param>
-    /// <param name="sessionId"></param>
-    /// <param name="accessTokenJti"></param>
-    /// <returns></returns>
-    private async Task SaveOrUpdateSessionAsync(SysUser user, string sessionId, string accessTokenJti)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var clientInfo = _clientInfoProvider.GetCurrent();
-        var userSession = await _userSessionRepository.GetBySessionIdAsync(sessionId, user.TenantId);
-        if (userSession is null)
-        {
-            userSession = new SysUserSession
-            {
-                TenantId = user.TenantId,
-                UserId = user.BasicId,
-                CurrentAccessTokenJti = accessTokenJti,
-                UserSessionId = sessionId,
-                DeviceType = DeviceType.Web,
-                DeviceName = clientInfo.DeviceName ?? "Web Browser",
-                Browser = clientInfo.Browser,
-                OperatingSystem = clientInfo.OperatingSystem,
-                IpAddress = clientInfo.IpAddress,
-                Location = clientInfo.Location,
-                LoginTime = now,
-                LastActivityTime = now,
-                IsOnline = true,
-                IsRevoked = false
-            };
-            await _userSessionRepository.AddAsync(userSession);
-            return;
-        }
-
-        userSession.CurrentAccessTokenJti = accessTokenJti;
-        userSession.LastActivityTime = now;
-        userSession.IsOnline = true;
-        userSession.IsRevoked = false;
-        userSession.RevokedAt = null;
-        userSession.RevokedReason = null;
-        userSession.LogoutTime = null;
-        userSession.DeviceName = clientInfo.DeviceName ?? userSession.DeviceName;
-        userSession.IpAddress = clientInfo.IpAddress;
-        userSession.Browser = clientInfo.Browser;
-        userSession.OperatingSystem = clientInfo.OperatingSystem;
-        userSession.Location = clientInfo.Location;
-        await _userSessionRepository.UpdateAsync(userSession);
-    }
-
-    /// <summary>
-    /// 标记会话已撤销
-    /// </summary>
-    /// <param name="sessionId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="reason"></param>
-    /// <returns></returns>
-    private async Task MarkSessionRevokedAsync(string sessionId, long? tenantId, string reason)
-    {
-        var session = await _userSessionRepository.GetBySessionIdAsync(sessionId, tenantId);
-        if (session is null)
-        {
-            return;
-        }
-
-        var now = DateTimeOffset.UtcNow;
-        session.IsOnline = false;
-        session.IsRevoked = true;
-        session.RevokedAt = now;
-        session.LogoutTime = now;
-        session.RevokedReason = reason;
-        await _userSessionRepository.UpdateAsync(session);
     }
 
     /// <summary>
