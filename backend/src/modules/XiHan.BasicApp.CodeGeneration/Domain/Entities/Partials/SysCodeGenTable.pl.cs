@@ -55,7 +55,7 @@ public partial class SysCodeGenTable
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysCodeGenTable.MasterTableId))]
+    [Navigate(NavigateType.OneToMany, nameof(MasterTableId))]
     public virtual List<SysCodeGenTable>? ChildTables { get; set; }
 
     /// <summary>
