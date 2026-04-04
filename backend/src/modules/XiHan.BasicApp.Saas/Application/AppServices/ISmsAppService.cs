@@ -15,7 +15,6 @@
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 短信应用服务
 /// </summary>
 public interface ISmsAppService
-    : ICrudApplicationService<SysSms, SmsDto, long, SmsCreateDto, SmsUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<SmsDto, long, SmsCreateDto, SmsUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 获取待发送短信
