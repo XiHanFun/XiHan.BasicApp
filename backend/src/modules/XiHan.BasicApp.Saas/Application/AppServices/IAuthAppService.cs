@@ -91,4 +91,27 @@ public interface IAuthAppService : IApplicationService
     /// 处理第三方登录（查找或自动创建用户，签发令牌）
     /// </summary>
     Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command);
+
+    /// <summary>
+    /// 发起第三方登录（验证提供商并通过 ChallengeAsync 重定向到授权页）
+    /// </summary>
+    /// <remarks>
+    /// DynamicApi 约定：Get 前缀 → HTTP GET；路由为 api/Auth/ExternalLoginAuthorize。
+    /// 该方法直接操作 HttpContext 发出 302 重定向，不返回 JSON 响应。
+    /// </remarks>
+    /// <param name="provider">提供商名称（google、github、qq）</param>
+    /// <param name="tenantId">租户ID（可选）</param>
+    Task GetExternalLoginAuthorizeAsync(string provider, long? tenantId = null);
+
+    /// <summary>
+    /// 处理第三方登录回调（从外部 Cookie 读取认证结果，签发令牌，重定向到前端）
+    /// </summary>
+    /// <remarks>
+    /// DynamicApi 约定：Get 前缀 → HTTP GET；路由为 api/Auth/ExternalLoginCallback。
+    /// OAuth 中间件处理完提供商回调后重定向到此端点。
+    /// 该方法直接操作 HttpContext 发出 302 重定向，不返回 JSON 响应。
+    /// </remarks>
+    /// <param name="provider">提供商名称</param>
+    /// <param name="tenantId">租户ID（可选）</param>
+    Task GetExternalLoginCallbackAsync(string provider, long? tenantId = null);
 }
