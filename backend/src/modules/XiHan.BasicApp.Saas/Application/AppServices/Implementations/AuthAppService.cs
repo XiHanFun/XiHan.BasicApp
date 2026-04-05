@@ -17,6 +17,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -138,6 +139,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 获取登录配置
     /// </summary>
+    [AllowAnonymous]
     public Task<LoginConfigDto> GetLoginConfigAsync()
     {
         var loginMethods = _configuration.GetSection("XiHan:Authentication:LoginMethods").Get<string[]>();
@@ -168,6 +170,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 登录（返回令牌或双因素验证挑战）
     /// </summary>
+    [AllowAnonymous]
     public async Task<LoginResponseDto> LoginAsync(UserLoginCommand command)
     {
         command.ValidateAnnotations();
@@ -316,6 +319,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [AllowAnonymous]
     public async Task RegisterAsync(UserRegisterCommand command)
     {
         command.ValidateAnnotations();
@@ -372,6 +376,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [AllowAnonymous]
     public async Task<AuthVerificationCodeDto> SendPhoneLoginCodeAsync(SendPhoneLoginCodeCommand command)
     {
         command.ValidateAnnotations();
@@ -416,6 +421,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [AllowAnonymous]
     public async Task<AuthTokenDto> PhoneLoginAsync(PhoneLoginCommand command)
     {
         command.ValidateAnnotations();
@@ -470,6 +476,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [AllowAnonymous]
     public async Task<PasswordResetResultDto> RequestPasswordResetAsync(RequestPasswordResetCommand command)
     {
         command.ValidateAnnotations();
@@ -499,6 +506,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 刷新令牌
     /// </summary>
+    [AllowAnonymous]
     public async Task<AuthTokenDto> RefreshTokenAsync(RefreshTokenCommand command)
     {
         command.ValidateAnnotations();
@@ -767,6 +775,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 发起第三方登录（验证提供商并通过 ChallengeAsync 重定向到授权页）
     /// </summary>
+    [AllowAnonymous]
     public async Task GetExternalLoginAuthorizeAsync(string provider, long? tenantId = null)
     {
         if (string.IsNullOrWhiteSpace(provider))
@@ -783,10 +792,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         var request = httpContext.Request;
         var currentPath = request.Path.Value ?? string.Empty;
-        var basePath = currentPath.LastIndexOf('/') >= 0
-            ? currentPath[..(currentPath.LastIndexOf('/') + 1)]
-            : "/api/Auth/";
-        var callbackPath = $"{basePath}ExternalLoginCallback";
+        var lastSlashIndex = currentPath.LastIndexOf('/');
+        var currentSegment = lastSlashIndex >= 0 ? currentPath[(lastSlashIndex + 1)..] : string.Empty;
+        var callbackSegment = currentSegment.Replace("Authorize", "Callback", StringComparison.OrdinalIgnoreCase);
+        var callbackPath = lastSlashIndex >= 0
+            ? $"{currentPath[..(lastSlashIndex + 1)]}{callbackSegment}"
+            : $"/api/Auth/{callbackSegment}";
 
         var queryParts = new List<string> { $"provider={Uri.EscapeDataString(provider)}" };
         if (tenantId.HasValue)
@@ -813,6 +824,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 处理第三方登录回调（从外部 Cookie 读取认证结果，签发令牌，重定向到前端）
     /// </summary>
+    [AllowAnonymous]
     public async Task GetExternalLoginCallbackAsync(string provider, long? tenantId = null)
     {
         var httpContext = _httpContextAccessor.HttpContext

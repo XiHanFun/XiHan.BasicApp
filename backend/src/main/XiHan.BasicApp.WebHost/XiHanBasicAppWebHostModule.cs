@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XiHan.BasicApp.CodeGeneration;
@@ -109,8 +110,13 @@ public class XiHanBasicAppWebHostModule : XiHanModule
                 });
             }
 
-            // 添加授权
-            services.AddAuthorization();
+            // 添加授权：所有未标记 [AllowAnonymous] 的端点默认要求已认证用户
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
         }
 
         // 配置 CORS（允许前端开发地址跨域）
