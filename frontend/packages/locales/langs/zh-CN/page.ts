@@ -14,7 +14,7 @@ export default {
     register: '立即注册',
   },
   auth: {
-    slogan_title: '企业 SaaS 中后台内核',
+    slogan_title: 'B2B SaaS 中台内核',
     slogan_desc: '工程化、智能化、国际化',
     welcome_back: '欢迎回来',
     login_subtitle: '请输入您的账号密码以登录管理系统',

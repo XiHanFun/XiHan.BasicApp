@@ -16,6 +16,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -764,6 +765,116 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
+    /// 发起第三方登录（验证提供商并通过 ChallengeAsync 重定向到授权页）
+    /// </summary>
+    public async Task GetExternalLoginAuthorizeAsync(string provider, long? tenantId = null)
+    {
+        if (string.IsNullOrWhiteSpace(provider))
+        {
+            throw new BusinessException(message: "提供商名称不能为空");
+        }
+
+        var providerConfig = _oauthOptions.Providers
+            .FirstOrDefault(p => string.Equals(p.Name, provider, StringComparison.OrdinalIgnoreCase) && p.Enabled)
+            ?? throw new BusinessException(message: $"不支持的登录提供商: {provider}");
+
+        var httpContext = _httpContextAccessor.HttpContext
+                         ?? throw new InvalidOperationException("无法获取 HTTP 上下文");
+
+        var request = httpContext.Request;
+        var currentPath = request.Path.Value ?? string.Empty;
+        var basePath = currentPath.LastIndexOf('/') >= 0
+            ? currentPath[..(currentPath.LastIndexOf('/') + 1)]
+            : "/api/Auth/";
+        var callbackPath = $"{basePath}ExternalLoginCallback";
+
+        var queryParts = new List<string> { $"provider={Uri.EscapeDataString(provider)}" };
+        if (tenantId.HasValue)
+        {
+            queryParts.Add($"tenantId={tenantId.Value}");
+        }
+
+        var callbackUrl = $"{request.Scheme}://{request.Host}{callbackPath}?{string.Join("&", queryParts)}";
+
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = callbackUrl,
+            Items =
+            {
+                ["provider"] = provider,
+                ["tenantId"] = tenantId?.ToString() ?? string.Empty
+            }
+        };
+
+        await httpContext.ChallengeAsync(providerConfig.Name, properties);
+        await httpContext.Response.CompleteAsync();
+    }
+
+    /// <summary>
+    /// 处理第三方登录回调（从外部 Cookie 读取认证结果，签发令牌，重定向到前端）
+    /// </summary>
+    public async Task GetExternalLoginCallbackAsync(string provider, long? tenantId = null)
+    {
+        var httpContext = _httpContextAccessor.HttpContext
+                         ?? throw new InvalidOperationException("无法获取 HTTP 上下文");
+
+        var authResult = await httpContext.AuthenticateAsync("ExternalCookie");
+        if (authResult?.Succeeded != true || authResult.Principal is null)
+        {
+            httpContext.Response.Redirect(BuildFrontendErrorUrl("第三方登录认证失败"));
+            await httpContext.Response.CompleteAsync();
+            return;
+        }
+
+        var claims = authResult.Principal.Claims.ToList();
+        var providerKey = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(providerKey))
+        {
+            httpContext.Response.Redirect(BuildFrontendErrorUrl("无法获取第三方用户标识"));
+            await httpContext.Response.CompleteAsync();
+            return;
+        }
+
+        var displayName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
+                          ?? claims.FirstOrDefault(c => c.Type == "urn:github:name")?.Value;
+        var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        var avatarUrl = claims.FirstOrDefault(c => c.Type == "urn:google:picture")?.Value
+                        ?? claims.FirstOrDefault(c => c.Type == "urn:github:avatar_url")?.Value
+                        ?? claims.FirstOrDefault(c => c.Type == "urn:qq:figureurl_qq_2")?.Value;
+
+        await httpContext.SignOutAsync("ExternalCookie");
+
+        try
+        {
+            var command = new ExternalLoginCommand
+            {
+                Provider = provider,
+                ProviderKey = providerKey,
+                DisplayName = displayName,
+                Email = email,
+                AvatarUrl = avatarUrl,
+                TenantId = tenantId
+            };
+
+            var tokenDto = await ExternalLoginAsync(command);
+
+            var frontendUrl = _oauthOptions.FrontendCallbackUrl;
+            var redirectUrl = $"{frontendUrl}?accessToken={Uri.EscapeDataString(tokenDto.AccessToken)}" +
+                              $"&refreshToken={Uri.EscapeDataString(tokenDto.RefreshToken)}" +
+                              $"&expiresIn={tokenDto.ExpiresIn}" +
+                              $"&provider={Uri.EscapeDataString(provider)}";
+
+            httpContext.Response.Redirect(redirectUrl);
+        }
+        catch (Exception ex)
+        {
+            httpContext.Response.Redirect(BuildFrontendErrorUrl(ex.Message));
+        }
+
+        await httpContext.Response.CompleteAsync();
+    }
+
+    /// <summary>
     /// 认证通过后的统一令牌签发流程（密码登录、手机登录、第三方登录共用）
     /// </summary>
     private async Task<AuthTokenDto> IssueTokenAfterAuthAsync(
@@ -1133,5 +1244,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         await _userRepository.SaveSecurityAsync(security);
+    }
+
+    private string BuildFrontendErrorUrl(string error)
+    {
+        var callbackUrl = _oauthOptions.FrontendCallbackUrl;
+        return $"{callbackUrl}?error={Uri.EscapeDataString(error)}";
     }
 }

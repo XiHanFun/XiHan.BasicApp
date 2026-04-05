@@ -14,7 +14,7 @@ export default {
     register: 'Register now',
   },
   auth: {
-    slogan_title: 'Enterprise SaaS Back-End Core',
+    slogan_title: 'B2B SaaS Middleware Core',
     slogan_desc: 'Engineered · Intelligent · Internationalized',
     welcome_back: 'Welcome back',
     login_subtitle: 'Enter your credentials to access the admin panel',
