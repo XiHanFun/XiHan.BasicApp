@@ -16,6 +16,7 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -38,6 +39,7 @@ public class NotificationAppService
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly IUserRepository _userRepository;
+    private readonly INotificationQueryService _queryService;
     private readonly IMessageCacheService _messageCacheService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
@@ -46,19 +48,30 @@ public class NotificationAppService
     /// </summary>
     /// <param name="notificationRepository"></param>
     /// <param name="userRepository"></param>
+    /// <param name="queryService"></param>
     /// <param name="messageCacheService"></param>
     /// <param name="unitOfWorkManager"></param>
     public NotificationAppService(
         INotificationRepository notificationRepository,
         IUserRepository userRepository,
+        INotificationQueryService queryService,
         IMessageCacheService messageCacheService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(notificationRepository)
     {
         _notificationRepository = notificationRepository;
         _userRepository = userRepository;
+        _queryService = queryService;
         _messageCacheService = messageCacheService;
         _unitOfWorkManager = unitOfWorkManager;
+    }
+
+    /// <summary>
+    /// ID 查询（委托 QueryService，走缓存）
+    /// </summary>
+    public override async Task<NotificationDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>

@@ -3,27 +3,22 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacConstants
-// Guid:4b2b3c4d-5e6f-7890-abcd-ef12345678a9
+// FileName:RoleBasicConstants
+// Guid:4b8f2a3c-9d5e-4f6b-ac7d-2e3f4a5b6c7d
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/10/31 05:35:00
+// CreateTime:2026/04/06 06:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
-namespace XiHan.BasicApp.Saas.Constants;
+namespace XiHan.BasicApp.Saas.Constants.Basic;
 
 /// <summary>
-/// RBAC 常量
+/// 角色基础常量
 /// </summary>
-public static class RbacConstants
+public static class RoleBasicConstants
 {
-    /// <summary>
-    /// 默认密码
-    /// </summary>
-    public const string DefaultPassword = "123456";
-
     /// <summary>
     /// 超级管理员角色编码
     /// </summary>
@@ -43,19 +38,4 @@ public static class RbacConstants
     /// 游客角色编码
     /// </summary>
     public const string GuestRoleCode = "guest";
-
-    /// <summary>
-    /// 系统用户名
-    /// </summary>
-    public const string SystemUserName = "system";
-
-    /// <summary>
-    /// 匿名用户名
-    /// </summary>
-    public const string AnonymousUserName = "anonymous";
-
-    /// <summary>
-    /// 默认租户编码
-    /// </summary>
-    public const string DefaultTenantCode = "default";
 }

@@ -15,11 +15,12 @@
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -31,74 +32,64 @@ public class ConfigAppService
     : CrudApplicationServiceBase<SysConfig, ConfigDto, long, ConfigCreateDto, ConfigUpdateDto, BasicAppPRDto>,
         IConfigAppService
 {
-    private readonly IConfigRepository _configRepository;
+    private readonly IConfigQueryService _queryService;
+    private readonly IConfigDomainService _domainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="configRepository"></param>
-    public ConfigAppService(IConfigRepository configRepository)
+    public ConfigAppService(
+        IConfigRepository configRepository,
+        IConfigQueryService queryService,
+        IConfigDomainService domainService)
         : base(configRepository)
     {
-        _configRepository = configRepository;
+        _queryService = queryService;
+        _domainService = domainService;
     }
 
     /// <summary>
-    /// 根据配置键获取配置信息
+    /// 根据配置键获取配置（委托 QueryService，走缓存）
     /// </summary>
-    /// <remarks>
-    /// 如果 tenantId 不为 null，则优先查询租户级配置，否则查询全局配置。
-    /// </remarks>
-    /// <param name="configKey"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
     public async Task<ConfigDto?> GetConfigByKeyAsync(string configKey, long? tenantId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
-        var entity = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
-        return entity?.Adapt<ConfigDto>();
+        return await _queryService.GetByKeyAsync(configKey, tenantId);
     }
 
     /// <summary>
-    /// 创建配置
+    /// 创建配置（委托 DomainService）
     /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
     public override async Task<ConfigDto> CreateAsync(ConfigCreateDto input)
     {
         input.ValidateAnnotations();
-
-        var normalizedKey = input.ConfigKey.Trim();
-        await EnsureConfigKeyUniqueAsync(normalizedKey, null, input.TenantId);
-
-        return await base.CreateAsync(input);
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
+        return created.Adapt<ConfigDto>()!;
     }
 
     /// <summary>
-    /// 更新配置
+    /// 更新配置（委托 DomainService）
     /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
     public override async Task<ConfigDto> UpdateAsync(ConfigUpdateDto input)
     {
         input.ValidateAnnotations();
-
-        var config = await _configRepository.GetByIdAsync(input.BasicId)
+        var entity = await Repository.GetByIdAsync(input.BasicId)
                      ?? throw new KeyNotFoundException($"未找到配置: {input.BasicId}");
-
-        var normalizedKey = input.ConfigKey.Trim();
-        await EnsureConfigKeyUniqueAsync(normalizedKey, input.BasicId, config.TenantId);
-
-        await MapDtoToEntityAsync(input, config);
-        var updated = await _configRepository.UpdateAsync(config);
+        await MapDtoToEntityAsync(input, entity);
+        var updated = await _domainService.UpdateAsync(entity);
         return updated.Adapt<ConfigDto>()!;
     }
 
     /// <summary>
-    /// 映射创建 DTO 到实体
+    /// 删除配置（委托 DomainService）
     /// </summary>
-    /// <param name="createDto"></param>
-    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        return await _domainService.DeleteAsync(id);
+    }
+
+    /// <inheritdoc />
     protected override Task<SysConfig> MapDtoToEntityAsync(ConfigCreateDto createDto)
     {
         var entity = new SysConfig
@@ -111,15 +102,10 @@ public class ConfigAppService
             DataType = createDto.DataType,
             Remark = createDto.Remark
         };
-
         return Task.FromResult(entity);
     }
 
-    /// <summary>
-    /// 映射更新 DTO 到实体
-    /// </summary>
-    /// <param name="updateDto"></param>
-    /// <param name="entity"></param>
+    /// <inheritdoc />
     protected override Task MapDtoToEntityAsync(ConfigUpdateDto updateDto, SysConfig entity)
     {
         entity.ConfigName = updateDto.ConfigName.Trim();
@@ -130,22 +116,5 @@ public class ConfigAppService
         entity.Status = updateDto.Status;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 校验配置键唯一性
-    /// </summary>
-    /// <param name="configKey"></param>
-    /// <param name="excludeConfigId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    private async Task EnsureConfigKeyUniqueAsync(string configKey, long? excludeConfigId, long? tenantId)
-    {
-        var existing = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
-        if (existing is not null && (!excludeConfigId.HasValue || existing.BasicId != excludeConfigId.Value))
-        {
-            throw new BusinessException(message: $"配置键 '{configKey}' 已存在");
-        }
     }
 }

@@ -16,6 +16,8 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -32,16 +34,38 @@ public class FileAppService
         IFileAppService
 {
     private readonly IFileRepository _fileRepository;
+    private readonly IFileQueryService _queryService;
+    private readonly IFileDomainService _domainService;
     private readonly IRbacLookupCacheService _lookupCacheService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public FileAppService(IFileRepository fileRepository, IRbacLookupCacheService lookupCacheService)
+    /// <param name="fileRepository"></param>
+    /// <param name="queryService"></param>
+    /// <param name="domainService"></param>
+    /// <param name="lookupCacheService"></param>
+    public FileAppService(
+        IFileRepository fileRepository,
+        IFileQueryService queryService,
+        IFileDomainService domainService,
+        IRbacLookupCacheService lookupCacheService)
         : base(fileRepository)
     {
         _fileRepository = fileRepository;
+        _queryService = queryService;
+        _domainService = domainService;
         _lookupCacheService = lookupCacheService;
+    }
+
+    /// <summary>
+    /// 根据ID获取文件
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<FileDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -68,9 +92,11 @@ public class FileAppService
     public override async Task<FileDto> CreateAsync(FileCreateDto input)
     {
         input.ValidateAnnotations();
-        var dto = await base.CreateAsync(input);
+
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
         await _lookupCacheService.InvalidateFileLookupAsync(input.TenantId);
-        return dto;
+        return created.Adapt<FileDto>()!;
     }
 
     /// <summary>
@@ -79,11 +105,14 @@ public class FileAppService
     public override async Task<FileDto> UpdateAsync(FileUpdateDto input)
     {
         input.ValidateAnnotations();
+
         var entity = await _fileRepository.GetByIdAsync(input.BasicId)
                      ?? throw new KeyNotFoundException($"未找到文件: {input.BasicId}");
-        var dto = await base.UpdateAsync(input);
+
+        await MapDtoToEntityAsync(input, entity);
+        var updated = await _domainService.UpdateAsync(entity);
         await _lookupCacheService.InvalidateFileLookupAsync(entity.TenantId);
-        return dto;
+        return updated.Adapt<FileDto>()!;
     }
 
     /// <summary>
@@ -104,7 +133,7 @@ public class FileAppService
             return false;
         }
 
-        var deleted = await base.DeleteAsync(id);
+        var deleted = await _domainService.DeleteAsync(id);
         if (deleted)
         {
             await _lookupCacheService.InvalidateFileLookupAsync(entity.TenantId);

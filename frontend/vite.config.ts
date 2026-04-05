@@ -50,11 +50,11 @@ export default defineConfig(({ mode }) => {
         // 将 /api/* 请求转发给后端，绕过浏览器 CORS 限制
         // VITE_API_BASE_URL 开发环境留空，生产环境填写实际地址
         [env.VITE_API_PREFIX as unknown as string]: {
-          target: 'http://localhost:5000',
+          target: 'http://localhost:9708',
           changeOrigin: true,
         },
         '/hubs': {
-          target: 'http://localhost:5000',
+          target: 'http://localhost:9708',
           changeOrigin: true,
           ws: true,
         },
