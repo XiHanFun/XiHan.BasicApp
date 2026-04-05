@@ -16,11 +16,12 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
@@ -36,6 +37,8 @@ public class DepartmentAppService
         IDepartmentAppService
 {
     private readonly IDepartmentRepository _departmentRepository;
+    private readonly IDepartmentQueryService _queryService;
+    private readonly IDepartmentDomainService _domainService;
     private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
@@ -43,17 +46,33 @@ public class DepartmentAppService
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository"></param>
+    /// <param name="queryService"></param>
+    /// <param name="domainService"></param>
     /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public DepartmentAppService(
         IDepartmentRepository departmentRepository,
+        IDepartmentQueryService queryService,
+        IDepartmentDomainService domainService,
         ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
         : base(departmentRepository)
     {
         _departmentRepository = departmentRepository;
+        _queryService = queryService;
+        _domainService = domainService;
         _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
+    }
+
+    /// <summary>
+    /// 根据ID获取部门
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<DepartmentDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -77,12 +96,9 @@ public class DepartmentAppService
     {
         input.ValidateAnnotations();
 
-        var normalizedCode = input.DepartmentCode.Trim();
-        await EnsureDepartmentCodeUniqueAsync(normalizedCode, null, input.TenantId);
-
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         var entity = await MapDtoToEntityAsync(input);
-        var created = await _departmentRepository.AddAsync(entity);
+        var created = await _domainService.CreateAsync(entity);
         await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
         await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
@@ -102,11 +118,8 @@ public class DepartmentAppService
         var department = await _departmentRepository.GetByIdAsync(input.BasicId)
                          ?? throw new KeyNotFoundException($"未找到部门: {input.BasicId}");
 
-        var normalizedCode = input.DepartmentCode.Trim();
-        await EnsureDepartmentCodeUniqueAsync(normalizedCode, input.BasicId, department.TenantId);
-
         await MapDtoToEntityAsync(input, department);
-        var updated = await _departmentRepository.UpdateAsync(department);
+        var updated = await _domainService.UpdateAsync(department);
         await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
@@ -132,7 +145,7 @@ public class DepartmentAppService
             return false;
         }
 
-        var deleted = await _departmentRepository.DeleteAsync(department);
+        var deleted = await _domainService.DeleteAsync(id);
         if (!deleted)
         {
             return false;
@@ -188,23 +201,6 @@ public class DepartmentAppService
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 校验部门编码唯一性
-    /// </summary>
-    /// <param name="departmentCode"></param>
-    /// <param name="excludeDepartmentId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    private async Task EnsureDepartmentCodeUniqueAsync(string departmentCode, long? excludeDepartmentId, long? tenantId)
-    {
-        var existing = await _departmentRepository.GetByDepartmentCodeAsync(departmentCode, tenantId);
-        if (existing is not null && (!excludeDepartmentId.HasValue || existing.BasicId != excludeDepartmentId.Value))
-        {
-            throw new BusinessException(message: $"部门编码 '{departmentCode}' 已存在");
-        }
     }
 
     private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)

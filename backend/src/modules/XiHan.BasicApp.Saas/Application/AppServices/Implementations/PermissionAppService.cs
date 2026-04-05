@@ -16,7 +16,9 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -35,20 +37,38 @@ public class PermissionAppService
         IPermissionAppService
 {
     private readonly IPermissionRepository _permissionRepository;
+    private readonly IPermissionQueryService _queryService;
+    private readonly IPermissionDomainService _domainService;
     private readonly ILocalEventBus _localEventBus;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="permissionRepository"></param>
+    /// <param name="queryService"></param>
+    /// <param name="domainService"></param>
     /// <param name="localEventBus"></param>
     public PermissionAppService(
         IPermissionRepository permissionRepository,
+        IPermissionQueryService queryService,
+        IPermissionDomainService domainService,
         ILocalEventBus localEventBus)
         : base(permissionRepository)
     {
         _permissionRepository = permissionRepository;
+        _queryService = queryService;
+        _domainService = domainService;
         _localEventBus = localEventBus;
+    }
+
+    /// <summary>
+    /// 根据ID获取权限
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<PermissionDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -97,9 +117,10 @@ public class PermissionAppService
         var normalizedCode = input.PermissionCode.Trim();
         await EnsurePermissionCodeUniqueAsync(normalizedCode, null, input.TenantId);
 
-        var created = await base.CreateAsync(input);
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
         await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.Permission);
-        return created;
+        return created.Adapt<PermissionDto>()!;
     }
 
     /// <summary>
@@ -118,7 +139,7 @@ public class PermissionAppService
         await EnsurePermissionCodeUniqueAsync(normalizedCode, input.BasicId, permission.TenantId);
 
         await MapDtoToEntityAsync(input, permission);
-        var updated = await _permissionRepository.UpdateAsync(permission);
+        var updated = await _domainService.UpdateAsync(permission);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.Permission);
         return updated.Adapt<PermissionDto>()!;
     }
@@ -141,7 +162,7 @@ public class PermissionAppService
             return false;
         }
 
-        var deleted = await _permissionRepository.DeleteAsync(permission);
+        var deleted = await _domainService.DeleteAsync(id);
         if (deleted)
         {
             await PublishAuthorizationChangedEventAsync(permission.TenantId, AuthorizationChangeType.Permission);

@@ -32,5 +32,10 @@ public enum ConfigType
     /// <summary>
     /// 应用配置
     /// </summary>
-    Application = 2
+    Application = 2,
+
+    /// <summary>
+    /// 业务配置
+    /// </summary>
+    Business = 3,
 }

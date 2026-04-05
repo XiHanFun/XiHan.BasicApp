@@ -15,6 +15,8 @@
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -32,14 +34,34 @@ public class ReviewAppService
         IReviewAppService
 {
     private readonly IReviewRepository _reviewRepository;
+    private readonly IReviewQueryService _queryService;
+    private readonly IReviewDomainService _domainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ReviewAppService(IReviewRepository reviewRepository)
+    /// <param name="reviewRepository"></param>
+    /// <param name="queryService"></param>
+    /// <param name="domainService"></param>
+    public ReviewAppService(
+        IReviewRepository reviewRepository,
+        IReviewQueryService queryService,
+        IReviewDomainService domainService)
         : base(reviewRepository)
     {
         _reviewRepository = reviewRepository;
+        _queryService = queryService;
+        _domainService = domainService;
+    }
+
+    /// <summary>
+    /// 根据ID获取审查
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<ReviewDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -66,7 +88,9 @@ public class ReviewAppService
             throw new BusinessException(message: $"审查编码 '{normalizedCode}' 已存在");
         }
 
-        return await base.CreateAsync(input);
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
+        return created.Adapt<ReviewDto>()!;
     }
 
     /// <summary>
@@ -75,7 +99,23 @@ public class ReviewAppService
     public override async Task<ReviewDto> UpdateAsync(ReviewUpdateDto input)
     {
         input.ValidateAnnotations();
-        return await base.UpdateAsync(input);
+
+        var entity = await _reviewRepository.GetByIdAsync(input.BasicId)
+                     ?? throw new KeyNotFoundException($"未找到审查: {input.BasicId}");
+
+        await MapDtoToEntityAsync(input, entity);
+        var updated = await _domainService.UpdateAsync(entity);
+        return updated.Adapt<ReviewDto>()!;
+    }
+
+    /// <summary>
+    /// 删除审查
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        return await _domainService.DeleteAsync(id);
     }
 
     /// <summary>

@@ -26,4 +26,9 @@ public interface IConfigRepository : IAggregateRootRepository<SysConfig, long>
     /// 根据配置键获取配置
     /// </summary>
     Task<SysConfig?> GetByConfigKeyAsync(string configKey, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按配置分组获取列表（分组为空时表示未分组）
+    /// </summary>
+    Task<IReadOnlyList<SysConfig>> GetByGroupAsync(string? configGroup, long? tenantId = null, CancellationToken cancellationToken = default);
 }

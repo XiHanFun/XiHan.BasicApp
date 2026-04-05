@@ -16,6 +16,7 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -44,6 +45,7 @@ public class RoleAppService
     private readonly IMenuRepository _menuRepository;
     private readonly IDepartmentRepository _departmentRepository;
     private readonly IRoleManager _roleManager;
+    private readonly IRoleQueryService _queryService;
     private readonly ILocalEventBus _localEventBus;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
@@ -55,6 +57,7 @@ public class RoleAppService
     /// <param name="menuRepository"></param>
     /// <param name="departmentRepository"></param>
     /// <param name="roleManager"></param>
+    /// <param name="queryService"></param>
     /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleAppService(
@@ -63,6 +66,7 @@ public class RoleAppService
         IMenuRepository menuRepository,
         IDepartmentRepository departmentRepository,
         IRoleManager roleManager,
+        IRoleQueryService queryService,
         ILocalEventBus localEventBus,
         IUnitOfWorkManager unitOfWorkManager)
         : base(roleRepository)
@@ -72,8 +76,17 @@ public class RoleAppService
         _menuRepository = menuRepository;
         _departmentRepository = departmentRepository;
         _roleManager = roleManager;
+        _queryService = queryService;
         _localEventBus = localEventBus;
         _unitOfWorkManager = unitOfWorkManager;
+    }
+
+    /// <summary>
+    /// ID 查询（委托 QueryService，走缓存）
+    /// </summary>
+    public override async Task<RoleDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
