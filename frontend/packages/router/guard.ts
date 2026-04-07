@@ -48,7 +48,7 @@ export function setupRouterGuard(router: Router) {
       }
       return next({
         path: LOGIN_PATH,
-        query: { redirect: encodeURIComponent(to.fullPath) },
+        query: { redirect: to.fullPath },
         replace: true,
       })
     }
@@ -78,7 +78,7 @@ export function setupRouterGuard(router: Router) {
         userStore.$reset()
         return next({
           path: LOGIN_PATH,
-          query: { redirect: encodeURIComponent(to.fullPath) },
+          query: { redirect: to.fullPath },
           replace: true,
         })
       }

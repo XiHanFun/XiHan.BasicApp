@@ -89,8 +89,7 @@ const rules: FormRules = {
 }
 
 const redirect = computed(() => {
-  const r = route.query.redirect as string
-  return r ? decodeURIComponent(r) : undefined
+  return (route.query.redirect as string) || undefined
 })
 
 const oauthProviderIcons: Record<string, string> = {
