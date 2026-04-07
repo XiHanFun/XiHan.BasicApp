@@ -30,9 +30,9 @@ public interface IAuthAppService : IApplicationService
     Task<LoginConfigDto> GetLoginConfigAsync();
 
     /// <summary>
-    /// 登录
+    /// 登录（返回令牌或双因素验证挑战）
     /// </summary>
-    Task<AuthTokenDto> LoginAsync(UserLoginCommand command);
+    Task<LoginResponseDto> LoginAsync(UserLoginCommand command);
 
     /// <summary>
     /// 用户注册
@@ -75,11 +75,6 @@ public interface IAuthAppService : IApplicationService
     Task LogoutAsync();
 
     /// <summary>
-    /// 修改密码
-    /// </summary>
-    Task ChangePasswordAsync(ChangePasswordCommand command);
-
-    /// <summary>
     /// 获取用户权限编码
     /// </summary>
     Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query);
@@ -91,4 +86,32 @@ public interface IAuthAppService : IApplicationService
     /// 空集合表示不限部门（全量数据范围）。
     /// </remarks>
     Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
+
+    /// <summary>
+    /// 处理第三方登录（查找或自动创建用户，签发令牌）
+    /// </summary>
+    Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command);
+
+    /// <summary>
+    /// 发起第三方登录（验证提供商并通过 ChallengeAsync 重定向到授权页）
+    /// </summary>
+    /// <remarks>
+    /// DynamicApi 约定：Get 前缀 → HTTP GET；路由为 api/Auth/ExternalLoginAuthorize。
+    /// 该方法直接操作 HttpContext 发出 302 重定向，不返回 JSON 响应。
+    /// </remarks>
+    /// <param name="provider">提供商名称（google、github、qq）</param>
+    /// <param name="tenantId">租户ID（可选）</param>
+    Task GetExternalLoginAuthorizeAsync(string provider, long? tenantId = null);
+
+    /// <summary>
+    /// 处理第三方登录回调（从外部 Cookie 读取认证结果，签发令牌，重定向到前端）
+    /// </summary>
+    /// <remarks>
+    /// DynamicApi 约定：Get 前缀 → HTTP GET；路由为 api/Auth/ExternalLoginCallback。
+    /// OAuth 中间件处理完提供商回调后重定向到此端点。
+    /// 该方法直接操作 HttpContext 发出 302 重定向，不返回 JSON 响应。
+    /// </remarks>
+    /// <param name="provider">提供商名称</param>
+    /// <param name="tenantId">租户ID（可选）</param>
+    Task GetExternalLoginCallbackAsync(string provider, long? tenantId = null);
 }

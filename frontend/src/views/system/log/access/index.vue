@@ -1,117 +1,158 @@
-<script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { SysAccessLog } from '~/types'
-import { NButton, NCard, NTag } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import { clearAccessLogApi, getAccessLogPageApi } from '@/api'
-import { CrudProTable } from '~/components'
+<script lang="ts" setup>
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import { NButton, NPopconfirm, NTag, useMessage } from 'naive-ui'
+import { reactive, ref } from 'vue'
+import { accessLogApi } from '@/api'
+import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
 
-const loading = ref(false)
-const rows = ref<SysAccessLog[]>([])
-const total = ref(0)
-const query = reactive({ page: 1, pageSize: 20 })
+defineOptions({ name: 'SystemLogAccessPage' })
 
-const columns: DataTableColumns<SysAccessLog> = [
-  { title: '用户ID', key: 'userId', width: 100, ellipsis: { tooltip: true } },
-  { title: '用户名', key: 'userName', width: 100 },
-  { title: '会话ID', key: 'sessionId', width: 140, ellipsis: { tooltip: true } },
-  { title: '资源路径', key: 'resourcePath', width: 200, ellipsis: { tooltip: true } },
-  { title: '资源名称', key: 'resourceName', width: 120, ellipsis: { tooltip: true } },
-  { title: '资源类型', key: 'resourceType', width: 90 },
-  { title: '请求方式', key: 'method', width: 80 },
-  { title: '访问结果', key: 'accessResult', width: 90, ellipsis: { tooltip: true } },
-  {
-    title: '状态码',
-    key: 'statusCode',
-    width: 80,
-    render: row => h(NTag, {
-      type: (row.statusCode ?? 0) < 400 ? 'success' : 'error',
-      size: 'small',
-      bordered: false,
-    }, { default: () => row.statusCode }),
-  },
-  { title: '访问IP', key: 'accessIp', width: 130 },
-  { title: '访问地区', key: 'accessLocation', width: 120, ellipsis: { tooltip: true } },
-  { title: 'UserAgent', key: 'userAgent', width: 200, ellipsis: { tooltip: true } },
-  { title: '浏览器', key: 'browser', width: 100 },
-  { title: '操作系统', key: 'os', width: 100 },
-  { title: '设备', key: 'device', width: 100, ellipsis: { tooltip: true } },
-  { title: '来源页面', key: 'referer', width: 180, ellipsis: { tooltip: true } },
-  { title: '响应耗时(ms)', key: 'responseTime', width: 110 },
-  { title: '响应大小(B)', key: 'responseSize', width: 110 },
-  {
-    title: '访问时间',
-    key: 'accessTime',
-    width: 170,
-    render: row => h('span', null, formatDate(row.accessTime ?? '')),
-  },
-  {
-    title: '离开时间',
-    key: 'leaveTime',
-    width: 170,
-    render: row => h('span', null, row.leaveTime ? formatDate(row.leaveTime) : '-'),
-  },
-  { title: '停留时长(s)', key: 'stayTime', width: 110 },
-  { title: '错误消息', key: 'errorMessage', width: 200, ellipsis: { tooltip: true } },
-  { title: '扩展数据', key: 'extendData', width: 200, ellipsis: { tooltip: true } },
-  { title: '备注', key: 'remark', width: 150, ellipsis: { tooltip: true } },
-  {
-    title: '创建时间',
-    key: 'createdTime',
-    width: 170,
-    render: row => h('span', null, formatDate(row.createdTime ?? '')),
-  },
-]
+const message = useMessage()
+const xGrid = ref<VxeGridInstance>()
 
-async function fetchData() {
-  loading.value = true
-  try {
-    const data = await getAccessLogPageApi(query)
-    rows.value = data.items
-    total.value = data.total
-  }
-  finally {
-    loading.value = false
-  }
+const queryParams = reactive({
+  keyword: '',
+})
+
+function handleQueryApi(
+  page: VxeGridPropTypes.ProxyAjaxQueryPageParams,
+  _sort: VxeGridPropTypes.ProxyAjaxQuerySortCheckedParams,
+) {
+  return accessLogApi.page({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+  })
 }
 
-function handlePageChange(page: number) {
-  query.page = page
-  fetchData()
-}
+const options = useVxeTable(
+  {
+    id: 'sys_access_log',
+    name: '访问日志',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'sessionId', title: '会话ID', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'resourcePath', title: '资源路径', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'resourceName', title: '资源名称', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'resourceType', title: '资源类型', width: 100 },
+      { field: 'method', title: '请求方式', width: 100 },
+      {
+        field: 'accessResult',
+        title: '访问结果',
+        width: 100,
+        slots: { default: 'col_accessResult' },
+      },
+      {
+        field: 'statusCode',
+        title: '状态码',
+        width: 90,
+        slots: { default: 'col_statusCode' },
+      },
+      { field: 'accessIp', title: 'IP 地址', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'accessLocation', title: '访问地点', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'browser', title: '浏览器', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'os', title: '操作系统', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'device', title: '设备', minWidth: 100, showOverflow: 'tooltip' },
+      { field: 'referer', title: '来源页面', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'responseTime', title: '耗时(ms)', width: 100, sortable: true },
+      { field: 'responseSize', title: '响应大小(B)', width: 110 },
+      {
+        field: 'accessTime',
+        title: '访问时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'leaveTime',
+        title: '离开时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+      { field: 'stayTime', title: '停留(s)', width: 90 },
+      { field: 'errorMessage', title: '错误消息', minWidth: 200, showOverflow: 'tooltip' },
+      {
+        field: 'createdTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page, sort }) => handleQueryApi(page, sort),
+      },
+    },
+    toolbarConfig: {
+      slots: { buttons: 'toolbar_buttons' },
+      refresh: true,
+      export: true,
+      zoom: true,
+      custom: true,
+    },
+  },
+)
 
-function handlePageSizeChange(pageSize: number) {
-  query.page = 1
-  query.pageSize = pageSize
-  fetchData()
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
 }
 
 async function handleClear() {
-  await clearAccessLogApi()
-  fetchData()
+  try {
+    await accessLogApi.clear()
+    message.success('清空成功')
+    xGrid.value?.commitProxy('reload')
+  }
+  catch {
+    message.error('清空失败')
+  }
 }
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <NCard title="访问日志" :bordered="false" size="small">
-    <template #header-extra>
-      <NButton size="small" type="error" ghost @click="handleClear">
-        清空
-      </NButton>
-    </template>
-    <CrudProTable
-      :columns="columns"
-      :data="rows"
-      :loading="loading"
-      :pagination="{ page: query.page, pageSize: query.pageSize, total }"
-      :show-toolbar="false"
-      :scroll-x="2800"
-      max-height="calc(100vh - 280px)"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
-  </NCard>
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
+    <vxe-card style="padding: 10px 16px">
+      <div class="flex gap-3 items-center">
+        <vxe-input
+          v-model="queryParams.keyword"
+          placeholder="搜索用户名/资源路径"
+          clearable
+          style="width: 260px"
+          @keyup.enter="handleSearch"
+        />
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
+      </div>
+    </vxe-card>
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options">
+        <template #toolbar_buttons>
+          <NPopconfirm @positive-click="handleClear">
+            <template #trigger>
+              <NButton type="error" size="small">
+                清空日志
+              </NButton>
+            </template>
+            确认清空所有访问日志？
+          </NPopconfirm>
+        </template>
+        <template #col_accessResult="{ row }">
+          <NTag :type="row.accessResult === 'Success' ? 'success' : 'error'" size="small">
+            {{ row.accessResult === 'Success' ? '成功' : '失败' }}
+          </NTag>
+        </template>
+        <template #col_statusCode="{ row }">
+          <NTag :type="row.statusCode < 400 ? 'success' : 'error'" size="small">
+            {{ row.statusCode }}
+          </NTag>
+        </template>
+      </vxe-grid>
+    </vxe-card>
+  </div>
 </template>

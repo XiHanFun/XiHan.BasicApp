@@ -30,9 +30,56 @@ public class LoginConfigDto
     public bool TenantEnabled { get; set; } = true;
 
     /// <summary>
-    /// 三方登录提供商
+    /// 三方登录提供商详情
     /// </summary>
-    public string[] OauthProviders { get; set; } = [];
+    public List<OAuthProviderItemDto> OauthProviders { get; set; } = [];
+}
+
+/// <summary>
+/// OAuth 提供商信息（前端展示用）
+/// </summary>
+public class OAuthProviderItemDto
+{
+    /// <summary>
+    /// 提供商标识
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 显示名称
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 登录响应（统一封装，区分正常登录与双因素验证挑战）
+/// </summary>
+public class LoginResponseDto
+{
+    /// <summary>
+    /// 是否需要双因素验证（true 时前端应展示 OTP 输入）
+    /// </summary>
+    public bool RequiresTwoFactor { get; set; }
+
+    /// <summary>
+    /// 可用的双因素认证方式列表（totp/email/phone），仅 RequiresTwoFactor 时有值
+    /// </summary>
+    public List<string>? AvailableTwoFactorMethods { get; set; }
+
+    /// <summary>
+    /// 当前选中的双因素方式（用户已选择后返回）
+    /// </summary>
+    public string? TwoFactorMethod { get; set; }
+
+    /// <summary>
+    /// 验证码是否已发送（邮箱/手机方式选中后为 true）
+    /// </summary>
+    public bool CodeSent { get; set; }
+
+    /// <summary>
+    /// 令牌信息（仅在登录完成时返回，需要双因素验证时为 null）
+    /// </summary>
+    public AuthTokenDto? Token { get; set; }
 }
 
 /// <summary>
@@ -127,6 +174,16 @@ public class CurrentUserDto
     /// 头像
     /// </summary>
     public string? Avatar { get; set; }
+
+    /// <summary>
+    /// 邮箱
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    public string? Phone { get; set; }
 
     /// <summary>
     /// 租户ID
@@ -240,4 +297,19 @@ public class AuthMenuMetaDto
     /// 外链
     /// </summary>
     public string? Link { get; set; }
+
+    /// <summary>
+    /// 标签内容
+    /// </summary>
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型
+    /// </summary>
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点
+    /// </summary>
+    public bool Dot { get; set; }
 }

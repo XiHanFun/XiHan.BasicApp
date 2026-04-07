@@ -15,6 +15,7 @@
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -38,6 +39,7 @@ public class TenantAppService
 {
     private readonly ITenantRepository _tenantRepository;
     private readonly ITenantManager _tenantManager;
+    private readonly ITenantQueryService _queryService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -45,16 +47,27 @@ public class TenantAppService
     /// </summary>
     /// <param name="tenantRepository"></param>
     /// <param name="tenantManager"></param>
+    /// <param name="queryService"></param>
     /// <param name="unitOfWorkManager"></param>
     public TenantAppService(
         ITenantRepository tenantRepository,
         ITenantManager tenantManager,
+        ITenantQueryService queryService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(tenantRepository)
     {
         _tenantRepository = tenantRepository;
         _tenantManager = tenantManager;
+        _queryService = queryService;
         _unitOfWorkManager = unitOfWorkManager;
+    }
+
+    /// <summary>
+    /// ID 查询（委托 QueryService，走缓存）
+    /// </summary>
+    public override async Task<TenantDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>

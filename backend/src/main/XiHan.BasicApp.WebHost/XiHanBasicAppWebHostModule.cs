@@ -12,16 +12,14 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
-using XiHan.Framework.Authentication.Jwt;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Core.Application;
-using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Core.Extensions;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Extensions;
 
 namespace XiHan.BasicApp.WebHost;
 
@@ -41,65 +39,6 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     /// <param name="context"></param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        var services = context.Services;
-        var config = services.GetConfiguration();
-
-        // 配置JWT认证
-        var jwtOptions = config.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
-        if (jwtOptions != null && !string.IsNullOrEmpty(jwtOptions.SecretKey))
-        {
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = jwtOptions.ValidateIssuer,
-                    ValidateAudience = jwtOptions.ValidateAudience,
-                    ValidateLifetime = jwtOptions.ValidateLifetime,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
-                    ClockSkew = TimeSpan.FromMinutes(jwtOptions.ClockSkewMinutes)
-                };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                        {
-                            context.Response.Headers["Token-Expired"] = "true";
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            });
-
-            // 添加授权
-            services.AddAuthorization();
-        }
-
-        // 配置 CORS（允许前端开发地址跨域）
-        services.AddCors(options =>
-        {
-            options.AddDefaultPolicy(policy =>
-            {
-                policy.WithOrigins(
-                        "http://localhost:5888",
-                        "http://127.0.0.1:5888")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-            });
-        });
-
-        // 添加控制器
-        services.AddControllers();
     }
 
     /// <summary>
@@ -110,5 +49,12 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
+
+        // 映射 SignalR Hub 端点
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapXiHanHub<BasicAppNotificationHub>(SignalRConstants.HubPaths.Notification);
+            endpoints.MapXiHanHub<BasicAppChatHub>(SignalRConstants.HubPaths.Chat);
+        });
     }
 }

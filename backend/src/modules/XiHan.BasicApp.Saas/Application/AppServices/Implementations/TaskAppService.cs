@@ -16,6 +16,8 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -33,16 +35,32 @@ public class TaskAppService
         ITaskAppService
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly ITaskQueryService _queryService;
+    private readonly ITaskDomainService _domainService;
     private readonly IRbacLookupCacheService _lookupCacheService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public TaskAppService(ITaskRepository taskRepository, IRbacLookupCacheService lookupCacheService)
+    public TaskAppService(
+        ITaskRepository taskRepository,
+        ITaskQueryService queryService,
+        ITaskDomainService domainService,
+        IRbacLookupCacheService lookupCacheService)
         : base(taskRepository)
     {
         _taskRepository = taskRepository;
+        _queryService = queryService;
+        _domainService = domainService;
         _lookupCacheService = lookupCacheService;
+    }
+
+    /// <summary>
+    /// ID 查询（委托 QueryService，走缓存）
+    /// </summary>
+    public override async Task<TaskDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -64,62 +82,35 @@ public class TaskAppService
     }
 
     /// <summary>
-    /// 创建任务
+    /// 创建任务（委托 DomainService）
     /// </summary>
     public override async Task<TaskDto> CreateAsync(TaskCreateDto input)
     {
         input.ValidateAnnotations();
-
-        var normalizedCode = input.TaskCode.Trim();
-        var exists = await _taskRepository.IsTaskCodeExistsAsync(normalizedCode, input.TenantId);
-        if (exists)
-        {
-            throw new BusinessException(message: $"任务编码 '{normalizedCode}' 已存在");
-        }
-
-        var dto = await base.CreateAsync(input);
-        await _lookupCacheService.InvalidateTaskLookupAsync(input.TenantId);
-        return dto;
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
+        return created.Adapt<TaskDto>()!;
     }
 
     /// <summary>
-    /// 更新任务
+    /// 更新任务（委托 DomainService）
     /// </summary>
     public override async Task<TaskDto> UpdateAsync(TaskUpdateDto input)
     {
         input.ValidateAnnotations();
-        var entity = await _taskRepository.GetByIdAsync(input.BasicId)
+        var entity = await Repository.GetByIdAsync(input.BasicId)
                      ?? throw new KeyNotFoundException($"未找到任务: {input.BasicId}");
-        var dto = await base.UpdateAsync(input);
-        await _lookupCacheService.InvalidateTaskLookupAsync(entity.TenantId);
-        return dto;
+        await MapDtoToEntityAsync(input, entity);
+        var updated = await _domainService.UpdateAsync(entity);
+        return updated.Adapt<TaskDto>()!;
     }
 
     /// <summary>
-    /// 删除任务
+    /// 删除任务（委托 DomainService）
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException("任务 ID 无效", nameof(id));
-        }
-
-        var entity = await _taskRepository.GetByIdAsync(id);
-        if (entity is null)
-        {
-            return false;
-        }
-
-        var deleted = await base.DeleteAsync(id);
-        if (deleted)
-        {
-            await _lookupCacheService.InvalidateTaskLookupAsync(entity.TenantId);
-        }
-
-        return deleted;
+        return await _domainService.DeleteAsync(id);
     }
 
     /// <summary>

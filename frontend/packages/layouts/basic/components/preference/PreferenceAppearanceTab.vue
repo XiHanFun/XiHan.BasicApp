@@ -28,10 +28,12 @@ const sidebarSubDarkDisabled = computed(
 )
 const headerDarkDisabled = computed(() => isDark.value)
 
-watch(() => appStore.sidebarDark, (val) => {
-  if (!val)
-    appStore.sidebarSubDark = false
-})
+watch(
+  () => appStore.sidebarDark,
+  (val) => {
+    if (!val) appStore.sidebarSubDark = false
+  },
+)
 
 interface PreferenceAppearanceTabProps {
   appStore: ReturnType<typeof useAppStore>
@@ -47,7 +49,22 @@ const themeModes = [
 const themeColorGroups = THEME_COLOR_GROUPS
 const allPresetColors = ALL_THEME_COLORS
 
-const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
+const localizedModes = computed(() => themeModes.map((m) => ({ ...m, label: t(m.labelKey) })))
+
+const transitionItems = computed(() => [
+  { value: 'slide-left', label: t('preference.general.animation.slide_left') },
+  { value: 'slide-right', label: t('preference.general.animation.slide_right') },
+  { value: 'slide-up', label: t('preference.general.animation.slide_up') },
+  { value: 'slide-down', label: t('preference.general.animation.slide_down') },
+  { value: 'skew-slide', label: t('preference.general.animation.skew_slide') },
+  { value: 'fade', label: t('preference.general.animation.fade') },
+  { value: 'zoom-fade', label: t('preference.general.animation.zoom_fade') },
+  { value: 'blur-fade', label: t('preference.general.animation.blur_fade') },
+  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
+  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
+  { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
+  { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
+])
 </script>
 
 <template>
@@ -63,22 +80,15 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         @update:value="(value) => emit('themeModeChange', value as 'light' | 'dark' | 'auto')"
       >
         <div class="grid grid-cols-3 gap-2">
-          <label
-            v-for="mode in localizedModes"
-            :key="mode.value"
-            class="mode-item"
-          >
+          <label v-for="mode in localizedModes" :key="mode.value" class="mode-item">
             <input
               type="radio"
               :value="mode.value"
               class="sr-only"
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
-            >
-            <div
-              class="theme-mode-card"
-              :class="{ 'is-active': props.themeMode === mode.value }"
-            >
+            />
+            <div class="theme-mode-card" :class="{ 'is-active': props.themeMode === mode.value }">
               <NIcon size="20">
                 <Icon :icon="mode.icon" />
               </NIcon>
@@ -95,11 +105,12 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         {{ t('preference.appearance.color.title') }}
       </div>
       <div class="space-y-1.5">
-        <!-- 自定义分组（默认色 + 取色器），置于所有色系上方 -->
+        <!-- 默认或自定义 -->
         <div class="color-group-row">
-          <span class="color-group-label">{{ t('preference.appearance.color.custom') }}</span>
-          <div class="color-group-swatches w-full">
-            <!-- 默认色 -->
+          <span class="color-group-label">
+            {{ t('preference.appearance.color.default_or_custom') }}
+          </span>
+          <div class="w-full color-group-swatches">
             <div class="color-item">
               <button
                 type="button"
@@ -112,7 +123,6 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
               </button>
               <span class="theme-color-label">{{ t('preference.appearance.color.default') }}</span>
             </div>
-            <!-- 取色器 -->
             <div class="color-item">
               <div
                 class="theme-color-card custom-color-card"
@@ -129,31 +139,23 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
                   :show-alpha="false"
                   :actions="['confirm']"
                   class="custom-color-overlay"
-                  @update:value="value => appStore.setThemeColor(value)"
+                  @update:value="(value) => appStore.setThemeColor(value)"
                 >
                   <template #label>
                     <span />
                   </template>
                 </NColorPicker>
               </div>
-              <span class="theme-color-label">{{ t('preference.appearance.color.picker') }}</span>
+              <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
             </div>
           </div>
         </div>
 
         <!-- 每行一个色系 + 三个色块 -->
-        <div
-          v-for="group in themeColorGroups"
-          :key="group.familyKey"
-          class="color-group-row"
-        >
+        <div v-for="group in themeColorGroups" :key="group.familyKey" class="color-group-row">
           <span class="color-group-label">{{ t(group.familyKey) }}</span>
-          <div class="color-group-swatches w-full">
-            <div
-              v-for="item in group.items"
-              :key="item.color"
-              class="color-item"
-            >
+          <div class="w-full color-group-swatches">
+            <div v-for="item in group.items" :key="item.color" class="color-item">
               <button
                 type="button"
                 class="theme-color-card"
@@ -195,7 +197,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         {{ t('preference.appearance.navigation.title') }}
       </div>
       <div class="pref-row">
-        <div class="flex items-center gap-1">
+        <div class="flex gap-1 items-center">
           <span :class="{ 'text-[hsl(var(--muted-foreground))]': sidebarDarkDisabled }">
             {{ t('preference.appearance.navigation.sidebar_dark') }}
           </span>
@@ -204,7 +206,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         <NSwitch v-model:value="appStore.sidebarDark" :disabled="sidebarDarkDisabled" />
       </div>
       <div class="pref-row">
-        <div class="flex items-center gap-1">
+        <div class="flex gap-1 items-center">
           <span :class="{ 'text-[hsl(var(--muted-foreground))]': sidebarSubDarkDisabled }">
             {{ t('preference.appearance.navigation.sidebar_sub_dark') }}
           </span>
@@ -213,7 +215,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="sidebarSubDarkDisabled" />
       </div>
       <div class="pref-row">
-        <div class="flex items-center gap-1">
+        <div class="flex gap-1 items-center">
           <span :class="{ 'text-[hsl(var(--muted-foreground))]': headerDarkDisabled }">
             {{ t('preference.appearance.navigation.header_dark') }}
           </span>
@@ -230,7 +232,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
       </div>
       <div class="pref-row">
         <span>{{ t('preference.appearance.font.size') }}</span>
-        <div class="flex items-center gap-1.5">
+        <div class="flex gap-1.5 items-center">
           <NInputNumber
             :value="appStore.fontSize"
             :min="12"
@@ -240,9 +242,61 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
             button-placement="both"
             :input-props="{ style: 'text-align: center' }"
             style="width: 130px"
-            @update:value="value => value !== null && appStore.setFontSize(value)"
+            @update:value="(value) => value !== null && appStore.setFontSize(value)"
           />
           <span class="unit-label">px</span>
+        </div>
+      </div>
+    </NCard>
+
+    <!-- 动画 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
+        {{ t('preference.general.animation.title') }}
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.animation.transition_progress') }}</span>
+          <PrefTip :content="t('preference.general.animation.transition_progress_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.transitionProgress" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.animation.transition_loading') }}</span>
+          <PrefTip :content="t('preference.general.animation.transition_loading_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.transitionLoading" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.animation.theme_animation') }}</span>
+          <PrefTip :content="t('preference.general.animation.theme_animation_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.themeAnimationEnabled" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.animation.transition_enable') }}</span>
+          <PrefTip :content="t('preference.general.animation.transition_enable_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.transitionEnable" />
+      </div>
+      <div
+        class="transition-grid"
+        :class="{ 'pointer-events-none opacity-40': !appStore.transitionEnable }"
+      >
+        <div
+          v-for="item in transitionItems"
+          :key="item.value"
+          class="transition-item"
+          :class="{ 'is-active': appStore.transitionName === item.value }"
+          @click="appStore.transitionEnable && (appStore.transitionName = item.value)"
+        >
+          <div class="transition-preview">
+            <div class="preview-block" :class="`anim-${item.value}`" />
+          </div>
+          <span class="item-label">{{ item.label }}</span>
         </div>
       </div>
     </NCard>
@@ -253,14 +307,14 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
         {{ t('preference.appearance.other.title') }}
       </div>
       <div class="pref-row">
-        <div class="flex items-center gap-1">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.appearance.other.color_weakness') }}</span>
           <PrefTip :content="t('preference.appearance.other.color_weakness_tip')" />
         </div>
         <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
       </div>
       <div class="pref-row">
-        <div class="flex items-center gap-1">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.appearance.other.grayscale') }}</span>
           <PrefTip :content="t('preference.appearance.other.grayscale_tip')" />
         </div>
@@ -460,5 +514,268 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
   background: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
   font-weight: 600;
+}
+
+/* 过渡动画预览选择器 */
+.transition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.transition-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.transition-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  border: 2px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  overflow: visible;
+  clip-path: inset(-7px round calc(var(--radius) + 5px));
+  position: relative;
+  transition: border-color 0.18s ease;
+}
+
+.transition-item.is-active .transition-preview {
+  border-color: hsl(var(--primary));
+}
+
+.item-label {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  white-space: nowrap;
+}
+
+.transition-item.is-active .item-label {
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
+
+.preview-block {
+  position: absolute;
+  inset: 5px;
+  border-radius: calc(var(--radius) - 1px);
+  background: hsl(var(--primary) / 0.72);
+}
+
+@keyframes anim-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  35%,
+  65% {
+    opacity: 1;
+  }
+}
+.anim-fade {
+  animation: anim-fade 2s ease-in-out infinite;
+}
+
+@keyframes anim-slide-left {
+  0% {
+    transform: translateX(115%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-115%);
+    opacity: 0;
+  }
+}
+.anim-slide-left {
+  animation: anim-slide-left 2.2s ease-in-out infinite;
+}
+
+@keyframes anim-slide-up {
+  0% {
+    transform: translateY(115%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-115%);
+    opacity: 0;
+  }
+}
+.anim-slide-up {
+  animation: anim-slide-up 2.2s ease-in-out infinite;
+}
+
+@keyframes anim-slide-down {
+  0% {
+    transform: translateY(-115%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(115%);
+    opacity: 0;
+  }
+}
+.anim-slide-down {
+  animation: anim-slide-down 2.2s ease-in-out infinite;
+}
+
+@keyframes anim-slide-right {
+  0% {
+    transform: translateX(-115%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(115%);
+    opacity: 0;
+  }
+}
+.anim-slide-right {
+  animation: anim-slide-right 2.2s ease-in-out infinite;
+}
+
+@keyframes anim-zoom-fade {
+  0%,
+  100% {
+    transform: scale(0.86);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-zoom-fade {
+  animation: anim-zoom-fade 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+@keyframes anim-flip-fade {
+  0%,
+  100% {
+    transform: perspective(300px) rotateY(-22deg) scale(0.95);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: perspective(300px) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+.anim-flip-fade {
+  transform-origin: center;
+  animation: anim-flip-fade 2.1s ease-in-out infinite;
+}
+
+@keyframes anim-scale-up {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-scale-up {
+  animation: anim-scale-up 2s ease-in-out infinite;
+}
+
+@keyframes anim-scale-down {
+  0%,
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-scale-down {
+  animation: anim-scale-down 2.1s ease-in-out infinite;
+}
+
+@keyframes anim-blur-fade {
+  0%,
+  100% {
+    filter: blur(5px);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+.anim-blur-fade {
+  animation: anim-blur-fade 2s ease-in-out infinite;
+}
+
+@keyframes anim-rotate-fade {
+  0%,
+  100% {
+    transform: rotate(-10deg) scale(0.92);
+    opacity: 0;
+  }
+  35%,
+  65% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+.anim-rotate-fade {
+  transform-origin: center;
+  animation: anim-rotate-fade 2s ease-in-out infinite;
+}
+
+@keyframes anim-skew-slide {
+  0% {
+    transform: translateX(115%) skewX(-12deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-115%) skewX(12deg);
+    opacity: 0;
+  }
+}
+.anim-skew-slide {
+  animation: anim-skew-slide 2.2s ease-in-out infinite;
 }
 </style>

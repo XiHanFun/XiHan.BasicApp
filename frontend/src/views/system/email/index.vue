@@ -1,17 +1,12 @@
 <script lang="ts" setup>
-import type { DataTableColumns } from 'naive-ui'
-import type { SysEmail } from '~/types'
-import { Icon } from '~/iconify'
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { SysEmail } from '@/api'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NModal,
-  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
@@ -19,109 +14,118 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import {
-  createEmailApi,
-  deleteEmailApi,
-  getEmailPageApi,
-  getPendingEmailsApi,
-  updateEmailApi,
-} from '@/api'
-import { DEFAULT_PAGE_SIZE, EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS } from '~/constants'
+import { reactive, ref } from 'vue'
+import { emailApi } from '@/api'
+import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS } from '~/constants'
+import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemEmailPage' })
 
 const message = useMessage()
-const loading = ref(false)
-const tableData = ref<SysEmail[]>([])
-const total = ref(0)
+const xGrid = ref<VxeGridInstance>()
 
 const queryParams = reactive({
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
   keyword: '',
   emailType: undefined as number | undefined,
   emailStatus: undefined as number | undefined,
 })
 
+function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
+  return emailApi.page({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+    emailType: queryParams.emailType,
+    emailStatus: queryParams.emailStatus,
+  })
+}
+
+const options = useVxeTable<SysEmail>(
+  {
+    id: 'sys_email',
+    name: '邮件管理',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      { field: 'fromEmail', title: '发件人', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'toEmail', title: '收件人', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'ccEmail', title: '抄送', minWidth: 160, showOverflow: 'tooltip' },
+      { field: 'subject', title: '主题', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'fromName', title: '发件人名', minWidth: 120, showOverflow: 'tooltip' },
+      {
+        field: 'emailType',
+        title: '类型',
+        width: 110,
+        formatter: ({ cellValue }) => getOptionLabel(EMAIL_TYPE_OPTIONS, cellValue),
+      },
+      {
+        field: 'emailStatus',
+        title: '发送状态',
+        width: 100,
+        slots: { default: 'col_emailStatus' },
+      },
+      { field: 'retryCount', title: '重试次数', width: 90 },
+      {
+        field: 'sendTime',
+        title: '发送时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 140,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: { query: ({ page }) => handleQueryApi(page) },
+    },
+  },
+)
+
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
+}
+function handleReset() {
+  queryParams.keyword = ''
+  queryParams.emailType = undefined
+  queryParams.emailStatus = undefined
+  xGrid.value?.commitProxy('reload')
+}
+
 const modalVisible = ref(false)
 const modalTitle = ref('新增邮件')
 const submitLoading = ref(false)
+const formData = ref<Partial<SysEmail>>({})
 
-const formData = ref<Partial<SysEmail>>({
-  emailType: 0,
-  fromEmail: '',
-  toEmail: '',
-  subject: '',
-  content: '',
-  isHtml: true,
-  emailStatus: 0,
-  scheduledTime: undefined,
-  remark: '',
-})
-
-function getEmailStatusType(status: number): 'default' | 'info' | 'success' | 'warning' | 'error' {
-  if (status === 0)
-    return 'warning'
-  if (status === 1)
-    return 'info'
-  if (status === 2)
-    return 'success'
-  if (status === 3)
-    return 'error'
-  if (status === 4)
-    return 'default'
-  return 'default'
-}
-
-async function fetchData() {
-  try {
-    loading.value = true
-    const result = await getEmailPageApi(queryParams)
-    tableData.value = result.items
-    total.value = result.total
-  }
-  catch {
-    message.error('获取邮件列表失败')
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-async function handleLoadPending() {
-  try {
-    loading.value = true
-    const pending = await getPendingEmailsApi(200)
-    tableData.value = pending
-    total.value = pending.length
-    queryParams.page = 1
-  }
-  catch {
-    message.error('获取待发送邮件失败')
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function handleAdd() {
-  modalTitle.value = '新增邮件'
+function resetForm() {
   formData.value = {
-    emailType: 0,
     fromEmail: '',
     toEmail: '',
     subject: '',
     content: '',
-    isHtml: true,
-    emailStatus: 0,
-    scheduledTime: undefined,
-    remark: '',
+    emailType: 0,
+    isHtml: false,
   }
+}
+function handleAdd() {
+  modalTitle.value = '新增邮件'
+  resetForm()
   modalVisible.value = true
 }
-
 function handleEdit(row: SysEmail) {
   modalTitle.value = '编辑邮件'
   formData.value = { ...row }
@@ -130,11 +134,10 @@ function handleEdit(row: SysEmail) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteEmailApi(id)
+    await emailApi.delete(id)
     message.success('删除成功')
-    fetchData()
-  }
-  catch {
+    xGrid.value?.commitProxy('query')
+  } catch {
     message.error('删除失败')
   }
 }
@@ -142,195 +145,82 @@ async function handleDelete(id: string) {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.basicId) {
-      await updateEmailApi(formData.value.basicId, formData.value)
-    }
-    else {
-      await createEmailApi(formData.value)
-    }
+    if (formData.value.basicId) await emailApi.update(formData.value.basicId, formData.value)
+    else await emailApi.create(formData.value)
     message.success('操作成功')
     modalVisible.value = false
-    fetchData()
-  }
-  catch {
+    xGrid.value?.commitProxy('query')
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
 
-const columns: DataTableColumns<SysEmail> = [
-  {
-    title: '发件邮箱',
-    key: 'fromEmail',
-    width: 200,
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '收件邮箱',
-    key: 'toEmail',
-    width: 220,
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '主题',
-    key: 'subject',
-    width: 220,
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '类型',
-    key: 'emailType',
-    width: 110,
-    render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, row.emailType),
-  },
-  {
-    title: '状态',
-    key: 'emailStatus',
-    width: 100,
-    render: row =>
-      h(
-        NTag,
-        { type: getEmailStatusType(row.emailStatus), size: 'small', round: true },
-        { default: () => getOptionLabel(EMAIL_STATUS_OPTIONS, row.emailStatus) },
-      ),
-  },
-  {
-    title: '发送时间',
-    key: 'sendTime',
-    width: 170,
-    render: row => formatDate(row.sendTime ?? ''),
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 160,
-    fixed: 'right',
-    render: row =>
-      h(
-        NSpace,
-        { size: 'small' },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                size: 'small',
-                type: 'primary',
-                ghost: true,
-                onClick: () => handleEdit(row),
-              },
-              { default: () => '编辑' },
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.basicId),
-              },
-              {
-                default: () => '确认删除该邮件？',
-                trigger: () =>
-                  h(
-                    NButton,
-                    { size: 'small', type: 'error', ghost: true },
-                    { default: () => '删除' },
-                  ),
-              },
-            ),
-          ],
-        },
-      ),
-  },
-]
-
-onMounted(fetchData)
+function getEmailStatusType(status: number) {
+  const map: Record<number, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
+    0: 'default',
+    1: 'info',
+    2: 'success',
+    3: 'error',
+    4: 'warning',
+  }
+  return map[status] ?? 'default'
+}
 </script>
 
 <template>
-  <div class="space-y-4">
-    <NCard :bordered="false">
-      <div class="flex flex-wrap items-center gap-3">
-        <NInput
-          v-model:value="queryParams.keyword"
+  <div class="flex flex-col h-full">
+    <vxe-card class="mb-2" style="padding: 10px 16px">
+      <div class="flex flex-wrap gap-3 items-center">
+        <vxe-input
+          v-model="queryParams.keyword"
           placeholder="搜索发件人/收件人/主题"
-          style="width: 240px"
           clearable
-          @keydown.enter="fetchData"
+          style="width: 280px"
+          @keyup.enter="handleSearch"
         />
         <NSelect
           v-model:value="queryParams.emailType"
           :options="EMAIL_TYPE_OPTIONS"
-          placeholder="全部类型"
-          style="width: 130px"
+          placeholder="邮件类型"
           clearable
+          style="width: 140px"
         />
         <NSelect
           v-model:value="queryParams.emailStatus"
           :options="EMAIL_STATUS_OPTIONS"
-          placeholder="全部状态"
-          style="width: 130px"
+          placeholder="发送状态"
           clearable
+          style="width: 130px"
         />
-        <NButton type="primary" @click="fetchData">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" width="14" /></NIcon>
-          </template>
-          搜索
-        </NButton>
-        <NButton @click="handleLoadPending">
-          待发送
-        </NButton>
-        <NButton
-          @click="
-            () => {
-              queryParams.keyword = ''
-              queryParams.emailType = undefined
-              queryParams.emailStatus = undefined
-              queryParams.page = 1
-              fetchData()
-            }
-          "
-        >
-          重置
-        </NButton>
-        <NButton class="ml-auto" type="primary" @click="handleAdd">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
-          </template>
-          新增邮件
-        </NButton>
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
-    </NCard>
-
-    <NCard :bordered="false">
-      <NDataTable
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :row-key="(row) => row.basicId"
-        :pagination="false"
-        :scroll-x="1180"
-        size="small"
-        striped
-      />
-      <div class="mt-4 flex justify-end">
-        <NPagination
-          v-model:page="queryParams.page"
-          v-model:page-size="queryParams.pageSize"
-          :item-count="total"
-          :page-sizes="[10, 20, 50, 100]"
-          show-size-picker
-          @update:page="fetchData"
-          @update:page-size="
-            () => {
-              queryParams.page = 1
-              fetchData()
-            }
-          "
-        />
-      </div>
-    </NCard>
+    </vxe-card>
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options">
+        <template #toolbar_buttons>
+          <NButton type="primary" size="small" @click="handleAdd">新增邮件</NButton>
+        </template>
+        <template #col_emailStatus="{ row }">
+          <NTag :type="getEmailStatusType(row.emailStatus)" size="small">
+            {{ getOptionLabel(EMAIL_STATUS_OPTIONS, row.emailStatus) }}
+          </NTag>
+        </template>
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
+            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+              <template #trigger>
+                <NButton size="small" type="error" text>删除</NButton>
+              </template>
+              确认删除该邮件？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
 
     <NModal
       v-model:show="modalVisible"
@@ -339,42 +229,35 @@ onMounted(fetchData)
       style="width: 600px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="88px">
-        <NFormItem label="邮件类型" path="emailType">
+      <NForm :model="formData" label-placement="left" label-width="80px">
+        <NFormItem label="发件人" path="fromEmail">
+          <NInput v-model:value="formData.fromEmail" placeholder="发件人邮箱" />
+        </NFormItem>
+        <NFormItem label="收件人" path="toEmail">
+          <NInput v-model:value="formData.toEmail" placeholder="收件人邮箱" />
+        </NFormItem>
+        <NFormItem label="主题" path="subject">
+          <NInput v-model:value="formData.subject" placeholder="邮件主题" />
+        </NFormItem>
+        <NFormItem label="类型" path="emailType">
           <NSelect v-model:value="formData.emailType" :options="EMAIL_TYPE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="发件邮箱" path="fromEmail">
-          <NInput v-model:value="formData.fromEmail" placeholder="请输入发件邮箱" />
+        <NFormItem label="HTML">
+          <NSwitch v-model:value="formData.isHtml" />
         </NFormItem>
-        <NFormItem label="收件邮箱" path="toEmail">
-          <NInput v-model:value="formData.toEmail" placeholder="请输入收件邮箱，多个用逗号分隔" />
-        </NFormItem>
-        <NFormItem label="邮件主题" path="subject">
-          <NInput v-model:value="formData.subject" placeholder="请输入邮件主题" />
-        </NFormItem>
-        <NFormItem label="邮件内容" path="content">
+        <NFormItem label="内容" path="content">
           <NInput
             v-model:value="formData.content"
             type="textarea"
-            :rows="4"
-            placeholder="请输入邮件内容"
+            :rows="5"
+            placeholder="邮件内容"
           />
-        </NFormItem>
-        <NFormItem label="邮件状态" path="emailStatus">
-          <NSelect v-model:value="formData.emailStatus" :options="EMAIL_STATUS_OPTIONS" />
-        </NFormItem>
-        <NFormItem label="HTML邮件" path="isHtml">
-          <NSwitch v-model:value="formData.isHtml" />
         </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>

@@ -42,6 +42,11 @@ public class UserLoginCommand
     public string? TwoFactorCode { get; set; }
 
     /// <summary>
+    /// 用户选择的双因素认证方式（totp/email/phone）
+    /// </summary>
+    public string? TwoFactorMethod { get; set; }
+
+    /// <summary>
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; } = 1;

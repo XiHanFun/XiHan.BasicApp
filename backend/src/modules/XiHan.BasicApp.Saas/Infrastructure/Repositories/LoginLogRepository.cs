@@ -70,4 +70,26 @@ public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILo
         var count = await query.CountAsync(cancellationToken);
         return count;
     }
+
+    /// <summary>
+    /// 按用户ID分页查询登录日志
+    /// </summary>
+    public async Task<(List<SysLoginLog> Items, int Total)> GetPagedByUserIdAsync(
+        long userId, long? tenantId, int pageIndex, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable()
+            .Where(log => log.UserId == userId);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(log => log.TenantId == tenantId.Value);
+        }
+
+        var total = new SqlSugar.RefAsync<int>();
+        var items = await query
+            .OrderByDescending(log => log.LoginTime)
+            .ToPageListAsync(pageIndex, pageSize, total, cancellationToken);
+
+        return (items, total.Value);
+    }
 }

@@ -1,4 +1,7 @@
-﻿# 设置 version.props 文件路径
+﻿# 设置控制台编码为 UTF-8 以正确显示中文
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# 设置 version.props 文件路径
 $versionPropsPath = "..\..\props\version.props"
 $projectPath = "..\..\XiHan.BasicApp.slnx"
 # 读取 version.props 内容，确保以 UTF-8 编码读取

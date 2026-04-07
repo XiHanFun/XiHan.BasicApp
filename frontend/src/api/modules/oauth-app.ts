@@ -1,8 +1,43 @@
-import type { OAuthAppPageQuery, PageResult, SysOAuthApp } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const OAUTH_API = '/api/OAuth'
+const api = useBaseApi('OAuth')
+
+export interface SysOAuthApp {
+  basicId: string
+  appName: string
+  appDescription?: string
+  clientId: string
+  clientSecret: string
+  appType: number
+  grantTypes: string
+  redirectUris?: string
+  scopes?: string
+  accessTokenLifetime: number
+  refreshTokenLifetime: number
+  authorizationCodeLifetime: number
+  skipConsent: boolean
+  tenantId?: string
+  status: number
+  openApiSecurityEnabled?: boolean
+  openApiSignatureAlgorithm?: string
+  openApiContentSignAlgorithm?: string
+  openApiEncryptionAlgorithm?: string
+  openApiEncryptKey?: string
+  openApiPublicKey?: string
+  openApiSm2PublicKey?: string
+  openApiAllowResponseEncryption?: boolean
+  openApiIpWhitelist?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface OAuthAppPageQuery extends PageQuery {
+  appType?: number
+  status?: number
+}
 
 function normalizeOAuthApp(raw: Record<string, any>): SysOAuthApp {
   return {
@@ -19,7 +54,7 @@ function normalizeOAuthApp(raw: Record<string, any>): SysOAuthApp {
     refreshTokenLifetime: toNumber(raw.refreshTokenLifetime, 2592000),
     authorizationCodeLifetime: toNumber(raw.authorizationCodeLifetime, 300),
     skipConsent: Boolean(raw.skipConsent),
-    tenantId: raw.tenantId === null || raw.tenantId === undefined ? undefined : toId(raw.tenantId),
+    tenantId: raw.tenantId == null ? undefined : toId(raw.tenantId),
     status: toNumber(raw.status, 1),
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
@@ -36,12 +71,13 @@ function normalizeOpenApiSecurity(raw: Record<string, any>): Partial<SysOAuthApp
     openApiEncryptKey: raw.encryptKey ?? '',
     openApiPublicKey: raw.publicKey ?? '',
     openApiSm2PublicKey: raw.sm2PublicKey ?? '',
-    openApiAllowResponseEncryption: raw.allowResponseEncryption === undefined ? true : Boolean(raw.allowResponseEncryption),
+    openApiAllowResponseEncryption:
+      raw.allowResponseEncryption === undefined ? true : Boolean(raw.allowResponseEncryption),
     openApiIpWhitelist: raw.ipWhitelist ?? '',
   }
 }
 
-function toOAuthCreatePayload(data: Partial<SysOAuthApp>) {
+function toCreatePayload(data: Partial<SysOAuthApp>) {
   return {
     appName: data.appName ?? '',
     appDescription: data.appDescription ?? '',
@@ -59,17 +95,17 @@ function toOAuthCreatePayload(data: Partial<SysOAuthApp>) {
   }
 }
 
-function toOAuthUpdatePayload(id: string, data: Partial<SysOAuthApp>) {
+function toUpdatePayload(id: string, data: Partial<SysOAuthApp>) {
   return {
-    ...toOAuthCreatePayload(data),
+    ...toCreatePayload(data),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
 function toOpenApiSecurityPayload(id: string, data: Partial<SysOAuthApp>) {
   return {
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
     isEnabled: data.openApiSecurityEnabled !== false,
     signatureAlgorithm: data.openApiSignatureAlgorithm ?? 'HMACSHA256',
     contentSignatureAlgorithm: data.openApiContentSignAlgorithm ?? 'SHA256',
@@ -82,62 +118,38 @@ function toOpenApiSecurityPayload(id: string, data: Partial<SysOAuthApp>) {
   }
 }
 
-export async function getOAuthAppPageApi(
-  params: OAuthAppPageQuery,
-): Promise<PageResult<SysOAuthApp>> {
-  const data = await requestClient.post<any>(
-    `${OAUTH_API}/Page`,
-    buildPageRequest(params, {
+export const oauthAppApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
       keywordFields: ['AppName', 'ClientId'],
-      filterFieldMap: {
-        appType: 'AppType',
-        status: 'Status',
-      },
+      filterFieldMap: { appType: 'AppType', status: 'Status' },
     }),
-  )
-  return normalizePageResult(data, normalizeOAuthApp)
-}
 
-export function getOAuthAppDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${OAUTH_API}/ById`, { params: { id } })
-    .then(raw => normalizeOAuthApp(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeOAuthApp),
 
-export function createOAuthAppApi(data: Partial<SysOAuthApp>) {
-  return requestClient
-    .post<any>(`${OAUTH_API}/Create`, toOAuthCreatePayload(data))
-    .then(raw => normalizeOAuthApp(raw))
-}
+  create: (data: Partial<SysOAuthApp>) =>
+    api.request.post<any>(`${api.baseUrl}Create`, toCreatePayload(data)).then(normalizeOAuthApp),
 
-export function updateOAuthAppApi(id: string, data: Partial<SysOAuthApp>) {
-  return requestClient
-    .put<any>(`${OAUTH_API}/Update`, toOAuthUpdatePayload(id, data), {
-      params: { id },
-    })
-    .then(raw => normalizeOAuthApp(raw))
-}
+  update: (id: string, data: Partial<SysOAuthApp>) =>
+    api.request
+      .put<any>(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } })
+      .then(normalizeOAuthApp),
 
-export function deleteOAuthAppApi(id: string) {
-  return requestClient.delete<void>(`${OAUTH_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getOAuthAppByClientIdApi(clientId: string, tenantId?: number) {
-  return requestClient
-    .get<any>(`${OAUTH_API}/ByClientId/${clientId}/${tenantId ?? 0}`)
-    .then(raw => (raw ? normalizeOAuthApp(raw) : null))
-}
+  getByClientId: (clientId: string, tenantId?: number) =>
+    api.request
+      .get<any>(`${api.baseUrl}ByClientId/${clientId}/${tenantId ?? 0}`)
+      .then((raw: any) => (raw ? normalizeOAuthApp(raw) : null)),
 
-export function getOAuthAppOpenApiSecurityApi(id: string) {
-  return requestClient
-    .get<any>(`${OAUTH_API}/OpenApiSecurity`, { params: { appId: id } })
-    .then(raw => normalizeOpenApiSecurity(raw))
-}
+  getOpenApiSecurity: (id: string) =>
+    api.request
+      .get<any>(`${api.baseUrl}OpenApiSecurity`, { params: { appId: id } })
+      .then(normalizeOpenApiSecurity),
 
-export function updateOAuthAppOpenApiSecurityApi(id: string, data: Partial<SysOAuthApp>) {
-  return requestClient
-    .put<any>(`${OAUTH_API}/UpdateOpenApiSecurity`, toOpenApiSecurityPayload(id, data))
-    .then(raw => normalizeOpenApiSecurity(raw))
+  updateOpenApiSecurity: (id: string, data: Partial<SysOAuthApp>) =>
+    api.request
+      .put<any>(`${api.baseUrl}UpdateOpenApiSecurity`, toOpenApiSecurityPayload(id, data))
+      .then(normalizeOpenApiSecurity),
 }

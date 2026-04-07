@@ -4,7 +4,7 @@ export interface AnyRecord {
   [key: string]: any
 }
 
-interface BuildPageRequestOptions {
+export interface BuildPageRequestOptions {
   disablePaging?: boolean
   filterFieldMap?: Record<string, string>
   keywordFields?: string[]
@@ -69,6 +69,22 @@ export function normalizePageResult<T>(
     page: Math.max(1, page),
     pageSize: Math.max(1, pageSize),
   }
+}
+
+/**
+ * 将后端分页响应扁平化为 vxe-table proxyConfig 所需的 { items, total } 格式
+ */
+export function flattenPageResponse<T = any>(res: AnyRecord): { items: T[], total: number } {
+  if (!res || typeof res !== 'object') {
+    return { items: [], total: 0 }
+  }
+  const items = (res.items ?? res.records ?? res.data ?? []) as T[]
+  const pageMeta = res.page ?? res.pagination ?? {}
+  const total = toNumber(
+    res.total ?? res.totalCount ?? pageMeta.totalCount ?? pageMeta.total,
+    0,
+  )
+  return { items: Array.isArray(items) ? items : [], total }
 }
 
 export function buildPageRequest(

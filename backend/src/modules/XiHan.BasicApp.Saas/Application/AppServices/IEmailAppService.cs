@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 邮件应用服务
 /// </summary>
 public interface IEmailAppService
-    : ICrudApplicationService<SysEmail, EmailDto, long, EmailCreateDto, EmailUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<EmailDto, long, EmailCreateDto, EmailUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 获取待发送邮件

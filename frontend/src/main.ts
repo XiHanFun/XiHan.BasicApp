@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 import { setupIconifyOffline } from '~/iconify'
 import App from '~/app.vue'
+import { setupVxeTable } from '~/hooks'
 import { setupI18n } from '~/locales'
 import { router } from './router'
 import '~/design/global.css'
@@ -19,6 +20,7 @@ async function bootstrap() {
   app.use(pinia)
 
   setupI18n(app)
+  setupVxeTable(app)
 
   app.use(router)
 

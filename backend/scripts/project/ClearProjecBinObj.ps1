@@ -1,4 +1,7 @@
-﻿# 获取当前脚本所在目录
+﻿# 设置控制台编码为 UTF-8 以正确显示中文
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# 获取当前脚本所在目录
 $ScriptDirectory = $PSScriptRoot
 
 # 构建相对路径的目标目录

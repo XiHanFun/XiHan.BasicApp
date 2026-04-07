@@ -30,6 +30,7 @@ using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Saas.Infrastructure.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Settings;
 using XiHan.BasicApp.Saas.Seeders;
+using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Authorization.Policies;
@@ -71,7 +72,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddScoped<ISmsRepository, SmsRepository>();
         services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<ITaskLogRepository, TaskLogRepository>();
         services.AddScoped<IOAuthAppRepository, OAuthAppRepository>();
+        services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -108,7 +111,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IUserAppService, UserAppService>();
         services.AddScoped<IRoleAppService, RoleAppService>();
+        services.AddScoped<IAuthSessionManager, AuthSessionManager>();
+        services.AddScoped<IAuthNotificationService, AuthNotificationService>();
         services.AddScoped<IAuthAppService, AuthAppService>();
+        services.AddScoped<IProfileAppService, ProfileAppService>();
+        services.AddScoped<IAuthTokenCacheHelper, AuthTokenCacheHelper>();
         services.AddScoped<IPermissionAppService, PermissionAppService>();
         services.AddScoped<IMenuAppService, MenuAppService>();
         services.AddScoped<IDepartmentAppService, DepartmentAppService>();
@@ -131,6 +138,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOperationLogAppService, OperationLogAppService>();
         services.AddScoped<IExceptionLogAppService, ExceptionLogAppService>();
         services.AddScoped<IAuditLogAppService, AuditLogAppService>();
+        services.AddScoped<ILoginLogAppService, LoginLogAppService>();
+        services.AddScoped<ITaskLogAppService, TaskLogAppService>();
 
         return services;
     }
@@ -169,6 +178,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacInfrastructureAdapters(this IServiceCollection services)
     {
+        services.AddScoped<IExternalLoginStore, RbacExternalLoginStore>();
         services.AddScoped<IUserStore, RbacUserStore>();
         services.AddScoped<IRoleStore, RbacRoleStore>();
         services.AddScoped<IPermissionStore, RbacPermissionStore>();

@@ -98,7 +98,7 @@ public class SysRoleMenuSeeder : DataSeederBase
             [
                 "dashboard",
                 "system", "user", "role", "department", "permission", "notice", "oauth_app", "user_session", "review",
-                "log", "access_log", "operation_log", "exception_log", "audit_log",
+                "log", "access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log",
                 "platform", "menu", "config", "dict", "task", "monitor", "cache", "file",
                 "messaging", "message", "email", "sms",
                 "about"

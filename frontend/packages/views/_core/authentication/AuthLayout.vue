@@ -21,7 +21,9 @@ const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
 )
 
-const showFooter = computed(() => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo))
+const showFooter = computed(
+  () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
+)
 const showEntryTabs = computed(() =>
   ['/auth/login', '/auth/code-login', '/auth/qrcode-login'].includes(route.path),
 )
@@ -35,21 +37,31 @@ const appAuthorUrl = __APP_AUTHOR_URL__
 </script>
 
 <template>
-  <div class="auth-page relative min-h-screen overflow-hidden bg-[hsl(var(--background-deep))] text-[hsl(var(--foreground))]">
-    <div class="pointer-events-none absolute inset-0 overflow-hidden">
-      <div class="auth-blob auth-blob--1 absolute h-[620px] w-[620px] rounded-full bg-[hsl(var(--primary)/0.24)] blur-[100px]" />
-      <div class="auth-blob auth-blob--2 absolute h-[520px] w-[520px] rounded-full bg-[hsl(var(--info)/0.20)] blur-[120px]" />
-      <div class="auth-blob auth-blob--3 absolute h-[580px] w-[580px] rounded-full bg-[hsl(var(--success)/0.16)] blur-[100px]" />
+  <div
+    class="auth-page relative min-h-screen overflow-hidden bg-[hsl(var(--background-deep))] text-[hsl(var(--foreground))]"
+  >
+    <div class="overflow-hidden absolute inset-0 pointer-events-none">
+      <div
+        class="auth-blob auth-blob--1 absolute h-[620px] w-[620px] rounded-full bg-[hsl(var(--primary)/0.24)] blur-[100px]"
+      />
+      <div
+        class="auth-blob auth-blob--2 absolute h-[520px] w-[520px] rounded-full bg-[hsl(var(--info)/0.20)] blur-[120px]"
+      />
+      <div
+        class="auth-blob auth-blob--3 absolute h-[580px] w-[580px] rounded-full bg-[hsl(var(--success)/0.16)] blur-[100px]"
+      />
     </div>
 
     <LoginToolbar @layout-change="(align) => (formAlign = align)" />
 
-    <div class="relative z-[1] mx-auto flex min-h-screen w-full max-w-[1420px] items-center px-4 py-14 sm:px-8">
+    <div
+      class="relative z-[1] mx-auto flex min-h-screen w-full max-w-[1420px] items-center px-4 py-14 sm:px-8"
+    >
       <div
         class="auth-card relative w-full overflow-hidden rounded-[30px] border border-[hsl(var(--border))] shadow-[0_32px_80px_hsl(var(--foreground)/0.12)]"
       >
         <div
-          class="relative grid w-full grid-cols-1"
+          class="grid relative grid-cols-1 w-full"
           :class="{
             'lg:grid-cols-[520px_1fr]': formAlign === 'left',
             'lg:grid-cols-1': formAlign === 'center',
@@ -64,13 +76,19 @@ const appAuthorUrl = __APP_AUTHOR_URL__
               'lg:hidden': formAlign === 'center',
             }"
           >
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,hsl(var(--primary)/0.16),transparent_56%),radial-gradient(circle_at_80%_70%,hsl(var(--info)/0.12),transparent_44%)]" />
+            <div
+              class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,hsl(var(--primary)/0.16),transparent_56%),radial-gradient(circle_at_80%_70%,hsl(var(--info)/0.12),transparent_44%)]"
+            />
 
             <div class="relative z-[1] lg:absolute lg:left-10 lg:top-14 xl:left-14 xl:top-16">
-              <div class="mb-7 flex h-[78px] w-[78px] items-center justify-center rounded-3xl bg-[hsl(var(--card))] p-2 shadow-xl shadow-[hsl(var(--foreground)/0.08)]">
-                <img :src="appLogo" :alt="appTitle" class="h-12 w-12 object-contain">
+              <div
+                class="mb-7 flex h-[78px] w-[78px] items-center justify-center rounded-3xl bg-[hsl(var(--card))] p-2 shadow-xl shadow-[hsl(var(--foreground)/0.08)]"
+              >
+                <img :src="appLogo" :alt="appTitle" class="object-contain w-12 h-12">
               </div>
-              <p class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]">
+              <p
+                class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"
+              >
                 {{ appTitle }}
               </p>
             </div>
@@ -80,7 +98,9 @@ const appAuthorUrl = __APP_AUTHOR_URL__
                 <h2 class="text-left text-[36px] font-semibold leading-[1.15] xl:text-[44px]">
                   {{ t('page.auth.slogan_title') }}
                 </h2>
-                <span class="slogan-tag -mt-px inline-block rounded-full border-2 border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.1)] px-3.5 py-1 text-[15px] leading-5 font-semibold text-[hsl(var(--primary))]">
+                <span
+                  class="slogan-tag -mt-px inline-block rounded-full border-2 border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.1)] px-3.5 py-1 text-[15px] leading-5 font-semibold text-[hsl(var(--primary))]"
+                >
                   {{ t('page.auth.slogan_desc') }}
                 </span>
               </div>
@@ -97,7 +117,10 @@ const appAuthorUrl = __APP_AUTHOR_URL__
               'items-center': !showEntryTabs,
             }"
           >
-            <div class="h-full w-full overflow-hidden" :class="formAlign === 'center' ? 'max-w-[560px]' : 'max-w-[460px]'">
+            <div
+              class="overflow-hidden w-full h-full"
+              :class="formAlign === 'center' ? 'max-w-[560px]' : 'max-w-[460px]'"
+            >
               <AuthEntrySwitcher v-if="showEntryTabs" class="mb-7" />
               <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
                 <router-view v-slot="{ Component }">
@@ -119,28 +142,36 @@ const appAuthorUrl = __APP_AUTHOR_URL__
     >
       <div v-if="appStore.footerShowDevInfo" class="leading-tight">
         <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
-        v{{ appVersion }}({{ appBuildTime }})
-        · by
+        v{{ appVersion }}({{ appBuildTime }}) · by
         <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
       </div>
-      <div v-if="appStore.copyrightEnable" class="flex flex-wrap items-center justify-center gap-x-3">
+      <div
+        v-if="appStore.copyrightEnable"
+        class="flex flex-wrap gap-x-3 justify-center items-center"
+      >
         <span>
-          Copyright &copy; {{ appStore.copyrightDate || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
+          Copyright &copy; {{ appStore.copyrightDate || new Date().getFullYear() }}-{{
+            new Date().getFullYear()
+          }}
           <a
             v-if="appStore.copyrightSite"
             :href="appStore.copyrightSite"
             target="_blank"
             class="hover:underline"
-          >{{ appStore.copyrightName }}</a>
-          <span v-else>{{ appStore.copyrightName }}</span>.
-          All Rights Reserved.
+          >
+            {{ appStore.copyrightName }}
+          </a>
+          <span v-else>{{ appStore.copyrightName }}</span>
+          . All Rights Reserved.
         </span>
         <a
           v-if="appStore.copyrightIcp"
           :href="appStore.copyrightIcpUrl || '#'"
           target="_blank"
           class="hover:underline"
-        >{{ appStore.copyrightIcp }}</a>
+        >
+          {{ appStore.copyrightIcp }}
+        </a>
       </div>
     </footer>
   </div>

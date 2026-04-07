@@ -15,7 +15,6 @@
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 通知应用服务
 /// </summary>
 public interface INotificationAppService
-    : ICrudApplicationService<SysNotification, NotificationDto, long, NotificationCreateDto, NotificationUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<NotificationDto, long, NotificationCreateDto, NotificationUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 获取用户通知列表

@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:OpenApiClientSecurityConfig
-// Guid:4d7f2fc2-2719-4f7f-8f52-6f2d6cb5e0ab
+// FileName:OpenApiClientSecurityConfigHelper
+// Guid:adb57d64-7cc4-4d24-9240-8e3d2a01a087
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/03/14 10:05:00

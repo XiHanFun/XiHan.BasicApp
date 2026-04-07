@@ -127,3 +127,28 @@ html.theme-switching *::before,
 html.theme-switching *::after {
   transition: none !important;
 }
+
+/* vxe-card 默认 inline-flex，改为 flex 让其铺满宽度 */
+.vxe-card {
+  display: flex;
+  width: 100%;
+}
+
+/* 确保 vxe-card 内部 body-content 高度传递给 vxe-grid */
+.vxe-card--body-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 磨砂纹理效果 */
+html.frosted-glass::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: var(--frosted-intensity, 0.1);
+}

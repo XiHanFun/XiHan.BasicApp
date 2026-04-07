@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
-import { Icon } from '~/iconify'
 import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { registerApi } from '@/api'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'RegisterPage' })
 
@@ -166,13 +166,16 @@ function handleKeydown(e: KeyboardEvent) {
       </NFormItem>
 
       <!-- Password strength -->
-      <div v-if="formData.password" class="mb-6 flex items-center gap-2">
+      <div v-if="formData.password" class="flex gap-2 items-center mb-6">
         <div class="flex flex-1 gap-1">
           <div
             v-for="i in 4"
             :key="i"
-            class="h-1 flex-1 rounded-full transition-colors"
-            :style="{ backgroundColor: i <= passwordStrength ? strengthColor : (isDark ? '#374151' : '#e5e7eb') }"
+            class="flex-1 h-1 rounded-full transition-colors"
+            :style="{
+              backgroundColor:
+                i <= passwordStrength ? strengthColor : isDark ? '#374151' : '#e5e7eb',
+            }"
           />
         </div>
         <span class="text-xs" :style="{ color: strengthColor }">{{ strengthLabel }}</span>
@@ -226,11 +229,11 @@ function handleKeydown(e: KeyboardEvent) {
     </NForm>
 
     <p
-      class="mt-6 text-center text-sm"
+      class="mt-6 text-sm text-center"
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.already_have_account') }}
-      <span class="link-primary cursor-pointer" @click="router.push('/auth/login')">
+      <span class="cursor-pointer link-primary" @click="router.push('/auth/login')">
         {{ t('page.auth.go_to_login') }}
       </span>
     </p>
