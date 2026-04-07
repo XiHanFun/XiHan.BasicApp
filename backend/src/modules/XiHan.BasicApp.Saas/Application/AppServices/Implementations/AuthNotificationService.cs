@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AuthNotificationService
-// Guid:b2c3d4e5-f6a7-8901-bcde-notify00002
+// Guid:2f946547-c3ce-4db9-9334-340bb07ef1b5
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/04/05 00:00:00
