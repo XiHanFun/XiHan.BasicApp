@@ -1,17 +1,47 @@
-import type { PageResult, SysUserSession, UserSessionPageQuery } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const USER_SESSION_API = '/api/UserSession'
+const api = useBaseApi('UserSession')
+
+export interface SysUserSession {
+  basicId: string
+  userId: string
+  userSessionId: string
+  deviceType: number
+  deviceName?: string
+  browser?: string
+  operatingSystem?: string
+  ipAddress?: string
+  location?: string
+  loginTime: string
+  lastActivityTime: string
+  isOnline: boolean
+  isRevoked: boolean
+  revokedAt?: string
+  logoutTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface UserSessionPageQuery extends PageQuery {
+  deviceType?: number
+  isOnline?: boolean
+  isRevoked?: boolean
+}
 
 function normalizeUserSession(raw: Record<string, any>): SysUserSession {
   return {
     basicId: toId(raw.basicId),
-    userId: toNumber(raw.userId, 0),
-    sessionId: raw.sessionId ?? '',
+    userId: toId(raw.userId),
+    userSessionId: raw.userSessionId ?? '',
     deviceType: toNumber(raw.deviceType, 0),
     deviceName: raw.deviceName ?? undefined,
+    browser: raw.browser ?? undefined,
+    operatingSystem: raw.operatingSystem ?? undefined,
     ipAddress: raw.ipAddress ?? undefined,
+    location: raw.location ?? undefined,
     loginTime: raw.loginTime ?? '',
     lastActivityTime: raw.lastActivityTime ?? '',
     isOnline: Boolean(raw.isOnline),
@@ -24,10 +54,10 @@ function normalizeUserSession(raw: Record<string, any>): SysUserSession {
   }
 }
 
-function toUserSessionCreatePayload(data: Partial<SysUserSession>) {
+function toCreatePayload(data: Partial<SysUserSession>) {
   return {
-    userId: toNumber(data.userId, 0),
-    sessionId: data.sessionId ?? '',
+    userId: toId(data.userId),
+    sessionId: data.userSessionId ?? '',
     deviceType: toNumber(data.deviceType, 0),
     deviceName: data.deviceName ?? '',
     ipAddress: data.ipAddress ?? '',
@@ -36,7 +66,7 @@ function toUserSessionCreatePayload(data: Partial<SysUserSession>) {
   }
 }
 
-function toUserSessionUpdatePayload(id: string, data: Partial<SysUserSession>) {
+function toUpdatePayload(id: string, data: Partial<SysUserSession>) {
   return {
     deviceType: toNumber(data.deviceType, 0),
     deviceName: data.deviceName ?? '',
@@ -47,61 +77,34 @@ function toUserSessionUpdatePayload(id: string, data: Partial<SysUserSession>) {
     revokedAt: data.revokedAt ?? null,
     logoutTime: data.logoutTime ?? null,
     remark: data.remark ?? '',
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
-export async function getUserSessionPageApi(
-  params: UserSessionPageQuery,
-): Promise<PageResult<SysUserSession>> {
-  const data = await requestClient.post<any>(
-    `${USER_SESSION_API}/Page`,
-    buildPageRequest(params, {
-      keywordFields: ['SessionId', 'DeviceName', 'IpAddress'],
-      filterFieldMap: {
-        deviceType: 'DeviceType',
-        isOnline: 'IsOnline',
-        isRevoked: 'IsRevoked',
-      },
+export const userSessionApi = {
+  page: (params: Record<string, any>) =>
+    api.page(params, {
+      keywordFields: ['UserSessionId', 'DeviceName', 'IpAddress', 'Browser'],
+      filterFieldMap: { deviceType: 'DeviceType', isOnline: 'IsOnline', isRevoked: 'IsRevoked' },
     }),
-  )
-  return normalizePageResult(data, normalizeUserSession)
-}
 
-export function getUserSessionDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${USER_SESSION_API}/ById`, { params: { id } })
-    .then(raw => normalizeUserSession(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeUserSession),
 
-export function createUserSessionApi(data: Partial<SysUserSession>) {
-  return requestClient.post<void>(`${USER_SESSION_API}/Create`, toUserSessionCreatePayload(data))
-}
+  create: (data: Partial<SysUserSession>) => api.create(toCreatePayload(data)),
 
-export function updateUserSessionApi(id: string, data: Partial<SysUserSession>) {
-  return requestClient.put<void>(`${USER_SESSION_API}/Update`, toUserSessionUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysUserSession>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteUserSessionApi(id: string) {
-  return requestClient.delete<void>(`${USER_SESSION_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getUserSessionBySessionIdApi(sessionId: string, tenantId?: number) {
-  return requestClient
-    .get<any>(`${USER_SESSION_API}/BySessionId/${sessionId}/${tenantId ?? 0}`)
-    .then(raw => (raw ? normalizeUserSession(raw) : null))
-}
+  getBySessionId: (sessionId: string, tenantId?: number) =>
+    api.request
+      .get<any>(`${api.baseUrl}BySessionId/${sessionId}/${tenantId ?? 0}`)
+      .then((raw: any) => (raw ? normalizeUserSession(raw) : null)),
 
-export function revokeUserSessionsApi(userId: number, reason: string, tenantId?: number) {
-  return requestClient.post<number>(`${USER_SESSION_API}/RevokeUserSessions`, undefined, {
-    params: {
-      userId,
-      reason,
-      tenantId: tenantId ?? 0,
-    },
-  })
+  revokeUserSessions: (userId: string | number, reason: string, tenantId?: number) =>
+    api.request.post<number>(`${api.baseUrl}RevokeUserSessions/${userId}`, undefined, {
+      params: { reason, tenantId: tenantId ?? 0 },
+    }),
 }

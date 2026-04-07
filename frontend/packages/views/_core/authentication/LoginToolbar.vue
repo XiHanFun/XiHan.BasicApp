@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { DropdownOption } from 'naive-ui'
-import { Icon } from '~/iconify'
 import { NButton, NDropdown, NIcon, NPopover } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useLocale, useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 
 export type LoginFormAlign = 'left' | 'center' | 'right'
@@ -58,7 +58,8 @@ const layoutOptions = computed<DropdownOption[]>(() => [
   {
     key: 'center',
     label: '居中',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:layout-panel-top' }) }),
+    icon: () =>
+      h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:layout-panel-top' }) }),
   },
   {
     key: 'right',
@@ -100,17 +101,18 @@ function handleLayoutSelect(key: string) {
           :class="{ 'is-active': appStore.themeColor === preset.color }"
           :style="{ backgroundColor: preset.color }"
           :title="preset.label"
-          @click="() => { setThemeColor(preset.color); showColorPicker = false }"
+          @click="
+            () => {
+              setThemeColor(preset.color)
+              showColorPicker = false
+            }
+          "
         />
       </div>
     </NPopover>
 
     <!-- 布局 -->
-    <NDropdown
-      :options="layoutOptions"
-      placement="bottom-end"
-      @select="handleLayoutSelect"
-    >
+    <NDropdown :options="layoutOptions" placement="bottom-end" @select="handleLayoutSelect">
       <NButton quaternary circle size="small" class="toolbar-btn">
         <template #icon>
           <NIcon size="16">
@@ -125,7 +127,7 @@ function handleLayoutSelect(key: string) {
       v-if="appStore.widgetLanguageToggle"
       :options="localeOptions"
       placement="bottom-end"
-      @select="key => setLocale(String(key))"
+      @select="(key) => setLocale(String(key))"
     >
       <NButton quaternary circle size="small" class="toolbar-btn">
         <template #icon>

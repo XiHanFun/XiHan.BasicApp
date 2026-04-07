@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { SysNuGetPackage } from '~/types'
-import { Icon } from '~/iconify'
+import type { SysNuGetPackage } from '@/api'
 import { NCard, NTag, NText } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getNuGetPackagesApi } from '@/api'
+import { serverApi } from '@/api'
+import { Icon } from '~/iconify'
 import PackageJson from '../../../../package.json'
 
 defineOptions({ name: 'AboutPage' })
@@ -93,7 +93,7 @@ const backendDependencies = ref<SysNuGetPackage[]>([])
 
 async function fetchBackendDependencies() {
   try {
-    backendDependencies.value = (await getNuGetPackagesApi()) ?? []
+    backendDependencies.value = (await serverApi.getNuGetPackages()) ?? []
   }
   catch {
     backendDependencies.value = []

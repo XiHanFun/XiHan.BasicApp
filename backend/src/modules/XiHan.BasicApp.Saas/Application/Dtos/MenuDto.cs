@@ -104,6 +104,21 @@ public class MenuDto : BasicAppDto
     public bool IsAffix { get; set; }
 
     /// <summary>
+    /// 标签内容
+    /// </summary>
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型
+    /// </summary>
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点
+    /// </summary>
+    public bool BadgeDot { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -221,6 +236,23 @@ public class MenuCreateDto : BasicAppCDto
     public bool IsAffix { get; set; }
 
     /// <summary>
+    /// 标签内容
+    /// </summary>
+    [StringLength(50, ErrorMessage = "标签内容长度不能超过 50")]
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型
+    /// </summary>
+    [StringLength(20, ErrorMessage = "标签类型长度不能超过 20")]
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点
+    /// </summary>
+    public bool BadgeDot { get; set; }
+
+    /// <summary>
     /// 排序
     /// </summary>
     public int Sort { get; set; }
@@ -332,6 +364,23 @@ public class MenuUpdateDto : BasicAppUDto
     /// 是否固定标签
     /// </summary>
     public bool IsAffix { get; set; }
+
+    /// <summary>
+    /// 标签内容
+    /// </summary>
+    [StringLength(50, ErrorMessage = "标签内容长度不能超过 50")]
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型
+    /// </summary>
+    [StringLength(20, ErrorMessage = "标签类型长度不能超过 20")]
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点
+    /// </summary>
+    public bool BadgeDot { get; set; }
 
     /// <summary>
     /// 状态

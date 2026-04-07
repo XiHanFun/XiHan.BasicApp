@@ -23,9 +23,9 @@ export default {
     },
     color: {
       title: '颜色',
-      custom: '自定义',
+      default_or_custom: '默认或自定义',
       default: '默认',
-      picker: '取色器',
+      custom: '自定义',
       family: {
         red: '红',
         orange: '橙',
@@ -156,6 +156,8 @@ export default {
       style_normal: '常规',
       style_background: '背景',
       hide_only_one_tip: '当前路径层级只有一项时，自动隐藏整个面包屑',
+      nav_buttons: '显示前进/后退按钮',
+      nav_buttons_tip: '在工具栏中显示浏览历史的前进、后退导航按钮',
     },
     tabbar: {
       title: '标签栏',
@@ -183,7 +185,7 @@ export default {
       middle_click_close_tip: '使用鼠标中键点击标签页可快速将其关闭',
     },
     widget: {
-      title: '小部件',
+      title: '工具栏',
       global_search: '启用全局搜索',
       theme_toggle: '启用主题切换',
       language_toggle: '启用语言切换',
@@ -225,6 +227,9 @@ export default {
     dynamic_title_tip: '页面标题随当前路由名称动态更新，便于在多个浏览器标签页中区分',
     watermark_tip: '在页面正文区域叠加半透明水印文字',
     check_updates_tip: '定期检测是否有新版本可用，有更新时在底部显示提示',
+    frosted_glass: '磨砂效果',
+    frosted_glass_tip: '在整个页面叠加类似磨砂质感的噪点纹理，效果与偏好设置中的色块一致',
+    frosted_glass_intensity: '纹理强度',
     animation: {
       title: '动画',
       transition_progress: '页面切换进度条',

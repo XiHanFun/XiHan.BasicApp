@@ -1,18 +1,57 @@
-import type { NotificationPageQuery, PageResult, SysNotification } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const NOTIFICATION_API = '/api/Notification'
+const api = useBaseApi('Notification')
+
+export interface SysNotification {
+  basicId: string
+  recipientUserId?: string
+  sendUserId?: string
+  notificationType: number
+  title: string
+  content?: string
+  notificationStatus: number
+  readTime?: string
+  sendTime: string
+  expireTime?: string
+  isGlobal?: boolean
+  needConfirm?: boolean
+  status?: number
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface NotificationPageQuery extends PageQuery {
+  notificationType?: number
+  notificationStatus?: number
+  status?: number
+}
+
+export interface PushNotificationPayload {
+  title: string
+  content?: string
+  notificationType: number
+  isGlobal: boolean
+  recipientUserIds: string[]
+  sendUserId?: string
+  needConfirm?: boolean
+  icon?: string
+  link?: string
+  businessType?: string
+  businessId?: string
+  expireTime?: string
+  tenantId?: number
+  remark?: string
+}
 
 function normalizeNotification(raw: Record<string, any>): SysNotification {
   return {
     basicId: toId(raw.basicId),
-    recipientUserId: raw.recipientUserId === null || raw.recipientUserId === undefined
-      ? undefined
-      : toNumber(raw.recipientUserId, 0),
-    sendUserId: raw.sendUserId === null || raw.sendUserId === undefined
-      ? undefined
-      : toNumber(raw.sendUserId, 0),
+    recipientUserId: raw.recipientUserId == null ? undefined : toId(raw.recipientUserId),
+    sendUserId: raw.sendUserId == null ? undefined : toId(raw.sendUserId),
     notificationType: toNumber(raw.notificationType, 0),
     title: raw.title ?? '',
     content: raw.content ?? '',
@@ -22,14 +61,14 @@ function normalizeNotification(raw: Record<string, any>): SysNotification {
     expireTime: raw.expireTime ?? undefined,
     isGlobal: raw.isGlobal ?? undefined,
     needConfirm: raw.needConfirm ?? undefined,
-    status: raw.status === null || raw.status === undefined ? undefined : toNumber(raw.status, 1),
+    status: raw.status == null ? undefined : toNumber(raw.status, 1),
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
     remark: raw.remark ?? undefined,
   }
 }
 
-function toNotificationCreatePayload(data: Partial<SysNotification>) {
+function toCreatePayload(data: Partial<SysNotification>) {
   return {
     recipientUserId: data.recipientUserId ?? null,
     sendUserId: data.sendUserId ?? null,
@@ -44,113 +83,56 @@ function toNotificationCreatePayload(data: Partial<SysNotification>) {
   }
 }
 
-function toNotificationUpdatePayload(id: string, data: Partial<SysNotification>) {
+function toUpdatePayload(id: string, data: Partial<SysNotification>) {
   return {
-    ...toNotificationCreatePayload(data),
+    ...toCreatePayload(data),
     notificationStatus: toNumber(data.notificationStatus, 0),
     readTime: data.readTime ?? null,
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
-export async function getNotificationPageApi(
-  params: NotificationPageQuery,
-): Promise<PageResult<SysNotification>> {
-  const data = await requestClient.post<Record<string, unknown>>(
-    `${NOTIFICATION_API}/Page`,
-    buildPageRequest(params, {
+export const notificationApi = {
+  page: (params: NotificationPageQuery) =>
+    api.page(params, {
       keywordFields: ['Title', 'Content'],
       filterFieldMap: {
         notificationType: 'NotificationType',
         notificationStatus: 'NotificationStatus',
         status: 'Status',
       },
-    }),
-  )
-  return normalizePageResult(data, normalizeNotification)
-}
+    }).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalizeNotification(item)),
+    })),
 
-export function getNotificationDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${NOTIFICATION_API}/ById`, { params: { id } })
-    .then(raw => normalizeNotification(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeNotification),
 
-export function createNotificationApi(data: Partial<SysNotification>) {
-  return requestClient.post<void>(`${NOTIFICATION_API}/Create`, toNotificationCreatePayload(data))
-}
+  create: (data: Partial<SysNotification>) => api.create(toCreatePayload(data)),
 
-export function updateNotificationApi(id: string, data: Partial<SysNotification>) {
-  return requestClient.put<void>(`${NOTIFICATION_API}/Update`, toNotificationUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysNotification>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteNotificationApi(id: string) {
-  return requestClient.delete<void>(`${NOTIFICATION_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getUserNotificationsApi(userId: number, includeRead = true, tenantId?: number) {
-  return requestClient
-    .get<any[]>(`${NOTIFICATION_API}/UserNotifications/${userId}/${tenantId ?? 0}`, {
-      params: { includeRead },
-    })
-    .then(list => (Array.isArray(list) ? list.map(item => normalizeNotification(item)) : []))
-}
+  getUserNotifications: (userId: string | number, includeRead = true, tenantId?: number) =>
+    api.request.get<any[]>(`${api.baseUrl}UserNotifications/${userId}/${tenantId ?? 0}`, { params: { includeRead } })
+      .then((list: any[]) => Array.isArray(list) ? list.map(normalizeNotification) : []),
 
-export function getUnreadNotificationCountApi(userId: number, tenantId?: number) {
-  return requestClient.get<number>(`${NOTIFICATION_API}/UnreadCount/${userId}/${tenantId ?? 0}`)
-}
+  getUnreadCount: (userId: string | number, tenantId?: number) =>
+    api.request.get<number>(`${api.baseUrl}UnreadCount/${userId}/${tenantId ?? 0}`),
 
-export function markNotificationReadApi(notificationId: number, userId: number, tenantId?: number) {
-  return requestClient.post<boolean>(`${NOTIFICATION_API}/MarkAsRead`, undefined, {
-    params: {
-      notificationId,
-      userId,
-      tenantId: tenantId ?? 0,
-    },
-  })
-}
+  markRead: (notificationId: string, userId: string | number, tenantId?: number) =>
+    api.request.post<boolean>(`${api.baseUrl}MarkAsRead`, undefined, { params: { notificationId, userId, tenantId: tenantId ?? 0 } }),
 
-export function markAllNotificationsReadApi(userId: number, tenantId?: number) {
-  return requestClient.post<number>(`${NOTIFICATION_API}/MarkAllAsRead`, undefined, {
-    params: {
-      userId,
-      tenantId: tenantId ?? 0,
-    },
-  })
-}
+  markAllRead: (userId: string | number, tenantId?: number) =>
+    api.request.post<number>(`${api.baseUrl}MarkAllAsRead`, undefined, { params: { userId, tenantId: tenantId ?? 0 } }),
 
-export function confirmNotificationApi(notificationId: number, userId: number, tenantId?: number) {
-  return requestClient.post<boolean>(`${NOTIFICATION_API}/Confirm`, undefined, {
-    params: {
-      notificationId,
-      userId,
-      tenantId: tenantId ?? 0,
-    },
-  })
-}
+  confirm: (notificationId: string, userId: string | number, tenantId?: number) =>
+    api.request.post<boolean>(`${api.baseUrl}Confirm`, undefined, { params: { notificationId, userId, tenantId: tenantId ?? 0 } }),
 
-export interface PushNotificationPayload {
-  title: string
-  content?: string
-  notificationType: number
-  isGlobal: boolean
-  recipientUserIds: number[]
-  sendUserId?: number
-  needConfirm?: boolean
-  icon?: string
-  link?: string
-  businessType?: string
-  businessId?: number
-  expireTime?: string
-  tenantId?: number
-  remark?: string
-}
-
-export function pushNotificationApi(data: PushNotificationPayload) {
-  return requestClient.post<number>(`${NOTIFICATION_API}/Push`, data)
+  push: (data: PushNotificationPayload) =>
+    api.request.post<number>(`${api.baseUrl}Push`, data),
 }

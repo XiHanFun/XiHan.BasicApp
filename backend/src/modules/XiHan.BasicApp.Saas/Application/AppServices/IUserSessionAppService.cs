@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 用户会话应用服务
 /// </summary>
 public interface IUserSessionAppService
-    : ICrudApplicationService<SysUserSession, UserSessionDto, long, UserSessionCreateDto, UserSessionUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<UserSessionDto, long, UserSessionCreateDto, UserSessionUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据会话ID获取会话

@@ -1,165 +1,86 @@
 <script lang="ts" setup>
-import type { FormInst } from 'naive-ui'
-import {
-  NAvatar,
-  NButton,
-  NCard,
-  NForm,
-  NFormItem,
-  NInput,
-  NTabPane,
-  NTabs,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { ref } from 'vue'
-import { useUserStore } from '~/stores'
+import type { UserProfile } from '~/types'
+import { NTabPane, NTabs, NSpin, useMessage } from 'naive-ui'
+import { onMounted, ref } from 'vue'
+import { getProfileApi } from '@/api'
+import ProfileBanner from './ProfileBanner.vue'
+import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
+import ProfileTabInfo from './ProfileTabInfo.vue'
+import ProfileTabNotifications from './ProfileTabNotifications.vue'
+import ProfileTabSecurity from './ProfileTabSecurity.vue'
 
 defineOptions({ name: 'ProfilePage' })
 
-const userStore = useUserStore()
 const message = useMessage()
+const activeTab = ref('profile')
+const profileLoading = ref(false)
+const profile = ref<UserProfile | null>(null)
+const securityRef = ref<InstanceType<typeof ProfileTabSecurity> | null>(null)
 
-const baseFormRef = ref<FormInst | null>(null)
-const pwdFormRef = ref<FormInst | null>(null)
-
-const baseForm = ref({
-  nickname: userStore.nickname,
-  email: userStore.userInfo?.email ?? '',
-  phone: userStore.userInfo?.phone ?? '',
-})
-
-const pwdForm = ref({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: '',
-})
-
-const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
-  newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码至少 6 位', trigger: 'blur' },
-  ],
-  confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
-    {
-      validator: (_rule: any, value: string) => value === pwdForm.value.newPassword,
-      message: '两次输入密码不一致',
-      trigger: 'blur',
-    },
-  ],
+async function loadProfile() {
+  profileLoading.value = true
+  try { profile.value = await getProfileApi() }
+  catch (e: any) { message.error(e?.message || '加载个人资料失败') }
+  finally { profileLoading.value = false }
 }
 
-async function saveBaseInfo() {
-  await baseFormRef.value?.validate()
-  message.success('基本信息保存成功')
-}
-
-async function changePassword() {
-  await pwdFormRef.value?.validate()
-  message.success('密码修改成功，请重新登录')
-}
+onMounted(() => { loadProfile() })
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl">
-    <!-- 用户信息卡片 -->
-    <NCard class="mb-4">
-      <div class="flex items-center gap-6">
-        <NAvatar
-          round
-          :size="80"
-          :src="userStore.avatar"
-          :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
-        />
-        <div class="flex-1">
-          <h2 class="text-xl font-semibold">
-            {{ userStore.nickname }}
-          </h2>
-          <p class="mt-1 text-sm text-gray-500">
-            @{{ userStore.username }}
-          </p>
-          <div class="mt-2 flex flex-wrap gap-2">
-            <NTag v-for="role in userStore.roles" :key="role" type="primary" size="small">
-              {{ role }}
-            </NTag>
-          </div>
-        </div>
-      </div>
-    </NCard>
+  <div class="pf-page">
+    <NSpin :show="profileLoading && !profile">
+      <ProfileBanner
+        :profile="profile"
+        :sessions-count="securityRef?.sessions?.length ?? 0"
+        :sessions-loaded="securityRef?.sessionsLoaded ?? false"
+      />
 
-    <!-- 选项卡 -->
-    <NCard>
-      <NTabs type="line" animated>
-        <!-- 基本信息 -->
-        <NTabPane name="base" tab="基本信息">
-          <NForm
-            ref="baseFormRef"
-            :model="baseForm"
-            label-placement="left"
-            label-width="80px"
-            class="mt-4 max-w-md"
-          >
-            <NFormItem label="昵称" path="nickname">
-              <NInput v-model:value="baseForm.nickname" placeholder="请输入昵称" />
-            </NFormItem>
-            <NFormItem label="邮箱" path="email">
-              <NInput v-model:value="baseForm.email" placeholder="请输入邮箱" />
-            </NFormItem>
-            <NFormItem label="手机号" path="phone">
-              <NInput v-model:value="baseForm.phone" placeholder="请输入手机号" />
-            </NFormItem>
-            <NFormItem>
-              <NButton type="primary" @click="saveBaseInfo">
-                保存修改
-              </NButton>
-            </NFormItem>
-          </NForm>
+      <NTabs v-model:value="activeTab" type="line" animated class="pf-tabs">
+        <NTabPane name="profile" tab="个人资料">
+          <ProfileTabInfo :profile="profile" @saved="loadProfile" />
         </NTabPane>
 
-        <!-- 修改密码 -->
-        <NTabPane name="password" tab="修改密码">
-          <NForm
-            ref="pwdFormRef"
-            :model="pwdForm"
-            :rules="pwdRules"
-            label-placement="left"
-            label-width="80px"
-            class="mt-4 max-w-md"
-          >
-            <NFormItem label="旧密码" path="oldPassword">
-              <NInput
-                v-model:value="pwdForm.oldPassword"
-                type="password"
-                placeholder="请输入旧密码"
-                show-password-on="click"
-              />
-            </NFormItem>
-            <NFormItem label="新密码" path="newPassword">
-              <NInput
-                v-model:value="pwdForm.newPassword"
-                type="password"
-                placeholder="请输入新密码（6~32位）"
-                show-password-on="click"
-              />
-            </NFormItem>
-            <NFormItem label="确认密码" path="confirmPassword">
-              <NInput
-                v-model:value="pwdForm.confirmPassword"
-                type="password"
-                placeholder="请再次输入新密码"
-                show-password-on="click"
-              />
-            </NFormItem>
-            <NFormItem>
-              <NButton type="primary" @click="changePassword">
-                修改密码
-              </NButton>
-            </NFormItem>
-          </NForm>
+        <NTabPane name="security" tab="安全设置">
+          <ProfileTabSecurity ref="securityRef" :profile="profile" @updated="loadProfile" />
+        </NTabPane>
+
+        <NTabPane name="notifications" tab="通知偏好">
+          <ProfileTabNotifications />
+        </NTabPane>
+
+        <NTabPane name="developer" tab="开发者设置">
+          <ProfileTabDeveloper />
         </NTabPane>
       </NTabs>
-    </NCard>
+    </NSpin>
   </div>
 </template>
+
+<style scoped>
+.pf-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf-tabs {
+  padding: 0 24px;
+}
+
+.pf-tabs :deep(.n-tabs-nav) {
+  padding-top: 0;
+}
+
+.pf-tabs :deep(.n-card__action) {
+  box-shadow: none !important;
+  border-top: none !important;
+  background: transparent;
+}
+
+@media (max-width: 640px) {
+  .pf-tabs {
+    padding: 0 12px;
+  }
+}
+</style>

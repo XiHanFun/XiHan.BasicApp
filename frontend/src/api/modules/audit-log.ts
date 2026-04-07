@@ -1,8 +1,58 @@
-import type { PageResult, SysAuditLog } from '~/types'
-import { buildPageRequest, normalizePageResult, toId } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId } from '../helpers'
 
-const API = '/api/AuditLog'
+const api = useBaseApi('AuditLog')
+
+// -------- 类型 --------
+export interface SysAuditLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  realName?: string
+  departmentId?: string
+  departmentName?: string
+  auditType?: string
+  operationType?: string
+  entityType?: string
+  entityId?: string
+  entityName?: string
+  tableName?: string
+  primaryKey?: string
+  primaryKeyValue?: string
+  module?: string
+  function?: string
+  description?: string
+  beforeData?: string
+  afterData?: string
+  changedFields?: string
+  changeDescription?: string
+  requestPath?: string
+  requestMethod?: string
+  requestParams?: string
+  responseResult?: string
+  executionTime?: number
+  operationIp?: string
+  operationLocation?: string
+  browser?: string
+  os?: string
+  deviceType?: string
+  deviceInfo?: string
+  userAgent?: string
+  sessionId?: string
+  requestId?: string
+  businessId?: string
+  businessType?: string
+  isSuccess?: boolean
+  exceptionMessage?: string
+  exceptionStackTrace?: string
+  riskLevel?: number
+  auditTime?: string
+  extendData?: string
+  remark?: string
+  createdTime?: string
+}
 
 function normalize(raw: Record<string, any>): SysAuditLog {
   return {
@@ -54,12 +104,12 @@ function normalize(raw: Record<string, any>): SysAuditLog {
   }
 }
 
-export function getAuditLogPageApi(params: Record<string, any>): Promise<PageResult<SysAuditLog>> {
-  return requestClient
-    .post<any>(`${API}/Page`, buildPageRequest(params))
-    .then(data => normalizePageResult(data, normalize))
-}
-
-export function clearAuditLogApi() {
-  return requestClient.delete<boolean>(`${API}/Clear`)
+// -------- API --------
+export const auditLogApi = {
+  page: (params: PageQuery & Record<string, any>) =>
+    api.page(params).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalize(item)),
+    })),
+  clear: () => api.clear(),
 }

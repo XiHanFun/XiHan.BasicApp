@@ -1,49 +1,26 @@
-import requestClient from '../request'
+import { useBaseApi } from '../base'
 
-const CACHE_API = '/api/Cache'
+const api = useBaseApi('Cache')
 
-export function getCacheStringApi(key: string) {
-  return requestClient.get<string | null>(`${CACHE_API}/String`, {
-    params: { key },
-  })
-}
+export const cacheApi = {
+  getString: (key: string) =>
+    api.request.get<string | null>(`${api.baseUrl}String`, { params: { key } }),
 
-export function setCacheStringApi(payload: { key: string, value: string, expireSeconds?: number }) {
-  return requestClient.post<void>(`${CACHE_API}/SetString`, undefined, {
-    params: {
-      key: payload.key,
-      value: payload.value,
-      expireSeconds: payload.expireSeconds ?? 300,
-    },
-  })
-}
+  setString: (payload: { key: string, value: string, expireSeconds?: number }) =>
+    api.request.post<void>(`${api.baseUrl}SetString`, undefined, {
+      params: { key: payload.key, value: payload.value, expireSeconds: payload.expireSeconds ?? 300 },
+    }),
 
-export function removeCacheApi(key: string) {
-  return requestClient.delete<void>(`${CACHE_API}/Remove`, {
-    params: { key },
-  })
-}
+  remove: (key: string) => api.request.delete<void>(`${api.baseUrl}Remove`, { params: { key } }),
 
-export function removeManyCacheApi(keys: string[]) {
-  return requestClient.delete<void>(`${CACHE_API}/Many`, {
-    data: keys,
-  })
-}
+  removeMany: (keys: string[]) => api.request.delete<void>(`${api.baseUrl}Many`, { data: keys }),
 
-export function existsCacheApi(key: string) {
-  return requestClient.post<boolean>(`${CACHE_API}/Exists`, undefined, {
-    params: { key },
-  })
-}
+  exists: (key: string) =>
+    api.request.post<boolean>(`${api.baseUrl}Exists`, undefined, { params: { key } }),
 
-export function getCacheKeysApi(pattern = '*') {
-  return requestClient.get<string[]>(`${CACHE_API}/Keys`, {
-    params: { pattern },
-  })
-}
+  getKeys: (pattern = '*') =>
+    api.request.get<string[]>(`${api.baseUrl}Keys`, { params: { pattern } }),
 
-export function removeCacheByPatternApi(pattern = '*') {
-  return requestClient.delete<number>(`${CACHE_API}/ByPattern`, {
-    params: { pattern },
-  })
+  removeByPattern: (pattern = '*') =>
+    api.request.delete<number>(`${api.baseUrl}ByPattern`, { params: { pattern } }),
 }

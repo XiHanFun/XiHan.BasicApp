@@ -79,6 +79,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             SessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
             ResourcePath = RbacLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
+            ResourceName = RbacLogMappingHelper.TrimOrNull(record.ResourceName, 200),
             ResourceType = "HttpApi",
             Method = RbacLogMappingHelper.TrimOrNull(record.Method, 10),
             AccessResult = RbacLogMappingHelper.ResolveAccessResult(record.StatusCode),

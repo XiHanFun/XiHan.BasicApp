@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:OperationLogAppService
-// Guid:a1b2c3d4-0003-0002-0001-000000000001
+// Guid:b3edb95b-4e4c-4909-9fca-d041a65c16d0
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/03/10 12:00:00

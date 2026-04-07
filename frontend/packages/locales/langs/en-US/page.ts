@@ -14,15 +14,15 @@ export default {
     register: 'Register now',
   },
   auth: {
-    slogan_title: 'Enterprise SaaS Back-End Core',
+    slogan_title: 'B2B SaaS Middleware Core',
     slogan_desc: 'Engineered · Intelligent · Internationalized',
-    welcome_back: 'Welcome back 👋🏻',
+    welcome_back: 'Welcome back',
     login_subtitle: 'Enter your credentials to access the admin panel',
     select_account: 'Select demo account',
     mobile_login: 'Phone Login',
     qrcode_login: 'QR Login',
     third_party_login: 'Third-party login',
-    no_account: 'Don\'t have an account?',
+    no_account: "Don't have an account?",
     back_to_login: 'Back to login',
     // Code login
     code_login_subtitle: 'Enter your phone number to receive a verification code',
@@ -32,18 +32,24 @@ export default {
     code_length_tip: 'Please enter a 6-digit code',
     send_code: 'Send Code',
     code_sent: 'Code sent successfully',
+    // Two-factor authentication
+    two_factor_title: 'Two-Factor Verification',
+    two_factor_subtitle:
+      'Your account has two-factor authentication enabled. Please enter the 6-digit code from your authenticator app',
+    two_factor_hint: 'Open Google Authenticator / Microsoft Authenticator to view the code',
+    two_factor_verify: 'Verify & Sign In',
     // QR login
     qrcode_subtitle: 'Scan the QR code with your phone to log in',
     qrcode_prompt: 'Open your mobile app and scan the QR code to log in',
     // Forget password
-    forget_password_title: 'Forgot Password 🤦🏻‍♂️',
+    forget_password_title: 'Forgot Password',
     forget_password_subtitle: 'Enter your registered email to receive a reset link',
     email_placeholder: 'Enter email address',
     email_invalid: 'Please enter a valid email address',
     send_reset_link: 'Send Reset Link',
     reset_link_sent: 'Reset link has been sent to your email',
     // Register
-    create_account_title: 'Create Account 🚀',
+    create_account_title: 'Create Account',
     register_subtitle: 'Fill in the details below to create your account',
     username_min_length: 'Username must be at least 3 characters',
     password_min_length: 'Password must be at least 6 characters',
@@ -58,6 +64,12 @@ export default {
     register_success: 'Registration successful',
     already_have_account: 'Already have an account?',
     go_to_login: 'Sign in',
+    // OAuth callback
+    oauth_callback_title: 'Third-party Login',
+    oauth_callback_loading: 'Completing third-party login, please wait...',
+    oauth_callback_failed: 'Third-party login failed, please try again',
+    oauth_callback_missing_token: 'Login information missing, please login again',
+    oauth_callback_redirect: 'Redirecting back to login page...',
     // Password strength
     strength_weak: 'Weak',
     strength_medium: 'Medium',
@@ -66,7 +78,7 @@ export default {
   },
   dashboard: {
     welcome: 'Welcome back',
-    today_visitors: 'Today\'s Visitors',
+    today_visitors: "Today's Visitors",
     total_users: 'Total Users',
     online_count: 'Online Users',
     system_version: 'System Version',
@@ -127,6 +139,12 @@ export default {
     tech_stack: 'Tech Stack',
     open_source: 'Open Source',
     open_source_desc: 'This project is open source on GitHub, feel free to star and contribute',
+  },
+  signalr: {
+    force_logout_title: 'Session Expired',
+    force_logout_reason: 'Your account has logged in on another device, current session is offline',
+    force_logout_confirm: 'OK',
+    new_notification: 'New Notification',
   },
   menu: {
     title: 'Menu Management',

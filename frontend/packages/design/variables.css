@@ -1,8 +1,8 @@
 :root {
   --popup-z-index: 2000;
   --font-family:
-    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, 'Noto Sans', sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   /* core design tokens (light default) */
   --background: 0 0% 100%;
@@ -71,11 +71,11 @@
   --transition-fast: 0.2s;
   --transition-normal: 0.32s;
 
-  /* vben-compatible layout variables */
-  --vben-header-height: var(--layout-header-height);
-  --vben-footer-height: var(--layout-footer-height);
-  --vben-content-height: 100%;
-  --vben-content-width: 100%;
+  /* xihan-compatible layout variables */
+  --xihan-header-height: var(--layout-header-height);
+  --xihan-footer-height: var(--layout-footer-height);
+  --xihan-content-height: 100%;
+  --xihan-content-width: 100%;
 }
 
 .dark {

@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// OAuth应用服务
 /// </summary>
 public interface IOAuthAppService
-    : ICrudApplicationService<SysOAuthApp, OAuthAppDto, long, OAuthAppCreateDto, OAuthAppUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<OAuthAppDto, long, OAuthAppCreateDto, OAuthAppUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据客户端ID获取应用

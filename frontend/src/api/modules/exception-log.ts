@@ -1,8 +1,61 @@
-import type { PageResult, SysExceptionLog } from '~/types'
-import { buildPageRequest, normalizePageResult, toId } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId } from '../helpers'
 
-const API = '/api/ExceptionLog'
+const api = useBaseApi('ExceptionLog')
+
+// -------- 类型 --------
+export interface SysExceptionLog {
+  basicId?: string
+  userId?: string
+  userName?: string
+  requestId?: string
+  sessionId?: string
+  exceptionType?: string
+  exceptionMessage?: string
+  exceptionStackTrace?: string
+  innerExceptionType?: string
+  innerExceptionMessage?: string
+  innerExceptionStackTrace?: string
+  exceptionSource?: string
+  exceptionLocation?: string
+  severityLevel?: number
+  requestPath?: string
+  requestMethod?: string
+  controllerName?: string
+  actionName?: string
+  requestParams?: string
+  requestBody?: string
+  requestHeaders?: string
+  statusCode?: number
+  operationIp?: string
+  operationLocation?: string
+  userAgent?: string
+  browser?: string
+  os?: string
+  deviceType?: string
+  deviceInfo?: string
+  applicationName?: string
+  applicationVersion?: string
+  environmentName?: string
+  serverHostName?: string
+  threadId?: number
+  processId?: number
+  exceptionTime?: string
+  isHandled?: boolean
+  handledTime?: string
+  handledBy?: string
+  handledByName?: string
+  handledRemark?: string
+  businessModule?: string
+  businessId?: string
+  businessType?: string
+  errorCode?: string
+  extendData?: string
+  remark?: string
+  createdTime?: string
+}
 
 function normalize(raw: Record<string, any>): SysExceptionLog {
   return {
@@ -57,12 +110,12 @@ function normalize(raw: Record<string, any>): SysExceptionLog {
   }
 }
 
-export function getExceptionLogPageApi(params: Record<string, any>): Promise<PageResult<SysExceptionLog>> {
-  return requestClient
-    .post<any>(`${API}/Page`, buildPageRequest(params))
-    .then(data => normalizePageResult(data, normalize))
-}
-
-export function clearExceptionLogApi() {
-  return requestClient.delete<boolean>(`${API}/Clear`)
+// -------- API --------
+export const exceptionLogApi = {
+  page: (params: PageQuery & Record<string, any>) =>
+    api.page(params).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalize(item)),
+    })),
+  clear: () => api.clear(),
 }

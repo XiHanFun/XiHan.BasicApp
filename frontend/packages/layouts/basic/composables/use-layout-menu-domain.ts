@@ -1,14 +1,23 @@
 import type { MenuOption } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { LayoutRouteMeta, LayoutRouteRecord } from '../contracts'
 import type { MenuRoute } from '~/types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAccessStore } from '~/stores'
 
+interface BadgeInfo {
+  text?: string | number
+  type?: string
+  dot?: boolean
+}
+
 interface BuildMenuOptionsConfig {
   keyBy: 'name' | 'path'
   translate: (title: string, fallback: string) => string
   iconRenderer?: (icon: string) => MenuOption['icon']
+  /** 标签渲染器：将菜单文本与标签信息合并为带标签的 label */
+  badgeLabelRenderer?: (text: string, badge: BadgeInfo) => string | (() => VNodeChild)
 }
 
 type RouteRecordName = LayoutRouteRecord['name']
@@ -65,7 +74,7 @@ function routeTreeContainsMatched(
   }
 
   const children = node.children ?? []
-  return children.some(child =>
+  return children.some((child) =>
     routeTreeContainsMatched(currentPath, child, matchedNames, fullPath),
   )
 }
@@ -85,7 +94,7 @@ function buildMenuOptionsFromRoutes(
       ? buildMenuOptionsFromRoutes(children, config, fullPath)
       : undefined
 
-    // vben 风格：隐藏父节点不直接渲染，提升其可见子节点，避免 mixed 模式二列空白。
+    // xihan 风格：隐藏父节点不直接渲染，提升其可见子节点，避免 mixed 模式二列空白。
     if (meta.hidden) {
       if (childOptions?.length) {
         options.push(...childOptions)
@@ -93,19 +102,29 @@ function buildMenuOptionsFromRoutes(
       continue
     }
 
-    const key
-      = config.keyBy === 'path'
+    const key =
+      config.keyBy === 'path'
         ? fullPath
-        : (toRouteNameKey(item.name)
-          ?? (childOptions?.[0]?.key ? String(childOptions[0].key) : fullPath))
+        : (toRouteNameKey(item.name) ??
+          (childOptions?.[0]?.key ? String(childOptions[0].key) : fullPath))
 
     if (!key) {
       continue
     }
 
     const fallback = toRouteNameKey(item.name) ?? fullPath
-    const label = meta.title ? config.translate(meta.title, fallback) : fallback
+    const rawLabel = meta.title ? config.translate(meta.title, fallback) : fallback
     const icon = meta.icon ? config.iconRenderer?.(meta.icon) : undefined
+
+    // 当菜单配置了标签且提供了标签渲染器时，生成带标签的 label
+    const hasBadge = meta.badge || meta.dot
+    const label = hasBadge && config.badgeLabelRenderer
+      ? config.badgeLabelRenderer(rawLabel, {
+          text: meta.badge,
+          type: meta.badgeType,
+          dot: meta.dot,
+        })
+      : rawLabel
 
     options.push({
       key,
@@ -124,8 +143,8 @@ export function useLayoutMenuDomain() {
   const accessStore = useAccessStore()
 
   const staticRootChildren = computed<LayoutRouteRecord[]>(() => {
-    return (router.options.routes.find(item => item.path === '/')?.children
-      ?? []) as LayoutRouteRecord[]
+    return (router.options.routes.find((item) => item.path === '/')?.children ??
+      []) as LayoutRouteRecord[]
   })
 
   const baseMenuSource = computed<LayoutRouteRecord[]>(() => {
@@ -135,13 +154,13 @@ export function useLayoutMenuDomain() {
   })
 
   const visibleRootRoutes = computed(() => {
-    return baseMenuSource.value.filter(item => !toLayoutMeta(item).hidden)
+    return baseMenuSource.value.filter((item) => !toLayoutMeta(item).hidden)
   })
 
   function findMatchedRouteNameKey(candidates: LayoutRouteRecord[]) {
     for (const matchedRecord of route.matched) {
       const matchedName = toRouteNameKey(matchedRecord.name as RouteRecordName)
-      if (matchedName && candidates.some(item => toRouteNameKey(item.name) === matchedName)) {
+      if (matchedName && candidates.some((item) => toRouteNameKey(item.name) === matchedName)) {
         return matchedName
       }
     }
@@ -151,7 +170,7 @@ export function useLayoutMenuDomain() {
   function findMatchedRoutePath(candidates: LayoutRouteRecord[], parentPath = '') {
     const matchedNames = new Set(
       route.matched
-        .map(item => toRouteNameKey(item.name as RouteRecordName))
+        .map((item) => toRouteNameKey(item.name as RouteRecordName))
         .filter((item): item is string => Boolean(item)),
     )
 
@@ -166,22 +185,22 @@ export function useLayoutMenuDomain() {
   const activeRootKey = computed<string>(() => {
     const matchedNames = new Set(
       route.matched
-        .map(item => toRouteNameKey(item.name as RouteRecordName))
+        .map((item) => toRouteNameKey(item.name as RouteRecordName))
         .filter((item): item is string => Boolean(item)),
     )
-    const nestedMatchedRoot = visibleRootRoutes.value.find(item =>
+    const nestedMatchedRoot = visibleRootRoutes.value.find((item) =>
       routeTreeContainsMatched(route.path, item, matchedNames),
     )
     return (
-      findMatchedRouteNameKey(visibleRootRoutes.value)
-      ?? toRouteNameKey(nestedMatchedRoot?.name)
-      ?? toRouteNameKey(visibleRootRoutes.value[0]?.name)
-      ?? ''
+      findMatchedRouteNameKey(visibleRootRoutes.value) ??
+      toRouteNameKey(nestedMatchedRoot?.name) ??
+      toRouteNameKey(visibleRootRoutes.value[0]?.name) ??
+      ''
     )
   })
 
   const activeRootRoute = computed(() => {
-    return visibleRootRoutes.value.find(item => toRouteNameKey(item.name) === activeRootKey.value)
+    return visibleRootRoutes.value.find((item) => toRouteNameKey(item.name) === activeRootKey.value)
   })
 
   return {

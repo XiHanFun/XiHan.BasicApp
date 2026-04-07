@@ -16,9 +16,7 @@ using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Extensions;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
-using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Data.SqlSugar.Options;
 
 namespace XiHan.BasicApp.Saas;
 
@@ -38,10 +36,6 @@ public class XiHanBasicAppRbacModule : XiHanModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
-        var config = services.GetConfiguration();
-
-        // 配置SqlSugar选项
-        Configure<XiHanSqlSugarCoreOptions>(config.GetSection(XiHanSqlSugarCoreOptions.SectionName));
 
         // 1. 注册领域仓储（Domain Repositories）
         services.AddRbacRepositories();

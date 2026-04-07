@@ -29,19 +29,8 @@ function goTo(path: string) {
 </script>
 
 <template>
-  <NTabs
-    class="entry-switcher"
-    type="segment"
-    animated
-    :value="activePath"
-    @update:value="goTo"
-  >
-    <NTabPane
-      v-for="item in entryList"
-      :key="item.path"
-      :name="item.path"
-      :tab="item.label"
-    />
+  <NTabs class="entry-switcher" type="segment" animated :value="activePath" @update:value="goTo">
+    <NTabPane v-for="item in entryList" :key="item.path" :name="item.path" :tab="item.label" />
   </NTabs>
 </template>
 

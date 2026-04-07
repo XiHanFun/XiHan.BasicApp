@@ -17,7 +17,6 @@ using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -25,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 角色应用服务
 /// </summary>
 public interface IRoleAppService
-    : ICrudApplicationService<SysRole, RoleDto, long, RoleCreateDto, RoleUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<RoleDto, long, RoleCreateDto, RoleUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据角色编码获取角色
