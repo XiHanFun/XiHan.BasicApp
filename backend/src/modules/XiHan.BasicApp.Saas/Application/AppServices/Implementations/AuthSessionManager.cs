@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AuthSessionManager
-// Guid:a1b2c3d4-e5f6-7890-abcd-session00002
+// Guid:bb55c0df-c5d0-47a3-93bc-d93f1cc13943
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/04/05 00:00:00

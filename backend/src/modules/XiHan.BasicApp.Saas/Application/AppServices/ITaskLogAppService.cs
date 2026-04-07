@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:ITaskLogAppService
-// Guid:a1b2c3d4-0002-0003-0001-000000000001
+// Guid:647108f6-e4bc-4308-848a-9b8db65aedab
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/04/04 12:00:00

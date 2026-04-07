@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AuthMenuBuilder
-// Guid:c3d4e5f6-a7b8-9012-cdef-menu000001
+// Guid:066c0665-d467-413d-b2f5-477b54ed02d1
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/04/05 00:00:00
