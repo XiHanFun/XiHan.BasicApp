@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysTenant } from '~/api'
+import type { SysTenant } from '@/api'
 import {
   NButton,
   NForm,

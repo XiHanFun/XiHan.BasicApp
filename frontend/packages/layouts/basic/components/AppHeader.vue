@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeChild } from 'vue'
 import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '~/iconify'
@@ -78,8 +79,9 @@ function renderRouteIcon(icon: string) {
   return () => h(Icon, { icon: resolveIcon(icon) })
 }
 
-function renderTopMenuLabel(option: MenuOption | MenuGroupOption) {
-  const label = option.label
+function renderTopMenuLabel(option: MenuOption | MenuGroupOption): VNodeChild {
+  const rawLabel = option.label
+  const label = typeof rawLabel === 'function' ? rawLabel(option) : rawLabel
   const children = (option as MenuOption).children
   const hasChildren = Array.isArray(children) && children.length > 0
   const key = (option as MenuOption).key
