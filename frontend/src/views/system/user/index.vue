@@ -1,96 +1,143 @@
 <script lang="ts" setup>
-import type { DataTableColumns } from 'naive-ui'
-import type { SysUser } from '~/types'
-import { Icon } from '~/iconify'
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { SysUser } from '@/api/modules/user'
 import {
-  NAvatar,
   NButton,
-  NCard,
-  NDataTable,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NModal,
-  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
   NTag,
-  useDialog,
   useMessage,
 } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import {
-  createUserApi,
-  deleteUserApi,
-  getUserPageApi,
-  updateUserApi,
-  updateUserStatusApi,
-} from '@/api'
-import { DEFAULT_PAGE_SIZE, GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
-import { formatDate, getStatusType } from '~/utils'
+import { reactive, ref } from 'vue'
+import { userApi } from '@/api'
+import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { useVxeTable } from '~/hooks'
+import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemUserPage' })
 
 const message = useMessage()
-const dialog = useDialog()
-
-const loading = ref(false)
-const tableData = ref<SysUser[]>([])
-const total = ref(0)
+const xGrid = ref<VxeGridInstance>()
 
 const queryParams = reactive({
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
   keyword: '',
   status: undefined as number | undefined,
 })
 
-const selectedRowKeys = ref<string[]>([])
+function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
+  return userApi.page({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+    status: queryParams.status,
+  })
+}
+
+const options = useVxeTable<SysUser>(
+  {
+    id: 'sys_user',
+    name: '用户管理',
+    columns: [
+      { type: 'checkbox', width: 40, fixed: 'left' },
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      {
+        field: 'userName',
+        title: '用户名',
+        minWidth: 130,
+        showOverflow: 'tooltip',
+        sortable: true,
+      },
+      { field: 'nickName', title: '昵称', minWidth: 130, showOverflow: 'tooltip' },
+      { field: 'realName', title: '真实姓名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'email', title: '邮箱', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'phone', title: '手机号', minWidth: 130, showOverflow: 'tooltip' },
+      {
+        field: 'lastLoginTime',
+        title: '最后登录',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+      { field: 'lastLoginIp', title: '最后登录IP', minWidth: 130, showOverflow: 'tooltip' },
+      {
+        field: 'gender',
+        title: '性别',
+        width: 70,
+        formatter: ({ cellValue }) => {
+          const map: Record<number, string> = { 0: '未知', 1: '男', 2: '女' }
+          return map[cellValue] ?? '未知'
+        },
+      },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'createTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 220,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page }) => handleQueryApi(page),
+      },
+    },
+    checkboxConfig: { range: true, reserve: true },
+    rowConfig: { keyField: 'basicId' },
+  },
+)
+
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
+}
+
+function handleReset() {
+  queryParams.keyword = ''
+  queryParams.status = undefined
+  xGrid.value?.commitProxy('reload')
+}
+
+// ==================== CRUD ====================
+
 const modalVisible = ref(false)
 const modalTitle = ref('新增用户')
 const submitLoading = ref(false)
+const formData = ref<Partial<SysUser & { password?: string }>>({})
 
-const formRef = ref(null)
-const formData = ref<Partial<SysUser & { password?: string }>>({
-  username: '',
-  nickname: '',
-  email: '',
-  phone: '',
-  gender: 0,
-  status: 1,
-  roles: [],
-  password: '',
-})
-
-async function fetchData() {
-  try {
-    loading.value = true
-    const result = await getUserPageApi(queryParams)
-    tableData.value = result.items
-    total.value = result.total
-  }
-  catch {
-    message.error('获取用户列表失败')
-  }
-  finally {
-    loading.value = false
+function resetForm() {
+  formData.value = {
+    userName: '',
+    nickName: '',
+    email: '',
+    phone: '',
+    gender: 0,
+    status: 1,
+    password: '',
   }
 }
 
 function handleAdd() {
   modalTitle.value = '新增用户'
-  formData.value = {
-    username: '',
-    nickname: '',
-    email: '',
-    phone: '',
-    gender: 0,
-    status: 1,
-    roles: [],
-    password: '',
-  }
+  resetForm()
   modalVisible.value = true
 }
 
@@ -102,24 +149,46 @@ function handleEdit(row: SysUser) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteUserApi(id)
+    await userApi.delete(id)
     message.success('删除成功')
-    fetchData()
-  }
-  catch {
+    xGrid.value?.commitProxy('query')
+  } catch {
     message.error('删除失败')
   }
 }
 
-async function handleStatusChange(row: SysUser) {
+async function handleToggleStatus(row: any) {
   const newStatus = row.status === 1 ? 0 : 1
   try {
-    await updateUserStatusApi(row.basicId, newStatus)
-    row.status = newStatus
+    await userApi.changeStatus(row.basicId, newStatus)
     message.success('状态更新成功')
-  }
-  catch {
+    xGrid.value?.commitProxy('query')
+  } catch {
     message.error('状态更新失败')
+  }
+}
+
+const resetPwdVisible = ref(false)
+const resetPwdUserId = ref('')
+const resetPwdValue = ref('')
+
+function handleResetPwd(row: any) {
+  resetPwdUserId.value = row.basicId
+  resetPwdValue.value = ''
+  resetPwdVisible.value = true
+}
+
+async function confirmResetPwd() {
+  if (!resetPwdValue.value) {
+    message.warning('请输入新密码')
+    return
+  }
+  try {
+    await userApi.resetPassword(resetPwdUserId.value, resetPwdValue.value)
+    message.success('密码重置成功')
+    resetPwdVisible.value = false
+  } catch {
+    message.error('密码重置失败')
   }
 }
 
@@ -127,209 +196,71 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     if (formData.value.basicId) {
-      await updateUserApi(formData.value.basicId, formData.value)
-    }
-    else {
-      await createUserApi(formData.value)
+      await userApi.update(formData.value.basicId, formData.value)
+    } else {
+      await userApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
-    fetchData()
-  }
-  catch {
+    xGrid.value?.commitProxy('query')
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
-
-function handleSearch() {
-  queryParams.page = 1
-  fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.status = undefined
-  queryParams.page = 1
-  fetchData()
-}
-
-const columns: DataTableColumns<SysUser> = [
-  {
-    type: 'selection',
-    fixed: 'left',
-  },
-  {
-    title: '用户',
-    key: 'username',
-    width: 180,
-    render: row =>
-      h('div', { class: 'flex items-center gap-2' }, [
-        h(NAvatar, {
-          round: true,
-          size: 32,
-          fallbackSrc: `https://api.dicebear.com/9.x/initials/svg?seed=${row.nickname}`,
-        }),
-        h('div', null, [
-          h('div', { class: 'text-sm font-medium' }, row.nickname),
-          h('div', { class: 'text-xs text-gray-400' }, `@${row.username}`),
-        ]),
-      ]),
-  },
-  {
-    title: '邮箱',
-    key: 'email',
-    width: 200,
-    ellipsis: { tooltip: true },
-  },
-  {
-    title: '手机号',
-    key: 'phone',
-    width: 130,
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 90,
-    render: row =>
-      h(
-        NTag,
-        { type: getStatusType(row.status), size: 'small', round: true },
-        { default: () => (row.status === 1 ? '启用' : '禁用') },
-      ),
-  },
-  {
-    title: '创建时间',
-    key: 'createTime',
-    width: 170,
-    render: row => formatDate(row.createTime),
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 160,
-    fixed: 'right',
-    render: row =>
-      h(
-        NSpace,
-        { size: 'small' },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                size: 'small',
-                type: 'primary',
-                ghost: true,
-                onClick: () => handleEdit(row),
-              },
-              { default: () => '编辑' },
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.basicId),
-              },
-              {
-                default: () => '确认删除该用户？',
-                trigger: () =>
-                  h(
-                    NButton,
-                    { size: 'small', type: 'error', ghost: true },
-                    { default: () => '删除' },
-                  ),
-              },
-            ),
-          ],
-        },
-      ),
-  },
-]
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- 搜索栏 -->
-    <NCard :bordered="false">
-      <div class="flex flex-wrap items-center gap-3">
-        <NInput
-          v-model:value="queryParams.keyword"
-          placeholder="搜索用户名/昵称/邮箱"
-          style="width: 220px"
+  <div class="flex flex-col h-full">
+    <vxe-card class="mb-2" style="padding: 10px 16px">
+      <div class="flex flex-wrap gap-3 items-center">
+        <vxe-input
+          v-model="queryParams.keyword"
+          placeholder="搜索用户名/昵称/邮箱/手机"
           clearable
-          @keydown.enter="handleSearch"
-        >
-          <template #prefix>
-            <NIcon><Icon icon="lucide:search" width="14" /></NIcon>
-          </template>
-        </NInput>
+          style="width: 280px"
+          @keyup.enter="handleSearch"
+        />
         <NSelect
           v-model:value="queryParams.status"
           :options="STATUS_OPTIONS"
-          placeholder="全部状态"
-          style="width: 120px"
+          placeholder="状态"
           clearable
+          style="width: 120px"
         />
-        <NButton type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" width="14" /></NIcon>
-          </template>
-          搜索
-        </NButton>
-        <NButton @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" width="14" /></NIcon>
-          </template>
-          重置
-        </NButton>
-        <div class="ml-auto flex gap-2">
-          <NButton type="primary" @click="handleAdd">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
-            </template>
-            新增用户
-          </NButton>
-        </div>
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton size="small" @click="handleReset">重置</NButton>
       </div>
-    </NCard>
+    </vxe-card>
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options">
+        <template #toolbar_buttons>
+          <NButton type="primary" size="small" @click="handleAdd">新增用户</NButton>
+        </template>
+        <template #col_status="{ row }">
+          <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </NTag>
+        </template>
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
+            <NButton size="small" type="warning" text @click="handleToggleStatus(row)">
+              {{ row.status === 1 ? '禁用' : '启用' }}
+            </NButton>
+            <NButton size="small" type="info" text @click="handleResetPwd(row)">重置密码</NButton>
+            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+              <template #trigger>
+                <NButton size="small" type="error" text>删除</NButton>
+              </template>
+              确认删除该用户？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
 
-    <!-- 数据表格 -->
-    <NCard :bordered="false">
-      <NDataTable
-        v-model:checked-row-keys="selectedRowKeys"
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :row-key="(row) => row.basicId"
-        :scroll-x="900"
-        :pagination="false"
-        size="small"
-        striped
-      />
-      <div class="mt-4 flex justify-end">
-        <NPagination
-          v-model:page="queryParams.page"
-          v-model:page-size="queryParams.pageSize"
-          :item-count="total"
-          :page-sizes="[10, 20, 50, 100]"
-          show-size-picker
-          show-quick-jumper
-          @update:page="fetchData"
-          @update:page-size="
-            () => {
-              queryParams.page = 1
-              fetchData()
-            }
-          "
-        />
-      </div>
-    </NCard>
-
-    <!-- 新增/编辑弹窗 -->
     <NModal
       v-model:show="modalVisible"
       :title="modalTitle"
@@ -337,10 +268,10 @@ onMounted(fetchData)
       style="width: 520px"
       :auto-focus="false"
     >
-      <NForm ref="formRef" :model="formData" label-placement="left" label-width="80px">
-        <NFormItem label="用户名" path="username">
+      <NForm :model="formData" label-placement="left" label-width="80px">
+        <NFormItem label="用户名" path="userName">
           <NInput
-            v-model:value="formData.username"
+            v-model:value="formData.userName"
             :disabled="!!formData.basicId"
             placeholder="请输入用户名"
           />
@@ -353,8 +284,8 @@ onMounted(fetchData)
             placeholder="请输入初始密码"
           />
         </NFormItem>
-        <NFormItem label="昵称" path="nickname">
-          <NInput v-model:value="formData.nickname" placeholder="请输入昵称" />
+        <NFormItem label="昵称" path="nickName">
+          <NInput v-model:value="formData.nickName" placeholder="请输入昵称" />
         </NFormItem>
         <NFormItem label="邮箱" path="email">
           <NInput v-model:value="formData.email" placeholder="请输入邮箱" />
@@ -371,12 +302,29 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <NModal
+      v-model:show="resetPwdVisible"
+      title="重置密码"
+      preset="card"
+      style="width: 400px"
+      :auto-focus="false"
+    >
+      <NInput
+        v-model:value="resetPwdValue"
+        type="password"
+        show-password-on="click"
+        placeholder="请输入新密码"
+      />
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="resetPwdVisible = false">取消</NButton>
+          <NButton type="primary" @click="confirmResetPwd">确认重置</NButton>
         </NSpace>
       </template>
     </NModal>

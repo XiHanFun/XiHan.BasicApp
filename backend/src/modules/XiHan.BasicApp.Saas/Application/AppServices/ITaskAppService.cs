@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 任务应用服务
 /// </summary>
 public interface ITaskAppService
-    : ICrudApplicationService<SysTask, TaskDto, long, TaskCreateDto, TaskUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<TaskDto, long, TaskCreateDto, TaskUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据任务编码获取任务

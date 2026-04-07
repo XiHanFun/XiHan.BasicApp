@@ -1,14 +1,38 @@
-import type { PageResult, SmsPageQuery, SysSms } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const SMS_API = '/api/Sms'
+const api = useBaseApi('Sms')
+
+export interface SysSms {
+  basicId: string
+  senderId?: string
+  receiverId?: string
+  smsType: number
+  toPhone: string
+  content: string
+  templateId?: string
+  templateParams?: string
+  provider?: string
+  smsStatus: number
+  scheduledTime?: string
+  sendTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface SmsPageQuery extends PageQuery {
+  smsType?: number
+  smsStatus?: number
+}
 
 function normalizeSms(raw: Record<string, any>): SysSms {
   return {
     basicId: toId(raw.basicId),
-    senderId: raw.senderId === null || raw.senderId === undefined ? undefined : toNumber(raw.senderId, 0),
-    receiverId: raw.receiverId === null || raw.receiverId === undefined ? undefined : toNumber(raw.receiverId, 0),
+    senderId: raw.senderId == null ? undefined : toId(raw.senderId),
+    receiverId: raw.receiverId == null ? undefined : toId(raw.receiverId),
     smsType: toNumber(raw.smsType, 0),
     toPhone: raw.toPhone ?? '',
     content: raw.content ?? '',
@@ -24,14 +48,14 @@ function normalizeSms(raw: Record<string, any>): SysSms {
   }
 }
 
-function toSmsCreatePayload(data: Partial<SysSms>) {
+function toCreatePayload(data: Partial<SysSms>) {
   return {
     senderId: data.senderId ?? null,
     receiverId: data.receiverId ?? null,
     smsType: toNumber(data.smsType, 0),
     toPhone: data.toPhone ?? '',
     content: data.content ?? '',
-    templateId: data.templateId ? toNumber(data.templateId, 0) : null,
+    templateId: data.templateId ? toId(data.templateId) : null,
     templateParams: data.templateParams ?? '',
     provider: data.provider ?? '',
     scheduledTime: data.scheduledTime ?? null,
@@ -39,55 +63,36 @@ function toSmsCreatePayload(data: Partial<SysSms>) {
   }
 }
 
-function toSmsUpdatePayload(id: string, data: Partial<SysSms>) {
+function toUpdatePayload(id: string, data: Partial<SysSms>) {
   return {
-    ...toSmsCreatePayload(data),
+    ...toCreatePayload(data),
     smsStatus: toNumber(data.smsStatus, 0),
     sendTime: data.sendTime ?? null,
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
-export async function getSmsPageApi(params: SmsPageQuery): Promise<PageResult<SysSms>> {
-  const data = await requestClient.post<any>(
-    `${SMS_API}/Page`,
-    buildPageRequest(params, {
+export const smsApi = {
+  page: (params: SmsPageQuery) =>
+    api.page(params, {
       keywordFields: ['ToPhone', 'Content'],
-      filterFieldMap: {
-        smsType: 'SmsType',
-        smsStatus: 'SmsStatus',
-      },
-    }),
-  )
-  return normalizePageResult(data, normalizeSms)
-}
+      filterFieldMap: { smsType: 'SmsType', smsStatus: 'SmsStatus' },
+    }).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalizeSms(item)),
+    })),
 
-export function getSmsDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${SMS_API}/ById`, { params: { id } })
-    .then(raw => normalizeSms(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeSms),
 
-export function createSmsApi(data: Partial<SysSms>) {
-  return requestClient.post<void>(`${SMS_API}/Create`, toSmsCreatePayload(data))
-}
+  create: (data: Partial<SysSms>) => api.create(toCreatePayload(data)),
 
-export function updateSmsApi(id: string, data: Partial<SysSms>) {
-  return requestClient.put<void>(`${SMS_API}/Update`, toSmsUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysSms>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteSmsApi(id: string) {
-  return requestClient.delete<void>(`${SMS_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getPendingSmsApi(maxCount = 100, tenantId?: number) {
-  return requestClient
-    .get<any[]>(`${SMS_API}/Pending/${tenantId ?? 0}`, {
-      params: { maxCount },
-    })
-    .then(list => (Array.isArray(list) ? list.map(item => normalizeSms(item)) : []))
+  getPending: (maxCount = 100, tenantId?: number) =>
+    api.request.get<any[]>(`${api.baseUrl}Pending/${tenantId ?? 0}`, { params: { maxCount } })
+      .then((list: any[]) => Array.isArray(list) ? list.map(normalizeSms) : []),
 }

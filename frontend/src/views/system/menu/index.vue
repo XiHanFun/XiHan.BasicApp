@@ -1,13 +1,11 @@
 <script lang="ts" setup>
-import type { DataTableColumns } from 'naive-ui'
-import type { SysMenu } from '~/types'
-import { Icon } from '~/iconify'
+import type { VxeGridInstance } from 'vxe-table'
+import type { SysMenu } from '@/api/modules/menu'
 import {
   NButton,
-  NCard,
+  NCascader,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
@@ -16,32 +14,176 @@ import {
   NSpace,
   NSwitch,
   NTag,
-  NTreeSelect,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, ref } from 'vue'
-import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '@/api'
-import { CrudProTable, IconPicker } from '~/components'
-import { MENU_TYPE, STATUS_OPTIONS } from '~/constants'
-import { filterTree } from '~/utils'
+import { computed, onMounted, ref } from 'vue'
+import { menuApi } from '@/api'
+import { Icon, IconPicker } from '~/iconify'
+import { useVxeTable } from '~/hooks'
+import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemMenuPage' })
 
 const message = useMessage()
+const xGrid = ref<VxeGridInstance>()
 const loading = ref(false)
-const treeData = ref<SysMenu[]>([])
-const keyword = ref('')
+const tableData = ref<SysMenu[]>([])
+
+const MENU_TYPE_OPTIONS = [
+  { label: '目录', value: 0 },
+  { label: '菜单', value: 1 },
+  { label: '按钮', value: 2 },
+]
+
+const STATUS_OPTIONS = [
+  { label: '启用', value: 1 },
+  { label: '禁用', value: 0 },
+]
+
+const BADGE_TYPE_OPTIONS = [
+  { label: '默认', value: 'default' },
+  { label: '成功', value: 'success' },
+  { label: '警告', value: 'warning' },
+  { label: '错误', value: 'error' },
+  { label: '信息', value: 'info' },
+]
+
+const ROOT_ID = ''
+
+function flattenMenuTree(items: SysMenu[]): SysMenu[] {
+  const result: SysMenu[] = []
+  for (const item of items) {
+    const { children, ...rest } = item
+    result.push({ ...rest, children: undefined } as SysMenu)
+    if (children?.length) {
+      result.push(...flattenMenuTree(children))
+    }
+  }
+  return result
+}
+
+const treeOptions = computed(() => {
+  const items = tableData.value
+  const map = new Map<string, SysMenu[]>()
+  for (const item of items) {
+    const pid = item.parentId || ROOT_ID
+    if (!map.has(pid)) {
+      map.set(pid, [])
+    }
+    map.get(pid)!.push(item)
+  }
+  function toNodes(parentId: string): any[] {
+    return (map.get(parentId) ?? []).map((c) => ({
+      label: c.menuName,
+      value: c.basicId,
+      children: map.has(c.basicId) ? toNodes(c.basicId) : undefined,
+    }))
+  }
+  return [{ label: '顶级菜单', value: ROOT_ID, children: toNodes(ROOT_ID) }]
+})
+
+async function fetchData() {
+  try {
+    loading.value = true
+    const list = await menuApi.list()
+    const flat = flattenMenuTree(list)
+    tableData.value = flat.map((item) => ({
+      ...item,
+      parentId: item.parentId || ROOT_ID,
+    }))
+  } catch {
+    message.error('获取菜单列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const options = useVxeTable<SysMenu>(
+  {
+    id: 'sys_menu',
+    name: '菜单管理',
+    data: [],
+    columns: [
+      {
+        field: 'menuName',
+        title: '菜单名称',
+        minWidth: 200,
+        treeNode: true,
+        showOverflow: 'tooltip',
+      },
+      { field: 'menuCode', title: '权限标识', minWidth: 160, showOverflow: 'tooltip' },
+      {
+        field: 'menuType',
+        title: '类型',
+        width: 80,
+        slots: { default: 'col_type' },
+      },
+      { field: 'icon', title: '图标', width: 80, slots: { default: 'col_icon' } },
+      { field: 'path', title: '路由路径', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'component', title: '组件路径', minWidth: 180, showOverflow: 'tooltip' },
+      { field: 'routeName', title: '路由名称', minWidth: 130, showOverflow: 'tooltip' },
+      {
+        field: 'isVisible',
+        title: '可见',
+        width: 70,
+        slots: { default: 'col_visible' },
+      },
+      {
+        field: 'isCache',
+        title: '缓存',
+        width: 70,
+        slots: { default: 'col_cache' },
+      },
+      {
+        field: 'badge',
+        title: '标签',
+        width: 100,
+        slots: { default: 'col_badge' },
+      },
+      { field: 'sort', title: '排序', width: 70 },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 200,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
+    ],
+  },
+  {
+    pagerConfig: { enabled: false },
+    treeConfig: {
+      transform: true,
+      rowField: 'basicId',
+      parentField: 'parentId',
+      expandAll: false,
+    },
+    toolbarConfig: {
+      slots: { buttons: 'toolbar_buttons' },
+      refresh: true,
+      zoom: true,
+      custom: true,
+    },
+  },
+)
 
 const modalVisible = ref(false)
 const modalTitle = ref('新增菜单')
 const submitLoading = ref(false)
+const formData = ref<Partial<SysMenu>>({})
 
-function defaultForm(): Partial<SysMenu> {
-  return {
-    parentId: undefined,
+function resetForm() {
+  formData.value = {
+    parentId: ROOT_ID,
     menuName: '',
     menuCode: '',
-    menuType: MENU_TYPE.MENU,
+    menuType: 0,
     path: '',
     component: '',
     routeName: '',
@@ -52,64 +194,21 @@ function defaultForm(): Partial<SysMenu> {
     isCache: true,
     isVisible: true,
     isAffix: false,
-    sort: 100,
+    badge: '',
+    badgeType: '',
+    badgeDot: false,
+    sort: 0,
     status: 1,
     remark: '',
   }
 }
 
-const formData = ref<Partial<SysMenu>>(defaultForm())
-
-const menuTypeOptions = [
-  { label: '目录', value: MENU_TYPE.DIR },
-  { label: '菜单', value: MENU_TYPE.MENU },
-  { label: '按钮', value: MENU_TYPE.BUTTON },
-]
-
-const statusOptions = STATUS_OPTIONS
-
-async function fetchData() {
-  try {
-    loading.value = true
-    treeData.value = await getMenuListApi()
-  }
-  catch {
-    message.error('获取菜单列表失败')
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function buildTreeSelectOptions(list: SysMenu[]): any[] {
-  return list
-    .filter(item => item.menuType !== MENU_TYPE.BUTTON)
-    .map(item => ({
-      label: item.menuName,
-      value: item.basicId,
-      children: item.children ? buildTreeSelectOptions(item.children) : undefined,
-    }))
-}
-
-const treeSelectOptions = computed(() => buildTreeSelectOptions(treeData.value))
-
-const displayTableData = computed(() => {
-  return filterTree(treeData.value, keyword.value, (node, kw) => {
-    return [node.menuName, node.menuCode, node.path]
-      .filter(Boolean)
-      .some(text => String(text).toLowerCase().includes(kw))
-  })
-})
-
-function resolveIcon(icon: string) {
-  if (!icon)
-    return icon
-  return icon.includes(':') ? icon : `lucide:${icon}`
-}
-
 function handleAdd(parentId?: string) {
   modalTitle.value = '新增菜单'
-  formData.value = { ...defaultForm(), parentId }
+  resetForm()
+  if (parentId) {
+    formData.value.parentId = parentId
+  }
   modalVisible.value = true
 }
 
@@ -121,329 +220,182 @@ function handleEdit(row: SysMenu) {
 
 async function handleDelete(id: string) {
   try {
-    await deleteMenuApi(id)
+    await menuApi.delete(id)
     message.success('删除成功')
     fetchData()
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
 
 async function handleSubmit() {
-  if (!formData.value.menuName?.trim()) {
-    message.warning('请输入菜单名称')
-    return
-  }
-  if (!formData.value.menuCode?.trim()) {
-    message.warning('请输入菜单编码')
-    return
-  }
   try {
     submitLoading.value = true
-    const payload = { ...formData.value }
-    if (payload.title === undefined || payload.title === '') {
-      payload.title = payload.menuName
-    }
-    if (payload.basicId) {
-      await updateMenuApi(payload.basicId, payload)
-    }
-    else {
-      await createMenuApi(payload)
+    if (formData.value.basicId) {
+      await menuApi.update(formData.value)
+    } else {
+      await menuApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  }
-  catch {
+  } catch {
     message.error('操作失败')
-  }
-  finally {
+  } finally {
     submitLoading.value = false
   }
 }
-
-const columns: DataTableColumns<SysMenu> = [
-  {
-    title: '菜单名称',
-    key: 'menuName',
-    width: 220,
-    tree: true,
-    render: (row) => {
-      const children = []
-      if (row.icon) {
-        children.push(
-          h(Icon, {
-            icon: resolveIcon(row.icon),
-            width: 16,
-            class: 'mr-1.5 flex-shrink-0 opacity-70',
-          }),
-        )
-      }
-      children.push(h('span', {}, row.menuName))
-      return h('div', { class: 'inline-flex items-center' }, children)
-    },
-  },
-  {
-    title: '菜单编码',
-    key: 'menuCode',
-    width: 140,
-    ellipsis: { tooltip: true },
-    render: row =>
-      h(
-        NTag,
-        { size: 'small', bordered: false, type: 'info' },
-        { default: () => row.menuCode },
-      ),
-  },
-  {
-    title: '类型',
-    key: 'menuType',
-    width: 80,
-    align: 'center',
-    render: (row) => {
-      const map: Record<number, { label: string, type: 'default' | 'info' | 'success' }> = {
-        [MENU_TYPE.DIR]: { label: '目录', type: 'default' },
-        [MENU_TYPE.MENU]: { label: '菜单', type: 'info' },
-        [MENU_TYPE.BUTTON]: { label: '按钮', type: 'success' },
-      }
-      const t = map[row.menuType] ?? { label: '未知', type: 'default' }
-      return h(NTag, { type: t.type, size: 'small', bordered: false }, { default: () => t.label })
-    },
-  },
-  {
-    title: '路由路径',
-    key: 'path',
-    width: 160,
-    ellipsis: { tooltip: true },
-    render: row =>
-      row.path
-        ? h('span', { class: 'text-xs font-mono' }, row.path)
-        : h('span', { class: 'text-gray-300' }, '-'),
-  },
-  {
-    title: '组件',
-    key: 'component',
-    width: 180,
-    ellipsis: { tooltip: true },
-    render: row =>
-      row.component
-        ? h('span', { class: 'text-xs font-mono' }, row.component)
-        : h('span', { class: 'text-gray-300' }, '-'),
-  },
-  {
-    title: '排序',
-    key: 'sort',
-    width: 70,
-    align: 'center',
-  },
-  {
-    title: '可见',
-    key: 'isVisible',
-    width: 70,
-    align: 'center',
-    render: row =>
-      h(
-        NTag,
-        {
-          type: row.isVisible ? 'success' : 'default',
-          size: 'small',
-          round: true,
-          bordered: false,
-        },
-        { default: () => (row.isVisible ? '是' : '否') },
-      ),
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 70,
-    align: 'center',
-    render: row =>
-      h(
-        NTag,
-        { type: row.status === 1 ? 'success' : 'error', size: 'small', round: true },
-        { default: () => (row.status === 1 ? '启用' : '禁用') },
-      ),
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 200,
-    fixed: 'right',
-    render: row =>
-      h(
-        NSpace,
-        { size: 'small' },
-        {
-          default: () =>
-            [
-              row.menuType !== MENU_TYPE.BUTTON
-              && h(
-                NButton,
-                { size: 'small', ghost: true, onClick: () => handleAdd(row.basicId) },
-                { default: () => '添加子项' },
-              ),
-              h(
-                NButton,
-                {
-                  size: 'small',
-                  type: 'primary',
-                  ghost: true,
-                  onClick: () => handleEdit(row),
-                },
-                { default: () => '编辑' },
-              ),
-              h(
-                NPopconfirm,
-                { onPositiveClick: () => handleDelete(row.basicId) },
-                {
-                  default: () => '确认删除该菜单？',
-                  trigger: () =>
-                    h(
-                      NButton,
-                      { size: 'small', type: 'error', ghost: true },
-                      { default: () => '删除' },
-                    ),
-                },
-              ),
-            ].filter(Boolean),
-        },
-      ),
-  },
-]
 
 onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-3">
-    <NCard :bordered="false">
-      <div class="flex items-center gap-3">
-        <NButton type="primary" @click="() => handleAdd()">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" width="14" /></NIcon>
+  <div class="flex flex-col h-full">
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options" :data="tableData" :loading="loading">
+        <template #toolbar_buttons>
+          <NButton type="primary" size="small" @click="handleAdd()">新增菜单</NButton>
+          <NButton size="small" class="ml-2" @click="fetchData">刷新</NButton>
+        </template>
+        <template #col_type="{ row }">
+          <NTag
+            :type="row.menuType === 0 ? 'info' : row.menuType === 1 ? 'success' : 'warning'"
+            size="small"
+          >
+            {{ getOptionLabel(MENU_TYPE_OPTIONS, row.menuType) }}
+          </NTag>
+        </template>
+        <template #col_icon="{ row }">
+          <span v-if="row.icon" class="text-lg">
+            <Icon :icon="row.icon.includes(':') ? row.icon : `lucide:${row.icon}`" />
+          </span>
+          <span v-else class="text-gray-300">-</span>
+        </template>
+        <template #col_visible="{ row }">
+          <NTag :type="row.isVisible ? 'success' : 'warning'" size="small">
+            {{ row.isVisible ? '是' : '否' }}
+          </NTag>
+        </template>
+        <template #col_cache="{ row }">
+          <NTag :type="row.isCache ? 'success' : 'default'" size="small">
+            {{ row.isCache ? '是' : '否' }}
+          </NTag>
+        </template>
+        <template #col_badge="{ row }">
+          <template v-if="row.badgeDot">
+            <span class="inline-block w-2 h-2 rounded-full bg-red-500" title="圆点标签" />
           </template>
-          新增菜单
-        </NButton>
-        <NButton @click="fetchData">
-          <template #icon>
-            <NIcon><Icon icon="lucide:refresh-cw" width="14" /></NIcon>
-          </template>
-          刷新
-        </NButton>
-        <NInput
-          v-model:value="keyword"
-          class="ml-auto max-w-[280px]"
-          placeholder="搜索菜单名称/编码/路径"
-          clearable
-        />
-      </div>
-    </NCard>
-
-    <CrudProTable
-      :columns="columns"
-      :data="displayTableData"
-      :loading="loading"
-      :row-key="(row: SysMenu) => row.basicId"
-      :scroll-x="1200"
-      max-height="calc(100vh - 280px)"
-      :show-toolbar="false"
-      :show-pagination="false"
-      :default-expand-all="true"
-    />
+          <NTag v-else-if="row.badge" :type="row.badgeType || 'default'" size="small" round>
+            {{ row.badge }}
+          </NTag>
+          <span v-else class="text-gray-300">-</span>
+        </template>
+        <template #col_status="{ row }">
+          <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </NTag>
+        </template>
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton
+              v-if="row.menuType !== 2"
+              size="small"
+              type="info"
+              text
+              @click="handleAdd(row.basicId)"
+            >
+              新增子项
+            </NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
+            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+              <template #trigger>
+                <NButton size="small" type="error" text>删除</NButton>
+              </template>
+              确认删除该菜单？子菜单也会一并删除。
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
 
     <NModal
       v-model:show="modalVisible"
       :title="modalTitle"
       preset="card"
-      style="width: 620px"
+      style="width: 700px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="90px" size="small">
+      <NForm :model="formData" label-placement="left" label-width="90px">
         <NFormItem label="上级菜单" path="parentId">
-          <NTreeSelect
+          <NCascader
             v-model:value="formData.parentId"
-            :options="[{ label: '根目录', value: null }, ...treeSelectOptions]"
+            :options="treeOptions"
+            check-strategy="child"
+            placeholder="无则为顶级"
             clearable
-            placeholder="不选则为顶级菜单"
+            style="width: 100%"
           />
         </NFormItem>
         <NFormItem label="菜单类型" path="menuType">
-          <NSelect v-model:value="formData.menuType" :options="menuTypeOptions" />
+          <NSelect v-model:value="formData.menuType" :options="MENU_TYPE_OPTIONS" />
         </NFormItem>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="菜单名称" path="menuName">
-            <NInput v-model:value="formData.menuName" placeholder="如: 账号管理" />
-          </NFormItem>
-          <NFormItem label="菜单编码" path="menuCode">
-            <NInput v-model:value="formData.menuCode" placeholder="如: user" />
-          </NFormItem>
-        </div>
-        <div v-if="formData.menuType !== MENU_TYPE.BUTTON" class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="路由路径" path="path">
-            <NInput v-model:value="formData.path" placeholder="如: /system/user" />
-          </NFormItem>
-          <NFormItem v-if="formData.menuType === MENU_TYPE.MENU" label="组件路径" path="component">
-            <NInput v-model:value="formData.component" placeholder="如: System/User/Index" />
-          </NFormItem>
-          <NFormItem v-if="formData.menuType === MENU_TYPE.DIR" label="重定向" path="redirect">
-            <NInput v-model:value="formData.redirect" placeholder="如: /system/user" />
-          </NFormItem>
-        </div>
-        <div v-if="formData.menuType !== MENU_TYPE.BUTTON" class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="路由名称" path="routeName">
-            <NInput v-model:value="formData.routeName" placeholder="如: SystemUser" />
-          </NFormItem>
-          <NFormItem label="菜单标题" path="title">
-            <NInput v-model:value="formData.title" placeholder="如: 账号管理" />
-          </NFormItem>
-        </div>
-        <div v-if="formData.menuType !== MENU_TYPE.BUTTON" class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="图标" path="icon">
-            <IconPicker v-model="formData.icon" placeholder="选择图标" class="w-full" />
-          </NFormItem>
-          <NFormItem label="排序" path="sort">
-            <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" class="w-full" />
-          </NFormItem>
-        </div>
-        <NFormItem v-if="formData.menuType === MENU_TYPE.BUTTON" label="排序" path="sort">
-          <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" class="w-full" />
+        <NFormItem label="菜单名称" path="menuName">
+          <NInput v-model:value="formData.menuName" placeholder="请输入菜单名称" />
         </NFormItem>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="状态" path="status">
-            <NSelect v-model:value="formData.status" :options="statusOptions" />
-          </NFormItem>
-          <NFormItem v-if="formData.menuType !== MENU_TYPE.BUTTON" label="是否可见" path="isVisible">
-            <NSwitch v-model:value="formData.isVisible" />
-          </NFormItem>
-        </div>
-        <div v-if="formData.menuType === MENU_TYPE.MENU" class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="是否缓存" path="isCache">
-            <NSwitch v-model:value="formData.isCache" />
-          </NFormItem>
-          <NFormItem label="是否固定" path="isAffix">
-            <NSwitch v-model:value="formData.isAffix" />
-          </NFormItem>
-        </div>
-        <NFormItem v-if="formData.menuType !== MENU_TYPE.BUTTON" label="是否外链" path="isExternal">
-          <NSwitch v-model:value="formData.isExternal" />
+        <NFormItem label="权限标识" path="menuCode">
+          <NInput v-model:value="formData.menuCode" placeholder="如: system:user:list" />
         </NFormItem>
-        <NFormItem v-if="formData.isExternal" label="外链地址" path="externalUrl">
-          <NInput v-model:value="formData.externalUrl" placeholder="https://..." />
+        <NFormItem v-if="formData.menuType !== 2" label="路由路径" path="path">
+          <NInput v-model:value="formData.path" placeholder="如: /system/user" />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="formData.remark" type="textarea" :rows="2" placeholder="备注信息" />
+        <NFormItem v-if="formData.menuType === 1" label="组件路径" path="component">
+          <NInput v-model:value="formData.component" placeholder="如: system/user/index" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="路由名称" path="routeName">
+          <NInput v-model:value="formData.routeName" placeholder="路由名称" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="重定向" path="redirect">
+          <NInput v-model:value="formData.redirect" placeholder="重定向路径" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="图标" path="icon">
+          <IconPicker v-model="formData.icon" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="标签内容" path="badge">
+          <NInput
+            v-model:value="formData.badge"
+            placeholder="如: New、3（为空则不显示）"
+            :disabled="formData.badgeDot"
+          />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="标签类型" path="badgeType">
+          <NSelect
+            v-model:value="formData.badgeType"
+            :options="BADGE_TYPE_OPTIONS"
+            placeholder="标签颜色"
+            clearable
+            :disabled="formData.badgeDot"
+          />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="仅显示圆点">
+          <NSwitch v-model:value="formData.badgeDot" />
+        </NFormItem>
+        <NFormItem label="排序" path="sort">
+          <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="状态" path="status">
+          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType !== 2" label="是否可见">
+          <NSwitch v-model:value="formData.isVisible" />
+        </NFormItem>
+        <NFormItem v-if="formData.menuType === 1" label="是否缓存">
+          <NSwitch v-model:value="formData.isCache" />
         </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
+          <NButton @click="modalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
         </NSpace>
       </template>
     </NModal>

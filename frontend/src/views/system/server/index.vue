@@ -7,8 +7,7 @@ import type {
   SysMemoryInfo,
   SysNetworkInfo,
   SysRuntimeInfo,
-} from '~/types'
-import { Icon } from '~/iconify'
+} from '@/api'
 import {
   NButton,
   NCard,
@@ -22,15 +21,8 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import {
-  getBoardInfoApi,
-  getCpuInfoApi,
-  getDiskInfoApi,
-  getGpuInfoApi,
-  getMemoryInfoApi,
-  getNetworkInfoApi,
-  getRuntimeInfoApi,
-} from '@/api'
+import { serverApi } from '@/api'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SystemServerPage' })
 
@@ -177,13 +169,13 @@ async function fetchData() {
   try {
     loading.value = true
     const [rtRes, cpuRes, memRes, diskRes, netRes, boardRes, gpuRes] = await Promise.all([
-      getRuntimeInfoApi(),
-      getCpuInfoApi(),
-      getMemoryInfoApi(),
-      getDiskInfoApi(),
-      getNetworkInfoApi(),
-      getBoardInfoApi(),
-      getGpuInfoApi(),
+      serverApi.getRuntimeInfo(),
+      serverApi.getCpuInfo(),
+      serverApi.getMemoryInfo(),
+      serverApi.getDiskInfo(),
+      serverApi.getNetworkInfo(),
+      serverApi.getBoardInfo(),
+      serverApi.getGpuInfo(),
     ])
     runtimeInfo.value = rtRes ?? null
     cpuInfo.value = cpuRes ?? null
@@ -243,7 +235,7 @@ onUnmounted(() => {
               <div class="sv-skeleton-circle">
                 <NSkeleton circle :width="160" :height="160" />
               </div>
-              <div class="w-full space-y-2">
+              <div class="space-y-2 w-full">
                 <NSkeleton text :repeat="4" />
               </div>
             </div>
@@ -449,7 +441,7 @@ onUnmounted(() => {
           <div class="sv-card-header">
             <Icon icon="lucide:monitor" width="16" />
             <span>显卡信息</span>
-            <NTag v-if="gpuInfos.length" size="tiny" :bordered="false" class="ml-auto">
+            <NTag v-if="gpuInfos.length" size="small" :bordered="false" type="info" class="sv-pkg-count">
               {{ gpuInfos.length }} 个
             </NTag>
           </div>
@@ -508,7 +500,7 @@ onUnmounted(() => {
           <div class="sv-card-header">
             <Icon icon="lucide:network" width="16" />
             <span>网络信息</span>
-            <NTag v-if="activeNetworks.length" size="tiny" :bordered="false" class="ml-auto">
+            <NTag v-if="activeNetworks.length" size="small" :bordered="false" type="info" class="sv-pkg-count">
               {{ activeNetworks.length }} 个活跃
             </NTag>
           </div>
@@ -789,6 +781,11 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.sv-pkg-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ========== Performance (CPU/MEM) ========== */

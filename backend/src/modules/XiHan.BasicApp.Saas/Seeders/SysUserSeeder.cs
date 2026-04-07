@@ -66,30 +66,32 @@ public class SysUserSeeder : DataSeederBase
             {
                 TenantId = null,
                 UserName = "superadmin",
-                Password = passwordHasher.HashPassword("Admin@123"),
+                Password = passwordHasher.HashPassword("SuperAdmin@123"),
                 RealName = "超级管理员",
-                NickName = "Admin",
+                NickName = "SuperAdmin",
                 Gender = UserGender.Male,
-                Email = "admin@xihanfun.com",
+                Email = "superadmin@xihanfun.com",
                 Phone = "13800138000",
-                Avatar = "/assets/avatars/admin.png",
+                Avatar = "/assets/avatars/superadmin.png",
                 Language = "zh-CN",
-                Status = YesOrNo.Yes
+                Status = YesOrNo.Yes,
+                IsSystemAccount = true
             },
             // 系统管理员
             new()
             {
                 TenantId = null,
-                UserName = "systemadmin",
-                Password = passwordHasher.HashPassword("System@123"),
+                UserName = "admin",
+                Password = passwordHasher.HashPassword("Admin@123"),
                 RealName = "系统管理员",
-                NickName = "System",
+                NickName = "Admin",
                 Gender = UserGender.Male,
-                Email = "system@xihanfun.com",
+                Email = "admin@xihanfun.com",
                 Phone = "13800138001",
-                Avatar = "/assets/avatars/system.png",
+                Avatar = "/assets/avatars/admin.png",
                 Language = "zh-CN",
-                Status = YesOrNo.Yes
+                Status = YesOrNo.Yes,
+                IsSystemAccount = true
             },
             // 测试用户
             new()

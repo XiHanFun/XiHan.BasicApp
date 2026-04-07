@@ -94,6 +94,8 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "operation_log", ResourceName = "操作日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/oplog", Icon = "history", Description = "操作日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 301 },
             new() { ParentId = null, ResourceCode = "exception_log", ResourceName = "异常日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/exlog", Icon = "alert-triangle", Description = "异常日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 302 },
             new() { ParentId = null, ResourceCode = "audit_log", ResourceName = "差异日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/difflog", Icon = "file-diff", Description = "差异日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 303 },
+            new() { ParentId = null, ResourceCode = "login_log", ResourceName = "登录日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/loginlog", Icon = "log-in", Description = "登录日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 304 },
+            new() { ParentId = null, ResourceCode = "task_log", ResourceName = "调度日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/tasklog", Icon = "calendar-clock", Description = "调度日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 305 },
 
             // API 资源
             new() { ParentId = null, ResourceCode = "user_api", ResourceName = "用户API", ResourceType = ResourceType.Api, ResourcePath = "/api/users", Description = "用户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 500 },
@@ -109,6 +111,8 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "operation_log_api", ResourceName = "操作日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/operation-logs", Description = "操作日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 601 },
             new() { ParentId = null, ResourceCode = "exception_log_api", ResourceName = "异常日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/exception-logs", Description = "异常日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 602 },
             new() { ParentId = null, ResourceCode = "audit_log_api", ResourceName = "差异日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/audit-logs", Description = "差异日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 603 },
+            new() { ParentId = null, ResourceCode = "login_log_api", ResourceName = "登录日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/login-logs", Description = "登录日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 604 },
+            new() { ParentId = null, ResourceCode = "task_log_api", ResourceName = "调度日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/task-logs", Description = "调度日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 605 },
 
             // 关于系统
             new() { ParentId = null, ResourceCode = "about", ResourceName = "关于系统", ResourceType = ResourceType.Menu, ResourcePath = "/about", Icon = "info", Description = "系统关于页面", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 999 },
@@ -116,7 +120,7 @@ public class SysResourceSeeder : DataSeederBase
 
         await BulkInsertAsync(resources);
         await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
-        await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log"]);
+        await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log"]);
         await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "messaging", "log"]);
         await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
 

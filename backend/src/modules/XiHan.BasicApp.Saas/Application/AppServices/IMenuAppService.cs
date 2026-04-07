@@ -15,7 +15,6 @@
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 菜单应用服务
 /// </summary>
 public interface IMenuAppService
-    : ICrudApplicationService<SysMenu, MenuDto, long, MenuCreateDto, MenuUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<MenuDto, long, MenuCreateDto, MenuUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 获取所有菜单列表

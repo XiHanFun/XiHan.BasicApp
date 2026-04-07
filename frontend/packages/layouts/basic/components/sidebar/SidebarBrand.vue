@@ -14,7 +14,7 @@ interface SidebarBrandProps {
   sidebarCollapsedShowTitle: boolean
 }
 
-// Keep logo behavior consistent with vben:
+// Keep logo behavior consistent with xihan:
 // collapsed menu still uses collapsed logo text state.
 const showCollapsed = computed(() => props.collapsed)
 </script>

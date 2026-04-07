@@ -16,7 +16,9 @@ using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Security;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -36,6 +38,8 @@ public class OAuthAppService
 {
     private readonly IOAuthAppRepository _oauthAppRepository;
     private readonly IConfigRepository _configRepository;
+    private readonly IOAuthAppQueryService _queryService;
+    private readonly IOAuthAppDomainService _domainService;
     private readonly IRbacLookupCacheService _lookupCacheService;
 
     /// <summary>
@@ -44,12 +48,24 @@ public class OAuthAppService
     public OAuthAppService(
         IOAuthAppRepository oauthAppRepository,
         IConfigRepository configRepository,
+        IOAuthAppQueryService queryService,
+        IOAuthAppDomainService domainService,
         IRbacLookupCacheService lookupCacheService)
         : base(oauthAppRepository)
     {
         _oauthAppRepository = oauthAppRepository;
         _configRepository = configRepository;
+        _queryService = queryService;
+        _domainService = domainService;
         _lookupCacheService = lookupCacheService;
+    }
+
+    /// <summary>
+    /// ID 查询（委托 QueryService，走缓存）
+    /// </summary>
+    public override async Task<OAuthAppDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -148,70 +164,35 @@ public class OAuthAppService
     }
 
     /// <summary>
-    /// 创建 OAuth 应用
+    /// 创建 OAuth 应用（委托 DomainService）
     /// </summary>
     public override async Task<OAuthAppDto> CreateAsync(OAuthAppCreateDto input)
     {
         input.ValidateAnnotations();
-
-        var normalizedClientId = input.ClientId.Trim();
-        var exists = await _oauthAppRepository.IsClientIdExistsAsync(normalizedClientId, input.TenantId);
-        if (exists)
-        {
-            throw new BusinessException(message: $"客户端ID '{normalizedClientId}' 已存在");
-        }
-
-        var dto = await base.CreateAsync(input);
-        await _lookupCacheService.InvalidateOAuthAppLookupAsync(input.TenantId);
-        return dto;
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
+        return created.Adapt<OAuthAppDto>()!;
     }
 
     /// <summary>
-    /// 更新 OAuth 应用
+    /// 更新 OAuth 应用（委托 DomainService）
     /// </summary>
     public override async Task<OAuthAppDto> UpdateAsync(OAuthAppUpdateDto input)
     {
         input.ValidateAnnotations();
-        var entity = await _oauthAppRepository.GetByIdAsync(input.BasicId)
+        var entity = await Repository.GetByIdAsync(input.BasicId)
                      ?? throw new KeyNotFoundException($"未找到 OAuth 应用: {input.BasicId}");
-        var dto = await base.UpdateAsync(input);
-        await _lookupCacheService.InvalidateOAuthAppLookupAsync(entity.TenantId);
-        return dto;
+        await MapDtoToEntityAsync(input, entity);
+        var updated = await _domainService.UpdateAsync(entity);
+        return updated.Adapt<OAuthAppDto>()!;
     }
 
     /// <summary>
-    /// 删除 OAuth 应用
+    /// 删除 OAuth 应用（委托 DomainService）
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException("OAuth 应用 ID 无效", nameof(id));
-        }
-
-        var entity = await _oauthAppRepository.GetByIdAsync(id);
-        if (entity is null)
-        {
-            return false;
-        }
-
-        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(entity.ClientId);
-        var config = await _configRepository.GetByConfigKeyAsync(configKey, entity.TenantId);
-
-        var deleted = await base.DeleteAsync(id);
-        if (deleted)
-        {
-            if (config is not null)
-            {
-                await _configRepository.DeleteAsync(config);
-            }
-
-            await _lookupCacheService.InvalidateOAuthAppLookupAsync(entity.TenantId);
-        }
-
-        return deleted;
+        return await _domainService.DeleteAsync(id);
     }
 
     /// <summary>
@@ -261,13 +242,6 @@ public class OAuthAppService
         return Task.CompletedTask;
     }
 
-    private async Task<OpenApiClientSecurityConfig?> LoadOpenApiConfigAsync(string clientId, long? tenantId)
-    {
-        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(clientId);
-        var config = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
-        return OpenApiClientSecurityConfigHelper.Deserialize(config?.ConfigValue);
-    }
-
     private static OAuthAppOpenApiSecurityDto ToOpenApiSecurityDto(long appId, OpenApiClientSecurityConfig config)
     {
         return new OAuthAppOpenApiSecurityDto
@@ -283,5 +257,12 @@ public class OAuthAppService
             AllowResponseEncryption = config.AllowResponseEncryption,
             IpWhitelist = config.IpWhitelist
         };
+    }
+
+    private async Task<OpenApiClientSecurityConfig?> LoadOpenApiConfigAsync(string clientId, long? tenantId)
+    {
+        var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(clientId);
+        var config = await _configRepository.GetByConfigKeyAsync(configKey, tenantId);
+        return OpenApiClientSecurityConfigHelper.Deserialize(config?.ConfigValue);
     }
 }

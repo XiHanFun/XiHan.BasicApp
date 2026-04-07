@@ -31,7 +31,7 @@ public class UserSessionDto : BasicAppDto
     /// <summary>
     /// 会话标识
     /// </summary>
-    public string SessionId { get; set; } = string.Empty;
+    public string UserSessionId { get; set; } = string.Empty;
 
     /// <summary>
     /// 设备类型
@@ -44,9 +44,24 @@ public class UserSessionDto : BasicAppDto
     public string? DeviceName { get; set; }
 
     /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统
+    /// </summary>
+    public string? OperatingSystem { get; set; }
+
+    /// <summary>
     /// IP 地址
     /// </summary>
     public string? IpAddress { get; set; }
+
+    /// <summary>
+    /// 登录位置
+    /// </summary>
+    public string? Location { get; set; }
 
     /// <summary>
     /// 登录时间
