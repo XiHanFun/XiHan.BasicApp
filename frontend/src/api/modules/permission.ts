@@ -1,14 +1,43 @@
-import type { PageResult, PermissionPageQuery, SysPermission } from '~/types'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
 import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
 
-const PERMISSION_API = '/api/Permission'
+const api = useBaseApi('Permission')
+
+// -------- 类型 --------
+
+export interface SysPermission {
+  basicId: string
+  resourceId: string
+  operationId: string
+  permissionName: string
+  permissionCode: string
+  permissionDescription?: string
+  description?: string
+  isRequireAudit?: boolean
+  priority?: number
+  sort?: number
+  tenantId?: number
+  remark?: string
+  createTime?: string
+  updateTime?: string
+  groupName?: string
+  status?: number
+}
+
+export interface PermissionPageQuery extends PageQuery {
+  status?: number
+  resourceId?: string
+  operationId?: string
+}
+
+// -------- 内部 --------
 
 function normalizePermission(raw: Record<string, any>): SysPermission {
   return {
     basicId: toId(raw.basicId),
-    resourceId: toNumber(raw.resourceId, 0),
-    operationId: toNumber(raw.operationId, 0),
+    resourceId: toId(raw.resourceId),
+    operationId: toId(raw.operationId),
     permissionName: raw.permissionName ?? '',
     permissionCode: raw.permissionCode ?? '',
     permissionDescription: raw.permissionDescription ?? raw.description ?? '',
@@ -25,10 +54,10 @@ function normalizePermission(raw: Record<string, any>): SysPermission {
   }
 }
 
-function toPermissionCreatePayload(data: Partial<SysPermission>) {
+function toCreatePayload(data: Partial<SysPermission>) {
   return {
-    resourceId: Math.max(1, toNumber(data.resourceId, 1)),
-    operationId: Math.max(1, toNumber(data.operationId, 1)),
+    resourceId: toId(data.resourceId ?? '1') || '1',
+    operationId: toId(data.operationId ?? '1') || '1',
     permissionCode: data.permissionCode ?? '',
     permissionName: data.permissionName ?? '',
     permissionDescription: data.permissionDescription ?? data.description ?? '',
@@ -40,68 +69,39 @@ function toPermissionCreatePayload(data: Partial<SysPermission>) {
   }
 }
 
-function toPermissionUpdatePayload(id: string, data: Partial<SysPermission>) {
+function toUpdatePayload(id: string, data: Partial<SysPermission>) {
   return {
-    ...toPermissionCreatePayload(data),
+    ...toCreatePayload(data),
     status: toNumber(data.status, 1),
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
-export async function getPermissionPageApi(
-  params: PermissionPageQuery,
-): Promise<PageResult<SysPermission>> {
-  const data = await requestClient.post<any>(
-    `${PERMISSION_API}/Page`,
-    buildPageRequest(params, {
-      keywordFields: ['PermissionCode', 'PermissionName', 'PermissionDescription'],
-      filterFieldMap: {
-        status: 'Status',
-        resourceId: 'ResourceId',
-        operationId: 'OperationId',
-      },
-    }),
-  )
-  return normalizePageResult(data, normalizePermission)
+const PAGE_OPTIONS = {
+  keywordFields: ['PermissionCode', 'PermissionName', 'PermissionDescription'],
+  filterFieldMap: { status: 'Status', resourceId: 'ResourceId', operationId: 'OperationId' },
 }
 
-export async function getPermissionListApi(params: Partial<PermissionPageQuery> = {}) {
-  const data = await requestClient.post<any>(
-    `${PERMISSION_API}/Page`,
-    buildPageRequest(
-      { page: 1, pageSize: 9999, ...params },
-      {
-        disablePaging: true,
-        keywordFields: ['PermissionCode', 'PermissionName', 'PermissionDescription'],
-        filterFieldMap: {
-          status: 'Status',
-          resourceId: 'ResourceId',
-          operationId: 'OperationId',
-        },
-      },
-    ),
-  )
-  return normalizePageResult(data, normalizePermission).items
-}
+// -------- API --------
 
-export function getPermissionDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${PERMISSION_API}/ById`, { params: { id } })
-    .then(raw => normalizePermission(raw))
-}
+export const permissionApi = {
+  page: (params: Record<string, any>) => api.page(params, PAGE_OPTIONS),
 
-export function createPermissionApi(data: Partial<SysPermission>) {
-  return requestClient.post<void>(`${PERMISSION_API}/Create`, toPermissionCreatePayload(data))
-}
+  list: async (params: Partial<PermissionPageQuery> = {}) => {
+    const data = await api.request.post<any>(
+      `${api.baseUrl}Page`,
+      buildPageRequest({ page: 1, pageSize: 9999, ...params }, { disablePaging: true, ...PAGE_OPTIONS }),
+    )
+    return normalizePageResult(data, normalizePermission).items
+  },
 
-export function updatePermissionApi(id: string, data: Partial<SysPermission>) {
-  return requestClient.put<void>(`${PERMISSION_API}/Update`, toPermissionUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizePermission),
 
-export function deletePermissionApi(id: string) {
-  return requestClient.delete<void>(`${PERMISSION_API}/Delete`, {
-    params: { id },
-  })
+  create: (data: Partial<SysPermission>) => api.create(toCreatePayload(data)),
+
+  update: (id: string, data: Partial<SysPermission>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
+
+  delete: (id: string) => api.delete(id),
 }

@@ -66,4 +66,31 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
 
         return await query.FirstAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysConfig>> GetByGroupAsync(string? configGroup, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateTenantQueryable();
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(config => config.TenantId == tenantId.Value);
+        }
+        else
+        {
+            query = query.Where(config => config.TenantId == null);
+        }
+
+        if (string.IsNullOrWhiteSpace(configGroup))
+        {
+            query = query.Where(config => config.ConfigGroup == null || config.ConfigGroup == string.Empty);
+        }
+        else
+        {
+            query = query.Where(config => config.ConfigGroup == configGroup);
+        }
+
+        var list = await query.ToListAsync(cancellationToken);
+        return list;
+    }
 }

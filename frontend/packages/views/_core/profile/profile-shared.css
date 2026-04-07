@@ -1,0 +1,114 @@
+/* 个人中心子组件共享样式 */
+
+.pf-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.pf-card {
+  background: var(--bg-card);
+}
+
+.pf-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pf-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pf-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pf-full {
+  width: 100%;
+}
+
+.pf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  transition: border-color 0.2s;
+}
+
+.pf-list-item:hover {
+  border-color: hsl(var(--primary) / 25%);
+}
+
+.pf-list-item--active {
+  border-color: hsl(var(--primary) / 30%);
+  background: hsl(var(--primary) / 4%);
+}
+
+.pf-list-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: hsl(var(--muted));
+  color: var(--text-secondary);
+}
+
+.pf-list-icon--active {
+  background: hsl(var(--primary) / 10%);
+  color: hsl(var(--primary));
+}
+
+.pf-list-icon--danger {
+  background: hsl(0 80% 55% / 10%);
+  color: var(--color-error);
+}
+
+.pf-list-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-list-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-list-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-list-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}

@@ -10,12 +10,16 @@ import AppTabbar from './components/AppTabbar.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
 import { useLayoutShellAdapter } from './composables'
+import { useSignalRIntegration } from './composables/use-signalr-integration'
 import { LayoutContentRenderer } from './core'
 
 defineOptions({ name: 'BasicLayout' })
 
 const { isDark, themeOverrides } = useTheme()
 const shell = useLayoutShellAdapter()
+
+// 初始化 SignalR 连接（实时通知 + 踢下线）
+useSignalRIntegration()
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
@@ -81,9 +85,8 @@ const sidebarEnableState = computed(
     <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
       <!-- Header + Tabbar wrapper -->
       <div
-        :class="{ 'shadow-[0_16px_24px_hsl(var(--background))]': shell.scrollY.value > 20 }"
         :style="shell.headerWrapperStyle.value"
-        class="overflow-hidden transition-all duration-200"
+        class="overflow-hidden"
       >
         <!-- Header -->
         <header
@@ -138,9 +141,9 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="transition-[margin-top] duration-200" :style="shell.contentStyle.value">
+      <div class="flex-1 overflow-auto transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <div
-          class="min-h-full"
+          class="h-full"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
@@ -162,8 +165,8 @@ const sidebarEnableState = computed(
           width: shell.footerWidth.value,
           zIndex: shell.appStore.footerFixed ? 199 : undefined,
         }"
-        class="footer-bar bottom-0 flex w-full border-t border-border bg-background px-4 text-xs text-muted-foreground transition-all duration-200"
-        :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-1 py-2' : 'flex-row items-center'"
+        class="footer-bar bottom-0 flex w-full border-t border-border bg-background text-xs text-muted-foreground transition-all duration-200"
+        :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-0.5 px-3 py-1' : 'flex-row items-center px-4'"
       >
         <!-- Left: Dev version info -->
         <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
@@ -219,6 +222,10 @@ const sidebarEnableState = computed(
 <style scoped>
 .footer-bar {
   gap: 8px;
+}
+
+.footer-bar.flex-col {
+  gap: 4px;
 }
 
 .footer-section-left {

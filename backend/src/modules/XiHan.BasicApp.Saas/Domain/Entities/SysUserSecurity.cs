@@ -14,6 +14,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -80,12 +81,24 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     public virtual bool TwoFactorEnabled { get; set; } = false;
 
     /// <summary>
-    /// 双因素认证密钥（敏感信息）
+    /// 双因素认证方式
+    /// </summary>
+    [SugarColumn(ColumnDescription = "双因素认证方式")]
+    public virtual TwoFactorMethod TwoFactorMethod { get; set; } = TwoFactorMethod.None;
+
+    /// <summary>
+    /// 双因素认证密钥（敏感信息，仅 TOTP 使用）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "双因素认证密钥", Length = 200, IsNullable = true)]
     public virtual string? TwoFactorSecret { get; set; }
+
+    /// <summary>
+    /// 最后修改用户名时间
+    /// </summary>
+    [SugarColumn(ColumnDescription = "最后修改用户名时间", IsNullable = true)]
+    public virtual DateTimeOffset? LastUserNameChangeTime { get; set; }
 
     /// <summary>
     /// 安全戳（用于强制重新登录）

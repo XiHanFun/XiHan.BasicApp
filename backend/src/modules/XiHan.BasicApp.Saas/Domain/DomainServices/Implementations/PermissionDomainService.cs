@@ -14,46 +14,72 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
+using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 
 /// <summary>
 /// 权限规则领域服务实现
 /// </summary>
-public class PermissionDomainService : IPermissionDomainService
+public class PermissionDomainService : IPermissionDomainService, ITransientDependency
 {
     private readonly IPermissionRepository _permissionRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IUserRepository _userRepository;
     private readonly IOrganizationDomainService _organizationDomainService;
+    private readonly ILocalEventBus _localEventBus;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="permissionRepository">权限仓储</param>
-    /// <param name="roleRepository">角色仓储</param>
-    /// <param name="userRepository">用户仓储</param>
-    /// <param name="organizationDomainService">组织架构领域服务</param>
     public PermissionDomainService(
         IPermissionRepository permissionRepository,
         IRoleRepository roleRepository,
         IUserRepository userRepository,
-        IOrganizationDomainService organizationDomainService)
+        IOrganizationDomainService organizationDomainService,
+        ILocalEventBus localEventBus)
     {
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
         _userRepository = userRepository;
         _organizationDomainService = organizationDomainService;
+        _localEventBus = localEventBus;
     }
 
-    /// <summary>
-    /// 获取用户最终权限编码
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
+    public async Task<SysPermission> CreateAsync(SysPermission permission)
+    {
+        var created = await _permissionRepository.AddAsync(permission);
+        await _localEventBus.PublishAsync(new PermissionChangedDomainEvent(created.BasicId));
+        return created;
+    }
+
+    /// <inheritdoc />
+    public async Task<SysPermission> UpdateAsync(SysPermission permission)
+    {
+        var updated = await _permissionRepository.UpdateAsync(permission);
+        await _localEventBus.PublishAsync(new PermissionChangedDomainEvent(updated.BasicId));
+        return updated;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteAsync(long id)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(id);
+        if (permission == null) return false;
+
+        var result = await _permissionRepository.DeleteAsync(permission);
+        if (result)
+        {
+            await _localEventBus.PublishAsync(new PermissionChangedDomainEvent(id));
+        }
+        return result;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyCollection<string>> GetUserPermissionCodesAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var permissions = await _permissionRepository.GetUserPermissionsAsync(userId, tenantId, cancellationToken);
@@ -64,14 +90,7 @@ public class PermissionDomainService : IPermissionDomainService
             .ToArray();
     }
 
-    /// <summary>
-    /// 判断用户是否具备某权限
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="permissionCode"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<bool> HasPermissionAsync(long userId, string permissionCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
@@ -79,13 +98,7 @@ public class PermissionDomainService : IPermissionDomainService
         return codes.Contains(permissionCode, StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// 计算用户数据范围部门ID
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<IReadOnlyCollection<long>> GetUserDataScopeDepartmentIdsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var activeRoles = await GetActiveUserRolesAsync(userId, tenantId, cancellationToken);
@@ -96,7 +109,6 @@ public class PermissionDomainService : IPermissionDomainService
 
         if (activeRoles.Any(role => role.DataScope == DataPermissionScope.All))
         {
-            // 空集合表示不限部门（全量数据）
             return [];
         }
 
@@ -108,7 +120,6 @@ public class PermissionDomainService : IPermissionDomainService
 
         if (!hasDepartmentOnly && !hasDepartmentAndChildren && customRoles.Length == 0)
         {
-            // SelfOnly 等不基于部门范围控制的策略，在部门维度不做过滤。
             return [];
         }
 
@@ -117,29 +128,21 @@ public class PermissionDomainService : IPermissionDomainService
         if (hasDepartmentOnly)
         {
             var ownDepartments = await _organizationDomainService.GetUserDepartmentScopeIdsAsync(
-                userId,
-                includeChildren: false,
-                tenantId,
-                cancellationToken);
+                userId, includeChildren: false, tenantId, cancellationToken);
             scopeDepartmentIds.UnionWith(ownDepartments);
         }
 
         if (hasDepartmentAndChildren)
         {
             var ownAndChildrenDepartments = await _organizationDomainService.GetUserDepartmentScopeIdsAsync(
-                userId,
-                includeChildren: true,
-                tenantId,
-                cancellationToken);
+                userId, includeChildren: true, tenantId, cancellationToken);
             scopeDepartmentIds.UnionWith(ownAndChildrenDepartments);
         }
 
         foreach (var customRole in customRoles)
         {
             var customDepartmentIds = await _roleRepository.GetCustomDataScopeDepartmentIdsAsync(
-                customRole.BasicId,
-                tenantId ?? customRole.TenantId,
-                cancellationToken);
+                customRole.BasicId, tenantId ?? customRole.TenantId, cancellationToken);
             scopeDepartmentIds.UnionWith(customDepartmentIds);
         }
 

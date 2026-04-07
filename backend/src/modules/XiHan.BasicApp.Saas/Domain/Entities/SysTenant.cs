@@ -97,45 +97,13 @@ public partial class SysTenant : BasicAppAggregateRoot
     public virtual TenantDatabaseType? DatabaseType { get; set; }
 
     /// <summary>
-    /// 数据库服务器地址
-    /// </summary>
-    [SugarColumn(ColumnDescription = "数据库服务器地址", Length = 200, IsNullable = true)]
-    public virtual string? DatabaseHost { get; set; }
-
-    /// <summary>
-    /// 数据库端口
-    /// </summary>
-    [SugarColumn(ColumnDescription = "数据库端口", IsNullable = true)]
-    public virtual int? DatabasePort { get; set; }
-
-    /// <summary>
-    /// 数据库名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "数据库名称", Length = 100, IsNullable = true)]
-    public virtual string? DatabaseName { get; set; }
-
-    /// <summary>
     /// 数据库Schema
     /// </summary>
     [SugarColumn(ColumnDescription = "数据库Schema", Length = 100, IsNullable = true)]
     public virtual string? DatabaseSchema { get; set; }
 
     /// <summary>
-    /// 数据库用户名
-    /// </summary>
-    [SugarColumn(ColumnDescription = "数据库用户名", Length = 100, IsNullable = true)]
-    public virtual string? DatabaseUser { get; set; }
-
-    /// <summary>
-    /// 数据库密码（加密存储）
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "数据库密码", Length = 200, IsNullable = true)]
-    public virtual string? DatabasePassword { get; set; }
-
-    /// <summary>
-    /// 数据库连接字符串（敏感信息）
+    /// 数据库连接字符串（敏感信息加密存储）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]

@@ -21,6 +21,11 @@ using XiHan.Framework.Web.Core.Extensions.DependencyInjection;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    var configuredUrls = builder.Configuration["Hosting:Urls"];
+    if (!string.IsNullOrWhiteSpace(configuredUrls))
+    {
+        builder.WebHost.UseUrls(configuredUrls);
+    }
 
     await builder.AddApplicationAsync<XiHanBasicAppWebHostModule>();
 

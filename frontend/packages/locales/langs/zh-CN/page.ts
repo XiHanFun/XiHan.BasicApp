@@ -14,9 +14,9 @@ export default {
     register: '立即注册',
   },
   auth: {
-    slogan_title: '企业 SaaS 中后台内核',
+    slogan_title: 'B2B SaaS 中台内核',
     slogan_desc: '工程化、智能化、国际化',
-    welcome_back: '欢迎回来 👋🏻',
+    welcome_back: '欢迎回来',
     login_subtitle: '请输入您的账号密码以登录管理系统',
     select_account: '选择演示账号',
     mobile_login: '手机登录',
@@ -32,18 +32,23 @@ export default {
     code_length_tip: '请输入6位验证码',
     send_code: '获取验证码',
     code_sent: '验证码已发送',
+    // 双因素认证
+    two_factor_title: '双因素验证',
+    two_factor_subtitle: '您的账号已开启双因素认证，请输入认证器应用中的 6 位验证码',
+    two_factor_hint: '打开 Google Authenticator / Microsoft Authenticator 等应用查看验证码',
+    two_factor_verify: '验证并登录',
     // 扫码登录
     qrcode_subtitle: '使用手机扫描二维码快速登录',
     qrcode_prompt: '打开手机APP，扫描二维码后即可登录',
     // 忘记密码
-    forget_password_title: '忘记密码 🤦🏻‍♂️',
+    forget_password_title: '忘记密码',
     forget_password_subtitle: '输入您的注册邮箱，我们将发送密码重置链接',
     email_placeholder: '请输入邮箱地址',
     email_invalid: '请输入有效的邮箱地址',
     send_reset_link: '发送重置链接',
     reset_link_sent: '重置链接已发送到您的邮箱',
     // 注册
-    create_account_title: '创建账号 🚀',
+    create_account_title: '创建账号',
     register_subtitle: '填写以下信息创建您的管理账号',
     username_min_length: '用户名至少3个字符',
     password_min_length: '密码至少6个字符',
@@ -58,6 +63,12 @@ export default {
     register_success: '注册成功',
     already_have_account: '已有账号?',
     go_to_login: '去登录',
+    // 第三方登录回调
+    oauth_callback_title: '第三方登录',
+    oauth_callback_loading: '正在完成第三方登录，请稍候...',
+    oauth_callback_failed: '第三方登录失败，请重试',
+    oauth_callback_missing_token: '登录信息缺失，请重新登录',
+    oauth_callback_redirect: '即将返回登录页面...',
     // 密码强度
     strength_weak: '弱',
     strength_medium: '中',
@@ -127,6 +138,12 @@ export default {
     tech_stack: '技术栈',
     open_source: '开源地址',
     open_source_desc: '项目已在 GitHub 开源，欢迎 Star 与贡献',
+  },
+  signalr: {
+    force_logout_title: '会话已失效',
+    force_logout_reason: '您的账号已在其他设备登录，当前会话已下线',
+    force_logout_confirm: '确定',
+    new_notification: '新消息',
   },
   menu: {
     title: '菜单管理',

@@ -39,6 +39,16 @@ export const routes: RouteRecordRaw[] = [
           icon: 'lucide:info',
         },
       },
+      {
+        path: 'editor-demo',
+        name: 'EditorDemo',
+        component: () => import('~/views/_core/editor-demo/index.vue'),
+        meta: {
+          title: '编辑器演示',
+          icon: 'lucide:file-edit',
+          hidden: true,
+        },
+      },
     ],
   },
   ...coreRoutes,

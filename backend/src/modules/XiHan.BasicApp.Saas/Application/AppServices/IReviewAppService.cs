@@ -15,7 +15,6 @@
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 审查应用服务
 /// </summary>
 public interface IReviewAppService
-    : ICrudApplicationService<SysReview, ReviewDto, long, ReviewCreateDto, ReviewUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<ReviewDto, long, ReviewCreateDto, ReviewUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据审查编码获取审查

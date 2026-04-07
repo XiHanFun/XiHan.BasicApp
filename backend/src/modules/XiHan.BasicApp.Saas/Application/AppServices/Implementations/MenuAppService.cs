@@ -16,7 +16,9 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -35,15 +37,34 @@ public class MenuAppService
         IMenuAppService
 {
     private readonly IMenuRepository _menuRepository;
+    private readonly IMenuQueryService _queryService;
+    private readonly IMenuDomainService _domainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="menuRepository"></param>
-    public MenuAppService(IMenuRepository menuRepository)
+    /// <param name="queryService"></param>
+    /// <param name="domainService"></param>
+    public MenuAppService(
+        IMenuRepository menuRepository,
+        IMenuQueryService queryService,
+        IMenuDomainService domainService)
         : base(menuRepository)
     {
         _menuRepository = menuRepository;
+        _queryService = queryService;
+        _domainService = domainService;
+    }
+
+    /// <summary>
+    /// 根据ID获取菜单
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<MenuDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -129,7 +150,9 @@ public class MenuAppService
         await EnsureMenuCodeUniqueAsync(normalizedCode, null, input.TenantId);
         await EnsureValidParentAsync(input.ParentId, null, input.TenantId);
 
-        return await base.CreateAsync(input);
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
+        return created.Adapt<MenuDto>()!;
     }
 
     /// <summary>
@@ -149,8 +172,18 @@ public class MenuAppService
         await EnsureValidParentAsync(input.ParentId, input.BasicId, menu.TenantId);
 
         await MapDtoToEntityAsync(input, menu);
-        var updated = await _menuRepository.UpdateAsync(menu);
+        var updated = await _domainService.UpdateAsync(menu);
         return updated.Adapt<MenuDto>()!;
+    }
+
+    /// <summary>
+    /// 删除菜单
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        return await _domainService.DeleteAsync(id);
     }
 
     /// <summary>
@@ -179,6 +212,9 @@ public class MenuAppService
             IsCache = createDto.IsCache,
             IsVisible = createDto.IsVisible,
             IsAffix = createDto.IsAffix,
+            Badge = createDto.Badge,
+            BadgeType = createDto.BadgeType,
+            BadgeDot = createDto.BadgeDot,
             Sort = createDto.Sort,
             Remark = createDto.Remark
         };
@@ -210,6 +246,9 @@ public class MenuAppService
         entity.IsCache = updateDto.IsCache;
         entity.IsVisible = updateDto.IsVisible;
         entity.IsAffix = updateDto.IsAffix;
+        entity.Badge = updateDto.Badge;
+        entity.BadgeType = updateDto.BadgeType;
+        entity.BadgeDot = updateDto.BadgeDot;
         entity.Status = updateDto.Status;
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;

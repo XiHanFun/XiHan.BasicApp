@@ -7,6 +7,7 @@ import {
   BREADCRUMB_HIDE_ONLY_ONE_KEY,
   BREADCRUMB_SHOW_HOME_KEY,
   BREADCRUMB_SHOW_ICON_KEY,
+  BREADCRUMB_NAV_BUTTONS_KEY,
   BREADCRUMB_STYLE_KEY,
   CHECK_UPDATES_KEY,
   COLOR_WEAKNESS_ENABLED_KEY,
@@ -19,6 +20,8 @@ import {
   COPYRIGHT_NAME_KEY,
   COPYRIGHT_SITE_KEY,
   DEFAULT_FONT_SIZE,
+  FROSTED_GLASS_ENABLED_KEY,
+  FROSTED_GLASS_INTENSITY_KEY,
   DEFAULT_LAYOUT_MODE,
   DEFAULT_LOCALE,
   DEFAULT_THEME,
@@ -193,6 +196,9 @@ export const useAppStore = defineStore('app', () => {
   const breadcrumbStyle = ref<'normal' | 'background'>(
     LocalStorage.get(BREADCRUMB_STYLE_KEY) ?? 'background',
   )
+  const breadcrumbNavButtons = ref<boolean>(
+    LocalStorage.get<boolean>(BREADCRUMB_NAV_BUTTONS_KEY) ?? true,
+  )
 
   const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
@@ -201,11 +207,14 @@ export const useAppStore = defineStore('app', () => {
     LocalStorage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
   )
   const transitionEnable = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
-  const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'fade')
+  const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'slide-left')
   const transitionProgress = ref<boolean>(
     LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true,
   )
   const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
+
+  const frostedGlassEnabled = ref<boolean>(LocalStorage.get<boolean>(FROSTED_GLASS_ENABLED_KEY) ?? false)
+  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 20)
 
   const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
@@ -304,6 +313,7 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(BREADCRUMB_SHOW_ICON_KEY, breadcrumbShowIcon)
   bindPersist(BREADCRUMB_HIDE_ONLY_ONE_KEY, breadcrumbHideOnlyOne)
   bindPersist(BREADCRUMB_STYLE_KEY, breadcrumbStyle)
+  bindPersist(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons)
   bindPersist(SEARCH_ENABLED_KEY, searchEnabled)
   bindPersist(DYNAMIC_TITLE_KEY, dynamicTitle)
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates)
@@ -312,6 +322,8 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(TRANSITION_NAME_KEY, transitionName)
   bindPersist(TRANSITION_PROGRESS_KEY, transitionProgress)
   bindPersist(TRANSITION_LOADING_KEY, transitionLoading)
+  bindPersist(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled)
+  bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity)
   bindPersist(GRAYSCALE_ENABLED_KEY, grayscaleEnabled)
   bindPersist(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled)
   bindPersist(WATERMARK_ENABLED_KEY, watermarkEnabled)
@@ -442,6 +454,9 @@ export const useAppStore = defineStore('app', () => {
   function setBreadcrumbStyle(v: 'normal' | 'background') {
     save(BREADCRUMB_STYLE_KEY, breadcrumbStyle, v)
   }
+  function setBreadcrumbNavButtons(v: boolean) {
+    save(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons, v)
+  }
 
   function setSearchEnabled(v: boolean) {
     save(SEARCH_ENABLED_KEY, searchEnabled, v)
@@ -466,6 +481,13 @@ export const useAppStore = defineStore('app', () => {
   }
   function setTransitionLoading(v: boolean) {
     save(TRANSITION_LOADING_KEY, transitionLoading, v)
+  }
+
+  function setFrostedGlassEnabled(v: boolean) {
+    save(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled, v)
+  }
+  function setFrostedGlassIntensity(v: number) {
+    save(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, Math.min(100, Math.max(0, v)))
   }
 
   function setGrayscaleEnabled(v: boolean) {
@@ -651,6 +673,7 @@ export const useAppStore = defineStore('app', () => {
     breadcrumbShowIcon,
     breadcrumbHideOnlyOne,
     breadcrumbStyle,
+    breadcrumbNavButtons,
     searchEnabled,
     dynamicTitle,
     enableCheckUpdates,
@@ -659,6 +682,8 @@ export const useAppStore = defineStore('app', () => {
     transitionName,
     transitionProgress,
     transitionLoading,
+    frostedGlassEnabled,
+    frostedGlassIntensity,
     grayscaleEnabled,
     colorWeaknessEnabled,
     watermarkEnabled,
@@ -715,6 +740,7 @@ export const useAppStore = defineStore('app', () => {
     setBreadcrumbShowIcon,
     setBreadcrumbHideOnlyOne,
     setBreadcrumbStyle,
+    setBreadcrumbNavButtons,
     setSearchEnabled,
     setDynamicTitle,
     setEnableCheckUpdates,
@@ -723,6 +749,8 @@ export const useAppStore = defineStore('app', () => {
     setTransitionName,
     setTransitionProgress,
     setTransitionLoading,
+    setFrostedGlassEnabled,
+    setFrostedGlassIntensity,
     setGrayscaleEnabled,
     setColorWeaknessEnabled,
     setWatermarkEnabled,

@@ -16,7 +16,6 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -24,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 权限应用服务
 /// </summary>
 public interface IPermissionAppService
-    : ICrudApplicationService<SysPermission, PermissionDto, long, PermissionCreateDto, PermissionUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<PermissionDto, long, PermissionCreateDto, PermissionUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 根据角色ID获取权限

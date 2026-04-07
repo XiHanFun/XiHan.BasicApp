@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:OperationLogDto
-// Guid:a1b2c3d4-0001-0002-0001-000000000001
+// Guid:d41377fb-87a4-4f9f-b607-3838228d3d27
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/03/10 12:00:00

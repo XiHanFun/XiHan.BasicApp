@@ -16,16 +16,25 @@ export interface UserInfo {
   permissions: string[]
 }
 
+export interface OAuthProviderItem {
+  name: string
+  displayName: string
+}
+
 export interface LoginConfig {
   loginMethods: string[]
   tenantEnabled: boolean
-  oauthProviders: string[]
+  oauthProviders: OAuthProviderItem[]
 }
 
 export interface LoginParams {
   username: string
   password: string
   tenantId?: null | number
+  /** 双因素验证码（开启 2FA 时必填） */
+  twoFactorCode?: string
+  /** 用户选择的双因素方式（totp/email/phone） */
+  twoFactorMethod?: string
 }
 
 export interface RegisterParams {
@@ -53,7 +62,20 @@ export interface PasswordResetResult {
   temporaryPassword?: string
 }
 
-export interface LoginResult {
+/** 登录响应（区分正常登录与双因素验证挑战） */
+export interface LoginResponse {
+  requiresTwoFactor: boolean
+  /** 可用的双因素方式列表 */
+  availableTwoFactorMethods?: string[]
+  /** 当前选中的双因素方式 */
+  twoFactorMethod?: string
+  /** 验证码是否已发送（邮箱/手机方式） */
+  codeSent?: boolean
+  token: LoginToken | null
+}
+
+/** 鉴权令牌 */
+export interface LoginToken {
   accessToken: string
   refreshToken: string
   tokenType: string
@@ -67,3 +89,4 @@ export interface PermissionInfo {
   permissions: string[]
   menus: MenuRoute[]
 }
+

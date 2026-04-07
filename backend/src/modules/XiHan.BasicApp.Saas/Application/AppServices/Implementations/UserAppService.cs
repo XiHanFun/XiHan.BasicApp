@@ -15,6 +15,7 @@
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -41,6 +42,7 @@ public class UserAppService
     private readonly IPermissionRepository _permissionRepository;
     private readonly IDepartmentRepository _departmentRepository;
     private readonly IUserManager _userManager;
+    private readonly IUserQueryService _queryService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -51,6 +53,7 @@ public class UserAppService
     /// <param name="permissionRepository"></param>
     /// <param name="departmentRepository"></param>
     /// <param name="userManager"></param>
+    /// <param name="queryService"></param>
     /// <param name="unitOfWorkManager"></param>
     public UserAppService(
         IUserRepository userRepository,
@@ -58,6 +61,7 @@ public class UserAppService
         IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
         IUserManager userManager,
+        IUserQueryService queryService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(userRepository)
     {
@@ -66,7 +70,16 @@ public class UserAppService
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
         _userManager = userManager;
+        _queryService = queryService;
         _unitOfWorkManager = unitOfWorkManager;
+    }
+
+    /// <summary>
+    /// ID 查询（委托 QueryService，走缓存）
+    /// </summary>
+    public override async Task<UserDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>

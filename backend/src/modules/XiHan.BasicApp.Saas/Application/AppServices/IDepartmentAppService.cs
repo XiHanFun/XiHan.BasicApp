@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Contracts.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -23,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 部门应用服务
 /// </summary>
 public interface IDepartmentAppService
-    : ICrudApplicationService<SysDepartment, DepartmentDto, long, DepartmentCreateDto, DepartmentUpdateDto, BasicAppPRDto>
+    : ICrudApplicationService<DepartmentDto, long, DepartmentCreateDto, DepartmentUpdateDto, BasicAppPRDto>
 {
     /// <summary>
     /// 获取子部门

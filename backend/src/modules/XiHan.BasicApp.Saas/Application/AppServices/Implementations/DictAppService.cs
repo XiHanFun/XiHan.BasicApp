@@ -15,6 +15,8 @@
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -32,15 +34,34 @@ public class DictAppService
         IDictAppService
 {
     private readonly IDictRepository _dictRepository;
+    private readonly IDictQueryService _queryService;
+    private readonly IDictDomainService _domainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="dictRepository"></param>
-    public DictAppService(IDictRepository dictRepository)
+    /// <param name="queryService"></param>
+    /// <param name="domainService"></param>
+    public DictAppService(
+        IDictRepository dictRepository,
+        IDictQueryService queryService,
+        IDictDomainService domainService)
         : base(dictRepository)
     {
         _dictRepository = dictRepository;
+        _queryService = queryService;
+        _domainService = domainService;
+    }
+
+    /// <summary>
+    /// 根据ID获取字典
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<DictDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -98,10 +119,9 @@ public class DictAppService
     {
         input.ValidateAnnotations();
 
-        var normalizedCode = input.DictCode.Trim();
-        await EnsureDictCodeUniqueAsync(normalizedCode, null, input.TenantId);
-
-        return await base.CreateAsync(input);
+        var entity = await MapDtoToEntityAsync(input);
+        var created = await _domainService.CreateAsync(entity);
+        return created.Adapt<DictDto>()!;
     }
 
     /// <summary>
@@ -116,12 +136,19 @@ public class DictAppService
         var dict = await _dictRepository.GetByIdAsync(input.BasicId)
                    ?? throw new KeyNotFoundException($"未找到字典: {input.BasicId}");
 
-        var normalizedCode = input.DictCode.Trim();
-        await EnsureDictCodeUniqueAsync(normalizedCode, input.BasicId, dict.TenantId);
-
         await MapDtoToEntityAsync(input, dict);
-        var updated = await _dictRepository.UpdateAsync(dict);
+        var updated = await _domainService.UpdateAsync(dict);
         return updated.Adapt<DictDto>()!;
+    }
+
+    /// <summary>
+    /// 删除字典
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public override async Task<bool> DeleteAsync(long id)
+    {
+        return await _domainService.DeleteAsync(id);
     }
 
     /// <summary>
@@ -244,23 +271,6 @@ public class DictAppService
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 校验字典编码唯一性
-    /// </summary>
-    /// <param name="dictCode"></param>
-    /// <param name="excludeDictId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    private async Task EnsureDictCodeUniqueAsync(string dictCode, long? excludeDictId, long? tenantId)
-    {
-        var existing = await _dictRepository.GetByDictCodeAsync(dictCode, tenantId);
-        if (existing is not null && (!excludeDictId.HasValue || existing.BasicId != excludeDictId.Value))
-        {
-            throw new BusinessException(message: $"字典编码 '{dictCode}' 已存在");
-        }
     }
 
     /// <summary>

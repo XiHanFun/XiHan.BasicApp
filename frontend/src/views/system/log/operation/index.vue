@@ -1,107 +1,136 @@
-<script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { SysOperationLog } from '~/types'
-import { NButton, NCard, NTag } from 'naive-ui'
-import { h, onMounted, reactive, ref } from 'vue'
-import { clearOperationLogApi, getOperationLogPageApi } from '@/api'
-import { CrudProTable } from '~/components'
+<script lang="ts" setup>
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import { NButton, NPopconfirm, NTag, useMessage } from 'naive-ui'
+import { reactive, ref } from 'vue'
+import { operationLogApi } from '@/api'
+import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
 
-const loading = ref(false)
-const rows = ref<SysOperationLog[]>([])
-const total = ref(0)
-const query = reactive({ page: 1, pageSize: 20 })
+defineOptions({ name: 'SystemLogOperationPage' })
 
-const columns: DataTableColumns<SysOperationLog> = [
-  { title: '用户ID', key: 'userId', width: 100, ellipsis: { tooltip: true } },
-  { title: '用户名', key: 'userName', width: 100 },
-  { title: '操作类型', key: 'operationType', width: 100 },
-  { title: '所属模块', key: 'module', width: 120 },
-  { title: '功能名称', key: 'function', width: 120, ellipsis: { tooltip: true } },
-  { title: '操作标题', key: 'title', width: 140, ellipsis: { tooltip: true } },
-  { title: '操作描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
-  { title: '请求方法', key: 'method', width: 80 },
-  { title: '请求地址', key: 'requestUrl', width: 200, ellipsis: { tooltip: true } },
-  { title: '请求参数', key: 'requestParams', width: 200, ellipsis: { tooltip: true } },
-  { title: '响应结果', key: 'responseResult', width: 200, ellipsis: { tooltip: true } },
-  { title: '执行耗时(ms)', key: 'executionTime', width: 110 },
-  { title: '操作IP', key: 'operationIp', width: 130 },
-  { title: '操作地区', key: 'operationLocation', width: 120, ellipsis: { tooltip: true } },
-  { title: '浏览器', key: 'browser', width: 100 },
-  { title: '操作系统', key: 'os', width: 100 },
-  {
-    title: '操作状态',
-    key: 'status',
-    width: 90,
-    render: row => h(NTag, {
-      type: row.status === 'Yes' ? 'success' : 'error',
-      size: 'small',
-      bordered: false,
-    }, { default: () => row.status === 'Yes' ? '成功' : '失败' }),
-  },
-  { title: '错误消息', key: 'errorMessage', width: 200, ellipsis: { tooltip: true } },
-  {
-    title: '操作时间',
-    key: 'operationTime',
-    width: 170,
-    render: row => h('span', null, formatDate(row.operationTime ?? '')),
-  },
-  {
-    title: '创建时间',
-    key: 'createdTime',
-    width: 170,
-    render: row => h('span', null, formatDate(row.createdTime ?? '')),
-  },
-]
+const message = useMessage()
+const xGrid = ref<VxeGridInstance>()
 
-async function fetchData() {
-  loading.value = true
-  try {
-    const data = await getOperationLogPageApi(query)
-    rows.value = data.items
-    total.value = data.total
-  }
-  finally {
-    loading.value = false
-  }
+const queryParams = reactive({
+  keyword: '',
+})
+
+function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
+  return operationLogApi.page({
+    page: page.currentPage,
+    pageSize: page.pageSize,
+    keyword: queryParams.keyword,
+  })
 }
 
-function handlePageChange(page: number) {
-  query.page = page
-  fetchData()
-}
+const options = useVxeTable(
+  {
+    id: 'sys_operation_log',
+    name: '操作日志',
+    columns: [
+      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
+      { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'module', title: '模块', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'function', title: '功能', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'title', title: '操作标题', minWidth: 160, showOverflow: 'tooltip' },
+      { field: 'description', title: '描述', minWidth: 260, showOverflow: 'tooltip' },
+      { field: 'operationType', title: '操作类型', width: 100 },
+      { field: 'method', title: '请求方式', width: 90 },
+      { field: 'requestUrl', title: '请求地址', minWidth: 220, showOverflow: 'tooltip' },
+      {
+        field: 'status',
+        title: '状态',
+        width: 80,
+        slots: { default: 'col_status' },
+      },
+      { field: 'errorMessage', title: '错误消息', minWidth: 200, showOverflow: 'tooltip' },
+      { field: 'operationIp', title: 'IP 地址', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'operationLocation', title: '操作地点', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'browser', title: '浏览器', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'os', title: '操作系统', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'executionTime', title: '耗时(ms)', width: 100, sortable: true },
+      {
+        field: 'operationTime',
+        title: '操作时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        sortable: true,
+      },
+      {
+        field: 'createdTime',
+        title: '创建时间',
+        width: 170,
+        formatter: ({ cellValue }) => formatDate(cellValue),
+      },
+    ],
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page }) => handleQueryApi(page),
+      },
+    },
+    toolbarConfig: {
+      slots: { buttons: 'toolbar_buttons' },
+      refresh: true,
+      export: true,
+      zoom: true,
+      custom: true,
+    },
+  },
+)
 
-function handlePageSizeChange(pageSize: number) {
-  query.page = 1
-  query.pageSize = pageSize
-  fetchData()
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
 }
 
 async function handleClear() {
-  await clearOperationLogApi()
-  fetchData()
+  try {
+    await operationLogApi.clear()
+    message.success('清空成功')
+    xGrid.value?.commitProxy('reload')
+  }
+  catch {
+    message.error('清空失败')
+  }
 }
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <NCard title="操作日志" :bordered="false" size="small">
-    <template #header-extra>
-      <NButton size="small" type="error" ghost @click="handleClear">
-        清空
-      </NButton>
-    </template>
-    <CrudProTable
-      :columns="columns"
-      :data="rows"
-      :loading="loading"
-      :pagination="{ page: query.page, pageSize: query.pageSize, total }"
-      :show-toolbar="false"
-      :scroll-x="2600"
-      max-height="calc(100vh - 280px)"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
-  </NCard>
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
+    <vxe-card style="padding: 10px 16px">
+      <div class="flex gap-3 items-center">
+        <vxe-input
+          v-model="queryParams.keyword"
+          placeholder="搜索用户名/模块/操作标题"
+          clearable
+          style="width: 280px"
+          @keyup.enter="handleSearch"
+        />
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
+      </div>
+    </vxe-card>
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="options">
+        <template #toolbar_buttons>
+          <NPopconfirm @positive-click="handleClear">
+            <template #trigger>
+              <NButton type="error" size="small">
+                清空日志
+              </NButton>
+            </template>
+            确认清空所有操作日志？
+          </NPopconfirm>
+        </template>
+        <template #col_status="{ row }">
+          <NTag :type="row.status === 'Yes' ? 'success' : 'error'" size="small">
+            {{ row.status === 'Yes' ? '成功' : '失败' }}
+          </NTag>
+        </template>
+      </vxe-grid>
+    </vxe-card>
+  </div>
 </template>

@@ -3,7 +3,7 @@
   "profiles": {
     "Test": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "http://127.0.0.1:9707",
       "launchUrl": "scalar",
       "environmentVariables": {
@@ -13,7 +13,7 @@
     },
     "Development": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "http://127.0.0.1:9708",
       "launchUrl": "scalar",
       "environmentVariables": {

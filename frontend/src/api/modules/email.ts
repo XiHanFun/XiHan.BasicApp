@@ -1,18 +1,38 @@
-import type { EmailPageQuery, PageResult, SysEmail } from '~/types'
-import { buildPageRequest, normalizePageResult, toId, toNumber } from '../helpers'
-import requestClient from '../request'
+import type { AnyRecord } from '../helpers'
+import type { PageQuery } from '~/types'
+import { useBaseApi } from '../base'
+import { toId, toNumber } from '../helpers'
 
-const EMAIL_API = '/api/Email'
+const api = useBaseApi('Email')
+
+export interface SysEmail {
+  basicId: string
+  sendUserId?: string
+  receiveUserId?: string
+  emailType: number
+  fromEmail: string
+  toEmail: string
+  subject: string
+  content?: string
+  isHtml: boolean
+  emailStatus: number
+  scheduledTime?: string
+  sendTime?: string
+  createTime?: string
+  updateTime?: string
+  remark?: string
+}
+
+export interface EmailPageQuery extends PageQuery {
+  emailType?: number
+  emailStatus?: number
+}
 
 function normalizeEmail(raw: Record<string, any>): SysEmail {
   return {
     basicId: toId(raw.basicId),
-    sendUserId: raw.sendUserId === null || raw.sendUserId === undefined
-      ? undefined
-      : toNumber(raw.sendUserId, 0),
-    receiveUserId: raw.receiveUserId === null || raw.receiveUserId === undefined
-      ? undefined
-      : toNumber(raw.receiveUserId, 0),
+    sendUserId: raw.sendUserId == null ? undefined : toId(raw.sendUserId),
+    receiveUserId: raw.receiveUserId == null ? undefined : toId(raw.receiveUserId),
     emailType: toNumber(raw.emailType, 0),
     fromEmail: raw.fromEmail ?? '',
     toEmail: raw.toEmail ?? '',
@@ -28,7 +48,7 @@ function normalizeEmail(raw: Record<string, any>): SysEmail {
   }
 }
 
-function toEmailCreatePayload(data: Partial<SysEmail>) {
+function toCreatePayload(data: Partial<SysEmail>) {
   return {
     sendUserId: data.sendUserId ?? null,
     receiveUserId: data.receiveUserId ?? null,
@@ -43,55 +63,36 @@ function toEmailCreatePayload(data: Partial<SysEmail>) {
   }
 }
 
-function toEmailUpdatePayload(id: string, data: Partial<SysEmail>) {
+function toUpdatePayload(id: string, data: Partial<SysEmail>) {
   return {
-    ...toEmailCreatePayload(data),
+    ...toCreatePayload(data),
     emailStatus: toNumber(data.emailStatus, 0),
     sendTime: data.sendTime ?? null,
-    basicId: toNumber(id, 0),
+    basicId: toId(id),
   }
 }
 
-export async function getEmailPageApi(params: EmailPageQuery): Promise<PageResult<SysEmail>> {
-  const data = await requestClient.post<any>(
-    `${EMAIL_API}/Page`,
-    buildPageRequest(params, {
+export const emailApi = {
+  page: (params: EmailPageQuery) =>
+    api.page(params, {
       keywordFields: ['FromEmail', 'ToEmail', 'Subject'],
-      filterFieldMap: {
-        emailType: 'EmailType',
-        emailStatus: 'EmailStatus',
-      },
-    }),
-  )
-  return normalizePageResult(data, normalizeEmail)
-}
+      filterFieldMap: { emailType: 'EmailType', emailStatus: 'EmailStatus' },
+    }).then(res => ({
+      total: res.total,
+      items: (res.items as AnyRecord[]).map(item => normalizeEmail(item)),
+    })),
 
-export function getEmailDetailApi(id: string) {
-  return requestClient
-    .get<any>(`${EMAIL_API}/ById`, { params: { id } })
-    .then(raw => normalizeEmail(raw))
-}
+  detail: (id: string) =>
+    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeEmail),
 
-export function createEmailApi(data: Partial<SysEmail>) {
-  return requestClient.post<void>(`${EMAIL_API}/Create`, toEmailCreatePayload(data))
-}
+  create: (data: Partial<SysEmail>) => api.create(toCreatePayload(data)),
 
-export function updateEmailApi(id: string, data: Partial<SysEmail>) {
-  return requestClient.put<void>(`${EMAIL_API}/Update`, toEmailUpdatePayload(id, data), {
-    params: { id },
-  })
-}
+  update: (id: string, data: Partial<SysEmail>) =>
+    api.request.put(`${api.baseUrl}Update`, toUpdatePayload(id, data), { params: { id } }),
 
-export function deleteEmailApi(id: string) {
-  return requestClient.delete<void>(`${EMAIL_API}/Delete`, {
-    params: { id },
-  })
-}
+  delete: (id: string) => api.delete(id),
 
-export function getPendingEmailsApi(maxCount = 100, tenantId?: number) {
-  return requestClient
-    .get<any[]>(`${EMAIL_API}/Pending/${tenantId ?? 0}`, {
-      params: { maxCount },
-    })
-    .then(list => (Array.isArray(list) ? list.map(item => normalizeEmail(item)) : []))
+  getPending: (maxCount = 100, tenantId?: number) =>
+    api.request.get<any[]>(`${api.baseUrl}Pending/${tenantId ?? 0}`, { params: { maxCount } })
+      .then((list: any[]) => Array.isArray(list) ? list.map(normalizeEmail) : []),
 }
