@@ -2,6 +2,8 @@ import type { App } from 'vue'
 import { useOsTheme } from 'naive-ui'
 import { watch } from 'vue'
 import VxeUI from 'vxe-pc-ui'
+import vxeEnUS from 'vxe-pc-ui/lib/language/en-US'
+import vxeZhCN from 'vxe-pc-ui/lib/language/zh-CN'
 import VxeUITable from 'vxe-table'
 import { THEME_AUTO } from '~/constants'
 import { i18n } from '~/locales'
@@ -11,7 +13,9 @@ import 'vxe-pc-ui/lib/style.css'
 import 'vxe-table/lib/style.css'
 
 export function setupVxeTable(app: App) {
-  VxeUI.setI18n((key, args) => i18n.global.t(key, args))
+  VxeUI.setI18n('zh-CN', vxeZhCN)
+  VxeUI.setI18n('en-US', vxeEnUS)
+  VxeUI.setLanguage((i18n.global.locale.value || 'zh-CN') as 'zh-CN' | 'en-US')
 
   const appStore = useAppStore()
   const osTheme = useOsTheme()
@@ -25,6 +29,11 @@ export function setupVxeTable(app: App) {
   syncTheme()
   watch(() => appStore.themeMode, syncTheme)
   watch(osTheme, syncTheme)
+  watch(i18n.global.locale, (locale) => {
+    if (VxeUI.hasLanguage(locale as any)) {
+      VxeUI.setLanguage(locale as any)
+    }
+  })
 
   VxeUITable.setConfig({
     size: 'small',

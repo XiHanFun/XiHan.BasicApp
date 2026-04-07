@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysPermission } from '~/api'
+import type { SysPermission } from '@/api'
 import {
   NButton,
   NForm,

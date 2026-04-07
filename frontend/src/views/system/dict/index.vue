@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { SysDict, SysDictItem } from '~/api'
+import type { SysDict, SysDictItem } from '@/api'
 import {
   NButton,
   NDrawer,
