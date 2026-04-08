@@ -46,6 +46,7 @@ using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
+using XiHan.Framework.Web.Api.Constants;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
@@ -918,7 +919,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
 
         await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
-        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage);
+        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage, sessionId);
         await uow.CompleteAsync();
 
         foreach (var revokedSessionId in revokedSessionIds)
@@ -1057,10 +1058,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="loginResult"></param>
     /// <param name="clientInfo"></param>
     /// <param name="message"></param>
+    /// <param name="sessionId">登录成功时传入新创建的会话ID，失败时为 null</param>
     /// <returns></returns>
-    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message)
+    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null)
     {
-        await WriteLoginLogAsync(userId, command.UserName, command.TenantId, loginResult, clientInfo, message);
+        await WriteLoginLogAsync(userId, command.UserName, command.TenantId, loginResult, clientInfo, message, sessionId);
     }
 
     /// <summary>
@@ -1072,18 +1074,27 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="loginResult"></param>
     /// <param name="clientInfo"></param>
     /// <param name="message"></param>
+    /// <param name="sessionId">登录成功时传入新创建的会话ID，失败时为 null</param>
     /// <returns></returns>
-    private async Task WriteLoginLogAsync(long userId, string userName, long? tenantId, LoginResult loginResult, ClientInfo clientInfo, string message)
+    private async Task WriteLoginLogAsync(long userId, string userName, long? tenantId, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null)
     {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var traceId = httpContext?.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString()
+                      ?? httpContext?.TraceIdentifier;
+
         var log = new SysLoginLog
         {
             TenantId = tenantId,
             UserId = userId,
             UserName = userName,
+            TraceId = traceId is { Length: > 64 } ? traceId[..64] : traceId,
+            SessionId = sessionId is { Length: > 100 } ? sessionId[..100] : sessionId,
             LoginIp = clientInfo.IpAddress,
             LoginLocation = clientInfo.Location,
             Browser = clientInfo.Browser,
             Os = clientInfo.OperatingSystem,
+            UserAgent = clientInfo.UserAgent is { Length: > 500 } ? clientInfo.UserAgent[..500] : clientInfo.UserAgent,
+            Device = clientInfo.DeviceName is { Length: > 50 } ? clientInfo.DeviceName[..50] : clientInfo.DeviceName,
             LoginResult = loginResult,
             Message = message,
             LoginTime = DateTimeOffset.UtcNow

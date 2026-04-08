@@ -50,6 +50,7 @@ const options = useVxeTable(
       { field: 'operationLocation', title: '操作地点', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'browser', title: '浏览器', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'os', title: '操作系统', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'userAgent', title: 'User-Agent', minWidth: 200, showOverflow: 'tooltip', visible: false },
       { field: 'executionTime', title: '耗时(ms)', width: 100, sortable: true },
       {
         field: 'operationTime',
