@@ -78,6 +78,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             SessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
+            TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
             ResourcePath = RbacLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
             ResourceName = RbacLogMappingHelper.TrimOrNull(record.ResourceName, 200),
             ResourceType = "HttpApi",
@@ -97,10 +98,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
             LeaveTime = now,
             StayTime = (long)Math.Ceiling(elapsedMilliseconds / 1000D),
             ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
-            ExtendData = BuildExtendData(record),
-            Remark = RbacLogMappingHelper.TrimOrNull(
-                string.IsNullOrWhiteSpace(record.TraceId) ? null : $"TraceId:{record.TraceId}",
-                500)
+            ExtendData = BuildExtendData(record)
         };
 
         await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);

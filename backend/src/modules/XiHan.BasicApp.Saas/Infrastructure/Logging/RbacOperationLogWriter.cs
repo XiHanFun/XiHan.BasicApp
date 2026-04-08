@@ -12,11 +12,14 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Http;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Web.Api.Constants;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Writers;
 using XiHan.Framework.Web.Core.Clients;
@@ -32,6 +35,7 @@ public class RbacOperationLogWriter : IOperationLogWriter
     private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <summary>
     /// 构造函数
@@ -40,16 +44,19 @@ public class RbacOperationLogWriter : IOperationLogWriter
     /// <param name="splitTableExecutor"></param>
     /// <param name="currentTenant"></param>
     /// <param name="clientInfoProvider"></param>
+    /// <param name="httpContextAccessor"></param>
     public RbacOperationLogWriter(
         ISqlSugarDbContext dbContext,
         ISqlSugarSplitTableExecutor splitTableExecutor,
         ICurrentTenant currentTenant,
-        IClientInfoProvider clientInfoProvider)
+        IClientInfoProvider clientInfoProvider,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _splitTableExecutor = splitTableExecutor;
         _currentTenant = currentTenant;
         _clientInfoProvider = clientInfoProvider;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     private ISqlSugarClient DbClient => _dbContext.GetClient();
@@ -70,11 +77,23 @@ public class RbacOperationLogWriter : IOperationLogWriter
         var title = BuildTitle(record);
         var description = BuildDescription(record);
 
+        var httpContext = _httpContextAccessor.HttpContext;
+        var traceId = record.TraceId;
+        if (string.IsNullOrWhiteSpace(traceId))
+        {
+            traceId = httpContext?.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString()
+                      ?? httpContext?.TraceIdentifier;
+        }
+
+        var sessionId = httpContext?.User?.FindFirst(XiHanClaimTypes.SessionId)?.Value;
+
         var entity = new SysOperationLog
         {
             TenantId = _currentTenant.Id,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
+            TraceId = RbacLogMappingHelper.TrimOrNull(traceId, 64),
+            SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
             OperationType = operationType,
             Module = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 50),
             Function = RbacLogMappingHelper.TrimOrNull(record.ActionName, 50),
@@ -89,6 +108,7 @@ public class RbacOperationLogWriter : IOperationLogWriter
             OperationLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
             Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
             Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
+            UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
             Status = RbacLogMappingHelper.ResolveStatus(record.StatusCode, record.ErrorMessage),
             ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
             OperationTime = DateTimeOffset.UtcNow
