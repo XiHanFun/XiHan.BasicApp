@@ -32,21 +32,6 @@ public class AuditLogDto : DtoBase<long>
     public string? UserName { get; set; }
 
     /// <summary>
-    /// 真实姓名
-    /// </summary>
-    public string? RealName { get; set; }
-
-    /// <summary>
-    /// 部门ID
-    /// </summary>
-    public long? DepartmentId { get; set; }
-
-    /// <summary>
-    /// 部门名称
-    /// </summary>
-    public string? DepartmentName { get; set; }
-
-    /// <summary>
     /// 审计类型
     /// </summary>
     public string? AuditType { get; set; }
