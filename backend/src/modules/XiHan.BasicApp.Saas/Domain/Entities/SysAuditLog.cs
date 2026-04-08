@@ -47,24 +47,6 @@ public partial class SysAuditLog : BasicAppCreationEntity, ITraceableEntity
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 用户真实姓名
-    /// </summary>
-    [SugarColumn(ColumnDescription = "用户真实姓名", Length = 50, IsNullable = true)]
-    public virtual string? RealName { get; set; }
-
-    /// <summary>
-    /// 部门ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "部门ID", IsNullable = true)]
-    public virtual long? DepartmentId { get; set; }
-
-    /// <summary>
-    /// 部门名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "部门名称", Length = 100, IsNullable = true)]
-    public virtual string? DepartmentName { get; set; }
-
-    /// <summary>
     /// 审计类型
     /// </summary>
     [SugarColumn(ColumnDescription = "审计类型", Length = 50, IsNullable = false)]

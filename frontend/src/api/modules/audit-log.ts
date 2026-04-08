@@ -10,9 +10,7 @@ export interface SysAuditLog {
   basicId?: string
   userId?: string
   userName?: string
-  realName?: string
   departmentId?: string
-  departmentName?: string
   auditType?: string
   operationType?: string
   entityType?: string
@@ -60,9 +58,7 @@ function normalize(raw: Record<string, any>): SysAuditLog {
     basicId: toId(raw.basicId),
     userId: toId(raw.userId),
     userName: raw.userName ?? '',
-    realName: raw.realName ?? '',
     departmentId: toId(raw.departmentId),
-    departmentName: raw.departmentName ?? '',
     auditType: raw.auditType ?? '',
     operationType: String(raw.operationType ?? ''),
     entityType: raw.entityType ?? '',
@@ -109,9 +105,9 @@ function normalize(raw: Record<string, any>): SysAuditLog {
 // -------- API --------
 export const auditLogApi = {
   page: (params: PageQuery & Record<string, any>) =>
-    api.page(params).then(res => ({
+    api.page(params).then((res) => ({
       total: res.total,
-      items: (res.items as AnyRecord[]).map(item => normalize(item)),
+      items: (res.items as AnyRecord[]).map((item) => normalize(item)),
     })),
   clear: () => api.clear(),
 }
