@@ -29,6 +29,7 @@ const explicitComponentMap: Record<string, () => Promise<unknown>> = {
   'system/log/operation': () => import('@/views/system/log/operation/index.vue'),
   'system/log/exception': () => import('@/views/system/log/exception/index.vue'),
   'system/log/audit': () => import('@/views/system/log/audit/index.vue'),
+  'system/log/api': () => import('@/views/system/log/api/index.vue'),
   'system/monitor/index': () => import('@/views/system/server/index.vue'),
   'system/cache/index': () => import('@/views/system/cache/index.vue'),
   'system/message/index': () => import('@/views/system/message/index.vue'),
