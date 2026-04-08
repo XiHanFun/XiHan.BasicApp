@@ -11,6 +11,7 @@ export interface SysExceptionLog {
   userId?: string
   userName?: string
   requestId?: string
+  traceId?: string
   sessionId?: string
   exceptionType?: string
   exceptionMessage?: string
@@ -63,6 +64,7 @@ function normalize(raw: Record<string, any>): SysExceptionLog {
     userId: toId(raw.userId),
     userName: raw.userName ?? '',
     requestId: raw.requestId ?? '',
+    traceId: raw.traceId ?? '',
     sessionId: raw.sessionId ?? '',
     exceptionType: raw.exceptionType ?? '',
     exceptionMessage: raw.exceptionMessage ?? '',

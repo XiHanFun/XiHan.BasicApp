@@ -30,6 +30,8 @@ const options = useVxeTable(
     columns: [
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
+      { field: 'sessionId', title: '会话ID', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'module', title: '模块', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'function', title: '功能', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'title', title: '操作标题', minWidth: 160, showOverflow: 'tooltip' },

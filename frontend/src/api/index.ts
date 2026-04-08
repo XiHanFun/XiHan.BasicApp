@@ -1,4 +1,5 @@
 export * from './modules/access-log'
+export * from './modules/api-log'
 export * from './modules/audit-log'
 export * from './modules/auth'
 export * from './modules/profile'

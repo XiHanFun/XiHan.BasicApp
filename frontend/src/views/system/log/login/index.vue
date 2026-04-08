@@ -41,10 +41,20 @@ const options = useVxeTable(
     columns: [
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
+      { field: 'sessionId', title: '会话ID', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'loginIp', title: '登录IP', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'loginLocation', title: '登录地点', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'browser', title: '浏览器', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'os', title: '操作系统', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'device', title: '设备类型', minWidth: 100, showOverflow: 'tooltip' },
+      { field: 'deviceId', title: '设备标识', minWidth: 160, showOverflow: 'tooltip' },
+      {
+        field: 'isRiskLogin',
+        title: '风险登录',
+        width: 90,
+        slots: { default: 'col_isRiskLogin' },
+      },
       {
         field: 'loginResult',
         title: '登录结果',
@@ -127,6 +137,11 @@ async function handleClear() {
             </template>
             确认清空所有登录日志？
           </NPopconfirm>
+        </template>
+        <template #col_isRiskLogin="{ row }">
+          <NTag :type="row.isRiskLogin ? 'error' : 'success'" size="small">
+            {{ row.isRiskLogin ? '是' : '否' }}
+          </NTag>
         </template>
         <template #col_loginResult="{ row }">
           <NTag

@@ -10,6 +10,8 @@ export interface SysOperationLog {
   basicId?: string
   userId?: string
   userName?: string
+  traceId?: string
+  sessionId?: string
   operationType?: string
   module?: string
   function?: string
@@ -24,6 +26,7 @@ export interface SysOperationLog {
   operationLocation?: string
   browser?: string
   os?: string
+  userAgent?: string
   status?: string
   errorMessage?: string
   operationTime?: string
@@ -35,6 +38,8 @@ function normalize(raw: Record<string, any>): SysOperationLog {
     basicId: toId(raw.basicId),
     userId: toId(raw.userId),
     userName: raw.userName ?? '',
+    traceId: raw.traceId ?? '',
+    sessionId: raw.sessionId ?? '',
     operationType: String(raw.operationType ?? ''),
     module: raw.module ?? '',
     function: raw.function ?? '',
@@ -49,6 +54,7 @@ function normalize(raw: Record<string, any>): SysOperationLog {
     operationLocation: raw.operationLocation ?? '',
     browser: raw.browser ?? '',
     os: raw.os ?? '',
+    userAgent: raw.userAgent ?? '',
     status: String(raw.status ?? ''),
     errorMessage: raw.errorMessage ?? '',
     operationTime: raw.operationTime ?? '',
