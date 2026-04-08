@@ -909,6 +909,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
         await _userRepository.SaveSecurityAsync(security);
 
+        var previousLoginIp = user.LastLoginIp;
         user.LastLoginTime = DateTimeOffset.UtcNow;
         user.LastLoginIp = clientInfo.IpAddress;
         await _userRepository.UpdateAsync(user);
@@ -919,7 +920,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
 
         await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
-        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage, sessionId);
+        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage, sessionId, previousLoginIp);
         await uow.CompleteAsync();
 
         foreach (var revokedSessionId in revokedSessionIds)
@@ -1060,9 +1061,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="message"></param>
     /// <param name="sessionId">登录成功时传入新创建的会话ID，失败时为 null</param>
     /// <returns></returns>
-    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null)
+    private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null, string? previousLoginIp = null)
     {
-        await WriteLoginLogAsync(userId, command.UserName, command.TenantId, loginResult, clientInfo, message, sessionId);
+        await WriteLoginLogAsync(userId, command.UserName, command.TenantId, loginResult, clientInfo, message, sessionId, previousLoginIp, command.DeviceId);
     }
 
     /// <summary>
@@ -1075,12 +1076,29 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="clientInfo"></param>
     /// <param name="message"></param>
     /// <param name="sessionId">登录成功时传入新创建的会话ID，失败时为 null</param>
+    /// <param name="previousLoginIp">上一次登录的 IP，用于异地登录判定</param>
+    /// <param name="explicitDeviceId">显式传入的设备标识</param>
     /// <returns></returns>
-    private async Task WriteLoginLogAsync(long userId, string userName, long? tenantId, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null)
+    private async Task WriteLoginLogAsync(
+        long userId, string userName, long? tenantId,
+        LoginResult loginResult, ClientInfo clientInfo, string message,
+        string? sessionId = null, string? previousLoginIp = null, string? explicitDeviceId = null)
     {
         var httpContext = _httpContextAccessor.HttpContext;
         var traceId = httpContext?.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString()
                       ?? httpContext?.TraceIdentifier;
+
+        // 设备标识优先级：显式传入 → 请求头 X-Device-Id
+        var deviceId = explicitDeviceId;
+        if (string.IsNullOrWhiteSpace(deviceId))
+        {
+            deviceId = httpContext?.Request.Headers["X-Device-Id"].FirstOrDefault();
+        }
+
+        // 异地登录判定：有历史 IP 且与当前 IP 不同时标记为风险
+        var isRiskLogin = !string.IsNullOrWhiteSpace(previousLoginIp)
+                          && !string.IsNullOrWhiteSpace(clientInfo.IpAddress)
+                          && !string.Equals(previousLoginIp, clientInfo.IpAddress, StringComparison.OrdinalIgnoreCase);
 
         var log = new SysLoginLog
         {
@@ -1095,6 +1113,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             Os = clientInfo.OperatingSystem,
             UserAgent = clientInfo.UserAgent is { Length: > 500 } ? clientInfo.UserAgent[..500] : clientInfo.UserAgent,
             Device = clientInfo.DeviceName is { Length: > 50 } ? clientInfo.DeviceName[..50] : clientInfo.DeviceName,
+            DeviceId = deviceId is { Length: > 200 } ? deviceId[..200] : deviceId,
+            IsRiskLogin = isRiskLogin,
             LoginResult = loginResult,
             Message = message,
             LoginTime = DateTimeOffset.UtcNow

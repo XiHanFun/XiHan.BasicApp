@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import { NButton, NPopconfirm, NTag, useMessage } from 'naive-ui'
+import { NButton, NModal, NPopconfirm, NTag, useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { operationLogApi } from '@/api'
 import { useVxeTable } from '~/hooks'
@@ -10,6 +10,8 @@ defineOptions({ name: 'SystemLogOperationPage' })
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
+const detailVisible = ref(false)
+const detailData = ref<Record<string, any>>({})
 
 const queryParams = reactive({
   keyword: '',
@@ -65,6 +67,13 @@ const options = useVxeTable(
         width: 170,
         formatter: ({ cellValue }) => formatDate(cellValue),
       },
+      {
+        field: 'actions',
+        title: '操作',
+        width: 80,
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+      },
     ],
   },
   {
@@ -86,6 +95,11 @@ const options = useVxeTable(
 
 function handleSearch() {
   xGrid.value?.commitProxy('reload')
+}
+
+function handleDetail(row: Record<string, any>) {
+  detailData.value = row
+  detailVisible.value = true
 }
 
 async function handleClear() {
@@ -133,7 +147,74 @@ async function handleClear() {
             {{ row.status === 'Yes' ? '成功' : '失败' }}
           </NTag>
         </template>
+        <template #col_actions="{ row }">
+          <NButton size="small" type="primary" text @click="handleDetail(row)">详情</NButton>
+        </template>
       </vxe-grid>
     </vxe-card>
+
+    <NModal
+      v-model:show="detailVisible"
+      title="操作详情"
+      preset="card"
+      style="width: 800px; max-height: 80vh"
+      :auto-focus="false"
+    >
+      <div class="space-y-3 text-sm">
+        <div>
+          <span class="font-medium text-gray-500">用户：</span>
+          {{ detailData.userName }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">操作类型：</span>
+          {{ detailData.operationType }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">模块/功能：</span>
+          {{ detailData.module }} / {{ detailData.function }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">标题：</span>
+          {{ detailData.title }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">描述：</span>
+          {{ detailData.description }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">请求：</span>
+          {{ detailData.method }} {{ detailData.requestUrl }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">状态：</span>
+          {{ detailData.status === 'Yes' ? '成功' : '失败' }}
+          <span v-if="detailData.errorMessage" class="ml-4 text-red-500">{{ detailData.errorMessage }}</span>
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">IP/地点：</span>
+          {{ detailData.operationIp }} {{ detailData.operationLocation }}
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">耗时：</span>
+          {{ detailData.executionTime }}ms
+        </div>
+        <div>
+          <span class="font-medium text-gray-500">链路ID：</span>
+          {{ detailData.traceId }}
+        </div>
+        <div v-if="detailData.requestParams">
+          <span class="font-medium text-gray-500">请求参数：</span>
+          <pre
+            class="overflow-auto p-3 mt-1 max-h-60 text-xs bg-gray-100 rounded dark:bg-gray-800"
+          >{{ detailData.requestParams }}</pre>
+        </div>
+        <div v-if="detailData.responseResult">
+          <span class="font-medium text-gray-500">响应结果：</span>
+          <pre
+            class="overflow-auto p-3 mt-1 max-h-60 text-xs bg-gray-100 rounded dark:bg-gray-800"
+          >{{ detailData.responseResult }}</pre>
+        </div>
+      </div>
+    </NModal>
   </div>
 </template>
