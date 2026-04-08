@@ -105,6 +105,7 @@ export const authApi = {
       tenantId: data.tenantId,
       twoFactorCode: data.twoFactorCode || undefined,
       twoFactorMethod: data.twoFactorMethod || undefined,
+      deviceId: data.deviceId || undefined,
     })
     return normalizeLoginResponse(raw)
   },
