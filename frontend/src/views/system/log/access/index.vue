@@ -34,6 +34,7 @@ const options = useVxeTable(
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'sessionId', title: '会话ID', minWidth: 140, showOverflow: 'tooltip' },
+      { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
       { field: 'resourcePath', title: '资源路径', minWidth: 200, showOverflow: 'tooltip' },
       { field: 'resourceName', title: '资源名称', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'resourceType', title: '资源类型', width: 100 },

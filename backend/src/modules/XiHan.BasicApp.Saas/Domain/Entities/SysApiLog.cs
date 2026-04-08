@@ -14,6 +14,8 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -28,7 +30,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysApiLog_ReTi", nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_SysApiLog_TeId_ReTi", nameof(TenantId), OrderByType.Asc, nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_SysApiLog_ExTi", nameof(ExecutionTime), OrderByType.Desc)]
-public partial class SysApiLog : BasicAppCreationEntity
+[SugarIndex("IX_SysApiLog_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_ClId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_SysApiLog_ApId", nameof(AppId), OrderByType.Asc)]
+public partial class SysApiLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
@@ -53,6 +58,36 @@ public partial class SysApiLog : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
     public virtual string? SessionId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
+
+    /// <summary>
+    /// 客户端标识，用于区分不同的 API 调用方
+    /// </summary>
+    [SugarColumn(ColumnDescription = "客户端标识", Length = 100, IsNullable = true)]
+    public virtual string? ClientId { get; set; }
+
+    /// <summary>
+    /// 应用标识，用于区分不同的接入应用
+    /// </summary>
+    [SugarColumn(ColumnDescription = "应用标识", Length = 100, IsNullable = true)]
+    public virtual string? AppId { get; set; }
+
+    /// <summary>
+    /// 签名是否有效
+    /// </summary>
+    [SugarColumn(ColumnDescription = "签名是否有效")]
+    public virtual bool IsSignatureValid { get; set; } = true;
+
+    /// <summary>
+    /// 签名类型
+    /// </summary>
+    [SugarColumn(ColumnDescription = "签名类型")]
+    public virtual SignatureType SignatureType { get; set; } = SignatureType.None;
 
     /// <summary>
     /// API路径

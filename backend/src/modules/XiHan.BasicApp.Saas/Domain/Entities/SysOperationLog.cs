@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -27,7 +28,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysOperationLog_OpTi", nameof(OperationTime), OrderByType.Desc)]
 [SugarIndex("IX_SysOperationLog_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
 [SugarIndex("IX_SysOperationLog_St", nameof(Status), OrderByType.Asc)]
-public partial class SysOperationLog : BasicAppCreationEntity
+[SugarIndex("IX_SysOperationLog_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_SysOperationLog_SeId", nameof(SessionId), OrderByType.Asc)]
+public partial class SysOperationLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
@@ -40,6 +43,18 @@ public partial class SysOperationLog : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
     public virtual string? UserName { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
 
     /// <summary>
     /// 操作类型
@@ -124,6 +139,12 @@ public partial class SysOperationLog : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
     public virtual string? Os { get; set; }
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    [SugarColumn(ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
+    public virtual string? UserAgent { get; set; }
 
     /// <summary>
     /// 操作状态

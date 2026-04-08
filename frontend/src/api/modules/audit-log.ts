@@ -42,6 +42,7 @@ export interface SysAuditLog {
   userAgent?: string
   sessionId?: string
   requestId?: string
+  traceId?: string
   businessId?: string
   businessType?: string
   isSuccess?: boolean
@@ -91,6 +92,7 @@ function normalize(raw: Record<string, any>): SysAuditLog {
     userAgent: raw.userAgent ?? '',
     sessionId: raw.sessionId ?? '',
     requestId: raw.requestId ?? '',
+    traceId: raw.traceId ?? '',
     businessId: raw.businessId ?? '',
     businessType: raw.businessType ?? '',
     isSuccess: raw.isSuccess ?? false,

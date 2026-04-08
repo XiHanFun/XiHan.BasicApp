@@ -11,6 +11,7 @@ export interface SysAccessLog {
   userId?: string
   userName?: string
   sessionId?: string
+  traceId?: string
   resourcePath?: string
   resourceName?: string
   resourceType?: string
@@ -41,6 +42,7 @@ function normalize(raw: Record<string, any>): SysAccessLog {
     userId: toId(raw.userId),
     userName: raw.userName ?? '',
     sessionId: raw.sessionId ?? '',
+    traceId: raw.traceId ?? '',
     resourcePath: raw.resourcePath ?? '',
     resourceName: raw.resourceName ?? '',
     resourceType: raw.resourceType ?? '',
