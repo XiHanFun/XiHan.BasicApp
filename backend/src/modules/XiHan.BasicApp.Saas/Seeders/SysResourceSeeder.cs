@@ -96,6 +96,7 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "audit_log", ResourceName = "差异日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/difflog", Icon = "file-diff", Description = "差异日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 303 },
             new() { ParentId = null, ResourceCode = "login_log", ResourceName = "登录日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/loginlog", Icon = "log-in", Description = "登录日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 304 },
             new() { ParentId = null, ResourceCode = "task_log", ResourceName = "调度日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/tasklog", Icon = "calendar-clock", Description = "调度日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 305 },
+            new() { ParentId = null, ResourceCode = "api_log", ResourceName = "接口日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/apilog", Icon = "shield-check", Description = "接口安全日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 306 },
 
             // API 资源
             new() { ParentId = null, ResourceCode = "user_api", ResourceName = "用户API", ResourceType = ResourceType.Api, ResourcePath = "/api/users", Description = "用户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 500 },
@@ -113,6 +114,7 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "audit_log_api", ResourceName = "差异日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/audit-logs", Description = "差异日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 603 },
             new() { ParentId = null, ResourceCode = "login_log_api", ResourceName = "登录日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/login-logs", Description = "登录日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 604 },
             new() { ParentId = null, ResourceCode = "task_log_api", ResourceName = "调度日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/task-logs", Description = "调度日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 605 },
+            new() { ParentId = null, ResourceCode = "api_log_api", ResourceName = "接口日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/api-logs", Description = "接口安全日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 606 },
 
             // 关于系统
             new() { ParentId = null, ResourceCode = "about", ResourceName = "关于系统", ResourceType = ResourceType.Menu, ResourcePath = "/about", Icon = "info", Description = "系统关于页面", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 999 },
