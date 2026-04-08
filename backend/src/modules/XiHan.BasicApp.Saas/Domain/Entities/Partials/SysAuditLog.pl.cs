@@ -38,13 +38,4 @@ public partial class SysAuditLog
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
-
-    /// <summary>
-    /// 部门信息
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(DepartmentId))]
-    public virtual SysDepartment? Department { get; set; }
 }

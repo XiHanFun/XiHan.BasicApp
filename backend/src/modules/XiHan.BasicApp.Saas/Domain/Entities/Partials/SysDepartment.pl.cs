@@ -65,13 +65,4 @@ public partial class SysDepartment
     [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserDepartment), nameof(SysUserDepartment.DepartmentId), nameof(SysUserDepartment.UserId))]
     public virtual List<SysUser>? Users { get; set; }
-
-    /// <summary>
-    /// 部门审计日志列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysAuditLog.DepartmentId))]
-    public virtual List<SysAuditLog>? AuditLogs { get; set; }
 }
