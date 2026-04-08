@@ -32,9 +32,7 @@ const options = useVxeTable(
     columns: [
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
-      { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
-      { field: 'realName', title: '真实姓名', minWidth: 100, showOverflow: 'tooltip' },
-      { field: 'departmentName', title: '部门', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'traceId', title: '链路 ID', minWidth: 160, showOverflow: 'tooltip' },
       { field: 'auditType', title: '审计类型', width: 100 },
       { field: 'operationType', title: '操作类型', width: 100 },
       { field: 'module', title: '模块', minWidth: 120, showOverflow: 'tooltip' },
@@ -181,11 +179,7 @@ async function handleClear() {
       <div class="space-y-3 text-sm">
         <div>
           <span class="font-medium text-gray-500">用户：</span>
-          {{ detailData.userName }} {{ detailData.realName }}
-        </div>
-        <div>
-          <span class="font-medium text-gray-500">部门：</span>
-          {{ detailData.departmentName }}
+          {{ detailData.userName }}
         </div>
         <div>
           <span class="font-medium text-gray-500">审计类型：</span>
