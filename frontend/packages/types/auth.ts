@@ -35,6 +35,8 @@ export interface LoginParams {
   twoFactorCode?: string
   /** 用户选择的双因素方式（totp/email/phone） */
   twoFactorMethod?: string
+  /** 设备唯一标识（设备指纹） */
+  deviceId?: string
 }
 
 export interface RegisterParams {

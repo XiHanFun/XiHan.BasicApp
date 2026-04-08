@@ -114,6 +114,25 @@ async function loadLoginConfig() {
   loginConfig.value = await getLoginConfigApi()
 }
 
+function generateDeviceId(): string {
+  const nav = window.navigator
+  const raw = [
+    nav.userAgent,
+    nav.language,
+    screen.width,
+    screen.height,
+    screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    nav.hardwareConcurrency ?? '',
+  ].join('|')
+
+  let hash = 0
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0
+  }
+  return `fp_${(hash >>> 0).toString(36)}`
+}
+
 function buildLoginParams() {
   const parsedTenantId = Number(formData.value.tenantId)
   return {
@@ -125,6 +144,7 @@ function buildLoginParams() {
         : undefined,
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
+    deviceId: generateDeviceId(),
   }
 }
 

@@ -189,6 +189,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAccessLogWriter, RbacAccessLogWriter>();
         services.AddScoped<IOperationLogWriter, RbacOperationLogWriter>();
         services.AddScoped<IExceptionLogWriter, RbacExceptionLogWriter>();
+        services.AddScoped<IApiLogWriter, RbacApiLogWriter>();
         services.AddScoped<IEntityAuditContextProvider, RbacEntityAuditContextProvider>();
         services.AddScoped<IEntityAuditLogWriter, RbacEntityAuditLogWriter>();
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();

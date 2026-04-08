@@ -50,4 +50,10 @@ public class UserLoginCommand
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; } = 1;
+
+    /// <summary>
+    /// 设备唯一标识（由前端生成的设备指纹）
+    /// </summary>
+    [StringLength(200, ErrorMessage = "设备标识长度不能超过 200")]
+    public string? DeviceId { get; set; }
 }
