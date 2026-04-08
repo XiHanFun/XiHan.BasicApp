@@ -32,6 +32,7 @@ const options = useVxeTable(
     columns: [
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
       { field: 'exceptionType', title: '异常类型', minWidth: 180, showOverflow: 'tooltip' },
       { field: 'exceptionMessage', title: '异常消息', minWidth: 260, showOverflow: 'tooltip' },
       { field: 'exceptionSource', title: '异常来源', minWidth: 140, showOverflow: 'tooltip' },

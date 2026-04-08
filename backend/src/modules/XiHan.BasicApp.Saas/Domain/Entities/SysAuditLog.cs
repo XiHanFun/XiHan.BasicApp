@@ -15,6 +15,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -30,7 +31,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysAuditLog_TeId_AuTi", nameof(TenantId), OrderByType.Asc, nameof(AuditTime), OrderByType.Desc)]
 [SugarIndex("IX_SysAuditLog_RiLe", nameof(RiskLevel), OrderByType.Desc)]
 [SugarIndex("IX_SysAuditLog_EnId", nameof(EntityId), OrderByType.Asc)]
-public partial class SysAuditLog : BasicAppCreationEntity
+[SugarIndex("IX_SysAuditLog_TrId", nameof(TraceId), OrderByType.Asc)]
+public partial class SysAuditLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
@@ -235,6 +237,12 @@ public partial class SysAuditLog : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
     public virtual string? RequestId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 关联业务ID
