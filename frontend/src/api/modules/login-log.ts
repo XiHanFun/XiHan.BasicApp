@@ -10,10 +10,16 @@ export interface SysLoginLog {
   basicId?: string
   userId?: string
   userName?: string
+  traceId?: string
+  sessionId?: string
   loginIp?: string
   loginLocation?: string
   browser?: string
   os?: string
+  userAgent?: string
+  device?: string
+  deviceId?: string
+  isRiskLogin?: boolean
   loginResult?: number
   message?: string
   loginTime?: string
@@ -25,10 +31,16 @@ function normalize(raw: Record<string, any>): SysLoginLog {
     basicId: toId(raw.basicId),
     userId: toId(raw.userId),
     userName: raw.userName ?? '',
+    traceId: raw.traceId ?? '',
+    sessionId: raw.sessionId ?? '',
     loginIp: raw.loginIp ?? '',
     loginLocation: raw.loginLocation ?? '',
     browser: raw.browser ?? '',
     os: raw.os ?? '',
+    userAgent: raw.userAgent ?? '',
+    device: raw.device ?? '',
+    deviceId: raw.deviceId ?? '',
+    isRiskLogin: raw.isRiskLogin ?? false,
     loginResult: raw.loginResult ?? 0,
     message: raw.message ?? '',
     loginTime: raw.loginTime ?? '',

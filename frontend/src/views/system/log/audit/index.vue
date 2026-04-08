@@ -32,6 +32,7 @@ const options = useVxeTable(
     columns: [
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
       { field: 'realName', title: '真实姓名', minWidth: 100, showOverflow: 'tooltip' },
       { field: 'departmentName', title: '部门', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'auditType', title: '审计类型', width: 100 },
