@@ -87,6 +87,7 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
+            TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
             SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
             ExceptionType = RbacLogMappingHelper.TrimOrDefault(record.ExceptionType, 200, "Exception"),
             ExceptionMessage = RbacLogMappingHelper.TrimOrDefault(record.ExceptionMessage, 2000, "未捕获异常"),
@@ -118,12 +119,8 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
             IsHandled = true,
             HandledTime = now,
             BusinessModule = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 100),
-            BusinessId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
             BusinessType = RbacLogMappingHelper.TrimOrNull(operationType.ToString(), 50),
-            ErrorCode = RbacLogMappingHelper.TrimOrNull(record.StatusCode.ToString(), 50),
-            Remark = RbacLogMappingHelper.TrimOrNull(
-                string.IsNullOrWhiteSpace(record.TraceId) ? null : $"TraceId:{record.TraceId}",
-                500)
+            ErrorCode = RbacLogMappingHelper.TrimOrNull(record.StatusCode.ToString(), 50)
         };
 
         await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);

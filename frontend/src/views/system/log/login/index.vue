@@ -47,6 +47,7 @@ const options = useVxeTable(
       { field: 'loginLocation', title: '登录地点', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'browser', title: '浏览器', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'os', title: '操作系统', minWidth: 120, showOverflow: 'tooltip' },
+      { field: 'userAgent', title: 'User-Agent', minWidth: 200, showOverflow: 'tooltip', visible: false },
       { field: 'device', title: '设备类型', minWidth: 100, showOverflow: 'tooltip' },
       { field: 'deviceId', title: '设备标识', minWidth: 160, showOverflow: 'tooltip' },
       {

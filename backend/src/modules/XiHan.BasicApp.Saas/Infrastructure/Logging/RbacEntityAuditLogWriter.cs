@@ -101,14 +101,12 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
             UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent, 500),
             SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
             RequestId = requestId,
+            TraceId = RbacLogMappingHelper.TrimOrNull(requestId, 64),
             BusinessId = entityId,
             BusinessType = entityTypeName,
             IsSuccess = true,
             RiskLevel = RbacLogMappingHelper.ResolveRiskLevel(operationType),
-            AuditTime = DateTimeOffset.UtcNow,
-            Remark = RbacLogMappingHelper.TrimOrNull(
-                string.IsNullOrWhiteSpace(requestId) ? null : $"TraceId:{requestId}",
-                500)
+            AuditTime = DateTimeOffset.UtcNow
         };
 
         await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);
