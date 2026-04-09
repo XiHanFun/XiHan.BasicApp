@@ -72,10 +72,7 @@ export function useLayoutShellAdapter() {
   const sidebarWidth = computed(() => appStore.sidebarWidth)
 
   const getSideCollapseWidth = computed(() => {
-    if (appStore.sidebarCollapsedShowTitle || isDualColumnMode.value) {
-      return SIDEBAR_MIXED_WIDTH
-    }
-    return SIDEBAR_COLLAPSE_WIDTH
+    return SIDEBAR_MIXED_WIDTH
   })
 
   const sidebarEnableState = computed(() => {
