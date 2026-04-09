@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { Icon } from '~/iconify'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
@@ -31,7 +31,8 @@ const headerDarkDisabled = computed(() => isDark.value)
 watch(
   () => appStore.sidebarDark,
   (val) => {
-    if (!val) appStore.sidebarSubDark = false
+    if (!val)
+      appStore.sidebarSubDark = false
   },
 )
 
@@ -49,7 +50,7 @@ const themeModes = [
 const themeColorGroups = THEME_COLOR_GROUPS
 const allPresetColors = ALL_THEME_COLORS
 
-const localizedModes = computed(() => themeModes.map((m) => ({ ...m, label: t(m.labelKey) })))
+const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
 
 const transitionItems = computed(() => [
   { value: 'slide-left', label: t('preference.general.animation.slide_left') },
@@ -87,7 +88,7 @@ const transitionItems = computed(() => [
               class="sr-only"
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
-            />
+            >
             <div class="theme-mode-card" :class="{ 'is-active': props.themeMode === mode.value }">
               <NIcon size="20">
                 <Icon :icon="mode.icon" />

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { Icon } from '~/iconify'
 import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed } from 'vue'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'

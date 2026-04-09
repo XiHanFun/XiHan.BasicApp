@@ -109,7 +109,8 @@ async function handleDelete(id: string) {
     await fileApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -140,8 +141,12 @@ async function handleDelete(id: string) {
           clearable
           style="width: 130px"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
-        <NButton size="small" @click="handleReset">重置</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
+        <NButton size="small" @click="handleReset">
+          重置
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -155,7 +160,9 @@ async function handleDelete(id: string) {
         <template #col_actions="{ row }">
           <NPopconfirm @positive-click="handleDelete(row.basicId)">
             <template #trigger>
-              <NButton size="small" type="error" text>删除</NButton>
+              <NButton size="small" type="error" text>
+                删除
+              </NButton>
             </template>
             确认删除该文件？
           </NPopconfirm>

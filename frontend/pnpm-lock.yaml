@@ -135,6 +135,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.27
         version: 10.4.27(postcss@8.5.8)
+      cross-env:
+        specifier: ^10.1.0
+        version: 10.1.0
       eslint:
         specifier: ^9.39.4
         version: 9.39.4(jiti@1.21.7)
@@ -174,6 +177,118 @@ importers:
       vue-tsc:
         specifier: ^2.2.12
         version: 2.2.12(typescript@5.9.3)
+
+  packages/components:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/stores':
+        specifier: workspace:*
+        version: link:../stores
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/composables:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/stores':
+        specifier: workspace:*
+        version: link:../stores
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/constants: {}
+
+  packages/design: {}
+
+  packages/hooks:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/stores':
+        specifier: workspace:*
+        version: link:../stores
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/iconify: {}
+
+  packages/layouts:
+    dependencies:
+      '@xihan/composables':
+        specifier: workspace:*
+        version: link:../composables
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/locales':
+        specifier: workspace:*
+        version: link:../locales
+      '@xihan/stores':
+        specifier: workspace:*
+        version: link:../stores
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/locales: {}
+
+  packages/request:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/router:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/stores':
+        specifier: workspace:*
+        version: link:../stores
+
+  packages/stores:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/types: {}
+
+  packages/utils:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+
+  packages/views:
+    dependencies:
+      '@xihan/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@xihan/locales':
+        specifier: workspace:*
+        version: link:../locales
+      '@xihan/stores':
+        specifier: workspace:*
+        version: link:../stores
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
 
 packages:
 
@@ -473,6 +588,9 @@ packages:
 
   '@emotion/hash@0.8.0':
     resolution: {integrity: sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==}
+
+  '@epic-web/invariant@1.0.0':
+    resolution: {integrity: sha512-lrTPqgvfFQtR/eY/qkIzp98OGdNJu0m5ji3q/nJI8v3SXkRKEnWiOxMmbvcSoAIzv/cGiuvRy57k4suKQSAdwA==}
 
   '@es-joy/jsdoccomment@0.52.0':
     resolution: {integrity: sha512-BXuN7BII+8AyNtn57euU2Yxo9yA/KUDNzrpXyi3pfqKmBhhysR6ZWOebFh3vyPoqA3/j1SOvGgucElMGwlXing==}
@@ -1984,6 +2102,11 @@ packages:
 
   crelt@1.0.6:
     resolution: {integrity: sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g==}
+
+  cross-env@10.1.0:
+    resolution: {integrity: sha512-GsYosgnACZTADcmEyJctkJIoqAhHjttw7RsFrVoJNXbsWWqaq6Ym+7kZjq6mS45O0jij6vtiReppKQEtqWy6Dw==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -4299,6 +4422,8 @@ snapshots:
 
   '@emotion/hash@0.8.0': {}
 
+  '@epic-web/invariant@1.0.0': {}
+
   '@es-joy/jsdoccomment@0.52.0':
     dependencies:
       '@types/estree': 1.0.8
@@ -5735,6 +5860,11 @@ snapshots:
       browserslist: 4.28.2
 
   crelt@1.0.6: {}
+
+  cross-env@10.1.0:
+    dependencies:
+      '@epic-web/invariant': 1.0.0
+      cross-spawn: 7.0.6
 
   cross-spawn@7.0.6:
     dependencies:

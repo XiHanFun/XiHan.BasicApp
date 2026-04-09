@@ -60,7 +60,7 @@ const isMixedNav = computed(() => layout.value === 'mix')
 
 const sidebarDisabled = computed(() => isNoSidebar.value)
 const sidebarItemDisabled = computed(() => sidebarDisabled.value || !appStore.sidebarShow)
-const sidebarCollapsedDisabled = computed(() => sidebarItemDisabled.value)
+const _sidebarCollapsedDisabled = computed(() => sidebarItemDisabled.value)
 const sidebarExpandOnHoverDisabled = computed(
   () => sidebarItemDisabled.value || !appStore.sidebarCollapsed,
 )

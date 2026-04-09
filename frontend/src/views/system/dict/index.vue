@@ -59,7 +59,8 @@ const options = useVxeTable<SysDict>({
     },
     { field: 'createTime', title: '创建时间', width: 170, formatter: ({ cellValue }) => formatDate(cellValue), sortable: true },
     {
-      field: 'actions', title: '操作',
+      field: 'actions',
+      title: '操作',
       width: 180,
       fixed: 'right',
       slots: { default: 'col_actions' },

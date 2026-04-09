@@ -4,10 +4,10 @@
   "private": true,
   "main": "./basic/index.vue",
   "dependencies": {
-    "@xihan/constants": "workspace:*",
-    "@xihan/stores": "workspace:*",
-    "@xihan/utils": "workspace:*",
     "@xihan/composables": "workspace:*",
-    "@xihan/locales": "workspace:*"
+    "@xihan/constants": "workspace:*",
+    "@xihan/locales": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/utils": "workspace:*"
   }
 }

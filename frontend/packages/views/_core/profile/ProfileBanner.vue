@@ -51,31 +51,55 @@ const userStore = useUserStore()
     </div>
     <div class="pf-stat-grid">
       <div class="pf-stat-item">
-        <div class="pf-stat-icon"><Icon icon="lucide:shield-check" width="16" /></div>
+        <div class="pf-stat-icon">
+          <Icon icon="lucide:shield-check" width="16" />
+        </div>
         <div class="pf-stat-body">
-          <div class="pf-stat-label">两步验证</div>
-          <div class="pf-stat-value">{{ profile?.twoFactorEnabled ? '已启用' : '未启用' }}</div>
+          <div class="pf-stat-label">
+            两步验证
+          </div>
+          <div class="pf-stat-value">
+            {{ profile?.twoFactorEnabled ? '已启用' : '未启用' }}
+          </div>
         </div>
       </div>
       <div class="pf-stat-item">
-        <div class="pf-stat-icon"><Icon icon="lucide:mail-check" width="16" /></div>
+        <div class="pf-stat-icon">
+          <Icon icon="lucide:mail-check" width="16" />
+        </div>
         <div class="pf-stat-body">
-          <div class="pf-stat-label">邮箱验证</div>
-          <div class="pf-stat-value">{{ profile?.emailVerified ? '已验证' : '未验证' }}</div>
+          <div class="pf-stat-label">
+            邮箱验证
+          </div>
+          <div class="pf-stat-value">
+            {{ profile?.emailVerified ? '已验证' : '未验证' }}
+          </div>
         </div>
       </div>
       <div class="pf-stat-item">
-        <div class="pf-stat-icon"><Icon icon="lucide:smartphone" width="16" /></div>
+        <div class="pf-stat-icon">
+          <Icon icon="lucide:smartphone" width="16" />
+        </div>
         <div class="pf-stat-body">
-          <div class="pf-stat-label">手机验证</div>
-          <div class="pf-stat-value">{{ profile?.phoneVerified ? '已验证' : '未验证' }}</div>
+          <div class="pf-stat-label">
+            手机验证
+          </div>
+          <div class="pf-stat-value">
+            {{ profile?.phoneVerified ? '已验证' : '未验证' }}
+          </div>
         </div>
       </div>
       <div class="pf-stat-item">
-        <div class="pf-stat-icon"><Icon icon="lucide:monitor" width="16" /></div>
+        <div class="pf-stat-icon">
+          <Icon icon="lucide:monitor" width="16" />
+        </div>
         <div class="pf-stat-body">
-          <div class="pf-stat-label">在线设备</div>
-          <div class="pf-stat-value">{{ sessionsLoaded ? sessionsCount : '-' }}</div>
+          <div class="pf-stat-label">
+            在线设备
+          </div>
+          <div class="pf-stat-value">
+            {{ sessionsLoaded ? sessionsCount : '-' }}
+          </div>
         </div>
       </div>
     </div>

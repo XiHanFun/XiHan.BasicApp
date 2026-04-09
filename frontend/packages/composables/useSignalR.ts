@@ -43,9 +43,9 @@ export function useSignalR(hubPath = '/hubs/notification') {
       .withUrl(hubUrl, {
         accessTokenFactory: () => LocalStorage.get<string>(TOKEN_KEY) ?? '',
         transport:
-          HttpTransportType.WebSockets |
-          HttpTransportType.ServerSentEvents |
-          HttpTransportType.LongPolling,
+          HttpTransportType.WebSockets
+          | HttpTransportType.ServerSentEvents
+          | HttpTransportType.LongPolling,
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {
@@ -86,7 +86,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
     try {
       await conn.start()
       connected.value = true
-    } catch {
+    }
+    catch {
       connected.value = false
     }
   }
@@ -95,7 +96,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
     if (connection.value) {
       try {
         await connection.value.stop()
-      } catch {
+      }
+      catch {
         // 忽略停止时的错误
       }
       connection.value = null
@@ -118,7 +120,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
     if (handler) {
       eventHandlers.get(method)?.delete(handler)
       connection.value?.off(method, handler)
-    } else {
+    }
+    else {
       eventHandlers.delete(method)
       connection.value?.off(method)
     }

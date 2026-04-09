@@ -5,10 +5,10 @@ import { reactive } from 'vue'
 // eslint-disable-next-line ts/no-explicit-any
 export type VxeColumnOptions<D = any> = (VxeGridPropTypes.Columns<D> extends (infer U)[]
   ? U
-  : // eslint-disable-next-line ts/no-explicit-any
-    any) & {
-  children?: VxeColumnOptions<D>[]
-}
+  // eslint-disable-next-line ts/no-explicit-any
+  : any) & {
+    children?: VxeColumnOptions<D>[]
+  }
 
 interface UseVxeTableOptions {
   id?: string
@@ -73,7 +73,8 @@ export function useVxeTable<T = any>(opt: UseVxeTableOptions, extras?: VxeGridPr
 
   if (opt.data) {
     options.data = opt.data
-  } else {
+  }
+  else {
     options.proxyConfig = {
       enabled: true,
       autoLoad: false,
@@ -102,13 +103,15 @@ export function useVxeTable<T = any>(opt: UseVxeTableOptions, extras?: VxeGridPr
         ...proxyConfig,
         response: {
           // eslint-disable-next-line ts/no-explicit-any
-          ...((savedProxyConfig as any)?.response ?? {}),
-          ...(proxyConfig?.response ?? {}),
+          ...(savedProxyConfig as any)?.response,
+          ...proxyConfig?.response,
         },
       }
-    } else if (proxyConfig) {
+    }
+    else if (proxyConfig) {
       options.proxyConfig = proxyConfig
-    } else if (savedProxyConfig) {
+    }
+    else if (savedProxyConfig) {
       options.proxyConfig = savedProxyConfig
     }
 

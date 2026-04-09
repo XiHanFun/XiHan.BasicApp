@@ -105,9 +105,9 @@ function normalize(raw: Record<string, any>): SysAuditLog {
 // -------- API --------
 export const auditLogApi = {
   page: (params: PageQuery & Record<string, any>) =>
-    api.page(params).then((res) => ({
+    api.page(params).then(res => ({
       total: res.total,
-      items: (res.items as AnyRecord[]).map((item) => normalize(item)),
+      items: (res.items as AnyRecord[]).map(item => normalize(item)),
     })),
   clear: () => api.clear(),
 }

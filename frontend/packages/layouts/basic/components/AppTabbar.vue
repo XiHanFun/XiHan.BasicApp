@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { DropdownOption } from 'naive-ui'
 import type { TabItem } from '~/types'
-import { Icon } from '~/iconify'
 import { useDebounceFn } from '@vueuse/core'
 import { NButton, NDropdown, NIcon } from 'naive-ui'
 import Sortable from 'sortablejs'
@@ -9,6 +8,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useContentMaximize, useRefresh } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,

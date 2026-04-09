@@ -37,7 +37,8 @@ export function useLockScreen() {
     if (lockPwdNew.value) {
       sessionStorage.setItem(LOCK_PWD_SESS_KEY, btoa(lockPwdNew.value))
       hasLockPwd.value = true
-    } else {
+    }
+    else {
       sessionStorage.removeItem(LOCK_PWD_SESS_KEY)
       hasLockPwd.value = false
     }
@@ -79,7 +80,8 @@ export function useLockScreen() {
 
   function handleEscUnlock(e: KeyboardEvent) {
     if (e.key === 'Escape' && lockMode.value === 'locked') {
-      if (!sessionStorage.getItem(LOCK_PWD_SESS_KEY)) releaseLock()
+      if (!sessionStorage.getItem(LOCK_PWD_SESS_KEY))
+        releaseLock()
     }
   }
 
