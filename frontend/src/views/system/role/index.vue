@@ -40,25 +40,26 @@ const xGrid = ref<VxeGridInstance>()
 // ==================== 常量 ====================
 
 const ROLE_TYPE_OPTIONS = [
-  { label: '普通角色', value: 0 },
-  { label: '系统角色', value: 1 },
+  { label: '系统角色', value: 0 },
+  { label: '业务角色', value: 1 },
+  { label: '自定义角色', value: 2 },
 ]
 
 const DATA_SCOPE_OPTIONS = [
   { label: '全部数据', value: 0 },
-  { label: '自定义', value: 1 },
+  { label: '自定义', value: 99 },
   { label: '本部门', value: 2 },
-  { label: '本部门及以下', value: 3 },
-  { label: '仅本人', value: 4 },
+  { label: '本部门及以下', value: 1 },
+  { label: '仅本人', value: 3 },
 ]
 
-const ROLE_TYPE_MAP: Record<number, string> = { 0: '普通角色', 1: '系统角色' }
+const ROLE_TYPE_MAP: Record<number, string> = { 0: '系统角色', 1: '业务角色', 2: '自定义角色' }
 const DATA_SCOPE_MAP: Record<number, string> = {
   0: '全部',
-  1: '自定义',
+  99: '自定义',
   2: '本部门',
-  3: '本部门及以下',
-  4: '仅本人',
+  1: '本部门及以下',
+  3: '仅本人',
 }
 
 // ==================== 列表 ====================
@@ -470,7 +471,7 @@ async function handleSaveDataScope() {
   try {
     const scope = formData.value.dataScope ?? 0
     await roleApi.update(currentRoleId.value, { ...formData.value, dataScope: scope })
-    if (scope === 1) {
+    if (scope === 99) {
       await roleApi.assignDataScope(currentRoleId.value, checkedDeptKeys.value)
     }
     message.success('数据范围保存成功')
@@ -775,7 +776,7 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 </NRadioGroup>
               </div>
               <!-- 自定义范围时选择部门 -->
-              <template v-if="formData.dataScope === 1">
+              <template v-if="formData.dataScope === 99">
                 <div class="mb-2 font-semibold text-sm">
                   选择部门
                 </div>

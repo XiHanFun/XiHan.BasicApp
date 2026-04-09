@@ -40,6 +40,25 @@ public class PermissionQueryService : IPermissionQueryService, ITransientDepende
     public async Task<PermissionDto?> GetByIdAsync(long id)
     {
         var entity = await _permissionRepository.GetByIdAsync(id);
-        return entity?.Adapt<PermissionDto>();
+        if (entity is null)
+        {
+            return null;
+        }
+
+        var dto = entity.Adapt<PermissionDto>()!;
+        dto.GroupName = ResolveGroupName(entity.Tags);
+        return dto;
+    }
+
+    private static string? ResolveGroupName(string? tags)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+        {
+            return null;
+        }
+
+        return tags
+            .Split(new[] { ',', '，', ';', '；', '|', '、' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault();
     }
 }
