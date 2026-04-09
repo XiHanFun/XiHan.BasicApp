@@ -91,7 +91,8 @@ const options = useVxeTable<SysDepartment>({
       slots: { default: 'col_status' },
     },
     {
-      field: 'actions', title: '操作',
+      field: 'actions',
+      title: '操作',
       width: 200,
       fixed: 'right',
       slots: { default: 'col_actions' },

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { Icon } from '~/iconify'
 import { NIcon, NInput } from 'naive-ui'
 import { useLockScreen } from '~/composables'
+import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 
 defineOptions({ name: 'LockScreen' })
@@ -28,18 +28,20 @@ const {
         <img
           class="lock-screen-avatar"
           :src="
-            userStore.avatar ||
-            `https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`
+            userStore.avatar
+              || `https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`
           "
           :alt="userStore.nickname"
-        />
+        >
         <div class="lock-screen-name">
           {{ userStore.nickname || userStore.username }}
         </div>
 
         <!-- ① 设置密码阶段 -->
         <template v-if="lockMode === 'setting'">
-          <div class="lock-screen-hint">设置本次锁屏密码（可留空跳过）</div>
+          <div class="lock-screen-hint">
+            设置本次锁屏密码（可留空跳过）
+          </div>
           <form class="lock-screen-input-wrap" @submit.prevent="confirmLock">
             <NInput
               v-model:value="lockPwdNew"

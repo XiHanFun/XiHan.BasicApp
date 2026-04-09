@@ -114,7 +114,8 @@ async function handleDelete(id: string) {
     await reviewApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -156,8 +157,12 @@ function getReviewStatusType(status: number) {
           clearable
           style="width: 120px"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
-        <NButton size="small" @click="handleReset">重置</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
+        <NButton size="small" @click="handleReset">
+          重置
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -175,10 +180,14 @@ function getReviewStatusType(status: number) {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleDetail(row)">详情</NButton>
+            <NButton size="small" type="primary" text @click="handleDetail(row)">
+              详情
+            </NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>删除</NButton>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
               </template>
               确认删除该审查？
             </NPopconfirm>
@@ -215,8 +224,7 @@ function getReviewStatusType(status: number) {
           <span class="font-medium text-gray-500">审查内容：</span>
           <pre
             class="overflow-auto p-3 mt-1 max-h-60 text-xs bg-gray-100 rounded dark:bg-gray-800"
-            >{{ detailData.reviewContent }}</pre
-          >
+          >{{ detailData.reviewContent }}</pre>
         </div>
       </div>
     </NModal>

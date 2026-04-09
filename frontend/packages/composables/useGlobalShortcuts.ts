@@ -12,7 +12,8 @@ export function useGlobalShortcuts() {
   const layoutBridgeStore = useLayoutBridgeStore()
 
   function handleKeydown(e: KeyboardEvent) {
-    if (!appStore.shortcutEnable) return
+    if (!appStore.shortcutEnable)
+      return
 
     // Ctrl/Cmd + K：全局搜索
     if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {

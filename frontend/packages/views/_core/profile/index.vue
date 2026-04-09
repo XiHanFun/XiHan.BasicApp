@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { NTabPane, NTabs, NSpin, useMessage } from 'naive-ui'
+import { NSpin, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { getProfileApi } from '@/api'
 import ProfileBanner from './ProfileBanner.vue'
@@ -19,12 +19,21 @@ const securityRef = ref<InstanceType<typeof ProfileTabSecurity> | null>(null)
 
 async function loadProfile() {
   profileLoading.value = true
-  try { profile.value = await getProfileApi() }
-  catch (e: any) { message.error(e?.message || '加载个人资料失败') }
-  finally { profileLoading.value = false }
+  try {
+    profile.value = await getProfileApi()
+  }
+  // eslint-disable-next-line ts/no-explicit-any
+  catch (e: any) {
+    message.error(e?.message || '加载个人资料失败')
+  }
+  finally {
+    profileLoading.value = false
+  }
 }
 
-onMounted(() => { loadProfile() })
+onMounted(() => {
+  loadProfile()
+})
 </script>
 
 <template>

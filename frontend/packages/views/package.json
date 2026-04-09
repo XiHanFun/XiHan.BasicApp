@@ -4,8 +4,8 @@
   "private": true,
   "dependencies": {
     "@xihan/constants": "workspace:*",
+    "@xihan/locales": "workspace:*",
     "@xihan/stores": "workspace:*",
-    "@xihan/utils": "workspace:*",
-    "@xihan/locales": "workspace:*"
+    "@xihan/utils": "workspace:*"
   }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Icon } from '~/iconify'
 import { computed } from 'vue'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'XihanBackTop' })
 

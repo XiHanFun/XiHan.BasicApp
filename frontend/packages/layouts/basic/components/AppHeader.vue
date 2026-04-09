@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import type { VNodeChild } from 'vue'
 import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
-import { Icon } from '~/iconify'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
-import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
+import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
 import XihanIconButton from './XihanIconButton.vue'
 
 interface Props {
@@ -72,7 +72,8 @@ const isSplitMode = computed(
 const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
 
 function resolveIcon(icon: string) {
-  if (!icon) return icon
+  if (!icon)
+    return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
@@ -86,6 +87,7 @@ function renderTopMenuLabel(option: MenuOption | MenuGroupOption): VNodeChild {
   const children = (option as MenuOption).children
   const hasChildren = Array.isArray(children) && children.length > 0
   const key = (option as MenuOption).key
+  // eslint-disable-next-line ts/no-use-before-define
   const isTopLevel = key != null && topLevelKeys.value.has(key)
   if (!hasChildren || !isTopLevel) {
     return label
@@ -111,7 +113,7 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     badgeLabelRenderer: renderHorizontalBadgeLabel,
   })
   if (isSplitMode.value) {
-    return options.map((item) => ({ ...item, children: undefined }))
+    return options.map(item => ({ ...item, children: undefined }))
   }
   return options
 })
@@ -122,7 +124,7 @@ const topLevelKeys = computed(() => new Set(
 
 function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
   const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const firstVisibleChild = routeItem.children?.find((child) => !toLayoutMeta(child).hidden)
+  const firstVisibleChild = routeItem.children?.find(child => !toLayoutMeta(child).hidden)
   if (!firstVisibleChild) {
     return fullPath
   }
@@ -134,20 +136,20 @@ const topMenuActive = computed(() => {
     return String(route.meta?.activePath || route.path || '')
   }
   return (
-    findMatchedRoutePath(topMenuSource.value) ??
-    resolveFullPath(topMenuSource.value.find((item) => !toLayoutMeta(item).hidden)?.path ?? '')
+    findMatchedRoutePath(topMenuSource.value)
+    ?? resolveFullPath(topMenuSource.value.find(item => !toLayoutMeta(item).hidden)?.path ?? '')
   )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter((item) => item.meta?.title && !item.meta?.hidden)
+  const matched = route.matched.filter(item => item.meta?.title && !item.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
   return matched.map((item, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter((sibling) => sibling.meta?.title && !sibling.meta?.hidden)
+      .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
       .map((sibling) => {
         const siblingTitle = String(sibling.meta?.title ?? '')
         const siblingIcon = sibling.meta?.icon as string | undefined
@@ -272,7 +274,7 @@ function handleTopMenuSelect(path: string) {
     router.push(path)
     return
   }
-  const rootMenu = topMenuSource.value.find((item) => resolveFullPath(item.path) === path)
+  const rootMenu = topMenuSource.value.find(item => resolveFullPath(item.path) === path)
   if (!rootMenu) {
     return
   }
@@ -442,10 +444,7 @@ watch(() => route.fullPath, () => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected {
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
   background-color: transparent;
   border-radius: 6px;
 }
@@ -460,10 +459,7 @@ watch(() => route.fullPath, () => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected::before,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected::before {
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
   background-color: hsl(var(--primary) / 0.15) !important;
   border-radius: 6px !important;
   box-shadow: none !important;

@@ -1,3 +1,3 @@
-export { Icon } from '@iconify/vue/offline'
-export { setupIconifyOffline, ICON_SET_META, loadIconNames } from './offline'
 export { default as IconPicker } from './IconPicker.vue'
+export { ICON_SET_META, loadIconNames, setupIconifyOffline } from './offline'
+export { Icon } from '@iconify/vue/offline'

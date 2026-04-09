@@ -22,7 +22,7 @@ export default {
     mobile_login: 'Phone Login',
     qrcode_login: 'QR Login',
     third_party_login: 'Third-party login',
-    no_account: "Don't have an account?",
+    no_account: 'Don\'t have an account?',
     back_to_login: 'Back to login',
     // Code login
     code_login_subtitle: 'Enter your phone number to receive a verification code',
@@ -78,7 +78,7 @@ export default {
   },
   dashboard: {
     welcome: 'Welcome back',
-    today_visitors: "Today's Visitors",
+    today_visitors: 'Today\'s Visitors',
     total_users: 'Total Users',
     online_count: 'Online Users',
     system_version: 'System Version',

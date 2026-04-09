@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Icon } from '~/iconify'
 import {
   NButton,
   NEmpty,
@@ -9,18 +8,14 @@ import {
   NModal,
   NScrollbar,
   NSpace,
-  NTabs,
   NTabPane,
+  NTabs,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
+import { Icon } from '~/iconify'
 import { ICON_SET_META, loadIconNames } from './offline'
 
 defineOptions({ name: 'IconPicker' })
-
-interface Props {
-  modelValue?: string
-  placeholder?: string
-}
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
@@ -30,6 +25,11 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+interface Props {
+  modelValue?: string
+  placeholder?: string
+}
 
 const visible = ref(false)
 const activePrefix = ref('lucide')

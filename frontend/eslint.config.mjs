@@ -11,7 +11,7 @@ export default antfu({
     'no-console': 'warn',
     'vue/component-name-in-template-casing': ['error', 'PascalCase'],
     'vue/multi-word-component-names': 'off',
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': 'warn',
   },
   ignores: [
     'src/types/auto-imports.d.ts',

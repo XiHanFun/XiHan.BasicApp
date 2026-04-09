@@ -39,7 +39,8 @@ export function useCheckUpdates() {
 
   async function check() {
     const tag = await getVersionTag()
-    if (!tag) return
+    if (!tag)
+      return
 
     if (versionTag.value && tag !== versionTag.value && !hasUpdate.value) {
       hasUpdate.value = true
@@ -74,7 +75,8 @@ export function useCheckUpdates() {
 
   function startTimer() {
     stopTimer()
-    if (!appStore.enableCheckUpdates) return
+    if (!appStore.enableCheckUpdates)
+      return
     const seconds = Math.max(10, Math.min(300, appStore.checkUpdatesInterval))
     timer = setInterval(check, seconds * 1000)
   }
@@ -120,8 +122,10 @@ export function useCheckUpdates() {
   )
 
   onMounted(async () => {
-    if (import.meta.env.DEV || isLocalHost()) return
-    if (!appStore.enableCheckUpdates) return
+    if (import.meta.env.DEV || isLocalHost())
+      return
+    if (!appStore.enableCheckUpdates)
+      return
 
     versionTag.value = await getVersionTag()
     startTimer()

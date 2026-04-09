@@ -127,7 +127,8 @@ async function handleDelete(id: string) {
     await roleApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -137,15 +138,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await roleApi.update(formData.value.basicId, formData.value)
-    } else {
+    }
+    else {
       await roleApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -169,14 +173,20 @@ async function handleSubmit() {
           clearable
           style="width: 120px"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
-        <NButton size="small" @click="handleReset">重置</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
+        <NButton size="small" @click="handleReset">
+          重置
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">新增角色</NButton>
+          <NButton type="primary" size="small" @click="handleAdd">
+            新增角色
+          </NButton>
         </template>
         <template #col_status="{ row }">
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
@@ -185,10 +195,14 @@ async function handleSubmit() {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">
+              编辑
+            </NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>删除</NButton>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
               </template>
               确认删除该角色？
             </NPopconfirm>
@@ -232,8 +246,12 @@ async function handleSubmit() {
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>
