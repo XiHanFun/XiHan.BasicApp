@@ -192,6 +192,45 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     }
 
     /// <summary>
+    /// 批量获取用户角色 ID 映射
+    /// </summary>
+    /// <param name="userIds"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyDictionary<long, IReadOnlyList<long>>> GetRoleIdsMapByUserIdsAsync(
+        IReadOnlyCollection<long> userIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var distinctUserIds = userIds.Where(id => id > 0).Distinct().ToArray();
+        if (distinctUserIds.Length == 0)
+        {
+            return new Dictionary<long, IReadOnlyList<long>>();
+        }
+
+        var query = CreateTenantQueryable<SysUserRole>()
+            .Where(mapping => distinctUserIds.Contains(mapping.UserId));
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+
+        var mappings = await query.ToListAsync(cancellationToken);
+        return mappings
+            .GroupBy(mapping => mapping.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<long>)group
+                    .Select(mapping => mapping.RoleId)
+                    .Distinct()
+                    .ToArray());
+    }
+
+    /// <summary>
     /// 获取用户直授权限关系
     /// </summary>
     /// <param name="userId"></param>
