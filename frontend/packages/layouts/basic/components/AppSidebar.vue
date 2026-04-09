@@ -140,16 +140,16 @@ const BADGE_TYPE_MAP: Record<string, 'default' | 'error' | 'info' | 'success' | 
 function renderBadgeLabel(text: string, badge: { text?: string | number, type?: string, dot?: boolean }) {
   if (badge.dot) {
     return () =>
-      h('span', { style: 'display:flex;align-items:center;justify-content:space-between;width:100%' }, [
-        h('span', { class: 'truncate' }, text),
-        h('span', { style: 'width:8px;height:8px;border-radius:50%;background:hsl(var(--destructive));flex-shrink:0;margin-left:6px' }),
+      h('span', { class: 'menu-badge-wrapper' }, [
+        h('span', { class: 'menu-badge-text' }, text),
+        h('span', { class: 'menu-badge-dot' }),
       ])
   }
   const tagType = BADGE_TYPE_MAP[badge.type ?? ''] ?? 'default'
   return () =>
-    h('span', { style: 'display:flex;align-items:center;justify-content:space-between;width:100%' }, [
-      h('span', { class: 'truncate' }, text),
-      h(NTag, { size: 'tiny', type: tagType, round: true, bordered: false, style: 'flex-shrink:0;margin-left:6px;font-size:11px;padding:0 6px;height:18px;line-height:18px' }, () => String(badge.text)),
+    h('span', { class: 'menu-badge-wrapper' }, [
+      h('span', { class: 'menu-badge-text' }, text),
+      h(NTag, { size: 'tiny', type: tagType, round: true, bordered: false, class: 'menu-badge-tag' }, () => String(badge.text)),
     ])
 }
 
@@ -720,8 +720,8 @@ watch(
   align-items: center;
   justify-content: center;
   height: auto !important;
-  margin: 0 8px !important;
-  padding: 9px 0 !important;
+  margin: 0 6px !important;
+  padding: 8px 0 !important;
   overflow: visible !important;
 }
 
@@ -746,17 +746,18 @@ watch(
   display: block !important;
   width: 100% !important;
   height: auto !important;
-  margin-top: 8px;
+  margin-top: 4px;
   margin-bottom: 0;
   overflow: hidden !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   opacity: 1 !important;
   transform: none !important;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .mixed-primary-menu
@@ -791,5 +792,69 @@ watch(
 <style>
 .n-menu-tooltip {
   display: none !important;
+}
+
+/* ---- 菜单 badge 布局（展开状态，默认水平排列） ---- */
+.menu-badge-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.menu-badge-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.menu-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--destructive));
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.menu-badge-tag {
+  flex-shrink: 0;
+  margin-left: 6px;
+  font-size: 11px !important;
+  padding: 0 6px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
+
+/* ---- 折叠状态 badge 布局（垂直堆叠，适配窄列） ---- */
+.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-wrapper,
+.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-text,
+.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text {
+  white-space: normal;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-dot,
+.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot {
+  margin-left: 0;
+}
+
+.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-tag,
+.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag {
+  margin-left: 0;
+  font-size: 10px !important;
+  padding: 0 4px !important;
+  height: 16px !important;
+  line-height: 16px !important;
 }
 </style>
