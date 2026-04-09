@@ -10,6 +10,7 @@ import AppTabbar from './components/AppTabbar.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
 import { useLayoutShellAdapter } from './composables'
+import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
 import { LayoutContentRenderer } from './core'
 
@@ -20,6 +21,9 @@ const shell = useLayoutShellAdapter()
 
 // 初始化 SignalR 连接（实时通知 + 踢下线）
 useSignalRIntegration()
+
+// 定时检查前端资源更新
+useCheckUpdates()
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
