@@ -58,6 +58,14 @@ public interface IUserRepository : IAggregateRootRepository<SysUser, long>
     Task<IReadOnlyList<SysUserRole>> GetUserRolesAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量获取用户角色 ID 映射
+    /// </summary>
+    Task<IReadOnlyDictionary<long, IReadOnlyList<long>>> GetRoleIdsMapByUserIdsAsync(
+        IReadOnlyCollection<long> userIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取用户直授权限关系
     /// </summary>
     Task<IReadOnlyList<SysUserPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);

@@ -97,7 +97,7 @@ public class UserAppService
     public async Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null)
     {
         var entity = await _userRepository.GetByUserNameAsync(userName, tenantId);
-        return entity?.Adapt<UserDto>();
+        return entity is null ? null : await MapUserToDtoAsync(entity);
     }
 
     /// <summary>
@@ -377,7 +377,7 @@ public class UserAppService
 
         var created = await _userManager.CreateAsync(user, input.Password);
         await uow.CompleteAsync();
-        return created.Adapt<UserDto>()!;
+        return await MapUserToDtoAsync(created);
     }
 
     /// <summary>
@@ -413,7 +413,40 @@ public class UserAppService
 
         var updated = await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        return updated.Adapt<UserDto>()!;
+        return await MapUserToDtoAsync(updated);
+    }
+
+    /// <summary>
+    /// 映射实体到 DTO，补齐用户角色与基础展示字段。
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    protected override async Task<UserDto> MapEntityToDtoAsync(SysUser entity)
+    {
+        return await MapUserToDtoAsync(entity);
+    }
+
+    /// <summary>
+    /// 批量映射实体到 DTO，避免逐条查询角色关系。
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <returns></returns>
+    protected override async Task<IList<UserDto>> MapEntitiesToDtosAsync(IEnumerable<SysUser> entities)
+    {
+        var users = entities as SysUser[] ?? entities.ToArray();
+        if (users.Length == 0)
+        {
+            return [];
+        }
+
+        var roleIdsMap = await _userRepository.GetRoleIdsMapByUserIdsAsync(users.Select(user => user.BasicId).ToArray());
+        return users
+            .Select(user =>
+            {
+                roleIdsMap.TryGetValue(user.BasicId, out var roleIds);
+                return MapUser(user, roleIds);
+            })
+            .ToArray();
     }
 
     /// <summary>
@@ -438,6 +471,19 @@ public class UserAppService
         await _userRepository.DeleteAsync(user);
         await uow.CompleteAsync();
         return true;
+    }
+
+    private async Task<UserDto> MapUserToDtoAsync(SysUser user)
+    {
+        var relations = await _userRepository.GetUserRolesAsync(user.BasicId, user.TenantId);
+        return MapUser(user, relations.Select(relation => relation.RoleId).Distinct().ToArray());
+    }
+
+    private static UserDto MapUser(SysUser user, IReadOnlyList<long>? roleIds)
+    {
+        var dto = user.Adapt<UserDto>()!;
+        dto.RoleIds = roleIds?.Where(id => id > 0).Distinct().ToArray() ?? [];
+        return dto;
     }
 
     private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
