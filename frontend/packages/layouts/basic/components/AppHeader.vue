@@ -3,7 +3,7 @@ import type { VNodeChild } from 'vue'
 import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '~/iconify'
-import { NMenu, useMessage } from 'naive-ui'
+import { NMenu, NTag, useMessage } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
@@ -79,6 +79,30 @@ function renderRouteIcon(icon: string) {
   return () => h(Icon, { icon: resolveIcon(icon) })
 }
 
+const BADGE_TYPE_MAP: Record<string, 'default' | 'error' | 'info' | 'success' | 'warning'> = {
+  default: 'default',
+  success: 'success',
+  warning: 'warning',
+  error: 'error',
+  info: 'info',
+}
+
+function renderHorizontalBadgeLabel(text: string, badge: { text?: string | number, type?: string, dot?: boolean }) {
+  if (badge.dot) {
+    return () =>
+      h('span', { class: 'inline-flex items-center gap-1' }, [
+        text,
+        h('span', { class: 'menu-badge-dot', style: 'margin-left: 2px' }),
+      ])
+  }
+  const tagType = BADGE_TYPE_MAP[badge.type ?? ''] ?? 'default'
+  return () =>
+    h('span', { class: 'inline-flex items-center gap-1.5' }, [
+      text,
+      h(NTag, { size: 'tiny', type: tagType, round: true, bordered: false }, () => String(badge.text)),
+    ])
+}
+
 function renderTopMenuLabel(option: MenuOption | MenuGroupOption): VNodeChild {
   const rawLabel = option.label
   const label = typeof rawLabel === 'function' ? rawLabel(option) : rawLabel
@@ -107,6 +131,7 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     keyBy: 'path',
     translate: translateMenuTitle,
     iconRenderer: renderRouteIcon,
+    badgeLabelRenderer: renderHorizontalBadgeLabel,
   })
   if (isSplitMode.value) {
     return options.map((item) => ({ ...item, children: undefined }))
