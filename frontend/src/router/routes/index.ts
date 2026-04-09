@@ -44,7 +44,7 @@ export const routes: RouteRecordRaw[] = [
         name: 'EditorDemo',
         component: () => import('~/views/_core/editor-demo/index.vue'),
         meta: {
-          title: '编辑器演示',
+          title: 'menu.editor_demo',
           icon: 'lucide:file-edit',
           hidden: true,
         },

@@ -322,75 +322,86 @@ onMounted(fetchData)
       v-model:show="modalVisible"
       :title="modalTitle"
       preset="card"
-      style="width: 700px"
+      style="width: 960px"
       :auto-focus="false"
     >
       <NForm :model="formData" label-placement="left" label-width="90px">
-        <NFormItem label="上级菜单" path="parentId">
-          <NCascader
-            v-model:value="formData.parentId"
-            :options="treeOptions"
-            check-strategy="child"
-            placeholder="无则为顶级"
-            clearable
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem label="菜单类型" path="menuType">
-          <NSelect v-model:value="formData.menuType" :options="MENU_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem label="菜单名称" path="menuName">
-          <NInput v-model:value="formData.menuName" placeholder="请输入菜单名称" />
-        </NFormItem>
-        <NFormItem label="权限标识" path="menuCode">
-          <NInput v-model:value="formData.menuCode" placeholder="如: system:user:list" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="路由路径" path="path">
-          <NInput v-model:value="formData.path" placeholder="如: /system/user" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType === 1" label="组件路径" path="component">
-          <NInput v-model:value="formData.component" placeholder="如: system/user/index" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="路由名称" path="routeName">
-          <NInput v-model:value="formData.routeName" placeholder="路由名称" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="重定向" path="redirect">
-          <NInput v-model:value="formData.redirect" placeholder="重定向路径" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="图标" path="icon">
-          <IconPicker v-model="formData.icon" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="标签内容" path="badge">
-          <NInput
-            v-model:value="formData.badge"
-            placeholder="如: New、3（为空则不显示）"
-            :disabled="formData.badgeDot"
-          />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="标签类型" path="badgeType">
-          <NSelect
-            v-model:value="formData.badgeType"
-            :options="BADGE_TYPE_OPTIONS"
-            placeholder="标签颜色"
-            clearable
-            :disabled="formData.badgeDot"
-          />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="仅显示圆点">
-          <NSwitch v-model:value="formData.badgeDot" />
-        </NFormItem>
-        <NFormItem label="排序" path="sort">
-          <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
-        </NFormItem>
-        <NFormItem label="状态" path="status">
-          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType !== 2" label="是否可见">
-          <NSwitch v-model:value="formData.isVisible" />
-        </NFormItem>
-        <NFormItem v-if="formData.menuType === 1" label="是否缓存">
-          <NSwitch v-model:value="formData.isCache" />
-        </NFormItem>
+        <div class="menu-form-grid">
+          <!-- 上级菜单独占整行 -->
+          <NFormItem label="上级菜单" path="parentId" class="menu-form-full">
+            <NCascader
+              v-model:value="formData.parentId"
+              :options="treeOptions"
+              check-strategy="child"
+              placeholder="无则为顶级"
+              clearable
+              style="width: 100%"
+            />
+          </NFormItem>
+
+          <!-- 基础信息 -->
+          <NFormItem label="菜单类型" path="menuType">
+            <NSelect v-model:value="formData.menuType" :options="MENU_TYPE_OPTIONS" />
+          </NFormItem>
+          <NFormItem label="菜单名称" path="menuName">
+            <NInput v-model:value="formData.menuName" placeholder="请输入菜单名称" />
+          </NFormItem>
+          <NFormItem label="权限标识" path="menuCode">
+            <NInput v-model:value="formData.menuCode" placeholder="如: system:user:list" />
+          </NFormItem>
+          <NFormItem label="排序" path="sort">
+            <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
+          </NFormItem>
+
+          <!-- 路由信息（仅目录/菜单） -->
+          <NFormItem v-if="formData.menuType !== 2" label="路由路径" path="path">
+            <NInput v-model:value="formData.path" placeholder="如: /system/user" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="路由名称" path="routeName">
+            <NInput v-model:value="formData.routeName" placeholder="路由名称" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType === 1" label="组件路径" path="component">
+            <NInput v-model:value="formData.component" placeholder="如: system/user/index" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="重定向" path="redirect">
+            <NInput v-model:value="formData.redirect" placeholder="重定向路径" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="图标" path="icon">
+            <IconPicker v-model="formData.icon" />
+          </NFormItem>
+
+          <!-- 标签信息（仅目录/菜单） -->
+          <NFormItem v-if="formData.menuType !== 2" label="标签内容" path="badge">
+            <NInput
+              v-model:value="formData.badge"
+              placeholder="如: New、3（为空则不显示）"
+              :disabled="formData.badgeDot"
+            />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="标签类型" path="badgeType">
+            <NSelect
+              v-model:value="formData.badgeType"
+              :options="BADGE_TYPE_OPTIONS"
+              placeholder="标签颜色"
+              clearable
+              :disabled="formData.badgeDot"
+            />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="仅显示圆点">
+            <NSwitch v-model:value="formData.badgeDot" />
+          </NFormItem>
+
+          <!-- 状态开关 -->
+          <NFormItem label="状态" path="status">
+            <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="是否可见">
+            <NSwitch v-model:value="formData.isVisible" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType === 1" label="是否缓存">
+            <NSwitch v-model:value="formData.isCache" />
+          </NFormItem>
+        </div>
       </NForm>
       <template #footer>
         <NSpace justify="end">
@@ -401,3 +412,15 @@ onMounted(fetchData)
     </NModal>
   </div>
 </template>
+
+<style scoped>
+.menu-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 24px;
+}
+
+.menu-form-full {
+  grid-column: 1 / -1;
+}
+</style>

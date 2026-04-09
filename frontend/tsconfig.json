@@ -17,8 +17,10 @@
     "allowImportingTsExtensions": true,
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
     "noEmit": true,
     "isolatedModules": true,
     "skipLibCheck": true
