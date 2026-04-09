@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: Number(env.VITE_PORT) || 9000,
       warmup: {
-        clientFiles: ['./src/main.ts', './packages/app.vue', './packages/layouts/basic/index.vue'],
+        clientFiles: ['./src/main.ts', './src/App.vue', './packages/layouts/basic/index.vue'],
       },
       proxy: {
         [env.VITE_API_PREFIX]: {
