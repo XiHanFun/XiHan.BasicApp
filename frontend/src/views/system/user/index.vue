@@ -2,7 +2,6 @@
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
 import type { SysRole } from '@/api/modules/role'
 import type { SysUser } from '@/api/modules/user'
-import { toId } from '@/api/helpers'
 import {
   NButton,
   NDivider,
@@ -18,6 +17,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { roleApi, userApi } from '@/api'
+import { toId } from '@/api/helpers'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'

@@ -1,21 +1,34 @@
 <script lang="ts" setup>
+import type { TreeOption } from 'naive-ui'
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { SysDepartment } from '@/api/modules/department'
+import type { SysMenu } from '@/api/modules/menu'
+import type { SysPermission } from '@/api/modules/permission'
 import type { SysRole } from '@/api/modules/role'
 import {
   NButton,
+  NCheckbox,
+  NDrawer,
+  NDrawerContent,
+  NEmpty,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NPopconfirm,
+  NRadio,
+  NRadioGroup,
   NSelect,
   NSpace,
+  NSpin,
+  NTabPane,
+  NTabs,
   NTag,
+  NTree,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
-import { roleApi } from '@/api'
+import { computed, reactive, ref } from 'vue'
+import { departmentApi, menuApi, permissionApi, roleApi } from '@/api'
 import { STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -24,6 +37,32 @@ defineOptions({ name: 'SystemRolePage' })
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
+
+// ==================== 常量 ====================
+
+const ROLE_TYPE_OPTIONS = [
+  { label: '普通角色', value: 0 },
+  { label: '系统角色', value: 1 },
+]
+
+const DATA_SCOPE_OPTIONS = [
+  { label: '全部数据', value: 0 },
+  { label: '自定义', value: 1 },
+  { label: '本部门', value: 2 },
+  { label: '本部门及以下', value: 3 },
+  { label: '仅本人', value: 4 },
+]
+
+const ROLE_TYPE_MAP: Record<number, string> = { 0: '普通角色', 1: '系统角色' }
+const DATA_SCOPE_MAP: Record<number, string> = {
+  0: '全部',
+  1: '自定义',
+  2: '本部门',
+  3: '本部门及以下',
+  4: '仅本人',
+}
+
+// ==================== 列表 ====================
 
 const queryParams = reactive({
   keyword: '',
@@ -39,7 +78,7 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   })
 }
 
-const options = useVxeTable<SysRole>(
+const gridOptions = useVxeTable<SysRole>(
   {
     id: 'sys_role',
     name: '角色管理',
@@ -54,8 +93,18 @@ const options = useVxeTable<SysRole>(
       },
       { field: 'roleCode', title: '角色编码', minWidth: 150, showOverflow: 'tooltip' },
       { field: 'roleDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
-      { field: 'roleType', title: '角色类型', width: 100 },
-      { field: 'dataScope', title: '数据范围', width: 100 },
+      {
+        field: 'roleType',
+        title: '角色类型',
+        width: 100,
+        formatter: ({ cellValue }) => ROLE_TYPE_MAP[cellValue] ?? '-',
+      },
+      {
+        field: 'dataScope',
+        title: '数据范围',
+        width: 120,
+        formatter: ({ cellValue }) => DATA_SCOPE_MAP[cellValue] ?? '-',
+      },
       { field: 'sort', title: '排序', width: 70 },
       {
         field: 'status',
@@ -99,29 +148,6 @@ function handleReset() {
   xGrid.value?.commitProxy('reload')
 }
 
-// ==================== CRUD ====================
-
-const modalVisible = ref(false)
-const modalTitle = ref('新增角色')
-const submitLoading = ref(false)
-const formData = ref<Partial<SysRole>>({})
-
-function resetForm() {
-  formData.value = { roleName: '', roleCode: '', roleDescription: '', status: 1, sort: 100 }
-}
-
-function handleAdd() {
-  modalTitle.value = '新增角色'
-  resetForm()
-  modalVisible.value = true
-}
-
-function handleEdit(row: SysRole) {
-  modalTitle.value = '编辑角色'
-  formData.value = { ...row }
-  modalVisible.value = true
-}
-
 async function handleDelete(id: string) {
   try {
     await roleApi.delete(id)
@@ -133,30 +159,396 @@ async function handleDelete(id: string) {
   }
 }
 
-async function handleSubmit() {
+// ==================== 抽屉状态 ====================
+
+const drawerVisible = ref(false)
+const drawerTitle = ref('')
+const isEdit = ref(false)
+const currentRoleId = ref('')
+const activeTab = ref('basic')
+
+// Tab 1: 基本信息
+const formData = ref<Partial<SysRole>>({})
+const basicSaving = ref(false)
+
+// Tab 2: 菜单权限
+const menuTreeData = ref<TreeOption[]>([])
+const checkedMenuKeys = ref<string[]>([])
+const menuExpandedKeys = ref<string[]>([])
+const menuLoading = ref(false)
+const menuSaving = ref(false)
+const menuDataLoaded = ref(false)
+
+// Tab 3: 操作权限
+const allPermissions = ref<SysPermission[]>([])
+const checkedPermKeys = ref<string[]>([])
+const permLoading = ref(false)
+const permSaving = ref(false)
+const permDataLoaded = ref(false)
+
+// Tab 4: 数据范围
+const deptTreeData = ref<TreeOption[]>([])
+const checkedDeptKeys = ref<string[]>([])
+const deptExpandedKeys = ref<string[]>([])
+const deptLoading = ref(false)
+const deptSaving = ref(false)
+const deptDataLoaded = ref(false)
+
+// ==================== 工具函数 ====================
+
+function collectTreeKeys(nodes: TreeOption[]): string[] {
+  const keys: string[] = []
+  function walk(list: TreeOption[]) {
+    list.forEach((n) => {
+      keys.push(n.key as string)
+      if (n.children)
+        walk(n.children)
+    })
+  }
+  walk(nodes)
+  return keys
+}
+
+function menuToTree(menus: SysMenu[]): TreeOption[] {
+  return menus.map(m => ({
+    key: m.basicId,
+    label: m.menuName,
+    children: m.children?.length ? menuToTree(m.children) : undefined,
+  }))
+}
+
+function deptToTree(depts: SysDepartment[]): TreeOption[] {
+  return depts.map(d => ({
+    key: d.basicId,
+    label: d.departmentName,
+    children: d.children?.length ? deptToTree(d.children) : undefined,
+  }))
+}
+
+// ==================== 计算属性 ====================
+
+const allMenuKeys = computed(() => collectTreeKeys(menuTreeData.value))
+
+const isMenuAllChecked = computed(() =>
+  allMenuKeys.value.length > 0
+  && checkedMenuKeys.value.length === allMenuKeys.value.length,
+)
+
+const isMenuIndeterminate = computed(() => {
+  const len = checkedMenuKeys.value.length
+  return len > 0 && len < allMenuKeys.value.length
+})
+
+const isMenuAllExpanded = computed(() =>
+  allMenuKeys.value.length > 0
+  && menuExpandedKeys.value.length >= allMenuKeys.value.length,
+)
+
+// 权限按 groupName 分组
+const permissionGroups = computed(() => {
+  const groups = new Map<string, SysPermission[]>()
+  allPermissions.value.forEach((p) => {
+    const group = p.groupName || '未分组'
+    if (!groups.has(group))
+      groups.set(group, [])
+    groups.get(group)!.push(p)
+  })
+  return groups
+})
+
+// ==================== 抽屉操作 ====================
+
+function resetDrawerState() {
+  menuTreeData.value = []
+  checkedMenuKeys.value = []
+  menuExpandedKeys.value = []
+  menuDataLoaded.value = false
+  allPermissions.value = []
+  checkedPermKeys.value = []
+  permDataLoaded.value = false
+  deptTreeData.value = []
+  checkedDeptKeys.value = []
+  deptExpandedKeys.value = []
+  deptDataLoaded.value = false
+}
+
+function handleAdd() {
+  resetDrawerState()
+  drawerTitle.value = '新增角色'
+  isEdit.value = false
+  currentRoleId.value = ''
+  activeTab.value = 'basic'
+  formData.value = {
+    roleName: '',
+    roleCode: '',
+    roleDescription: '',
+    roleType: 0,
+    dataScope: 0,
+    status: 1,
+    sort: 100,
+  }
+  drawerVisible.value = true
+}
+
+function handleEdit(row: SysRole) {
+  resetDrawerState()
+  drawerTitle.value = '编辑角色'
+  isEdit.value = true
+  currentRoleId.value = row.basicId
+  activeTab.value = 'basic'
+  formData.value = { ...row, dataScope: row.dataScope ?? 0 }
+  drawerVisible.value = true
+}
+
+function handleTabChange(tab: string) {
+  if (!currentRoleId.value)
+    return
+  if (tab === 'menu')
+    loadMenuData()
+  else if (tab === 'permission')
+    loadPermissionData()
+  else if (tab === 'dataScope')
+    loadDataScopeData()
+}
+
+// ==================== 数据加载 ====================
+
+async function loadMenuData() {
+  if (menuDataLoaded.value)
+    return
+  menuLoading.value = true
   try {
-    submitLoading.value = true
-    if (formData.value.basicId) {
-      await roleApi.update(formData.value.basicId, formData.value)
+    const [tree, assigned] = await Promise.all([
+      menuApi.tree(),
+      currentRoleId.value
+        ? roleApi.getRoleMenus(currentRoleId.value)
+        : Promise.resolve([] as string[]),
+    ])
+    menuTreeData.value = menuToTree(tree)
+    checkedMenuKeys.value = assigned
+    menuDataLoaded.value = true
+  }
+  catch {
+    message.error('加载菜单数据失败')
+  }
+  finally {
+    menuLoading.value = false
+  }
+}
+
+async function loadPermissionData() {
+  if (permDataLoaded.value)
+    return
+  permLoading.value = true
+  try {
+    const [list, assigned] = await Promise.all([
+      permissionApi.list(),
+      currentRoleId.value
+        ? roleApi.getRolePermissions(currentRoleId.value)
+        : Promise.resolve([] as string[]),
+    ])
+    allPermissions.value = list
+    checkedPermKeys.value = assigned
+    permDataLoaded.value = true
+  }
+  catch {
+    message.error('加载权限数据失败')
+  }
+  finally {
+    permLoading.value = false
+  }
+}
+
+async function loadDataScopeData() {
+  if (deptDataLoaded.value)
+    return
+  deptLoading.value = true
+  try {
+    const [tree, assigned] = await Promise.all([
+      departmentApi.tree(),
+      currentRoleId.value
+        ? roleApi.getRoleDataScopeDeptIds(currentRoleId.value)
+        : Promise.resolve([] as string[]),
+    ])
+    deptTreeData.value = deptToTree(tree)
+    checkedDeptKeys.value = assigned
+    deptExpandedKeys.value = collectTreeKeys(deptTreeData.value)
+    deptDataLoaded.value = true
+  }
+  catch {
+    message.error('加载部门数据失败')
+  }
+  finally {
+    deptLoading.value = false
+  }
+}
+
+// ==================== 保存 ====================
+
+async function handleSaveBasic() {
+  if (!formData.value.roleName) {
+    message.warning('请输入角色名称')
+    return
+  }
+  if (!formData.value.roleCode) {
+    message.warning('请输入角色编码')
+    return
+  }
+  basicSaving.value = true
+  try {
+    if (isEdit.value && currentRoleId.value) {
+      await roleApi.update(currentRoleId.value, formData.value)
+      message.success('保存成功')
     }
     else {
-      await roleApi.create(formData.value)
+      // eslint-disable-next-line ts/no-explicit-any
+      const result: any = await roleApi.create(formData.value)
+      const newId = result?.basicId ?? result?.data?.basicId ?? result?.id ?? result?.data?.id
+      if (newId) {
+        currentRoleId.value = String(newId)
+        formData.value.basicId = String(newId)
+        isEdit.value = true
+        drawerTitle.value = '编辑角色'
+        message.success('创建成功，可继续配置权限')
+      }
+      else {
+        message.success('创建成功')
+        drawerVisible.value = false
+      }
     }
-    message.success('操作成功')
-    modalVisible.value = false
     xGrid.value?.commitProxy('query')
   }
   catch {
-    message.error('操作失败')
+    message.error('保存失败')
   }
   finally {
-    submitLoading.value = false
+    basicSaving.value = false
   }
+}
+
+async function handleSaveMenus() {
+  if (!currentRoleId.value) {
+    message.warning('请先保存基本信息')
+    return
+  }
+  menuSaving.value = true
+  try {
+    await roleApi.assignMenus(currentRoleId.value, checkedMenuKeys.value)
+    message.success('菜单权限保存成功')
+  }
+  catch {
+    message.error('菜单权限保存失败')
+  }
+  finally {
+    menuSaving.value = false
+  }
+}
+
+async function handleSavePermissions() {
+  if (!currentRoleId.value) {
+    message.warning('请先保存基本信息')
+    return
+  }
+  permSaving.value = true
+  try {
+    await roleApi.assignPermissions(currentRoleId.value, checkedPermKeys.value)
+    message.success('操作权限保存成功')
+  }
+  catch {
+    message.error('操作权限保存失败')
+  }
+  finally {
+    permSaving.value = false
+  }
+}
+
+async function handleSaveDataScope() {
+  if (!currentRoleId.value) {
+    message.warning('请先保存基本信息')
+    return
+  }
+  deptSaving.value = true
+  try {
+    const scope = formData.value.dataScope ?? 0
+    await roleApi.update(currentRoleId.value, { ...formData.value, dataScope: scope })
+    if (scope === 1) {
+      await roleApi.assignDataScope(currentRoleId.value, checkedDeptKeys.value)
+    }
+    message.success('数据范围保存成功')
+    xGrid.value?.commitProxy('query')
+  }
+  catch {
+    message.error('数据范围保存失败')
+  }
+  finally {
+    deptSaving.value = false
+  }
+}
+
+// ==================== 菜单树操作 ====================
+
+function handleMenuCheckAll(checked: boolean) {
+  checkedMenuKeys.value = checked ? [...allMenuKeys.value] : []
+}
+
+function handleMenuExpandAll(expand: boolean) {
+  menuExpandedKeys.value = expand ? [...allMenuKeys.value] : []
+}
+
+function onMenuCheckedKeysUpdate(keys: Array<string | number>) {
+  checkedMenuKeys.value = keys.map(String)
+}
+
+function onMenuExpandedKeysUpdate(keys: Array<string | number>) {
+  menuExpandedKeys.value = keys.map(String)
+}
+
+// ==================== 权限操作 ====================
+
+function handlePermToggle(id: string, checked: boolean) {
+  if (checked) {
+    checkedPermKeys.value = [...checkedPermKeys.value, id]
+  }
+  else {
+    checkedPermKeys.value = checkedPermKeys.value.filter(k => k !== id)
+  }
+}
+
+function handlePermGroupCheckAll(perms: SysPermission[], checked: boolean) {
+  const ids = new Set(perms.map(p => p.basicId))
+  if (checked) {
+    const current = new Set(checkedPermKeys.value)
+    ids.forEach(id => current.add(id))
+    checkedPermKeys.value = [...current]
+  }
+  else {
+    checkedPermKeys.value = checkedPermKeys.value.filter(k => !ids.has(k))
+  }
+}
+
+function isGroupAllChecked(perms: SysPermission[]) {
+  return perms.length > 0 && perms.every(p => checkedPermKeys.value.includes(p.basicId))
+}
+
+function isGroupIndeterminate(perms: SysPermission[]) {
+  const count = perms.filter(p => checkedPermKeys.value.includes(p.basicId)).length
+  return count > 0 && count < perms.length
+}
+
+// ==================== 数据范围树操作 ====================
+
+function onDeptCheckedKeysUpdate(keys: Array<string | number>) {
+  checkedDeptKeys.value = keys.map(String)
+}
+
+function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
+  deptExpandedKeys.value = keys.map(String)
 }
 </script>
 
 <template>
   <div class="flex flex-col h-full">
+    <!-- 搜索栏 -->
     <vxe-card class="mb-2" style="padding: 10px 16px">
       <div class="flex flex-wrap gap-3 items-center">
         <vxe-input
@@ -181,8 +573,10 @@ async function handleSubmit() {
         </NButton>
       </div>
     </vxe-card>
+
+    <!-- 角色列表 -->
     <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="options">
+      <vxe-grid ref="xGrid" v-bind="gridOptions">
         <template #toolbar_buttons>
           <NButton type="primary" size="small" @click="handleAdd">
             新增角色
@@ -211,49 +605,201 @@ async function handleSubmit() {
       </vxe-grid>
     </vxe-card>
 
-    <NModal
-      v-model:show="modalVisible"
-      :title="modalTitle"
-      preset="card"
-      style="width: 480px"
-      :auto-focus="false"
-    >
-      <NForm :model="formData" label-placement="left" label-width="80px">
-        <NFormItem label="角色名称" path="roleName">
-          <NInput v-model:value="formData.roleName" placeholder="请输入角色名称" />
-        </NFormItem>
-        <NFormItem label="角色编码" path="roleCode">
-          <NInput
-            v-model:value="formData.roleCode"
-            :disabled="!!formData.basicId"
-            placeholder="如: admin, editor"
-          />
-        </NFormItem>
-        <NFormItem label="描述" path="roleDescription">
-          <NInput
-            v-model:value="formData.roleDescription"
-            type="textarea"
-            :rows="3"
-            placeholder="角色描述"
-          />
-        </NFormItem>
-        <NFormItem label="排序" path="sort">
-          <NInputNumber v-model:value="formData.sort" :min="0" :max="9999" style="width: 100%" />
-        </NFormItem>
-        <NFormItem label="状态" path="status">
-          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            确认
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    <!-- 角色编辑抽屉 -->
+    <NDrawer v-model:show="drawerVisible" :width="640" @after-leave="resetDrawerState">
+      <NDrawerContent :title="drawerTitle" closable>
+        <NTabs v-model:value="activeTab" type="line" @update:value="handleTabChange">
+          <!-- ===== 基本信息 ===== -->
+          <NTabPane name="basic" tab="基本信息">
+            <NForm :model="formData" label-placement="left" label-width="80px">
+              <NFormItem label="角色名称" path="roleName">
+                <NInput v-model:value="formData.roleName" placeholder="请输入角色名称" />
+              </NFormItem>
+              <NFormItem label="角色编码" path="roleCode">
+                <NInput
+                  v-model:value="formData.roleCode"
+                  :disabled="isEdit"
+                  placeholder="如: admin, editor"
+                />
+              </NFormItem>
+              <NFormItem label="描述" path="roleDescription">
+                <NInput
+                  v-model:value="formData.roleDescription"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="角色描述"
+                />
+              </NFormItem>
+              <NFormItem label="角色类型" path="roleType">
+                <NSelect v-model:value="formData.roleType" :options="ROLE_TYPE_OPTIONS" />
+              </NFormItem>
+              <NFormItem label="数据范围" path="dataScope">
+                <NSelect v-model:value="formData.dataScope" :options="DATA_SCOPE_OPTIONS" />
+              </NFormItem>
+              <NFormItem label="排序" path="sort">
+                <NInputNumber
+                  v-model:value="formData.sort"
+                  :min="0"
+                  :max="9999"
+                  style="width: 100%"
+                />
+              </NFormItem>
+              <NFormItem label="状态" path="status">
+                <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+              </NFormItem>
+            </NForm>
+            <div class="flex justify-end">
+              <NButton type="primary" :loading="basicSaving" @click="handleSaveBasic">
+                保存
+              </NButton>
+            </div>
+          </NTabPane>
+
+          <!-- ===== 菜单权限 ===== -->
+          <NTabPane name="menu" tab="菜单权限" :disabled="!currentRoleId">
+            <NSpin :show="menuLoading">
+              <div class="flex items-center gap-4 mb-3">
+                <NCheckbox
+                  :checked="isMenuAllChecked"
+                  :indeterminate="isMenuIndeterminate"
+                  @update:checked="handleMenuCheckAll"
+                >
+                  全选
+                </NCheckbox>
+                <NCheckbox
+                  :checked="isMenuAllExpanded"
+                  @update:checked="handleMenuExpandAll"
+                >
+                  展开全部
+                </NCheckbox>
+              </div>
+              <div style="max-height: 460px; overflow-y: auto">
+                <NTree
+                  :data="menuTreeData"
+                  checkable
+                  cascade
+                  :checked-keys="checkedMenuKeys"
+                  :expanded-keys="menuExpandedKeys"
+                  check-strategy="all"
+                  block-line
+                  @update:checked-keys="onMenuCheckedKeysUpdate"
+                  @update:expanded-keys="onMenuExpandedKeysUpdate"
+                />
+              </div>
+              <NEmpty
+                v-if="!menuLoading && menuDataLoaded && menuTreeData.length === 0"
+                description="暂无菜单数据"
+              />
+            </NSpin>
+            <div class="flex justify-end mt-4">
+              <NButton type="primary" :loading="menuSaving" @click="handleSaveMenus">
+                保存
+              </NButton>
+            </div>
+          </NTabPane>
+
+          <!-- ===== 操作权限 ===== -->
+          <NTabPane name="permission" tab="操作权限" :disabled="!currentRoleId">
+            <NSpin :show="permLoading">
+              <template v-if="permissionGroups.size > 0">
+                <div
+                  v-for="[groupName, perms] of permissionGroups"
+                  :key="groupName"
+                  class="mb-4"
+                >
+                  <div
+                    class="flex items-center gap-2 mb-2 pb-1"
+                    style="border-bottom: 1px solid #efeff5"
+                  >
+                    <NCheckbox
+                      :checked="isGroupAllChecked(perms)"
+                      :indeterminate="isGroupIndeterminate(perms)"
+                      @update:checked="(val) => handlePermGroupCheckAll(perms, val)"
+                    >
+                      <span class="font-semibold">{{ groupName }}</span>
+                    </NCheckbox>
+                    <span class="text-xs opacity-50">
+                      {{ perms.filter(p => checkedPermKeys.includes(p.basicId)).length }}/{{ perms.length }}
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap gap-x-5 gap-y-1 pl-6">
+                    <NCheckbox
+                      v-for="p in perms"
+                      :key="p.basicId"
+                      :checked="checkedPermKeys.includes(p.basicId)"
+                      @update:checked="(val) => handlePermToggle(p.basicId, val)"
+                    >
+                      {{ p.permissionName }}
+                    </NCheckbox>
+                  </div>
+                </div>
+              </template>
+              <NEmpty
+                v-if="!permLoading && permDataLoaded && allPermissions.length === 0"
+                description="暂无权限数据"
+              />
+            </NSpin>
+            <div class="flex justify-end mt-4">
+              <NButton type="primary" :loading="permSaving" @click="handleSavePermissions">
+                保存
+              </NButton>
+            </div>
+          </NTabPane>
+
+          <!-- ===== 数据范围 ===== -->
+          <NTabPane name="dataScope" tab="数据范围" :disabled="!currentRoleId">
+            <NSpin :show="deptLoading">
+              <div class="mb-4">
+                <div class="mb-2 font-semibold text-sm">
+                  数据范围类型
+                </div>
+                <NRadioGroup
+                  :value="formData.dataScope ?? 0"
+                  @update:value="(v) => { formData.dataScope = Number(v) }"
+                >
+                  <NSpace vertical>
+                    <NRadio
+                      v-for="opt in DATA_SCOPE_OPTIONS"
+                      :key="opt.value"
+                      :value="opt.value"
+                    >
+                      {{ opt.label }}
+                    </NRadio>
+                  </NSpace>
+                </NRadioGroup>
+              </div>
+              <!-- 自定义范围时选择部门 -->
+              <template v-if="formData.dataScope === 1">
+                <div class="mb-2 font-semibold text-sm">
+                  选择部门
+                </div>
+                <div style="max-height: 320px; overflow-y: auto">
+                  <NTree
+                    :data="deptTreeData"
+                    checkable
+                    cascade
+                    :checked-keys="checkedDeptKeys"
+                    :expanded-keys="deptExpandedKeys"
+                    check-strategy="all"
+                    block-line
+                    @update:checked-keys="onDeptCheckedKeysUpdate"
+                    @update:expanded-keys="onDeptExpandedKeysUpdate"
+                  />
+                </div>
+                <NEmpty
+                  v-if="!deptLoading && deptDataLoaded && deptTreeData.length === 0"
+                  description="暂无部门数据"
+                />
+              </template>
+            </NSpin>
+            <div class="flex justify-end mt-4">
+              <NButton type="primary" :loading="deptSaving" @click="handleSaveDataScope">
+                保存
+              </NButton>
+            </div>
+          </NTabPane>
+        </NTabs>
+      </NDrawerContent>
+    </NDrawer>
   </div>
 </template>
