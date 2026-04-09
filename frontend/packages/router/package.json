@@ -1,0 +1,10 @@
+{
+  "name": "@xihan/router",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@xihan/constants": "workspace:*",
+    "@xihan/stores": "workspace:*"
+  }
+}
