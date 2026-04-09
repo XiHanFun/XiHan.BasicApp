@@ -46,6 +46,9 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: Number(env.VITE_PORT) || 9000,
+      warmup: {
+        clientFiles: ['./src/main.ts', './packages/app.vue', './packages/layouts/basic/index.vue'],
+      },
       proxy: {
         [env.VITE_API_PREFIX]: {
           target: env.VITE_DEV_PROXY_TARGET,
@@ -61,6 +64,7 @@ export default defineConfig(({ mode }) => {
     build: {
       target: 'es2022',
       chunkSizeWarningLimit: 2000,
+      reportCompressedSize: false,
       rollupOptions: {
         output: {
           chunkFileNames: 'assets/js/[name]-[hash].js',
