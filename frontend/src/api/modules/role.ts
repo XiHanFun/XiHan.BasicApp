@@ -112,9 +112,9 @@ export const roleApi = {
 
   /** 查询角色已分配的权限 ID 列表 */
   getRolePermissions: async (roleId: string): Promise<string[]> => {
+    const id = toId(roleId)
     const data = await api.request.get<Array<Record<string, unknown>>>(
-      `${api.baseUrl}RolePermissions`,
-      { params: { roleId: toId(roleId) } },
+      `${api.baseUrl}RolePermissions/${id}/0`,
     )
     return Array.isArray(data)
       ? data.map(item => toId(item.permissionId)).filter(Boolean)
@@ -123,9 +123,9 @@ export const roleApi = {
 
   /** 查询角色已分配的菜单 ID 列表 */
   getRoleMenus: async (roleId: string): Promise<string[]> => {
+    const id = toId(roleId)
     const data = await api.request.get<Array<Record<string, unknown>>>(
-      `${api.baseUrl}RoleMenus`,
-      { params: { roleId: toId(roleId) } },
+      `${api.baseUrl}RoleMenus/${id}/0`,
     )
     return Array.isArray(data)
       ? data.map(item => toId(item.menuId)).filter(Boolean)
@@ -134,9 +134,9 @@ export const roleApi = {
 
   /** 查询角色自定义数据范围的部门 ID 列表 */
   getRoleDataScopeDeptIds: async (roleId: string): Promise<string[]> => {
+    const id = toId(roleId)
     const data = await api.request.get<Array<string | number>>(
-      `${api.baseUrl}RoleDataScopeDepartmentIds`,
-      { params: { roleId: toId(roleId) } },
+      `${api.baseUrl}RoleDataScopeDepartmentIds/${id}/0`,
     )
     return Array.isArray(data) ? data.map(item => toId(item)).filter(Boolean) : []
   },
