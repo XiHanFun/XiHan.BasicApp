@@ -25,6 +25,7 @@ export const UI_RADIUS_KEY = `${STORAGE_PREFIX}ui_radius`
 export const FONT_SIZE_KEY = `${STORAGE_PREFIX}font_size`
 export const DYNAMIC_TITLE_KEY = `${STORAGE_PREFIX}dynamic_title`
 export const CHECK_UPDATES_KEY = `${STORAGE_PREFIX}check_updates`
+export const CHECK_UPDATES_INTERVAL_KEY = `${STORAGE_PREFIX}check_updates_interval`
 export const BREADCRUMB_SHOW_HOME_KEY = `${STORAGE_PREFIX}breadcrumb_show_home`
 export const BREADCRUMB_SHOW_ICON_KEY = `${STORAGE_PREFIX}breadcrumb_show_icon`
 export const BREADCRUMB_HIDE_ONLY_ONE_KEY = `${STORAGE_PREFIX}breadcrumb_hide_only_one`
