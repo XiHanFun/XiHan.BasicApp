@@ -40,6 +40,17 @@ public class UserQueryService : IUserQueryService, ITransientDependency
     public async Task<UserDto?> GetByIdAsync(long id)
     {
         var entity = await _userRepository.GetByIdAsync(id);
-        return entity?.Adapt<UserDto>();
+        if (entity is null)
+        {
+            return null;
+        }
+
+        var dto = entity.Adapt<UserDto>()!;
+        var relations = await _userRepository.GetUserRolesAsync(entity.BasicId, entity.TenantId);
+        dto.RoleIds = relations
+            .Select(relation => relation.RoleId)
+            .Distinct()
+            .ToArray();
+        return dto;
     }
 }
