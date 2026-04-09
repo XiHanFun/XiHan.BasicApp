@@ -2,11 +2,11 @@
 import type { MenuOption } from 'naive-ui'
 import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
-import { Icon } from '~/iconify'
 import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
+import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useLayoutBridgeStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
 import { renderSidebarBadgeLabel } from './MenuBadge.vue'
@@ -49,8 +49,8 @@ const emit = defineEmits<{
   'update:expandOnHovering': [value: boolean]
   'update:extraVisible': [value: boolean]
   'update:extraCollapse': [value: boolean]
-  sidebarMouseEnter: [event: MouseEvent]
-  sidebarMouseLeave: []
+  'sidebarMouseEnter': [event: MouseEvent]
+  'sidebarMouseLeave': []
 }>()
 
 interface Props {
@@ -106,7 +106,7 @@ const appLogo = computed(
 const activeKey = computed(() => String(route.meta?.activePath || route.path || ''))
 const isSideMixedLayout = computed(() => appStore.layoutMode === 'side-mixed')
 const isHeaderMixLayout = computed(() => appStore.layoutMode === 'header-mix')
-const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
+const _isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
 const isSplitMenuLayout = computed(() => appStore.navigationSplit && appStore.layoutMode === 'mix')
 
 const extraMenuTheme = computed<'dark' | 'light'>(() => {
@@ -118,7 +118,8 @@ const extraPanelNaiveTheme = computed(() => {
 })
 
 function resolveIcon(icon: string) {
-  if (!icon) return icon
+  if (!icon)
+    return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
@@ -139,19 +140,21 @@ const menuBuildConfig = {
 
 function toPrimaryOptions(routeList: LayoutRouteRecord[], parentPath = '') {
   return buildMenuOptionsFromRoutes(routeList, menuBuildConfig, parentPath)
-    .map((item) => ({ ...item, children: undefined }))
+    .map(item => ({ ...item, children: undefined }))
 }
 
 // --- Standard menu ---
 const menuSource = computed<LayoutRouteRecord[]>(() => {
-  if (isSideMixedLayout.value || isHeaderMixLayout.value) return []
-  if (!isSplitMenuLayout.value) return baseMenuSource.value
-  return activeRootRoute.value?.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []
+  if (isSideMixedLayout.value || isHeaderMixLayout.value)
+    return []
+  if (!isSplitMenuLayout.value)
+    return baseMenuSource.value
+  return activeRootRoute.value?.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
 })
 
 const menuOptions = computed(() => {
-  const parentPath =
-    isSplitMenuLayout.value && activeRootRoute.value
+  const parentPath
+    = isSplitMenuLayout.value && activeRootRoute.value
       ? resolveFullPath(activeRootRoute.value.path)
       : ''
   return buildMenuOptionsFromRoutes(menuSource.value, menuBuildConfig, parentPath)
@@ -169,25 +172,28 @@ const sideMixedPrimaryOptions = computed<MenuOption[]>(() =>
   toPrimaryOptions(sideMixedPrimaryRoutes.value),
 )
 const sideMixedActiveTopKey = computed(() => {
-  if (!isSideMixedLayout.value) return ''
+  if (!isSideMixedLayout.value)
+    return ''
   return (
-    findMatchedRoutePath(sideMixedPrimaryRoutes.value) ??
-    (sideMixedPrimaryRoutes.value[0]
+    findMatchedRoutePath(sideMixedPrimaryRoutes.value)
+    ?? (sideMixedPrimaryRoutes.value[0]
       ? resolveFullPath(sideMixedPrimaryRoutes.value[0].path)
-      : '') ??
-    ''
+      : '')
+    ?? ''
   )
 })
 const sideMixedEffectiveTopKey = computed(
   () => sideMixedHoverKey.value || sideMixedActiveTopKey.value,
 )
 const sideMixedSecondarySource = computed<LayoutRouteRecord[]>(() => {
-  if (!isSideMixedLayout.value) return []
+  if (!isSideMixedLayout.value)
+    return []
   const activeTopRoute = sideMixedPrimaryRoutes.value.find(
-    (item) => resolveFullPath(item.path) === sideMixedEffectiveTopKey.value,
+    item => resolveFullPath(item.path) === sideMixedEffectiveTopKey.value,
   )
-  if (!activeTopRoute) return []
-  return activeTopRoute.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []
+  if (!activeTopRoute)
+    return []
+  return activeTopRoute.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
 })
 const sideMixedSecondaryOptions = computed(() =>
   buildMenuOptionsFromRoutes(
@@ -199,37 +205,42 @@ const sideMixedSecondaryOptions = computed(() =>
 
 // --- Header-mix menu ---
 const headerMixParentPath = computed(() => {
-  if (!activeRootRoute.value) return ''
+  if (!activeRootRoute.value)
+    return ''
   return resolveFullPath(activeRootRoute.value.path)
 })
 const headerMixPrimaryRoutes = computed(() => {
-  if (!isHeaderMixLayout.value) return []
-  return activeRootRoute.value?.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []
+  if (!isHeaderMixLayout.value)
+    return []
+  return activeRootRoute.value?.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
 })
 const headerMixPrimaryOptions = computed<MenuOption[]>(() =>
   toPrimaryOptions(headerMixPrimaryRoutes.value, headerMixParentPath.value),
 )
 const headerMixActivePrimaryKey = computed(() => {
-  if (!isHeaderMixLayout.value) return ''
+  if (!isHeaderMixLayout.value)
+    return ''
   return (
-    findMatchedRoutePath(headerMixPrimaryRoutes.value, headerMixParentPath.value) ??
-    (headerMixPrimaryRoutes.value[0]
+    findMatchedRoutePath(headerMixPrimaryRoutes.value, headerMixParentPath.value)
+    ?? (headerMixPrimaryRoutes.value[0]
       ? resolveFullPath(headerMixPrimaryRoutes.value[0].path, headerMixParentPath.value)
-      : '') ??
-    ''
+      : '')
+    ?? ''
   )
 })
 const headerMixEffectivePrimaryKey = computed(
   () => headerMixHoverKey.value || headerMixActivePrimaryKey.value,
 )
 const headerMixSecondarySource = computed<LayoutRouteRecord[]>(() => {
-  if (!isHeaderMixLayout.value) return []
+  if (!isHeaderMixLayout.value)
+    return []
   const activePrimary = headerMixPrimaryRoutes.value.find(
-    (item) =>
+    item =>
       resolveFullPath(item.path, headerMixParentPath.value) === headerMixEffectivePrimaryKey.value,
   )
-  if (!activePrimary) return []
-  return activePrimary.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []
+  if (!activePrimary)
+    return []
+  return activePrimary.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
 })
 const headerMixSecondaryOptions = computed(() =>
   buildMenuOptionsFromRoutes(
@@ -240,7 +251,7 @@ const headerMixSecondaryOptions = computed(() =>
 )
 
 // --- Sidebar styles ---
-const SIDEBAR_COLLAPSE_WIDTH = 60
+const _SIDEBAR_COLLAPSE_WIDTH = 60
 
 const placeholderStyle = computed((): CSSProperties => {
   let widthValue = `${props.sidebarWidth}px`
@@ -269,20 +280,20 @@ const placeholderStyle = computed((): CSSProperties => {
 
 const asideStyle = computed((): CSSProperties => {
   const isMixed = props.isDualColumn
-  const extraW =
-    isMixed && appStore.sidebarExpandOnHover && props.extraVisible ? props.sidebarExtraWidth : 0
+  const extraW
+    = isMixed && appStore.sidebarExpandOnHover && props.extraVisible ? props.sidebarExtraWidth : 0
   const totalW = props.sidebarWidth + extraW
   return {
     '--scroll-shadow': 'var(--sidebar)',
-    flex: `0 0 ${totalW}px`,
-    maxWidth: `${totalW}px`,
-    minWidth: `${totalW}px`,
-    width: `${totalW}px`,
-    height: props.isMobile ? '100%' : `calc(100% - ${props.sidebarMarginTop}px)`,
-    marginTop: props.isMobile ? '0' : `${props.sidebarMarginTop}px`,
-    marginLeft: props.isMobile && !props.showSidebar ? `-${totalW}px` : '0',
-    overflow: props.isMobile && !props.showSidebar ? 'hidden' : undefined,
-    zIndex: props.sidebarZIndex,
+    'flex': `0 0 ${totalW}px`,
+    'maxWidth': `${totalW}px`,
+    'minWidth': `${totalW}px`,
+    'width': `${totalW}px`,
+    'height': props.isMobile ? '100%' : `calc(100% - ${props.sidebarMarginTop}px)`,
+    'marginTop': props.isMobile ? '0' : `${props.sidebarMarginTop}px`,
+    'marginLeft': props.isMobile && !props.showSidebar ? `-${totalW}px` : '0',
+    'overflow': props.isMobile && !props.showSidebar ? 'hidden' : undefined,
+    'zIndex': props.sidebarZIndex,
     ...(isMixed && props.extraVisible ? { transition: 'none' } : {}),
   }
 })
@@ -323,31 +334,36 @@ const extraContentStyle = computed((): CSSProperties => {
 
 // --- Actions ---
 function handleMenuUpdate(key: string) {
-  if (!key) return
+  if (!key)
+    return
   if (key.startsWith('/')) {
-    if (key !== route.path) router.push(key)
+    if (key !== route.path)
+      router.push(key)
     return
   }
-  if (String(route.name ?? '') !== key) router.push({ name: key })
+  if (String(route.name ?? '') !== key)
+    router.push({ name: key })
 }
 
 function resolveFirstVisiblePath(target: LayoutRouteRecord, parentPath = ''): string {
   const currentPath = resolveFullPath(target.path, parentPath)
-  const visibleChildren = target.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []
-  if (!visibleChildren.length) return currentPath
+  const visibleChildren = target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
+  if (!visibleChildren.length)
+    return currentPath
   return resolveFirstVisiblePath(visibleChildren[0], currentPath)
 }
 
 function jumpToFirstVisibleChild(target: LayoutRouteRecord, parentPath = '') {
   const targetPath = resolveFirstVisiblePath(target, parentPath)
-  if (targetPath && targetPath !== route.path) router.push(targetPath)
+  if (targetPath && targetPath !== route.path)
+    router.push(targetPath)
 }
 
 function handleSideMixedPrimaryUpdate(key: string) {
-  const target = sideMixedPrimaryRoutes.value.find((item) => resolveFullPath(item.path) === key)
+  const target = sideMixedPrimaryRoutes.value.find(item => resolveFullPath(item.path) === key)
   if (target) {
-    const hasChildren =
-      (target.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []).length > 0
+    const hasChildren
+      = (target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []).length > 0
     emit('update:extraVisible', hasChildren)
     jumpToFirstVisibleChild(target)
   }
@@ -355,11 +371,11 @@ function handleSideMixedPrimaryUpdate(key: string) {
 
 function handleHeaderMixPrimaryUpdate(key: string) {
   const target = headerMixPrimaryRoutes.value.find(
-    (item) => resolveFullPath(item.path, headerMixParentPath.value) === key,
+    item => resolveFullPath(item.path, headerMixParentPath.value) === key,
   )
   if (target) {
-    const hasChildren =
-      (target.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []).length > 0
+    const hasChildren
+      = (target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []).length > 0
     emit('update:extraVisible', hasChildren)
     jumpToFirstVisibleChild(target, headerMixParentPath.value)
   }
@@ -367,10 +383,11 @@ function handleHeaderMixPrimaryUpdate(key: string) {
 
 function handleBrandClick() {
   const targetPath = accessStore.homePath || HOME_PATH
-  if (route.path !== targetPath) router.push(targetPath)
+  if (route.path !== targetPath)
+    router.push(targetPath)
 }
 
-function handleToggleCollapse() {
+function _handleToggleCollapse() {
   if (typeof window !== 'undefined' && window.innerWidth < 960) {
     layoutBridgeStore.requestSidebarToggle()
     return
@@ -378,30 +395,35 @@ function handleToggleCollapse() {
   appStore.toggleSidebar()
 }
 
-function handleTogglePin() {
+function _handleTogglePin() {
   appStore.setSidebarExpandOnHover(!appStore.sidebarExpandOnHover)
 }
 
 function handlePrimaryColumnHover(e: MouseEvent, mode: 'header-mix' | 'side-mixed') {
-  if (appStore.sidebarExpandOnHover) return
+  if (appStore.sidebarExpandOnHover)
+    return
   const itemEl = (e.target as HTMLElement).closest('.n-menu-item')
-  if (!itemEl) return
+  if (!itemEl)
+    return
   const menuEl = itemEl.closest('.n-menu')
-  if (!menuEl) return
-  const items = Array.from(menuEl.children).filter((el) => el.classList.contains('n-menu-item'))
+  if (!menuEl)
+    return
+  const items = Array.from(menuEl.children).filter(el => el.classList.contains('n-menu-item'))
   const idx = items.indexOf(itemEl as Element)
   const routes = mode === 'side-mixed' ? sideMixedPrimaryRoutes.value : headerMixPrimaryRoutes.value
-  if (idx < 0 || idx >= routes.length) return
+  if (idx < 0 || idx >= routes.length)
+    return
   const parentPath = mode === 'header-mix' ? headerMixParentPath.value : ''
   const target = routes[idx]
   const key = resolveFullPath(target.path, parentPath)
   if (mode === 'side-mixed') {
     sideMixedHoverKey.value = key
-  } else {
+  }
+  else {
     headerMixHoverKey.value = key
   }
-  const hasChildren =
-    (target.children?.filter((child) => !toLayoutMeta(child).hidden) ?? []).length > 0
+  const hasChildren
+    = (target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []).length > 0
   emit('update:extraVisible', hasChildren)
 }
 
@@ -415,7 +437,8 @@ function handleAsideMouseLeave() {
 }
 
 function syncExtraVisibility() {
-  if (!props.isDualColumn) return
+  if (!props.isDualColumn)
+    return
   if (!appStore.sidebarExpandOnHover) {
     emit('update:extraVisible', false)
     return
@@ -435,7 +458,8 @@ watch(() => [props.isDualColumn, appStore.sidebarExpandOnHover], syncExtraVisibi
 watch(
   () => route.path,
   () => {
-    if (props.isDualColumn) syncExtraVisibility()
+    if (props.isDualColumn)
+      syncExtraVisibility()
   },
 )
 </script>
@@ -707,8 +731,7 @@ watch(
   border-radius: 6px;
 }
 
-.mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
+.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
   font-size: 20px !important;
   width: 20px;
   height: 20px;
@@ -717,13 +740,11 @@ watch(
   transition: all 0.25s ease;
 }
 
-.mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
+.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
   display: none !important;
 }
 
-.mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
+.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
   transform: scale(1.2);
 }
 

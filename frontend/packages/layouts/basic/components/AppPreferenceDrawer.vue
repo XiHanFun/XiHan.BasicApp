@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '~/iconify'
 import {
   NButton,
   NDrawer,
@@ -21,6 +20,7 @@ import {
   USER_INFO_KEY,
 } from '~/constants'
 import { useContentMaximize, useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 import PreferenceAppearanceTab from './preference/PreferenceAppearanceTab.vue'
 import PreferenceFab from './preference/PreferenceFab.vue'
@@ -44,13 +44,15 @@ const isNarrowScreen = computed(() => viewportWidth.value < 960)
 const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
 const showFloatingFab = computed(() => {
   const position = appStore.widgetPreferencePosition
-  if (position === 'header') return false
-  if (position === 'fixed') return true
+  if (position === 'header')
+    return false
+  if (position === 'fixed')
+    return true
   return (
-    isNarrowScreen.value ||
-    contentMaximized.value ||
-    !appStore.headerShow ||
-    isFullContentLayout.value
+    isNarrowScreen.value
+    || contentMaximized.value
+    || !appStore.headerShow
+    || isFullContentLayout.value
   )
 })
 const { animateThemeTransition, followSystem } = useTheme()
@@ -58,7 +60,7 @@ const { animateThemeTransition, followSystem } = useTheme()
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
   get: () => appStore.layoutMode,
-  set: (v) => appStore.setLayoutMode(v),
+  set: v => appStore.setLayoutMode(v),
 })
 const contentMode = computed({
   get: () => (appStore.contentCompact ? 'fixed' : 'fluid'),
@@ -113,7 +115,8 @@ async function copyPreferences() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
     message.success(t('preference.drawer.copy_success'))
-  } catch {
+  }
+  catch {
     message.error(t('preference.drawer.copy_failed'))
   }
 }
@@ -122,7 +125,7 @@ const AUTH_KEYS = [TOKEN_KEY, REFRESH_TOKEN_KEY, USER_INFO_KEY]
 
 function resetPreferences() {
   const keys = Object.keys(localStorage).filter(
-    (key) => key.startsWith(STORAGE_PREFIX) && !AUTH_KEYS.includes(key),
+    key => key.startsWith(STORAGE_PREFIX) && !AUTH_KEYS.includes(key),
   )
   for (const key of keys) {
     localStorage.removeItem(key)

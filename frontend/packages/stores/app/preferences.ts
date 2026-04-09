@@ -110,46 +110,142 @@ export function createPreferencesSlice() {
   bindPersist(SHORTCUT_LOCK_KEY, shortcutLock)
 
   // ---- Actions ----
-  function setLocale(lang: string) { save(LOCALE_KEY, locale, lang) }
-  function setSearchEnabled(v: boolean) { save(SEARCH_ENABLED_KEY, searchEnabled, v) }
-  function setDynamicTitle(v: boolean) { save(DYNAMIC_TITLE_KEY, dynamicTitle, v) }
-  function setEnableCheckUpdates(v: boolean) { save(CHECK_UPDATES_KEY, enableCheckUpdates, v) }
-  function setCheckUpdatesInterval(v: number) { save(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, v) }
-  function setWidgetThemeToggle(v: boolean) { save(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, v) }
-  function setWidgetLanguageToggle(v: boolean) { save(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, v) }
-  function setWidgetTimezone(v: boolean) { save(WIDGET_TIMEZONE_KEY, widgetTimezone, v) }
-  function setWidgetFullscreen(v: boolean) { save(WIDGET_FULLSCREEN_KEY, widgetFullscreen, v) }
-  function setWidgetNotification(v: boolean) { save(WIDGET_NOTIFICATION_KEY, widgetNotification, v) }
-  function setWidgetLockScreen(v: boolean) { save(WIDGET_LOCKSCREEN_KEY, widgetLockScreen, v) }
-  function setWidgetSidebarToggle(v: boolean) { save(WIDGET_SIDEBAR_TOGGLE_KEY, widgetSidebarToggle, v) }
-  function setWidgetRefresh(v: boolean) { save(WIDGET_REFRESH_KEY, widgetRefresh, v) }
-  function setWidgetPreferencePosition(v: string) { save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v) }
-  function setFooterEnable(v: boolean) { save(FOOTER_ENABLE_KEY, footerEnable, v) }
-  function setFooterFixed(v: boolean) { save(FOOTER_FIXED_KEY, footerFixed, v) }
-  function setFooterShowDevInfo(v: boolean) { save(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, v) }
-  function setCopyrightEnable(v: boolean) { save(COPYRIGHT_ENABLE_KEY, copyrightEnable, v) }
-  function setCopyrightName(v: string) { save(COPYRIGHT_NAME_KEY, copyrightName, v) }
-  function setCopyrightSite(v: string) { save(COPYRIGHT_SITE_KEY, copyrightSite, v) }
-  function setCopyrightDate(v: string) { save(COPYRIGHT_DATE_KEY, copyrightDate, v) }
-  function setCopyrightIcp(v: string) { save(COPYRIGHT_ICP_KEY, copyrightIcp, v) }
-  function setCopyrightIcpUrl(v: string) { save(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl, v) }
-  function setShortcutEnable(v: boolean) { save(SHORTCUT_ENABLE_KEY, shortcutEnable, v) }
-  function setShortcutSearch(v: boolean) { save(SHORTCUT_SEARCH_KEY, shortcutSearch, v) }
-  function setShortcutLogout(v: boolean) { save(SHORTCUT_LOGOUT_KEY, shortcutLogout, v) }
-  function setShortcutLock(v: boolean) { save(SHORTCUT_LOCK_KEY, shortcutLock, v) }
+  function setLocale(lang: string) {
+    save(LOCALE_KEY, locale, lang)
+  }
+  function setSearchEnabled(v: boolean) {
+    save(SEARCH_ENABLED_KEY, searchEnabled, v)
+  }
+  function setDynamicTitle(v: boolean) {
+    save(DYNAMIC_TITLE_KEY, dynamicTitle, v)
+  }
+  function setEnableCheckUpdates(v: boolean) {
+    save(CHECK_UPDATES_KEY, enableCheckUpdates, v)
+  }
+  function setCheckUpdatesInterval(v: number) {
+    save(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, v)
+  }
+  function setWidgetThemeToggle(v: boolean) {
+    save(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, v)
+  }
+  function setWidgetLanguageToggle(v: boolean) {
+    save(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, v)
+  }
+  function setWidgetTimezone(v: boolean) {
+    save(WIDGET_TIMEZONE_KEY, widgetTimezone, v)
+  }
+  function setWidgetFullscreen(v: boolean) {
+    save(WIDGET_FULLSCREEN_KEY, widgetFullscreen, v)
+  }
+  function setWidgetNotification(v: boolean) {
+    save(WIDGET_NOTIFICATION_KEY, widgetNotification, v)
+  }
+  function setWidgetLockScreen(v: boolean) {
+    save(WIDGET_LOCKSCREEN_KEY, widgetLockScreen, v)
+  }
+  function setWidgetSidebarToggle(v: boolean) {
+    save(WIDGET_SIDEBAR_TOGGLE_KEY, widgetSidebarToggle, v)
+  }
+  function setWidgetRefresh(v: boolean) {
+    save(WIDGET_REFRESH_KEY, widgetRefresh, v)
+  }
+  function setWidgetPreferencePosition(v: string) {
+    save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
+  }
+  function setFooterEnable(v: boolean) {
+    save(FOOTER_ENABLE_KEY, footerEnable, v)
+  }
+  function setFooterFixed(v: boolean) {
+    save(FOOTER_FIXED_KEY, footerFixed, v)
+  }
+  function setFooterShowDevInfo(v: boolean) {
+    save(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, v)
+  }
+  function setCopyrightEnable(v: boolean) {
+    save(COPYRIGHT_ENABLE_KEY, copyrightEnable, v)
+  }
+  function setCopyrightName(v: string) {
+    save(COPYRIGHT_NAME_KEY, copyrightName, v)
+  }
+  function setCopyrightSite(v: string) {
+    save(COPYRIGHT_SITE_KEY, copyrightSite, v)
+  }
+  function setCopyrightDate(v: string) {
+    save(COPYRIGHT_DATE_KEY, copyrightDate, v)
+  }
+  function setCopyrightIcp(v: string) {
+    save(COPYRIGHT_ICP_KEY, copyrightIcp, v)
+  }
+  function setCopyrightIcpUrl(v: string) {
+    save(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl, v)
+  }
+  function setShortcutEnable(v: boolean) {
+    save(SHORTCUT_ENABLE_KEY, shortcutEnable, v)
+  }
+  function setShortcutSearch(v: boolean) {
+    save(SHORTCUT_SEARCH_KEY, shortcutSearch, v)
+  }
+  function setShortcutLogout(v: boolean) {
+    save(SHORTCUT_LOGOUT_KEY, shortcutLogout, v)
+  }
+  function setShortcutLock(v: boolean) {
+    save(SHORTCUT_LOCK_KEY, shortcutLock, v)
+  }
 
   return {
-    locale, searchEnabled, dynamicTitle, enableCheckUpdates, checkUpdatesInterval,
-    widgetThemeToggle, widgetLanguageToggle, widgetTimezone, widgetFullscreen,
-    widgetNotification, widgetLockScreen, widgetSidebarToggle, widgetRefresh, widgetPreferencePosition,
-    footerEnable, footerFixed, footerShowDevInfo,
-    copyrightEnable, copyrightName, copyrightSite, copyrightDate, copyrightIcp, copyrightIcpUrl,
-    shortcutEnable, shortcutSearch, shortcutLogout, shortcutLock,
-    setLocale, setSearchEnabled, setDynamicTitle, setEnableCheckUpdates, setCheckUpdatesInterval,
-    setWidgetThemeToggle, setWidgetLanguageToggle, setWidgetTimezone, setWidgetFullscreen,
-    setWidgetNotification, setWidgetLockScreen, setWidgetSidebarToggle, setWidgetRefresh, setWidgetPreferencePosition,
-    setFooterEnable, setFooterFixed, setFooterShowDevInfo,
-    setCopyrightEnable, setCopyrightName, setCopyrightSite, setCopyrightDate, setCopyrightIcp, setCopyrightIcpUrl,
-    setShortcutEnable, setShortcutSearch, setShortcutLogout, setShortcutLock,
+    locale,
+    searchEnabled,
+    dynamicTitle,
+    enableCheckUpdates,
+    checkUpdatesInterval,
+    widgetThemeToggle,
+    widgetLanguageToggle,
+    widgetTimezone,
+    widgetFullscreen,
+    widgetNotification,
+    widgetLockScreen,
+    widgetSidebarToggle,
+    widgetRefresh,
+    widgetPreferencePosition,
+    footerEnable,
+    footerFixed,
+    footerShowDevInfo,
+    copyrightEnable,
+    copyrightName,
+    copyrightSite,
+    copyrightDate,
+    copyrightIcp,
+    copyrightIcpUrl,
+    shortcutEnable,
+    shortcutSearch,
+    shortcutLogout,
+    shortcutLock,
+    setLocale,
+    setSearchEnabled,
+    setDynamicTitle,
+    setEnableCheckUpdates,
+    setCheckUpdatesInterval,
+    setWidgetThemeToggle,
+    setWidgetLanguageToggle,
+    setWidgetTimezone,
+    setWidgetFullscreen,
+    setWidgetNotification,
+    setWidgetLockScreen,
+    setWidgetSidebarToggle,
+    setWidgetRefresh,
+    setWidgetPreferencePosition,
+    setFooterEnable,
+    setFooterFixed,
+    setFooterShowDevInfo,
+    setCopyrightEnable,
+    setCopyrightName,
+    setCopyrightSite,
+    setCopyrightDate,
+    setCopyrightIcp,
+    setCopyrightIcpUrl,
+    setShortcutEnable,
+    setShortcutSearch,
+    setShortcutLogout,
+    setShortcutLock,
   }
 }

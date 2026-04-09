@@ -17,17 +17,29 @@ const notifyChannels = ref<NotifyChannel[]>([
 
 <template>
   <div class="pf-tab-body">
-    <NAlert type="info" :bordered="false">通知偏好设置将在后端接口就绪后生效。营销类通知您可随时关闭（GDPR 合规）。</NAlert>
+    <NAlert type="info" :bordered="false">
+      通知偏好设置将在后端接口就绪后生效。营销类通知您可随时关闭（GDPR 合规）。
+    </NAlert>
     <NCard :bordered="false" size="small" class="pf-card">
       <template #header>
-        <div class="pf-card-header"><Icon icon="lucide:bell-ring" width="16" /><span>通知渠道</span></div>
+        <div class="pf-card-header">
+          <Icon icon="lucide:bell-ring" width="16" /><span>通知渠道</span>
+        </div>
       </template>
       <div class="pf-list">
         <div v-for="ch in notifyChannels" :key="ch.key" class="pf-list-item">
-          <div class="pf-list-icon"><Icon :icon="ch.icon" width="16" /></div>
+          <div class="pf-list-icon">
+            <Icon :icon="ch.icon" width="16" />
+          </div>
           <div class="pf-list-body">
-            <div class="pf-list-title">{{ ch.label }} <NTag v-if="ch.marketing" size="tiny" :bordered="false">营销</NTag></div>
-            <div class="pf-list-desc">{{ ch.desc }}</div>
+            <div class="pf-list-title">
+              {{ ch.label }} <NTag v-if="ch.marketing" size="tiny" :bordered="false">
+                营销
+              </NTag>
+            </div>
+            <div class="pf-list-desc">
+              {{ ch.desc }}
+            </div>
           </div>
           <NSwitch v-model:value="ch.enabled" />
         </div>

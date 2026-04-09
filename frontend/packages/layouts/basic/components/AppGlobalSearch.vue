@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { MenuRoute } from '~/types'
-import { Icon } from '~/iconify'
 import { NEmpty, NIcon, NInput, NModal, NScrollbar } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
+import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useLayoutBridgeStore } from '~/stores'
 
 defineOptions({ name: 'AppGlobalSearch', inheritAttrs: false })

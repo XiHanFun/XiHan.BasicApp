@@ -11,10 +11,12 @@ const BUILD_TIME_KEY = `${STORAGE_PREFIX}build_time`
  */
 export function invalidateCacheIfBuildTimeChanged() {
   const currentBuildTime = typeof __APP_BUILD_TIME__ === 'string' ? __APP_BUILD_TIME__ : ''
-  if (!currentBuildTime) return
+  if (!currentBuildTime)
+    return
 
   const savedBuildTime = LocalStorage.get<string>(BUILD_TIME_KEY)
-  if (savedBuildTime === currentBuildTime) return
+  if (savedBuildTime === currentBuildTime)
+    return
 
   const keysToRemove: string[] = []
   for (let i = 0; i < localStorage.length; i++) {

@@ -1,15 +1,17 @@
 import { createPinia } from 'pinia'
-
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
-import { setupIconifyOffline } from '~/iconify'
-import App from './App.vue'
+
 import { setupVxeTable } from '~/hooks'
+import { setupIconifyOffline } from '~/iconify'
 import { setupI18n } from '~/locales'
 import { bindRouter } from '~/request'
 import { invalidateCacheIfBuildTimeChanged } from '~/stores/helpers'
 import { resetSetupStorePlugin } from '~/stores/plugins'
+
+import App from './App.vue'
 import { router } from './router'
+
 import '~/design/global.css'
 
 // Iconify 离线图标：预加载图标集，避免运行时请求 API

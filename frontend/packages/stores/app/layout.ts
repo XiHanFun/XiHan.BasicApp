@@ -90,9 +90,12 @@ export function createLayoutSlice() {
   const headerMenuAlign = ref<'start' | 'center' | 'end'>(
     (() => {
       const saved = LocalStorage.get<string>(HEADER_MENU_ALIGN_KEY)
-      if (saved === 'left') return 'start' as const
-      if (saved === 'right') return 'end' as const
-      if (saved === 'center' || saved === 'start' || saved === 'end') return saved
+      if (saved === 'left')
+        return 'start' as const
+      if (saved === 'right')
+        return 'end' as const
+      if (saved === 'center' || saved === 'start' || saved === 'end')
+        return saved
       return 'start' as const
     })(),
   )
@@ -191,77 +194,218 @@ export function createLayoutSlice() {
   bindPersist(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons)
 
   // ---- Actions ----
-  function setLayoutMode(mode: string) { save(LAYOUT_MODE_KEY, layoutMode, mode) }
-  function setBrandTitle(title: string) { save(BRAND_TITLE_KEY, brandTitle, title) }
-  function setBrandLogo(logo: string) { save(BRAND_LOGO_KEY, brandLogo, logo) }
-  function setBranding(branding: { title?: string, logo?: string }) {
-    if (branding.title) setBrandTitle(branding.title)
-    if (branding.logo) setBrandLogo(branding.logo)
+  function setLayoutMode(mode: string) {
+    save(LAYOUT_MODE_KEY, layoutMode, mode)
   }
-  function setPageLoading(loading: boolean) { pageLoading.value = loading }
-  function toggleSidebar() { save(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed, !sidebarCollapsed.value) }
-  function setSidebarCollapsed(v: boolean) { save(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed, v) }
-  function setSidebarWidth(v: number) { save(SIDEBAR_WIDTH_KEY, sidebarWidth, Math.min(320, Math.max(180, v))) }
-  function setSidebarShow(v: boolean) { save(SIDEBAR_SHOW_KEY, sidebarShow, v) }
-  function setSidebarCollapseButton(v: boolean) { save(SIDEBAR_COLLAPSE_BUTTON_KEY, sidebarCollapseButton, v) }
-  function setSidebarFixedButton(v: boolean) { save(SIDEBAR_FIXED_BUTTON_KEY, sidebarFixedButton, v) }
-  function setSidebarExpandOnHover(v: boolean) { save(SIDEBAR_EXPAND_HOVER_KEY, sidebarExpandOnHover, v) }
-  function setSidebarAutoActivateChild(v: boolean) { save(SIDEBAR_AUTO_ACTIVATE_CHILD_KEY, sidebarAutoActivateChild, v) }
-  function setSidebarCollapsedShowTitle(v: boolean) { save(SIDEBAR_COLLAPSED_SHOW_TITLE_KEY, sidebarCollapsedShowTitle, v) }
-  function setSidebarDark(v: boolean) { save(SIDEBAR_DARK_KEY, sidebarDark, v) }
-  function setSidebarSubDark(v: boolean) { save(SIDEBAR_SUB_DARK_KEY, sidebarSubDark, v) }
-  function setHeaderShow(v: boolean) { save(HEADER_SHOW_KEY, headerShow, v) }
-  function setHeaderMenuAlign(v: 'start' | 'center' | 'end') { save(HEADER_MENU_ALIGN_KEY, headerMenuAlign, v) }
-  function setHeaderMode(v: 'fixed' | 'static' | 'auto' | 'auto-scroll') { save(HEADER_MODE_KEY, headerMode, v) }
-  function setHeaderDark(v: boolean) { save(HEADER_DARK_KEY, headerDark, v) }
-  function setNavigationStyle(v: 'rounded' | 'plain') { save(NAV_STYLE_KEY, navigationStyle, v) }
-  function setNavigationSplit(v: boolean) { save(NAV_SPLIT_KEY, navigationSplit, v) }
-  function setNavigationAccordion(v: boolean) { save(NAV_ACCORDION_KEY, navigationAccordion, v) }
-  function setContentCompact(v: boolean) { save(CONTENT_COMPACT_KEY, contentCompact, v) }
-  function setContentMaxWidth(v: number) { save(CONTENT_MAX_WIDTH_KEY, contentMaxWidth, v) }
-  function setTabbarEnabled(v: boolean) { save(TAGS_BAR_KEY, tabbarEnabled, v) }
-  function setTabbarPersist(v: boolean) { save(TABBAR_PERSIST_KEY, tabbarPersist, v) }
-  function setTabbarVisitHistory(v: boolean) { save(TABBAR_VISIT_HISTORY_KEY, tabbarVisitHistory, v) }
-  function setTabbarDraggable(v: boolean) { save(TABBAR_DRAGGABLE_KEY, tabbarDraggable, v) }
-  function setTabbarShowMore(v: boolean) { save(TABBAR_SHOW_MORE_KEY, tabbarShowMore, v) }
-  function setTabbarShowMaximize(v: boolean) { save(TABBAR_SHOW_MAXIMIZE_KEY, tabbarShowMaximize, v) }
-  function setTabbarMaxCount(v: number) { save(TABBAR_MAX_COUNT_KEY, tabbarMaxCount, v) }
-  function setTabbarScrollResponse(v: boolean) { save(TABBAR_SCROLL_RESPONSE_KEY, tabbarScrollResponse, v) }
-  function setTabbarMiddleClickClose(v: boolean) { save(TABBAR_MIDDLE_CLICK_CLOSE_KEY, tabbarMiddleClickClose, v) }
-  function setTabbarShowIcon(v: boolean) { save(TABBAR_SHOW_ICON_KEY, tabbarShowIcon, v) }
-  function setTabbarStyle(v: string) { save(TABBAR_STYLE_KEY, tabbarStyle, v) }
-  function setBreadcrumbEnabled(v: boolean) { save(BREADCRUMB_ENABLED_KEY, breadcrumbEnabled, v) }
-  function setBreadcrumbShowHome(v: boolean) { save(BREADCRUMB_SHOW_HOME_KEY, breadcrumbShowHome, v) }
-  function setBreadcrumbShowIcon(v: boolean) { save(BREADCRUMB_SHOW_ICON_KEY, breadcrumbShowIcon, v) }
-  function setBreadcrumbHideOnlyOne(v: boolean) { save(BREADCRUMB_HIDE_ONLY_ONE_KEY, breadcrumbHideOnlyOne, v) }
-  function setBreadcrumbStyle(v: 'normal' | 'background') { save(BREADCRUMB_STYLE_KEY, breadcrumbStyle, v) }
-  function setBreadcrumbNavButtons(v: boolean) { save(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons, v) }
+  function setBrandTitle(title: string) {
+    save(BRAND_TITLE_KEY, brandTitle, title)
+  }
+  function setBrandLogo(logo: string) {
+    save(BRAND_LOGO_KEY, brandLogo, logo)
+  }
+  function setBranding(branding: { title?: string, logo?: string }) {
+    if (branding.title)
+      setBrandTitle(branding.title)
+    if (branding.logo)
+      setBrandLogo(branding.logo)
+  }
+  function setPageLoading(loading: boolean) {
+    pageLoading.value = loading
+  }
+  function toggleSidebar() {
+    save(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed, !sidebarCollapsed.value)
+  }
+  function setSidebarCollapsed(v: boolean) {
+    save(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed, v)
+  }
+  function setSidebarWidth(v: number) {
+    save(SIDEBAR_WIDTH_KEY, sidebarWidth, Math.min(320, Math.max(180, v)))
+  }
+  function setSidebarShow(v: boolean) {
+    save(SIDEBAR_SHOW_KEY, sidebarShow, v)
+  }
+  function setSidebarCollapseButton(v: boolean) {
+    save(SIDEBAR_COLLAPSE_BUTTON_KEY, sidebarCollapseButton, v)
+  }
+  function setSidebarFixedButton(v: boolean) {
+    save(SIDEBAR_FIXED_BUTTON_KEY, sidebarFixedButton, v)
+  }
+  function setSidebarExpandOnHover(v: boolean) {
+    save(SIDEBAR_EXPAND_HOVER_KEY, sidebarExpandOnHover, v)
+  }
+  function setSidebarAutoActivateChild(v: boolean) {
+    save(SIDEBAR_AUTO_ACTIVATE_CHILD_KEY, sidebarAutoActivateChild, v)
+  }
+  function setSidebarCollapsedShowTitle(v: boolean) {
+    save(SIDEBAR_COLLAPSED_SHOW_TITLE_KEY, sidebarCollapsedShowTitle, v)
+  }
+  function setSidebarDark(v: boolean) {
+    save(SIDEBAR_DARK_KEY, sidebarDark, v)
+  }
+  function setSidebarSubDark(v: boolean) {
+    save(SIDEBAR_SUB_DARK_KEY, sidebarSubDark, v)
+  }
+  function setHeaderShow(v: boolean) {
+    save(HEADER_SHOW_KEY, headerShow, v)
+  }
+  function setHeaderMenuAlign(v: 'start' | 'center' | 'end') {
+    save(HEADER_MENU_ALIGN_KEY, headerMenuAlign, v)
+  }
+  function setHeaderMode(v: 'fixed' | 'static' | 'auto' | 'auto-scroll') {
+    save(HEADER_MODE_KEY, headerMode, v)
+  }
+  function setHeaderDark(v: boolean) {
+    save(HEADER_DARK_KEY, headerDark, v)
+  }
+  function setNavigationStyle(v: 'rounded' | 'plain') {
+    save(NAV_STYLE_KEY, navigationStyle, v)
+  }
+  function setNavigationSplit(v: boolean) {
+    save(NAV_SPLIT_KEY, navigationSplit, v)
+  }
+  function setNavigationAccordion(v: boolean) {
+    save(NAV_ACCORDION_KEY, navigationAccordion, v)
+  }
+  function setContentCompact(v: boolean) {
+    save(CONTENT_COMPACT_KEY, contentCompact, v)
+  }
+  function setContentMaxWidth(v: number) {
+    save(CONTENT_MAX_WIDTH_KEY, contentMaxWidth, v)
+  }
+  function setTabbarEnabled(v: boolean) {
+    save(TAGS_BAR_KEY, tabbarEnabled, v)
+  }
+  function setTabbarPersist(v: boolean) {
+    save(TABBAR_PERSIST_KEY, tabbarPersist, v)
+  }
+  function setTabbarVisitHistory(v: boolean) {
+    save(TABBAR_VISIT_HISTORY_KEY, tabbarVisitHistory, v)
+  }
+  function setTabbarDraggable(v: boolean) {
+    save(TABBAR_DRAGGABLE_KEY, tabbarDraggable, v)
+  }
+  function setTabbarShowMore(v: boolean) {
+    save(TABBAR_SHOW_MORE_KEY, tabbarShowMore, v)
+  }
+  function setTabbarShowMaximize(v: boolean) {
+    save(TABBAR_SHOW_MAXIMIZE_KEY, tabbarShowMaximize, v)
+  }
+  function setTabbarMaxCount(v: number) {
+    save(TABBAR_MAX_COUNT_KEY, tabbarMaxCount, v)
+  }
+  function setTabbarScrollResponse(v: boolean) {
+    save(TABBAR_SCROLL_RESPONSE_KEY, tabbarScrollResponse, v)
+  }
+  function setTabbarMiddleClickClose(v: boolean) {
+    save(TABBAR_MIDDLE_CLICK_CLOSE_KEY, tabbarMiddleClickClose, v)
+  }
+  function setTabbarShowIcon(v: boolean) {
+    save(TABBAR_SHOW_ICON_KEY, tabbarShowIcon, v)
+  }
+  function setTabbarStyle(v: string) {
+    save(TABBAR_STYLE_KEY, tabbarStyle, v)
+  }
+  function setBreadcrumbEnabled(v: boolean) {
+    save(BREADCRUMB_ENABLED_KEY, breadcrumbEnabled, v)
+  }
+  function setBreadcrumbShowHome(v: boolean) {
+    save(BREADCRUMB_SHOW_HOME_KEY, breadcrumbShowHome, v)
+  }
+  function setBreadcrumbShowIcon(v: boolean) {
+    save(BREADCRUMB_SHOW_ICON_KEY, breadcrumbShowIcon, v)
+  }
+  function setBreadcrumbHideOnlyOne(v: boolean) {
+    save(BREADCRUMB_HIDE_ONLY_ONE_KEY, breadcrumbHideOnlyOne, v)
+  }
+  function setBreadcrumbStyle(v: 'normal' | 'background') {
+    save(BREADCRUMB_STYLE_KEY, breadcrumbStyle, v)
+  }
+  function setBreadcrumbNavButtons(v: boolean) {
+    save(BREADCRUMB_NAV_BUTTONS_KEY, breadcrumbNavButtons, v)
+  }
 
   return {
-    layoutMode, brandTitle, brandLogo, pageLoading,
-    sidebarCollapsed, sidebarWidth, sidebarShow, sidebarCollapseButton, sidebarFixedButton,
-    sidebarExpandOnHover, sidebarAutoActivateChild, sidebarCollapsedShowTitle,
-    sidebarDark, sidebarSubDark,
-    headerShow, headerMenuAlign, headerMode, headerDark,
-    navigationStyle, navigationSplit, navigationAccordion,
-    contentCompact, contentMaxWidth,
-    tabbarEnabled, tabbarPersist, tabbarVisitHistory, tabbarDraggable,
-    tabbarShowMore, tabbarShowMaximize, tabbarMaxCount, tabbarScrollResponse,
-    tabbarMiddleClickClose, tabbarShowIcon, tabbarStyle,
-    breadcrumbEnabled, breadcrumbShowHome, breadcrumbShowIcon,
-    breadcrumbHideOnlyOne, breadcrumbStyle, breadcrumbNavButtons,
-    setLayoutMode, setBrandTitle, setBrandLogo, setBranding, setPageLoading,
-    toggleSidebar, setSidebarCollapsed, setSidebarWidth, setSidebarShow,
-    setSidebarCollapseButton, setSidebarFixedButton, setSidebarExpandOnHover,
-    setSidebarAutoActivateChild, setSidebarCollapsedShowTitle,
-    setSidebarDark, setSidebarSubDark,
-    setHeaderShow, setHeaderMenuAlign, setHeaderMode, setHeaderDark,
-    setNavigationStyle, setNavigationSplit, setNavigationAccordion,
-    setContentCompact, setContentMaxWidth,
-    setTabbarEnabled, setTabbarPersist, setTabbarVisitHistory, setTabbarDraggable,
-    setTabbarShowMore, setTabbarShowMaximize, setTabbarMaxCount, setTabbarScrollResponse,
-    setTabbarMiddleClickClose, setTabbarShowIcon, setTabbarStyle,
-    setBreadcrumbEnabled, setBreadcrumbShowHome, setBreadcrumbShowIcon,
-    setBreadcrumbHideOnlyOne, setBreadcrumbStyle, setBreadcrumbNavButtons,
+    layoutMode,
+    brandTitle,
+    brandLogo,
+    pageLoading,
+    sidebarCollapsed,
+    sidebarWidth,
+    sidebarShow,
+    sidebarCollapseButton,
+    sidebarFixedButton,
+    sidebarExpandOnHover,
+    sidebarAutoActivateChild,
+    sidebarCollapsedShowTitle,
+    sidebarDark,
+    sidebarSubDark,
+    headerShow,
+    headerMenuAlign,
+    headerMode,
+    headerDark,
+    navigationStyle,
+    navigationSplit,
+    navigationAccordion,
+    contentCompact,
+    contentMaxWidth,
+    tabbarEnabled,
+    tabbarPersist,
+    tabbarVisitHistory,
+    tabbarDraggable,
+    tabbarShowMore,
+    tabbarShowMaximize,
+    tabbarMaxCount,
+    tabbarScrollResponse,
+    tabbarMiddleClickClose,
+    tabbarShowIcon,
+    tabbarStyle,
+    breadcrumbEnabled,
+    breadcrumbShowHome,
+    breadcrumbShowIcon,
+    breadcrumbHideOnlyOne,
+    breadcrumbStyle,
+    breadcrumbNavButtons,
+    setLayoutMode,
+    setBrandTitle,
+    setBrandLogo,
+    setBranding,
+    setPageLoading,
+    toggleSidebar,
+    setSidebarCollapsed,
+    setSidebarWidth,
+    setSidebarShow,
+    setSidebarCollapseButton,
+    setSidebarFixedButton,
+    setSidebarExpandOnHover,
+    setSidebarAutoActivateChild,
+    setSidebarCollapsedShowTitle,
+    setSidebarDark,
+    setSidebarSubDark,
+    setHeaderShow,
+    setHeaderMenuAlign,
+    setHeaderMode,
+    setHeaderDark,
+    setNavigationStyle,
+    setNavigationSplit,
+    setNavigationAccordion,
+    setContentCompact,
+    setContentMaxWidth,
+    setTabbarEnabled,
+    setTabbarPersist,
+    setTabbarVisitHistory,
+    setTabbarDraggable,
+    setTabbarShowMore,
+    setTabbarShowMaximize,
+    setTabbarMaxCount,
+    setTabbarScrollResponse,
+    setTabbarMiddleClickClose,
+    setTabbarShowIcon,
+    setTabbarStyle,
+    setBreadcrumbEnabled,
+    setBreadcrumbShowHome,
+    setBreadcrumbShowIcon,
+    setBreadcrumbHideOnlyOne,
+    setBreadcrumbStyle,
+    setBreadcrumbNavButtons,
   }
 }

@@ -1042,9 +1042,15 @@ onMounted(() => {
                   </div>
                   <div class="pf-list-desc">
                     {{ log.loginIp || '未知IP' }}
-                    <template v-if="log.loginLocation"> · {{ log.loginLocation }}</template>
-                    <template v-if="log.browser"> · {{ log.browser }}</template>
-                    <template v-if="log.os"> · {{ log.os }}</template>
+                    <template v-if="log.loginLocation">
+                      · {{ log.loginLocation }}
+                    </template>
+                    <template v-if="log.browser">
+                      · {{ log.browser }}
+                    </template>
+                    <template v-if="log.os">
+                      · {{ log.os }}
+                    </template>
                   </div>
                 </div>
                 <span class="pf-list-time">{{ formatDate(log.loginTime) }}</span>

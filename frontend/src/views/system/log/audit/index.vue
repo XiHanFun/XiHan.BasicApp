@@ -112,7 +112,8 @@ async function handleClear() {
     await auditLogApi.clear()
     message.success('清空成功')
     xGrid.value?.commitProxy('reload')
-  } catch {
+  }
+  catch {
     message.error('清空失败')
   }
 }
@@ -129,7 +130,9 @@ async function handleClear() {
           style="width: 280px"
           @keyup.enter="handleSearch"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -137,7 +140,9 @@ async function handleClear() {
         <template #toolbar_buttons>
           <NPopconfirm @positive-click="handleClear">
             <template #trigger>
-              <NButton type="error" size="small">清空日志</NButton>
+              <NButton type="error" size="small">
+                清空日志
+              </NButton>
             </template>
             确认清空所有审计日志？
           </NPopconfirm>
@@ -164,7 +169,9 @@ async function handleClear() {
           </NTag>
         </template>
         <template #col_actions="{ row }">
-          <NButton size="small" type="primary" text @click="handleDetail(row)">详情</NButton>
+          <NButton size="small" type="primary" text @click="handleDetail(row)">
+            详情
+          </NButton>
         </template>
       </vxe-grid>
     </vxe-card>
@@ -222,22 +229,19 @@ async function handleClear() {
           <span class="font-medium text-gray-500">变更字段：</span>
           <pre
             class="overflow-auto p-3 mt-1 max-h-72 text-xs bg-gray-100 rounded dark:bg-gray-800"
-            >{{ detailData.changedFields }}</pre
-          >
+          >{{ detailData.changedFields }}</pre>
         </div>
         <div v-if="detailData.beforeData">
           <span class="font-medium text-gray-500">变更前：</span>
           <pre
             class="overflow-auto p-3 mt-1 max-h-72 text-xs bg-gray-100 rounded dark:bg-gray-800"
-            >{{ detailData.beforeData }}</pre
-          >
+          >{{ detailData.beforeData }}</pre>
         </div>
         <div v-if="detailData.afterData">
           <span class="font-medium text-gray-500">变更后：</span>
           <pre
             class="overflow-auto p-3 mt-1 max-h-72 text-xs bg-gray-100 rounded dark:bg-gray-800"
-            >{{ detailData.afterData }}</pre
-          >
+          >{{ detailData.afterData }}</pre>
         </div>
         <div v-if="detailData.exceptionMessage">
           <span class="font-medium text-gray-500">异常信息：</span>

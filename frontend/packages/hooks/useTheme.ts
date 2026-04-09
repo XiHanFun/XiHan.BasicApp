@@ -155,7 +155,7 @@ export function useTheme() {
   watch(() => appStore.fontSize, syncFontSize, { immediate: true })
 
   const themeOverrides = computed((): GlobalThemeOverrides => {
-    const { radius, cardRadius } = calcRadius(appStore.uiRadius)
+    const { radius } = calcRadius(appStore.uiRadius)
     const scale = generatePrimaryScale(appStore.themeColor)
     const [h, s, l] = hexToHsl(appStore.themeColor)
     const primaryActive = `hsla(${h}, ${s}%, ${l}%, 0.15)`

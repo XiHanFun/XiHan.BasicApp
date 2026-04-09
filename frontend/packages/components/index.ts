@@ -1,2 +1,2 @@
-export * from './common'
 export * from '../iconify'
+export * from './common'

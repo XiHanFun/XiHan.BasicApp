@@ -11,7 +11,7 @@ export const routes: RouteRecordRaw[] = [
     component: BasicLayout,
     children: [
       {
-        path: 'dashboard',
+        path: HOME_PATH,
         name: 'DashboardWorkspace',
         component: () => import('~/views/_core/dashboard/index.vue'),
         meta: {

@@ -18,8 +18,8 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { menuApi } from '@/api'
-import { Icon, IconPicker } from '~/iconify'
 import { useVxeTable } from '~/hooks'
+import { Icon, IconPicker } from '~/iconify'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemMenuPage' })
@@ -73,7 +73,7 @@ const treeOptions = computed(() => {
     map.get(pid)!.push(item)
   }
   function toNodes(parentId: string): any[] {
-    return (map.get(parentId) ?? []).map((c) => ({
+    return (map.get(parentId) ?? []).map(c => ({
       label: c.menuName,
       value: c.basicId,
       children: map.has(c.basicId) ? toNodes(c.basicId) : undefined,
@@ -87,13 +87,15 @@ async function fetchData() {
     loading.value = true
     const list = await menuApi.list()
     const flat = flattenMenuTree(list)
-    tableData.value = flat.map((item) => ({
+    tableData.value = flat.map(item => ({
       ...item,
       parentId: item.parentId || ROOT_ID,
     }))
-  } catch {
+  }
+  catch {
     message.error('获取菜单列表失败')
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -223,7 +225,8 @@ async function handleDelete(id: string) {
     await menuApi.delete(id)
     message.success('删除成功')
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -233,15 +236,18 @@ async function handleSubmit() {
     submitLoading.value = true
     if (formData.value.basicId) {
       await menuApi.update(formData.value)
-    } else {
+    }
+    else {
       await menuApi.create(formData.value)
     }
     message.success('操作成功')
     modalVisible.value = false
     fetchData()
-  } catch {
+  }
+  catch {
     message.error('操作失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
@@ -254,8 +260,12 @@ onMounted(fetchData)
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options" :data="tableData" :loading="loading">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd()">新增菜单</NButton>
-          <NButton size="small" class="ml-2" @click="fetchData">刷新</NButton>
+          <NButton type="primary" size="small" @click="handleAdd()">
+            新增菜单
+          </NButton>
+          <NButton size="small" class="ml-2" @click="fetchData">
+            刷新
+          </NButton>
         </template>
         <template #col_type="{ row }">
           <NTag
@@ -306,10 +316,14 @@ onMounted(fetchData)
             >
               新增子项
             </NButton>
-            <NButton size="small" type="primary" text @click="handleEdit(row)">编辑</NButton>
+            <NButton size="small" type="primary" text @click="handleEdit(row)">
+              编辑
+            </NButton>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>删除</NButton>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
               </template>
               确认删除该菜单？子菜单也会一并删除。
             </NPopconfirm>
@@ -405,8 +419,12 @@ onMounted(fetchData)
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">确认</NButton>
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            确认
+          </NButton>
         </NSpace>
       </template>
     </NModal>
