@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VxeGridInstance } from 'vxe-table'
 import type { SysDepartment } from '@/api/modules/department'
+import type { SysUser } from '@/api/modules/user'
 import {
   NButton,
   NCascader,
@@ -16,7 +17,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
-import { departmentApi } from '@/api'
+import { departmentApi, userApi } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -27,6 +28,7 @@ const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
 const loading = ref(false)
 const tableData = ref<SysDepartment[]>([])
+const userOptions = ref<Array<{ label: string, value: string }>>([])
 
 const treeOptions = computed(() => {
   const items = tableData.value
@@ -52,9 +54,9 @@ async function fetchData() {
   try {
     loading.value = true
     const result = await departmentApi.page({ page: 1, pageSize: 9999 })
-    tableData.value = (result.items ?? []).map((item: any) => ({
+    tableData.value = (result.items ?? []).map((item: SysDepartment) => ({
       ...item,
-      basicId: String(item.basicId),
+      basicId: String(item.basicId ?? ''),
       parentId: item.parentId ? String(item.parentId) : '',
     }))
   }
@@ -63,6 +65,20 @@ async function fetchData() {
   }
   finally {
     loading.value = false
+  }
+}
+
+async function fetchUserOptions() {
+  try {
+    const result = await userApi.page({ page: 1, pageSize: 9999, status: 1 })
+    userOptions.value = (result.items ?? []).map((user: SysUser) => ({
+      value: String(user.basicId),
+      label: user.realName || user.nickName || user.userName,
+    }))
+  }
+  catch {
+    userOptions.value = []
+    message.error('获取负责人列表失败')
   }
 }
 
@@ -125,7 +141,7 @@ function resetForm() {
     departmentName: '',
     departmentCode: '',
     departmentType: 6,
-    leader: '',
+    leaderId: undefined,
     phone: '',
     email: '',
     sort: 0,
@@ -144,7 +160,10 @@ function handleAdd(parentId?: string) {
 
 function handleEdit(row: SysDepartment) {
   modalTitle.value = '编辑部门'
-  formData.value = { ...row }
+  formData.value = {
+    ...row,
+    leaderId: row.leaderId ?? undefined,
+  }
   modalVisible.value = true
 }
 
@@ -180,7 +199,9 @@ async function handleSubmit() {
   }
 }
 
-onMounted(fetchData)
+onMounted(async () => {
+  await Promise.all([fetchData(), fetchUserOptions()])
+})
 </script>
 
 <template>
@@ -235,8 +256,14 @@ onMounted(fetchData)
         <NFormItem label="部门类型" path="departmentType">
           <NSelect v-model:value="formData.departmentType" :options="DEPARTMENT_TYPE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="负责人" path="leader">
-          <NInput v-model:value="formData.leader" placeholder="负责人姓名" />
+        <NFormItem label="负责人" path="leaderId">
+          <NSelect
+            v-model:value="formData.leaderId"
+            :options="userOptions"
+            placeholder="请选择负责人"
+            clearable
+            filterable
+          />
         </NFormItem>
         <NFormItem label="联系电话" path="phone">
           <NInput v-model:value="formData.phone" placeholder="联系电话" />
