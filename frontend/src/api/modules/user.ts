@@ -91,6 +91,42 @@ export const userApi = {
       userId: toId(id),
       newPassword: password,
     }),
+
+  /** 查询用户已分配角色 ID 列表 */
+  getUserRoles: async (userId: string): Promise<string[]> => {
+    const data = await api.request.get<Array<Record<string, unknown>>>(
+      `${api.baseUrl}UserRoles`,
+      { params: { userId: toId(userId) } },
+    )
+    return Array.isArray(data)
+      ? data.map(item => toId(item.roleId)).filter(Boolean)
+      : []
+  },
+
+  /** 分配用户角色（全量替换） */
+  assignRoles: (userId: string, roleIds: string[]) =>
+    api.request.post(`${api.baseUrl}AssignRoles`, {
+      userId: toId(userId),
+      roleIds: roleIds.map(item => toId(item)).filter(Boolean),
+    }),
+
+  /** 查询用户直授权限 ID 列表 */
+  getUserPermissions: async (userId: string): Promise<string[]> => {
+    const data = await api.request.get<Array<Record<string, unknown>>>(
+      `${api.baseUrl}UserPermissions`,
+      { params: { userId: toId(userId) } },
+    )
+    return Array.isArray(data)
+      ? data.map(item => toId(item.permissionId)).filter(Boolean)
+      : []
+  },
+
+  /** 分配用户直授权限（全量替换） */
+  assignPermissions: (userId: string, permissionIds: string[]) =>
+    api.request.post(`${api.baseUrl}AssignPermissions`, {
+      userId: toId(userId),
+      permissionIds: permissionIds.map(item => toId(item)).filter(Boolean),
+    }),
 }
 
 export function getUserPageApi(params: UserPageQuery) {
@@ -104,3 +140,7 @@ export const deleteUserApi = userApi.delete
 export const batchDeleteUserApi = userApi.batchDelete
 export const updateUserStatusApi = userApi.changeStatus
 export const resetUserPasswordApi = userApi.resetPassword
+export const getUserRoleIdsApi = userApi.getUserRoles
+export const assignUserRolesApi = userApi.assignRoles
+export const getUserPermissionIdsApi = userApi.getUserPermissions
+export const assignUserPermissionsApi = userApi.assignPermissions

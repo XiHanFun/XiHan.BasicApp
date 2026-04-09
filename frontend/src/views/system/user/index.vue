@@ -1,8 +1,11 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { SysRole } from '@/api/modules/role'
 import type { SysUser } from '@/api/modules/user'
+import { toId } from '@/api/helpers'
 import {
   NButton,
+  NDivider,
   NForm,
   NFormItem,
   NInput,
@@ -13,8 +16,8 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
-import { userApi } from '@/api'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { roleApi, userApi } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -23,6 +26,22 @@ defineOptions({ name: 'SystemUserPage' })
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
+
+// 全量角色列表：下拉选项与表格展示名称映射
+const allRoles = ref<SysRole[]>([])
+const roleOptions = computed(() =>
+  allRoles.value.map(r => ({ label: r.roleName, value: r.basicId })),
+)
+const roleIdToName = computed(() => new Map(allRoles.value.map(r => [r.basicId, r.roleName])))
+
+onMounted(async () => {
+  try {
+    allRoles.value = await roleApi.list()
+  }
+  catch {
+    message.error('加载角色列表失败')
+  }
+})
 
 const queryParams = reactive({
   keyword: '',
@@ -79,6 +98,12 @@ const options = useVxeTable<SysUser>(
         slots: { default: 'col_status' },
       },
       {
+        field: 'roles',
+        title: '角色',
+        minWidth: 160,
+        slots: { default: 'col_roles' },
+      },
+      {
         field: 'createTime',
         title: '创建时间',
         width: 170,
@@ -121,7 +146,9 @@ function handleReset() {
 const modalVisible = ref(false)
 const modalTitle = ref('新增用户')
 const submitLoading = ref(false)
-const formData = ref<Partial<SysUser & { password?: string }>>({})
+type UserForm = Partial<SysUser & { password?: string, roleIds: string[] }>
+
+const formData = ref<UserForm>({ roleIds: [] })
 
 function resetForm() {
   formData.value = {
@@ -132,6 +159,7 @@ function resetForm() {
     gender: 0,
     status: 1,
     password: '',
+    roleIds: [],
   }
 }
 
@@ -141,10 +169,18 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: SysUser) {
+async function handleEdit(row: SysUser) {
   modalTitle.value = '编辑用户'
-  formData.value = { ...row }
+  formData.value = { ...row, password: '', roleIds: [] }
   modalVisible.value = true
+  try {
+    const roleIds = await userApi.getUserRoles(row.basicId)
+    formData.value.roleIds = [...roleIds]
+  }
+  catch {
+    formData.value.roleIds = []
+    message.error('加载用户角色失败')
+  }
 }
 
 async function handleDelete(id: string) {
@@ -198,12 +234,17 @@ async function confirmResetPwd() {
 async function handleSubmit() {
   try {
     submitLoading.value = true
-    if (formData.value.basicId) {
-      await userApi.update(formData.value.basicId, formData.value)
+    const roleIds = formData.value.roleIds ?? []
+    let userId = formData.value.basicId
+    if (userId) {
+      await userApi.update(userId, formData.value)
     }
     else {
-      await userApi.create(formData.value)
+      const created = await userApi.create(formData.value)
+      userId = toId((created as Record<string, unknown>)?.basicId)
     }
+    if (userId)
+      await userApi.assignRoles(userId, roleIds)
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
@@ -214,6 +255,11 @@ async function handleSubmit() {
   finally {
     submitLoading.value = false
   }
+}
+
+/** 表格单元格：角色 ID 或名称解析为展示名 */
+function roleLabelForCell(value: string) {
+  return roleIdToName.value.get(value) ?? value
 }
 </script>
 
@@ -254,6 +300,20 @@ async function handleSubmit() {
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
             {{ row.status === 1 ? '启用' : '禁用' }}
           </NTag>
+        </template>
+        <template #col_roles="{ row }">
+          <NSpace v-if="row.roles?.length" size="small" wrap>
+            <NTag
+              v-for="(rid, idx) in row.roles"
+              :key="`${row.basicId}-${String(rid)}-${idx}`"
+              type="info"
+              size="small"
+              round
+            >
+              {{ roleLabelForCell(String(rid)) }}
+            </NTag>
+          </NSpace>
+          <span v-else class="text-gray-400">—</span>
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
@@ -316,6 +376,18 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem label="状态" path="status">
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+        </NFormItem>
+        <NDivider title-placement="left">
+          角色分配
+        </NDivider>
+        <NFormItem label="角色" path="roleIds">
+          <NSelect
+            v-model:value="formData.roleIds"
+            :options="roleOptions"
+            multiple
+            clearable
+            placeholder="选择角色"
+          />
         </NFormItem>
       </NForm>
       <template #footer>
