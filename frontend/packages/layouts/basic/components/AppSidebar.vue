@@ -3,12 +3,13 @@ import type { MenuOption } from 'naive-ui'
 import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import { Icon } from '~/iconify'
-import { darkTheme, NConfigProvider, NTag } from 'naive-ui'
+import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { useAccessStore, useAppStore, useLayoutBridgeStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
+import { renderSidebarBadgeLabel } from './MenuBadge.vue'
 import SidebarBrand from './sidebar/SidebarBrand.vue'
 import SidebarCollapseButton from './sidebar/SidebarCollapseButton.vue'
 import SidebarFixedButton from './sidebar/SidebarFixedButton.vue'
@@ -129,35 +130,11 @@ function translateTitle(title: string, _fallback: string) {
   return te(title) ? t(title) : title
 }
 
-const BADGE_TYPE_MAP: Record<string, 'default' | 'error' | 'info' | 'success' | 'warning'> = {
-  default: 'default',
-  success: 'success',
-  warning: 'warning',
-  error: 'error',
-  info: 'info',
-}
-
-function renderBadgeLabel(text: string, badge: { text?: string | number, type?: string, dot?: boolean }) {
-  if (badge.dot) {
-    return () =>
-      h('span', { class: 'menu-badge-wrapper' }, [
-        h('span', { class: 'menu-badge-text' }, text),
-        h('span', { class: 'menu-badge-dot' }),
-      ])
-  }
-  const tagType = BADGE_TYPE_MAP[badge.type ?? ''] ?? 'default'
-  return () =>
-    h('span', { class: 'menu-badge-wrapper' }, [
-      h('span', { class: 'menu-badge-text' }, text),
-      h(NTag, { size: 'tiny', type: tagType, round: true, bordered: false, class: 'menu-badge-tag' }, () => String(badge.text)),
-    ])
-}
-
 const menuBuildConfig = {
   keyBy: 'path' as const,
   translate: translateTitle,
   iconRenderer: renderIcon,
-  badgeLabelRenderer: renderBadgeLabel,
+  badgeLabelRenderer: renderSidebarBadgeLabel,
 }
 
 function toPrimaryOptions(routeList: LayoutRouteRecord[], parentPath = '') {
@@ -751,25 +728,21 @@ watch(
 }
 
 /* ---- 偏好关闭：仅图标居中 ---- */
-.mixed-primary-menu
-  :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
+.mixed-primary-menu :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
   padding: 12px 0 !important;
 }
 
-.mixed-primary-menu
-  :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content-header) {
+.mixed-primary-menu :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content-header) {
   display: none !important;
 }
 
 /* ---- 偏好开启：图标 + 文字纵向排列 ---- */
-.mixed-primary-menu
-  :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
+.mixed-primary-menu :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
   flex-direction: column;
   padding: 8px 0 !important;
 }
 
-.mixed-primary-menu
-  :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content-header) {
+.mixed-primary-menu :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content-header) {
   display: block !important;
   width: 100% !important;
   height: auto !important;
@@ -788,7 +761,11 @@ watch(
 }
 
 .mixed-primary-menu
-  :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
+  :deep(
+    .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed
+      .n-menu-item.n-menu-item--selected
+      .n-menu-item-content-header
+  ) {
   font-weight: 600;
 }
 
@@ -809,69 +786,5 @@ watch(
 <style>
 .n-menu-tooltip {
   display: none !important;
-}
-
-/* ---- 菜单 badge 布局（展开状态，默认水平排列） ---- */
-.menu-badge-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.menu-badge-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.menu-badge-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: hsl(var(--destructive));
-  flex-shrink: 0;
-  margin-left: 6px;
-}
-
-.menu-badge-tag {
-  flex-shrink: 0;
-  margin-left: 6px;
-  font-size: 11px !important;
-  padding: 0 6px !important;
-  height: 18px !important;
-  line-height: 18px !important;
-}
-
-/* ---- 折叠 + 显示标题时 badge 竖向堆叠（适配窄列） ---- */
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-}
-
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text {
-  white-space: normal;
-  text-align: center;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot {
-  margin-left: 0;
-}
-
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag {
-  margin-left: 0;
-  font-size: 10px !important;
-  padding: 0 4px !important;
-  height: 16px !important;
-  line-height: 16px !important;
 }
 </style>
