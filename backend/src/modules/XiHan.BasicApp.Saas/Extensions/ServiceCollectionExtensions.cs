@@ -195,16 +195,30 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
         services.AddScoped<IRbacLookupCacheService, RbacLookupCacheService>();
         services.AddScoped<IMessageCacheService, MessageCacheService>();
-        services.AddScoped<ILocalEventHandler<RbacAuthorizationChangedEvent>, RbacAuthorizationChangedEventHandler>();
-        services.AddScoped<ILocalEventHandler<UserRolesChangedDomainEvent>, UserRolesChangedDomainEventHandler>();
-        services.AddScoped<ILocalEventHandler<UserPermissionsChangedDomainEvent>, UserPermissionsChangedDomainEventHandler>();
-        services.AddScoped<ILocalEventHandler<UserDepartmentsChangedDomainEvent>, UserDepartmentsChangedDomainEventHandler>();
-        services.AddScoped<ILocalEventHandler<RolePermissionsChangedDomainEvent>, RolePermissionsChangedDomainEventHandler>();
-        services.AddScoped<ILocalEventHandler<RoleDataScopeChangedDomainEvent>, RoleDataScopeChangedDomainEventHandler>();
         services.AddScoped<IUpgradeVersionStore, SqlSugarUpgradeVersionStore>();
         services.AddScoped<IUpgradeLockProvider, SqlSugarUpgradeLockProvider>();
         services.AddScoped<IUpgradeMigrationExecutor, SqlSugarUpgradeMigrationExecutor>();
         services.AddSingleton<IUpgradeTenantProvider, SqlSugarUpgradeTenantProvider>();
+
+        // 本地事件总线 IocEventHandlerFactory 按「具体处理器类型」GetRequiredService，须先注册具体类再转发接口
+        services.AddScoped<RbacAuthorizationChangedEventHandler>();
+        services.AddScoped<ILocalEventHandler<RbacAuthorizationChangedEvent>>(static sp =>
+            sp.GetRequiredService<RbacAuthorizationChangedEventHandler>());
+        services.AddScoped<UserRolesChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<UserRolesChangedDomainEvent>>(static sp =>
+            sp.GetRequiredService<UserRolesChangedDomainEventHandler>());
+        services.AddScoped<UserPermissionsChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<UserPermissionsChangedDomainEvent>>(static sp =>
+            sp.GetRequiredService<UserPermissionsChangedDomainEventHandler>());
+        services.AddScoped<UserDepartmentsChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<UserDepartmentsChangedDomainEvent>>(static sp =>
+            sp.GetRequiredService<UserDepartmentsChangedDomainEventHandler>());
+        services.AddScoped<RolePermissionsChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<RolePermissionsChangedDomainEvent>>(static sp =>
+            sp.GetRequiredService<RolePermissionsChangedDomainEventHandler>());
+        services.AddScoped<RoleDataScopeChangedDomainEventHandler>();
+        services.AddScoped<ILocalEventHandler<RoleDataScopeChangedDomainEvent>>(static sp =>
+            sp.GetRequiredService<RoleDataScopeChangedDomainEventHandler>());
 
         return services;
     }
