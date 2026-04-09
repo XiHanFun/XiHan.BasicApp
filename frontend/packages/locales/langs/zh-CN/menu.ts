@@ -35,4 +35,5 @@ export default {
   profile: '个人中心',
   settings: '系统设置',
   about: '关于系统',
+  editor_demo: '编辑器演示',
 }

@@ -35,4 +35,5 @@ export default {
   profile: 'Profile',
   settings: 'Settings',
   about: 'About',
+  editor_demo: 'Editor Demo',
 }
