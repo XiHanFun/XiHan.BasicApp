@@ -11,6 +11,7 @@ import {
   NPopconfirm,
   NSelect,
   NSpace,
+  NSwitch,
   NTag,
   useMessage,
 } from 'naive-ui'
@@ -21,6 +22,18 @@ import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
+
+/** 分组列标签颜色池：同名字符串哈希后稳定取色 */
+const GROUP_TAG_TYPES = ['info', 'success', 'warning', 'error', 'primary'] as const
+
+function groupNameTagType(name: string | undefined) {
+  if (!name?.trim())
+    return 'default' as const
+  let h = 0
+  for (let i = 0; i < name.length; i++)
+    h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return GROUP_TAG_TYPES[h % GROUP_TAG_TYPES.length]
+}
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
@@ -44,6 +57,7 @@ const options = useVxeTable<SysPermission>(
     id: 'sys_permission',
     name: '权限管理',
     columns: [
+      { type: 'checkbox', width: 42, fixed: 'left' },
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       {
         field: 'permissionName',
@@ -53,6 +67,12 @@ const options = useVxeTable<SysPermission>(
         sortable: true,
       },
       { field: 'permissionCode', title: '权限编码', minWidth: 180, showOverflow: 'tooltip' },
+      {
+        field: 'groupName',
+        title: '分组',
+        minWidth: 120,
+        slots: { default: 'col_groupName' },
+      },
       { field: 'tags', title: '标签', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'permissionDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
       { field: 'priority', title: '优先级', width: 80 },
@@ -92,6 +112,8 @@ const options = useVxeTable<SysPermission>(
         query: ({ page }) => handleQueryApi(page),
       },
     },
+    checkboxConfig: { range: true, reserve: true },
+    rowConfig: { keyField: 'basicId' },
   },
 )
 
@@ -116,6 +138,9 @@ function resetForm() {
     permissionCode: '',
     permissionDescription: '',
     groupName: '',
+    isRequireAudit: false,
+    priority: 0,
+    remark: '',
     sort: 0,
     status: 1,
   }
@@ -164,6 +189,61 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
+
+/** 当前勾选行（含跨页保留） */
+function getSelectedRows(): SysPermission[] {
+  const grid = xGrid.value
+  if (!grid)
+    return []
+  const cur = grid.getCheckboxRecords() as SysPermission[]
+  const reserved = grid.getCheckboxReserveRecords() as SysPermission[]
+  const map = new Map<string, SysPermission>()
+  for (const r of reserved)
+    map.set(r.basicId, r)
+  for (const r of cur)
+    map.set(r.basicId, r)
+  return [...map.values()]
+}
+
+/** 逐条调用删除接口（无专用批量接口时） */
+async function handleBatchDelete() {
+  const rows = getSelectedRows()
+  if (!rows.length) {
+    message.warning('请先勾选要删除的权限')
+    return
+  }
+  try {
+    for (const row of rows)
+      await permissionApi.delete(row.basicId)
+    message.success(`已删除 ${rows.length} 条`)
+    xGrid.value?.clearCheckboxRow()
+    xGrid.value?.clearCheckboxReserve()
+    xGrid.value?.commitProxy('query')
+  }
+  catch {
+    message.error('批量删除失败')
+  }
+}
+
+/** 批量改状态：保留行内其它字段再提交更新 */
+async function handleBatchSetStatus(status: number) {
+  const rows = getSelectedRows()
+  if (!rows.length) {
+    message.warning('请先勾选权限')
+    return
+  }
+  try {
+    for (const row of rows)
+      await permissionApi.update(row.basicId, { ...row, status })
+    message.success(status === 1 ? '批量启用成功' : '批量禁用成功')
+    xGrid.value?.clearCheckboxRow()
+    xGrid.value?.clearCheckboxReserve()
+    xGrid.value?.commitProxy('query')
+  }
+  catch {
+    message.error('批量更新状态失败')
+  }
+}
 </script>
 
 <template>
@@ -195,12 +275,34 @@ async function handleSubmit() {
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
-            新增权限
-          </NButton>
+          <NSpace align="center" size="small" wrap>
+            <NButton type="primary" size="small" @click="handleAdd">
+              新增权限
+            </NButton>
+            <NButton size="small" type="success" @click="handleBatchSetStatus(1)">
+              批量启用
+            </NButton>
+            <NButton size="small" type="warning" @click="handleBatchSetStatus(0)">
+              批量禁用
+            </NButton>
+            <NPopconfirm @positive-click="handleBatchDelete">
+              <template #trigger>
+                <NButton size="small" type="error">
+                  批量删除
+                </NButton>
+              </template>
+              确认删除已勾选的全部权限？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+        <template #col_groupName="{ row }">
+          <NTag v-if="row.groupName" :type="groupNameTagType(row.groupName)" size="small" round>
+            {{ row.groupName }}
+          </NTag>
+          <span v-else class="text-gray-400">—</span>
         </template>
         <template #col_audit="{ row }">
-          <NTag :type="row.isRequireAudit ? 'warning' : 'default'" size="small">
+          <NTag :type="row.isRequireAudit ? 'error' : 'success'" size="small" round>
             {{ row.isRequireAudit ? '是' : '否' }}
           </NTag>
         </template>
@@ -231,7 +333,7 @@ async function handleSubmit() {
       v-model:show="modalVisible"
       :title="modalTitle"
       preset="card"
-      style="width: 560px"
+      style="width: 600px"
       :auto-focus="false"
     >
       <NForm :model="formData" label-placement="left" label-width="90px">
@@ -252,8 +354,22 @@ async function handleSubmit() {
             placeholder="权限描述"
           />
         </NFormItem>
+        <NFormItem label="需要审计" path="isRequireAudit">
+          <NSwitch v-model:value="formData.isRequireAudit" />
+        </NFormItem>
+        <NFormItem label="优先级" path="priority">
+          <NInputNumber v-model:value="formData.priority" :min="0" style="width: 100%" />
+        </NFormItem>
         <NFormItem label="排序" path="sort">
           <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput
+            v-model:value="formData.remark"
+            type="textarea"
+            :rows="2"
+            placeholder="备注说明"
+          />
         </NFormItem>
         <NFormItem label="状态" path="status">
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />

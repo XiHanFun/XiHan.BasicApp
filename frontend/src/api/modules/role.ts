@@ -92,11 +92,54 @@ export const roleApi = {
 
   delete: (id: string) => api.deletePath(id),
 
-  assignPermissions: (id: string, permissions: string[]) =>
+  assignPermissions: (roleId: string, permissionIds: string[]) =>
     api.request.post(`${api.baseUrl}AssignPermissions`, {
-      roleId: toId(id),
-      permissionIds: permissions.map(item => toId(item)).filter(item => item.length > 0),
+      roleId: toId(roleId),
+      permissionIds: permissionIds.map(item => toId(item)).filter(Boolean),
     }),
+
+  assignMenus: (roleId: string, menuIds: string[]) =>
+    api.request.post(`${api.baseUrl}AssignMenus`, {
+      roleId: toId(roleId),
+      menuIds: menuIds.map(item => toId(item)).filter(Boolean),
+    }),
+
+  assignDataScope: (roleId: string, departmentIds: string[]) =>
+    api.request.post(`${api.baseUrl}AssignDataScope`, {
+      roleId: toId(roleId),
+      departmentIds: departmentIds.map(item => toId(item)).filter(Boolean),
+    }),
+
+  /** 查询角色已分配的权限 ID 列表 */
+  getRolePermissions: async (roleId: string): Promise<string[]> => {
+    const data = await api.request.get<Array<Record<string, unknown>>>(
+      `${api.baseUrl}RolePermissions`,
+      { params: { roleId: toId(roleId) } },
+    )
+    return Array.isArray(data)
+      ? data.map(item => toId(item.permissionId)).filter(Boolean)
+      : []
+  },
+
+  /** 查询角色已分配的菜单 ID 列表 */
+  getRoleMenus: async (roleId: string): Promise<string[]> => {
+    const data = await api.request.get<Array<Record<string, unknown>>>(
+      `${api.baseUrl}RoleMenus`,
+      { params: { roleId: toId(roleId) } },
+    )
+    return Array.isArray(data)
+      ? data.map(item => toId(item.menuId)).filter(Boolean)
+      : []
+  },
+
+  /** 查询角色自定义数据范围的部门 ID 列表 */
+  getRoleDataScopeDeptIds: async (roleId: string): Promise<string[]> => {
+    const data = await api.request.get<Array<string | number>>(
+      `${api.baseUrl}RoleDataScopeDepartmentIds`,
+      { params: { roleId: toId(roleId) } },
+    )
+    return Array.isArray(data) ? data.map(item => toId(item)).filter(Boolean) : []
+  },
 }
 
 export async function getRolePageApi(params: RolePageQuery) {
@@ -116,3 +159,8 @@ export const createRoleApi = roleApi.create
 export const updateRoleApi = roleApi.update
 export const deleteRoleApi = roleApi.delete
 export const assignRolePermissionsApi = roleApi.assignPermissions
+export const assignRoleMenusApi = roleApi.assignMenus
+export const assignRoleDataScopeApi = roleApi.assignDataScope
+export const getRolePermissionIdsApi = roleApi.getRolePermissions
+export const getRoleMenuIdsApi = roleApi.getRoleMenus
+export const getRoleDataScopeDeptIdsApi = roleApi.getRoleDataScopeDeptIds
