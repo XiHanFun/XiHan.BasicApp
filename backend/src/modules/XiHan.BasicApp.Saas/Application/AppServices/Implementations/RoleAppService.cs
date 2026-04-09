@@ -198,6 +198,7 @@ public class RoleAppService
             command.TenantId ?? role.TenantId);
 
         await uow.CompleteAsync();
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -233,6 +234,7 @@ public class RoleAppService
             command.TenantId ?? role.TenantId);
 
         await uow.CompleteAsync();
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -275,6 +277,7 @@ public class RoleAppService
         role.MarkDataScopeChanged(departmentIds);
         await _roleRepository.UpdateAsync(role);
         await uow.CompleteAsync();
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.DataScope);
     }
 
     /// <summary>

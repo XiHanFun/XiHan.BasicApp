@@ -49,9 +49,26 @@ public class PermissionDto : BasicAppDto
     public string? PermissionDescription { get; set; }
 
     /// <summary>
+    /// 权限标签
+    /// </summary>
+    [StringLength(200, ErrorMessage = "权限标签长度不能超过 200")]
+    public string? Tags { get; set; }
+
+    /// <summary>
+    /// 权限分组
+    /// </summary>
+    [StringLength(100, ErrorMessage = "权限分组名称长度不能超过 100")]
+    public string? GroupName { get; set; }
+
+    /// <summary>
     /// 是否需要审核
     /// </summary>
     public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int Priority { get; set; }
 
     /// <summary>
     /// 状态
@@ -67,6 +84,21 @@ public class PermissionDto : BasicAppDto
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTimeOffset? ModifiedTime { get; set; }
 }
 
 /// <summary>
@@ -105,6 +137,18 @@ public class PermissionCreateDto : BasicAppCDto
     /// </summary>
     [StringLength(500, ErrorMessage = "权限描述长度不能超过 500")]
     public string? PermissionDescription { get; set; }
+
+    /// <summary>
+    /// 权限标签
+    /// </summary>
+    [StringLength(200, ErrorMessage = "权限标签长度不能超过 200")]
+    public string? Tags { get; set; }
+
+    /// <summary>
+    /// 权限分组
+    /// </summary>
+    [StringLength(100, ErrorMessage = "权限分组名称长度不能超过 100")]
+    public string? GroupName { get; set; }
 
     /// <summary>
     /// 是否需要审计
@@ -169,6 +213,18 @@ public class PermissionUpdateDto : BasicAppUDto
     /// </summary>
     [StringLength(500, ErrorMessage = "权限描述长度不能超过 500")]
     public string? PermissionDescription { get; set; }
+
+    /// <summary>
+    /// 权限标签
+    /// </summary>
+    [StringLength(200, ErrorMessage = "权限标签长度不能超过 200")]
+    public string? Tags { get; set; }
+
+    /// <summary>
+    /// 权限分组
+    /// </summary>
+    [StringLength(100, ErrorMessage = "权限分组名称长度不能超过 100")]
+    public string? GroupName { get; set; }
 
     /// <summary>
     /// 是否需要审计

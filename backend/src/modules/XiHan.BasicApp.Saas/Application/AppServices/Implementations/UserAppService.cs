@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
@@ -24,6 +25,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -44,6 +46,7 @@ public class UserAppService
     private readonly IUserManager _userManager;
     private readonly IUserQueryService _queryService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
+    private readonly ILocalEventBus _localEventBus;
 
     /// <summary>
     /// 构造函数
@@ -55,6 +58,7 @@ public class UserAppService
     /// <param name="userManager"></param>
     /// <param name="queryService"></param>
     /// <param name="unitOfWorkManager"></param>
+    /// <param name="localEventBus"></param>
     public UserAppService(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
@@ -62,7 +66,8 @@ public class UserAppService
         IDepartmentRepository departmentRepository,
         IUserManager userManager,
         IUserQueryService queryService,
-        IUnitOfWorkManager unitOfWorkManager)
+        IUnitOfWorkManager unitOfWorkManager,
+        ILocalEventBus localEventBus)
         : base(userRepository)
     {
         _userRepository = userRepository;
@@ -72,6 +77,7 @@ public class UserAppService
         _userManager = userManager;
         _queryService = queryService;
         _unitOfWorkManager = unitOfWorkManager;
+        _localEventBus = localEventBus;
     }
 
     /// <summary>
@@ -203,6 +209,7 @@ public class UserAppService
         user.MarkRolesChanged(roleIds);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -240,6 +247,7 @@ public class UserAppService
         user.MarkPermissionsChanged(permissionIds);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -285,6 +293,7 @@ public class UserAppService
         user.MarkDepartmentsChanged(departmentIds, command.MainDepartmentId);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
+        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.DataScope);
     }
 
     /// <summary>
@@ -429,5 +438,10 @@ public class UserAppService
         await _userRepository.DeleteAsync(user);
         await uow.CompleteAsync();
         return true;
+    }
+
+    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
+    {
+        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }
