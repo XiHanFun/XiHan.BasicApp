@@ -9,6 +9,7 @@ import {
   BREADCRUMB_SHOW_ICON_KEY,
   BREADCRUMB_NAV_BUTTONS_KEY,
   BREADCRUMB_STYLE_KEY,
+  CHECK_UPDATES_INTERVAL_KEY,
   CHECK_UPDATES_KEY,
   COLOR_WEAKNESS_ENABLED_KEY,
   CONTENT_COMPACT_KEY,
@@ -203,6 +204,7 @@ export const useAppStore = defineStore('app', () => {
   const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
+  const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 60)
   const themeAnimationEnabled = ref<boolean>(
     LocalStorage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
   )
@@ -317,6 +319,7 @@ export const useAppStore = defineStore('app', () => {
   bindPersist(SEARCH_ENABLED_KEY, searchEnabled)
   bindPersist(DYNAMIC_TITLE_KEY, dynamicTitle)
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates)
+  bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval)
   bindPersist(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled)
   bindPersist(TRANSITION_ENABLE_KEY, transitionEnable)
   bindPersist(TRANSITION_NAME_KEY, transitionName)
@@ -466,6 +469,9 @@ export const useAppStore = defineStore('app', () => {
   }
   function setEnableCheckUpdates(v: boolean) {
     save(CHECK_UPDATES_KEY, enableCheckUpdates, v)
+  }
+  function setCheckUpdatesInterval(v: number) {
+    save(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, v)
   }
   function setThemeAnimationEnabled(v: boolean) {
     save(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, v)
@@ -677,6 +683,7 @@ export const useAppStore = defineStore('app', () => {
     searchEnabled,
     dynamicTitle,
     enableCheckUpdates,
+    checkUpdatesInterval,
     themeAnimationEnabled,
     transitionEnable,
     transitionName,
@@ -744,6 +751,7 @@ export const useAppStore = defineStore('app', () => {
     setSearchEnabled,
     setDynamicTitle,
     setEnableCheckUpdates,
+    setCheckUpdatesInterval,
     setThemeAnimationEnabled,
     setTransitionEnable,
     setTransitionName,

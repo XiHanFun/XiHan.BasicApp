@@ -232,6 +232,8 @@ export default {
     watermark_content: 'Content',
     watermark_text: 'Watermark Text',
     check_updates: 'Auto Check Updates',
+    check_updates_interval: 'Check Interval',
+    check_updates_interval_unit: 'sec',
     dynamic_title_tip:
       'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
