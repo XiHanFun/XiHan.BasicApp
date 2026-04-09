@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
@@ -26,13 +27,15 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices.Implementations;
 public class DepartmentQueryService : IDepartmentQueryService, ITransientDependency
 {
     private readonly IDepartmentRepository _departmentRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DepartmentQueryService(IDepartmentRepository departmentRepository)
+    public DepartmentQueryService(IDepartmentRepository departmentRepository, IUserRepository userRepository)
     {
         _departmentRepository = departmentRepository;
+        _userRepository = userRepository;
     }
 
     /// <inheritdoc />
@@ -40,6 +43,37 @@ public class DepartmentQueryService : IDepartmentQueryService, ITransientDepende
     public async Task<DepartmentDto?> GetByIdAsync(long id)
     {
         var entity = await _departmentRepository.GetByIdAsync(id);
-        return entity?.Adapt<DepartmentDto>();
+        if (entity is null)
+        {
+            return null;
+        }
+
+        var dto = entity.Adapt<DepartmentDto>()!;
+        if (entity.LeaderId.HasValue && entity.LeaderId.Value > 0)
+        {
+            var user = await _userRepository.GetByIdAsync(entity.LeaderId.Value);
+            dto.LeaderName = ResolveUserDisplayName(user);
+        }
+        return dto;
+    }
+
+    private static string? ResolveUserDisplayName(SysUser? user)
+    {
+        if (user is null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.RealName))
+        {
+            return user.RealName.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.NickName))
+        {
+            return user.NickName.Trim();
+        }
+
+        return user.UserName;
     }
 }

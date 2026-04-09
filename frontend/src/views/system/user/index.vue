@@ -266,7 +266,7 @@ async function handleSubmit() {
 
 /** 表格单元格：角色 ID 或名称解析为展示名 */
 function roleLabelForCell(value: string) {
-  return roleIdToName.value.get(value) ?? value
+  return roleIdToName.value.get(value) ?? '未知角色'
 }
 </script>
 

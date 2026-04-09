@@ -39,25 +39,68 @@ const PAGE_OPTIONS = {
   filterFieldMap: { status: 'Status', departmentType: 'DepartmentType', parentId: 'ParentId' },
 }
 
+const DEPARTMENT_TYPE_MAP: Record<string, number> = {
+  Corporation: 0,
+  Headquarters: 1,
+  Company: 2,
+  Branch: 3,
+  Division: 4,
+  Center: 5,
+  Department: 6,
+  Section: 7,
+  Team: 8,
+  Group: 9,
+  Project: 10,
+  Workgroup: 11,
+  Virtual: 12,
+  Office: 13,
+  Subsidiary: 14,
+  Other: 99,
+}
+
+const STATUS_MAP: Record<string, number> = {
+  No: 0,
+  Yes: 1,
+}
+
+function resolveEnum(value: unknown, map: Record<string, number>, fallback: number): number {
+  if (value === undefined || value === null) {
+    return fallback
+  }
+  if (typeof value === 'number') {
+    return value
+  }
+  if (typeof value === 'string') {
+    return map[value] ?? toNumber(value, fallback)
+  }
+  return fallback
+}
+
 function normalizeDepartment(raw: Record<string, any>): SysDepartment {
-  const leaderId = raw.leaderId === null || raw.leaderId === undefined ? undefined : toId(raw.leaderId)
+  const leaderId = raw.leaderId === null || raw.leaderId === undefined
+    ? (raw.LeaderId === null || raw.LeaderId === undefined ? undefined : toId(raw.LeaderId))
+    : toId(raw.leaderId)
   return {
-    basicId: toId(raw.basicId),
-    parentId: raw.parentId === null || raw.parentId === undefined ? null : toId(raw.parentId),
-    departmentName: raw.departmentName ?? '',
-    departmentCode: raw.departmentCode ?? '',
-    departmentType: toNumber(raw.departmentType, 6),
+    basicId: toId(raw.basicId ?? raw.BasicId),
+    parentId: raw.parentId === null || raw.parentId === undefined
+      ? (raw.ParentId === null || raw.ParentId === undefined ? null : toId(raw.ParentId))
+      : toId(raw.parentId),
+    departmentName: raw.departmentName ?? raw.DepartmentName ?? '',
+    departmentCode: raw.departmentCode ?? raw.DepartmentCode ?? '',
+    departmentType: resolveEnum(raw.departmentType ?? raw.DepartmentType, DEPARTMENT_TYPE_MAP, 6),
     leaderId,
-    leader: raw.leaderName ?? raw.leader ?? (leaderId === undefined ? undefined : leaderId),
-    phone: raw.phone ?? '',
-    email: raw.email ?? '',
-    address: raw.address ?? undefined,
-    tenantId: raw.tenantId === null || raw.tenantId === undefined ? undefined : toNumber(raw.tenantId, 0),
-    sort: toNumber(raw.sort, 0),
-    status: toNumber(raw.status, 1),
-    remark: raw.remark ?? undefined,
-    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
-    updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
+    leader: raw.leaderName ?? raw.LeaderName ?? raw.leader ?? raw.Leader ?? undefined,
+    phone: raw.phone ?? raw.Phone ?? '',
+    email: raw.email ?? raw.Email ?? '',
+    address: raw.address ?? raw.Address ?? undefined,
+    tenantId: raw.tenantId === null || raw.tenantId === undefined
+      ? (raw.TenantId === null || raw.TenantId === undefined ? undefined : toNumber(raw.TenantId, 0))
+      : toNumber(raw.tenantId, 0),
+    sort: toNumber(raw.sort ?? raw.Sort, 0),
+    status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
+    remark: raw.remark ?? raw.Remark ?? undefined,
+    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.CreatedTime ?? undefined,
+    updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
   }
 }
 
@@ -101,10 +144,18 @@ function toUpdatePayload(id: string, data: Partial<SysDepartment>) {
   }
 }
 
+async function queryDepartmentPage(params: Record<string, any>) {
+  const data = await api.request.post<any>(
+    `${api.baseUrl}Page`,
+    buildPageRequest(params, PAGE_OPTIONS),
+  )
+  return normalizePageResult(data, normalizeDepartment)
+}
+
 // -------- API --------
 
 export const departmentApi = {
-  page: (params: Record<string, any>) => api.page(params, PAGE_OPTIONS),
+  page: (params: Record<string, any>) => queryDepartmentPage(params),
 
   tree: async (params: Partial<DepartmentPageQuery> = {}) => {
     const data = await api.request.post<any>(
@@ -126,11 +177,7 @@ export const departmentApi = {
 }
 
 export async function getDepartmentPageApi(params: DepartmentPageQuery) {
-  const data = await api.request.post<any>(
-    `${api.baseUrl}Page`,
-    buildPageRequest(params as Record<string, any>, PAGE_OPTIONS),
-  )
-  return normalizePageResult(data, normalizeDepartment)
+  return queryDepartmentPage(params as Record<string, any>)
 }
 
 export const getDepartmentTreeApi = departmentApi.tree
