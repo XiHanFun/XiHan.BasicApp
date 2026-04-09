@@ -5,6 +5,7 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios'
 import type { ApiResponse } from '~/types'
+import type { Router } from 'vue-router'
 import axios from 'axios'
 import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
@@ -14,12 +15,24 @@ import {
   tryDecryptSecureResponse,
 } from './security'
 
-type AnyRecord = Record<string, any>
+type AnyRecord = Record<string, unknown>
 interface RequestMeta {
   requestId: string
   startedAt: number
   method: string
   url: string
+}
+
+/** Flat 请求的返回结构：data 和 error 互斥 */
+export interface FlatRequestResult<T> {
+  data: T | null
+  error: Error | null
+}
+
+/** 全局 Router 引用，由应用层调用 bindRouter 注入 */
+let _router: Router | null = null
+export function bindRouter(router: Router) {
+  _router = router
 }
 
 export class RequestClient {
@@ -191,7 +204,12 @@ export class RequestClient {
     this.pendingRequests.forEach(cb => cb(null))
     this.pendingRequests = []
     this.isRefreshing = false
-    window.location.href = LOGIN_PATH
+    if (_router) {
+      _router.replace(LOGIN_PATH)
+    }
+    else {
+      window.location.href = LOGIN_PATH
+    }
   }
 
   private async refreshAccessToken(): Promise<string | null> {
@@ -243,7 +261,18 @@ export class RequestClient {
     }
   }
 
-  async request<T = any>(config: AxiosRequestConfig): Promise<T> {
+  /** Flat 模式：返回 { data, error }，不抛异常 */
+  async requestFlat<T = unknown>(config: AxiosRequestConfig): Promise<FlatRequestResult<T>> {
+    try {
+      const data = await this.request<T>(config)
+      return { data, error: null }
+    }
+    catch (err) {
+      return { data: null, error: err instanceof Error ? err : new Error(String(err)) }
+    }
+  }
+
+  async request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.request<ApiResponse<T> | T>(config)
     const { data } = response
     const typed = data as AnyRecord
@@ -279,11 +308,11 @@ export class RequestClient {
     return data as T
   }
 
-  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({ ...config, method: 'GET', url: this.resolveUrl(url) })
   }
 
-  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({
       ...config,
       method: 'POST',
@@ -292,7 +321,7 @@ export class RequestClient {
     })
   }
 
-  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({
       ...config,
       method: 'PUT',
@@ -301,7 +330,7 @@ export class RequestClient {
     })
   }
 
-  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const normalizedData = config?.data ? this.normalizeRequestData(config.data) : undefined
 
     return this.request<T>({
@@ -312,13 +341,22 @@ export class RequestClient {
     })
   }
 
-  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({
       ...config,
       method: 'PATCH',
       url: this.resolveUrl(url),
       data: this.normalizeRequestData(data),
     })
+  }
+
+  /** Flat 快捷方法 */
+  getFlat<T = unknown>(url: string, config?: AxiosRequestConfig) {
+    return this.requestFlat<T>({ ...config, method: 'GET', url: this.resolveUrl(url) })
+  }
+
+  postFlat<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) {
+    return this.requestFlat<T>({ ...config, method: 'POST', url: this.resolveUrl(url), data })
   }
 }
 
