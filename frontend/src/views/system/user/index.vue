@@ -241,7 +241,14 @@ async function handleSubmit() {
     }
     else {
       const created = await userApi.create(formData.value)
-      userId = toId((created as Record<string, unknown>)?.basicId)
+      const createdRecord = created as Record<string, unknown>
+      const createdData = createdRecord?.data as Record<string, unknown> | undefined
+      userId = toId(
+        createdRecord?.basicId
+        ?? createdRecord?.BasicId
+        ?? createdData?.basicId
+        ?? createdData?.BasicId,
+      )
     }
     if (userId)
       await userApi.assignRoles(userId, roleIds)

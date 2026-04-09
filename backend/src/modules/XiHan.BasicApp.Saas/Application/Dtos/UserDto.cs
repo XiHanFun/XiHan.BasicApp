@@ -59,9 +59,34 @@ public class UserDto : BasicAppDto
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
+    /// 头像
+    /// </summary>
+    public string? Avatar { get; set; }
+
+    /// <summary>
     /// 最后登录时间
     /// </summary>
     public DateTimeOffset? LastLoginTime { get; set; }
+
+    /// <summary>
+    /// 最后登录 IP
+    /// </summary>
+    public string? LastLoginIp { get; set; }
+
+    /// <summary>
+    /// 角色 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> RoleIds { get; set; } = [];
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 租户ID
