@@ -126,7 +126,7 @@ export function useLayoutShellAdapter() {
 
   const mainStyle = computed(() => {
     let width = '100%'
-    let sidebarAndExtraWidth = 'unset'
+    let sidebarAndExtraWidth = '0'
 
     if (
       headerFixed.value
