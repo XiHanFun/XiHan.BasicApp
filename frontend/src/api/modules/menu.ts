@@ -1,6 +1,6 @@
 import type { MenuRoute } from '~/types'
 import { useBaseApi } from '../base'
-import { toId } from '../helpers'
+import { toId, toNumber, unwrapPayload } from '../helpers'
 
 const api = useBaseApi('Menu')
 
@@ -37,46 +37,66 @@ export interface SysMenu {
 
 const MENU_TYPE_MAP: Record<string, number> = { Directory: 0, Menu: 1, Button: 2 }
 const STATUS_MAP: Record<string, number> = { Yes: 1, No: 0 }
-const MENU_TYPE_NAMES = ['Directory', 'Menu', 'Button']
-const STATUS_NAMES = ['No', 'Yes']
 
 function resolveEnum(value: unknown, map: Record<string, number>, fallback: number): number {
+  if (value === undefined || value === null)
+    return fallback
   if (typeof value === 'number')
     return value
   if (typeof value === 'string')
-    return map[value] ?? (Number(value) || fallback)
+    return map[value] ?? toNumber(value, fallback)
+  return fallback
+}
+
+function resolveBool(value: unknown, fallback: boolean): boolean {
+  if (value === undefined || value === null)
+    return fallback
+  if (typeof value === 'boolean')
+    return value
+  if (typeof value === 'number')
+    return value !== 0
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (normalized === 'true' || normalized === '1' || normalized === 'yes')
+      return true
+    if (normalized === 'false' || normalized === '0' || normalized === 'no')
+      return false
+  }
   return fallback
 }
 
 function normalizeMenu(raw: Record<string, any>): SysMenu {
-  const children = Array.isArray(raw.children) && raw.children.length > 0
-    ? raw.children.map((c: Record<string, any>) => normalizeMenu(c))
+  const rawChildren = raw.children ?? raw.Children
+  const children = Array.isArray(rawChildren) && rawChildren.length > 0
+    ? rawChildren.map((c: Record<string, any>) => normalizeMenu(c))
     : undefined
   return {
-    basicId: String(raw.basicId),
-    parentId: raw.parentId != null ? String(raw.parentId) : undefined,
-    menuName: raw.menuName ?? '',
-    menuCode: raw.menuCode ?? '',
-    menuType: resolveEnum(raw.menuType, MENU_TYPE_MAP, 0),
-    path: raw.path ?? undefined,
-    component: raw.component ?? undefined,
-    routeName: raw.routeName ?? undefined,
-    redirect: raw.redirect ?? undefined,
-    icon: raw.icon ?? undefined,
-    title: raw.title ?? undefined,
-    isExternal: Boolean(raw.isExternal),
-    externalUrl: raw.externalUrl ?? undefined,
-    isCache: Boolean(raw.isCache),
-    isVisible: raw.isVisible !== false && raw.isVisible !== 'false',
-    isAffix: Boolean(raw.isAffix),
-    badge: raw.badge ?? undefined,
-    badgeType: raw.badgeType ?? undefined,
-    badgeDot: Boolean(raw.badgeDot),
-    sort: Number(raw.sort ?? 0),
-    status: resolveEnum(raw.status, STATUS_MAP, 1),
-    remark: raw.remark ?? undefined,
+    basicId: toId(raw.basicId ?? raw.BasicId),
+    parentId: raw.parentId !== null && raw.parentId !== undefined
+      ? toId(raw.parentId)
+      : (raw.ParentId !== null && raw.ParentId !== undefined ? toId(raw.ParentId) : undefined),
+    menuName: raw.menuName ?? raw.MenuName ?? '',
+    menuCode: raw.menuCode ?? raw.MenuCode ?? '',
+    menuType: resolveEnum(raw.menuType ?? raw.MenuType, MENU_TYPE_MAP, 0),
+    path: raw.path ?? raw.Path ?? undefined,
+    component: raw.component ?? raw.Component ?? undefined,
+    routeName: raw.routeName ?? raw.RouteName ?? undefined,
+    redirect: raw.redirect ?? raw.Redirect ?? undefined,
+    icon: raw.icon ?? raw.Icon ?? undefined,
+    title: raw.title ?? raw.Title ?? undefined,
+    isExternal: resolveBool(raw.isExternal ?? raw.IsExternal, false),
+    externalUrl: raw.externalUrl ?? raw.ExternalUrl ?? undefined,
+    isCache: resolveBool(raw.isCache ?? raw.IsCache, false),
+    isVisible: resolveBool(raw.isVisible ?? raw.IsVisible, true),
+    isAffix: resolveBool(raw.isAffix ?? raw.IsAffix, false),
+    badge: raw.badge ?? raw.Badge ?? undefined,
+    badgeType: raw.badgeType ?? raw.BadgeType ?? undefined,
+    badgeDot: resolveBool(raw.badgeDot ?? raw.BadgeDot, false),
+    sort: toNumber(raw.sort ?? raw.Sort, 0),
+    status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
+    remark: raw.remark ?? raw.Remark ?? undefined,
     children,
-    createTime: raw.createTime ?? raw.creationTime ?? '',
+    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.CreatedTime ?? '',
   }
 }
 
@@ -108,7 +128,7 @@ function toCreatePayload(data: Partial<SysMenu>) {
     parentId: data.parentId ? toId(data.parentId) : null,
     menuName: data.menuName ?? '',
     menuCode: data.menuCode ?? '',
-    menuType: MENU_TYPE_NAMES[data.menuType ?? 1] ?? 'Menu',
+    menuType: toNumber(data.menuType, 1),
     path: data.path ?? '',
     component: data.component ?? '',
     routeName: data.routeName ?? '',
@@ -132,25 +152,32 @@ function toUpdatePayload(data: Partial<SysMenu>) {
   return {
     ...toCreatePayload(data),
     basicId: data.basicId ? toId(data.basicId) : '',
-    status: STATUS_NAMES[data.status ?? 1] ?? 'Yes',
+    status: toNumber(data.status, 1),
   }
+}
+
+function normalizeMenuArray(raw: unknown): SysMenu[] {
+  const payload = unwrapPayload<any>(raw)
+  return Array.isArray(payload) ? payload.map(item => normalizeMenu(item)) : []
 }
 
 // -------- API --------
 
 export const menuApi = {
   tree: async (): Promise<SysMenu[]> => {
-    const data = await api.request.get<any[]>(`${api.baseUrl}List`)
-    return Array.isArray(data) ? data.map(normalizeMenu) : []
+    const data = await api.request.get<any>(`${api.baseUrl}List`)
+    return normalizeMenuArray(data)
   },
 
   list: async (): Promise<SysMenu[]> => {
-    const data = await api.request.get<any[]>(`${api.baseUrl}List`)
-    return Array.isArray(data) ? data.map(normalizeMenu) : []
+    const data = await api.request.get<any>(`${api.baseUrl}List`)
+    return normalizeMenuArray(data)
   },
 
   detail: (id: string) =>
-    api.request.get<any>(`${api.baseUrl}ById`, { params: { id } }).then(normalizeMenu),
+    api.request
+      .get<any>(`${api.baseUrl}ById`, { params: { id } })
+      .then(raw => normalizeMenu((unwrapPayload<any>(raw) ?? {}) as Record<string, any>)),
 
   create: (data: Partial<SysMenu>) =>
     api.request.post(`${api.baseUrl}Create`, toCreatePayload(data)),
@@ -161,10 +188,11 @@ export const menuApi = {
   delete: (id: string) => api.delete(id),
 
   userMenuRoutes: async (): Promise<MenuRoute[]> => {
-    const data = await api.request.get<any[]>(`${api.baseUrl}UserMenus`)
-    if (!Array.isArray(data))
+    const data = await api.request.get<any>(`${api.baseUrl}UserMenus`)
+    const menus = normalizeMenuArray(data)
+    if (!Array.isArray(menus) || menus.length === 0)
       return []
-    return data.map(raw => toMenuRoute(normalizeMenu(raw)))
+    return menus.map(menu => toMenuRoute(menu))
   },
 }
 
@@ -172,6 +200,8 @@ export const getMenuTreeApi = menuApi.tree
 export const getMenuListApi = menuApi.list
 export const getMenuDetailApi = menuApi.detail
 export const createMenuApi = menuApi.create
-export const updateMenuApi = (_id: string, data: Partial<SysMenu>) => menuApi.update(data)
+export function updateMenuApi(id: string, data: Partial<SysMenu>) {
+  return menuApi.update({ ...data, basicId: data.basicId ?? id })
+}
 export const deleteMenuApi = menuApi.delete
 export const getUserMenuRoutesApi = menuApi.userMenuRoutes
