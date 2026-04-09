@@ -518,7 +518,7 @@ watch(
           v-model:expand-on-hover="appStore.sidebarExpandOnHover"
         />
 
-        <!-- Side-mixed layout: collapsed logo + icon+text menu -->
+        <!-- Side-mixed layout: collapsed logo + menu -->
         <template v-if="isSideMixedLayout">
           <div :style="logoAreaStyle">
             <SidebarBrand
@@ -538,7 +538,7 @@ watch(
               :active-key="sideMixedEffectiveTopKey"
               :collapsed="true"
               :collapsed-width="sidebarWidth"
-              :sidebar-collapsed-show-title="true"
+              :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
               :sidebar-theme="sidebarTheme"
               :menu-options="sideMixedPrimaryOptions"
               :navigation-style="appStore.navigationStyle"
@@ -550,7 +550,7 @@ watch(
           <div style="height: 42px" />
         </template>
 
-        <!-- Header-mix layout: collapsed logo + icon+text menu -->
+        <!-- Header-mix layout: collapsed logo + menu -->
         <template v-else-if="isHeaderMixLayout">
           <div :style="logoAreaStyle">
             <SidebarBrand
@@ -570,7 +570,7 @@ watch(
               :active-key="headerMixEffectivePrimaryKey"
               :collapsed="true"
               :collapsed-width="sidebarWidth"
-              :sidebar-collapsed-show-title="true"
+              :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
               :sidebar-theme="sidebarTheme"
               :menu-options="headerMixPrimaryOptions"
               :navigation-style="appStore.navigationStyle"
@@ -708,6 +708,7 @@ watch(
   --n-item-color-active-hover: hsl(var(--primary));
 }
 
+/* ---- 双列主列通用折叠样式 ---- */
 .mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item) {
   height: auto !important;
   margin: 4px 0 !important;
@@ -716,12 +717,10 @@ watch(
 
 .mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content) {
   display: flex !important;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: auto !important;
   margin: 0 6px !important;
-  padding: 8px 0 !important;
   overflow: visible !important;
 }
 
@@ -742,7 +741,35 @@ watch(
 }
 
 .mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content-header) {
+  :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
+  display: none !important;
+}
+
+.mixed-primary-menu
+  :deep(.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
+  transform: scale(1.2);
+}
+
+/* ---- 偏好关闭：仅图标居中 ---- */
+.mixed-primary-menu
+  :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
+  padding: 12px 0 !important;
+}
+
+.mixed-primary-menu
+  :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content-header) {
+  display: none !important;
+}
+
+/* ---- 偏好开启：图标 + 文字纵向排列 ---- */
+.mixed-primary-menu
+  :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
+  flex-direction: column;
+  padding: 8px 0 !important;
+}
+
+.mixed-primary-menu
+  :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content-header) {
   display: block !important;
   width: 100% !important;
   height: auto !important;
@@ -761,17 +788,7 @@ watch(
 }
 
 .mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
-  display: none !important;
-}
-
-.mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
-  transform: scale(1.2);
-}
-
-.mixed-primary-menu
-  :deep(.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
+  :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item.n-menu-item--selected .n-menu-item-content-header) {
   font-weight: 600;
 }
 
@@ -827,8 +844,8 @@ watch(
   line-height: 18px !important;
 }
 
-/* ---- 折叠状态 badge 布局（垂直堆叠，适配窄列） ---- */
-.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-wrapper,
+/* ---- 折叠 + 显示标题时 badge 竖向堆叠（适配窄列） ---- */
+.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper,
 .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper {
   flex-direction: column;
   align-items: center;
@@ -836,7 +853,7 @@ watch(
   gap: 3px;
 }
 
-.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-text,
+.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text,
 .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text {
   white-space: normal;
   text-align: center;
@@ -844,12 +861,12 @@ watch(
   overflow-wrap: break-word;
 }
 
-.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-dot,
+.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot,
 .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot {
   margin-left: 0;
 }
 
-.mixed-primary-menu .n-menu.n-menu--collapsed .menu-badge-tag,
+.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag,
 .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag {
   margin-left: 0;
   font-size: 10px !important;
