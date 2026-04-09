@@ -32,7 +32,23 @@
   --overlay: 0 0% 0% / 45%;
   --overlay-content: 0 0% 95% / 45%;
   --font-size-base: 16px;
-  --menu-font-size: calc(var(--font-size-base) * 0.875);
+  --font-size-xs: calc(var(--font-size-base) * 0.75);
+  --font-size-sm: calc(var(--font-size-base) * 0.875);
+  --font-size-md: var(--font-size-base);
+  --font-size-lg: calc(var(--font-size-base) * 1.125);
+  --font-size-xl: calc(var(--font-size-base) * 1.25);
+  --menu-font-size: var(--font-size-sm);
+
+  /* 圆角 token */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-full: 9999px;
+
+  /* 主色色阶（运行时由 useTheme 同步） */
+  --primary-hover: var(--primary);
+  --primary-active: var(--primary);
+  --primary-suppl: var(--primary);
   --sidebar: 0 0% 100%;
   --sidebar-deep: 210 15% 97.5%;
   --menu: var(--sidebar);
