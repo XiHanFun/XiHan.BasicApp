@@ -26,19 +26,51 @@ export interface RolePageQuery extends PageQuery {
 
 // -------- 内部 --------
 
+const ROLE_TYPE_MAP: Record<string, number> = {
+  System: 0,
+  Business: 1,
+  Custom: 2,
+}
+
+const DATA_SCOPE_MAP: Record<string, number> = {
+  All: 0,
+  DepartmentAndChildren: 1,
+  DepartmentOnly: 2,
+  SelfOnly: 3,
+  Custom: 99,
+}
+
+const STATUS_MAP: Record<string, number> = {
+  No: 0,
+  Yes: 1,
+}
+
+function resolveEnum(value: unknown, map: Record<string, number>, fallback: number): number {
+  if (value === undefined || value === null) {
+    return fallback
+  }
+  if (typeof value === 'number') {
+    return value
+  }
+  if (typeof value === 'string') {
+    return map[value] ?? toNumber(value, fallback)
+  }
+  return fallback
+}
+
 function normalizeRole(raw: Record<string, any>): SysRole {
   return {
-    basicId: toId(raw.basicId),
-    roleName: raw.roleName ?? raw.name ?? '',
-    roleCode: raw.roleCode ?? raw.code ?? '',
-    roleDescription: raw.roleDescription ?? raw.description ?? '',
-    roleType: raw.roleType !== undefined && raw.roleType !== null ? toNumber(raw.roleType, 0) : undefined,
-    dataScope: raw.dataScope !== undefined && raw.dataScope !== null ? toNumber(raw.dataScope, 0) : undefined,
-    status: toNumber(raw.status, 1),
-    sort: toNumber(raw.sort, 0),
-    permissions: Array.isArray(raw.permissions) ? raw.permissions : [],
-    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? '',
-    updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
+    basicId: toId(raw.basicId ?? raw.BasicId),
+    roleName: raw.roleName ?? raw.RoleName ?? raw.name ?? '',
+    roleCode: raw.roleCode ?? raw.RoleCode ?? raw.code ?? '',
+    roleDescription: raw.roleDescription ?? raw.RoleDescription ?? raw.description ?? '',
+    roleType: resolveEnum(raw.roleType ?? raw.RoleType, ROLE_TYPE_MAP, 0),
+    dataScope: resolveEnum(raw.dataScope ?? raw.DataScope, DATA_SCOPE_MAP, 0),
+    status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
+    sort: toNumber(raw.sort ?? raw.Sort, 0),
+    permissions: Array.isArray(raw.permissions ?? raw.Permissions) ? (raw.permissions ?? raw.Permissions) : [],
+    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.createdTimeUtc ?? raw.CreatedTime ?? '',
+    updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
   }
 }
 
@@ -64,14 +96,23 @@ function toUpdatePayload(id: string, data: Partial<SysRole>) {
   }
 }
 
+const PAGE_OPTIONS = {
+  keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
+  filterFieldMap: { status: 'Status' },
+}
+
+async function queryRolePage(params: Record<string, any>) {
+  const data = await api.request.post<any>(
+    `${api.baseUrl}Page`,
+    buildPageRequest(params, PAGE_OPTIONS),
+  )
+  return normalizePageResult(data, normalizeRole)
+}
+
 // -------- API --------
 
 export const roleApi = {
-  page: (params: Record<string, any>) =>
-    api.page(params, {
-      keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
-      filterFieldMap: { status: 'Status' },
-    }),
+  page: (params: Record<string, any>) => queryRolePage(params),
 
   list: async () => {
     const data = await api.request.post<any>(
@@ -143,14 +184,7 @@ export const roleApi = {
 }
 
 export async function getRolePageApi(params: RolePageQuery) {
-  const data = await api.request.post<any>(
-    `${api.baseUrl}Page`,
-    buildPageRequest(params as Record<string, any>, {
-      keywordFields: ['RoleName', 'RoleCode', 'RoleDescription'],
-      filterFieldMap: { status: 'Status' },
-    }),
-  )
-  return normalizePageResult(data, normalizeRole)
+  return queryRolePage(params as Record<string, any>)
 }
 
 export const getRoleListApi = roleApi.list

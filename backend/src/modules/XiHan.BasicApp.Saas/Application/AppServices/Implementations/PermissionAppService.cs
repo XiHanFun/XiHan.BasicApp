@@ -85,7 +85,7 @@ public class PermissionAppService
         }
 
         var permissions = await _permissionRepository.GetRolePermissionsAsync(roleId, tenantId);
-        return permissions.Select(static permission => permission.Adapt<PermissionDto>()!).ToArray();
+        return permissions.Select(MapPermission).ToArray();
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public class PermissionAppService
         }
 
         var permissions = await _permissionRepository.GetUserPermissionsAsync(query.UserId, query.TenantId);
-        return permissions.Select(static permission => permission.Adapt<PermissionDto>()!).ToArray();
+        return permissions.Select(MapPermission).ToArray();
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class PermissionAppService
         var entity = await MapDtoToEntityAsync(input);
         var created = await _domainService.CreateAsync(entity);
         await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.Permission);
-        return created.Adapt<PermissionDto>()!;
+        return MapPermission(created);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class PermissionAppService
         await MapDtoToEntityAsync(input, permission);
         var updated = await _domainService.UpdateAsync(permission);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.Permission);
-        return updated.Adapt<PermissionDto>()!;
+        return MapPermission(updated);
     }
 
     /// <summary>
@@ -186,6 +186,7 @@ public class PermissionAppService
             PermissionCode = createDto.PermissionCode.Trim(),
             PermissionName = createDto.PermissionName.Trim(),
             PermissionDescription = createDto.PermissionDescription,
+            Tags = NormalizePermissionTags(createDto.Tags, createDto.GroupName),
             IsRequireAudit = createDto.IsRequireAudit,
             Priority = createDto.Priority,
             Sort = createDto.Sort,
@@ -207,12 +208,33 @@ public class PermissionAppService
         entity.PermissionCode = updateDto.PermissionCode.Trim();
         entity.PermissionName = updateDto.PermissionName.Trim();
         entity.PermissionDescription = updateDto.PermissionDescription;
+        entity.Tags = NormalizePermissionTags(updateDto.Tags, updateDto.GroupName, entity.Tags);
         entity.IsRequireAudit = updateDto.IsRequireAudit;
         entity.Priority = updateDto.Priority;
         entity.Status = updateDto.Status;
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射实体到 DTO，补齐前端展示字段。
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    protected override Task<PermissionDto> MapEntityToDtoAsync(SysPermission entity)
+    {
+        return Task.FromResult(MapPermission(entity));
+    }
+
+    /// <summary>
+    /// 批量映射实体到 DTO。
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <returns></returns>
+    protected override Task<IList<PermissionDto>> MapEntitiesToDtosAsync(IEnumerable<SysPermission> entities)
+    {
+        return Task.FromResult<IList<PermissionDto>>(entities.Select(MapPermission).ToArray());
     }
 
     /// <summary>
@@ -230,6 +252,47 @@ public class PermissionAppService
         {
             throw new BusinessException(message: $"权限编码 '{permissionCode}' 已存在");
         }
+    }
+
+    private static PermissionDto MapPermission(SysPermission permission)
+    {
+        var dto = permission.Adapt<PermissionDto>()!;
+        dto.GroupName = ResolveGroupName(permission.Tags);
+        return dto;
+    }
+
+    private static string? NormalizePermissionTags(string? tags, string? groupName, string? fallback = null)
+    {
+        var normalizedTags = NormalizeNullable(tags);
+        if (!string.IsNullOrWhiteSpace(normalizedTags))
+        {
+            return normalizedTags;
+        }
+
+        var normalizedGroup = NormalizeNullable(groupName);
+        if (!string.IsNullOrWhiteSpace(normalizedGroup))
+        {
+            return normalizedGroup;
+        }
+
+        return NormalizeNullable(fallback);
+    }
+
+    private static string? ResolveGroupName(string? tags)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+        {
+            return null;
+        }
+
+        return tags
+            .Split(new[] { ',', '，', ';', '；', '|', '、' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault();
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)

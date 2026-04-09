@@ -22,6 +22,7 @@ export interface SysPermission {
   createTime?: string
   updateTime?: string
   groupName?: string
+  tags?: string
   status?: number
 }
 
@@ -33,34 +34,86 @@ export interface PermissionPageQuery extends PageQuery {
 
 // -------- 内部 --------
 
+const STATUS_MAP: Record<string, number> = {
+  No: 0,
+  Yes: 1,
+}
+
+function resolveEnum(value: unknown, map: Record<string, number>, fallback: number): number {
+  if (value === undefined || value === null) {
+    return fallback
+  }
+  if (typeof value === 'number') {
+    return value
+  }
+  if (typeof value === 'string') {
+    return map[value] ?? toNumber(value, fallback)
+  }
+  return fallback
+}
+
+function resolveGroupName(tags: unknown, groupName: unknown): string {
+  if (typeof groupName === 'string' && groupName.trim().length > 0) {
+    return groupName.trim()
+  }
+  if (typeof tags !== 'string' || tags.trim().length === 0) {
+    return ''
+  }
+  const first = tags
+    .split(/[,\uFF0C;\uFF1B|\u3001]/)
+    .map(item => item.trim())
+    .find(Boolean)
+  return first ?? ''
+}
+
+function normalizeTags(tags: unknown, groupName: unknown): string {
+  if (typeof tags === 'string' && tags.trim().length > 0) {
+    return tags.trim()
+  }
+  if (typeof groupName === 'string' && groupName.trim().length > 0) {
+    return groupName.trim()
+  }
+  return ''
+}
+
 function normalizePermission(raw: Record<string, any>): SysPermission {
+  const rawTags = raw.tags ?? raw.Tags
+  const rawGroupName = raw.groupName ?? raw.GroupName
+  const normalizedTags = normalizeTags(rawTags, rawGroupName)
   return {
-    basicId: toId(raw.basicId),
-    resourceId: toId(raw.resourceId),
-    operationId: toId(raw.operationId),
-    permissionName: raw.permissionName ?? '',
-    permissionCode: raw.permissionCode ?? '',
-    permissionDescription: raw.permissionDescription ?? raw.description ?? '',
-    description: raw.permissionDescription ?? raw.description ?? '',
-    isRequireAudit: Boolean(raw.isRequireAudit),
-    priority: toNumber(raw.priority, 0),
-    sort: toNumber(raw.sort, 0),
-    tenantId: raw.tenantId === null || raw.tenantId === undefined ? undefined : toNumber(raw.tenantId, 0),
-    remark: raw.remark ?? undefined,
-    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
-    updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
-    groupName: raw.groupName ?? '',
-    status: toNumber(raw.status, 1),
+    basicId: toId(raw.basicId ?? raw.BasicId),
+    resourceId: toId(raw.resourceId ?? raw.ResourceId),
+    operationId: toId(raw.operationId ?? raw.OperationId),
+    permissionName: raw.permissionName ?? raw.PermissionName ?? '',
+    permissionCode: raw.permissionCode ?? raw.PermissionCode ?? '',
+    permissionDescription: raw.permissionDescription ?? raw.PermissionDescription ?? raw.description ?? raw.Description ?? '',
+    description: raw.permissionDescription ?? raw.PermissionDescription ?? raw.description ?? raw.Description ?? '',
+    isRequireAudit: Boolean(raw.isRequireAudit ?? raw.IsRequireAudit),
+    priority: toNumber(raw.priority ?? raw.Priority, 0),
+    sort: toNumber(raw.sort ?? raw.Sort, 0),
+    tenantId: raw.tenantId === null || raw.tenantId === undefined
+      ? (raw.TenantId === null || raw.TenantId === undefined ? undefined : toNumber(raw.TenantId, 0))
+      : toNumber(raw.tenantId, 0),
+    remark: raw.remark ?? raw.Remark ?? undefined,
+    createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.CreatedTime ?? undefined,
+    updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
+    groupName: resolveGroupName(rawTags, rawGroupName),
+    tags: normalizedTags || undefined,
+    status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
   }
 }
 
 function toCreatePayload(data: Partial<SysPermission>) {
+  const groupName = resolveGroupName(data.tags, data.groupName)
+  const tags = normalizeTags(data.tags, groupName)
   return {
     resourceId: toId(data.resourceId ?? '1') || '1',
     operationId: toId(data.operationId ?? '1') || '1',
     permissionCode: data.permissionCode ?? '',
     permissionName: data.permissionName ?? '',
     permissionDescription: data.permissionDescription ?? data.description ?? '',
+    groupName,
+    tags,
     isRequireAudit: Boolean(data.isRequireAudit),
     priority: toNumber(data.priority, 0),
     sort: toNumber(data.sort, 0),
@@ -82,10 +135,18 @@ const PAGE_OPTIONS = {
   filterFieldMap: { status: 'Status', resourceId: 'ResourceId', operationId: 'OperationId' },
 }
 
+async function queryPermissionPage(params: Record<string, any>) {
+  const data = await api.request.post<any>(
+    `${api.baseUrl}Page`,
+    buildPageRequest(params, PAGE_OPTIONS),
+  )
+  return normalizePageResult(data, normalizePermission)
+}
+
 // -------- API --------
 
 export const permissionApi = {
-  page: (params: Record<string, any>) => api.page(params, PAGE_OPTIONS),
+  page: (params: Record<string, any>) => queryPermissionPage(params),
 
   list: async (params: Partial<PermissionPageQuery> = {}) => {
     const data = await api.request.post<any>(
