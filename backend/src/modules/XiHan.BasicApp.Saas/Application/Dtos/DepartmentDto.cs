@@ -49,6 +49,26 @@ public class DepartmentDto : BasicAppDto
     public long? LeaderId { get; set; }
 
     /// <summary>
+    /// 负责人名称
+    /// </summary>
+    public string? LeaderName { get; set; }
+
+    /// <summary>
+    /// 联系电话
+    /// </summary>
+    public string? Phone { get; set; }
+
+    /// <summary>
+    /// 邮箱
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 地址
+    /// </summary>
+    public string? Address { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -62,6 +82,16 @@ public class DepartmentDto : BasicAppDto
     /// 租户ID
     /// </summary>
     public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
 }
 
 /// <summary>
