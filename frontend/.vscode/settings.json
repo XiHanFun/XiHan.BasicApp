@@ -19,6 +19,6 @@
     "@/": "${workspaceRoot}/src/",
     "~/": "${workspaceRoot}/packages/"
   },
-  "i18n-ally.localesPaths": ["src/locales/langs", "packages/locales/langs"],
+  "i18n-ally.localesPaths": ["packages/locales/langs"],
   "i18n-ally.keystyle": "nested"
 }
