@@ -2,6 +2,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 
+import { registerAccessDirective } from '~/composables/useAccessDirective'
 import { setupVxeTable } from '~/hooks'
 import { setupIconifyOffline } from '~/iconify'
 import { setupI18n } from '~/locales'
@@ -30,6 +31,8 @@ async function bootstrap() {
 
   setupI18n(app)
   setupVxeTable(app)
+
+  registerAccessDirective(app)
 
   app.use(router)
   bindRouter(router)
