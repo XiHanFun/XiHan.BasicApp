@@ -8,13 +8,12 @@ import type { SysRole } from '@/api/modules/role'
 import {
   NButton,
   NCheckbox,
-  NDrawer,
-  NDrawerContent,
   NEmpty,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
+  NModal,
   NPopconfirm,
   NRadio,
   NRadioGroup,
@@ -159,10 +158,10 @@ async function handleDelete(id: string) {
   }
 }
 
-// ==================== 抽屉状态 ====================
+// ==================== 弹窗状态 ====================
 
-const drawerVisible = ref(false)
-const drawerTitle = ref('')
+const modalVisible = ref(false)
+const modalTitle = ref('')
 const isEdit = ref(false)
 const currentRoleId = ref('')
 const activeTab = ref('basic')
@@ -256,9 +255,9 @@ const permissionGroups = computed(() => {
   return groups
 })
 
-// ==================== 抽屉操作 ====================
+// ==================== 弹窗操作 ====================
 
-function resetDrawerState() {
+function resetModalState() {
   menuTreeData.value = []
   checkedMenuKeys.value = []
   menuExpandedKeys.value = []
@@ -273,8 +272,8 @@ function resetDrawerState() {
 }
 
 function handleAdd() {
-  resetDrawerState()
-  drawerTitle.value = '新增角色'
+  resetModalState()
+  modalTitle.value = '新增角色'
   isEdit.value = false
   currentRoleId.value = ''
   activeTab.value = 'basic'
@@ -287,17 +286,17 @@ function handleAdd() {
     status: 1,
     sort: 100,
   }
-  drawerVisible.value = true
+  modalVisible.value = true
 }
 
 function handleEdit(row: SysRole) {
-  resetDrawerState()
-  drawerTitle.value = '编辑角色'
+  resetModalState()
+  modalTitle.value = '编辑角色'
   isEdit.value = true
   currentRoleId.value = row.basicId
   activeTab.value = 'basic'
   formData.value = { ...row, dataScope: row.dataScope ?? 0 }
-  drawerVisible.value = true
+  modalVisible.value = true
 }
 
 function handleTabChange(tab: string) {
@@ -408,12 +407,12 @@ async function handleSaveBasic() {
         currentRoleId.value = String(newId)
         formData.value.basicId = String(newId)
         isEdit.value = true
-        drawerTitle.value = '编辑角色'
+        modalTitle.value = '编辑角色'
         message.success('创建成功，可继续配置权限')
       }
       else {
         message.success('创建成功')
-        drawerVisible.value = false
+        modalVisible.value = false
       }
     }
     xGrid.value?.commitProxy('query')
@@ -605,9 +604,16 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
       </vxe-grid>
     </vxe-card>
 
-    <!-- 角色编辑抽屉 -->
-    <NDrawer v-model:show="drawerVisible" :width="640" @after-leave="resetDrawerState">
-      <NDrawerContent :title="drawerTitle" closable>
+    <!-- 角色编辑弹窗 -->
+    <NModal
+      v-model:show="modalVisible"
+      preset="card"
+      :title="modalTitle"
+      :style="{ width: '720px', maxWidth: '92vw' }"
+      :bordered="false"
+      @after-leave="resetModalState"
+    >
+      <div class="max-h-[min(70vh,640px)] overflow-y-auto pr-1">
         <NTabs v-model:value="activeTab" type="line" @update:value="handleTabChange">
           <!-- ===== 基本信息 ===== -->
           <NTabPane name="basic" tab="基本信息">
@@ -799,7 +805,7 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
             </div>
           </NTabPane>
         </NTabs>
-      </NDrawerContent>
-    </NDrawer>
+      </div>
+    </NModal>
   </div>
 </template>

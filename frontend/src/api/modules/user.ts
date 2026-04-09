@@ -69,16 +69,13 @@ export const userApi = {
 
   detail: (id: string) => api.detail(id),
 
-  create: (data: Partial<SysUser & { password?: string }>) =>
-    api.create(toCreatePayload(data)),
+  create: (data: Partial<SysUser & { password?: string }>) => api.create(toCreatePayload(data)),
 
-  update: (id: string, data: Partial<SysUser>) =>
-    api.update(toUpdatePayload(id, data)),
+  update: (id: string, data: Partial<SysUser>) => api.update(toUpdatePayload(id, data)),
 
   delete: (id: string) => api.deletePath(id),
 
-  batchDelete: (ids: string[]) =>
-    Promise.all(ids.map(id => api.deletePath(id))),
+  batchDelete: (ids: string[]) => Promise.all(ids.map((id) => api.deletePath(id))),
 
   changeStatus: (id: string, status: number) =>
     api.request.post(`${api.baseUrl}ChangeStatus`, {
@@ -94,38 +91,34 @@ export const userApi = {
 
   /** 查询用户已分配角色 ID 列表 */
   getUserRoles: async (userId: string): Promise<string[]> => {
+    const id = toId(userId)
     const data = await api.request.get<Array<Record<string, unknown>>>(
-      `${api.baseUrl}UserRoles`,
-      { params: { userId: toId(userId) } },
+      `${api.baseUrl}UserRoles/${id}/0`,
     )
-    return Array.isArray(data)
-      ? data.map(item => toId(item.roleId)).filter(Boolean)
-      : []
+    return Array.isArray(data) ? data.map((item) => toId(item.roleId)).filter(Boolean) : []
   },
 
   /** 分配用户角色（全量替换） */
   assignRoles: (userId: string, roleIds: string[]) =>
     api.request.post(`${api.baseUrl}AssignRoles`, {
       userId: toId(userId),
-      roleIds: roleIds.map(item => toId(item)).filter(Boolean),
+      roleIds: roleIds.map((item) => toId(item)).filter(Boolean),
     }),
 
   /** 查询用户直授权限 ID 列表 */
   getUserPermissions: async (userId: string): Promise<string[]> => {
+    const id = toId(userId)
     const data = await api.request.get<Array<Record<string, unknown>>>(
-      `${api.baseUrl}UserPermissions`,
-      { params: { userId: toId(userId) } },
+      `${api.baseUrl}UserPermissions/${id}/0`,
     )
-    return Array.isArray(data)
-      ? data.map(item => toId(item.permissionId)).filter(Boolean)
-      : []
+    return Array.isArray(data) ? data.map((item) => toId(item.permissionId)).filter(Boolean) : []
   },
 
   /** 分配用户直授权限（全量替换） */
   assignPermissions: (userId: string, permissionIds: string[]) =>
     api.request.post(`${api.baseUrl}AssignPermissions`, {
       userId: toId(userId),
-      permissionIds: permissionIds.map(item => toId(item)).filter(Boolean),
+      permissionIds: permissionIds.map((item) => toId(item)).filter(Boolean),
     }),
 }
 
