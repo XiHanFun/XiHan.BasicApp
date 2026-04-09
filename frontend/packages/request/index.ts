@@ -4,8 +4,8 @@ import type {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios'
-import type { ApiResponse } from '~/types'
 import type { Router } from 'vue-router'
+import type { ApiResponse } from '~/types'
 import axios from 'axios'
 import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
@@ -228,7 +228,7 @@ export class RequestClient {
       const { data } = await this.instance.post(
         this.resolveUrl('/auth/refreshtoken'),
         { refreshToken },
-        { _isRefresh: true } as any,
+        { _isRefresh: true } as Record<string, unknown>,
       )
       const payload = (data?.data ?? data) as {
         accessToken?: string

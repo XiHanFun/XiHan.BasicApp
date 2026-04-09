@@ -27,7 +27,8 @@ export function useHtmlStyle() {
     el.classList.toggle('frosted-glass', appStore.frostedGlassEnabled)
     if (appStore.frostedGlassEnabled) {
       el.style.setProperty('--frosted-intensity', `${appStore.frostedGlassIntensity / 100}`)
-    } else {
+    }
+    else {
       el.style.removeProperty('--frosted-intensity')
     }
   })

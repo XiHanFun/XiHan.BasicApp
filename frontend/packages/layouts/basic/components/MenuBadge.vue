@@ -88,7 +88,6 @@ export function renderHorizontalBadgeLabel(
  * 1. 模板用法：<MenuBadge :text="label" :badge="info" mode="sidebar" />
  * 2. 渲染函数：renderSidebarBadgeLabel / renderHorizontalBadgeLabel
  */
-import { NTag } from 'naive-ui'
 
 defineOptions({ name: 'MenuBadge' })
 

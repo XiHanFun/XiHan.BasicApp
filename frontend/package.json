@@ -36,10 +36,11 @@
     "dev": "vite --mode development",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "lint": "oxlint --fix && eslint .",
-    "lint:fix": "oxlint --fix && eslint . --fix",
+    "lint": "cross-env CI=true oxlint && cross-env CI=true eslint .",
+    "lint:fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix",
+    "format": "prettier --write \"**/*.{json,css,html,md}\" --ignore-path .gitignore",
+    "fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix && prettier --write \"**/*.{json,css,html,md}\" --ignore-path .gitignore",
     "postinstall": "simple-git-hooks",
-    "format": "prettier --write \"src/**/*.{ts,vue,json}\" \"packages/**/*.{ts,json}\"",
     "clean": "rimraf dist",
     "clean:modules": "rimraf node_modules",
     "upgrade": "pnpm upgrade",
@@ -94,6 +95,7 @@
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitejs/plugin-vue-jsx": "^4.2.0",
     "autoprefixer": "^10.4.27",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
     "eslint-plugin-format": "^1.5.0",
     "lint-staged": "^16.4.0",
@@ -112,11 +114,11 @@
     "pre-commit": "npx lint-staged"
   },
   "lint-staged": {
-    "*.{ts,vue}": [
+    "*.{ts,vue,js,mjs}": [
       "oxlint --fix",
       "eslint --fix"
     ],
-    "*.{json,css,html,md}": [
+    "*.{json,css,html,md,yaml}": [
       "prettier --write"
     ]
   }

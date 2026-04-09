@@ -316,13 +316,13 @@ async function sendChangeCode() {
   try {
     const res = changeTarget.value === 'email'
       ? await sendChangeEmailCodeApi({
-        newEmail: changeNewValue.value.trim(),
-        password: changePassword.value,
-      })
+          newEmail: changeNewValue.value.trim(),
+          password: changePassword.value,
+        })
       : await sendChangePhoneCodeApi({
-        newPhone: changeNewValue.value.trim(),
-        password: changePassword.value,
-      })
+          newPhone: changeNewValue.value.trim(),
+          password: changePassword.value,
+        })
     message.success('验证码已发送')
     changeCodeSent.value = true
     changeCode.value = ''

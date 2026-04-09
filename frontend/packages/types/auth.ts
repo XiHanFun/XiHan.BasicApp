@@ -91,4 +91,3 @@ export interface PermissionInfo {
   permissions: string[]
   menus: MenuRoute[]
 }
-

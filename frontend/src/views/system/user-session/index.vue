@@ -112,7 +112,8 @@ async function handleRevoke(row: SysUserSession) {
     await userSessionApi.revokeUserSessions(row.userId, '管理员强制下线')
     message.success('撤销成功')
     xGrid.value?.commitProxy('query')
-  } catch {
+  }
+  catch {
     message.error('撤销失败')
   }
 }
@@ -122,7 +123,8 @@ async function handleDelete(id: string) {
     await userSessionApi.delete(id)
     message.success('删除成功')
     xGrid.value?.commitProxy('query')
-  } catch {
+  }
+  catch {
     message.error('删除失败')
   }
 }
@@ -153,8 +155,12 @@ async function handleDelete(id: string) {
           clearable
           style="width: 120px"
         />
-        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
-        <NButton size="small" @click="handleReset">重置</NButton>
+        <NButton type="primary" size="small" @click="handleSearch">
+          查询
+        </NButton>
+        <NButton size="small" @click="handleReset">
+          重置
+        </NButton>
       </div>
     </vxe-card>
     <vxe-card class="flex-1" style="height: 0">
@@ -166,20 +172,26 @@ async function handleDelete(id: string) {
           </NTag>
         </template>
         <template #col_revoked="{ row }">
-          <NTag v-if="row.isRevoked" type="error" size="small">已撤销</NTag>
+          <NTag v-if="row.isRevoked" type="error" size="small">
+            已撤销
+          </NTag>
           <span v-else class="text-gray-300">-</span>
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
             <NPopconfirm v-if="row.isOnline && !row.isRevoked" @positive-click="handleRevoke(row)">
               <template #trigger>
-                <NButton size="small" type="warning" text>强制下线</NButton>
+                <NButton size="small" type="warning" text>
+                  强制下线
+                </NButton>
               </template>
               确认强制该用户下线？
             </NPopconfirm>
             <NPopconfirm @positive-click="handleDelete(row.basicId)">
               <template #trigger>
-                <NButton size="small" type="error" text>删除</NButton>
+                <NButton size="small" type="error" text>
+                  删除
+                </NButton>
               </template>
               确认删除该会话记录？
             </NPopconfirm>

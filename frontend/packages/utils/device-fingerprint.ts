@@ -10,7 +10,8 @@ async function getCanvasFingerprint(): Promise<string> {
     canvas.width = 200
     canvas.height = 50
     const ctx = canvas.getContext('2d')
-    if (!ctx) return ''
+    if (!ctx)
+      return ''
 
     ctx.textBaseline = 'top'
     ctx.font = '14px Arial'
@@ -22,7 +23,8 @@ async function getCanvasFingerprint(): Promise<string> {
     ctx.fillText('XiHan.FP', 4, 17)
 
     return canvas.toDataURL()
-  } catch {
+  }
+  catch {
     return ''
   }
 }
@@ -31,14 +33,16 @@ function getWebGLFingerprint(): string {
   try {
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
-    if (!gl || !(gl instanceof WebGLRenderingContext)) return ''
+    if (!gl || !(gl instanceof WebGLRenderingContext))
+      return ''
 
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
     const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : ''
     const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : ''
 
     return `${vendor}~${renderer}`
-  } catch {
+  }
+  catch {
     return ''
   }
 }
@@ -68,7 +72,7 @@ function getAudioFingerprint(): Promise<string> {
       gain.connect(ctx.destination)
 
       let result = ''
-      processor.onaudioprocess = (event) => {
+      processor.onaudioprocess = (_event) => {
         const data = new Float32Array(analyser.frequencyBinCount)
         analyser.getFloatFrequencyData(data)
         // 取前 30 个频率分量拼接
@@ -87,10 +91,12 @@ function getAudioFingerprint(): Promise<string> {
           oscillator.disconnect()
           processor.disconnect()
           ctx.close().catch(() => {})
-        } catch { /* ignore */ }
+        }
+        catch { /* ignore */ }
         resolve(result)
       }, 500)
-    } catch {
+    }
+    catch {
       resolve('')
     }
   })
@@ -128,20 +134,23 @@ function getTimezoneFeatures(): string {
   let tz = ''
   try {
     tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
-  } catch { /* ignore */ }
+  }
+  catch { /* ignore */ }
   return `${offset}|${tz}`
 }
 
 function getPluginFeatures(): string {
   try {
     const plugins = navigator.plugins
-    if (!plugins || plugins.length === 0) return ''
+    if (!plugins || plugins.length === 0)
+      return ''
     const names: string[] = []
     for (let i = 0; i < Math.min(plugins.length, 20); i++) {
       names.push(plugins[i]!.name)
     }
     return names.sort().join(',')
-  } catch {
+  }
+  catch {
     return ''
   }
 }
@@ -149,16 +158,28 @@ function getPluginFeatures(): string {
 function getFontFeatures(): string {
   // 通过 canvas 测量特定字体是否可用来检测已安装字体
   const testFonts = [
-    'Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia',
-    'Trebuchet MS', 'Impact', 'Comic Sans MS', 'Microsoft YaHei',
-    'SimHei', 'Consolas', 'Menlo', 'Monaco', 'Fira Code',
+    'Arial',
+    'Verdana',
+    'Times New Roman',
+    'Courier New',
+    'Georgia',
+    'Trebuchet MS',
+    'Impact',
+    'Comic Sans MS',
+    'Microsoft YaHei',
+    'SimHei',
+    'Consolas',
+    'Menlo',
+    'Monaco',
+    'Fira Code',
   ]
   const baseFonts = ['monospace', 'sans-serif', 'serif']
   const testString = 'mmMwWLli10O&1'
   const testSize = '72px'
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
-  if (!ctx) return ''
+  if (!ctx)
+    return ''
 
   const widths: Record<string, number> = {}
   for (const base of baseFonts) {

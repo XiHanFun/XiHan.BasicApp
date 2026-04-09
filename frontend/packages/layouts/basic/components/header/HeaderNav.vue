@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { LayoutBreadcrumbItem } from '../../contracts'
 import type { useAppStore } from '~/stores'
-import { Icon } from '~/iconify'
 import { NBreadcrumb, NBreadcrumbItem, NDropdown } from 'naive-ui'
 import { computed } from 'vue'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'HeaderNav' })
 

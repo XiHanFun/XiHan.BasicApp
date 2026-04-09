@@ -184,7 +184,9 @@ async function handleClear() {
           </NTag>
         </template>
         <template #col_actions="{ row }">
-          <NButton size="small" type="primary" text @click="handleDetail(row)">详情</NButton>
+          <NButton size="small" type="primary" text @click="handleDetail(row)">
+            详情
+          </NButton>
         </template>
       </vxe-grid>
     </vxe-card>

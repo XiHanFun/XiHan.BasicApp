@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Icon } from '~/iconify'
 import { NIcon, NTooltip } from 'naive-ui'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'PrefTip' })
 defineProps<{ content: string }>()
