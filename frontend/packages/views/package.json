@@ -1,0 +1,11 @@
+{
+  "name": "@xihan/views",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@xihan/constants": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/utils": "workspace:*",
+    "@xihan/locales": "workspace:*"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@xihan/composables",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@xihan/constants": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/utils": "workspace:*"
+  }
+}
