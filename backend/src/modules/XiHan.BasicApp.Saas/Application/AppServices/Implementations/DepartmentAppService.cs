@@ -37,6 +37,7 @@ public class DepartmentAppService
         IDepartmentAppService
 {
     private readonly IDepartmentRepository _departmentRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IDepartmentQueryService _queryService;
     private readonly IDepartmentDomainService _domainService;
     private readonly ILocalEventBus _localEventBus;
@@ -46,12 +47,14 @@ public class DepartmentAppService
     /// 构造函数
     /// </summary>
     /// <param name="departmentRepository"></param>
+    /// <param name="userRepository"></param>
     /// <param name="queryService"></param>
     /// <param name="domainService"></param>
     /// <param name="localEventBus"></param>
     /// <param name="unitOfWorkManager"></param>
     public DepartmentAppService(
         IDepartmentRepository departmentRepository,
+        IUserRepository userRepository,
         IDepartmentQueryService queryService,
         IDepartmentDomainService domainService,
         ILocalEventBus localEventBus,
@@ -59,6 +62,7 @@ public class DepartmentAppService
         : base(departmentRepository)
     {
         _departmentRepository = departmentRepository;
+        _userRepository = userRepository;
         _queryService = queryService;
         _domainService = domainService;
         _localEventBus = localEventBus;
@@ -84,7 +88,7 @@ public class DepartmentAppService
     public async Task<IReadOnlyList<DepartmentDto>> GetChildrenAsync(long? parentId, long? tenantId = null)
     {
         var departments = await _departmentRepository.GetChildrenAsync(parentId, tenantId);
-        return departments.Select(department => department.Adapt<DepartmentDto>()!).ToArray();
+        return (await MapDepartmentsToDtosInternalAsync(departments)).ToArray();
     }
 
     /// <summary>
@@ -102,7 +106,7 @@ public class DepartmentAppService
         await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
         await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
-        return created.Adapt<DepartmentDto>()!;
+        return await MapDepartmentToDtoInternalAsync(created);
     }
 
     /// <summary>
@@ -123,7 +127,7 @@ public class DepartmentAppService
         await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
         await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
-        return updated.Adapt<DepartmentDto>()!;
+        return await MapDepartmentToDtoInternalAsync(updated);
     }
 
     /// <summary>
@@ -201,6 +205,89 @@ public class DepartmentAppService
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 映射实体到 DTO，补齐负责人名称等展示字段。
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    protected override async Task<DepartmentDto> MapEntityToDtoAsync(SysDepartment entity)
+    {
+        return await MapDepartmentToDtoInternalAsync(entity);
+    }
+
+    /// <summary>
+    /// 批量映射实体到 DTO。
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <returns></returns>
+    protected override async Task<IList<DepartmentDto>> MapEntitiesToDtosAsync(IEnumerable<SysDepartment> entities)
+    {
+        return await MapDepartmentsToDtosInternalAsync(entities);
+    }
+
+    private async Task<DepartmentDto> MapDepartmentToDtoInternalAsync(SysDepartment department)
+    {
+        var dtos = await MapDepartmentsToDtosInternalAsync([department]);
+        return dtos[0];
+    }
+
+    private async Task<IList<DepartmentDto>> MapDepartmentsToDtosInternalAsync(IEnumerable<SysDepartment> departments)
+    {
+        var departmentList = departments as SysDepartment[] ?? departments.ToArray();
+        if (departmentList.Length == 0)
+        {
+            return [];
+        }
+
+        var leaderIds = departmentList
+            .Where(item => item.LeaderId.HasValue && item.LeaderId.Value > 0)
+            .Select(item => item.LeaderId!.Value)
+            .Distinct()
+            .ToArray();
+
+        var leaderNameMap = await BuildLeaderNameMapAsync(leaderIds);
+
+        return departmentList
+            .Select(department =>
+            {
+                var dto = department.Adapt<DepartmentDto>()!;
+                if (department.LeaderId.HasValue && leaderNameMap.TryGetValue(department.LeaderId.Value, out var leaderName))
+                {
+                    dto.LeaderName = leaderName;
+                }
+                return dto;
+            })
+            .ToArray();
+    }
+
+    private async Task<IReadOnlyDictionary<long, string>> BuildLeaderNameMapAsync(IReadOnlyCollection<long> leaderIds)
+    {
+        if (leaderIds.Count == 0)
+        {
+            return new Dictionary<long, string>();
+        }
+
+        var users = await _userRepository.GetByIdsAsync(leaderIds);
+        return users.ToDictionary(
+            user => user.BasicId,
+            ResolveUserDisplayName);
+    }
+
+    private static string ResolveUserDisplayName(SysUser user)
+    {
+        if (!string.IsNullOrWhiteSpace(user.RealName))
+        {
+            return user.RealName.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.NickName))
+        {
+            return user.NickName.Trim();
+        }
+
+        return user.UserName;
     }
 
     private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
