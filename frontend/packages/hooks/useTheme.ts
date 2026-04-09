@@ -126,11 +126,33 @@ export function useTheme() {
     if (typeof document === 'undefined')
       return
     const { radius, cardRadius } = calcRadius(r)
-    document.documentElement.style.setProperty('--radius', radius)
-    document.documentElement.style.setProperty('--radius-card', cardRadius)
+    const el = document.documentElement
+    el.style.setProperty('--radius', radius)
+    el.style.setProperty('--radius-card', cardRadius)
+  }
+
+  /** 同步主色色阶到 CSS 变量 */
+  function syncPrimaryScale(hex: string) {
+    if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
+      return
+    const scale = generatePrimaryScale(hex)
+    const el = document.documentElement
+    el.style.setProperty('--primary', hexToHslVars(hex))
+    el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
+    el.style.setProperty('--primary-active', hexToHslVars(scale.active))
+    el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
+  }
+
+  /** 同步字号到 CSS 变量 */
+  function syncFontSize(size: number) {
+    if (typeof document === 'undefined')
+      return
+    document.documentElement.style.setProperty('--font-size-base', `${size}px`)
   }
 
   watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
+  watch(() => appStore.themeColor, syncPrimaryScale, { immediate: true })
+  watch(() => appStore.fontSize, syncFontSize, { immediate: true })
 
   const themeOverrides = computed((): GlobalThemeOverrides => {
     const { radius, cardRadius } = calcRadius(appStore.uiRadius)
@@ -249,21 +271,7 @@ export function useTheme() {
 
   function setThemeColor(color: string) {
     appStore.setThemeColor(color)
-    if (color?.startsWith('#') && color.length >= 7) {
-      document.documentElement.style.setProperty('--primary', hexToHslVars(color))
-    }
   }
-
-  // 初始化及变化时同步 --primary CSS 变量
-  watch(
-    () => appStore.themeColor,
-    (color) => {
-      if (color?.startsWith('#') && color.length >= 7) {
-        document.documentElement.style.setProperty('--primary', hexToHslVars(color))
-      }
-    },
-    { immediate: true },
-  )
 
   return {
     isDark,
