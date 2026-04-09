@@ -1,10 +1,12 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
 import { getPermissionsApi, getUserInfoApi } from '@/api'
+import { routes as staticRoutes } from '@/router/routes'
 import { AUTH_PATH, HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { mapMenuToRoutes } from './dynamic'
+import { filterRoutesByPermission, isStaticRouteMode } from './static'
 
 const { loadingBar } = createDiscreteApi(['loadingBar'])
 
@@ -98,9 +100,24 @@ export function setupRouterGuard(router: Router) {
           }
         }
 
-        const dynamicMenus = permissionInfo.menus
-        accessStore.setAccessRoutes(dynamicMenus)
-        installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
+        if (isStaticRouteMode()) {
+          // 静态模式：基于前端路由定义 + 用户权限过滤
+          const rootRoute = staticRoutes.find(r => r.path === '/')
+          const children = rootRoute?.children ?? []
+          const filtered = filterRoutesByPermission(
+            children,
+            permissionInfo.roles,
+            permissionInfo.permissions,
+          )
+          installDynamicRoutes(filtered)
+          accessStore.setAccessRoutes([])
+        }
+        else {
+          // 动态模式：后端菜单驱动
+          const dynamicMenus = permissionInfo.menus
+          accessStore.setAccessRoutes(dynamicMenus)
+          installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
+        }
         return next({ path: to.fullPath, replace: true })
       }
       catch {
