@@ -141,8 +141,8 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   align-items: center;
   justify-content: center;
   height: auto !important;
-  margin: 0 8px !important;
-  padding: 9px 0 !important;
+  margin: 0 6px !important;
+  padding: 8px 0 !important;
   overflow: visible !important;
   line-height: normal;
 }
@@ -166,17 +166,18 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
   display: block !important;
   width: 100% !important;
   height: auto !important;
-  margin-top: 8px;
+  margin-top: 4px;
   margin-bottom: 0;
   opacity: 1 !important;
   transform: none !important;
   overflow: hidden !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
