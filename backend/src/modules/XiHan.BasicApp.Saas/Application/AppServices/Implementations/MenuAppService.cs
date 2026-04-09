@@ -15,6 +15,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
@@ -25,6 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -39,6 +41,7 @@ public class MenuAppService
     private readonly IMenuRepository _menuRepository;
     private readonly IMenuQueryService _queryService;
     private readonly IMenuDomainService _domainService;
+    private readonly ILocalEventBus _localEventBus;
 
     /// <summary>
     /// 构造函数
@@ -46,15 +49,18 @@ public class MenuAppService
     /// <param name="menuRepository"></param>
     /// <param name="queryService"></param>
     /// <param name="domainService"></param>
+    /// <param name="localEventBus"></param>
     public MenuAppService(
         IMenuRepository menuRepository,
         IMenuQueryService queryService,
-        IMenuDomainService domainService)
+        IMenuDomainService domainService,
+        ILocalEventBus localEventBus)
         : base(menuRepository)
     {
         _menuRepository = menuRepository;
         _queryService = queryService;
         _domainService = domainService;
+        _localEventBus = localEventBus;
     }
 
     /// <summary>
@@ -152,6 +158,7 @@ public class MenuAppService
 
         var entity = await MapDtoToEntityAsync(input);
         var created = await _domainService.CreateAsync(entity);
+        await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.Permission);
         return created.Adapt<MenuDto>()!;
     }
 
@@ -173,6 +180,7 @@ public class MenuAppService
 
         await MapDtoToEntityAsync(input, menu);
         var updated = await _domainService.UpdateAsync(menu);
+        await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.Permission);
         return updated.Adapt<MenuDto>()!;
     }
 
@@ -183,7 +191,19 @@ public class MenuAppService
     /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
-        return await _domainService.DeleteAsync(id);
+        var menu = await _menuRepository.GetByIdAsync(id);
+        if (menu is null)
+        {
+            return false;
+        }
+
+        var deleted = await _domainService.DeleteAsync(id);
+        if (deleted)
+        {
+            await PublishAuthorizationChangedEventAsync(menu.TenantId, AuthorizationChangeType.Permission);
+        }
+
+        return deleted;
     }
 
     /// <summary>
@@ -333,5 +353,10 @@ public class MenuAppService
 
             currentParent = nextParent;
         }
+    }
+
+    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
+    {
+        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }
