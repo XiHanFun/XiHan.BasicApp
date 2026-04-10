@@ -19,6 +19,7 @@ import { notificationApi } from '@/api'
 import { NOTIFICATION_STATUS_OPTIONS, NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import { XSystemQueryPanel } from '~/components'
 
 defineOptions({ name: 'SystemNotificationPage' })
 
@@ -179,8 +180,8 @@ function getNStatusType(status: number) {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <vxe-card style="padding: 10px 16px">
-      <div class="flex flex-wrap gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索标题/内容"
@@ -209,7 +210,7 @@ function getNStatusType(status: number) {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>

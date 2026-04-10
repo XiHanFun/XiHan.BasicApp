@@ -5,6 +5,7 @@ import { reactive, ref } from 'vue'
 import { accessLogApi } from '@/api'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
+import { XSystemQueryPanel } from '~/components'
 
 defineOptions({ name: 'SystemLogAccessPage' })
 
@@ -117,8 +118,8 @@ async function handleClear() {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <vxe-card style="padding: 10px 16px">
-      <div class="flex gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索用户名/资源路径"
@@ -130,7 +131,7 @@ async function handleClear() {
           查询
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
