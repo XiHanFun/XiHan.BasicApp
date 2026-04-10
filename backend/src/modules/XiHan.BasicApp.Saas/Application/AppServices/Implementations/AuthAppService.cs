@@ -575,7 +575,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var user = await ResolveCurrentUserEntityAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
         return new CurrentUserDto
         {
-            UserId = user.BasicId,
+            BasicId = user.BasicId,
             UserName = user.UserName,
             NickName = user.NickName,
             Avatar = user.Avatar,

@@ -156,9 +156,9 @@ public class PasswordResetResultDto
 public class CurrentUserDto
 {
     /// <summary>
-    /// 用户ID
+    /// 用户基础ID
     /// </summary>
-    public long UserId { get; set; }
+    public long BasicId { get; set; }
 
     /// <summary>
     /// 用户名
