@@ -25,7 +25,7 @@ export function useGlobalShortcuts() {
     // Alt + Q：退出登录
     if (appStore.shortcutLogout && e.altKey && e.key.toLowerCase() === 'q') {
       e.preventDefault()
-      authStore.logout()
+      void authStore.logout()
       return
     }
 

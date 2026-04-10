@@ -232,9 +232,9 @@ const timezoneOptions = computed<DropdownOption[]>(() => [
   { label: t('header.timezone.los_angeles'), key: 'America/Los_Angeles' },
 ])
 
-function handleUserAction(key: string) {
+async function handleUserAction(key: string) {
   if (key === 'logout') {
-    authStore.logout()
+    await authStore.logout()
     return
   }
   if (key === 'profile') {
