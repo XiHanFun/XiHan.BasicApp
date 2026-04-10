@@ -60,7 +60,10 @@ public class DictDomainService : IDictDomainService, ITransientDependency
     public async Task<bool> DeleteAsync(long id)
     {
         var dict = await _dictRepository.GetByIdAsync(id);
-        if (dict == null) return false;
+        if (dict == null)
+        {
+            return false;
+        }
 
         var result = await _dictRepository.DeleteAsync(dict);
         if (result)

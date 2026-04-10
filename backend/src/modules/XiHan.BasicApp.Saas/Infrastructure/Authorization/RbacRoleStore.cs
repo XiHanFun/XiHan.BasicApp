@@ -95,11 +95,10 @@ public class RbacRoleStore : IRoleStore
         }
 
         var roles = await _roleRepository.GetByIdsAsync([.. effectiveRoleIds], cancellationToken);
-        return roles
+        return [.. roles
             .Where(role => role.Status == YesOrNo.Yes && IsTenantMatched(role.TenantId))
             .OrderBy(static role => role.Sort)
-            .Select(MapToDefinition)
-            .ToList();
+            .Select(MapToDefinition)];
     }
 
     /// <summary>
@@ -206,10 +205,9 @@ public class RbacRoleStore : IRoleStore
                 role => role.Status == YesOrNo.Yes && role.TenantId == null,
                 cancellationToken);
 
-        return roles
+        return [.. roles
             .OrderBy(static role => role.Sort)
-            .Select(MapToDefinition)
-            .ToList();
+            .Select(MapToDefinition)];
     }
 
     /// <summary>
@@ -399,9 +397,7 @@ public class RbacRoleStore : IRoleStore
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        return userIds
-            .Select(id => id.ToString(CultureInfo.InvariantCulture))
-            .ToList();
+        return [.. userIds.Select(id => id.ToString(CultureInfo.InvariantCulture))];
     }
 
     private bool IsTenantMatched(long? tenantId)

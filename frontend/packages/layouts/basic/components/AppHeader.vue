@@ -7,7 +7,7 @@ import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'v
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
+import { useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
@@ -25,6 +25,7 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
+const notificationStore = useNotificationStore()
 const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
@@ -292,8 +293,105 @@ function openPreferenceDrawer() {
   layoutBridgeStore.requestOpenPreferenceDrawer()
 }
 
-function handleNotificationClick() {
-  router.push('/system/notice?tab=inbox')
+// ===== 通知弹窗 =====
+const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
+let signalRThrottleTimer: ReturnType<typeof setTimeout> | null = null
+
+async function loadNotifications() {
+  const userId = userStore.userInfo?.basicId
+  if (!userId) return
+  notificationStore.loading = true
+  try {
+    const { notificationApi } = await import('@/api')
+    const list = await notificationApi.getUserNotifications(String(userId), true, userStore.userInfo?.tenantId)
+    notificationStore.setItems(list.map(n => ({
+      basicId: n.basicId,
+      title: n.title,
+      content: n.content,
+      notificationType: n.notificationType,
+      notificationStatus: n.notificationStatus,
+      sendTime: n.sendTime,
+      readTime: n.readTime,
+      isGlobal: n.isGlobal,
+      needConfirm: n.needConfirm,
+    })))
+  }
+  catch {
+    // 静默失败，不阻塞主流程
+  }
+  finally {
+    notificationStore.loading = false
+  }
+}
+
+async function handleNotificationMarkRead(id: string) {
+  const userId = userStore.userInfo?.basicId
+  if (!userId) return
+  const prev = notificationStore.items.find(n => n.basicId === id)
+  const prevStatus = prev?.notificationStatus
+  const prevReadTime = prev?.readTime
+  notificationStore.markItemRead(id)
+  try {
+    const { notificationApi } = await import('@/api')
+    await notificationApi.markRead(id, String(userId), userStore.userInfo?.tenantId)
+  }
+  catch {
+    // 失败回滚
+    if (prev && prevStatus !== undefined) {
+      prev.notificationStatus = prevStatus
+      prev.readTime = prevReadTime
+    }
+  }
+}
+
+async function handleNotificationConfirm(id: string) {
+  const userId = userStore.userInfo?.basicId
+  if (!userId) return
+  notificationStore.markItemRead(id)
+  try {
+    const { notificationApi } = await import('@/api')
+    await notificationApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
+  }
+  catch {
+    await loadNotifications()
+  }
+}
+
+async function handleNotificationMarkAllRead() {
+  const userId = userStore.userInfo?.basicId
+  if (!userId) return
+  // 快照用于回滚
+  const snapshot = notificationStore.items
+    .filter(n => n.notificationStatus === 0)
+    .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
+  notificationStore.markAllRead()
+  try {
+    const { notificationApi } = await import('@/api')
+    await notificationApi.markAllRead(String(userId), userStore.userInfo?.tenantId)
+  }
+  catch {
+    // 失败回滚
+    for (const s of snapshot) {
+      const item = notificationStore.items.find(n => n.basicId === s.id)
+      if (item) {
+        item.notificationStatus = s.status
+        item.readTime = s.readTime
+      }
+    }
+  }
+}
+
+function handleNotificationViewAll() {
+  router.push('/system/notice')
+}
+
+// SignalR 推送节流：2 秒内多次推送只触发一次全量刷新
+function handleSignalRNotification() {
+  if (signalRThrottleTimer) return
+  signalRThrottleTimer = setTimeout(() => {
+    signalRThrottleTimer = null
+    loadNotifications()
+  }, 2000)
 }
 
 function syncFullscreenState() {
@@ -317,11 +415,15 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', syncFullscreenState)
   updateHistoryState()
   window.addEventListener('popstate', updateHistoryState)
+  // 加载通知 & 监听 SignalR 推送
+  loadNotifications()
+  window.addEventListener(NOTIFICATION_RECEIVED_EVENT, handleSignalRNotification)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
   window.removeEventListener('popstate', updateHistoryState)
+  window.removeEventListener(NOTIFICATION_RECEIVED_EVENT, handleSignalRNotification)
 })
 
 watch(() => route.fullPath, () => {
@@ -390,10 +492,20 @@ watch(() => route.fullPath, () => {
     :timezone-options="timezoneOptions"
     :locale-options="localeOptions"
     :user-options="userOptions"
+    :notification-messages="notificationStore.messages"
+    :notification-announcements="notificationStore.announcements"
+    :notification-unread-messages="notificationStore.unreadMessages"
+    :notification-unread-announcements="notificationStore.unreadAnnouncements"
+    :notification-unread-count="notificationStore.unreadCount"
+    :notification-loading="notificationStore.loading"
     @locale-change="handleLocaleChange"
     @timezone-change="handleTimezoneChange"
     @theme-toggle="handleThemeToggle"
-    @notification="handleNotificationClick"
+    @notification-mark-read="handleNotificationMarkRead"
+    @notification-confirm="handleNotificationConfirm"
+    @notification-mark-all-read="handleNotificationMarkAllRead"
+    @notification-view-all="handleNotificationViewAll"
+    @notification-refresh="loadNotifications"
     @fullscreen-toggle="toggleFullscreen"
     @preferences-open="openPreferenceDrawer"
     @user-action="handleUserAction"

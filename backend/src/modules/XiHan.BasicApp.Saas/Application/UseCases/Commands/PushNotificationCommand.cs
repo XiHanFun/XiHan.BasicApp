@@ -22,14 +22,14 @@ namespace XiHan.BasicApp.Saas.Application.UseCases.Commands;
 public class PushNotificationCommand
 {
     /// <summary>
-    /// 接收用户ID集合（全员通知可为空）
+    /// 接收用户ID集合（全员通知可为空），使用字符串避免前端雪花ID精度丢失
     /// </summary>
-    public IReadOnlyCollection<long> RecipientUserIds { get; set; } = [];
+    public IReadOnlyCollection<string> RecipientUserIds { get; set; } = [];
 
     /// <summary>
-    /// 发送用户ID
+    /// 发送用户ID（字符串，避免前端雪花ID精度丢失）
     /// </summary>
-    public long? SendUserId { get; set; }
+    public string? SendUserId { get; set; }
 
     /// <summary>
     /// 通知类型
@@ -82,9 +82,9 @@ public class PushNotificationCommand
     public DateTimeOffset? ExpireTime { get; set; }
 
     /// <summary>
-    /// 租户ID
+    /// 租户ID（字符串，避免前端雪花ID精度丢失）
     /// </summary>
-    public long? TenantId { get; set; }
+    public string? TenantId { get; set; }
 
     /// <summary>
     /// 备注

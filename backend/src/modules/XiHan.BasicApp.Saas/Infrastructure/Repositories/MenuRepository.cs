@@ -71,14 +71,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
         var query = CreateTenantQueryable()
             .Where(menu => menu.MenuCode == menuCode);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(menu => menu.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(menu => menu.TenantId == null);
-        }
+        query = tenantId.HasValue ? query.Where(menu => menu.TenantId == tenantId.Value) : query.Where(menu => menu.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -128,14 +121,9 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes)
             ;
 
-        if (tenantId.HasValue)
-        {
-            roleQuery = roleQuery.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
-        else
-        {
-            roleQuery = roleQuery.Where(mapping => mapping.TenantId == null);
-        }
+        roleQuery = tenantId.HasValue
+            ? roleQuery.Where(mapping => mapping.TenantId == tenantId.Value)
+            : roleQuery.Where(mapping => mapping.TenantId == null);
 
         var roleIds = await roleQuery
             .Select(mapping => mapping.RoleId)
@@ -155,14 +143,9 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
         var roleMenuQuery = CreateTenantQueryable<SysRoleMenu>()
             .Where(mapping => inheritedRoleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
-        {
-            roleMenuQuery = roleMenuQuery.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
-        else
-        {
-            roleMenuQuery = roleMenuQuery.Where(mapping => mapping.TenantId == null);
-        }
+        roleMenuQuery = tenantId.HasValue
+            ? roleMenuQuery.Where(mapping => mapping.TenantId == tenantId.Value)
+            : roleMenuQuery.Where(mapping => mapping.TenantId == null);
 
         var menuIds = await roleMenuQuery
             .Select(mapping => mapping.MenuId)

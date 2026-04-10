@@ -60,7 +60,10 @@ public class ConfigDomainService : IConfigDomainService, ITransientDependency
     public async Task<bool> DeleteAsync(long id)
     {
         var config = await _configRepository.GetByIdAsync(id);
-        if (config == null) return false;
+        if (config == null)
+        {
+            return false;
+        }
 
         var result = await _configRepository.DeleteAsync(config);
         if (result)

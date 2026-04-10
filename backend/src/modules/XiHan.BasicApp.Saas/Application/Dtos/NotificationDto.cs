@@ -67,6 +67,26 @@ public class NotificationDto : BasicAppDto
     /// 过期时间
     /// </summary>
     public DateTimeOffset? ExpireTime { get; set; }
+
+    /// <summary>
+    /// 是否全员通知
+    /// </summary>
+    public bool IsGlobal { get; set; }
+
+    /// <summary>
+    /// 是否需要确认
+    /// </summary>
+    public bool NeedConfirm { get; set; }
+
+    /// <summary>
+    /// 状态
+    /// </summary>
+    public YesOrNo Status { get; set; } = YesOrNo.Yes;
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 }
 
 /// <summary>

@@ -193,14 +193,10 @@ public class SysRolePermissionSeeder : DataSeederBase
         {
             if (roleTenantId.HasValue)
             {
-                return permissions
-                    .Where(permission => permission.TenantId == null || permission.TenantId == roleTenantId.Value)
-                    .ToList();
+                return [.. permissions.Where(permission => permission.TenantId == null || permission.TenantId == roleTenantId.Value)];
             }
 
-            return permissions
-                .Where(permission => permission.TenantId == null)
-                .ToList();
+            return [.. permissions.Where(permission => permission.TenantId == null)];
         }
     }
 }

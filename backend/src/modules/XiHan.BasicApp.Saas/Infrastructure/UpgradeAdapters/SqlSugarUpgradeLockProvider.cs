@@ -71,7 +71,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
                 UpdatedTime = now
             })
             .Where(l => l.ResourceKey == resourceKey && l.ExpiryTime < now)
-            .ExecuteCommandAsync();
+            .ExecuteCommandAsync(cancellationToken);
 
         if (updated > 0)
         {
@@ -88,7 +88,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
                 OwnerNode = nodeName,
                 CreatedTime = now,
                 UpdatedTime = now
-            }).ExecuteCommandAsync();
+            }).ExecuteCommandAsync(cancellationToken);
 
             if (inserted > 0)
             {

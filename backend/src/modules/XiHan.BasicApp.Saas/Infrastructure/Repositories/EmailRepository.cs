@@ -50,14 +50,9 @@ public class EmailRepository : SqlSugarAggregateRepository<SysEmail, long>, IEma
         var query = CreateTenantQueryable()
             .Where(email => email.EmailStatus == EmailStatus.Pending);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(email => email.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(email => email.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(email => email.TenantId == resolvedTenantId.Value)
+            : query.Where(email => email.TenantId == null);
 
         return await query
             .OrderBy(email => email.ScheduledTime)

@@ -55,14 +55,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
         var query = CreateTenantQueryable().Where(role => role.RoleCode == roleCode);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(role => role.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(role => role.TenantId == null);
-        }
+        query = tenantId.HasValue ? query.Where(role => role.TenantId == tenantId.Value) : query.Where(role => role.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -89,14 +82,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
             query = query.Where(role => role.BasicId != excludeRoleId.Value);
         }
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(role => role.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(role => role.TenantId == null);
-        }
+        query = tenantId.HasValue ? query.Where(role => role.TenantId == tenantId.Value) : query.Where(role => role.TenantId == null);
 
         return await query.AnyAsync(cancellationToken);
     }

@@ -50,14 +50,9 @@ public class SmsRepository : SqlSugarAggregateRepository<SysSms, long>, ISmsRepo
         var query = CreateTenantQueryable()
             .Where(sms => sms.SmsStatus == SmsStatus.Pending);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(sms => sms.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(sms => sms.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(sms => sms.TenantId == resolvedTenantId.Value)
+            : query.Where(sms => sms.TenantId == null);
 
         return await query
             .OrderBy(sms => sms.ScheduledTime)

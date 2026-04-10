@@ -55,14 +55,9 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
         var query = CreateTenantQueryable()
             .Where(department => department.DepartmentCode == departmentCode);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(department => department.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(department => department.TenantId == null);
-        }
+        query = tenantId.HasValue
+            ? query.Where(department => department.TenantId == tenantId.Value)
+            : query.Where(department => department.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -115,14 +110,9 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
             query = query.Where(hierarchy => hierarchy.Depth > 0);
         }
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(hierarchy => hierarchy.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value)
+            : query.Where(hierarchy => hierarchy.TenantId == null);
 
         var ids = await query
             .Select(hierarchy => hierarchy.DescendantId)
@@ -143,27 +133,17 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
 
         var resolvedTenantId = tenantId;
         var departmentQuery = CreateTenantQueryable();
-        if (resolvedTenantId.HasValue)
-        {
-            departmentQuery = departmentQuery.Where(department => department.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            departmentQuery = departmentQuery.Where(department => department.TenantId == null);
-        }
+        departmentQuery = resolvedTenantId.HasValue
+            ? departmentQuery.Where(department => department.TenantId == resolvedTenantId.Value)
+            : departmentQuery.Where(department => department.TenantId == null);
 
         var departments = await departmentQuery.ToListAsync(cancellationToken);
         var departmentMap = departments.ToDictionary(department => department.BasicId);
 
         var deleteable = DbClient.Deleteable<SysDepartmentHierarchy>();
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            deleteable = deleteable.Where(hierarchy => hierarchy.TenantId == null);
-        }
+        deleteable = resolvedTenantId.HasValue
+            ? deleteable.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value)
+            : deleteable.Where(hierarchy => hierarchy.TenantId == null);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
         if (departments.Count == 0)
