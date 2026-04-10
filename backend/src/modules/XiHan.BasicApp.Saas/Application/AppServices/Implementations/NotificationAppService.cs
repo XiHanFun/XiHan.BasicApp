@@ -21,11 +21,14 @@ using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -42,6 +45,7 @@ public class NotificationAppService
     private readonly INotificationQueryService _queryService;
     private readonly IMessageCacheService _messageCacheService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotifier;
 
     /// <summary>
     /// 构造函数
@@ -51,12 +55,14 @@ public class NotificationAppService
     /// <param name="queryService"></param>
     /// <param name="messageCacheService"></param>
     /// <param name="unitOfWorkManager"></param>
+    /// <param name="realtimeNotifier"></param>
     public NotificationAppService(
         INotificationRepository notificationRepository,
         IUserRepository userRepository,
         INotificationQueryService queryService,
         IMessageCacheService messageCacheService,
-        IUnitOfWorkManager unitOfWorkManager)
+        IUnitOfWorkManager unitOfWorkManager,
+        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotifier)
         : base(notificationRepository)
     {
         _notificationRepository = notificationRepository;
@@ -64,6 +70,7 @@ public class NotificationAppService
         _queryService = queryService;
         _messageCacheService = messageCacheService;
         _unitOfWorkManager = unitOfWorkManager;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     /// <summary>
@@ -88,7 +95,8 @@ public class NotificationAppService
             throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
-        var entities = await _notificationRepository.GetUserNotificationsAsync(userId, includeRead, tenantId);
+        var resolvedTenantId = NormalizeTenantId(tenantId);
+        var entities = await _notificationRepository.GetUserNotificationsAsync(userId, includeRead, resolvedTenantId);
         return entities.Select(static entity => entity.Adapt<NotificationDto>()!).ToArray();
     }
 
@@ -105,10 +113,11 @@ public class NotificationAppService
             throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
+        var resolvedTenantId = NormalizeTenantId(tenantId);
         return await _messageCacheService.GetUnreadCountAsync(
             userId,
-            tenantId,
-            token => _notificationRepository.GetUnreadCountAsync(userId, tenantId, token));
+            resolvedTenantId,
+            token => _notificationRepository.GetUnreadCountAsync(userId, resolvedTenantId, token));
     }
 
     /// <summary>
@@ -125,10 +134,11 @@ public class NotificationAppService
             throw new ArgumentException("通知 ID 或用户 ID 无效");
         }
 
-        var changed = await _notificationRepository.MarkAsReadAsync(notificationId, userId, tenantId);
+        var resolvedTenantId = NormalizeTenantId(tenantId);
+        var changed = await _notificationRepository.MarkAsReadAsync(notificationId, userId, resolvedTenantId);
         if (changed)
         {
-            await _messageCacheService.InvalidateUnreadCountAsync(tenantId);
+            await _messageCacheService.InvalidateUnreadCountAsync(resolvedTenantId);
         }
 
         return changed;
@@ -147,10 +157,11 @@ public class NotificationAppService
             throw new ArgumentException("用户 ID 无效", nameof(userId));
         }
 
-        var count = await _notificationRepository.MarkAllAsReadAsync(userId, tenantId);
+        var resolvedTenantId = NormalizeTenantId(tenantId);
+        var count = await _notificationRepository.MarkAllAsReadAsync(userId, resolvedTenantId);
         if (count > 0)
         {
-            await _messageCacheService.InvalidateUnreadCountAsync(tenantId);
+            await _messageCacheService.InvalidateUnreadCountAsync(resolvedTenantId);
         }
 
         return count;
@@ -170,6 +181,7 @@ public class NotificationAppService
             throw new ArgumentException("通知 ID 或用户 ID 无效");
         }
 
+        var resolvedTenantId = NormalizeTenantId(tenantId);
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
         var notification = await _notificationRepository.GetByIdAsync(notificationId);
@@ -178,7 +190,7 @@ public class NotificationAppService
             return false;
         }
 
-        if (tenantId.HasValue && notification.TenantId != tenantId.Value)
+        if (resolvedTenantId.HasValue && notification.TenantId.HasValue && notification.TenantId.Value != resolvedTenantId.Value)
         {
             return false;
         }
@@ -227,9 +239,8 @@ public class NotificationAppService
             throw new BusinessException(message: "非全员通知必须指定至少一个接收人");
         }
 
+        long? resolvedTenantId = NormalizeTenantId(command.TenantId);
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-
-        long? resolvedTenantId = command.TenantId;
 
         SysUser? sender = null;
         if (command.SendUserId.HasValue)
@@ -339,6 +350,15 @@ public class NotificationAppService
 
         await uow.CompleteAsync();
         await _messageCacheService.InvalidateUnreadCountAsync(resolvedTenantId);
+        try
+        {
+            await PushRealtimeNotificationAsync(command, title, resolvedTenantId, recipientIds);
+        }
+        catch
+        {
+            // SignalR 鎺ㄩ€佸け璐ヤ笉褰卞搷閫氱煡鍙戝竷涓绘祦绋?
+        }
+
         return count;
     }
 
@@ -526,5 +546,71 @@ public class NotificationAppService
         {
             throw new BusinessException(message: "通知用户与租户不一致");
         }
+    }
+    private async Task PushRealtimeNotificationAsync(
+        PushNotificationCommand command,
+        string title,
+        long? tenantId,
+        IReadOnlyCollection<long> recipientIds)
+    {
+        var payload = new
+        {
+            Type = command.NotificationType switch
+            {
+                NotificationType.Warning => "Warning",
+                NotificationType.Error => "Error",
+                NotificationType.Announcement => "Success",
+                _ => "Info"
+            },
+            Title = title,
+            Content = command.Content ?? string.Empty,
+            NeedConfirm = command.NeedConfirm,
+            IsGlobal = command.IsGlobal,
+            TenantId = tenantId,
+            SendTime = DateTimeOffset.UtcNow
+        };
+
+        if (command.IsGlobal && !tenantId.HasValue)
+        {
+            await _realtimeNotifier.SendToAllAsync(
+                SignalRConstants.ClientMethods.ReceiveNotification,
+                payload);
+            return;
+        }
+
+        IReadOnlyList<string> targetUserIds;
+        if (command.IsGlobal && tenantId.HasValue)
+        {
+            var tenantUsers = await _userRepository.GetListAsync(user =>
+                user.TenantId == tenantId.Value
+                && user.Status == YesOrNo.Yes);
+
+            targetUserIds = tenantUsers
+                .Select(static user => user.BasicId.ToString())
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+        }
+        else
+        {
+            targetUserIds = recipientIds
+                .Select(static id => id.ToString())
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        if (targetUserIds.Count == 0)
+        {
+            return;
+        }
+
+        await _realtimeNotifier.SendToUsersAsync(
+            targetUserIds,
+            SignalRConstants.ClientMethods.ReceiveNotification,
+            payload);
+    }
+
+    private static long? NormalizeTenantId(long? tenantId)
+    {
+        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
     }
 }

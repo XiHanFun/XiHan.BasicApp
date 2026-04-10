@@ -292,6 +292,10 @@ function openPreferenceDrawer() {
   layoutBridgeStore.requestOpenPreferenceDrawer()
 }
 
+function handleNotificationClick() {
+  router.push('/system/notice?tab=inbox')
+}
+
 function syncFullscreenState() {
   isFullscreen.value = Boolean(document.fullscreenElement)
 }
@@ -389,7 +393,7 @@ watch(() => route.fullPath, () => {
     @locale-change="handleLocaleChange"
     @timezone-change="handleTimezoneChange"
     @theme-toggle="handleThemeToggle"
-    @notification="message.info(t('header.notification.pending'))"
+    @notification="handleNotificationClick"
     @fullscreen-toggle="toggleFullscreen"
     @preferences-open="openPreferenceDrawer"
     @user-action="handleUserAction"

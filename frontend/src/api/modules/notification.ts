@@ -35,16 +35,34 @@ export interface PushNotificationPayload {
   content?: string
   notificationType: number
   isGlobal: boolean
-  recipientUserIds: string[]
-  sendUserId?: string
+  recipientUserIds: Array<number | string>
+  sendUserId?: number | string
   needConfirm?: boolean
   icon?: string
   link?: string
   businessType?: string
   businessId?: string
   expireTime?: string
-  tenantId?: number
+  tenantId?: number | string
   remark?: string
+}
+
+function toLongOrNull(value: unknown): null | number {
+  if (value === undefined || value === null || value === '')
+    return null
+  const parsed = toNumber(value, 0)
+  return parsed > 0 ? parsed : null
+}
+
+function toLongArray(values: Array<number | string>): number[] {
+  return values
+    .map(item => toNumber(item, 0))
+    .filter(item => item > 0)
+}
+
+function toTenantSegment(value?: null | number | string): number {
+  const parsed = toNumber(value, 0)
+  return parsed > 0 ? parsed : 0
 }
 
 function normalizeNotification(raw: Record<string, any>): SysNotification {
@@ -69,13 +87,14 @@ function normalizeNotification(raw: Record<string, any>): SysNotification {
 }
 
 function toCreatePayload(data: Partial<SysNotification>) {
+  const isGlobal = Boolean(data.isGlobal)
   return {
-    recipientUserId: data.recipientUserId ?? null,
-    sendUserId: data.sendUserId ?? null,
+    recipientUserId: isGlobal ? null : toLongOrNull(data.recipientUserId),
+    sendUserId: toLongOrNull(data.sendUserId),
     notificationType: toNumber(data.notificationType, 0),
     title: data.title ?? '',
     content: data.content ?? '',
-    isGlobal: Boolean(data.isGlobal),
+    isGlobal,
     needConfirm: Boolean(data.needConfirm),
     sendTime: data.sendTime ?? new Date().toISOString(),
     expireTime: data.expireTime ?? null,
@@ -117,22 +136,33 @@ export const notificationApi = {
 
   delete: (id: string) => api.delete(id),
 
-  getUserNotifications: (userId: string | number, includeRead = true, tenantId?: number) =>
-    api.request.get<any[]>(`${api.baseUrl}UserNotifications/${userId}/${tenantId ?? 0}`, { params: { includeRead } })
+  getUserNotifications: (userId: string | number, includeRead = true, tenantId?: null | number | string) =>
+    api.request.get<any[]>(`${api.baseUrl}UserNotifications/${userId}/${toTenantSegment(tenantId)}`, { params: { includeRead } })
       .then((list: any[]) => Array.isArray(list) ? list.map(normalizeNotification) : []),
 
-  getUnreadCount: (userId: string | number, tenantId?: number) =>
-    api.request.get<number>(`${api.baseUrl}UnreadCount/${userId}/${tenantId ?? 0}`),
+  getUnreadCount: (userId: string | number, tenantId?: null | number | string) =>
+    api.request.get<number>(`${api.baseUrl}UnreadCount/${userId}/${toTenantSegment(tenantId)}`),
 
-  markRead: (notificationId: string, userId: string | number, tenantId?: number) =>
-    api.request.post<boolean>(`${api.baseUrl}MarkAsRead`, undefined, { params: { notificationId, userId, tenantId: tenantId ?? 0 } }),
+  markRead: (notificationId: string, userId: string | number, tenantId?: null | number | string) =>
+    api.request.post<boolean>(`${api.baseUrl}MarkAsRead`, undefined, { params: { notificationId, userId, tenantId: toTenantSegment(tenantId) } }),
 
-  markAllRead: (userId: string | number, tenantId?: number) =>
-    api.request.post<number>(`${api.baseUrl}MarkAllAsRead`, undefined, { params: { userId, tenantId: tenantId ?? 0 } }),
+  markAllRead: (userId: string | number, tenantId?: null | number | string) =>
+    api.request.post<number>(`${api.baseUrl}MarkAllAsRead`, undefined, { params: { userId, tenantId: toTenantSegment(tenantId) } }),
 
-  confirm: (notificationId: string, userId: string | number, tenantId?: number) =>
-    api.request.post<boolean>(`${api.baseUrl}Confirm`, undefined, { params: { notificationId, userId, tenantId: tenantId ?? 0 } }),
+  confirm: (notificationId: string, userId: string | number, tenantId?: null | number | string) =>
+    api.request.post<boolean>(`${api.baseUrl}Confirm`, undefined, { params: { notificationId, userId, tenantId: toTenantSegment(tenantId) } }),
 
-  push: (data: PushNotificationPayload) =>
-    api.request.post<number>(`${api.baseUrl}Push`, data),
+  push: (data: PushNotificationPayload) => {
+    const isGlobal = Boolean(data.isGlobal)
+    return api.request.post<number>(`${api.baseUrl}Push`, {
+      ...data,
+      isGlobal,
+      title: (data.title ?? '').trim(),
+      content: data.content ?? '',
+      recipientUserIds: isGlobal ? [] : toLongArray(data.recipientUserIds),
+      sendUserId: toLongOrNull(data.sendUserId),
+      tenantId: toLongOrNull(data.tenantId),
+      remark: data.remark ?? '',
+    })
+  },
 }
