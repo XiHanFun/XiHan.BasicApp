@@ -209,6 +209,26 @@ export const CONFIG_DATA_TYPE_OPTIONS = [
   { label: '数组', value: 4 },
 ]
 
+// ==================== 约束规则 ====================
+
+export const CONSTRAINT_TYPE_OPTIONS = [
+  { label: '静态职责分离', value: 0 },
+  { label: '动态职责分离', value: 1 },
+  { label: '互斥约束', value: 2 },
+  { label: '基数约束', value: 3 },
+  { label: '先决条件', value: 4 },
+  { label: '时间约束', value: 5 },
+  { label: '位置约束', value: 6 },
+  { label: '自定义约束', value: 99 },
+]
+
+export const VIOLATION_ACTION_OPTIONS = [
+  { label: '拒绝', value: 0 },
+  { label: '警告放行', value: 1 },
+  { label: '仅记录日志', value: 2 },
+  { label: '需要审批', value: 3 },
+]
+
 // ==================== 通知 ====================
 
 export const NOTIFICATION_TYPE_OPTIONS = [

@@ -260,7 +260,7 @@ onMounted(fetchData)
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options" :data="tableData" :loading="loading">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd()">
+          <NButton v-access="['menu:create']" type="primary" size="small" @click="handleAdd()">
             新增菜单
           </NButton>
           <NButton size="small" class="ml-2" @click="fetchData">
@@ -309,6 +309,7 @@ onMounted(fetchData)
           <NSpace size="small">
             <NButton
               v-if="row.menuType !== 2"
+              v-access="['menu:create']"
               size="small"
               type="info"
               text
@@ -316,10 +317,10 @@ onMounted(fetchData)
             >
               新增子项
             </NButton>
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
+            <NButton v-access="['menu:update']" size="small" type="primary" text @click="handleEdit(row)">
               编辑
             </NButton>
-            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm v-access="['menu:delete']" @positive-click="handleDelete(row.basicId)">
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -339,7 +340,7 @@ onMounted(fetchData)
       style="width: 960px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="90px">
+            <NForm :model="formData" label-placement="top" label-width="90px">
         <div class="menu-form-grid">
           <!-- 上级菜单独占整行 -->
           <NFormItem label="上级菜单" path="parentId" class="menu-form-full">
@@ -422,7 +423,22 @@ onMounted(fetchData)
           <NButton @click="modalVisible = false">
             取消
           </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+          <NButton
+            v-if="!formData.basicId"
+            v-access="['menu:create']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
+            确认
+          </NButton>
+          <NButton
+            v-else
+            v-access="['menu:update']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
             确认
           </NButton>
         </NSpace>

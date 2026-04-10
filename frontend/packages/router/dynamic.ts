@@ -14,6 +14,8 @@ const componentAliasMap: Record<string, string> = {
   'system/monitor/index': 'system/server/index',
   'system/cache/index': 'system/cache/index',
   'system/message/index': 'system/message/index',
+  'system/constraintrule/index': 'system/constraint-rule/index',
+  'system/constraint-rule/index': 'system/constraint-rule/index',
   'system/oauthapp/index': 'system/oauth-app/index',
   'system/o-auth-app/index': 'system/oauth-app/index',
 }
@@ -33,6 +35,8 @@ const explicitComponentMap: Record<string, () => Promise<unknown>> = {
   'system/monitor/index': () => import('@/views/system/server/index.vue'),
   'system/cache/index': () => import('@/views/system/cache/index.vue'),
   'system/message/index': () => import('@/views/system/message/index.vue'),
+  'system/constraintrule/index': () => import('@/views/system/constraint-rule/index.vue'),
+  'system/constraint-rule/index': () => import('@/views/system/constraint-rule/index.vue'),
   'system/oauthapp/index': () => import('@/views/system/oauth-app/index.vue'),
   'system/o-auth-app/index': () => import('@/views/system/oauth-app/index.vue'),
 }

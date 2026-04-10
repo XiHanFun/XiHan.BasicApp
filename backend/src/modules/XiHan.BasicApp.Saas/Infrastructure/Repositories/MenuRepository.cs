@@ -27,20 +27,25 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// </summary>
 public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuRepository
 {
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
+    /// <param name="roleHierarchyRepository"></param>
     /// <param name="dbContext"></param>
     /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public MenuRepository(
+        IRoleHierarchyRepository roleHierarchyRepository,
         ISqlSugarDbContext dbContext,
         ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
         : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
+        _roleHierarchyRepository = roleHierarchyRepository;
     }
 
     /// <summary>
@@ -119,19 +124,47 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysMenu>> GetUserMenusAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var roleIds = await CreateTenantQueryable<SysUserRole>()
+        var roleQuery = CreateTenantQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes)
+            ;
+
+        if (tenantId.HasValue)
+        {
+            roleQuery = roleQuery.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+        else
+        {
+            roleQuery = roleQuery.Where(mapping => mapping.TenantId == null);
+        }
+
+        var roleIds = await roleQuery
             .Select(mapping => mapping.RoleId)
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        if (roleIds.Count == 0)
+        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(
+            roleIds,
+            tenantId,
+            cancellationToken);
+
+        if (inheritedRoleIds.Count == 0)
         {
             return [];
         }
 
-        var menuIds = await CreateTenantQueryable<SysRoleMenu>()
-            .Where(mapping => roleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes)
+        var roleMenuQuery = CreateTenantQueryable<SysRoleMenu>()
+            .Where(mapping => inheritedRoleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes);
+
+        if (tenantId.HasValue)
+        {
+            roleMenuQuery = roleMenuQuery.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+        else
+        {
+            roleMenuQuery = roleMenuQuery.Where(mapping => mapping.TenantId == null);
+        }
+
+        var menuIds = await roleMenuQuery
             .Select(mapping => mapping.MenuId)
             .Distinct()
             .ToListAsync(cancellationToken);

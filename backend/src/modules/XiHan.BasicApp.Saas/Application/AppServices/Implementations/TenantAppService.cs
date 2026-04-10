@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
@@ -23,6 +24,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
@@ -33,6 +35,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 租户应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
+[PermissionAuthorize("tenant:read")]
 public class TenantAppService
     : CrudApplicationServiceBase<SysTenant, TenantDto, long, TenantCreateDto, TenantUpdateDto, BasicAppPRDto>,
         ITenantAppService
@@ -65,6 +69,7 @@ public class TenantAppService
     /// <summary>
     /// ID 查询（委托 QueryService，走缓存）
     /// </summary>
+    [PermissionAuthorize("tenant:read")]
     public override async Task<TenantDto?> GetByIdAsync(long id)
     {
         return await _queryService.GetByIdAsync(id);
@@ -75,6 +80,7 @@ public class TenantAppService
     /// </summary>
     /// <param name="query"></param>
     /// <returns></returns>
+    [PermissionAuthorize("tenant:read")]
     public async Task<TenantDto?> GetByCodeAsync(TenantByCodeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -87,6 +93,7 @@ public class TenantAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("tenant:create")]
     public override async Task<TenantDto> CreateAsync(TenantCreateDto input)
     {
         input.ValidateAnnotations();
@@ -115,6 +122,7 @@ public class TenantAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("tenant:update")]
     public override async Task<TenantDto> UpdateAsync(TenantUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -150,6 +158,7 @@ public class TenantAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [PermissionAuthorize("tenant:update")]
     public async Task ChangeStatusAsync(ChangeTenantStatusCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);

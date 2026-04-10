@@ -28,7 +28,7 @@ internal static class AuthMenuBuilder
     /// </summary>
     public static List<AuthMenuRouteDto> BuildMenuRoutes(
         IReadOnlyList<SysMenu> menus,
-        IReadOnlyDictionary<long, string> resourcePermissionMap)
+        IReadOnlyDictionary<long, IReadOnlyCollection<string>> resourcePermissionMap)
     {
         var routeMenus = menus
             .Where(static menu => menu.MenuType != MenuType.Button)
@@ -55,11 +55,12 @@ internal static class AuthMenuBuilder
         return rootMenus;
     }
 
-    private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlyDictionary<long, string> resourcePermissionMap)
+    private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlyDictionary<long, IReadOnlyCollection<string>> resourcePermissionMap)
     {
-        var permissionCode = menu.ResourceId.HasValue && resourcePermissionMap.TryGetValue(menu.ResourceId.Value, out var permission)
-            ? permission
-            : null;
+        var permissionCodes = menu.ResourceId.HasValue && resourcePermissionMap.TryGetValue(menu.ResourceId.Value, out var permissions)
+            ? permissions
+            : [];
+        var permissionCode = ResolvePrimaryPermission(permissionCodes);
         return new AuthMenuRouteDto
         {
             Name = !string.IsNullOrWhiteSpace(menu.RouteName)
@@ -78,7 +79,7 @@ internal static class AuthMenuBuilder
                 Hidden = !menu.IsVisible,
                 KeepAlive = menu.IsCache,
                 AffixTab = menu.IsAffix,
-                Permissions = string.IsNullOrWhiteSpace(permissionCode) ? [] : [permissionCode],
+                Permissions = [.. permissionCodes],
                 Order = menu.Sort,
                 Link = menu.IsExternal ? menu.ExternalUrl : null,
                 Badge = menu.Badge,
@@ -86,6 +87,30 @@ internal static class AuthMenuBuilder
                 Dot = menu.BadgeDot
             }
         };
+    }
+
+    private static string? ResolvePrimaryPermission(IReadOnlyCollection<string> permissionCodes)
+    {
+        if (permissionCodes.Count == 0)
+        {
+            return null;
+        }
+
+        var candidates = permissionCodes
+            .Where(static permissionCode => !string.IsNullOrWhiteSpace(permissionCode))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        if (candidates.Length == 0)
+        {
+            return null;
+        }
+
+        var preferred = candidates.FirstOrDefault(static permissionCode =>
+            permissionCode.EndsWith(":read", StringComparison.OrdinalIgnoreCase)
+            || permissionCode.EndsWith(":view", StringComparison.OrdinalIgnoreCase)
+            || permissionCode.EndsWith(":list", StringComparison.OrdinalIgnoreCase)
+            || permissionCode.EndsWith(":query", StringComparison.OrdinalIgnoreCase));
+        return preferred ?? candidates[0];
     }
 
     private static void SortMenuTree(List<AuthMenuRouteDto> menus)

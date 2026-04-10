@@ -151,6 +151,12 @@ export const roleApi = {
       departmentIds: departmentIds.map(item => toId(item)).filter(Boolean),
     }),
 
+  assignInheritance: (roleId: string, parentRoleIds: string[]) =>
+    api.request.post(`${api.baseUrl}AssignInheritance`, {
+      roleId: toId(roleId),
+      parentRoleIds: parentRoleIds.map(item => toId(item)).filter(Boolean),
+    }),
+
   /** 查询角色已分配的权限 ID 列表 */
   getRolePermissions: async (roleId: string): Promise<string[]> => {
     const id = toId(roleId)
@@ -181,6 +187,15 @@ export const roleApi = {
     )
     return Array.isArray(data) ? data.map(item => toId(item)).filter(Boolean) : []
   },
+
+  /** 查询角色直接父角色 ID 列表 */
+  getRoleParentRoleIds: async (roleId: string): Promise<string[]> => {
+    const id = toId(roleId)
+    const data = await api.request.get<Array<string | number>>(
+      `${api.baseUrl}RoleParentRoleIds/${id}/0`,
+    )
+    return Array.isArray(data) ? data.map(item => toId(item)).filter(Boolean) : []
+  },
 }
 
 export async function getRolePageApi(params: RolePageQuery) {
@@ -195,6 +210,8 @@ export const deleteRoleApi = roleApi.delete
 export const assignRolePermissionsApi = roleApi.assignPermissions
 export const assignRoleMenusApi = roleApi.assignMenus
 export const assignRoleDataScopeApi = roleApi.assignDataScope
+export const assignRoleInheritanceApi = roleApi.assignInheritance
 export const getRolePermissionIdsApi = roleApi.getRolePermissions
 export const getRoleMenuIdsApi = roleApi.getRoleMenus
 export const getRoleDataScopeDeptIdsApi = roleApi.getRoleDataScopeDeptIds
+export const getRoleParentRoleIdsApi = roleApi.getRoleParentRoleIds

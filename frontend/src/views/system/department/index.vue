@@ -209,7 +209,7 @@ onMounted(async () => {
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options" :data="tableData" :loading="loading">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd()">
+          <NButton v-access="['department:create']" type="primary" size="small" @click="handleAdd()">
             新增部门
           </NButton>
           <NButton size="small" class="ml-2" @click="fetchData">
@@ -223,13 +223,13 @@ onMounted(async () => {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="info" text @click="handleAdd(row.basicId)">
+            <NButton v-access="['department:create']" size="small" type="info" text @click="handleAdd(row.basicId)">
               新增子部门
             </NButton>
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
+            <NButton v-access="['department:update']" size="small" type="primary" text @click="handleEdit(row)">
               编辑
             </NButton>
-            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm v-access="['department:delete']" @positive-click="handleDelete(row.basicId)">
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -243,7 +243,7 @@ onMounted(async () => {
     </vxe-card>
 
     <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 560px" :auto-focus="false">
-      <NForm :model="formData" label-placement="left" label-width="90px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="90px">
         <NFormItem label="上级部门" path="parentId">
           <NCascader v-model:value="formData.parentId" :options="treeOptions" check-strategy="child" placeholder="无则为顶级" clearable style="width: 100%" />
         </NFormItem>
@@ -283,7 +283,22 @@ onMounted(async () => {
           <NButton @click="modalVisible = false">
             取消
           </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+          <NButton
+            v-if="!formData.basicId"
+            v-access="['department:create']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
+            确认
+          </NButton>
+          <NButton
+            v-else
+            v-access="['department:update']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
             确认
           </NButton>
         </NSpace>
