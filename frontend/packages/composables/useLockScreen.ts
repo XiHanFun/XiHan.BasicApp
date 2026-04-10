@@ -59,7 +59,7 @@ export function useLockScreen() {
       unlockPwd.value = ''
       if (lockAttempts.value >= MAX_LOCK_ATTEMPTS) {
         releaseLock()
-        authStore.logout()
+        void authStore.logout()
         return
       }
       unlockError.value = `密码错误，还可尝试 ${MAX_LOCK_ATTEMPTS - lockAttempts.value} 次`

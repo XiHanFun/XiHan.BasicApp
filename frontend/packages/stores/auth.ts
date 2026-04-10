@@ -140,10 +140,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     const { router } = await import('@/router')
-
-    // 断开 SignalR 连接
-    const signalR = useSignalR()
-    await signalR.destroy()
+    try {
+      // 断开 SignalR 连接
+      const signalR = useSignalR()
+      await signalR.destroy()
+    }
+    catch {
+      // ignore signalr destroy error
+    }
 
     try {
       await logoutApi()
@@ -152,11 +156,21 @@ export const useAuthStore = defineStore('auth', () => {
       // ignore logout api error
     }
 
-    const allRoutes = router.getRoutes()
-    for (const route of allRoutes) {
-      if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
-        router.removeRoute(route.name)
+    try {
+      const allRoutes = router.getRoutes()
+      for (const route of allRoutes) {
+        if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
+          try {
+            router.removeRoute(route.name)
+          }
+          catch {
+            // ignore remove route error
+          }
+        }
       }
+    }
+    catch {
+      // ignore dynamic route clear error
     }
 
     accessStore.$reset()
@@ -164,7 +178,19 @@ export const useAuthStore = defineStore('auth', () => {
     tabbarStore.closeAll()
     sessionStorage.clear()
 
-    await router.replace(LOGIN_PATH)
+    try {
+      await router.replace(LOGIN_PATH)
+    }
+    catch {
+      const base = import.meta.env.VITE_BASE || '/'
+      const normalizedBase = base.endsWith('/') ? base : `${base}/`
+      if (import.meta.env.VITE_ROUTER_HISTORY === 'history') {
+        window.location.href = LOGIN_PATH
+      }
+      else {
+        window.location.href = `${normalizedBase}#${LOGIN_PATH}`
+      }
+    }
   }
 
   return {

@@ -18,7 +18,7 @@ const AUTH = '/Auth'
 function normalizeUserInfo(raw: any): UserInfo {
   const payload = unwrapPayload<any>(raw)
   return {
-    basicId: payload?.basicId ?? 0,
+    basicId: Number(payload?.basicId ?? 0),
     userName: payload?.userName ?? '',
     nickName: payload?.nickName ?? '',
     avatar: payload?.avatar ?? '',
