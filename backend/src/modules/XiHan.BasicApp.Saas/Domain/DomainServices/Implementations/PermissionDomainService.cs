@@ -72,7 +72,10 @@ public class PermissionDomainService : IPermissionDomainService, ITransientDepen
     public async Task<bool> DeleteAsync(long id)
     {
         var permission = await _permissionRepository.GetByIdAsync(id);
-        if (permission == null) return false;
+        if (permission == null)
+        {
+            return false;
+        }
 
         var result = await _permissionRepository.DeleteAsync(permission);
         if (result)

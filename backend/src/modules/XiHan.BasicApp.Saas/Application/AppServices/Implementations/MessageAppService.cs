@@ -110,7 +110,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         SysUser? sender = null;
         if (command.SendUserId.HasValue)
         {
-            sender = await _userRepository.GetByIdAsync(command.SendUserId.Value)
+            sender = await _userRepository.GetByIdAsync(command.SendUserId.Value, cancellationToken)
                 ?? throw new KeyNotFoundException($"未找到发送用户: {command.SendUserId.Value}");
 
             if (resolvedTenantId.HasValue && sender.TenantId != resolvedTenantId.Value)
@@ -124,13 +124,13 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         var recipients = Array.Empty<SysUser>();
         if (recipientIds.Length > 0)
         {
-            var users = await _userRepository.GetByIdsAsync(recipientIds);
+            var users = await _userRepository.GetByIdsAsync(recipientIds, cancellationToken);
             if (users.Count != recipientIds.Length)
             {
                 throw new BusinessException(message: "存在无效接收用户 ID");
             }
 
-            recipients = users.ToArray();
+            recipients = [.. users];
             if (resolvedTenantId.HasValue && recipients.Any(user => user.TenantId != resolvedTenantId.Value))
             {
                 throw new BusinessException(message: "接收用户与租户不一致");
@@ -153,9 +153,9 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         {
             result.NotificationCount = await _notificationAppService.PushAsync(new PushNotificationCommand
             {
-                RecipientUserIds = recipientIds,
+                RecipientUserIds = recipientIds.Select(id => id.ToString()).ToArray(),
                 IsGlobal = command.IsGlobal,
-                SendUserId = command.SendUserId,
+                SendUserId = command.SendUserId?.ToString(),
                 NotificationType = command.NotificationType,
                 Title = title,
                 Content = content,
@@ -163,7 +163,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                 ExpireTime = command.ExpireTime,
                 BusinessType = command.BusinessType,
                 BusinessId = command.BusinessId,
-                TenantId = resolvedTenantId,
+                TenantId = resolvedTenantId?.ToString(),
                 Remark = command.Remark
             });
         }
@@ -212,7 +212,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                         BusinessType = command.BusinessType,
                         BusinessId = command.BusinessId,
                         Remark = command.Remark
-                    });
+                    }, cancellationToken);
                 }
 
                 result.EmailCount = recipients.Length;
@@ -246,13 +246,13 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                         BusinessType = command.BusinessType,
                         BusinessId = command.BusinessId,
                         Remark = command.Remark
-                    });
+                    }, cancellationToken);
                 }
 
                 result.SmsCount = recipients.Length;
             }
 
-            await uow.CompleteAsync();
+            await uow.CompleteAsync(cancellationToken);
         }
 
         return result;
@@ -288,7 +288,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var email = await _emailRepository.GetByIdAsync(command.EmailId)
+        var email = await _emailRepository.GetByIdAsync(command.EmailId, cancellationToken)
             ?? throw new KeyNotFoundException($"未找到邮件: {command.EmailId}");
 
         if (command.IsSuccess)
@@ -310,8 +310,8 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
             }
         }
 
-        await _emailRepository.UpdateAsync(email);
-        await uow.CompleteAsync();
+        await _emailRepository.UpdateAsync(email, cancellationToken);
+        await uow.CompleteAsync(cancellationToken);
     }
 
     /// <summary>
@@ -326,7 +326,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var sms = await _smsRepository.GetByIdAsync(command.SmsId)
+        var sms = await _smsRepository.GetByIdAsync(command.SmsId, cancellationToken)
             ?? throw new KeyNotFoundException($"未找到短信: {command.SmsId}");
 
         if (command.IsSuccess)
@@ -348,7 +348,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
             }
         }
 
-        await _smsRepository.UpdateAsync(sms);
-        await uow.CompleteAsync();
+        await _smsRepository.UpdateAsync(sms, cancellationToken);
+        await uow.CompleteAsync(cancellationToken);
     }
 }

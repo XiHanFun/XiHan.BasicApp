@@ -171,7 +171,7 @@ public class RoleHierarchyRepository : IRoleHierarchyRepository
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        return roleIds.ToHashSet();
+        return [.. roleIds];
     }
 
     private async Task<Dictionary<long, long[]>> GetDirectParentMapAsync(long? tenantId, CancellationToken cancellationToken)

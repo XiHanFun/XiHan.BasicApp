@@ -12,9 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.Framework.Core.Exceptions;
-
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
@@ -25,8 +22,6 @@ public partial class SysNotification
     /// <summary>
     /// 判断通知是否过期
     /// </summary>
-    /// <param name="now"></param>
-    /// <returns></returns>
     public bool IsExpired(DateTimeOffset? now = null)
     {
         if (!ExpireTime.HasValue)
@@ -38,50 +33,10 @@ public partial class SysNotification
     }
 
     /// <summary>
-    /// 判断用户是否可访问当前通知
+    /// 判断通知是否有效（未删除、未过期）
     /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    public bool CanAccess(long userId)
+    public bool IsActive(DateTimeOffset? now = null)
     {
-        if (userId <= 0)
-        {
-            return false;
-        }
-
-        return IsGlobal || RecipientUserId == userId;
-    }
-
-    /// <summary>
-    /// 标记为已读
-    /// </summary>
-    /// <param name="readTime"></param>
-    public void MarkRead(DateTimeOffset? readTime = null)
-    {
-        if (NotificationStatus == NotificationStatus.Deleted)
-        {
-            throw new BusinessException(message: "已删除通知不允许标记已读");
-        }
-
-        NotificationStatus = NotificationStatus.Read;
-        ReadTime = readTime ?? DateTimeOffset.UtcNow;
-    }
-
-    /// <summary>
-    /// 标记为已删除
-    /// </summary>
-    public void MarkDeleted()
-    {
-        NotificationStatus = NotificationStatus.Deleted;
-    }
-
-    /// <summary>
-    /// 确认通知
-    /// </summary>
-    /// <param name="confirmTime"></param>
-    public void Confirm(DateTimeOffset? confirmTime = null)
-    {
-        MarkRead(confirmTime);
-        NeedConfirm = false;
+        return Status == Enums.YesOrNo.Yes && !IsExpired(now);
     }
 }

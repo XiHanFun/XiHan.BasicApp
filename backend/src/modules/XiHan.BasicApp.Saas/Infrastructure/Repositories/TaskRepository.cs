@@ -49,14 +49,9 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
         var query = CreateTenantQueryable()
             .Where(task => task.TaskCode == taskCode);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(task => task.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(task => task.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(task => task.TenantId == resolvedTenantId.Value)
+            : query.Where(task => task.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -72,14 +67,9 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
         var query = CreateTenantQueryable()
             .Where(task => task.TaskCode == taskCode);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(task => task.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(task => task.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(task => task.TenantId == resolvedTenantId.Value)
+            : query.Where(task => task.TenantId == null);
 
         if (excludeTaskId.HasValue)
         {

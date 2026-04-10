@@ -74,11 +74,10 @@ public class RbacPermissionStore : IPermissionStore
 
         var tenantId = _currentTenant.Id;
         var permissions = await _permissionRepository.GetUserPermissionsAsync(parsedUserId, tenantId, cancellationToken);
-        return permissions
+        return [.. permissions
             .Where(permission => permission.Status == YesOrNo.Yes && IsTenantMatched(permission.TenantId))
             .OrderBy(static permission => permission.Sort)
-            .Select(MapToDefinition)
-            .ToList();
+            .Select(MapToDefinition)];
     }
 
     /// <summary>
@@ -96,11 +95,10 @@ public class RbacPermissionStore : IPermissionStore
 
         var tenantId = _currentTenant.Id;
         var permissions = await _permissionRepository.GetRolePermissionsAsync(parsedRoleId, tenantId, cancellationToken);
-        return permissions
+        return [.. permissions
             .Where(permission => permission.Status == YesOrNo.Yes && IsTenantMatched(permission.TenantId))
             .OrderBy(static permission => permission.Sort)
-            .Select(MapToDefinition)
-            .ToList();
+            .Select(MapToDefinition)];
     }
 
     /// <summary>
@@ -269,10 +267,9 @@ public class RbacPermissionStore : IPermissionStore
                 permission => permission.Status == YesOrNo.Yes && permission.TenantId == null,
                 cancellationToken);
 
-        return permissions
+        return [.. permissions
             .OrderBy(static permission => permission.Sort)
-            .Select(MapToDefinition)
-            .ToList();
+            .Select(MapToDefinition)];
     }
 
     /// <summary>

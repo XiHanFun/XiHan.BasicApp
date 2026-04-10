@@ -49,14 +49,9 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
         var query = CreateTenantQueryable()
             .Where(session => session.UserSessionId == sessionId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(session => session.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(session => session.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(session => session.TenantId == resolvedTenantId.Value)
+            : query.Where(session => session.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -75,14 +70,9 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
         var query = CreateTenantQueryable()
             .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(session => session.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(session => session.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(session => session.TenantId == resolvedTenantId.Value)
+            : query.Where(session => session.TenantId == null);
 
         var sessions = await query.ToListAsync(cancellationToken);
         if (sessions.Count == 0)
@@ -122,14 +112,9 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
         var query = CreateTenantQueryable()
             .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(session => session.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(session => session.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(session => session.TenantId == resolvedTenantId.Value)
+            : query.Where(session => session.TenantId == null);
 
         var sessions = await query
             .OrderBy(session => session.LastActivityTime)
@@ -169,14 +154,9 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
                 session.IsOnline &&
                 !session.IsRevoked);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(session => session.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(session => session.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(session => session.TenantId == resolvedTenantId.Value)
+            : query.Where(session => session.TenantId == null);
 
         var sessions = await query.ToListAsync(cancellationToken);
         if (sessions.Count == 0)

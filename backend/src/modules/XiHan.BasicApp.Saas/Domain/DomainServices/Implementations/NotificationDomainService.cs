@@ -57,7 +57,10 @@ public class NotificationDomainService : INotificationDomainService, ITransientD
     public async Task<bool> DeleteAsync(long id)
     {
         var notification = await _notificationRepository.GetByIdAsync(id);
-        if (notification == null) return false;
+        if (notification == null)
+        {
+            return false;
+        }
 
         var result = await _notificationRepository.DeleteAsync(notification);
         if (result)

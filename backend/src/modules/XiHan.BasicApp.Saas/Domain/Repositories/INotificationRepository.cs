@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 public interface INotificationRepository : IAggregateRootRepository<SysNotification, long>
 {
     /// <summary>
-    /// 获取用户通知收件箱
+    /// 获取用户通知收件箱（通知内容 + 用户级已读状态合并返回）
     /// </summary>
     Task<IReadOnlyList<SysNotification>> GetUserNotificationsAsync(
         long userId,
@@ -37,12 +37,22 @@ public interface INotificationRepository : IAggregateRootRepository<SysNotificat
     Task<int> GetUnreadCountAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 标记通知为已读
+    /// 标记通知为已读（更新 SysUserNotification）
     /// </summary>
     Task<bool> MarkAsReadAsync(long notificationId, long userId, long? tenantId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 标记用户全部通知为已读
+    /// 标记用户全部通知为已读（批量更新 SysUserNotification）
     /// </summary>
     Task<int> MarkAllAsReadAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 确认通知（更新 SysUserNotification 的确认时间和已读状态）
+    /// </summary>
+    Task<bool> ConfirmRecipientAsync(long notificationId, long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 批量创建用户通知接收记录
+    /// </summary>
+    Task AddRecipientsAsync(IEnumerable<SysUserNotification> recipients, CancellationToken cancellationToken = default);
 }

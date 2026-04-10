@@ -613,12 +613,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             .ToDictionary(
                 group => group.Key,
                 group =>
-                    (IReadOnlyCollection<string>)group
+                    (IReadOnlyCollection<string>)[.. group
                         .Select(static permission => permission.PermissionCode)
                         .Where(static permissionCode => !string.IsNullOrWhiteSpace(permissionCode))
                         .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .OrderBy(static permissionCode => permissionCode, StringComparer.OrdinalIgnoreCase)
-                        .ToArray());
+                        .OrderBy(static permissionCode => permissionCode, StringComparer.OrdinalIgnoreCase)]);
 
         return new AuthPermissionDto
         {
@@ -903,67 +902,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
-    /// 认证通过后的统一令牌签发流程（密码登录、手机登录、第三方登录共用）
-    /// </summary>
-    private async Task<AuthTokenDto> IssueTokenAfterAuthAsync(
-        SysUser user,
-        SysUserSecurity security,
-        ClientInfo clientInfo,
-        IUnitOfWork uow,
-        string loginIdentifier,
-        long? tenantId,
-        string successMessage)
-    {
-        var revokedSessionIds = await _authSessionManager.EnforceSessionPolicyAsync(user, security);
-
-        security.FailedLoginAttempts = 0;
-        security.IsLocked = false;
-        security.LockoutTime = null;
-        security.LockoutEndTime = null;
-        security.LastFailedLoginTime = null;
-        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
-        await _userRepository.SaveSecurityAsync(security);
-
-        var previousLoginIp = user.LastLoginIp;
-        user.LastLoginTime = DateTimeOffset.UtcNow;
-        user.LastLoginIp = clientInfo.IpAddress;
-        await _userRepository.UpdateAsync(user);
-
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
-        var sessionId = Guid.NewGuid().ToString("N");
-        var accessTokenJti = Guid.NewGuid().ToString("N");
-        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
-
-        await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
-        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage, sessionId, previousLoginIp);
-        await uow.CompleteAsync();
-
-        foreach (var revokedSessionId in revokedSessionIds)
-        {
-            await _authTokenCacheHelper.RemoveSessionTokenAsync(revokedSessionId);
-        }
-
-        if (revokedSessionIds.Count > 0)
-        {
-            await _authNotificationService.NotifyForceLogoutAsync(
-                user.BasicId.ToString(), "您的账号已在其他设备登录", revokedSessionIds);
-        }
-
-        await _authNotificationService.NotifyNewDeviceLoginAsync(user.BasicId.ToString(), clientInfo);
-        await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
-
-        return new AuthTokenDto
-        {
-            AccessToken = tokenResult.AccessToken,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ExpiresIn = tokenResult.ExpiresIn,
-            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
-            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
-        };
-    }
-
-    /// <summary>
     /// 构建用户声明
     /// </summary>
     /// <param name="user"></param>
@@ -1067,6 +1005,147 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
+    /// 异地登录风险判定
+    /// 综合子网、网络类型等因素判断是否应标记为风险登录
+    /// </summary>
+    private static bool DetermineRiskLogin(string? previousIp, string? currentIp)
+    {
+        if (string.IsNullOrWhiteSpace(previousIp) || string.IsNullOrWhiteSpace(currentIp))
+        {
+            return false;
+        }
+
+        if (string.Equals(previousIp, currentIp, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // 双方都是回环地址
+        if (IsLoopback(previousIp) && IsLoopback(currentIp))
+        {
+            return false;
+        }
+
+        // 双方都是私网地址
+        if (IsPrivateNetwork(previousIp) && IsPrivateNetwork(currentIp))
+        {
+            return false;
+        }
+
+        // 一方私网一方公网 → 风险
+        if (IsPrivateNetwork(previousIp) != IsPrivateNetwork(currentIp))
+        {
+            return true;
+        }
+
+        // 同一 /16 子网（大概率同城同运营商）→ 不标记风险
+        if (IsSameSubnet16(previousIp, currentIp))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsLoopback(string ip) =>
+            ip is "127.0.0.1" or "::1" || ip.StartsWith("127.", StringComparison.Ordinal);
+
+    private static bool IsPrivateNetwork(string ip)
+    {
+        if (ip.Contains(':'))
+        {
+            return ip.StartsWith("fc", StringComparison.OrdinalIgnoreCase)
+                   || ip.StartsWith("fd", StringComparison.OrdinalIgnoreCase)
+                   || ip.StartsWith("fe80:", StringComparison.OrdinalIgnoreCase)
+                   || ip is "::1";
+        }
+
+        var parts = ip.Split('.');
+        if (parts.Length != 4 || !byte.TryParse(parts[0], out var a) || !byte.TryParse(parts[1], out var b))
+        {
+            return false;
+        }
+
+        return a == 10
+               || (a == 172 && b >= 16 && b <= 31)
+               || (a == 192 && b == 168)
+               || a == 127;
+    }
+
+    private static bool IsSameSubnet16(string ip1, string ip2)
+    {
+        var parts1 = ip1.Split('.');
+        var parts2 = ip2.Split('.');
+        if (parts1.Length != 4 || parts2.Length != 4)
+        {
+            return false;
+        }
+
+        return parts1[0] == parts2[0] && parts1[1] == parts2[1];
+    }
+
+    /// <summary>
+    /// 认证通过后的统一令牌签发流程（密码登录、手机登录、第三方登录共用）
+    /// </summary>
+    private async Task<AuthTokenDto> IssueTokenAfterAuthAsync(
+        SysUser user,
+        SysUserSecurity security,
+        ClientInfo clientInfo,
+        IUnitOfWork uow,
+        string loginIdentifier,
+        long? tenantId,
+        string successMessage)
+    {
+        var revokedSessionIds = await _authSessionManager.EnforceSessionPolicyAsync(user, security);
+
+        security.FailedLoginAttempts = 0;
+        security.IsLocked = false;
+        security.LockoutTime = null;
+        security.LockoutEndTime = null;
+        security.LastFailedLoginTime = null;
+        security.LastSecurityCheckTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(security);
+
+        var previousLoginIp = user.LastLoginIp;
+        user.LastLoginTime = DateTimeOffset.UtcNow;
+        user.LastLoginIp = clientInfo.IpAddress;
+        await _userRepository.UpdateAsync(user);
+
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var sessionId = Guid.NewGuid().ToString("N");
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+
+        await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
+        await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage, sessionId, previousLoginIp);
+        await uow.CompleteAsync();
+
+        foreach (var revokedSessionId in revokedSessionIds)
+        {
+            await _authTokenCacheHelper.RemoveSessionTokenAsync(revokedSessionId);
+        }
+
+        if (revokedSessionIds.Count > 0)
+        {
+            await _authNotificationService.NotifyForceLogoutAsync(
+                user.BasicId.ToString(), "您的账号已在其他设备登录", revokedSessionIds);
+        }
+
+        await _authNotificationService.NotifyNewDeviceLoginAsync(user.BasicId.ToString(), clientInfo);
+        await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
+
+        return new AuthTokenDto
+        {
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ExpiresIn = tokenResult.ExpiresIn,
+            IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+        };
+    }
+
+    /// <summary>
     /// 写入登录日志
     /// </summary>
     /// <param name="userId"></param>
@@ -1134,86 +1213,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         };
 
         await _loginLogRepository.AddAsync(log);
-    }
-
-    /// <summary>
-    /// 异地登录风险判定
-    /// 综合子网、网络类型等因素判断是否应标记为风险登录
-    /// </summary>
-    private static bool DetermineRiskLogin(string? previousIp, string? currentIp)
-    {
-        if (string.IsNullOrWhiteSpace(previousIp) || string.IsNullOrWhiteSpace(currentIp))
-        {
-            return false;
-        }
-
-        if (string.Equals(previousIp, currentIp, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        // 双方都是回环地址
-        if (IsLoopback(previousIp) && IsLoopback(currentIp))
-        {
-            return false;
-        }
-
-        // 双方都是私网地址
-        if (IsPrivateNetwork(previousIp) && IsPrivateNetwork(currentIp))
-        {
-            return false;
-        }
-
-        // 一方私网一方公网 → 风险
-        if (IsPrivateNetwork(previousIp) != IsPrivateNetwork(currentIp))
-        {
-            return true;
-        }
-
-        // 同一 /16 子网（大概率同城同运营商）→ 不标记风险
-        if (IsSameSubnet16(previousIp, currentIp))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static bool IsLoopback(string ip) =>
-        ip is "127.0.0.1" or "::1" || ip.StartsWith("127.", StringComparison.Ordinal);
-
-    private static bool IsPrivateNetwork(string ip)
-    {
-        if (ip.Contains(':'))
-        {
-            return ip.StartsWith("fc", StringComparison.OrdinalIgnoreCase)
-                   || ip.StartsWith("fd", StringComparison.OrdinalIgnoreCase)
-                   || ip.StartsWith("fe80:", StringComparison.OrdinalIgnoreCase)
-                   || ip is "::1";
-        }
-
-        var parts = ip.Split('.');
-        if (parts.Length != 4 || !byte.TryParse(parts[0], out var a) || !byte.TryParse(parts[1], out var b))
-        {
-            return false;
-        }
-
-        return a == 10
-               || (a == 172 && b >= 16 && b <= 31)
-               || (a == 192 && b == 168)
-               || a == 127;
-    }
-
-    private static bool IsSameSubnet16(string ip1, string ip2)
-    {
-        var parts1 = ip1.Split('.');
-        var parts2 = ip2.Split('.');
-        if (parts1.Length != 4 || parts2.Length != 4)
-        {
-            return false;
-        }
-
-        return parts1[0] == parts2[0] && parts1[1] == parts2[1];
     }
 
     /// <summary>
