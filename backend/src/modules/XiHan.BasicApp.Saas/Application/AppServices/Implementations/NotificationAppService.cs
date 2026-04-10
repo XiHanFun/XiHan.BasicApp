@@ -50,12 +50,6 @@ public class NotificationAppService
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="notificationRepository"></param>
-    /// <param name="userRepository"></param>
-    /// <param name="queryService"></param>
-    /// <param name="messageCacheService"></param>
-    /// <param name="unitOfWorkManager"></param>
-    /// <param name="realtimeNotifier"></param>
     public NotificationAppService(
         INotificationRepository notificationRepository,
         IUserRepository userRepository,
@@ -82,12 +76,8 @@ public class NotificationAppService
     }
 
     /// <summary>
-    /// 获取用户通知列表
+    /// 获取用户通知列表（通知内容 + 用户级已读状态合并返回）
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="includeRead"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
     public async Task<IReadOnlyList<NotificationDto>> GetUserNotificationsAsync(long userId, bool includeRead = true, long? tenantId = null)
     {
         if (userId <= 0)
@@ -103,9 +93,6 @@ public class NotificationAppService
     /// <summary>
     /// 获取用户未读通知数量
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
     public async Task<int> GetUnreadCountAsync(long userId, long? tenantId = null)
     {
         if (userId <= 0)
@@ -123,10 +110,6 @@ public class NotificationAppService
     /// <summary>
     /// 标记通知为已读
     /// </summary>
-    /// <param name="notificationId"></param>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
     public async Task<bool> MarkAsReadAsync(long notificationId, long userId, long? tenantId = null)
     {
         if (notificationId <= 0 || userId <= 0)
@@ -147,9 +130,6 @@ public class NotificationAppService
     /// <summary>
     /// 标记全部通知为已读
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
     public async Task<int> MarkAllAsReadAsync(long userId, long? tenantId = null)
     {
         if (userId <= 0)
@@ -168,12 +148,8 @@ public class NotificationAppService
     }
 
     /// <summary>
-    /// 确认通知
+    /// 确认通知（更新 SysUserNotification 的确认和已读状态）
     /// </summary>
-    /// <param name="notificationId"></param>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
     public async Task<bool> ConfirmAsync(long notificationId, long userId, long? tenantId = null)
     {
         if (notificationId <= 0 || userId <= 0)
@@ -181,40 +157,32 @@ public class NotificationAppService
             throw new ArgumentException("通知 ID 或用户 ID 无效");
         }
 
-        var resolvedTenantId = NormalizeTenantId(tenantId);
-        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-
+        // 先验证通知本身是否有效且需要确认
         var notification = await _notificationRepository.GetByIdAsync(notificationId);
-        if (notification is null)
+        if (notification is null || !notification.IsActive() || !notification.NeedConfirm)
         {
             return false;
         }
 
-        if (resolvedTenantId.HasValue && notification.TenantId.HasValue && notification.TenantId.Value != resolvedTenantId.Value)
+        var resolvedTenantId = NormalizeTenantId(tenantId);
+        if (resolvedTenantId.HasValue && notification.TenantId.HasValue
+            && notification.TenantId.Value != resolvedTenantId.Value)
         {
             return false;
         }
 
-        if (!notification.CanAccess(userId)
-            || notification.Status != YesOrNo.Yes
-            || notification.NotificationStatus == NotificationStatus.Deleted
-            || notification.IsExpired())
+        var confirmed = await _notificationRepository.ConfirmRecipientAsync(notificationId, userId);
+        if (confirmed)
         {
-            return false;
+            await _messageCacheService.InvalidateUnreadCountAsync(notification.TenantId);
         }
 
-        notification.Confirm();
-        await _notificationRepository.UpdateAsync(notification);
-        await uow.CompleteAsync();
-        await _messageCacheService.InvalidateUnreadCountAsync(notification.TenantId);
-        return true;
+        return confirmed;
     }
 
     /// <summary>
-    /// 推送通知
+    /// 推送通知：创建通知记录 + 为每个目标用户创建 SysUserNotification 接收记录
     /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
     public async Task<int> PushAsync(PushNotificationCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -229,8 +197,10 @@ public class NotificationAppService
             throw new BusinessException(message: "全员通知不允许指定接收人");
         }
 
+        // 前端传字符串 ID，避免 JS Number 丢失雪花 ID 精度
         var recipientIds = command.RecipientUserIds
-            .Where(id => id > 0)
+            .Where(s => long.TryParse(s, out var v) && v > 0)
+            .Select(s => long.Parse(s))
             .Distinct()
             .ToArray();
 
@@ -239,14 +209,15 @@ public class NotificationAppService
             throw new BusinessException(message: "非全员通知必须指定至少一个接收人");
         }
 
-        long? resolvedTenantId = NormalizeTenantId(command.TenantId);
+        long? resolvedTenantId = NormalizeTenantId(ParseNullableLong(command.TenantId));
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
         SysUser? sender = null;
-        if (command.SendUserId.HasValue)
+        var parsedSendUserId = ParseNullableLong(command.SendUserId);
+        if (parsedSendUserId.HasValue)
         {
-            sender = await _userRepository.GetByIdAsync(command.SendUserId.Value)
-                     ?? throw new KeyNotFoundException($"未找到发送用户: {command.SendUserId.Value}");
+            sender = await _userRepository.GetByIdAsync(parsedSendUserId.Value)
+                     ?? throw new KeyNotFoundException($"未找到发送用户: {parsedSendUserId.Value}");
 
             if (resolvedTenantId.HasValue && sender.TenantId != resolvedTenantId.Value)
             {
@@ -256,8 +227,18 @@ public class NotificationAppService
             resolvedTenantId ??= sender.TenantId;
         }
 
-        var recipients = Array.Empty<SysUser>();
-        if (recipientIds.Length > 0)
+        // 确定目标用户列表
+        IReadOnlyList<long> targetUserIds;
+        if (command.IsGlobal)
+        {
+            var targetUsers = resolvedTenantId.HasValue
+                ? await _userRepository.GetListAsync(user =>
+                    user.TenantId == resolvedTenantId.Value && user.Status == YesOrNo.Yes)
+                : await _userRepository.GetListAsync(user =>
+                    user.Status == YesOrNo.Yes);
+            targetUserIds = targetUsers.Select(u => u.BasicId).Distinct().ToArray();
+        }
+        else
         {
             var entities = await _userRepository.GetByIdsAsync(recipientIds);
             if (entities.Count != recipientIds.Length)
@@ -265,16 +246,14 @@ public class NotificationAppService
                 throw new BusinessException(message: "存在无效接收用户 ID");
             }
 
-            recipients = entities.ToArray();
-
-            if (resolvedTenantId.HasValue && recipients.Any(user => user.TenantId != resolvedTenantId.Value))
+            if (resolvedTenantId.HasValue && entities.Any(user => user.TenantId != resolvedTenantId.Value))
             {
                 throw new BusinessException(message: "接收用户与通知租户不一致");
             }
 
             if (!resolvedTenantId.HasValue)
             {
-                var distinctTenantIds = recipients.Select(user => user.TenantId).Distinct().ToArray();
+                var distinctTenantIds = entities.Select(user => user.TenantId).Distinct().ToArray();
                 if (distinctTenantIds.Length > 1)
                 {
                     throw new BusinessException(message: "跨租户通知必须显式指定租户");
@@ -282,6 +261,8 @@ public class NotificationAppService
 
                 resolvedTenantId = distinctTenantIds[0];
             }
+
+            targetUserIds = recipientIds;
         }
 
         var sendTime = DateTimeOffset.UtcNow;
@@ -290,98 +271,98 @@ public class NotificationAppService
             throw new BusinessException(message: "过期时间必须晚于当前时间");
         }
 
-        var count = 0;
-        if (command.IsGlobal)
+        // 创建通知主记录
+        var notification = new SysNotification
         {
-            var notification = new SysNotification
+            TenantId = resolvedTenantId,
+            RecipientUserId = command.IsGlobal ? null : recipientIds.FirstOrDefault(),
+            SendUserId = parsedSendUserId,
+            NotificationType = command.NotificationType,
+            Title = title,
+            Content = command.Content,
+            Icon = command.Icon,
+            Link = command.Link,
+            BusinessType = command.BusinessType,
+            BusinessId = command.BusinessId,
+            NotificationStatus = NotificationStatus.Unread,
+            SendTime = sendTime,
+            ExpireTime = command.ExpireTime,
+            IsGlobal = command.IsGlobal,
+            NeedConfirm = command.NeedConfirm,
+            Status = YesOrNo.Yes,
+            Remark = command.Remark
+        };
+
+        var saved = await _notificationRepository.AddAsync(notification);
+
+        // 为每个目标用户创建接收记录
+        if (targetUserIds.Count > 0)
+        {
+            var userNotifications = targetUserIds.Select(uid => new SysUserNotification
             {
                 TenantId = resolvedTenantId,
-                RecipientUserId = null,
-                SendUserId = command.SendUserId,
-                NotificationType = command.NotificationType,
-                Title = title,
-                Content = command.Content,
-                Icon = command.Icon,
-                Link = command.Link,
-                BusinessType = command.BusinessType,
-                BusinessId = command.BusinessId,
+                NotificationId = saved.BasicId,
+                UserId = uid,
                 NotificationStatus = NotificationStatus.Unread,
-                SendTime = sendTime,
-                ExpireTime = command.ExpireTime,
-                IsGlobal = true,
-                NeedConfirm = command.NeedConfirm,
-                Status = YesOrNo.Yes,
-                Remark = command.Remark
-            };
+            });
 
-            await _notificationRepository.AddAsync(notification);
-            count = 1;
-        }
-        else
-        {
-            foreach (var recipientId in recipientIds)
-            {
-                var notification = new SysNotification
-                {
-                    TenantId = resolvedTenantId,
-                    RecipientUserId = recipientId,
-                    SendUserId = command.SendUserId,
-                    NotificationType = command.NotificationType,
-                    Title = title,
-                    Content = command.Content,
-                    Icon = command.Icon,
-                    Link = command.Link,
-                    BusinessType = command.BusinessType,
-                    BusinessId = command.BusinessId,
-                    NotificationStatus = NotificationStatus.Unread,
-                    SendTime = sendTime,
-                    ExpireTime = command.ExpireTime,
-                    IsGlobal = false,
-                    NeedConfirm = command.NeedConfirm,
-                    Status = YesOrNo.Yes,
-                    Remark = command.Remark
-                };
-
-                await _notificationRepository.AddAsync(notification);
-            }
-
-            count = recipientIds.Length;
+            await _notificationRepository.AddRecipientsAsync(userNotifications);
         }
 
         await uow.CompleteAsync();
         await _messageCacheService.InvalidateUnreadCountAsync(resolvedTenantId);
+
+        // SignalR 实时推送（失败不影响主流程）
         try
         {
-            await PushRealtimeNotificationAsync(command, title, resolvedTenantId, recipientIds);
+            await PushRealtimeNotificationAsync(command, title, resolvedTenantId, targetUserIds);
         }
         catch
         {
-            // SignalR 鎺ㄩ€佸け璐ヤ笉褰卞搷閫氱煡鍙戝竷涓绘祦绋?
+            // SignalR 推送失败不影响通知发布主流程
         }
 
-        return count;
+        return targetUserIds.Count;
     }
 
     /// <summary>
-    /// 创建通知
+    /// 创建通知（管理页面）：创建通知记录 + 为目标用户创建 SysUserNotification
     /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
     public override async Task<NotificationDto> CreateAsync(NotificationCreateDto input)
     {
         input.ValidateAnnotations();
         ValidateNotificationPayload(input.Title, input.IsGlobal, input.RecipientUserId, input.SendTime, input.ExpireTime);
         await EnsureUsersExistsAsync(input.RecipientUserId, input.SendUserId, input.TenantId);
-        var dto = await base.CreateAsync(input);
+
+        using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
+        var entity = await MapDtoToEntityAsync(input);
+        var saved = await _notificationRepository.AddAsync(entity);
+
+        // 为目标用户创建接收记录
+        var resolvedTenantId = NormalizeTenantId(input.TenantId);
+        var targetUserIds = await ResolveTargetUserIdsAsync(input.IsGlobal, input.RecipientUserId, resolvedTenantId);
+
+        if (targetUserIds.Count > 0)
+        {
+            var userNotifications = targetUserIds.Select(uid => new SysUserNotification
+            {
+                TenantId = resolvedTenantId,
+                NotificationId = saved.BasicId,
+                UserId = uid,
+                NotificationStatus = NotificationStatus.Unread,
+            });
+
+            await _notificationRepository.AddRecipientsAsync(userNotifications);
+        }
+
+        await uow.CompleteAsync();
         await _messageCacheService.InvalidateUnreadCountAsync(input.TenantId);
-        return dto;
+        return saved.Adapt<NotificationDto>()!;
     }
 
     /// <summary>
-    /// 更新通知
+    /// 更新通知（仅更新通知内容，不影响用户级已读状态）
     /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
     public override async Task<NotificationDto> UpdateAsync(NotificationUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -401,8 +382,6 @@ public class NotificationAppService
     /// <summary>
     /// 删除通知
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     public override async Task<bool> DeleteAsync(long id)
     {
         var entity = await _notificationRepository.GetByIdAsync(id);
@@ -423,8 +402,6 @@ public class NotificationAppService
     /// <summary>
     /// 映射创建 DTO 到实体
     /// </summary>
-    /// <param name="createDto"></param>
-    /// <returns></returns>
     protected override Task<SysNotification> MapDtoToEntityAsync(NotificationCreateDto createDto)
     {
         var entity = new SysNotification
@@ -452,10 +429,8 @@ public class NotificationAppService
     }
 
     /// <summary>
-    /// 映射更新 DTO 到实体
+    /// 映射更新 DTO 到实体（不更新用户级已读状态字段）
     /// </summary>
-    /// <param name="updateDto"></param>
-    /// <param name="entity"></param>
     protected override Task MapDtoToEntityAsync(NotificationUpdateDto updateDto, SysNotification entity)
     {
         entity.RecipientUserId = updateDto.IsGlobal ? null : updateDto.RecipientUserId;
@@ -467,8 +442,6 @@ public class NotificationAppService
         entity.Link = updateDto.Link;
         entity.BusinessType = updateDto.BusinessType;
         entity.BusinessId = updateDto.BusinessId;
-        entity.NotificationStatus = updateDto.NotificationStatus;
-        entity.ReadTime = updateDto.ReadTime;
         entity.SendTime = updateDto.SendTime;
         entity.ExpireTime = updateDto.ExpireTime;
         entity.IsGlobal = updateDto.IsGlobal;
@@ -481,12 +454,6 @@ public class NotificationAppService
     /// <summary>
     /// 校验通知载荷
     /// </summary>
-    /// <param name="title"></param>
-    /// <param name="isGlobal"></param>
-    /// <param name="recipientUserId"></param>
-    /// <param name="sendTime"></param>
-    /// <param name="expireTime"></param>
-    /// <exception cref="InvalidOperationException"></exception>
     private static void ValidateNotificationPayload(
         string title,
         bool isGlobal,
@@ -515,14 +482,44 @@ public class NotificationAppService
         }
     }
 
+    private static long? NormalizeTenantId(long? tenantId)
+    {
+        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
+    }
+
+    /// <summary>
+    /// 将前端传入的字符串 ID 安全解析为 long?，避免 JS Number 精度丢失
+    /// </summary>
+    private static long? ParseNullableLong(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return long.TryParse(value, out var result) && result > 0 ? result : null;
+    }
+
+    /// <summary>
+    /// 解析目标用户 ID 列表
+    /// </summary>
+    private async Task<IReadOnlyList<long>> ResolveTargetUserIdsAsync(bool isGlobal, long? recipientUserId, long? tenantId)
+    {
+        if (!isGlobal)
+        {
+            return recipientUserId is > 0 ? [recipientUserId.Value] : [];
+        }
+
+        var users = tenantId.HasValue
+            ? await _userRepository.GetListAsync(u =>
+                u.TenantId == tenantId.Value && u.Status == YesOrNo.Yes)
+            : await _userRepository.GetListAsync(u => u.Status == YesOrNo.Yes);
+        return users.Select(u => u.BasicId).Distinct().ToArray();
+    }
+
     /// <summary>
     /// 校验发送用户与接收用户是否存在且租户一致
     /// </summary>
-    /// <param name="recipientUserId"></param>
-    /// <param name="sendUserId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     private async Task EnsureUsersExistsAsync(long? recipientUserId, long? sendUserId, long? tenantId)
     {
         var userIds = new[] { recipientUserId, sendUserId }
@@ -547,11 +544,15 @@ public class NotificationAppService
             throw new BusinessException(message: "通知用户与租户不一致");
         }
     }
+
+    /// <summary>
+    /// SignalR 实时推送
+    /// </summary>
     private async Task PushRealtimeNotificationAsync(
         PushNotificationCommand command,
         string title,
         long? tenantId,
-        IReadOnlyCollection<long> recipientIds)
+        IReadOnlyCollection<long> targetUserIds)
     {
         var payload = new
         {
@@ -559,13 +560,14 @@ public class NotificationAppService
             {
                 NotificationType.Warning => "Warning",
                 NotificationType.Error => "Error",
-                NotificationType.Announcement => "Success",
+                NotificationType.Announcement => "Info",
                 _ => "Info"
             },
             Title = title,
             Content = command.Content ?? string.Empty,
             NeedConfirm = command.NeedConfirm,
             IsGlobal = command.IsGlobal,
+            NotificationType = (int)command.NotificationType,
             TenantId = tenantId,
             SendTime = DateTimeOffset.UtcNow
         };
@@ -578,39 +580,19 @@ public class NotificationAppService
             return;
         }
 
-        IReadOnlyList<string> targetUserIds;
-        if (command.IsGlobal && tenantId.HasValue)
-        {
-            var tenantUsers = await _userRepository.GetListAsync(user =>
-                user.TenantId == tenantId.Value
-                && user.Status == YesOrNo.Yes);
-
-            targetUserIds = tenantUsers
-                .Select(static user => user.BasicId.ToString())
-                .Distinct(StringComparer.Ordinal)
-                .ToArray();
-        }
-        else
-        {
-            targetUserIds = recipientIds
-                .Select(static id => id.ToString())
-                .Distinct(StringComparer.Ordinal)
-                .ToArray();
-        }
-
         if (targetUserIds.Count == 0)
         {
             return;
         }
 
+        var userIdStrings = targetUserIds
+            .Select(static id => id.ToString())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
         await _realtimeNotifier.SendToUsersAsync(
-            targetUserIds,
+            userIdStrings,
             SignalRConstants.ClientMethods.ReceiveNotification,
             payload);
-    }
-
-    private static long? NormalizeTenantId(long? tenantId)
-    {
-        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
     }
 }

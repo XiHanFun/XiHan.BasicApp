@@ -49,14 +49,9 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
         var query = CreateTenantQueryable()
             .Where(app => app.ClientId == clientId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(app => app.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(app => app.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(app => app.TenantId == resolvedTenantId.Value)
+            : query.Where(app => app.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -72,14 +67,9 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
         var query = CreateTenantQueryable()
             .Where(app => app.ClientId == clientId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(app => app.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(app => app.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(app => app.TenantId == resolvedTenantId.Value)
+            : query.Where(app => app.TenantId == null);
 
         if (excludeAppId.HasValue)
         {

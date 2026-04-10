@@ -57,7 +57,10 @@ public class FileDomainService : IFileDomainService, ITransientDependency
     public async Task<bool> DeleteAsync(long id)
     {
         var file = await _fileRepository.GetByIdAsync(id);
-        if (file == null) return false;
+        if (file == null)
+        {
+            return false;
+        }
 
         var result = await _fileRepository.DeleteAsync(file);
         if (result)

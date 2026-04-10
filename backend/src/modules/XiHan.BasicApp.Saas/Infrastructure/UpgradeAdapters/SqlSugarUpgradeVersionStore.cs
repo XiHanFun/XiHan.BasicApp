@@ -80,7 +80,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             ? query.Where(v => v.TenantId == tenantId)
             : query.Where(v => v.TenantId == null);
 
-        var version = await query.FirstAsync();
+        var version = await query.FirstAsync(cancellationToken);
         if (version == null)
         {
             var entity = new SysVersion
@@ -92,7 +92,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
                 IsUpgrading = false
             };
 
-            var id = await db.Insertable(entity).ExecuteReturnSnowflakeIdAsync();
+            var id = await db.Insertable(entity).ExecuteReturnSnowflakeIdAsync(cancellationToken);
             return MapVersion(entity);
         }
 
@@ -101,7 +101,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             version.MinSupportVersion = minSupportVersion;
             await db.Updateable(version)
                 .UpdateColumns(v => new { v.MinSupportVersion })
-                .ExecuteCommandAsync();
+                .ExecuteCommandAsync(cancellationToken);
         }
 
         return MapVersion(version);
@@ -122,7 +122,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             ? query.Where(v => v.TenantId == tenantId)
             : query.Where(v => v.TenantId == null);
 
-        var history = await query.OrderBy(v => v.ExecutedTime, OrderByType.Desc).FirstAsync();
+        var history = await query.OrderBy(v => v.ExecutedTime, OrderByType.Desc).FirstAsync(cancellationToken);
         return history == null ? null : MapHistory(history);
     }
 
@@ -149,7 +149,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
                 UpgradeStartTime = startTime
             })
             .Where(v => v.BasicId == version.Id)
-            .ExecuteCommandAsync();
+            .ExecuteCommandAsync(cancellationToken);
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
                 DbVersion = dbVersion
             })
             .Where(v => v.BasicId == version.Id)
-            .ExecuteCommandAsync();
+            .ExecuteCommandAsync(cancellationToken);
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
                 IsUpgrading = false
             })
             .Where(v => v.BasicId == version.Id)
-            .ExecuteCommandAsync();
+            .ExecuteCommandAsync(cancellationToken);
     }
 
     /// <summary>
@@ -216,7 +216,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
                 DbVersion = dbVersion
             })
             .Where(v => v.BasicId == version.Id)
-            .ExecuteCommandAsync();
+            .ExecuteCommandAsync(cancellationToken);
     }
 
     /// <summary>
@@ -239,7 +239,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             ErrorMessage = history.ErrorMessage
         };
 
-        await db.Insertable(entity).ExecuteCommandAsync();
+        await db.Insertable(entity).ExecuteCommandAsync(cancellationToken);
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
             ? query.Where(h => h.TenantId == tenantId)
             : query.Where(h => h.TenantId == null);
 
-        return await query.AnyAsync();
+        return await query.AnyAsync(cancellationToken);
     }
 
     /// <summary>

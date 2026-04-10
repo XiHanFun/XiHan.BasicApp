@@ -49,14 +49,9 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
         var query = CreateTenantQueryable()
             .Where(review => review.ReviewCode == reviewCode);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(review => review.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(review => review.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(review => review.TenantId == resolvedTenantId.Value)
+            : query.Where(review => review.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -72,14 +67,9 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
         var query = CreateTenantQueryable()
             .Where(review => review.ReviewCode == reviewCode);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(review => review.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(review => review.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(review => review.TenantId == resolvedTenantId.Value)
+            : query.Where(review => review.TenantId == null);
 
         if (excludeReviewId.HasValue)
         {

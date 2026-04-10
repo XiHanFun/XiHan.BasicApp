@@ -1,19 +1,32 @@
 <script setup lang="ts">
 import type { HeaderToolbarPropsContract } from '../../contracts'
+import type { NotificationItem } from '~/stores'
 import { NAvatar, NDropdown } from 'naive-ui'
 import { Icon } from '~/iconify'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
+import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
 
-const props = defineProps<HeaderToolbarPropsContract>()
+const props = defineProps<HeaderToolbarPropsContract & {
+  notificationMessages?: NotificationItem[]
+  notificationAnnouncements?: NotificationItem[]
+  notificationUnreadMessages?: NotificationItem[]
+  notificationUnreadAnnouncements?: NotificationItem[]
+  notificationUnreadCount?: number
+  notificationLoading?: boolean
+}>()
 
 const emit = defineEmits<{
   localeChange: [key: string]
   timezoneChange: [key: string]
   themeToggle: [event: MouseEvent]
-  notification: []
+  notificationMarkRead: [id: string]
+  notificationConfirm: [id: string]
+  notificationMarkAllRead: []
+  notificationViewAll: []
+  notificationRefresh: []
   fullscreenToggle: []
   preferencesOpen: []
   userAction: [key: string]
@@ -90,15 +103,21 @@ const emit = defineEmits<{
     <!-- 分割线 -->
     <div class="mx-1 h-4 w-px bg-border" />
 
-    <!-- 通知 -->
-    <XihanIconButton
+    <!-- 通知弹窗 -->
+    <NotificationPopover
       v-if="props.appStore.widgetNotification"
-      class="mr-1"
-      tooltip="通知"
-      @click="emit('notification')"
-    >
-      <Icon icon="lucide:bell" width="16" height="16" />
-    </XihanIconButton>
+      :messages="props.notificationMessages ?? []"
+      :announcements="props.notificationAnnouncements ?? []"
+      :unread-messages="props.notificationUnreadMessages ?? []"
+      :unread-announcements="props.notificationUnreadAnnouncements ?? []"
+      :unread-count="props.notificationUnreadCount ?? 0"
+      :loading="props.notificationLoading ?? false"
+      @mark-read="(id) => emit('notificationMarkRead', id)"
+      @confirm="(id) => emit('notificationConfirm', id)"
+      @mark-all-read="emit('notificationMarkAllRead')"
+      @view-all="emit('notificationViewAll')"
+      @refresh="emit('notificationRefresh')"
+    />
 
     <!-- 用户菜单 -->
     <NDropdown :options="props.userOptions" @select="(key) => emit('userAction', String(key))">

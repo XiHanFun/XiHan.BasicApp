@@ -60,14 +60,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
         var query = CreateTenantQueryable().Where(permission => permission.PermissionCode == permissionCode);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(permission => permission.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(permission => permission.TenantId == null);
-        }
+        query = tenantId.HasValue
+            ? query.Where(permission => permission.TenantId == tenantId.Value)
+            : query.Where(permission => permission.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -85,14 +80,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var roleQuery = CreateTenantQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
-        if (resolvedTenantId.HasValue)
-        {
-            roleQuery = roleQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            roleQuery = roleQuery.Where(mapping => mapping.TenantId == null);
-        }
+        roleQuery = resolvedTenantId.HasValue
+            ? roleQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
+            : roleQuery.Where(mapping => mapping.TenantId == null);
 
         var directRoleIds = await roleQuery
             .Select(mapping => mapping.RoleId)
@@ -112,14 +102,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
                     inheritedRoleIds.Contains(mapping.RoleId)
                     && mapping.Status == YesOrNo.Yes);
 
-            if (resolvedTenantId.HasValue)
-            {
-                rolePermissionQuery = rolePermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-            }
-            else
-            {
-                rolePermissionQuery = rolePermissionQuery.Where(mapping => mapping.TenantId == null);
-            }
+            rolePermissionQuery = resolvedTenantId.HasValue
+                ? rolePermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
+                : rolePermissionQuery.Where(mapping => mapping.TenantId == null);
 
             rolePermissionIds = await rolePermissionQuery
                 .Select(mapping => mapping.PermissionId)
@@ -130,14 +115,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var directPermissionQuery = CreateTenantQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
-        if (resolvedTenantId.HasValue)
-        {
-            directPermissionQuery = directPermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            directPermissionQuery = directPermissionQuery.Where(mapping => mapping.TenantId == null);
-        }
+        directPermissionQuery = resolvedTenantId.HasValue
+            ? directPermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
+            : directPermissionQuery.Where(mapping => mapping.TenantId == null);
 
         // 获取用户直接授权的权限列表，包括授权和拒绝
         var allUserPermissions = await directPermissionQuery
@@ -172,14 +152,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var query = CreateTenantQueryable()
             .Where(permission => permissionIdSet.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(permission => permission.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(permission => permission.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(permission => permission.TenantId == resolvedTenantId.Value)
+            : query.Where(permission => permission.TenantId == null);
 
         return await query.OrderBy(permission => permission.Sort)
             .ToListAsync(cancellationToken);
@@ -198,14 +173,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var mappingQuery = CreateTenantQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
 
-        if (resolvedTenantId.HasValue)
-        {
-            mappingQuery = mappingQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            mappingQuery = mappingQuery.Where(mapping => mapping.TenantId == null);
-        }
+        mappingQuery = resolvedTenantId.HasValue
+            ? mappingQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
+            : mappingQuery.Where(mapping => mapping.TenantId == null);
 
         var permissionIds = await mappingQuery
             .Select(mapping => mapping.PermissionId)
@@ -220,14 +190,9 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var query = CreateTenantQueryable()
             .Where(permission => permissionIds.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(permission => permission.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(permission => permission.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(permission => permission.TenantId == resolvedTenantId.Value)
+            : query.Where(permission => permission.TenantId == null);
 
         return await query.OrderBy(permission => permission.Sort)
             .ToListAsync(cancellationToken);

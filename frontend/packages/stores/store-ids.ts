@@ -8,5 +8,6 @@ export enum SetupStoreId {
   LayoutState = 'layout-state',
   LayoutBridge = 'layout-bridge',
   LayoutPreferences = 'layout-preferences',
+  Notification = 'notification',
   TabbarPreferences = 'tabbar-preferences',
 }

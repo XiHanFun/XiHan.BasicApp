@@ -57,7 +57,10 @@ public class MenuDomainService : IMenuDomainService, ITransientDependency
     public async Task<bool> DeleteAsync(long id)
     {
         var menu = await _menuRepository.GetByIdAsync(id);
-        if (menu == null) return false;
+        if (menu == null)
+        {
+            return false;
+        }
 
         var result = await _menuRepository.DeleteAsync(menu);
         if (result)

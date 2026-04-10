@@ -55,14 +55,7 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
         var query = CreateTenantQueryable()
             .Where(config => config.ConfigKey == configKey);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(config => config.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(config => config.TenantId == null);
-        }
+        query = tenantId.HasValue ? query.Where(config => config.TenantId == tenantId.Value) : query.Where(config => config.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -72,23 +65,11 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
     {
         var query = CreateTenantQueryable();
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(config => config.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(config => config.TenantId == null);
-        }
+        query = tenantId.HasValue ? query.Where(config => config.TenantId == tenantId.Value) : query.Where(config => config.TenantId == null);
 
-        if (string.IsNullOrWhiteSpace(configGroup))
-        {
-            query = query.Where(config => config.ConfigGroup == null || config.ConfigGroup == string.Empty);
-        }
-        else
-        {
-            query = query.Where(config => config.ConfigGroup == configGroup);
-        }
+        query = string.IsNullOrWhiteSpace(configGroup)
+            ? query.Where(config => config.ConfigGroup == null || config.ConfigGroup == string.Empty)
+            : query.Where(config => config.ConfigGroup == configGroup);
 
         var list = await query.ToListAsync(cancellationToken);
         return list;

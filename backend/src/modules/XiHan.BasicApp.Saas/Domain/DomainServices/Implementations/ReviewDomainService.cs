@@ -57,7 +57,10 @@ public class ReviewDomainService : IReviewDomainService, ITransientDependency
     public async Task<bool> DeleteAsync(long id)
     {
         var review = await _reviewRepository.GetByIdAsync(id);
-        if (review == null) return false;
+        if (review == null)
+        {
+            return false;
+        }
 
         var result = await _reviewRepository.DeleteAsync(review);
         if (result)

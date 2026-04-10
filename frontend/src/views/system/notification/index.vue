@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { PushNotificationPayload, SysNotification } from '@/api/modules/notification'
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { PushNotificationPayload, SysNotification } from '@/api/modules/notification'
 import {
   NButton,
   NDatePicker,
@@ -15,15 +15,19 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { notificationApi, userApi } from '@/api'
 import { XSystemQueryPanel } from '~/components'
-import { NOTIFICATION_STATUS_OPTIONS, NOTIFICATION_TYPE_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
-import { useUserStore } from '~/stores'
+import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
+import { usePermission, useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemNotificationPage' })
+
+const { hasPermission } = usePermission()
+const canCreate = hasPermission(['notice:create'])
+const canUpdate = hasPermission(['notice:update'])
+const canDelete = hasPermission(['notice:delete'])
 
 interface NotificationFormModel {
   basicId?: string
@@ -56,203 +60,10 @@ interface UserOption {
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
-const userStore = useUserStore()
-const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
-
-const inboxLoading = ref(false)
-const inboxRows = ref<SysNotification[]>([])
-const inboxIncludeRead = ref<'all' | 'unread'>('unread')
-const unreadCount = ref(0)
-
-const INBOX_FILTER_OPTIONS = [
-  { label: '仅未读', value: 'unread' },
-  { label: '全部通知', value: 'all' },
-]
-
-const currentUserId = computed(() => {
-  const userId = Number(userStore.userInfo?.basicId ?? 0)
-  return userId > 0 ? userId : 0
-})
-
-const currentTenantId = computed<null | number>(() => {
-  const tenantId = Number(userStore.userInfo?.tenantId ?? 0)
-  return tenantId > 0 ? tenantId : null
-})
-
-function hasUserContext() {
-  if (currentUserId.value <= 0) {
-    message.warning('当前登录状态失效，请重新登录')
-    return false
-  }
-  return true
-}
-
-const inboxOptions = useVxeTable<SysNotification>(
-  {
-    id: 'sys_notification_inbox',
-    name: '我的通知',
-    data: [],
-    columns: [
-      { type: 'seq', title: '序号', width: 60, fixed: 'left' },
-      { field: 'title', title: '标题', minWidth: 220, showOverflow: 'tooltip' },
-      { field: 'content', title: '内容', minWidth: 280, showOverflow: 'tooltip' },
-      {
-        field: 'notificationType',
-        title: '类型',
-        width: 90,
-        formatter: ({ cellValue }) => getOptionLabel(NOTIFICATION_TYPE_OPTIONS, cellValue),
-      },
-      {
-        field: 'notificationStatus',
-        title: '状态',
-        width: 90,
-        slots: { default: 'col_inbox_status' },
-      },
-      {
-        field: 'needConfirm',
-        title: '确认',
-        width: 90,
-        slots: { default: 'col_inbox_confirm' },
-      },
-      {
-        field: 'sendTime',
-        title: '发送时间',
-        width: 170,
-        formatter: ({ cellValue }) => formatDate(cellValue),
-      },
-      {
-        field: 'actions',
-        title: '操作',
-        width: 180,
-        fixed: 'right',
-        slots: { default: 'col_inbox_actions' },
-      },
-    ],
-  },
-  {
-    pagerConfig: { enabled: false },
-    toolbarConfig: { enabled: false },
-  },
-)
-
-async function refreshUnreadCount() {
-  if (!hasUserContext()) {
-    unreadCount.value = 0
-    return
-  }
-
-  unreadCount.value = await notificationApi.getUnreadCount(
-    currentUserId.value,
-    currentTenantId.value ?? undefined,
-  )
-}
-
-async function loadInboxNotifications() {
-  if (!hasUserContext()) {
-    inboxRows.value = []
-    return
-  }
-
-  inboxLoading.value = true
-  try {
-    const list = await notificationApi.getUserNotifications(
-      currentUserId.value,
-      inboxIncludeRead.value === 'all',
-      currentTenantId.value ?? undefined,
-    )
-    inboxRows.value = list
-  }
-  catch {
-    message.error('获取我的通知失败')
-  }
-  finally {
-    inboxLoading.value = false
-  }
-}
-
-async function refreshInbox() {
-  await Promise.all([loadInboxNotifications(), refreshUnreadCount()])
-}
-
-function handleInboxFilterChange() {
-  void refreshInbox()
-}
-
-async function handleMarkNotificationRead(row: SysNotification) {
-  if (!hasUserContext()) {
-    return
-  }
-
-  try {
-    const changed = await notificationApi.markRead(
-      row.basicId,
-      currentUserId.value,
-      currentTenantId.value ?? undefined,
-    )
-    if (!changed) {
-      message.warning('当前通知状态未变更')
-      return
-    }
-
-    message.success('已标记为已读')
-    await refreshInbox()
-  }
-  catch {
-    message.error('标记已读失败')
-  }
-}
-
-async function handleConfirmNotification(row: SysNotification) {
-  if (!hasUserContext()) {
-    return
-  }
-
-  try {
-    const changed = await notificationApi.confirm(
-      row.basicId,
-      currentUserId.value,
-      currentTenantId.value ?? undefined,
-    )
-    if (!changed) {
-      message.warning('通知确认失败，可能已过期或已处理')
-      return
-    }
-
-    message.success('通知确认成功')
-    await refreshInbox()
-  }
-  catch {
-    message.error('通知确认失败')
-  }
-}
-
-async function handleMarkAllNotificationRead() {
-  if (!hasUserContext()) {
-    return
-  }
-
-  try {
-    const count = await notificationApi.markAllRead(
-      currentUserId.value,
-      currentTenantId.value ?? undefined,
-    )
-    if (count <= 0) {
-      message.info('暂无未读通知')
-      return
-    }
-
-    message.success(`已标记 ${count} 条通知为已读`)
-    await refreshInbox()
-  }
-  catch {
-    message.error('全部已读操作失败')
-  }
-}
 
 const queryParams = reactive({
   keyword: '',
   notificationType: undefined as number | undefined,
-  notificationStatus: undefined as number | undefined,
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
@@ -261,7 +72,6 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
     pageSize: page.pageSize,
     keyword: queryParams.keyword,
     notificationType: queryParams.notificationType,
-    notificationStatus: queryParams.notificationStatus,
   })
 }
 
@@ -290,12 +100,6 @@ const options = useVxeTable<SysNotification>(
         title: '需确认',
         width: 90,
         slots: { default: 'col_confirm' },
-      },
-      {
-        field: 'notificationStatus',
-        title: '状态',
-        width: 80,
-        slots: { default: 'col_nStatus' },
       },
       {
         field: 'sendTime',
@@ -340,7 +144,6 @@ function handleSearch() {
 function handleReset() {
   queryParams.keyword = ''
   queryParams.notificationType = undefined
-  queryParams.notificationStatus = undefined
   xGrid.value?.commitProxy('reload')
 }
 
@@ -615,93 +418,10 @@ async function handleSubmitPush() {
     pushLoading.value = false
   }
 }
-
-function getNStatusType(status: number) {
-  const map: Record<number, 'default' | 'info' | 'success' | 'error'> = {
-    0: 'default',
-    1: 'success',
-    2: 'error',
-  }
-  return map[status] ?? 'default'
-}
-
-onMounted(() => {
-  window.addEventListener(NOTIFICATION_RECEIVED_EVENT, refreshInbox)
-  void refreshInbox()
-})
-
-onUnmounted(() => {
-  window.removeEventListener(NOTIFICATION_RECEIVED_EVENT, refreshInbox)
-})
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <vxe-card class="xh-notice-inbox-card">
-      <div class="xh-notice-inbox-toolbar">
-        <div class="xh-notice-inbox-title">
-          <span>我的通知收件箱</span>
-          <NTag type="warning" size="small">
-            未读 {{ unreadCount }}
-          </NTag>
-        </div>
-        <NSpace>
-          <NSelect
-            v-model:value="inboxIncludeRead"
-            :options="INBOX_FILTER_OPTIONS"
-            style="width: 120px"
-            @update:value="handleInboxFilterChange"
-          />
-          <NButton size="small" @click="refreshInbox">
-            刷新
-          </NButton>
-          <NButton
-            size="small"
-            type="primary"
-            secondary
-            :disabled="unreadCount <= 0"
-            @click="handleMarkAllNotificationRead"
-          >
-            全部已读
-          </NButton>
-        </NSpace>
-      </div>
-      <vxe-grid v-bind="inboxOptions" :data="inboxRows" :loading="inboxLoading">
-        <template #col_inbox_status="{ row }">
-          <NTag :type="getNStatusType(row.notificationStatus)" size="small">
-            {{ getOptionLabel(NOTIFICATION_STATUS_OPTIONS, row.notificationStatus) }}
-          </NTag>
-        </template>
-        <template #col_inbox_confirm="{ row }">
-          <NTag :type="row.needConfirm ? 'warning' : 'default'" size="small">
-            {{ row.needConfirm ? '是' : '否' }}
-          </NTag>
-        </template>
-        <template #col_inbox_actions="{ row }">
-          <NSpace size="small">
-            <NButton
-              v-if="row.notificationStatus === 0"
-              size="small"
-              type="primary"
-              text
-              @click="handleMarkNotificationRead(row)"
-            >
-              已读
-            </NButton>
-            <NButton
-              v-if="row.needConfirm && row.notificationStatus === 0"
-              size="small"
-              type="warning"
-              text
-              @click="handleConfirmNotification(row)"
-            >
-              确认
-            </NButton>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
-
     <XSystemQueryPanel>
       <div class="xh-query-panel__content">
         <vxe-input
@@ -718,13 +438,6 @@ onUnmounted(() => {
           clearable
           style="width: 130px"
         />
-        <NSelect
-          v-model:value="queryParams.notificationStatus"
-          :options="NOTIFICATION_STATUS_OPTIONS"
-          placeholder="状态"
-          clearable
-          style="width: 120px"
-        />
         <NButton type="primary" size="small" @click="handleSearch">
           查询
         </NButton>
@@ -738,10 +451,10 @@ onUnmounted(() => {
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
           <NSpace>
-            <NButton v-access="['notice:create']" type="primary" size="small" @click="handleAdd">
+            <NButton v-if="canCreate" type="primary" size="small" @click="handleAdd">
               新增通知
             </NButton>
-            <NButton v-access="['notice:create']" size="small" secondary @click="handleOpenPush()">
+            <NButton v-if="canCreate" size="small" secondary @click="handleOpenPush()">
               发布通知
             </NButton>
           </NSpace>
@@ -756,20 +469,15 @@ onUnmounted(() => {
             {{ row.needConfirm ? '是' : '否' }}
           </NTag>
         </template>
-        <template #col_nStatus="{ row }">
-          <NTag :type="getNStatusType(row.notificationStatus)" size="small">
-            {{ getOptionLabel(NOTIFICATION_STATUS_OPTIONS, row.notificationStatus) }}
-          </NTag>
-        </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton v-access="['notice:update']" size="small" type="primary" text @click="handleEdit(row)">
+            <NButton v-if="canUpdate" size="small" type="primary" text @click="handleEdit(row)">
               编辑
             </NButton>
-            <NButton v-access="['notice:create']" size="small" type="primary" text @click="handleOpenPush(row)">
+            <NButton v-if="canCreate" size="small" type="primary" text @click="handleOpenPush(row)">
               发布
             </NButton>
-            <NPopconfirm v-access="['notice:delete']" @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm v-if="canDelete" @positive-click="handleDelete(row.basicId)">
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -859,17 +567,6 @@ onUnmounted(() => {
             取消
           </NButton>
           <NButton
-            v-if="!formData.basicId"
-            v-access="['notice:create']"
-            type="primary"
-            :loading="submitLoading"
-            @click="handleSubmit"
-          >
-            确认
-          </NButton>
-          <NButton
-            v-else
-            v-access="['notice:update']"
             type="primary"
             :loading="submitLoading"
             @click="handleSubmit"
@@ -950,7 +647,6 @@ onUnmounted(() => {
             取消
           </NButton>
           <NButton
-            v-access="['notice:create']"
             type="primary"
             :loading="pushLoading"
             @click="handleSubmitPush"
@@ -962,25 +658,3 @@ onUnmounted(() => {
     </NModal>
   </div>
 </template>
-
-<style scoped>
-.xh-notice-inbox-card {
-  flex: 0 0 auto;
-}
-
-.xh-notice-inbox-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-
-.xh-notice-inbox-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-</style>

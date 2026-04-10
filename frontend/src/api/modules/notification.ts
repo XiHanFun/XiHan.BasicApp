@@ -5,6 +5,51 @@ import { toId, toNumber } from '../helpers'
 
 const api = useBaseApi('Notification')
 
+// 后端 JsonStringEnumConverter：API 收发枚举均为字符串名称
+const NOTIFICATION_TYPE_TO_NAME: Record<number, string> = {
+  0: 'System', 1: 'User', 2: 'Announcement', 3: 'Warning', 4: 'Error',
+}
+const NOTIFICATION_TYPE_FROM_NAME: Record<string, number> = {
+  System: 0, User: 1, Announcement: 2, Warning: 3, Error: 4,
+}
+const NOTIFICATION_STATUS_TO_NAME: Record<number, string> = {
+  0: 'Unread', 1: 'Read', 2: 'Deleted',
+}
+const NOTIFICATION_STATUS_FROM_NAME: Record<string, number> = {
+  Unread: 0, Read: 1, Deleted: 2,
+}
+const YES_NO_TO_NAME: Record<number, string> = { 0: 'No', 1: 'Yes' }
+const YES_NO_FROM_NAME: Record<string, number> = { No: 0, Yes: 1 }
+
+/** 将后端枚举字符串或数字统一转为前端数字 */
+function parseEnum(value: unknown, nameMap: Record<string, number>, fallback: number): number {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') return nameMap[value] ?? toNumber(value, fallback)
+  return fallback
+}
+
+/** 前端数字转后端枚举名称字符串 */
+function toEnumName(value: unknown, nameMap: Record<number, string>, fallback: string): string {
+  const num = typeof value === 'number' ? value : toNumber(value, -1)
+  return nameMap[num] ?? fallback
+}
+
+/** 保持字符串 ID，避免 JS Number 丢失雪花 ID 精度 */
+function toStringIdOrNull(value: unknown): null | string {
+  if (value === undefined || value === null || value === '') return null
+  const s = String(value)
+  return s === '0' ? null : s
+}
+
+function toStringIdArray(values: Array<number | string>): string[] {
+  return values.map(v => String(v)).filter(s => s !== '' && s !== '0')
+}
+
+function toTenantSegment(value?: null | number | string): string {
+  if (value === undefined || value === null || value === '') return '0'
+  return String(value)
+}
+
 export interface SysNotification {
   basicId: string
   recipientUserId?: string
@@ -47,39 +92,21 @@ export interface PushNotificationPayload {
   remark?: string
 }
 
-function toLongOrNull(value: unknown): null | number {
-  if (value === undefined || value === null || value === '')
-    return null
-  const parsed = toNumber(value, 0)
-  return parsed > 0 ? parsed : null
-}
-
-function toLongArray(values: Array<number | string>): number[] {
-  return values
-    .map(item => toNumber(item, 0))
-    .filter(item => item > 0)
-}
-
-function toTenantSegment(value?: null | number | string): number {
-  const parsed = toNumber(value, 0)
-  return parsed > 0 ? parsed : 0
-}
-
 function normalizeNotification(raw: Record<string, any>): SysNotification {
   return {
     basicId: toId(raw.basicId),
     recipientUserId: raw.recipientUserId == null ? undefined : toId(raw.recipientUserId),
     sendUserId: raw.sendUserId == null ? undefined : toId(raw.sendUserId),
-    notificationType: toNumber(raw.notificationType, 0),
+    notificationType: parseEnum(raw.notificationType, NOTIFICATION_TYPE_FROM_NAME, 0),
     title: raw.title ?? '',
     content: raw.content ?? '',
-    notificationStatus: toNumber(raw.notificationStatus, 0),
+    notificationStatus: parseEnum(raw.notificationStatus, NOTIFICATION_STATUS_FROM_NAME, 0),
     readTime: raw.readTime ?? undefined,
     sendTime: raw.sendTime ?? '',
     expireTime: raw.expireTime ?? undefined,
     isGlobal: raw.isGlobal ?? undefined,
     needConfirm: raw.needConfirm ?? undefined,
-    status: raw.status == null ? undefined : toNumber(raw.status, 1),
+    status: raw.status == null ? undefined : parseEnum(raw.status, YES_NO_FROM_NAME, 1),
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
     remark: raw.remark ?? undefined,
@@ -89,9 +116,9 @@ function normalizeNotification(raw: Record<string, any>): SysNotification {
 function toCreatePayload(data: Partial<SysNotification>) {
   const isGlobal = Boolean(data.isGlobal)
   return {
-    recipientUserId: isGlobal ? null : toLongOrNull(data.recipientUserId),
-    sendUserId: toLongOrNull(data.sendUserId),
-    notificationType: toNumber(data.notificationType, 0),
+    recipientUserId: isGlobal ? null : toStringIdOrNull(data.recipientUserId),
+    sendUserId: toStringIdOrNull(data.sendUserId),
+    notificationType: toEnumName(data.notificationType, NOTIFICATION_TYPE_TO_NAME, 'System'),
     title: data.title ?? '',
     content: data.content ?? '',
     isGlobal,
@@ -105,9 +132,9 @@ function toCreatePayload(data: Partial<SysNotification>) {
 function toUpdatePayload(id: string, data: Partial<SysNotification>) {
   return {
     ...toCreatePayload(data),
-    notificationStatus: toNumber(data.notificationStatus, 0),
+    notificationStatus: toEnumName(data.notificationStatus, NOTIFICATION_STATUS_TO_NAME, 'Unread'),
     readTime: data.readTime ?? null,
-    status: toNumber(data.status, 1),
+    status: toEnumName(data.status, YES_NO_TO_NAME, 'Yes'),
     basicId: toId(id),
   }
 }
@@ -159,9 +186,10 @@ export const notificationApi = {
       isGlobal,
       title: (data.title ?? '').trim(),
       content: data.content ?? '',
-      recipientUserIds: isGlobal ? [] : toLongArray(data.recipientUserIds),
-      sendUserId: toLongOrNull(data.sendUserId),
-      tenantId: toLongOrNull(data.tenantId),
+      notificationType: toEnumName(data.notificationType, NOTIFICATION_TYPE_TO_NAME, 'System'),
+      recipientUserIds: isGlobal ? [] : toStringIdArray(data.recipientUserIds),
+      sendUserId: toStringIdOrNull(data.sendUserId),
+      tenantId: toStringIdOrNull(data.tenantId),
       remark: data.remark ?? '',
     })
   },

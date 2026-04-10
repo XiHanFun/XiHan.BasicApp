@@ -83,9 +83,7 @@ public class RbacPolicyStore : IPolicyStore
             }
         }
 
-        return policies
-            .OrderBy(static policy => policy.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        return [.. policies.OrderBy(static policy => policy.Name, StringComparer.OrdinalIgnoreCase)];
     }
 
     /// <summary>

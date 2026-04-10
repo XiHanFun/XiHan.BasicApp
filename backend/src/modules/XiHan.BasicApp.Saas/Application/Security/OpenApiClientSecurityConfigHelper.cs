@@ -116,12 +116,11 @@ public static class OpenApiClientSecurityConfigHelper
             return [];
         }
 
-        return raw
+        return [.. raw
             .Split([',', ';', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries)
             .Select(item => item.Trim())
             .Where(item => item.Length > 0)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+            .Distinct(StringComparer.OrdinalIgnoreCase)];
     }
 
     private static string NormalizeOrDefault(string? value, string fallback)

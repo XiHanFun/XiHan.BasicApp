@@ -49,14 +49,9 @@ public class FileRepository : SqlSugarAggregateRepository<SysFile, long>, IFileR
         var query = CreateTenantQueryable()
             .Where(file => file.FileHash == fileHash);
 
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(file => file.TenantId == resolvedTenantId.Value);
-        }
-        else
-        {
-            query = query.Where(file => file.TenantId == null);
-        }
+        query = resolvedTenantId.HasValue
+            ? query.Where(file => file.TenantId == resolvedTenantId.Value)
+            : query.Where(file => file.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
