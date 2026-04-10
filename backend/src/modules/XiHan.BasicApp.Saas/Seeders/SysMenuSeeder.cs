@@ -50,7 +50,8 @@ public class SysMenuSeeder : DataSeederBase
     {
         if (await HasDataAsync<SysMenu>(m => true))
         {
-            Logger.LogInformation("系统菜单数据已存在，跳过种子数据");
+            Logger.LogInformation("系统菜单数据已存在，执行菜单层级校准");
+            await NormalizeMenuHierarchyAsync();
             return;
         }
 
@@ -81,7 +82,8 @@ public class SysMenuSeeder : DataSeederBase
             new() { ResourceId = GetResourceId(resourceMap, "message"), ParentId = null, MenuName = "消息管理", MenuCode = "message", MenuType = MenuType.Menu, Path = "/messaging/message", Component = "System/Message/Index", RouteName = "SystemMessage", Icon = "bell-ring", Title = "消息管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 251 },
             new() { ResourceId = GetResourceId(resourceMap, "email"), ParentId = null, MenuName = "邮件管理", MenuCode = "email", MenuType = MenuType.Menu, Path = "/messaging/email", Component = "System/Email/Index", RouteName = "SystemEmail", Icon = "mail", Title = "邮件管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 252 },
             new() { ResourceId = GetResourceId(resourceMap, "sms"), ParentId = null, MenuName = "短信管理", MenuCode = "sms", MenuType = MenuType.Menu, Path = "/messaging/sms", Component = "System/Sms/Index", RouteName = "SystemSms", Icon = "message-circle", Title = "短信管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 253 },
-            // 日志管理子目录
+
+            // 日志管理
             new() { ResourceId = GetResourceId(resourceMap, "log"), ParentId = null, MenuName = "日志管理", MenuCode = "log", MenuType = MenuType.Directory, Path = "/log", Component = null, RouteName = null, Redirect = "/log/vislog", Icon = "file-text", Title = "日志管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 109 },
             new() { ResourceId = GetResourceId(resourceMap, "access_log"), ParentId = null, MenuName = "访问日志", MenuCode = "access_log", MenuType = MenuType.Menu, Path = "/log/vislog", Component = "System/Log/Access", RouteName = "AccessLog", Icon = "globe", Title = "访问日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 301 },
             new() { ResourceId = GetResourceId(resourceMap, "operation_log"), ParentId = null, MenuName = "操作日志", MenuCode = "operation_log", MenuType = MenuType.Menu, Path = "/log/oplog", Component = "System/Log/Operation", RouteName = "OperationLog", Icon = "history", Title = "操作日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 302 },
@@ -109,15 +111,37 @@ public class SysMenuSeeder : DataSeederBase
         };
 
         await BulkInsertAsync(menus);
-        await UpdateMenuParentIdAsync("messaging", ["message", "email", "sms"]);
-        await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log", "api_log"]);
-        await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "log", "messaging"]);
-        await UpdateMenuParentIdAsync("platform", ["tenant", "permission", "menu", "config", "constraint_rule", "dict", "task", "monitor", "cache", "file"]);
+        await NormalizeMenuHierarchyAsync();
 
         Logger.LogInformation("成功初始化 {Count} 个系统菜单", menus.Count);
     }
 
     private static long? GetResourceId(Dictionary<string, long> resourceMap, string resourceCode) => resourceMap.TryGetValue(resourceCode, out var id) ? id : null;
+
+    private async Task NormalizeMenuHierarchyAsync()
+    {
+        // 顶级菜单：日志管理与平台管理保持同级
+        await SetMenuAsRootAsync("dashboard");
+        await SetMenuAsRootAsync("system");
+        await SetMenuAsRootAsync("messaging");
+        await SetMenuAsRootAsync("log");
+        await SetMenuAsRootAsync("platform");
+        await SetMenuAsRootAsync("about");
+
+        await UpdateMenuParentIdAsync("messaging", ["message", "email", "sms"]);
+        await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log", "api_log"]);
+        await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);
+        await UpdateMenuParentIdAsync("platform", ["tenant", "permission", "menu", "config", "constraint_rule", "dict", "task", "monitor", "cache", "file"]);
+    }
+
+    private async Task SetMenuAsRootAsync(string menuCode)
+    {
+        await DbContext.GetClient()
+            .Updateable<SysMenu>()
+            .SetColumns(menu => menu.ParentId == null)
+            .Where(menu => menu.MenuCode == menuCode)
+            .ExecuteCommandAsync();
+    }
 
     private async Task UpdateMenuParentIdAsync(string parentCode, string[] childCodes)
     {
