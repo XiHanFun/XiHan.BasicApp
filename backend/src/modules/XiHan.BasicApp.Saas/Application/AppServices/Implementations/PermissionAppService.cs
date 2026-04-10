@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -22,6 +23,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -32,6 +34,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 权限应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
+[PermissionAuthorize("permission:read")]
 public class PermissionAppService
     : CrudApplicationServiceBase<SysPermission, PermissionDto, long, PermissionCreateDto, PermissionUpdateDto, BasicAppPRDto>,
         IPermissionAppService
@@ -66,6 +70,7 @@ public class PermissionAppService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
+    [PermissionAuthorize("permission:read")]
     public override async Task<PermissionDto?> GetByIdAsync(long id)
     {
         return await _queryService.GetByIdAsync(id);
@@ -77,6 +82,7 @@ public class PermissionAppService
     /// <param name="roleId"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("permission:read")]
     public async Task<IReadOnlyList<PermissionDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null)
     {
         if (roleId <= 0)
@@ -93,6 +99,7 @@ public class PermissionAppService
     /// </summary>
     /// <param name="query"></param>
     /// <returns></returns>
+    [PermissionAuthorize("permission:read")]
     public async Task<IReadOnlyList<PermissionDto>> GetUserPermissionsAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -110,6 +117,7 @@ public class PermissionAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("permission:create")]
     public override async Task<PermissionDto> CreateAsync(PermissionCreateDto input)
     {
         input.ValidateAnnotations();
@@ -128,6 +136,7 @@ public class PermissionAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("permission:update")]
     public override async Task<PermissionDto> UpdateAsync(PermissionUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -149,6 +158,7 @@ public class PermissionAppService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
+    [PermissionAuthorize("permission:delete")]
     public override async Task<bool> DeleteAsync(long id)
     {
         if (id <= 0)

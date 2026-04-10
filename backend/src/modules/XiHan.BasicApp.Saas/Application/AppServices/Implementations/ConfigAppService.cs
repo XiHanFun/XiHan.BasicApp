@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
@@ -21,6 +22,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Authorization.AspNetCore;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -28,6 +30,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 配置应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
+[PermissionAuthorize("config:read")]
 public class ConfigAppService
     : CrudApplicationServiceBase<SysConfig, ConfigDto, long, ConfigCreateDto, ConfigUpdateDto, BasicAppPRDto>,
         IConfigAppService
@@ -51,6 +55,7 @@ public class ConfigAppService
     /// <summary>
     /// 根据配置键获取配置（委托 QueryService，走缓存）
     /// </summary>
+    [PermissionAuthorize("config:read")]
     public async Task<ConfigDto?> GetConfigByKeyAsync(string configKey, long? tenantId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
@@ -60,6 +65,7 @@ public class ConfigAppService
     /// <summary>
     /// 创建配置（委托 DomainService）
     /// </summary>
+    [PermissionAuthorize("config:create")]
     public override async Task<ConfigDto> CreateAsync(ConfigCreateDto input)
     {
         input.ValidateAnnotations();
@@ -71,6 +77,7 @@ public class ConfigAppService
     /// <summary>
     /// 更新配置（委托 DomainService）
     /// </summary>
+    [PermissionAuthorize("config:update")]
     public override async Task<ConfigDto> UpdateAsync(ConfigUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -84,6 +91,7 @@ public class ConfigAppService
     /// <summary>
     /// 删除配置（委托 DomainService）
     /// </summary>
+    [PermissionAuthorize("config:delete")]
     public override async Task<bool> DeleteAsync(long id)
     {
         return await _domainService.DeleteAsync(id);

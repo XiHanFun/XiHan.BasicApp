@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { SysDepartment } from '@/api/modules/department'
+import type { SysPermission } from '@/api/modules/permission'
 import type { SysRole } from '@/api/modules/role'
 import type { SysUser } from '@/api/modules/user'
 import {
@@ -15,9 +17,10 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { computed, onMounted, reactive, ref } from 'vue'
-import { roleApi, userApi } from '@/api'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { departmentApi, permissionApi, roleApi, userApi } from '@/api'
 import { toId } from '@/api/helpers'
+import { XSystemQueryPanel } from '~/components'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -33,13 +36,48 @@ const roleOptions = computed(() =>
   allRoles.value.map(r => ({ label: r.roleName, value: r.basicId })),
 )
 const roleIdToName = computed(() => new Map(allRoles.value.map(r => [r.basicId, r.roleName])))
+const allPermissions = ref<SysPermission[]>([])
+const permissionOptions = computed(() =>
+  allPermissions.value.map(item => ({ label: item.permissionName, value: item.basicId })),
+)
+const allDepartments = ref<Array<{ basicId: string, departmentName: string, fullName: string }>>([])
+const departmentOptions = computed(() =>
+  allDepartments.value.map(item => ({ label: item.fullName, value: item.basicId })),
+)
+const deptIdToName = computed(() => new Map(allDepartments.value.map(item => [item.basicId, item.departmentName])))
+
+function flattenDepartmentTree(
+  nodes: SysDepartment[],
+  parentNames: string[] = [],
+): Array<{ basicId: string, departmentName: string, fullName: string }> {
+  const result: Array<{ basicId: string, departmentName: string, fullName: string }> = []
+  for (const node of nodes) {
+    const currentNames = [...parentNames, node.departmentName]
+    result.push({
+      basicId: node.basicId,
+      departmentName: node.departmentName,
+      fullName: currentNames.join(' / '),
+    })
+    if (node.children?.length) {
+      result.push(...flattenDepartmentTree(node.children, currentNames))
+    }
+  }
+  return result
+}
 
 onMounted(async () => {
   try {
-    allRoles.value = await roleApi.list()
+    const [roles, permissions, departments] = await Promise.all([
+      roleApi.list(),
+      permissionApi.list(),
+      departmentApi.tree(),
+    ])
+    allRoles.value = roles
+    allPermissions.value = permissions
+    allDepartments.value = flattenDepartmentTree(departments)
   }
   catch {
-    message.error('加载角色列表失败')
+    message.error('加载角色、权限或部门列表失败')
   }
 })
 
@@ -104,6 +142,12 @@ const options = useVxeTable<SysUser>(
         slots: { default: 'col_roles' },
       },
       {
+        field: 'deptId',
+        title: '主部门',
+        minWidth: 140,
+        slots: { default: 'col_department' },
+      },
+      {
         field: 'createTime',
         title: '创建时间',
         width: 170,
@@ -147,8 +191,21 @@ const modalVisible = ref(false)
 const modalTitle = ref('新增用户')
 const submitLoading = ref(false)
 type UserForm = Partial<SysUser & { password?: string, roleIds: string[] }>
+interface UserDepartmentForm {
+  departmentIds: string[]
+  mainDepartmentId?: string
+}
 
-const formData = ref<UserForm>({ roleIds: [] })
+const formData = ref<UserForm & { permissionIds: string[] } & UserDepartmentForm>({
+  roleIds: [],
+  permissionIds: [],
+  departmentIds: [],
+  mainDepartmentId: undefined,
+})
+const selectedDepartmentOptions = computed(() => {
+  const selectedIds = new Set(formData.value.departmentIds ?? [])
+  return departmentOptions.value.filter(item => selectedIds.has(item.value))
+})
 
 function resetForm() {
   formData.value = {
@@ -160,6 +217,9 @@ function resetForm() {
     status: 1,
     password: '',
     roleIds: [],
+    permissionIds: [],
+    departmentIds: [],
+    mainDepartmentId: undefined,
   }
 }
 
@@ -171,15 +231,35 @@ function handleAdd() {
 
 async function handleEdit(row: SysUser) {
   modalTitle.value = '编辑用户'
-  formData.value = { ...row, password: '', roleIds: [] }
+  formData.value = {
+    ...row,
+    password: '',
+    roleIds: [],
+    permissionIds: [],
+    departmentIds: row.deptId ? [row.deptId] : [],
+    mainDepartmentId: row.deptId,
+  }
   modalVisible.value = true
   try {
-    const roleIds = await userApi.getUserRoles(row.basicId)
+    const [roleIds, permissionIds, departments] = await Promise.all([
+      userApi.getUserRoles(row.basicId),
+      userApi.getUserPermissions(row.basicId),
+      userApi.getUserDepartments(row.basicId),
+    ])
     formData.value.roleIds = [...roleIds]
+    formData.value.permissionIds = [...permissionIds]
+    formData.value.departmentIds = [...departments.departmentIds]
+    formData.value.mainDepartmentId = departments.mainDepartmentId
+    if (!formData.value.mainDepartmentId && formData.value.departmentIds.length > 0) {
+      formData.value.mainDepartmentId = formData.value.departmentIds[0]
+    }
   }
   catch {
     formData.value.roleIds = []
-    message.error('加载用户角色失败')
+    formData.value.permissionIds = []
+    formData.value.departmentIds = []
+    formData.value.mainDepartmentId = undefined
+    message.error('加载用户授权信息失败')
   }
 }
 
@@ -194,7 +274,7 @@ async function handleDelete(id: string) {
   }
 }
 
-async function handleToggleStatus(row: any) {
+async function handleToggleStatus(row: SysUser) {
   const newStatus = row.status === 1 ? 0 : 1
   try {
     await userApi.changeStatus(row.basicId, newStatus)
@@ -210,7 +290,7 @@ const resetPwdVisible = ref(false)
 const resetPwdUserId = ref('')
 const resetPwdValue = ref('')
 
-function handleResetPwd(row: any) {
+function handleResetPwd(row: SysUser) {
   resetPwdUserId.value = row.basicId
   resetPwdValue.value = ''
   resetPwdVisible.value = true
@@ -235,13 +315,22 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
     const roleIds = formData.value.roleIds ?? []
+    const permissionIds = formData.value.permissionIds ?? []
+    const departmentIds = formData.value.departmentIds ?? []
+    let mainDepartmentId = formData.value.mainDepartmentId
+    if (departmentIds.length === 0) {
+      mainDepartmentId = undefined
+    }
+    else if (!mainDepartmentId || !departmentIds.includes(mainDepartmentId)) {
+      mainDepartmentId = departmentIds[0]
+    }
     let userId = formData.value.basicId
     if (userId) {
       await userApi.update(userId, formData.value)
     }
     else {
       const created = await userApi.create(formData.value)
-      const createdRecord = created as Record<string, unknown>
+      const createdRecord = created as unknown as Record<string, unknown>
       const createdData = createdRecord?.data as Record<string, unknown> | undefined
       userId = toId(
         createdRecord?.basicId
@@ -250,8 +339,11 @@ async function handleSubmit() {
         ?? createdData?.BasicId,
       )
     }
-    if (userId)
+    if (userId) {
       await userApi.assignRoles(userId, roleIds)
+      await userApi.assignPermissions(userId, permissionIds)
+      await userApi.assignDepartments(userId, departmentIds, mainDepartmentId)
+    }
     message.success('操作成功')
     modalVisible.value = false
     xGrid.value?.commitProxy('query')
@@ -268,12 +360,35 @@ async function handleSubmit() {
 function roleLabelForCell(value: string) {
   return roleIdToName.value.get(value) ?? '未知角色'
 }
+
+/** 表格单元格：部门 ID 解析为展示名 */
+function departmentLabelForCell(value?: string) {
+  if (!value) {
+    return '—'
+  }
+  return deptIdToName.value.get(value) ?? '未知部门'
+}
+
+watch(
+  () => formData.value.departmentIds,
+  (value) => {
+    const ids = value ?? []
+    if (ids.length === 0) {
+      formData.value.mainDepartmentId = undefined
+      return
+    }
+    if (!formData.value.mainDepartmentId || !ids.includes(formData.value.mainDepartmentId)) {
+      formData.value.mainDepartmentId = ids[0]
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex flex-wrap gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索用户名/昵称/邮箱/手机"
@@ -295,11 +410,11 @@ function roleLabelForCell(value: string) {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
+          <NButton v-access="['user:create']" type="primary" size="small" @click="handleAdd">
             新增用户
           </NButton>
         </template>
@@ -322,18 +437,24 @@ function roleLabelForCell(value: string) {
           </NSpace>
           <span v-else class="text-gray-400">—</span>
         </template>
+        <template #col_department="{ row }">
+          <NTag v-if="row.deptId" size="small" type="default" round>
+            {{ departmentLabelForCell(row.deptId) }}
+          </NTag>
+          <span v-else class="text-gray-400">—</span>
+        </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
+            <NButton v-access="['user:update']" size="small" type="primary" text @click="handleEdit(row)">
               编辑
             </NButton>
-            <NButton size="small" type="warning" text @click="handleToggleStatus(row)">
+            <NButton v-access="['user:update']" size="small" type="warning" text @click="handleToggleStatus(row)">
               {{ row.status === 1 ? '禁用' : '启用' }}
             </NButton>
-            <NButton size="small" type="info" text @click="handleResetPwd(row)">
+            <NButton v-access="['user:update']" size="small" type="info" text @click="handleResetPwd(row)">
               重置密码
             </NButton>
-            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm v-access="['user:delete']" @positive-click="handleDelete(row.basicId)">
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -353,7 +474,7 @@ function roleLabelForCell(value: string) {
       style="width: 520px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="80px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="80px">
         <NFormItem label="用户名" path="userName">
           <NInput
             v-model:value="formData.userName"
@@ -385,9 +506,31 @@ function roleLabelForCell(value: string) {
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
         </NFormItem>
         <NDivider title-placement="left">
+          部门归属
+        </NDivider>
+        <NFormItem label="部门" path="departmentIds">
+          <NSelect
+            v-model:value="formData.departmentIds"
+            :options="departmentOptions"
+            multiple
+            clearable
+            filterable
+            placeholder="选择归属部门"
+          />
+        </NFormItem>
+        <NFormItem label="主部门" path="mainDepartmentId">
+          <NSelect
+            v-model:value="formData.mainDepartmentId"
+            :options="selectedDepartmentOptions"
+            clearable
+            :disabled="(formData.departmentIds?.length ?? 0) === 0"
+            placeholder="请选择主部门"
+          />
+        </NFormItem>
+        <NDivider title-placement="left">
           角色分配
         </NDivider>
-        <NFormItem label="角色" path="roleIds">
+        <NFormItem label="角色" path="roleIds" class="xh-form-full-row">
           <NSelect
             v-model:value="formData.roleIds"
             :options="roleOptions"
@@ -396,13 +539,41 @@ function roleLabelForCell(value: string) {
             placeholder="选择角色"
           />
         </NFormItem>
+        <NDivider title-placement="left">
+          用户直授权限
+        </NDivider>
+        <NFormItem label="权限" path="permissionIds" class="xh-form-full-row">
+          <NSelect
+            v-model:value="formData.permissionIds"
+            :options="permissionOptions"
+            multiple
+            clearable
+            filterable
+            placeholder="选择直授权限"
+          />
+        </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
             取消
           </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+          <NButton
+            v-if="!formData.basicId"
+            v-access="['user:create']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
+            确认
+          </NButton>
+          <NButton
+            v-else
+            v-access="['user:update']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
             确认
           </NButton>
         </NSpace>
@@ -427,7 +598,7 @@ function roleLabelForCell(value: string) {
           <NButton @click="resetPwdVisible = false">
             取消
           </NButton>
-          <NButton type="primary" @click="confirmResetPwd">
+          <NButton v-access="['user:update']" type="primary" @click="confirmResetPwd">
             确认重置
           </NButton>
         </NSpace>

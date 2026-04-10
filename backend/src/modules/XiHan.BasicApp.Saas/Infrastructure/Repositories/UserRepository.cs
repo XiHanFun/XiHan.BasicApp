@@ -231,6 +231,34 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     }
 
     /// <summary>
+    /// 根据角色ID获取关联用户ID列表
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="tenantId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IReadOnlyCollection<long>> GetUserIdsByRoleIdAsync(
+        long roleId,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var query = CreateTenantQueryable<SysUserRole>()
+            .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
+        }
+
+        return await query
+            .Select(mapping => mapping.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 获取用户直授权限关系
     /// </summary>
     /// <param name="userId"></param>

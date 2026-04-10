@@ -16,6 +16,7 @@ import {
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { emailApi } from '@/api'
+import { XSystemQueryPanel } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -175,8 +176,8 @@ function getEmailStatusType(status: number) {
 
 <template>
   <div class="flex flex-col h-full">
-    <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex flex-wrap gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索发件人/收件人/主题"
@@ -205,7 +206,7 @@ function getEmailStatusType(status: number) {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
@@ -243,7 +244,7 @@ function getEmailStatusType(status: number) {
       style="width: 600px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="80px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="80px">
         <NFormItem label="发件人" path="fromEmail">
           <NInput v-model:value="formData.fromEmail" placeholder="发件人邮箱" />
         </NFormItem>

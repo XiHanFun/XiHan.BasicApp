@@ -25,6 +25,8 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// </summary>
 public class UserManager : IUserManager
 {
+    private const string SuperAdminUserName = "superadmin";
+
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
 
@@ -52,6 +54,12 @@ public class UserManager : IUserManager
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentException.ThrowIfNullOrWhiteSpace(plainPassword);
+
+        if (string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase)
+            && !user.IsSystemAccount)
+        {
+            throw new BusinessException(message: "superadmin 为系统内置账号，禁止新增");
+        }
 
         await EnsureUserNameUniqueAsync(user.UserName, null, user.TenantId, cancellationToken);
 

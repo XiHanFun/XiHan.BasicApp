@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -21,6 +22,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
@@ -32,6 +34,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 部门应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
+[PermissionAuthorize("department:read")]
 public class DepartmentAppService
     : CrudApplicationServiceBase<SysDepartment, DepartmentDto, long, DepartmentCreateDto, DepartmentUpdateDto, BasicAppPRDto>,
         IDepartmentAppService
@@ -74,6 +78,7 @@ public class DepartmentAppService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
+    [PermissionAuthorize("department:read")]
     public override async Task<DepartmentDto?> GetByIdAsync(long id)
     {
         return await _queryService.GetByIdAsync(id);
@@ -85,6 +90,7 @@ public class DepartmentAppService
     /// <param name="parentId"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("department:read")]
     public async Task<IReadOnlyList<DepartmentDto>> GetChildrenAsync(long? parentId, long? tenantId = null)
     {
         var departments = await _departmentRepository.GetChildrenAsync(parentId, tenantId);
@@ -96,6 +102,7 @@ public class DepartmentAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("department:create")]
     public override async Task<DepartmentDto> CreateAsync(DepartmentCreateDto input)
     {
         input.ValidateAnnotations();
@@ -114,6 +121,7 @@ public class DepartmentAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("department:update")]
     public override async Task<DepartmentDto> UpdateAsync(DepartmentUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -135,6 +143,7 @@ public class DepartmentAppService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
+    [PermissionAuthorize("department:delete")]
     public override async Task<bool> DeleteAsync(long id)
     {
         if (id <= 0)

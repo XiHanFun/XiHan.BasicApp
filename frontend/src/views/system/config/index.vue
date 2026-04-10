@@ -15,6 +15,7 @@ import {
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { configApi } from '@/api'
+import { XSystemQueryPanel } from '~/components'
 import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -191,8 +192,8 @@ async function handleSubmit() {
 
 <template>
   <div class="flex flex-col h-full">
-    <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex flex-wrap gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索配置名称/配置键"
@@ -221,11 +222,11 @@ async function handleSubmit() {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
+          <NButton v-access="['config:create']" type="primary" size="small" @click="handleAdd">
             新增配置
           </NButton>
         </template>
@@ -241,10 +242,10 @@ async function handleSubmit() {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
+            <NButton v-access="['config:update']" size="small" type="primary" text @click="handleEdit(row)">
               编辑
             </NButton>
-            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm v-access="['config:delete']" @positive-click="handleDelete(row.basicId)">
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -264,7 +265,7 @@ async function handleSubmit() {
       style="width: 620px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="90px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="90px">
         <NFormItem label="配置名称" path="configName">
           <NInput v-model:value="formData.configName" placeholder="请输入配置名称" />
         </NFormItem>
@@ -297,7 +298,22 @@ async function handleSubmit() {
           <NButton @click="modalVisible = false">
             取消
           </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+          <NButton
+            v-if="!formData.basicId"
+            v-access="['config:create']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
+            确认
+          </NButton>
+          <NButton
+            v-else
+            v-access="['config:update']"
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmit"
+          >
             确认
           </NButton>
         </NSpace>

@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
@@ -24,6 +25,9 @@ namespace XiHan.BasicApp.Saas.Seeders;
 /// </summary>
 public class SysUserRoleSeeder : DataSeederBase
 {
+    private const string SuperAdminUserName = "superadmin";
+    private const string SuperAdminRoleCode = "super_admin";
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -81,10 +85,22 @@ public class SysUserRoleSeeder : DataSeederBase
                 StringComparer.OrdinalIgnoreCase);
 
         var requiredPairs = new List<(long UserId, long RoleId)>();
-        AddUserRole(requiredPairs, userMap, roleMap, "superadmin", "super_admin");
-        AddUserRole(requiredPairs, userMap, roleMap, "systemadmin", "admin");
+        AddUserRole(requiredPairs, userMap, roleMap, SuperAdminUserName, SuperAdminRoleCode);
+        AddUserRole(requiredPairs, userMap, roleMap, "admin", "admin");
         AddUserRole(requiredPairs, userMap, roleMap, "test", "employee");
         AddUserRole(requiredPairs, userMap, roleMap, "demo", "guest");
+
+        var removedSuperAdminMappingCount = 0;
+        if (roleMap.TryGetValue(SuperAdminRoleCode, out var superAdminRoleId)
+            && userMap.TryGetValue(SuperAdminUserName, out var superAdminUserId))
+        {
+            removedSuperAdminMappingCount = await DbContext.GetClient()
+                .Deleteable<SysUserRole>()
+                .Where(mapping =>
+                    mapping.RoleId == superAdminRoleId
+                    && mapping.UserId != superAdminUserId)
+                .ExecuteCommandAsync();
+        }
 
         if (requiredPairs.Count == 0)
         {
@@ -97,7 +113,7 @@ public class SysUserRoleSeeder : DataSeederBase
         var existingPairs = await DbContext.GetClient()
             .Queryable<SysUserRole>()
             .Where(mapping => targetUserIds.Contains(mapping.UserId) && targetRoleIds.Contains(mapping.RoleId))
-            .Select(mapping => new { mapping.UserId, mapping.RoleId })
+            .Select(mapping => new { mapping.BasicId, mapping.UserId, mapping.RoleId, mapping.Status })
             .ToListAsync();
 
         var existingSet = existingPairs
@@ -109,18 +125,43 @@ public class SysUserRoleSeeder : DataSeederBase
             .Select(pair => new SysUserRole
             {
                 UserId = pair.UserId,
-                RoleId = pair.RoleId
+                RoleId = pair.RoleId,
+                Status = YesOrNo.Yes
             })
             .ToList();
 
-        if (userRoles.Count == 0)
+        var disabledMappingIds = existingPairs
+            .Where(pair =>
+                pair.Status != YesOrNo.Yes
+                && requiredPairs.Contains((pair.UserId, pair.RoleId)))
+            .Select(pair => pair.BasicId)
+            .Distinct()
+            .ToArray();
+        if (disabledMappingIds.Length > 0)
+        {
+            await DbContext.GetClient()
+                .Updateable<SysUserRole>()
+                .SetColumns(mapping => mapping.Status == YesOrNo.Yes)
+                .Where(mapping => disabledMappingIds.Contains(mapping.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        if (userRoles.Count == 0 && disabledMappingIds.Length == 0 && removedSuperAdminMappingCount == 0)
         {
             Logger.LogInformation("用户角色关系数据已存在，跳过新增");
             return;
         }
 
-        await BulkInsertAsync(userRoles);
-        Logger.LogInformation("成功初始化 {Count} 个用户角色关系", userRoles.Count);
+        if (userRoles.Count > 0)
+        {
+            await BulkInsertAsync(userRoles);
+        }
+
+        Logger.LogInformation(
+            "用户角色关系种子完成：新增 {InsertCount} 条，启用 {EnableCount} 条，清理多余超管绑定 {RemovedSuperAdminCount} 条",
+            userRoles.Count,
+            disabledMappingIds.Length,
+            removedSuperAdminMappingCount);
     }
 
     /// <summary>

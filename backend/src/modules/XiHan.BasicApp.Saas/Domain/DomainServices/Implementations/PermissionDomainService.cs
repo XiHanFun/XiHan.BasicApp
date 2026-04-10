@@ -28,6 +28,7 @@ public class PermissionDomainService : IPermissionDomainService, ITransientDepen
 {
     private readonly IPermissionRepository _permissionRepository;
     private readonly IRoleRepository _roleRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
     private readonly IUserRepository _userRepository;
     private readonly IOrganizationDomainService _organizationDomainService;
     private readonly ILocalEventBus _localEventBus;
@@ -38,12 +39,14 @@ public class PermissionDomainService : IPermissionDomainService, ITransientDepen
     public PermissionDomainService(
         IPermissionRepository permissionRepository,
         IRoleRepository roleRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
         IUserRepository userRepository,
         IOrganizationDomainService organizationDomainService,
         ILocalEventBus localEventBus)
     {
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
         _userRepository = userRepository;
         _organizationDomainService = organizationDomainService;
         _localEventBus = localEventBus;
@@ -163,7 +166,16 @@ public class PermissionDomainService : IPermissionDomainService, ITransientDepen
             return [];
         }
 
-        var roles = await _roleRepository.GetByIdsAsync(roleIds, cancellationToken);
+        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(
+            roleIds,
+            tenantId,
+            cancellationToken);
+        if (inheritedRoleIds.Count == 0)
+        {
+            return [];
+        }
+
+        var roles = await _roleRepository.GetByIdsAsync([.. inheritedRoleIds], cancellationToken);
         return roles
             .Where(role => role.Status == YesOrNo.Yes)
             .Where(role => !tenantId.HasValue || role.TenantId == tenantId.Value)

@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Application.Dtos;
@@ -20,7 +19,7 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 /// <summary>
 /// 用户角色关系 DTO
 /// </summary>
-public class UserRoleRelationDto : BasicAppDto
+public class UserRoleRelationDto
 {
     /// <summary>
     /// 用户ID
@@ -46,7 +45,7 @@ public class UserRoleRelationDto : BasicAppDto
 /// <summary>
 /// 用户权限关系 DTO
 /// </summary>
-public class UserPermissionRelationDto : BasicAppDto
+public class UserPermissionRelationDto
 {
     /// <summary>
     /// 用户ID
@@ -77,7 +76,7 @@ public class UserPermissionRelationDto : BasicAppDto
 /// <summary>
 /// 用户部门关系 DTO
 /// </summary>
-public class UserDepartmentRelationDto : BasicAppDto
+public class UserDepartmentRelationDto
 {
     /// <summary>
     /// 用户ID
@@ -108,7 +107,7 @@ public class UserDepartmentRelationDto : BasicAppDto
 /// <summary>
 /// 角色权限关系 DTO
 /// </summary>
-public class RolePermissionRelationDto : BasicAppDto
+public class RolePermissionRelationDto
 {
     /// <summary>
     /// 角色ID
@@ -134,7 +133,7 @@ public class RolePermissionRelationDto : BasicAppDto
 /// <summary>
 /// 角色菜单关系 DTO
 /// </summary>
-public class RoleMenuRelationDto : BasicAppDto
+public class RoleMenuRelationDto
 {
     /// <summary>
     /// 角色ID
