@@ -105,10 +105,10 @@ const layoutPresets = computed(() => [
   },
 ])
 
-function clearAndLogout() {
+async function clearAndLogout() {
   localStorage.clear()
   sessionStorage.clear()
-  authStore.logout()
+  await authStore.logout()
 }
 
 async function copyPreferences() {

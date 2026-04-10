@@ -60,8 +60,8 @@ export function setupRouterGuard(router: Router) {
       return next({ path: accessStore.homePath || HOME_PATH, replace: true })
     }
 
-    // 已登录但无用户信息，尝试获取
-    if (!userStore.isLoggedIn) {
+    // 已登录但用户上下文无效，重新拉取当前用户
+    if (!userStore.isLoggedIn || Number(userStore.userInfo?.basicId ?? 0) <= 0) {
       try {
         const [userInfo, authPermission] = await Promise.all([
           getUserInfoApi(),
