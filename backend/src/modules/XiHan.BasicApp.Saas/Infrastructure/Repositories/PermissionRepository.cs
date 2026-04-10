@@ -27,20 +27,25 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// </summary>
 public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, long>, IPermissionRepository
 {
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
+    /// <param name="roleHierarchyRepository"></param>
     /// <param name="dbContext"></param>
     /// <param name="splitTableExecutor"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="unitOfWorkManager"></param>
     public PermissionRepository(
+        IRoleHierarchyRepository roleHierarchyRepository,
         ISqlSugarDbContext dbContext,
         ISqlSugarSplitTableExecutor splitTableExecutor,
         IServiceProvider serviceProvider,
         IUnitOfWorkManager unitOfWorkManager)
         : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
     {
+        _roleHierarchyRepository = roleHierarchyRepository;
     }
 
     /// <summary>
@@ -77,28 +82,50 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     public async Task<IReadOnlyList<SysPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var resolvedTenantId = tenantId;
-        var rolePermissionQuery = DbClient.Queryable<SysUserRole, SysRolePermission>(
-            (userRole, rolePermission) => userRole.RoleId == rolePermission.RoleId)
-            .Where((userRole, rolePermission) =>
-                userRole.UserId == userId &&
-                userRole.Status == YesOrNo.Yes &&
-                rolePermission.Status == YesOrNo.Yes);
+        var roleQuery = CreateTenantQueryable<SysUserRole>()
+            .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
         if (resolvedTenantId.HasValue)
         {
-            rolePermissionQuery = rolePermissionQuery.Where((userRole, rolePermission) =>
-                userRole.TenantId == resolvedTenantId.Value && rolePermission.TenantId == resolvedTenantId.Value);
+            roleQuery = roleQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
         }
         else
         {
-            rolePermissionQuery = rolePermissionQuery.Where((userRole, rolePermission) =>
-                userRole.TenantId == null && rolePermission.TenantId == null);
+            roleQuery = roleQuery.Where(mapping => mapping.TenantId == null);
         }
 
-        var rolePermissionIds = await rolePermissionQuery
-            .Select((userRole, rolePermission) => rolePermission.PermissionId)
+        var directRoleIds = await roleQuery
+            .Select(mapping => mapping.RoleId)
             .Distinct()
             .ToListAsync(cancellationToken);
+
+        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(
+            directRoleIds,
+            resolvedTenantId,
+            cancellationToken);
+
+        var rolePermissionIds = new List<long>();
+        if (inheritedRoleIds.Count > 0)
+        {
+            var rolePermissionQuery = CreateTenantQueryable<SysRolePermission>()
+                .Where(mapping =>
+                    inheritedRoleIds.Contains(mapping.RoleId)
+                    && mapping.Status == YesOrNo.Yes);
+
+            if (resolvedTenantId.HasValue)
+            {
+                rolePermissionQuery = rolePermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
+            }
+            else
+            {
+                rolePermissionQuery = rolePermissionQuery.Where(mapping => mapping.TenantId == null);
+            }
+
+            rolePermissionIds = await rolePermissionQuery
+                .Select(mapping => mapping.PermissionId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+        }
 
         var directPermissionQuery = CreateTenantQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);

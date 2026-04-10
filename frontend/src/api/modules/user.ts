@@ -190,6 +190,35 @@ export const userApi = {
       userId: toId(userId),
       permissionIds: permissionIds.map(item => toId(item)).filter(Boolean),
     }),
+
+  /** 查询用户部门关系（部门ID列表 + 主部门ID） */
+  getUserDepartments: async (userId: string): Promise<{ departmentIds: string[], mainDepartmentId?: string }> => {
+    const id = toId(userId)
+    const data = await api.request.get<Array<Record<string, unknown>>>(
+      `${api.baseUrl}UserDepartments/${id}/0`,
+    )
+    if (!Array.isArray(data)) {
+      return { departmentIds: [], mainDepartmentId: undefined }
+    }
+    const relationList = data
+      .map(item => ({
+        departmentId: toId(item.departmentId ?? item.DepartmentId),
+        isMain: Boolean(item.isMain ?? item.IsMain),
+      }))
+      .filter(item => item.departmentId)
+    return {
+      departmentIds: relationList.map(item => item.departmentId),
+      mainDepartmentId: relationList.find(item => item.isMain)?.departmentId,
+    }
+  },
+
+  /** 分配用户部门（全量替换） */
+  assignDepartments: (userId: string, departmentIds: string[], mainDepartmentId?: string) =>
+    api.request.post(`${api.baseUrl}AssignDepartments`, {
+      userId: toId(userId),
+      departmentIds: departmentIds.map(item => toId(item)).filter(Boolean),
+      mainDepartmentId: mainDepartmentId ? toId(mainDepartmentId) : null,
+    }),
 }
 
 export function getUserPageApi(params: UserPageQuery) {
@@ -207,3 +236,5 @@ export const getUserRoleIdsApi = userApi.getUserRoles
 export const assignUserRolesApi = userApi.assignRoles
 export const getUserPermissionIdsApi = userApi.getUserPermissions
 export const assignUserPermissionsApi = userApi.assignPermissions
+export const getUserDepartmentIdsApi = userApi.getUserDepartments
+export const assignUserDepartmentsApi = userApi.assignDepartments

@@ -66,6 +66,14 @@ public interface IUserRepository : IAggregateRootRepository<SysUser, long>
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 根据角色ID获取关联用户ID列表
+    /// </summary>
+    Task<IReadOnlyCollection<long>> GetUserIdsByRoleIdAsync(
+        long roleId,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取用户直授权限关系
     /// </summary>
     Task<IReadOnlyList<SysUserPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);

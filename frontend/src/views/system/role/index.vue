@@ -28,6 +28,7 @@ import {
 } from 'naive-ui'
 import { computed, reactive, ref } from 'vue'
 import { departmentApi, menuApi, permissionApi, roleApi } from '@/api'
+import { XSystemQueryPanel } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -194,6 +195,13 @@ const deptLoading = ref(false)
 const deptSaving = ref(false)
 const deptDataLoaded = ref(false)
 
+// Tab 5: 角色继承
+const parentRoleOptions = ref<Array<{ label: string, value: string }>>([])
+const checkedParentRoleIds = ref<string[]>([])
+const inheritLoading = ref(false)
+const inheritSaving = ref(false)
+const inheritDataLoaded = ref(false)
+
 // ==================== 工具函数 ====================
 
 function collectTreeKeys(nodes: TreeOption[]): string[] {
@@ -212,7 +220,9 @@ function collectTreeKeys(nodes: TreeOption[]): string[] {
 function menuToTree(menus: SysMenu[]): TreeOption[] {
   return menus.map(m => ({
     key: m.basicId,
-    label: m.menuName,
+    label: m.menuType === 2
+      ? `${m.menuName}（按钮）`
+      : m.menuName,
     children: m.children?.length ? menuToTree(m.children) : undefined,
   }))
 }
@@ -270,6 +280,9 @@ function resetModalState() {
   checkedDeptKeys.value = []
   deptExpandedKeys.value = []
   deptDataLoaded.value = false
+  parentRoleOptions.value = []
+  checkedParentRoleIds.value = []
+  inheritDataLoaded.value = false
 }
 
 function handleAdd() {
@@ -309,6 +322,8 @@ function handleTabChange(tab: string) {
     loadPermissionData()
   else if (tab === 'dataScope')
     loadDataScopeData()
+  else if (tab === 'inherit')
+    loadInheritanceData()
 }
 
 // ==================== 数据加载 ====================
@@ -383,6 +398,34 @@ async function loadDataScopeData() {
   }
 }
 
+async function loadInheritanceData() {
+  if (inheritDataLoaded.value)
+    return
+  inheritLoading.value = true
+  try {
+    const [allRoles, assigned] = await Promise.all([
+      roleApi.list(),
+      currentRoleId.value
+        ? roleApi.getRoleParentRoleIds(currentRoleId.value)
+        : Promise.resolve([] as string[]),
+    ])
+    parentRoleOptions.value = allRoles
+      .filter(item => item.basicId !== currentRoleId.value)
+      .map(item => ({
+        label: `${item.roleName} (${item.roleCode})`,
+        value: item.basicId,
+      }))
+    checkedParentRoleIds.value = assigned
+    inheritDataLoaded.value = true
+  }
+  catch {
+    message.error('加载角色继承数据失败')
+  }
+  finally {
+    inheritLoading.value = false
+  }
+}
+
 // ==================== 保存 ====================
 
 async function handleSaveBasic() {
@@ -452,6 +495,10 @@ async function handleSavePermissions() {
   permSaving.value = true
   try {
     await roleApi.assignPermissions(currentRoleId.value, checkedPermKeys.value)
+    if (menuDataLoaded.value) {
+      menuDataLoaded.value = false
+      await loadMenuData()
+    }
     message.success('操作权限保存成功')
   }
   catch {
@@ -482,6 +529,25 @@ async function handleSaveDataScope() {
   }
   finally {
     deptSaving.value = false
+  }
+}
+
+async function handleSaveInheritance() {
+  if (!currentRoleId.value) {
+    message.warning('请先保存基本信息')
+    return
+  }
+  inheritSaving.value = true
+  try {
+    await roleApi.assignInheritance(currentRoleId.value, checkedParentRoleIds.value)
+    message.success('角色继承保存成功')
+    xGrid.value?.commitProxy('query')
+  }
+  catch {
+    message.error('角色继承保存失败')
+  }
+  finally {
+    inheritSaving.value = false
   }
 }
 
@@ -549,8 +615,8 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
 <template>
   <div class="flex flex-col h-full">
     <!-- 搜索栏 -->
-    <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex flex-wrap gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索角色名称/编码"
@@ -572,13 +638,13 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
 
     <!-- 角色列表 -->
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="gridOptions">
         <template #toolbar_buttons>
-          <NButton type="primary" size="small" @click="handleAdd">
+          <NButton v-access="['role:create']" type="primary" size="small" @click="handleAdd">
             新增角色
           </NButton>
         </template>
@@ -589,10 +655,10 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
         </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" type="primary" text @click="handleEdit(row)">
+            <NButton v-access="['role:update']" size="small" type="primary" text @click="handleEdit(row)">
               编辑
             </NButton>
-            <NPopconfirm @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm v-access="['role:delete']" @positive-click="handleDelete(row.basicId)">
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -618,7 +684,7 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
         <NTabs v-model:value="activeTab" type="line" @update:value="handleTabChange">
           <!-- ===== 基本信息 ===== -->
           <NTabPane name="basic" tab="基本信息">
-            <NForm :model="formData" label-placement="left" label-width="80px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="80px">
               <NFormItem label="角色名称" path="roleName">
                 <NInput v-model:value="formData.roleName" placeholder="请输入角色名称" />
               </NFormItem>
@@ -655,8 +721,23 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
               </NFormItem>
             </NForm>
-            <div class="flex justify-end">
-              <NButton type="primary" :loading="basicSaving" @click="handleSaveBasic">
+            <div class="xh-form-actions">
+              <NButton
+                v-if="!isEdit"
+                v-access="['role:create']"
+                type="primary"
+                :loading="basicSaving"
+                @click="handleSaveBasic"
+              >
+                保存
+              </NButton>
+              <NButton
+                v-else
+                v-access="['role:update']"
+                type="primary"
+                :loading="basicSaving"
+                @click="handleSaveBasic"
+              >
                 保存
               </NButton>
             </div>
@@ -698,8 +779,8 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 description="暂无菜单数据"
               />
             </NSpin>
-            <div class="flex justify-end mt-4">
-              <NButton type="primary" :loading="menuSaving" @click="handleSaveMenus">
+            <div class="xh-form-actions">
+              <NButton v-access="['role:update']" type="primary" :loading="menuSaving" @click="handleSaveMenus">
                 保存
               </NButton>
             </div>
@@ -746,8 +827,8 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 description="暂无权限数据"
               />
             </NSpin>
-            <div class="flex justify-end mt-4">
-              <NButton type="primary" :loading="permSaving" @click="handleSavePermissions">
+            <div class="xh-form-actions">
+              <NButton v-access="['role:update']" type="primary" :loading="permSaving" @click="handleSavePermissions">
                 保存
               </NButton>
             </div>
@@ -799,8 +880,30 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 />
               </template>
             </NSpin>
-            <div class="flex justify-end mt-4">
-              <NButton type="primary" :loading="deptSaving" @click="handleSaveDataScope">
+            <div class="xh-form-actions">
+              <NButton v-access="['role:update']" type="primary" :loading="deptSaving" @click="handleSaveDataScope">
+                保存
+              </NButton>
+            </div>
+          </NTabPane>
+
+          <!-- ===== 角色继承 ===== -->
+          <NTabPane name="inherit" tab="角色继承" :disabled="!currentRoleId">
+            <NSpin :show="inheritLoading">
+              <div class="mb-2 text-sm text-gray-500">
+                选择当前角色继承的父角色，父角色的权限与数据范围会自动继承到当前角色。
+              </div>
+              <NSelect
+                v-model:value="checkedParentRoleIds"
+                :options="parentRoleOptions"
+                multiple
+                clearable
+                filterable
+                placeholder="请选择父角色"
+              />
+            </NSpin>
+            <div class="xh-form-actions">
+              <NButton v-access="['role:update']" type="primary" :loading="inheritSaving" @click="handleSaveInheritance">
                 保存
               </NButton>
             </div>

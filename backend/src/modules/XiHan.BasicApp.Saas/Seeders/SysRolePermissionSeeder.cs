@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
@@ -47,14 +48,11 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysRolePermission>(r => true))
-        {
-            Logger.LogInformation("系统角色权限关系数据已存在，跳过种子数据");
-            return;
-        }
-
         var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
-        var permissions = await DbContext.GetClient().Queryable<SysPermission>().ToListAsync();
+        var permissions = await DbContext.GetClient()
+            .Queryable<SysPermission>()
+            .Where(permission => permission.Status == YesOrNo.Yes)
+            .ToListAsync();
 
         if (roles.Count == 0 || permissions.Count == 0)
         {
@@ -70,29 +68,19 @@ public class SysRolePermissionSeeder : DataSeederBase
                 group => group
                     .OrderBy(role => role.TenantId.HasValue ? 1 : 0)
                     .ThenBy(role => role.BasicId)
-                    .First()
-                    .BasicId,
-                StringComparer.OrdinalIgnoreCase);
-
-        var permissionMap = permissions
-            .Where(permission => !string.IsNullOrWhiteSpace(permission.PermissionCode))
-            .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                group => group.Key,
-                group => group
-                    .OrderBy(permission => permission.TenantId.HasValue ? 1 : 0)
-                    .ThenBy(permission => permission.BasicId)
-                    .First()
-                    .BasicId,
+                    .ToArray(),
                 StringComparer.OrdinalIgnoreCase);
 
         var requiredPairs = new HashSet<(long RoleId, long PermissionId)>();
 
-        if (roleMap.TryGetValue("super_admin", out var superAdminRoleId))
+        if (roleMap.TryGetValue("super_admin", out var superAdminRoles))
         {
-            foreach (var permissionId in permissionMap.Values.Distinct())
+            foreach (var superAdminRole in superAdminRoles)
             {
-                requiredPairs.Add((superAdminRoleId, permissionId));
+                foreach (var permission in FilterPermissionsByTenantScope(superAdminRole.TenantId))
+                {
+                    requiredPairs.Add((superAdminRole.BasicId, permission.BasicId));
+                }
             }
         }
 
@@ -133,7 +121,7 @@ public class SysRolePermissionSeeder : DataSeederBase
         var existingPairs = await DbContext.GetClient()
             .Queryable<SysRolePermission>()
             .Where(mapping => targetRoleIds.Contains(mapping.RoleId) && targetPermissionIds.Contains(mapping.PermissionId))
-            .Select(mapping => new { mapping.RoleId, mapping.PermissionId })
+            .Select(mapping => new { mapping.BasicId, mapping.RoleId, mapping.PermissionId, mapping.Status })
             .ToListAsync();
 
         var existingSet = existingPairs
@@ -149,29 +137,70 @@ public class SysRolePermissionSeeder : DataSeederBase
             })
             .ToList();
 
-        if (rolePermissions.Count == 0)
+        if (rolePermissions.Count > 0)
+        {
+            await BulkInsertAsync(rolePermissions);
+        }
+
+        var disabledMappingIds = existingPairs
+            .Where(pair =>
+                pair.Status != YesOrNo.Yes
+                && requiredPairs.Contains((pair.RoleId, pair.PermissionId)))
+            .Select(pair => pair.BasicId)
+            .Distinct()
+            .ToArray();
+        if (disabledMappingIds.Length > 0)
+        {
+            await DbContext.GetClient()
+                .Updateable<SysRolePermission>()
+                .SetColumns(mapping => mapping.Status == YesOrNo.Yes)
+                .Where(mapping => disabledMappingIds.Contains(mapping.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        if (rolePermissions.Count == 0 && disabledMappingIds.Length == 0)
         {
             Logger.LogInformation("角色权限关系数据已存在，跳过新增");
             return;
         }
 
-        await BulkInsertAsync(rolePermissions);
-        Logger.LogInformation("成功初始化 {Count} 个角色权限关系", rolePermissions.Count);
+        Logger.LogInformation(
+            "角色权限关系种子完成：新增 {InsertCount} 条，启用 {EnableCount} 条",
+            rolePermissions.Count,
+            disabledMappingIds.Length);
 
         void AddRolePermissionPairs(string roleCode, Func<string, bool> permissionPredicate)
         {
-            if (!roleMap.TryGetValue(roleCode, out var roleId))
+            if (!roleMap.TryGetValue(roleCode, out var roleEntries))
             {
                 return;
             }
 
-            foreach (var (permissionCode, permissionId) in permissionMap)
+            foreach (var roleEntry in roleEntries)
             {
-                if (permissionPredicate(permissionCode))
+                foreach (var permission in FilterPermissionsByTenantScope(roleEntry.TenantId))
                 {
-                    requiredPairs.Add((roleId, permissionId));
+                    if (!string.IsNullOrWhiteSpace(permission.PermissionCode)
+                        && permissionPredicate(permission.PermissionCode))
+                    {
+                        requiredPairs.Add((roleEntry.BasicId, permission.BasicId));
+                    }
                 }
             }
+        }
+
+        List<SysPermission> FilterPermissionsByTenantScope(long? roleTenantId)
+        {
+            if (roleTenantId.HasValue)
+            {
+                return permissions
+                    .Where(permission => permission.TenantId == null || permission.TenantId == roleTenantId.Value)
+                    .ToList();
+            }
+
+            return permissions
+                .Where(permission => permission.TenantId == null)
+                .ToList();
         }
     }
 }

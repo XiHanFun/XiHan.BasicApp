@@ -49,6 +49,11 @@ public interface IRoleAppService
     Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null);
 
     /// <summary>
+    /// 获取角色直接父角色ID
+    /// </summary>
+    Task<IReadOnlyCollection<long>> GetRoleParentRoleIdsAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
     /// 分配角色权限
     /// </summary>
     Task AssignPermissionsAsync(AssignRolePermissionsCommand command);
@@ -62,4 +67,9 @@ public interface IRoleAppService
     /// 分配角色自定义数据范围
     /// </summary>
     Task AssignDataScopeAsync(AssignRoleDataScopeCommand command);
+
+    /// <summary>
+    /// 分配角色继承关系
+    /// </summary>
+    Task AssignInheritanceAsync(AssignRoleInheritanceCommand command);
 }

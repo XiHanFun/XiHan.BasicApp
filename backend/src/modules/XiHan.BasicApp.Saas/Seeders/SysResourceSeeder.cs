@@ -76,6 +76,7 @@ public class SysResourceSeeder : DataSeederBase
             new() { ParentId = null, ResourceCode = "permission", ResourceName = "权限管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/permission", Icon = "shield", Description = "权限管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 201 },
             new() { ParentId = null, ResourceCode = "menu", ResourceName = "菜单管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/menu", Icon = "menu", Description = "菜单管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 202 },
             new() { ParentId = null, ResourceCode = "config", ResourceName = "参数配置", ResourceType = ResourceType.Menu, ResourcePath = "/platform/config", Icon = "sliders-horizontal", Description = "系统参数配置", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 203 },
+            new() { ParentId = null, ResourceCode = "constraint_rule", ResourceName = "约束规则", ResourceType = ResourceType.Menu, ResourcePath = "/platform/constraint-rule", Icon = "scale", Description = "ABAC约束规则管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 2031 },
             new() { ParentId = null, ResourceCode = "dict", ResourceName = "字典管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/dict", Icon = "book-open", Description = "数据字典管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 204 },
             new() { ParentId = null, ResourceCode = "task", ResourceName = "任务调度", ResourceType = ResourceType.Menu, ResourcePath = "/platform/job", Icon = "clock", Description = "任务调度管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 205 },
             new() { ParentId = null, ResourceCode = "monitor", ResourceName = "系统监控", ResourceType = ResourceType.Menu, ResourcePath = "/platform/server", Icon = "activity", Description = "系统监控功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 206 },
@@ -124,7 +125,7 @@ public class SysResourceSeeder : DataSeederBase
         await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log"]);
         await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "messaging", "log"]);
-        await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
+        await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "constraint_rule", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
 
         Logger.LogInformation("成功初始化 {Count} 个系统资源", resources.Count);
     }

@@ -15,6 +15,7 @@ import {
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { tenantApi } from '@/api'
+import { XSystemQueryPanel } from '~/components'
 import { STATUS_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -182,8 +183,8 @@ async function handleSubmit() {
 
 <template>
   <div class="flex flex-col h-full">
-    <vxe-card class="mb-2" style="padding: 10px 16px">
-      <div class="flex flex-wrap gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索租户名称/编码/联系人"
@@ -205,7 +206,7 @@ async function handleSubmit() {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
@@ -253,7 +254,7 @@ async function handleSubmit() {
       style="width: 560px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="90px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="90px">
         <NFormItem label="租户名称" path="tenantName">
           <NInput v-model:value="formData.tenantName" placeholder="请输入租户名称" />
         </NFormItem>

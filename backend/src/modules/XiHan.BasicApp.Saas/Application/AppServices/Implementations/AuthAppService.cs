@@ -39,6 +39,7 @@ using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Authentication.Password;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Claims;
@@ -55,6 +56,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 认证应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
 public class AuthAppService : ApplicationServiceBase, IAuthAppService
 {
     private const int MaxFailedAttempts = 5;
@@ -65,6 +67,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IAuthorizationDomainService _authorizationDomainService;
     private readonly IRbacAuthorizationCacheService _authorizationCacheService;
     private readonly IRoleRepository _roleRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IMenuRepository _menuRepository;
     private readonly ILoginLogRepository _loginLogRepository;
@@ -93,6 +96,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IAuthorizationDomainService authorizationDomainService,
         IRbacAuthorizationCacheService authorizationCacheService,
         IRoleRepository roleRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
         IPermissionRepository permissionRepository,
         IMenuRepository menuRepository,
         ILoginLogRepository loginLogRepository,
@@ -117,6 +121,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _authorizationDomainService = authorizationDomainService;
         _authorizationCacheService = authorizationCacheService;
         _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
         _permissionRepository = permissionRepository;
         _menuRepository = menuRepository;
         _loginLogRepository = loginLogRepository;
@@ -605,7 +610,15 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                 !string.IsNullOrWhiteSpace(permission.PermissionCode) &&
                 permissionCodeSet.Contains(permission.PermissionCode))
             .GroupBy(permission => permission.ResourceId)
-            .ToDictionary(group => group.Key, group => group.Select(static permission => permission.PermissionCode).First());
+            .ToDictionary(
+                group => group.Key,
+                group =>
+                    (IReadOnlyCollection<string>)group
+                        .Select(static permission => permission.PermissionCode)
+                        .Where(static permissionCode => !string.IsNullOrWhiteSpace(permissionCode))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(static permissionCode => permissionCode, StringComparer.OrdinalIgnoreCase)
+                        .ToArray());
 
         return new AuthPermissionDto
         {
@@ -653,6 +666,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 获取用户权限编码
     /// </summary>
+    [PermissionAuthorize("permission:read", "same_tenant")]
     public async Task<IReadOnlyCollection<string>> GetPermissionCodesAsync(UserPermissionQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -671,6 +685,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <summary>
     /// 获取用户数据范围部门ID
     /// </summary>
+    [PermissionAuthorize("department:read", "same_tenant")]
     public async Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -1060,6 +1075,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="clientInfo"></param>
     /// <param name="message"></param>
     /// <param name="sessionId">登录成功时传入新创建的会话ID，失败时为 null</param>
+    /// <param name="previousLoginIp">上一次登录的 IP，用于异地登录判定</param>
     /// <returns></returns>
     private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null, string? previousLoginIp = null)
     {
@@ -1224,18 +1240,24 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private async Task<IReadOnlyCollection<string>> GetUserRoleCodesAsync(long userId, long? tenantId)
     {
         var userRoles = await _userRepository.GetUserRolesAsync(userId, tenantId);
-        var roleIds = userRoles
+        var directRoleIds = userRoles
             .Where(role => role.Status == YesOrNo.Yes)
             .Select(static role => role.RoleId)
             .Distinct()
             .ToArray();
 
-        if (roleIds.Length == 0)
+        if (directRoleIds.Length == 0)
         {
             return [];
         }
 
-        var roles = await _roleRepository.GetByIdsAsync(roleIds);
+        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(directRoleIds, tenantId);
+        if (inheritedRoleIds.Count == 0)
+        {
+            return [];
+        }
+
+        var roles = await _roleRepository.GetByIdsAsync([.. inheritedRoleIds]);
         return [.. roles
             .Where(role => role.Status == YesOrNo.Yes && !string.IsNullOrWhiteSpace(role.RoleCode))
             .OrderBy(static role => role.Sort)

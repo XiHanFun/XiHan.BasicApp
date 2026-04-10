@@ -237,7 +237,7 @@ async function handleSubmit() {
       style="width: 640px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="120px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="120px">
         <NFormItem label="应用名称" path="appName">
           <NInput v-model:value="formData.appName" placeholder="请输入应用名称" />
         </NFormItem>

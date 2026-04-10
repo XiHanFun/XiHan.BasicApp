@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -23,6 +24,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -35,10 +37,15 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 用户应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
+[PermissionAuthorize("user:read")]
 public class UserAppService
     : CrudApplicationServiceBase<SysUser, UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>,
         IUserAppService
 {
+    private const string SuperAdminRoleCode = "super_admin";
+    private const string SuperAdminUserName = "superadmin";
+
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
@@ -83,6 +90,7 @@ public class UserAppService
     /// <summary>
     /// ID 查询（委托 QueryService，走缓存）
     /// </summary>
+    [PermissionAuthorize("user:read")]
     public override async Task<UserDto?> GetByIdAsync(long id)
     {
         return await _queryService.GetByIdAsync(id);
@@ -94,6 +102,7 @@ public class UserAppService
     /// <param name="userName"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:read")]
     public async Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null)
     {
         var entity = await _userRepository.GetByUserNameAsync(userName, tenantId);
@@ -106,6 +115,7 @@ public class UserAppService
     /// <param name="userId"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:read")]
     public async Task<IReadOnlyList<UserRoleRelationDto>> GetUserRolesAsync(long userId, long? tenantId = null)
     {
         if (userId <= 0)
@@ -116,7 +126,6 @@ public class UserAppService
         var relations = await _userRepository.GetUserRolesAsync(userId, tenantId);
         return relations.Select(relation => new UserRoleRelationDto
         {
-            BasicId = relation.BasicId,
             TenantId = relation.TenantId,
             UserId = relation.UserId,
             RoleId = relation.RoleId,
@@ -130,6 +139,7 @@ public class UserAppService
     /// <param name="userId"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:read")]
     public async Task<IReadOnlyList<UserPermissionRelationDto>> GetUserPermissionsAsync(long userId, long? tenantId = null)
     {
         if (userId <= 0)
@@ -140,7 +150,6 @@ public class UserAppService
         var relations = await _userRepository.GetUserPermissionsAsync(userId, tenantId);
         return relations.Select(relation => new UserPermissionRelationDto
         {
-            BasicId = relation.BasicId,
             TenantId = relation.TenantId,
             UserId = relation.UserId,
             PermissionId = relation.PermissionId,
@@ -155,6 +164,7 @@ public class UserAppService
     /// <param name="userId"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:read")]
     public async Task<IReadOnlyList<UserDepartmentRelationDto>> GetUserDepartmentsAsync(long userId, long? tenantId = null)
     {
         if (userId <= 0)
@@ -165,7 +175,6 @@ public class UserAppService
         var relations = await _userRepository.GetUserDepartmentsAsync(userId, tenantId);
         return relations.Select(relation => new UserDepartmentRelationDto
         {
-            BasicId = relation.BasicId,
             TenantId = relation.TenantId,
             UserId = relation.UserId,
             DepartmentId = relation.DepartmentId,
@@ -179,6 +188,7 @@ public class UserAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:update")]
     public async Task AssignRolesAsync(AssignUserRolesCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -192,14 +202,16 @@ public class UserAppService
                    ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
 
         var roleIds = command.RoleIds.Where(id => id > 0).Distinct().ToArray();
+        var roles = Array.Empty<SysRole>();
         if (roleIds.Length > 0)
         {
-            var roles = await _roleRepository.GetByIdsAsync(roleIds);
-            if (roles.Count != roleIds.Length)
+            roles = [.. await _roleRepository.GetByIdsAsync(roleIds)];
+            if (roles.Length != roleIds.Length)
             {
                 throw new BusinessException(message: "存在无效角色 ID");
             }
         }
+        await EnsureSuperAdminRoleAssignmentAsync(user, roleIds, roles, command.TenantId ?? user.TenantId);
 
         await _userRepository.ReplaceUserRolesAsync(
             command.UserId,
@@ -217,6 +229,7 @@ public class UserAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:update")]
     public async Task AssignPermissionsAsync(AssignUserPermissionsCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -255,6 +268,7 @@ public class UserAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:update")]
     public async Task AssignDepartmentsAsync(AssignUserDepartmentsCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -301,6 +315,7 @@ public class UserAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:update")]
     public async Task ChangeStatusAsync(ChangeUserStatusCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -312,6 +327,11 @@ public class UserAppService
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
         var user = await _userRepository.GetByIdAsync(command.UserId)
                    ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
+
+        if (command.Status != YesOrNo.Yes)
+        {
+            await EnsureSuperAdminAccountImmutableAsync(user, user.TenantId, "禁用");
+        }
 
         if (command.Status == YesOrNo.Yes)
         {
@@ -331,6 +351,7 @@ public class UserAppService
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:update")]
     public async Task ResetPasswordAsync(ResetUserPasswordCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -357,6 +378,7 @@ public class UserAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:create")]
     public override async Task<UserDto> CreateAsync(UserCreateDto input)
     {
         input.ValidateAnnotations();
@@ -385,6 +407,7 @@ public class UserAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:update")]
     public override async Task<UserDto> UpdateAsync(UserUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -408,6 +431,7 @@ public class UserAppService
         }
         else
         {
+            await EnsureSuperAdminAccountImmutableAsync(user, user.TenantId, "禁用");
             user.Disable();
         }
 
@@ -454,6 +478,7 @@ public class UserAppService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("user:delete")]
     public override async Task<bool> DeleteAsync(long userId)
     {
         if (userId <= 0)
@@ -467,6 +492,7 @@ public class UserAppService
         {
             return false;
         }
+        await EnsureSuperAdminAccountImmutableAsync(user, user.TenantId, "删除");
 
         await _userRepository.DeleteAsync(user);
         await uow.CompleteAsync();
@@ -484,6 +510,78 @@ public class UserAppService
         var dto = user.Adapt<UserDto>()!;
         dto.RoleIds = roleIds?.Where(id => id > 0).Distinct().ToArray() ?? [];
         return dto;
+    }
+
+    private async Task EnsureSuperAdminRoleAssignmentAsync(
+        SysUser user,
+        IReadOnlyCollection<long> targetRoleIds,
+        IReadOnlyCollection<SysRole> targetRoles,
+        long? tenantId)
+    {
+        var superAdminRole = targetRoles.FirstOrDefault(role =>
+                                 string.Equals(role.RoleCode, SuperAdminRoleCode, StringComparison.OrdinalIgnoreCase))
+                             ?? await _roleRepository.GetByRoleCodeAsync(SuperAdminRoleCode, null);
+        if (superAdminRole is null)
+        {
+            return;
+        }
+
+        var superAdminRoleId = superAdminRole.BasicId;
+        var assignAsSuperAdmin = targetRoleIds.Contains(superAdminRoleId);
+        var currentUserRoles = await _userRepository.GetUserRolesAsync(user.BasicId, tenantId);
+        var currentAsSuperAdmin = currentUserRoles.Any(mapping =>
+            mapping.Status == YesOrNo.Yes
+            && mapping.RoleId == superAdminRoleId);
+
+        if (assignAsSuperAdmin)
+        {
+            if (!string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BusinessException(message: "系统只允许内置 superadmin 账号持有超级管理员角色");
+            }
+
+            var holderUserIds = await _userRepository.GetUserIdsByRoleIdAsync(superAdminRoleId);
+            if (holderUserIds.Any(userId => userId != user.BasicId))
+            {
+                throw new BusinessException(message: "系统仅允许一个超级管理员账号");
+            }
+
+            return;
+        }
+
+        if (currentAsSuperAdmin || string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new BusinessException(message: "超级管理员账号必须保留超级管理员角色");
+        }
+    }
+
+    private async Task EnsureSuperAdminAccountImmutableAsync(SysUser user, long? tenantId, string operationName)
+    {
+        if (!await IsSuperAdminAccountAsync(user, tenantId))
+        {
+            return;
+        }
+
+        throw new BusinessException(message: $"超级管理员账号不允许{operationName}");
+    }
+
+    private async Task<bool> IsSuperAdminAccountAsync(SysUser user, long? tenantId)
+    {
+        if (string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var superAdminRole = await _roleRepository.GetByRoleCodeAsync(SuperAdminRoleCode, null);
+        if (superAdminRole is null)
+        {
+            return false;
+        }
+
+        var userRoles = await _userRepository.GetUserRolesAsync(user.BasicId, tenantId);
+        return userRoles.Any(mapping =>
+            mapping.Status == YesOrNo.Yes
+            && mapping.RoleId == superAdminRole.BasicId);
     }
 
     private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)

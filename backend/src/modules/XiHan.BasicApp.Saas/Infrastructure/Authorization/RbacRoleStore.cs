@@ -30,6 +30,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
 public class RbacRoleStore : IRoleStore
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
     private readonly IUserRepository _userRepository;
     private readonly ISqlSugarDbContext _dbContext;
     private readonly ICurrentTenant _currentTenant;
@@ -40,16 +41,19 @@ public class RbacRoleStore : IRoleStore
     /// 构造函数
     /// </summary>
     /// <param name="roleRepository">角色仓储</param>
+    /// <param name="roleHierarchyRepository">角色层级仓储</param>
     /// <param name="userRepository">用户仓储</param>
     /// <param name="dbContext">数据库上下文</param>
     /// <param name="currentTenant">当前租户</param>
     public RbacRoleStore(
         IRoleRepository roleRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
         IUserRepository userRepository,
         ISqlSugarDbContext dbContext,
         ICurrentTenant currentTenant)
     {
         _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
         _userRepository = userRepository;
         _dbContext = dbContext;
         _currentTenant = currentTenant;
@@ -81,7 +85,16 @@ public class RbacRoleStore : IRoleStore
             return [];
         }
 
-        var roles = await _roleRepository.GetByIdsAsync(roleIds, cancellationToken);
+        var effectiveRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(
+            roleIds,
+            tenantId,
+            cancellationToken);
+        if (effectiveRoleIds.Count == 0)
+        {
+            return [];
+        }
+
+        var roles = await _roleRepository.GetByIdsAsync([.. effectiveRoleIds], cancellationToken);
         return roles
             .Where(role => role.Status == YesOrNo.Yes && IsTenantMatched(role.TenantId))
             .OrderBy(static role => role.Sort)

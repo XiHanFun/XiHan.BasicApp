@@ -18,6 +18,7 @@ import {
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { dictApi } from '@/api'
+import { XSystemQueryPanel } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
@@ -230,7 +231,7 @@ async function handleItemSubmit() {
 
 <template>
   <div class="h-full flex flex-col">
-    <vxe-card class="mb-2" style="padding: 10px 16px">
+    <XSystemQueryPanel>
       <div class="flex items-center gap-3 flex-wrap">
         <vxe-input v-model="queryParams.keyword" placeholder="搜索字典名称/编码" clearable style="width: 260px" @keyup.enter="handleSearch" />
         <NSelect v-model:value="queryParams.status" :options="STATUS_OPTIONS" placeholder="状态" clearable style="width: 120px" />
@@ -241,7 +242,7 @@ async function handleItemSubmit() {
           重置
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
@@ -277,7 +278,7 @@ async function handleItemSubmit() {
 
     <!-- 字典编辑弹窗 -->
     <NModal v-model:show="modalVisible" :title="modalTitle" preset="card" style="width: 520px" :auto-focus="false">
-      <NForm :model="formData" label-placement="left" label-width="90px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="90px">
         <NFormItem label="字典名称" path="dictName">
           <NInput v-model:value="formData.dictName" placeholder="请输入字典名称" />
         </NFormItem>
@@ -356,7 +357,7 @@ async function handleItemSubmit() {
 
     <!-- 字典项编辑弹窗 -->
     <NModal v-model:show="itemModalVisible" :title="itemModalTitle" preset="card" style="width: 460px" :auto-focus="false">
-      <NForm :model="itemFormData" label-placement="left" label-width="80px">
+      <NForm class="xh-edit-form-grid" :model="itemFormData" label-placement="top" label-width="80px">
         <NFormItem label="项名称" path="itemName">
           <NInput v-model:value="itemFormData.itemName" placeholder="字典项名称" />
         </NFormItem>
