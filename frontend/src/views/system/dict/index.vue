@@ -232,7 +232,7 @@ async function handleItemSubmit() {
 <template>
   <div class="h-full flex flex-col">
     <XSystemQueryPanel>
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="xh-query-panel__content">
         <vxe-input v-model="queryParams.keyword" placeholder="搜索字典名称/编码" clearable style="width: 260px" @keyup.enter="handleSearch" />
         <NSelect v-model:value="queryParams.status" :options="STATUS_OPTIONS" placeholder="状态" clearable style="width: 120px" />
         <NButton type="primary" size="small" @click="handleSearch">
