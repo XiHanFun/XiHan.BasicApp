@@ -38,6 +38,12 @@ defineOptions({ name: 'SystemRolePage' })
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
 
+interface MenuTreeOption extends TreeOption {
+  menuType?: number
+  buttonGroup?: boolean
+  children?: MenuTreeOption[]
+}
+
 // ==================== 常量 ====================
 
 const ROLE_TYPE_OPTIONS = [
@@ -173,7 +179,7 @@ const formData = ref<Partial<SysRole>>({})
 const basicSaving = ref(false)
 
 // Tab 2: 菜单权限
-const menuTreeData = ref<TreeOption[]>([])
+const menuTreeData = ref<MenuTreeOption[]>([])
 const checkedMenuKeys = ref<string[]>([])
 const menuExpandedKeys = ref<string[]>([])
 const menuLoading = ref(false)
@@ -217,14 +223,25 @@ function collectTreeKeys(nodes: TreeOption[]): string[] {
   return keys
 }
 
-function menuToTree(menus: SysMenu[]): TreeOption[] {
-  return menus.map(m => ({
-    key: m.basicId,
-    label: m.menuType === 2
-      ? `${m.menuName}（按钮）`
-      : m.menuName,
-    children: m.children?.length ? menuToTree(m.children) : undefined,
-  }))
+function menuToTree(menus: SysMenu[]): MenuTreeOption[] {
+  return menus.map((m) => {
+    const children = m.children?.length ? menuToTree(m.children) : undefined
+    const buttonGroup = Array.isArray(children) && children.length > 0 && children.every(item => item.menuType === 2)
+
+    return {
+      key: m.basicId,
+      label: m.menuType === 2
+        ? `${m.menuName}（按钮）`
+        : m.menuName,
+      menuType: m.menuType,
+      buttonGroup,
+      class: [
+        m.menuType === 2 ? 'xh-role-menu-button-node' : '',
+        buttonGroup ? 'xh-role-menu-button-group' : '',
+      ].filter(Boolean).join(' ') || undefined,
+      children,
+    }
+  })
 }
 
 function deptToTree(depts: SysDepartment[]): TreeOption[] {
@@ -569,6 +586,22 @@ function onMenuExpandedKeysUpdate(keys: Array<string | number>) {
   menuExpandedKeys.value = keys.map(String)
 }
 
+function menuNodeProps({ option }: { option: TreeOption }) {
+  const menuNode = option as MenuTreeOption
+  const classList: string[] = []
+
+  if (menuNode.menuType === 2) {
+    classList.push('xh-role-menu-button-node')
+  }
+  if (menuNode.buttonGroup) {
+    classList.push('xh-role-menu-button-group')
+  }
+
+  return classList.length > 0
+    ? { class: classList.join(' ') }
+    : {}
+}
+
 // ==================== 权限操作 ====================
 
 function handlePermToggle(id: string, checked: boolean) {
@@ -763,11 +796,13 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
               </div>
               <div style="max-height: 460px; overflow-y: auto">
                 <NTree
+                  class="xh-role-menu-tree"
                   :data="menuTreeData"
                   checkable
                   cascade
                   :checked-keys="checkedMenuKeys"
                   :expanded-keys="menuExpandedKeys"
+                  :node-props="menuNodeProps"
                   check-strategy="all"
                   block-line
                   @update:checked-keys="onMenuCheckedKeysUpdate"
@@ -913,3 +948,25 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
     </NModal>
   </div>
 </template>
+
+<style scoped>
+:deep(.xh-role-menu-tree .xh-role-menu-button-group > .n-tree-node-children) {
+  padding-left: 36px;
+  white-space: normal;
+}
+
+:deep(.xh-role-menu-tree .xh-role-menu-button-group > .n-tree-node-children > .n-tree-node) {
+  display: inline-flex;
+  margin-right: 10px;
+  margin-bottom: 4px;
+  width: auto;
+}
+
+:deep(.xh-role-menu-tree .xh-role-menu-button-group > .n-tree-node-children > .n-tree-node > .n-tree-node-content) {
+  padding-right: 8px;
+}
+
+:deep(.xh-role-menu-tree .xh-role-menu-button-node .n-tree-node-content__text) {
+  font-size: 13px;
+}
+</style>

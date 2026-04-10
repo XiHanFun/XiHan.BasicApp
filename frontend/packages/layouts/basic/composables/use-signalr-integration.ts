@@ -4,6 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { useSignalR } from '~/composables'
 import { useAccessStore, useAuthStore } from '~/stores'
 
+const SIGNALR_RECONNECT_INTERVAL_MS = 15000
+const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
+
 /**
  * 从 JWT payload 中提取 session_id
  */
@@ -35,6 +38,8 @@ export function useSignalRIntegration() {
   const signalR = useSignalR()
 
   let isHandlingForceLogout = false
+  let isListenersBound = false
+  let reconnectTimer: ReturnType<typeof setInterval> | null = null
 
   function handleForceLogout(payload: { reason?: string, targetSessionIds?: string[] }) {
     if (isHandlingForceLogout)
@@ -88,39 +93,89 @@ export function useSignalRIntegration() {
       duration: 5000,
       closable: false,
     })
+
+    window.dispatchEvent(new CustomEvent(NOTIFICATION_RECEIVED_EVENT, { detail: payload }))
+  }
+
+  function clearReconnectTimer() {
+    if (reconnectTimer) {
+      clearInterval(reconnectTimer)
+      reconnectTimer = null
+    }
+  }
+
+  function ensureReconnectTimer() {
+    if (reconnectTimer || !accessStore.accessToken) {
+      return
+    }
+
+    reconnectTimer = setInterval(() => {
+      void connect()
+    }, SIGNALR_RECONNECT_INTERVAL_MS)
   }
 
   function setupListeners() {
+    if (isListenersBound) {
+      return
+    }
     signalR.on('ForceLogout', handleForceLogout)
     signalR.on('ReceiveNotification', handleReceiveNotification)
+    isListenersBound = true
   }
 
   async function connect() {
     if (accessStore.accessToken) {
       setupListeners()
       await signalR.start()
+      if (signalR.connected.value) {
+        clearReconnectTimer()
+      }
+      else {
+        ensureReconnectTimer()
+      }
     }
   }
 
   // 监听 token 变化：登录后连接，登出后断开
-  const stopWatch = watch(
+  const stopTokenWatch = watch(
     () => accessStore.accessToken,
     async (token) => {
       if (token) {
         await connect()
       }
       else {
+        clearReconnectTimer()
         await signalR.destroy()
+        isListenersBound = false
+      }
+    },
+  )
+
+  const stopConnectedWatch = watch(
+    () => signalR.connected.value,
+    (isConnected) => {
+      if (!accessStore.accessToken) {
+        clearReconnectTimer()
+        return
+      }
+      if (isConnected) {
+        clearReconnectTimer()
+      }
+      else {
+        ensureReconnectTimer()
       }
     },
   )
 
   onMounted(() => {
-    connect()
+    void connect()
   })
 
   onUnmounted(() => {
-    stopWatch()
-    signalR.destroy()
+    stopTokenWatch()
+    stopConnectedWatch()
+    clearReconnectTimer()
+    isListenersBound = false
+    void signalR.destroy()
   })
 }

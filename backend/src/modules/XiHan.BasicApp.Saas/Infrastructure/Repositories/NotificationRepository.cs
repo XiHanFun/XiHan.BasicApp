@@ -62,7 +62,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return [];
         }
 
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = NormalizeTenantId(tenantId);
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -79,7 +79,9 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
 
         if (resolvedTenantId.HasValue)
         {
-            query = query.Where(notification => notification.TenantId == resolvedTenantId.Value);
+            query = query.Where(notification =>
+                notification.TenantId == resolvedTenantId.Value
+                || notification.TenantId == null);
         }
         else
         {
@@ -106,7 +108,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return 0;
         }
 
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = NormalizeTenantId(tenantId);
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -118,7 +120,9 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
 
         if (resolvedTenantId.HasValue)
         {
-            query = query.Where(notification => notification.TenantId == resolvedTenantId.Value);
+            query = query.Where(notification =>
+                notification.TenantId == resolvedTenantId.Value
+                || notification.TenantId == null);
         }
         else
         {
@@ -143,7 +147,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return false;
         }
 
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = NormalizeTenantId(tenantId);
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -156,7 +160,9 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
 
         if (resolvedTenantId.HasValue)
         {
-            query = query.Where(notification => notification.TenantId == resolvedTenantId.Value);
+            query = query.Where(notification =>
+                notification.TenantId == resolvedTenantId.Value
+                || notification.TenantId == null);
         }
         else
         {
@@ -188,7 +194,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return 0;
         }
 
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = NormalizeTenantId(tenantId);
         var now = DateTimeOffset.UtcNow;
 
         var query = CreateTenantQueryable()
@@ -200,7 +206,9 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
 
         if (resolvedTenantId.HasValue)
         {
-            query = query.Where(notification => notification.TenantId == resolvedTenantId.Value);
+            query = query.Where(notification =>
+                notification.TenantId == resolvedTenantId.Value
+                || notification.TenantId == null);
         }
         else
         {
@@ -220,5 +228,10 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
 
         await DbClient.Updateable(entities).ExecuteCommandAsync(cancellationToken);
         return entities.Count;
+    }
+
+    private static long? NormalizeTenantId(long? tenantId)
+    {
+        return tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value : null;
     }
 }
