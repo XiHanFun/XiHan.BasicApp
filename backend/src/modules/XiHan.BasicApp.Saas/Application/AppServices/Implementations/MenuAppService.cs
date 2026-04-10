@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
@@ -24,6 +25,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -34,6 +36,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 菜单应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
+[Authorize]
+[PermissionAuthorize("menu:read")]
 public class MenuAppService
     : CrudApplicationServiceBase<SysMenu, MenuDto, long, MenuCreateDto, MenuUpdateDto, BasicAppPRDto>,
         IMenuAppService
@@ -68,6 +72,7 @@ public class MenuAppService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
+    [PermissionAuthorize("menu:read")]
     public override async Task<MenuDto?> GetByIdAsync(long id)
     {
         return await _queryService.GetByIdAsync(id);
@@ -77,6 +82,7 @@ public class MenuAppService
     /// 获取所有菜单树
     /// </summary>
     [HttpGet]
+    [PermissionAuthorize("menu:read")]
     public async Task<IReadOnlyList<MenuDto>> GetListAsync()
     {
         var menus = await _menuRepository.GetAllAsync();
@@ -115,6 +121,7 @@ public class MenuAppService
     /// <param name="roleId"></param>
     /// <param name="tenantId"></param>
     /// <returns></returns>
+    [PermissionAuthorize("menu:read")]
     public async Task<IReadOnlyList<MenuDto>> GetRoleMenusAsync(long roleId, long? tenantId = null)
     {
         if (roleId <= 0)
@@ -131,6 +138,7 @@ public class MenuAppService
     /// </summary>
     /// <param name="query"></param>
     /// <returns></returns>
+    [PermissionAuthorize("menu:read")]
     public async Task<IReadOnlyList<MenuDto>> GetUserMenusAsync(UserMenuQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -148,6 +156,7 @@ public class MenuAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("menu:create")]
     public override async Task<MenuDto> CreateAsync(MenuCreateDto input)
     {
         input.ValidateAnnotations();
@@ -167,6 +176,7 @@ public class MenuAppService
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    [PermissionAuthorize("menu:update")]
     public override async Task<MenuDto> UpdateAsync(MenuUpdateDto input)
     {
         input.ValidateAnnotations();
@@ -189,6 +199,7 @@ public class MenuAppService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
+    [PermissionAuthorize("menu:delete")]
     public override async Task<bool> DeleteAsync(long id)
     {
         var menu = await _menuRepository.GetByIdAsync(id);

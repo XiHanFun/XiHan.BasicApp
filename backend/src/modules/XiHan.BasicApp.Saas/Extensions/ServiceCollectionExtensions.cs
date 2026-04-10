@@ -31,6 +31,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Settings;
 using XiHan.BasicApp.Saas.Seeders;
 using XiHan.Framework.Authentication.OAuth;
+using XiHan.Framework.Authorization.Abac;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Authorization.Policies;
@@ -62,11 +63,13 @@ public static class ServiceCollectionExtensions
         // 聚合仓储
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IRoleHierarchyRepository, RoleHierarchyRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<IDepartmentRepository, DepartmentRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IConfigRepository, ConfigRepository>();
+        services.AddScoped<IConstraintRuleRepository, ConstraintRuleRepository>();
         services.AddScoped<IDictRepository, DictRepository>();
         services.AddScoped<IFileRepository, FileRepository>();
         services.AddScoped<IEmailRepository, EmailRepository>();
@@ -121,6 +124,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDepartmentAppService, DepartmentAppService>();
         services.AddScoped<ITenantAppService, TenantAppService>();
         services.AddScoped<IConfigAppService, ConfigAppService>();
+        services.AddScoped<IConstraintRuleAppService, ConstraintRuleAppService>();
         services.AddScoped<IDictAppService, DictAppService>();
         services.AddScoped<IFileAppService, FileAppService>();
         services.AddScoped<IEmailAppService, EmailAppService>();
@@ -168,6 +172,8 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysDictSeeder>();              // Order = 18
         services.AddDataSeeder<SysDictItemSeeder>();          // Order = 19
         services.AddDataSeeder<SysConfigSeeder>();            // Order = 20
+        services.AddDataSeeder<SysConstraintRuleFeatureSeeder>(); // Order = 21
+        services.AddDataSeeder<SysRoleButtonMenuSeeder>();    // Order = 22
         return services;
     }
 
@@ -182,6 +188,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserStore, RbacUserStore>();
         services.AddScoped<IRoleStore, RbacRoleStore>();
         services.AddScoped<IPermissionStore, RbacPermissionStore>();
+        services.AddScoped<IAbacEvaluator, RbacAbacEvaluator>();
         services.AddScoped<IPolicyStore, RbacPolicyStore>();
         services.AddScoped<IOpenApiSecurityClientStore, RbacOpenApiSecurityClientStore>();
         services.AddScoped<ITenantStore, RbacTenantStore>();

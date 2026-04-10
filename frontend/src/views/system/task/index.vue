@@ -272,7 +272,7 @@ function getRunStatusType(status: number) {
       style="width: 620px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="100px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="100px">
         <NFormItem label="任务名称" path="taskName">
           <NInput v-model:value="formData.taskName" placeholder="请输入任务名称" />
         </NFormItem>

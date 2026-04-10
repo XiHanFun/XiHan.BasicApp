@@ -102,6 +102,47 @@
     @apply transition-shadow duration-200 hover:shadow-md;
   }
 
+  /* 系统编辑/更新表单默认双列 */
+  .xh-edit-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+
+  .xh-edit-form-grid .n-form-item {
+    margin-bottom: 12px;
+  }
+
+  .xh-edit-form-grid .n-form-item-label {
+    padding-bottom: 6px;
+  }
+
+  /* 分组分隔线与显式整行项跨满两列，避免标题落在单列导致布局错位 */
+  .xh-edit-form-grid > .n-divider,
+  .xh-edit-form-grid > .xh-form-full-row {
+    grid-column: 1 / -1;
+  }
+
+  .xh-edit-form-grid > .n-divider {
+    margin: 4px 0 8px;
+  }
+
+  .xh-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #efeff5;
+  }
+
+  .xh-query-panel__content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
   /* prevent text selection on key interactive layout areas */
   .app-header-root,
   .tabbar-root,
@@ -126,6 +167,12 @@ html.theme-switching *,
 html.theme-switching *::before,
 html.theme-switching *::after {
   transition: none !important;
+}
+
+@media (max-width: 960px) {
+  .xh-edit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* vxe-card 默认 inline-flex，改为 flex 让其铺满宽度 */

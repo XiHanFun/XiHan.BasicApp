@@ -252,7 +252,7 @@ function getNStatusType(status: number) {
       style="width: 560px"
       :auto-focus="false"
     >
-      <NForm :model="formData" label-placement="left" label-width="90px">
+      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="90px">
         <NFormItem label="标题" path="title">
           <NInput v-model:value="formData.title" placeholder="通知标题" />
         </NFormItem>
