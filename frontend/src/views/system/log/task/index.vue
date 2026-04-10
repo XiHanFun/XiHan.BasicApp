@@ -6,6 +6,7 @@ import { reactive, ref } from 'vue'
 import { taskLogApi } from '@/api'
 import { useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
+import { XSystemQueryPanel } from '~/components'
 
 defineOptions({ name: 'SystemLogTaskPage' })
 
@@ -128,8 +129,8 @@ function handleDetail(row: SysTaskLog) {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <vxe-card style="padding: 10px 16px">
-      <div class="flex gap-3 items-center">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
         <vxe-input
           v-model="queryParams.keyword"
           placeholder="搜索任务名称/编码/批次号"
@@ -141,7 +142,7 @@ function handleDetail(row: SysTaskLog) {
           查询
         </NButton>
       </div>
-    </vxe-card>
+    </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="options">
         <template #toolbar_buttons>
