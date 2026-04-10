@@ -57,7 +57,10 @@ public class DepartmentDomainService : IDepartmentDomainService, ITransientDepen
     public async Task<bool> DeleteAsync(long id)
     {
         var department = await _departmentRepository.GetByIdAsync(id);
-        if (department == null) return false;
+        if (department == null)
+        {
+            return false;
+        }
 
         var result = await _departmentRepository.DeleteAsync(department);
         if (result)

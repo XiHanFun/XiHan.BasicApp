@@ -457,7 +457,7 @@ public class UserAppService
     /// <returns></returns>
     protected override async Task<IList<UserDto>> MapEntitiesToDtosAsync(IEnumerable<SysUser> entities)
     {
-        var users = entities as SysUser[] ?? entities.ToArray();
+        var users = entities as SysUser[] ?? [.. entities];
         if (users.Length == 0)
         {
             return [];

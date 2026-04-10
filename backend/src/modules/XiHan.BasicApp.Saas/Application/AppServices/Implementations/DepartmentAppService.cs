@@ -244,7 +244,7 @@ public class DepartmentAppService
 
     private async Task<IList<DepartmentDto>> MapDepartmentsToDtosInternalAsync(IEnumerable<SysDepartment> departments)
     {
-        var departmentList = departments as SysDepartment[] ?? departments.ToArray();
+        var departmentList = departments as SysDepartment[] ?? [.. departments];
         if (departmentList.Length == 0)
         {
             return [];

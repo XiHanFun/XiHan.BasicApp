@@ -57,7 +57,10 @@ public class TaskDomainService : ITaskDomainService, ITransientDependency
     public async Task<bool> DeleteAsync(long id)
     {
         var task = await _taskRepository.GetByIdAsync(id);
-        if (task == null) return false;
+        if (task == null)
+        {
+            return false;
+        }
 
         var result = await _taskRepository.DeleteAsync(task);
         if (result)

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -30,10 +31,6 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
-    /// <param name="unitOfWorkManager"></param>
     public NotificationRepository(
         ISqlSugarDbContext dbContext,
         ISqlSugarSplitTableExecutor splitTableExecutor,
@@ -44,13 +41,9 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
     }
 
     /// <summary>
-    /// 获取用户通知收件箱
+    /// 获取用户通知收件箱：通过 SysUserNotification 查询用户的接收记录，
+    /// 再关联 SysNotification 获取通知内容，合并后返回
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="includeRead"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public async Task<IReadOnlyList<SysNotification>> GetUserNotificationsAsync(
         long userId,
         bool includeRead = true,
@@ -65,42 +58,50 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
         var resolvedTenantId = NormalizeTenantId(tenantId);
         var now = DateTimeOffset.UtcNow;
 
-        var query = CreateTenantQueryable()
-            .Where(notification =>
-                notification.Status == YesOrNo.Yes
-                && notification.NotificationStatus != NotificationStatus.Deleted
-                && (!notification.ExpireTime.HasValue || notification.ExpireTime > now)
-                && (notification.IsGlobal || notification.RecipientUserId == userId));
+        // 第一步：查询该用户的接收记录
+        var recipientQuery = DbClient.Queryable<SysUserNotification>()
+            .Where(r => r.UserId == userId);
 
         if (!includeRead)
         {
-            query = query.Where(notification => notification.NotificationStatus == NotificationStatus.Unread);
+            recipientQuery = recipientQuery.Where(r => r.NotificationStatus == NotificationStatus.Unread);
         }
 
-        if (resolvedTenantId.HasValue)
+        var recipients = await recipientQuery.ToListAsync(cancellationToken);
+        if (recipients.Count == 0)
         {
-            query = query.Where(notification =>
-                notification.TenantId == resolvedTenantId.Value
-                || notification.TenantId == null);
-        }
-        else
-        {
-            query = query.Where(notification => notification.TenantId == null);
+            return [];
         }
 
-        return await query
-            .OrderByDescending(notification => notification.SendTime)
-            .OrderByDescending(notification => notification.CreatedTime)
+        var notificationIds = recipients.Select(r => r.NotificationId).ToArray();
+
+        // 第二步：查询对应的通知内容（过滤有效、未过期、租户匹配的通知）
+        var notifications = await CreateTenantQueryable()
+            .Where(n => notificationIds.Contains(n.BasicId))
+            .Where(n => n.Status == YesOrNo.Yes)
+            .Where(n => n.ExpireTime == null || n.ExpireTime > now)
+            .WhereIF(resolvedTenantId.HasValue, n => n.TenantId == resolvedTenantId || n.TenantId == null)
+            .WhereIF(!resolvedTenantId.HasValue, n => n.TenantId == null)
+            .OrderBy(n => n.SendTime, OrderByType.Desc)
             .ToListAsync(cancellationToken);
+
+        // 第三步：将用户级已读状态合并到通知实体上（仅内存操作，不回写 DB）
+        var recipientMap = recipients.ToDictionary(r => r.NotificationId);
+        foreach (var notification in notifications)
+        {
+            if (recipientMap.TryGetValue(notification.BasicId, out var recipient))
+            {
+                notification.NotificationStatus = recipient.NotificationStatus;
+                notification.ReadTime = recipient.ReadTime;
+            }
+        }
+
+        return notifications;
     }
 
     /// <summary>
-    /// 获取用户未读通知数量
+    /// 获取用户未读通知数量：通过 JOIN 确保只计算有效通知
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public async Task<int> GetUnreadCountAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -111,35 +112,21 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
         var resolvedTenantId = NormalizeTenantId(tenantId);
         var now = DateTimeOffset.UtcNow;
 
-        var query = CreateTenantQueryable()
-            .Where(notification =>
-                notification.Status == YesOrNo.Yes
-                && notification.NotificationStatus == NotificationStatus.Unread
-                && (!notification.ExpireTime.HasValue || notification.ExpireTime > now)
-                && (notification.IsGlobal || notification.RecipientUserId == userId));
-
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(notification =>
-                notification.TenantId == resolvedTenantId.Value
-                || notification.TenantId == null);
-        }
-        else
-        {
-            query = query.Where(notification => notification.TenantId == null);
-        }
-
-        return await query.CountAsync(cancellationToken);
+        return await DbClient.Queryable<SysUserNotification>()
+            .InnerJoin<SysNotification>((r, n) => r.NotificationId == n.BasicId)
+            .Where((r, n) =>
+                r.UserId == userId
+                && r.NotificationStatus == NotificationStatus.Unread
+                && n.Status == YesOrNo.Yes
+                && (n.ExpireTime == null || n.ExpireTime > now))
+            .WhereIF(resolvedTenantId.HasValue, (r, n) => n.TenantId == resolvedTenantId || n.TenantId == null)
+            .WhereIF(!resolvedTenantId.HasValue, (r, n) => n.TenantId == null)
+            .CountAsync(cancellationToken);
     }
 
     /// <summary>
-    /// 标记通知为已读
+    /// 标记通知为已读：直接更新 SysUserNotification
     /// </summary>
-    /// <param name="notificationId"></param>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public async Task<bool> MarkAsReadAsync(long notificationId, long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         if (notificationId <= 0 || userId <= 0)
@@ -147,46 +134,22 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return false;
         }
 
-        var resolvedTenantId = NormalizeTenantId(tenantId);
-        var now = DateTimeOffset.UtcNow;
+        var readTime = DateTimeOffset.UtcNow;
+        var affected = await DbClient.Updateable<SysUserNotification>()
+            .SetColumns(r => r.NotificationStatus, NotificationStatus.Read)
+            .SetColumns(r => r.ReadTime, readTime)
+            .Where(r =>
+                r.NotificationId == notificationId
+                && r.UserId == userId
+                && r.NotificationStatus == NotificationStatus.Unread)
+            .ExecuteCommandAsync(cancellationToken);
 
-        var query = CreateTenantQueryable()
-            .Where(notification =>
-                notification.BasicId == notificationId
-                && notification.Status == YesOrNo.Yes
-                && notification.NotificationStatus != NotificationStatus.Deleted
-                && (!notification.ExpireTime.HasValue || notification.ExpireTime > now)
-                && (notification.IsGlobal || notification.RecipientUserId == userId));
-
-        if (resolvedTenantId.HasValue)
-        {
-            query = query.Where(notification =>
-                notification.TenantId == resolvedTenantId.Value
-                || notification.TenantId == null);
-        }
-        else
-        {
-            query = query.Where(notification => notification.TenantId == null);
-        }
-
-        var entity = await query.FirstAsync(cancellationToken);
-        if (entity is null)
-        {
-            return false;
-        }
-
-        entity.MarkRead();
-        await DbClient.Updateable(entity).ExecuteCommandAsync(cancellationToken);
-        return true;
+        return affected > 0;
     }
 
     /// <summary>
-    /// 标记用户全部通知为已读
+    /// 标记用户全部通知为已读：批量更新 SysUserNotification
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public async Task<int> MarkAllAsReadAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -194,40 +157,50 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             return 0;
         }
 
-        var resolvedTenantId = NormalizeTenantId(tenantId);
+        var readTime = DateTimeOffset.UtcNow;
+        return await DbClient.Updateable<SysUserNotification>()
+            .SetColumns(r => r.NotificationStatus, NotificationStatus.Read)
+            .SetColumns(r => r.ReadTime, readTime)
+            .Where(r => r.UserId == userId && r.NotificationStatus == NotificationStatus.Unread)
+            .ExecuteCommandAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 确认通知：更新 SysUserNotification 的确认时间和已读状态
+    /// </summary>
+    public async Task<bool> ConfirmRecipientAsync(long notificationId, long userId, CancellationToken cancellationToken = default)
+    {
+        if (notificationId <= 0 || userId <= 0)
+        {
+            return false;
+        }
+
         var now = DateTimeOffset.UtcNow;
+        var affected = await DbClient.Updateable<SysUserNotification>()
+            .SetColumns(r => r.NotificationStatus, NotificationStatus.Read)
+            .SetColumns(r => r.ReadTime, now)
+            .SetColumns(r => r.ConfirmTime, now)
+            .Where(r =>
+                r.NotificationId == notificationId
+                && r.UserId == userId
+                && r.ConfirmTime == null)
+            .ExecuteCommandAsync(cancellationToken);
 
-        var query = CreateTenantQueryable()
-            .Where(notification =>
-                notification.Status == YesOrNo.Yes
-                && notification.NotificationStatus == NotificationStatus.Unread
-                && (!notification.ExpireTime.HasValue || notification.ExpireTime > now)
-                && (notification.IsGlobal || notification.RecipientUserId == userId));
+        return affected > 0;
+    }
 
-        if (resolvedTenantId.HasValue)
+    /// <summary>
+    /// 批量创建用户通知接收记录
+    /// </summary>
+    public async Task AddRecipientsAsync(IEnumerable<SysUserNotification> recipients, CancellationToken cancellationToken = default)
+    {
+        var list = recipients.ToList();
+        if (list.Count == 0)
         {
-            query = query.Where(notification =>
-                notification.TenantId == resolvedTenantId.Value
-                || notification.TenantId == null);
-        }
-        else
-        {
-            query = query.Where(notification => notification.TenantId == null);
-        }
-
-        var entities = await query.ToListAsync(cancellationToken);
-        if (entities.Count == 0)
-        {
-            return 0;
-        }
-
-        foreach (var entity in entities)
-        {
-            entity.MarkRead();
+            return;
         }
 
-        await DbClient.Updateable(entities).ExecuteCommandAsync(cancellationToken);
-        return entities.Count;
+        await DbClient.Insertable(list).ExecuteCommandAsync(cancellationToken);
     }
 
     private static long? NormalizeTenantId(long? tenantId)

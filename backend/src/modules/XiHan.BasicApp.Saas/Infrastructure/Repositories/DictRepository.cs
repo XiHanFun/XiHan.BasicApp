@@ -55,14 +55,7 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
         var query = CreateTenantQueryable()
             .Where(dict => dict.DictCode == dictCode);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(dict => dict.TenantId == tenantId.Value);
-        }
-        else
-        {
-            query = query.Where(dict => dict.TenantId == null);
-        }
+        query = tenantId.HasValue ? query.Where(dict => dict.TenantId == tenantId.Value) : query.Where(dict => dict.TenantId == null);
 
         return await query.FirstAsync(cancellationToken);
     }
