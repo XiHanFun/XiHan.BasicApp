@@ -1,0 +1,28 @@
+{
+  "resource": "Enums",
+  "culture": "en-US",
+  "texts": {
+    "YesOrNo.No": "No",
+    "YesOrNo.Yes": "Yes",
+    "UserGender.Unknown": "Unknown",
+    "UserGender.Male": "Male",
+    "UserGender.Female": "Female",
+    "TenantStatus.Normal": "Normal",
+    "TenantStatus.Suspended": "Suspended",
+    "TenantStatus.Expired": "Expired",
+    "TenantStatus.Disabled": "Disabled",
+    "ConfigType.System": "System",
+    "ConfigType.User": "User",
+    "ConfigType.Application": "Application",
+    "ConfigType.Business": "Business",
+    "RunTaskStatus.Pending": "Pending",
+    "RunTaskStatus.Running": "Running",
+    "RunTaskStatus.Success": "Succeeded",
+    "RunTaskStatus.Failed": "Failed",
+    "RunTaskStatus.Stopped": "Stopped",
+    "RunTaskStatus.Paused": "Paused",
+    "NotificationStatus.Unread": "Unread",
+    "NotificationStatus.Read": "Read",
+    "NotificationStatus.Deleted": "Deleted"
+  }
+}

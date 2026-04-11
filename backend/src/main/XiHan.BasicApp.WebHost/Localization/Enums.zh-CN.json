@@ -1,0 +1,28 @@
+{
+  "resource": "Enums",
+  "culture": "zh-CN",
+  "texts": {
+    "YesOrNo.No": "否",
+    "YesOrNo.Yes": "是",
+    "UserGender.Unknown": "未知",
+    "UserGender.Male": "男",
+    "UserGender.Female": "女",
+    "TenantStatus.Normal": "正常",
+    "TenantStatus.Suspended": "暂停",
+    "TenantStatus.Expired": "过期",
+    "TenantStatus.Disabled": "禁用",
+    "ConfigType.System": "系统配置",
+    "ConfigType.User": "用户配置",
+    "ConfigType.Application": "应用配置",
+    "ConfigType.Business": "业务配置",
+    "RunTaskStatus.Pending": "待执行",
+    "RunTaskStatus.Running": "执行中",
+    "RunTaskStatus.Success": "执行成功",
+    "RunTaskStatus.Failed": "执行失败",
+    "RunTaskStatus.Stopped": "已停止",
+    "RunTaskStatus.Paused": "已暂停",
+    "NotificationStatus.Unread": "未读",
+    "NotificationStatus.Read": "已读",
+    "NotificationStatus.Deleted": "已删除"
+  }
+}
