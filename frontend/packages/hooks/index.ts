@@ -1,5 +1,6 @@
 export * from './setupVxeTable'
 export * from './useContentMaximize'
+export * from './useEnumService'
 export * from './useI18n'
 export * from './usePagination'
 export * from './usePermission'
