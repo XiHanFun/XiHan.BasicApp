@@ -21,14 +21,25 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { departmentApi, permissionApi, roleApi, userApi } from '@/api'
 import { toId } from '@/api/helpers'
 import { XSystemQueryPanel } from '~/components'
-import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
+import { useEnumService, useVxeTable } from '~/hooks'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemUserPage' })
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
+const DEFAULT_GENDER_OPTIONS = [
+  { label: '未知', value: 0 },
+  { label: '男', value: 1 },
+  { label: '女', value: 2 },
+]
+const DEFAULT_STATUS_OPTIONS = [
+  { label: '禁用', value: 0 },
+  { label: '启用', value: 1 },
+]
+const genderOptions = ref<Array<{ label: string, value: any, disabled?: boolean }>>(DEFAULT_GENDER_OPTIONS)
+const statusOptions = ref<Array<{ label: string, value: any, disabled?: boolean }>>(DEFAULT_STATUS_OPTIONS)
+const { ensureBatch, toSelectOptions, getLabel: getEnumLabel } = useEnumService()
 
 // 全量角色列表：下拉选项与表格展示名称映射
 const allRoles = ref<SysRole[]>([])
@@ -71,10 +82,13 @@ onMounted(async () => {
       roleApi.list(),
       permissionApi.list(),
       departmentApi.tree(),
+      ensureBatch(['UserGender', 'YesOrNo']),
     ])
     allRoles.value = roles
     allPermissions.value = permissions
     allDepartments.value = flattenDepartmentTree(departments)
+    genderOptions.value = toSelectOptions('UserGender', DEFAULT_GENDER_OPTIONS)
+    statusOptions.value = toSelectOptions('YesOrNo', DEFAULT_STATUS_OPTIONS)
   }
   catch {
     message.error('加载角色、权限或部门列表失败')
@@ -124,10 +138,7 @@ const options = useVxeTable<SysUser>(
         field: 'gender',
         title: '性别',
         width: 70,
-        formatter: ({ cellValue }) => {
-          const map: Record<number, string> = { 0: '未知', 1: '男', 2: '女' }
-          return map[cellValue] ?? '未知'
-        },
+        formatter: ({ cellValue }) => getEnumLabel('UserGender', cellValue, '未知'),
       },
       {
         field: 'status',
@@ -398,7 +409,7 @@ watch(
         />
         <NSelect
           v-model:value="queryParams.status"
-          :options="STATUS_OPTIONS"
+          :options="statusOptions"
           placeholder="状态"
           clearable
           style="width: 120px"
@@ -420,7 +431,7 @@ watch(
         </template>
         <template #col_status="{ row }">
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
-            {{ row.status === 1 ? '启用' : '禁用' }}
+            {{ getEnumLabel('YesOrNo', row.status, row.status === 1 ? '启用' : '禁用') }}
           </NTag>
         </template>
         <template #col_roles="{ row }">
@@ -500,10 +511,10 @@ watch(
           <NInput v-model:value="formData.phone" placeholder="请输入手机号" />
         </NFormItem>
         <NFormItem label="性别" path="gender">
-          <NSelect v-model:value="formData.gender" :options="GENDER_OPTIONS" />
+          <NSelect v-model:value="formData.gender" :options="genderOptions" />
         </NFormItem>
         <NFormItem label="状态" path="status">
-          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="formData.status" :options="statusOptions" />
         </NFormItem>
         <NDivider title-placement="left">
           部门归属

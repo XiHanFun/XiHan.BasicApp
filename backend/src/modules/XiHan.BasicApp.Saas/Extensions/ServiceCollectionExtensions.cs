@@ -126,6 +126,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConfigAppService, ConfigAppService>();
         services.AddScoped<IConstraintRuleAppService, ConstraintRuleAppService>();
         services.AddScoped<IDictAppService, DictAppService>();
+        services.AddScoped<IEnumAppService, EnumAppService>();
         services.AddScoped<IFileAppService, FileAppService>();
         services.AddScoped<IEmailAppService, EmailAppService>();
         services.AddScoped<ISmsAppService, SmsAppService>();
