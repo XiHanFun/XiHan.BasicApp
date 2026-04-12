@@ -19,21 +19,14 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统通知实体
+/// 系统通知实体（通知内容主表，每用户投递状态存储在 SysUserNotification）
 /// </summary>
 [SugarTable("Sys_Notification", "系统通知表")]
-[SugarIndex("IX_SysNotification_ReUsId", nameof(RecipientUserId), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_NoTy", nameof(NotificationType), OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_NoSt", nameof(NotificationStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SeTi", nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_SysNotification_Published", nameof(IsPublished), OrderByType.Asc)]
 public partial class SysNotification : BasicAppAggregateRoot
 {
-    /// <summary>
-    /// 接收用户ID（为空表示全体用户）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual long? RecipientUserId { get; set; }
-
     /// <summary>
     /// 发送用户ID
     /// </summary>
@@ -83,18 +76,6 @@ public partial class SysNotification : BasicAppAggregateRoot
     public virtual long? BusinessId { get; set; }
 
     /// <summary>
-    /// 通知状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "通知状态")]
-    public virtual NotificationStatus NotificationStatus { get; set; } = NotificationStatus.Unread;
-
-    /// <summary>
-    /// 阅读时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "阅读时间", IsNullable = true)]
-    public virtual DateTimeOffset? ReadTime { get; set; }
-
-    /// <summary>
     /// 发送时间
     /// </summary>
     [SugarColumn(ColumnDescription = "发送时间")]
@@ -117,6 +98,12 @@ public partial class SysNotification : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要确认")]
     public virtual bool NeedConfirm { get; set; } = false;
+
+    /// <summary>
+    /// 是否已发布（发布后不可编辑/删除）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否已发布")]
+    public virtual bool IsPublished { get; set; } = false;
 
     /// <summary>
     /// 状态
