@@ -20,7 +20,6 @@ using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.SplitTables;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
-using XiHan.Framework.Web.Api.Constants;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Writers;
 using XiHan.Framework.Web.Core.Clients;

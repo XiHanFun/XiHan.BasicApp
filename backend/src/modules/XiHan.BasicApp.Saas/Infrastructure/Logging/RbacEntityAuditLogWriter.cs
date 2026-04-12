@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using SqlSugar;
@@ -19,6 +20,8 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.SplitTables;
+using XiHan.Framework.Domain.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
@@ -32,8 +35,6 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
     private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 构造函数
@@ -53,6 +54,8 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
     }
+
+    private ISqlSugarClient DbClient => _dbContext.GetClient();
 
     /// <summary>
     /// 写入实体审计日志
@@ -81,7 +84,7 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
             EntityType = entityTypeName,
             EntityId = entityId,
             EntityName = entityTypeName,
-            PrimaryKey = "BasicId",
+            PrimaryKey = nameof(IEntityBase<>.BasicId),
             PrimaryKeyValue = entityId,
             Module = "Data",
             Function = RbacLogMappingHelper.TrimOrNull(record.OperationType, 50),

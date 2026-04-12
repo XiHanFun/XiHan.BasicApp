@@ -96,7 +96,7 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
         ArgumentNullException.ThrowIfNull(entityType);
 
         if (entityType.Namespace is null ||
-            !entityType.Namespace.StartsWith("XiHan.BasicApp.Saas.Domain.Entities", StringComparison.Ordinal))
+            !entityType.Namespace.Contains("Domain.Entities", StringComparison.Ordinal))
         {
             return false;
         }
