@@ -20,38 +20,23 @@ using XiHan.Framework.Application.Contracts.Services;
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
 /// <summary>
-/// 通知应用服务
+/// 通知管理服务（管理页 CRUD + 发布 + 内部推送）
 /// </summary>
 public interface INotificationAppService
     : ICrudApplicationService<NotificationDto, long, NotificationCreateDto, NotificationUpdateDto, BasicAppPRDto>
 {
     /// <summary>
-    /// 获取用户通知列表
-    /// </summary>
-    Task<IReadOnlyList<NotificationDto>> GetUserNotificationsAsync(long userId, bool includeRead = true, long? tenantId = null);
-
-    /// <summary>
-    /// 获取用户未读通知数量
-    /// </summary>
-    Task<int> GetUnreadCountAsync(long userId, long? tenantId = null);
-
-    /// <summary>
-    /// 标记通知为已读
-    /// </summary>
-    Task<bool> MarkAsReadAsync(long notificationId, long userId, long? tenantId = null);
-
-    /// <summary>
-    /// 标记全部通知为已读
-    /// </summary>
-    Task<int> MarkAllAsReadAsync(long userId, long? tenantId = null);
-
-    /// <summary>
-    /// 确认通知
-    /// </summary>
-    Task<bool> ConfirmAsync(long notificationId, long userId, long? tenantId = null);
-
-    /// <summary>
-    /// 推送通知
+    /// 推送通知（内部调用，创建并直接发布）
     /// </summary>
     Task<int> PushAsync(PushNotificationCommand command);
+
+    /// <summary>
+    /// 发布已有草稿通知
+    /// </summary>
+    Task<int> PublishAsync(long notificationId);
+
+    /// <summary>
+    /// 获取通知的接收用户ID列表（管理页编辑草稿时回填接收人）
+    /// </summary>
+    Task<IReadOnlyList<long>> GetRecipientsAsync(long notificationId);
 }

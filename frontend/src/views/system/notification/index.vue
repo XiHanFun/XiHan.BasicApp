@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { PushNotificationPayload, SysNotification } from '@/api/modules/notification'
+import type { SysNotification } from '@/api/modules/notification'
 import {
   NButton,
   NDatePicker,
@@ -38,17 +38,6 @@ interface NotificationFormModel {
   recipientUserId?: string
   needConfirm: boolean
   sendTime?: string
-  expireTime?: string
-  remark?: string
-}
-
-interface PushFormModel {
-  title: string
-  content?: string
-  notificationType: number
-  isGlobal: boolean
-  recipientUserIds: string[]
-  needConfirm: boolean
   expireTime?: string
   remark?: string
 }
@@ -102,17 +91,17 @@ const options = useVxeTable<SysNotification>(
         slots: { default: 'col_confirm' },
       },
       {
+        field: 'isPublished',
+        title: '状态',
+        width: 90,
+        slots: { default: 'col_published' },
+      },
+      {
         field: 'sendTime',
         title: '发送时间',
         width: 170,
         formatter: ({ cellValue }) => formatDate(cellValue),
         sortable: true,
-      },
-      {
-        field: 'expireTime',
-        title: '过期时间',
-        width: 170,
-        formatter: ({ cellValue }) => formatDate(cellValue),
       },
       {
         field: 'createTime',
@@ -123,7 +112,7 @@ const options = useVxeTable<SysNotification>(
       {
         field: 'actions',
         title: '操作',
-        width: 180,
+        width: 200,
         fixed: 'right',
         slots: { default: 'col_actions' },
       },
@@ -214,7 +203,7 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: SysNotification) {
+async function handleEdit(row: SysNotification) {
   modalTitle.value = '编辑通知'
   formData.value = {
     basicId: row.basicId,
@@ -222,7 +211,7 @@ function handleEdit(row: SysNotification) {
     content: row.content ?? '',
     notificationType: row.notificationType,
     isGlobal: Boolean(row.isGlobal),
-    recipientUserId: row.recipientUserId,
+    recipientUserId: undefined,
     needConfirm: Boolean(row.needConfirm),
     sendTime: row.sendTime,
     expireTime: row.expireTime,
@@ -233,6 +222,15 @@ function handleEdit(row: SysNotification) {
   modalVisible.value = true
   if (!formData.value.isGlobal) {
     void loadRecipientUsers()
+    try {
+      const recipientIds = await notificationApi.getRecipients(row.basicId)
+      if (recipientIds.length > 0) {
+        formData.value.recipientUserId = recipientIds[0]
+      }
+    }
+    catch {
+      // 接收人回填失败不影响编辑
+    }
   }
 }
 
@@ -286,7 +284,7 @@ async function handleSubmit() {
   try {
     submitLoading.value = true
 
-    const payload: Partial<SysNotification> = {
+    const formPayload = {
       ...formData.value,
       title: formData.value.title.trim(),
       sendTime: new Date(formSendTime.value ?? Date.now()).toISOString(),
@@ -294,11 +292,11 @@ async function handleSubmit() {
       recipientUserId: formData.value.isGlobal ? undefined : formData.value.recipientUserId,
     }
 
-    if (payload.basicId) {
-      await notificationApi.update(payload.basicId, payload)
+    if (formPayload.basicId) {
+      await notificationApi.update(formPayload.basicId, formPayload)
     }
     else {
-      await notificationApi.create(payload)
+      await notificationApi.create(formPayload)
     }
 
     message.success('操作成功')
@@ -313,109 +311,14 @@ async function handleSubmit() {
   }
 }
 
-const pushModalVisible = ref(false)
-const pushLoading = ref(false)
-const pushForm = ref<PushFormModel>(createDefaultPushForm())
-const pushExpireTime = ref<number | null>(null)
-
-function createDefaultPushForm(): PushFormModel {
-  return {
-    title: '',
-    content: '',
-    notificationType: 0,
-    isGlobal: true,
-    recipientUserIds: [],
-    needConfirm: false,
-    expireTime: undefined,
-    remark: '',
-  }
-}
-
-function handleOpenPush(row?: SysNotification) {
-  if (row) {
-    pushForm.value = {
-      title: row.title,
-      content: row.content ?? '',
-      notificationType: row.notificationType,
-      isGlobal: Boolean(row.isGlobal),
-      recipientUserIds: row.isGlobal || !row.recipientUserId ? [] : [row.recipientUserId],
-      needConfirm: Boolean(row.needConfirm),
-      expireTime: row.expireTime,
-      remark: row.remark ?? '',
-    }
-    pushExpireTime.value = toTimestamp(row.expireTime)
-  }
-  else {
-    pushForm.value = createDefaultPushForm()
-    pushExpireTime.value = null
-  }
-
-  pushModalVisible.value = true
-
-  if (!pushForm.value.isGlobal) {
-    void loadRecipientUsers()
-  }
-}
-
-function handlePushGlobalChange(value: boolean) {
-  pushForm.value.isGlobal = value
-  if (value) {
-    pushForm.value.recipientUserIds = []
-    return
-  }
-  if (recipientUserOptions.value.length === 0) {
-    void loadRecipientUsers()
-  }
-}
-
-function validatePushForm() {
-  const title = pushForm.value.title.trim()
-  if (!title) {
-    message.warning('请输入通知标题')
-    return false
-  }
-
-  if (!pushForm.value.isGlobal && pushForm.value.recipientUserIds.length === 0) {
-    message.warning('非全员通知必须选择接收用户')
-    return false
-  }
-
-  if (pushExpireTime.value && pushExpireTime.value <= Date.now()) {
-    message.warning('过期时间必须晚于当前时间')
-    return false
-  }
-
-  return true
-}
-
-async function handleSubmitPush() {
-  if (!validatePushForm()) {
-    return
-  }
-
-  pushLoading.value = true
+async function handlePublish(row: SysNotification) {
   try {
-    const payload: PushNotificationPayload = {
-      title: pushForm.value.title.trim(),
-      content: pushForm.value.content,
-      notificationType: pushForm.value.notificationType,
-      isGlobal: pushForm.value.isGlobal,
-      recipientUserIds: pushForm.value.isGlobal ? [] : pushForm.value.recipientUserIds,
-      needConfirm: pushForm.value.needConfirm,
-      expireTime: pushExpireTime.value ? new Date(pushExpireTime.value).toISOString() : undefined,
-      remark: pushForm.value.remark,
-    }
-
-    const count = await notificationApi.push(payload)
+    const count = await notificationApi.publish(row.basicId)
     message.success(`发布成功，共推送 ${count} 条通知`)
-    pushModalVisible.value = false
     xGrid.value?.commitProxy('query')
   }
   catch {
     message.error('发布失败')
-  }
-  finally {
-    pushLoading.value = false
   }
 }
 </script>
@@ -454,9 +357,6 @@ async function handleSubmitPush() {
             <NButton v-if="canCreate" type="primary" size="small" @click="handleAdd">
               新增通知
             </NButton>
-            <NButton v-if="canCreate" size="small" secondary @click="handleOpenPush()">
-              发布通知
-            </NButton>
           </NSpace>
         </template>
         <template #col_scope="{ row }">
@@ -469,15 +369,37 @@ async function handleSubmitPush() {
             {{ row.needConfirm ? '是' : '否' }}
           </NTag>
         </template>
+        <template #col_published="{ row }">
+          <NTag :type="row.isPublished ? 'success' : 'default'" size="small">
+            {{ row.isPublished ? '已发布' : '草稿' }}
+          </NTag>
+        </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton v-if="canUpdate" size="small" type="primary" text @click="handleEdit(row)">
+            <NButton
+              v-if="canUpdate && !row.isPublished"
+              size="small"
+              type="primary"
+              text
+              @click="handleEdit(row)"
+            >
               编辑
             </NButton>
-            <NButton v-if="canCreate" size="small" type="primary" text @click="handleOpenPush(row)">
-              发布
-            </NButton>
-            <NPopconfirm v-if="canDelete" @positive-click="handleDelete(row.basicId)">
+            <NPopconfirm
+              v-if="canCreate && !row.isPublished"
+              @positive-click="handlePublish(row)"
+            >
+              <template #trigger>
+                <NButton size="small" type="success" text>
+                  发布
+                </NButton>
+              </template>
+              确认发布该通知？发布后不可编辑和删除。
+            </NPopconfirm>
+            <NPopconfirm
+              v-if="canDelete && !row.isPublished"
+              @positive-click="handleDelete(row.basicId)"
+            >
               <template #trigger>
                 <NButton size="small" type="error" text>
                   删除
@@ -572,86 +494,6 @@ async function handleSubmitPush() {
             @click="handleSubmit"
           >
             确认
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <NModal
-      v-model:show="pushModalVisible"
-      title="发布通知"
-      preset="card"
-      style="width: 760px; max-width: 92vw"
-      :auto-focus="false"
-    >
-      <NForm class="xh-edit-form-grid" :model="pushForm" label-placement="top" label-width="90px">
-        <NFormItem label="标题" path="title">
-          <NInput v-model:value="pushForm.title" placeholder="通知标题" maxlength="200" />
-        </NFormItem>
-        <NFormItem label="通知类型" path="notificationType">
-          <NSelect v-model:value="pushForm.notificationType" :options="NOTIFICATION_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem label="全员通知">
-          <NSwitch :value="pushForm.isGlobal" @update:value="handlePushGlobalChange" />
-        </NFormItem>
-        <NFormItem label="需要确认">
-          <NSwitch v-model:value="pushForm.needConfirm" />
-        </NFormItem>
-        <NFormItem
-          v-if="!pushForm.isGlobal"
-          class="xh-form-full-row"
-          label="接收用户"
-          path="recipientUserIds"
-        >
-          <NSelect
-            v-model:value="pushForm.recipientUserIds"
-            :options="recipientUserOptions"
-            :loading="userLoading"
-            multiple
-            filterable
-            clearable
-            placeholder="请选择接收用户"
-            @search="loadRecipientUsers"
-          />
-        </NFormItem>
-        <NFormItem label="过期时间" path="expireTime">
-          <NDatePicker
-            v-model:value="pushExpireTime"
-            type="datetime"
-            clearable
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem class="xh-form-full-row" label="内容" path="content">
-          <NInput
-            v-model:value="pushForm.content"
-            type="textarea"
-            :rows="4"
-            placeholder="通知内容"
-            maxlength="2000"
-          />
-        </NFormItem>
-        <NFormItem class="xh-form-full-row" label="备注" path="remark">
-          <NInput
-            v-model:value="pushForm.remark"
-            type="textarea"
-            :rows="2"
-            placeholder="备注"
-            maxlength="500"
-          />
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="pushModalVisible = false">
-            取消
-          </NButton>
-          <NButton
-            type="primary"
-            :loading="pushLoading"
-            @click="handleSubmitPush"
-          >
-            立即发布
           </NButton>
         </NSpace>
       </template>

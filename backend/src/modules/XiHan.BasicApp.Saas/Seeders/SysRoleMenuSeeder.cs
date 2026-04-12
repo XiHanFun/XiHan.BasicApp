@@ -96,7 +96,7 @@ public class SysRoleMenuSeeder : DataSeederBase
             // 系统管理员保留后台核心管理菜单
             ["admin"] =
             [
-                "dashboard",
+                "dashboard", "dashboard_workspace", "dashboard_inbox",
                 "system", "user", "role", "department", "permission", "notice", "oauth_app", "user_session", "review",
                 "log", "access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log", "api_log",
                 "platform", "menu", "config", "dict", "task", "monitor", "cache", "file",
@@ -105,10 +105,10 @@ public class SysRoleMenuSeeder : DataSeederBase
             ],
 
             // 其余角色按常用场景给出基础菜单，便于开箱联调
-            ["dept_admin"] = ["dashboard", "system", "user", "role", "department", "permission", "notice", "user_session", "review", "messaging", "message", "about"],
-            ["dept_manager"] = ["dashboard", "system", "user", "department", "notice", "messaging", "message", "about"],
-            ["employee"] = ["dashboard", "notice", "about"],
-            ["guest"] = ["dashboard"]
+            ["dept_admin"] = ["dashboard", "dashboard_workspace", "dashboard_inbox", "system", "user", "role", "department", "permission", "notice", "user_session", "review", "messaging", "message", "about"],
+            ["dept_manager"] = ["dashboard", "dashboard_workspace", "dashboard_inbox", "system", "user", "department", "notice", "messaging", "message", "about"],
+            ["employee"] = ["dashboard", "dashboard_workspace", "dashboard_inbox", "notice", "about"],
+            ["guest"] = ["dashboard", "dashboard_workspace", "dashboard_inbox"]
         };
 
         var requiredPairs = new List<(long RoleId, long MenuId)>();

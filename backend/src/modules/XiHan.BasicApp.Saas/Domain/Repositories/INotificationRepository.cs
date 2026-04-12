@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Domain.Repositories;
 
@@ -23,9 +24,9 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 public interface INotificationRepository : IAggregateRootRepository<SysNotification, long>
 {
     /// <summary>
-    /// 获取用户通知收件箱（通知内容 + 用户级已读状态合并返回）
+    /// 获取用户通知列表（JOIN 两表，返回独立读模型）
     /// </summary>
-    Task<IReadOnlyList<SysNotification>> GetUserNotificationsAsync(
+    Task<IReadOnlyList<UserNotificationInfo>> GetUserNotificationsAsync(
         long userId,
         bool includeRead = true,
         long? tenantId = null,
@@ -55,4 +56,14 @@ public interface INotificationRepository : IAggregateRootRepository<SysNotificat
     /// 批量创建用户通知接收记录
     /// </summary>
     Task AddRecipientsAsync(IEnumerable<SysUserNotification> recipients, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取通知的所有接收用户ID（查 SysUserNotification）
+    /// </summary>
+    Task<IReadOnlyList<long>> GetRecipientUserIdsByNotificationIdAsync(long notificationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除通知的所有接收记录（用于未发布草稿的编辑/删除）
+    /// </summary>
+    Task<int> DeleteRecipientsByNotificationIdAsync(long notificationId, CancellationToken cancellationToken = default);
 }

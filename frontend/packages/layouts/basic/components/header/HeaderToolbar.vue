@@ -10,10 +10,10 @@ import NotificationPopover from './NotificationPopover.vue'
 defineOptions({ name: 'HeaderToolbar' })
 
 const props = defineProps<HeaderToolbarPropsContract & {
-  notificationMessages?: NotificationItem[]
-  notificationAnnouncements?: NotificationItem[]
-  notificationUnreadMessages?: NotificationItem[]
-  notificationUnreadAnnouncements?: NotificationItem[]
+  notificationAllItems?: NotificationItem[]
+  notificationMentionedItems?: NotificationItem[]
+  notificationUnreadAll?: NotificationItem[]
+  notificationUnreadMentioned?: NotificationItem[]
   notificationUnreadCount?: number
   notificationLoading?: boolean
 }>()
@@ -106,10 +106,10 @@ const emit = defineEmits<{
     <!-- 通知弹窗 -->
     <NotificationPopover
       v-if="props.appStore.widgetNotification"
-      :messages="props.notificationMessages ?? []"
-      :announcements="props.notificationAnnouncements ?? []"
-      :unread-messages="props.notificationUnreadMessages ?? []"
-      :unread-announcements="props.notificationUnreadAnnouncements ?? []"
+      :all-items="props.notificationAllItems ?? []"
+      :mentioned-items="props.notificationMentionedItems ?? []"
+      :unread-all="props.notificationUnreadAll ?? []"
+      :unread-mentioned="props.notificationUnreadMentioned ?? []"
       :unread-count="props.notificationUnreadCount ?? 0"
       :loading="props.notificationLoading ?? false"
       @mark-read="(id) => emit('notificationMarkRead', id)"
