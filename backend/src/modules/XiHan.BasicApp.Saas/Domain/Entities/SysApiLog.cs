@@ -54,16 +54,16 @@ public partial class SysApiLog : BasicAppCreationEntity, ITraceableEntity
     public virtual string? RequestId { get; set; }
 
     /// <summary>
-    /// 会话ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
-
-    /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
     [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
 
     /// <summary>
     /// 客户端标识，用于区分不同的 API 调用方

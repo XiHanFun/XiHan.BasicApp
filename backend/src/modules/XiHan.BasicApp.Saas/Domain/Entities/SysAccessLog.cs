@@ -45,16 +45,16 @@ public partial class SysAccessLog : BasicAppCreationEntity, ITraceableEntity
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 会话ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
-
-    /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
     [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
 
     /// <summary>
     /// 访问资源路径

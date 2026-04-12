@@ -34,8 +34,8 @@ const options = useVxeTable(
     columns: [
       { type: 'seq', title: '序号', width: 60, fixed: 'left' },
       { field: 'userName', title: '用户名', minWidth: 120, showOverflow: 'tooltip' },
-      { field: 'sessionId', title: '会话ID', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'traceId', title: '链路ID', minWidth: 160, showOverflow: 'tooltip' },
+      { field: 'sessionId', title: '会话ID', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'resourcePath', title: '资源路径', minWidth: 200, showOverflow: 'tooltip' },
       { field: 'resourceName', title: '资源名称', minWidth: 140, showOverflow: 'tooltip' },
       { field: 'resourceType', title: '资源类型', width: 100 },
@@ -109,8 +109,7 @@ async function handleClear() {
     await accessLogApi.clear()
     message.success('清空成功')
     xGrid.value?.commitProxy('reload')
-  }
-  catch {
+  } catch {
     message.error('清空失败')
   }
 }
@@ -127,9 +126,7 @@ async function handleClear() {
           style="width: 260px"
           @keyup.enter="handleSearch"
         />
-        <NButton type="primary" size="small" @click="handleSearch">
-          查询
-        </NButton>
+        <NButton type="primary" size="small" @click="handleSearch">查询</NButton>
       </div>
     </XSystemQueryPanel>
     <vxe-card class="flex-1" style="height: 0">
@@ -137,9 +134,7 @@ async function handleClear() {
         <template #toolbar_buttons>
           <NPopconfirm @positive-click="handleClear">
             <template #trigger>
-              <NButton type="error" size="small">
-                清空日志
-              </NButton>
+              <NButton type="error" size="small">清空日志</NButton>
             </template>
             确认清空所有访问日志？
           </NPopconfirm>
