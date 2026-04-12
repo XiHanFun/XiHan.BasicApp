@@ -37,6 +37,11 @@ public class ExceptionLogDto : DtoBase<long>
     public string? RequestId { get; set; }
 
     /// <summary>
+    /// 链路ID
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
     /// 会话ID
     /// </summary>
     public string? SessionId { get; set; }
