@@ -177,6 +177,11 @@ public class AuditLogDto : DtoBase<long>
     public string? RequestId { get; set; }
 
     /// <summary>
+    /// 链路ID
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
     /// 业务ID
     /// </summary>
     public string? BusinessId { get; set; }

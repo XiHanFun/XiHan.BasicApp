@@ -32,6 +32,16 @@ public class LoginLogDto : DtoBase<long>
     public string? UserName { get; set; }
 
     /// <summary>
+    /// 链路ID
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public string? SessionId { get; set; }
+
+    /// <summary>
     /// 登录IP
     /// </summary>
     public string? LoginIp { get; set; }
