@@ -4,8 +4,8 @@ import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { requestPasswordResetApi } from '@/api'
 import { useTheme } from '~/hooks'
+import { useAppContext } from '~/stores'
 
 defineOptions({ name: 'ForgetPasswordPage' })
 
@@ -13,6 +13,7 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
 const message = useMessage()
+const { apis } = useAppContext()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 
@@ -31,7 +32,7 @@ async function handleSubmit() {
   try {
     await formRef.value?.validate()
     loading.value = true
-    const result = await requestPasswordResetApi(formData.value.email, 1)
+    const result = await apis.requestPasswordResetApi(formData.value.email, 1)
     if (result.temporaryPassword) {
       message.success(`${t('page.auth.reset_link_sent')}（临时密码：${result.temporaryPassword}）`)
     }

@@ -19,25 +19,14 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
-import {
-  changeUserNameApi,
-  confirmChangeEmailApi,
-  confirmChangePhoneApi,
-  sendChangeEmailCodeApi,
-  sendChangePhoneCodeApi,
-  sendEmailVerifyCodeApi,
-  sendPhoneVerifyCodeApi,
-  updateProfileApi,
-  verifyEmailApi,
-  verifyPhoneApi,
-} from '@/api'
 import { Icon } from '~/iconify'
-import { useUserStore } from '~/stores'
+import { useAppContext, useUserStore } from '~/stores'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
 
 const userStore = useUserStore()
+const { apis } = useAppContext()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -98,7 +87,7 @@ function handleChangeUserName() {
       }
       usernameChangeLoading.value = true
       try {
-        await changeUserNameApi({
+        await apis.changeUserNameApi({
           userName: newUserNameInput.value.trim(),
           password: newUserNamePassword.value,
         })
@@ -172,7 +161,7 @@ async function saveProfile() {
   await profileFormRef.value?.validate()
   profileSaving.value = true
   try {
-    await updateProfileApi({
+    await apis.updateProfileApi({
       ...profileForm.value,
       birthday: profileForm.value.birthday ? new Date(profileForm.value.birthday).toISOString() : undefined,
     })
@@ -236,8 +225,8 @@ async function sendVerifyCode(type: ContactTarget) {
   verifyLoading.value = true
   try {
     const res = type === 'email'
-      ? await sendEmailVerifyCodeApi()
-      : await sendPhoneVerifyCodeApi()
+      ? await apis.sendEmailVerifyCodeApi()
+      : await apis.sendPhoneVerifyCodeApi()
     message.success(type === 'email' ? '验证码已发送至邮箱' : '验证码已发送至手机')
     verifyTarget.value = type
     verifyCode.value = ''
@@ -263,9 +252,9 @@ async function confirmVerify() {
   verifyLoading.value = true
   try {
     if (verifyTarget.value === 'email')
-      await verifyEmailApi(verifyCode.value)
+      await apis.verifyEmailApi(verifyCode.value)
     else
-      await verifyPhoneApi(verifyCode.value)
+      await apis.verifyPhoneApi(verifyCode.value)
     message.success('验证成功')
     cancelVerify()
     emit('saved')
@@ -315,11 +304,11 @@ async function sendChangeCode() {
   changeLoading.value = true
   try {
     const res = changeTarget.value === 'email'
-      ? await sendChangeEmailCodeApi({
+      ? await apis.sendChangeEmailCodeApi({
           newEmail: changeNewValue.value.trim(),
           password: changePassword.value,
         })
-      : await sendChangePhoneCodeApi({
+      : await apis.sendChangePhoneCodeApi({
           newPhone: changeNewValue.value.trim(),
           password: changePassword.value,
         })
@@ -348,9 +337,9 @@ async function confirmChange() {
   changeLoading.value = true
   try {
     if (changeTarget.value === 'email')
-      await confirmChangeEmailApi(changeCode.value)
+      await apis.confirmChangeEmailApi(changeCode.value)
     else
-      await confirmChangePhoneApi(changeCode.value)
+      await apis.confirmChangePhoneApi(changeCode.value)
     message.success(changeTarget.value === 'email' ? '邮箱已更新' : '手机号已更新')
     cancelChange()
     emit('saved')
