@@ -132,12 +132,19 @@ public class SysResourceSeeder : DataSeederBase
 
     private async Task UpdateResourceParentIdAsync(string parentCode, string[] childCodes)
     {
-        var parent = await DbContext.GetClient().Queryable<SysResource>().FirstAsync(r => r.ResourceCode == parentCode);
+        var parent = await DbContext.GetClient()
+            .Queryable<SysResource>()
+            .FirstAsync(r => r.ResourceCode == parentCode);
+
         if (parent == null)
         {
             return;
         }
 
-        await DbContext.GetClient().Updateable<SysResource>().SetColumns(r => r.ParentId == parent.BasicId).Where(r => childCodes.Contains(r.ResourceCode)).ExecuteCommandAsync();
+        await DbContext.GetClient()
+            .Updateable<SysResource>()
+            .SetColumns(r => r.ParentId == parent.BasicId)
+            .Where(r => childCodes.Contains(r.ResourceCode))
+            .ExecuteCommandAsync();
     }
 }
