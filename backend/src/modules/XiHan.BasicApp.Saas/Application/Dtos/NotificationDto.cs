@@ -19,15 +19,10 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
-/// 通知 DTO
+/// 通知 DTO（查询响应）
 /// </summary>
 public class NotificationDto : BasicAppDto
 {
-    /// <summary>
-    /// 接收用户ID
-    /// </summary>
-    public long? RecipientUserId { get; set; }
-
     /// <summary>
     /// 发送用户ID
     /// </summary>
@@ -49,14 +44,19 @@ public class NotificationDto : BasicAppDto
     public string? Content { get; set; }
 
     /// <summary>
-    /// 通知状态
+    /// 当前用户的通知状态（来自 SysUserNotification，管理页为默认值）
     /// </summary>
     public NotificationStatus NotificationStatus { get; set; } = NotificationStatus.Unread;
 
     /// <summary>
-    /// 阅读时间
+    /// 当前用户的阅读时间（来自 SysUserNotification）
     /// </summary>
     public DateTimeOffset? ReadTime { get; set; }
+
+    /// <summary>
+    /// 当前用户的确认时间（来自 SysUserNotification）
+    /// </summary>
+    public DateTimeOffset? ConfirmTime { get; set; }
 
     /// <summary>
     /// 发送时间
@@ -79,6 +79,11 @@ public class NotificationDto : BasicAppDto
     public bool NeedConfirm { get; set; }
 
     /// <summary>
+    /// 是否已发布
+    /// </summary>
+    public bool IsPublished { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -90,14 +95,14 @@ public class NotificationDto : BasicAppDto
 }
 
 /// <summary>
-/// 创建通知 DTO
+/// 创建通知 DTO（RecipientUserId 仅用于非全员通知的目标用户指定，不会写入 SysNotification）
 /// </summary>
 public class NotificationCreateDto : BasicAppCDto
 {
     /// <summary>
-    /// 接收用户ID
+    /// 接收用户ID（非全员通知时指定目标用户，仅用于创建 SysUserNotification）
     /// </summary>
-    public long? RecipientUserId { get; set; }
+    public string? RecipientUserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
@@ -177,14 +182,14 @@ public class NotificationCreateDto : BasicAppCDto
 }
 
 /// <summary>
-/// 更新通知 DTO
+/// 更新通知 DTO（仅允许修改内容字段，不涉及接收人与每用户状态）
 /// </summary>
 public class NotificationUpdateDto : BasicAppUDto
 {
     /// <summary>
-    /// 接收用户ID
+    /// 接收用户ID（草稿编辑时可修改目标用户，仅用于更新 SysUserNotification）
     /// </summary>
-    public long? RecipientUserId { get; set; }
+    public string? RecipientUserId { get; set; }
 
     /// <summary>
     /// 发送用户ID
@@ -230,16 +235,6 @@ public class NotificationUpdateDto : BasicAppUDto
     /// 业务ID
     /// </summary>
     public long? BusinessId { get; set; }
-
-    /// <summary>
-    /// 通知状态
-    /// </summary>
-    public NotificationStatus NotificationStatus { get; set; } = NotificationStatus.Unread;
-
-    /// <summary>
-    /// 阅读时间
-    /// </summary>
-    public DateTimeOffset? ReadTime { get; set; }
 
     /// <summary>
     /// 发送时间

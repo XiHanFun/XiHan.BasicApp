@@ -39,6 +39,8 @@ const explicitComponentMap: Record<string, () => Promise<unknown>> = {
   'system/constraint-rule/index': () => import('@/views/system/constraint-rule/index.vue'),
   'system/oauthapp/index': () => import('@/views/system/oauth-app/index.vue'),
   'system/o-auth-app/index': () => import('@/views/system/oauth-app/index.vue'),
+  'dashboard/inbox/index': () => import('@/views/dashboard/inbox/index.vue'),
+  'dashboard/inbox': () => import('@/views/dashboard/inbox/index.vue'),
 }
 
 function toKebabCase(input: string) {

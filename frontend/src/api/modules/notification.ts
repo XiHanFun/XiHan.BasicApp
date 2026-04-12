@@ -12,9 +12,6 @@ const NOTIFICATION_TYPE_TO_NAME: Record<number, string> = {
 const NOTIFICATION_TYPE_FROM_NAME: Record<string, number> = {
   System: 0, User: 1, Announcement: 2, Warning: 3, Error: 4,
 }
-const NOTIFICATION_STATUS_TO_NAME: Record<number, string> = {
-  0: 'Unread', 1: 'Read', 2: 'Deleted',
-}
 const NOTIFICATION_STATUS_FROM_NAME: Record<string, number> = {
   Unread: 0, Read: 1, Deleted: 2,
 }
@@ -45,24 +42,20 @@ function toStringIdArray(values: Array<number | string>): string[] {
   return values.map(v => String(v)).filter(s => s !== '' && s !== '0')
 }
 
-function toTenantSegment(value?: null | number | string): string {
-  if (value === undefined || value === null || value === '') return '0'
-  return String(value)
-}
-
 export interface SysNotification {
   basicId: string
-  recipientUserId?: string
   sendUserId?: string
   notificationType: number
   title: string
   content?: string
   notificationStatus: number
   readTime?: string
+  confirmTime?: string
   sendTime: string
   expireTime?: string
   isGlobal?: boolean
   needConfirm?: boolean
+  isPublished?: boolean
   status?: number
   createTime?: string
   updateTime?: string
@@ -95,17 +88,18 @@ export interface PushNotificationPayload {
 function normalizeNotification(raw: Record<string, any>): SysNotification {
   return {
     basicId: toId(raw.basicId),
-    recipientUserId: raw.recipientUserId == null ? undefined : toId(raw.recipientUserId),
     sendUserId: raw.sendUserId == null ? undefined : toId(raw.sendUserId),
     notificationType: parseEnum(raw.notificationType, NOTIFICATION_TYPE_FROM_NAME, 0),
     title: raw.title ?? '',
     content: raw.content ?? '',
     notificationStatus: parseEnum(raw.notificationStatus, NOTIFICATION_STATUS_FROM_NAME, 0),
     readTime: raw.readTime ?? undefined,
+    confirmTime: raw.confirmTime ?? undefined,
     sendTime: raw.sendTime ?? '',
     expireTime: raw.expireTime ?? undefined,
     isGlobal: raw.isGlobal ?? undefined,
     needConfirm: raw.needConfirm ?? undefined,
+    isPublished: raw.isPublished ?? false,
     status: raw.status == null ? undefined : parseEnum(raw.status, YES_NO_FROM_NAME, 1),
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? undefined,
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? undefined,
@@ -113,7 +107,8 @@ function normalizeNotification(raw: Record<string, any>): SysNotification {
   }
 }
 
-function toCreatePayload(data: Partial<SysNotification>) {
+/** 构建创建请求载荷（data 可包含表单专属字段如 recipientUserId） */
+function toCreatePayload(data: Record<string, any>) {
   const isGlobal = Boolean(data.isGlobal)
   return {
     recipientUserId: isGlobal ? null : toStringIdOrNull(data.recipientUserId),
@@ -129,11 +124,9 @@ function toCreatePayload(data: Partial<SysNotification>) {
   }
 }
 
-function toUpdatePayload(id: string, data: Partial<SysNotification>) {
+function toUpdatePayload(id: string, data: Record<string, any>) {
   return {
     ...toCreatePayload(data),
-    notificationStatus: toEnumName(data.notificationStatus, NOTIFICATION_STATUS_TO_NAME, 'Unread'),
-    readTime: data.readTime ?? null,
     status: toEnumName(data.status, YES_NO_TO_NAME, 'Yes'),
     basicId: toId(id),
   }
@@ -163,21 +156,12 @@ export const notificationApi = {
 
   delete: (id: string) => api.delete(id),
 
-  getUserNotifications: (userId: string | number, includeRead = true, tenantId?: null | number | string) =>
-    api.request.get<any[]>(`${api.baseUrl}UserNotifications/${userId}/${toTenantSegment(tenantId)}`, { params: { includeRead } })
-      .then((list: any[]) => Array.isArray(list) ? list.map(normalizeNotification) : []),
+  publish: (notificationId: string) =>
+    api.request.post<number>(`${api.baseUrl}Publish`, undefined, { params: { notificationId } }),
 
-  getUnreadCount: (userId: string | number, tenantId?: null | number | string) =>
-    api.request.get<number>(`${api.baseUrl}UnreadCount/${userId}/${toTenantSegment(tenantId)}`),
-
-  markRead: (notificationId: string, userId: string | number, tenantId?: null | number | string) =>
-    api.request.post<boolean>(`${api.baseUrl}MarkAsRead`, undefined, { params: { notificationId, userId, tenantId: toTenantSegment(tenantId) } }),
-
-  markAllRead: (userId: string | number, tenantId?: null | number | string) =>
-    api.request.post<number>(`${api.baseUrl}MarkAllAsRead`, undefined, { params: { userId, tenantId: toTenantSegment(tenantId) } }),
-
-  confirm: (notificationId: string, userId: string | number, tenantId?: null | number | string) =>
-    api.request.post<boolean>(`${api.baseUrl}Confirm`, undefined, { params: { notificationId, userId, tenantId: toTenantSegment(tenantId) } }),
+  getRecipients: (notificationId: string) =>
+    api.request.get<string[]>(`${api.baseUrl}Recipients`, { params: { notificationId } })
+      .then((list: any[]) => Array.isArray(list) ? list.map(String) : []),
 
   push: (data: PushNotificationPayload) => {
     const isGlobal = Boolean(data.isGlobal)
