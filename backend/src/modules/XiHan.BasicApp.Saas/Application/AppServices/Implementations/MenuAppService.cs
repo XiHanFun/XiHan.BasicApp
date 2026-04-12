@@ -227,7 +227,7 @@ public class MenuAppService
         var entity = new SysMenu
         {
             TenantId = createDto.TenantId,
-            ResourceId = createDto.ResourceId,
+            PermissionCode = createDto.PermissionCode,
             ParentId = createDto.ParentId,
             MenuName = createDto.MenuName.Trim(),
             MenuCode = createDto.MenuCode.Trim(),
@@ -261,7 +261,7 @@ public class MenuAppService
     /// <returns></returns>
     protected override Task MapDtoToEntityAsync(MenuUpdateDto updateDto, SysMenu entity)
     {
-        entity.ResourceId = updateDto.ResourceId;
+        entity.PermissionCode = updateDto.PermissionCode;
         entity.ParentId = updateDto.ParentId;
         entity.MenuName = updateDto.MenuName.Trim();
         entity.MenuCode = updateDto.MenuCode.Trim();

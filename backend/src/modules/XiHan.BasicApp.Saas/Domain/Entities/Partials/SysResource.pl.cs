@@ -22,34 +22,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysResource
 {
     /// <summary>
-    /// 父资源
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(ParentId))]
-    public virtual SysResource? ParentResource { get; set; }
-
-    /// <summary>
-    /// 子资源列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(ParentId))]
-    public virtual List<SysResource>? ChildResources { get; set; }
-
-    /// <summary>
-    /// 关联的菜单列表（一个资源可以被多个菜单引用）
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysMenu.ResourceId))]
-    public virtual List<SysMenu>? Menus { get; set; }
-
-    /// <summary>
-    /// 资源权限列表
+    /// 资源权限列表（一个资源可对应多个权限）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]

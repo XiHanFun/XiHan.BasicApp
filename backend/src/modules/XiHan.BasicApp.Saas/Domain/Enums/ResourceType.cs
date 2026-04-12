@@ -16,43 +16,29 @@ namespace XiHan.BasicApp.Saas.Domain.Enums;
 
 /// <summary>
 /// 资源类型枚举
+/// 资源是"被控制对象"（API/数据/文件等），不包含 UI 结构（菜单/按钮在 SysMenu 中维护）
 /// </summary>
 public enum ResourceType
 {
     /// <summary>
-    /// 菜单资源（目录、菜单项）
-    /// </summary>
-    Menu = 0,
-
-    /// <summary>
     /// API接口资源
     /// </summary>
-    Api = 1,
-
-    /// <summary>
-    /// 按钮资源（页面操作按钮）
-    /// </summary>
-    Button = 2,
+    Api = 0,
 
     /// <summary>
     /// 文件资源
     /// </summary>
-    File = 3,
+    File = 1,
 
     /// <summary>
     /// 数据表资源
     /// </summary>
-    DataTable = 4,
-
-    /// <summary>
-    /// 页面元素资源（Tab、区块等）
-    /// </summary>
-    Element = 5,
+    DataTable = 2,
 
     /// <summary>
     /// 业务对象资源
     /// </summary>
-    BusinessObject = 6,
+    BusinessObject = 3,
 
     /// <summary>
     /// 其他资源
