@@ -51,6 +51,7 @@ public class SysMenuSeeder : DataSeederBase
         if (await HasDataAsync<SysMenu>(m => true))
         {
             Logger.LogInformation("系统菜单数据已存在，执行菜单层级校准");
+            await EnsureDashboardMenusAsync();
             await NormalizeMenuHierarchyAsync();
             return;
         }
@@ -66,7 +67,9 @@ public class SysMenuSeeder : DataSeederBase
         var menus = new List<SysMenu>
         {
             // 工作台
-            new() { ResourceId = null, ParentId = null, MenuName = "工作台", MenuCode = "dashboard", MenuType = MenuType.Menu, Path = "/dashboard", Component = "Dashboard/Index", RouteName = "Dashboard", Icon = "layout-dashboard", Title = "工作台", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 1 },
+            new() { ResourceId = null, ParentId = null, MenuName = "工作台", MenuCode = "dashboard", MenuType = MenuType.Directory, Path = "/dashboard", Component = null, RouteName = null, Redirect = "/dashboard/workspace", Icon = "layout-dashboard", Title = "工作台", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 1 },
+            new() { ResourceId = null, ParentId = null, MenuName = "工作台", MenuCode = "dashboard_workspace", MenuType = MenuType.Menu, Path = "/dashboard/workspace", Component = "Dashboard/Index", RouteName = "DashboardWorkspace", Icon = "layout-dashboard", Title = "工作台", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 11 },
+            new() { ResourceId = null, ParentId = null, MenuName = "站内信", MenuCode = "dashboard_inbox", MenuType = MenuType.Menu, Path = "/dashboard/inbox", Component = "Dashboard/Inbox/Index", RouteName = "DashboardInbox", Icon = "inbox", Title = "站内信", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 12 },
 
             // 系统管理
             new() { ResourceId = GetResourceId(resourceMap, "system"), ParentId = null, MenuName = "系统管理", MenuCode = "system", MenuType = MenuType.Directory, Path = "/system", Component = null, RouteName = null, Redirect = "/system/user", Icon = "settings", Title = "系统管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 100 },
@@ -116,6 +119,92 @@ public class SysMenuSeeder : DataSeederBase
         Logger.LogInformation("成功初始化 {Count} 个系统菜单", menus.Count);
     }
 
+    private async Task EnsureDashboardMenusAsync()
+    {
+        var client = DbContext.GetClient();
+        var existingCodes = await client
+            .Queryable<SysMenu>()
+            .Where(m => m.MenuCode == "dashboard" || m.MenuCode == "dashboard_workspace" || m.MenuCode == "dashboard_inbox")
+            .Select(m => m.MenuCode)
+            .ToListAsync();
+        var existingCodeSet = existingCodes
+            .Where(static code => !string.IsNullOrWhiteSpace(code))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var addList = new List<SysMenu>();
+        if (!existingCodeSet.Contains("dashboard"))
+        {
+            addList.Add(new SysMenu { ResourceId = null, ParentId = null, MenuName = "工作台", MenuCode = "dashboard", MenuType = MenuType.Directory, Path = "/dashboard", Component = null, RouteName = null, Redirect = "/dashboard/workspace", Icon = "layout-dashboard", Title = "工作台", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 1 });
+        }
+
+        if (!existingCodeSet.Contains("dashboard_workspace"))
+        {
+            addList.Add(new SysMenu { ResourceId = null, ParentId = null, MenuName = "工作台", MenuCode = "dashboard_workspace", MenuType = MenuType.Menu, Path = "/dashboard/workspace", Component = "Dashboard/Index", RouteName = "DashboardWorkspace", Icon = "layout-dashboard", Title = "工作台", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 11 });
+        }
+
+        if (!existingCodeSet.Contains("dashboard_inbox"))
+        {
+            addList.Add(new SysMenu { ResourceId = null, ParentId = null, MenuName = "站内信", MenuCode = "dashboard_inbox", MenuType = MenuType.Menu, Path = "/dashboard/inbox", Component = "Dashboard/Inbox/Index", RouteName = "DashboardInbox", Icon = "inbox", Title = "站内信", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 12 });
+        }
+
+        if (addList.Count > 0)
+        {
+            await BulkInsertAsync(addList);
+            Logger.LogInformation("补充新增 {Count} 个工作台菜单", addList.Count);
+        }
+
+        await client.Updateable<SysMenu>()
+            .SetColumns(m => m.MenuName == "工作台")
+            .SetColumns(m => m.MenuType == MenuType.Directory)
+            .SetColumns(m => m.Path == "/dashboard")
+            .SetColumns(m => m.Component == null)
+            .SetColumns(m => m.RouteName == null)
+            .SetColumns(m => m.Redirect == "/dashboard/workspace")
+            .SetColumns(m => m.Icon == "layout-dashboard")
+            .SetColumns(m => m.Title == "工作台")
+            .SetColumns(m => m.IsCache == false)
+            .SetColumns(m => m.IsVisible == true)
+            .SetColumns(m => m.IsAffix == false)
+            .SetColumns(m => m.Status == YesOrNo.Yes)
+            .SetColumns(m => m.Sort == 1)
+            .Where(m => m.MenuCode == "dashboard")
+            .ExecuteCommandAsync();
+
+        await client.Updateable<SysMenu>()
+            .SetColumns(m => m.MenuName == "工作台")
+            .SetColumns(m => m.MenuType == MenuType.Menu)
+            .SetColumns(m => m.Path == "/dashboard/workspace")
+            .SetColumns(m => m.Component == "Dashboard/Index")
+            .SetColumns(m => m.RouteName == "DashboardWorkspace")
+            .SetColumns(m => m.Redirect == null)
+            .SetColumns(m => m.Icon == "layout-dashboard")
+            .SetColumns(m => m.Title == "工作台")
+            .SetColumns(m => m.IsCache == true)
+            .SetColumns(m => m.IsVisible == true)
+            .SetColumns(m => m.IsAffix == true)
+            .SetColumns(m => m.Status == YesOrNo.Yes)
+            .SetColumns(m => m.Sort == 11)
+            .Where(m => m.MenuCode == "dashboard_workspace")
+            .ExecuteCommandAsync();
+
+        await client.Updateable<SysMenu>()
+            .SetColumns(m => m.MenuName == "站内信")
+            .SetColumns(m => m.MenuType == MenuType.Menu)
+            .SetColumns(m => m.Path == "/dashboard/inbox")
+            .SetColumns(m => m.Component == "Dashboard/Inbox/Index")
+            .SetColumns(m => m.RouteName == "DashboardInbox")
+            .SetColumns(m => m.Redirect == null)
+            .SetColumns(m => m.Icon == "inbox")
+            .SetColumns(m => m.Title == "站内信")
+            .SetColumns(m => m.IsCache == true)
+            .SetColumns(m => m.IsVisible == true)
+            .SetColumns(m => m.IsAffix == false)
+            .SetColumns(m => m.Status == YesOrNo.Yes)
+            .SetColumns(m => m.Sort == 12)
+            .Where(m => m.MenuCode == "dashboard_inbox")
+            .ExecuteCommandAsync();
+    }
+
     private static long? GetResourceId(Dictionary<string, long> resourceMap, string resourceCode) => resourceMap.TryGetValue(resourceCode, out var id) ? id : null;
 
     private async Task NormalizeMenuHierarchyAsync()
@@ -128,6 +217,7 @@ public class SysMenuSeeder : DataSeederBase
         await SetMenuAsRootAsync("platform");
         await SetMenuAsRootAsync("about");
 
+        await UpdateMenuParentIdAsync("dashboard", ["dashboard_workspace", "dashboard_inbox"]);
         await UpdateMenuParentIdAsync("messaging", ["message", "email", "sms"]);
         await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log", "api_log"]);
         await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);

@@ -103,13 +103,13 @@ public partial class SysUser
     public virtual List<SysOperationLog>? OperationLogs { get; set; }
 
     /// <summary>
-    /// 接收通知列表
+    /// 用户通知接收记录
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysNotification.RecipientUserId))]
-    public virtual List<SysNotification>? ReceivedNotifications { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(SysUserNotification.UserId))]
+    public virtual List<SysUserNotification>? UserNotifications { get; set; }
 
     /// <summary>
     /// 发送通知列表

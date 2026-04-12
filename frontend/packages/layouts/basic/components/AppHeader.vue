@@ -302,8 +302,8 @@ async function loadNotifications() {
   if (!userId) return
   notificationStore.loading = true
   try {
-    const { notificationApi } = await import('@/api')
-    const list = await notificationApi.getUserNotifications(String(userId), true, userStore.userInfo?.tenantId)
+    const { userInboxApi } = await import('@/api')
+    const list = await userInboxApi.list(String(userId), true, userStore.userInfo?.tenantId)
     notificationStore.setItems(list.map(n => ({
       basicId: n.basicId,
       title: n.title,
@@ -312,6 +312,7 @@ async function loadNotifications() {
       notificationStatus: n.notificationStatus,
       sendTime: n.sendTime,
       readTime: n.readTime,
+      confirmTime: n.confirmTime,
       isGlobal: n.isGlobal,
       needConfirm: n.needConfirm,
     })))
@@ -332,11 +333,10 @@ async function handleNotificationMarkRead(id: string) {
   const prevReadTime = prev?.readTime
   notificationStore.markItemRead(id)
   try {
-    const { notificationApi } = await import('@/api')
-    await notificationApi.markRead(id, String(userId), userStore.userInfo?.tenantId)
+    const { userInboxApi } = await import('@/api')
+    await userInboxApi.markRead(id, String(userId), userStore.userInfo?.tenantId)
   }
   catch {
-    // 失败回滚
     if (prev && prevStatus !== undefined) {
       prev.notificationStatus = prevStatus
       prev.readTime = prevReadTime
@@ -347,10 +347,10 @@ async function handleNotificationMarkRead(id: string) {
 async function handleNotificationConfirm(id: string) {
   const userId = userStore.userInfo?.basicId
   if (!userId) return
-  notificationStore.markItemRead(id)
+  notificationStore.markItemConfirmed(id)
   try {
-    const { notificationApi } = await import('@/api')
-    await notificationApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
+    const { userInboxApi } = await import('@/api')
+    await userInboxApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
   }
   catch {
     await loadNotifications()
@@ -360,17 +360,15 @@ async function handleNotificationConfirm(id: string) {
 async function handleNotificationMarkAllRead() {
   const userId = userStore.userInfo?.basicId
   if (!userId) return
-  // 快照用于回滚
   const snapshot = notificationStore.items
     .filter(n => n.notificationStatus === 0)
     .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
   notificationStore.markAllRead()
   try {
-    const { notificationApi } = await import('@/api')
-    await notificationApi.markAllRead(String(userId), userStore.userInfo?.tenantId)
+    const { userInboxApi } = await import('@/api')
+    await userInboxApi.markAllRead(String(userId), userStore.userInfo?.tenantId)
   }
   catch {
-    // 失败回滚
     for (const s of snapshot) {
       const item = notificationStore.items.find(n => n.basicId === s.id)
       if (item) {
@@ -382,7 +380,7 @@ async function handleNotificationMarkAllRead() {
 }
 
 function handleNotificationViewAll() {
-  router.push('/system/notice')
+  router.push('/dashboard/inbox')
 }
 
 // SignalR 推送节流：2 秒内多次推送只触发一次全量刷新
@@ -492,10 +490,10 @@ watch(() => route.fullPath, () => {
     :timezone-options="timezoneOptions"
     :locale-options="localeOptions"
     :user-options="userOptions"
-    :notification-messages="notificationStore.messages"
-    :notification-announcements="notificationStore.announcements"
-    :notification-unread-messages="notificationStore.unreadMessages"
-    :notification-unread-announcements="notificationStore.unreadAnnouncements"
+    :notification-all-items="notificationStore.allItems"
+    :notification-mentioned-items="notificationStore.mentionedItems"
+    :notification-unread-all="notificationStore.unreadAll"
+    :notification-unread-mentioned="notificationStore.unreadMentioned"
     :notification-unread-count="notificationStore.unreadCount"
     :notification-loading="notificationStore.loading"
     @locale-change="handleLocaleChange"

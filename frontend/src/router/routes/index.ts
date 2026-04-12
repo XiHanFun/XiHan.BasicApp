@@ -12,13 +12,33 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: HOME_PATH,
-        name: 'DashboardWorkspace',
-        component: () => import('~/views/_core/dashboard/index.vue'),
+        name: 'Dashboard',
+        redirect: '/dashboard/workspace',
         meta: {
-          title: 'menu.workspace',
+          title: '工作台',
           icon: 'mdi:view-dashboard-outline',
-          affixTab: true,
         },
+        children: [
+          {
+            path: '/dashboard/workspace',
+            name: 'DashboardWorkspace',
+            component: () => import('~/views/_core/dashboard/index.vue'),
+            meta: {
+              title: '工作台',
+              icon: 'mdi:view-dashboard-outline',
+              affixTab: true,
+            },
+          },
+          {
+            path: '/dashboard/inbox',
+            name: 'DashboardInbox',
+            component: () => import('@/views/dashboard/inbox/index.vue'),
+            meta: {
+              title: '站内信',
+              icon: 'lucide:inbox',
+            },
+          },
+        ],
       },
       {
         path: 'profile',
