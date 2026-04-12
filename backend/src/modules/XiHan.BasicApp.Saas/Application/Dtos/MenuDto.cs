@@ -24,9 +24,9 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public class MenuDto : BasicAppDto
 {
     /// <summary>
-    /// 关联资源ID
+    /// 权限编码（菜单可见性所需的权限）
     /// </summary>
-    public long? ResourceId { get; set; }
+    public string? PermissionCode { get; set; }
 
     /// <summary>
     /// 父级菜单ID
@@ -145,9 +145,10 @@ public class MenuDto : BasicAppDto
 public class MenuCreateDto : BasicAppCDto
 {
     /// <summary>
-    /// 关联资源ID
+    /// 权限编码（菜单可见性所需的权限）
     /// </summary>
-    public long? ResourceId { get; set; }
+    [StringLength(200, ErrorMessage = "权限编码长度不能超过 200")]
+    public string? PermissionCode { get; set; }
 
     /// <summary>
     /// 父级菜单ID
@@ -275,9 +276,10 @@ public class MenuCreateDto : BasicAppCDto
 public class MenuUpdateDto : BasicAppUDto
 {
     /// <summary>
-    /// 关联资源ID
+    /// 权限编码（菜单可见性所需的权限）
     /// </summary>
-    public long? ResourceId { get; set; }
+    [StringLength(200, ErrorMessage = "权限编码长度不能超过 200")]
+    public string? PermissionCode { get; set; }
 
     /// <summary>
     /// 父级菜单ID

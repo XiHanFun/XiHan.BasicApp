@@ -22,6 +22,7 @@ namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
 /// 系统资源种子数据
+/// 资源是"被控制对象"（API/数据/文件），扁平结构，不含 UI（菜单/按钮）
 /// </summary>
 public class SysResourceSeeder : DataSeederBase
 {
@@ -54,97 +55,48 @@ public class SysResourceSeeder : DataSeederBase
             return;
         }
 
+        // 资源只包含 API/数据 等"被控制对象"，菜单/按钮在 SysMenu 中独立维护
         var resources = new List<SysResource>
         {
-            // 目录资源
-            new() { ParentId = null, ResourceCode = "system", ResourceName = "系统管理", ResourceType = ResourceType.Menu, ResourcePath = "/system", Icon = "settings", Description = "系统管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 1 },
-            new() { ParentId = null, ResourceCode = "platform", ResourceName = "平台管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform", Icon = "layout-grid", Description = "平台管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 2 },
+            // 系统管理 API
+            new() { ResourceCode = "user", ResourceName = "用户管理", ResourceType = ResourceType.Api, ResourcePath = "/api/users", Description = "用户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 100 },
+            new() { ResourceCode = "role", ResourceName = "角色管理", ResourceType = ResourceType.Api, ResourcePath = "/api/roles", Description = "角色管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 101 },
+            new() { ResourceCode = "department", ResourceName = "机构管理", ResourceType = ResourceType.Api, ResourcePath = "/api/departments", Description = "机构管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 102 },
+            new() { ResourceCode = "notice", ResourceName = "通知公告", ResourceType = ResourceType.Api, ResourcePath = "/api/notifications", Description = "通知公告API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 103 },
+            new() { ResourceCode = "oauth_app", ResourceName = "三方账号", ResourceType = ResourceType.Api, ResourcePath = "/api/oauth-apps", Description = "三方账号管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 104 },
+            new() { ResourceCode = "user_session", ResourceName = "会话管理", ResourceType = ResourceType.Api, ResourcePath = "/api/user-sessions", Description = "在线会话管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 105 },
+            new() { ResourceCode = "review", ResourceName = "审核管理", ResourceType = ResourceType.Api, ResourcePath = "/api/reviews", Description = "审核管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 106 },
 
-            // 系统管理
-            new() { ParentId = null, ResourceCode = "user", ResourceName = "账号管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/user", Icon = "user", Description = "账号管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 100 },
-            new() { ParentId = null, ResourceCode = "role", ResourceName = "角色管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/role", Icon = "users", Description = "角色管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 101 },
-            new() { ParentId = null, ResourceCode = "department", ResourceName = "机构管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/org", Icon = "building-2", Description = "机构管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 102 },
-            new() { ParentId = null, ResourceCode = "notice", ResourceName = "通知公告", ResourceType = ResourceType.Menu, ResourcePath = "/system/notice", Icon = "bell", Description = "通知公告功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 103 },
-            new() { ParentId = null, ResourceCode = "oauth_app", ResourceName = "三方账号", ResourceType = ResourceType.Menu, ResourcePath = "/system/weChatUser", Icon = "link", Description = "三方账号管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 104 },
-            new() { ParentId = null, ResourceCode = "user_session", ResourceName = "会话管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/session", Icon = "shield-check", Description = "在线会话管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 105 },
-            new() { ParentId = null, ResourceCode = "review", ResourceName = "审核管理", ResourceType = ResourceType.Menu, ResourcePath = "/system/review", Icon = "clipboard-check", Description = "审核管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 106 },
-            new() { ParentId = null, ResourceCode = "messaging", ResourceName = "消息中心", ResourceType = ResourceType.Menu, ResourcePath = "/messaging", Icon = "message-square", Description = "消息中心目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 107 },
-            new() { ParentId = null, ResourceCode = "log", ResourceName = "日志管理", ResourceType = ResourceType.Menu, ResourcePath = "/log", Icon = "file-text", Description = "日志管理目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 108 },
+            // 平台管理 API
+            new() { ResourceCode = "tenant", ResourceName = "租户管理", ResourceType = ResourceType.Api, ResourcePath = "/api/tenants", Description = "租户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 200 },
+            new() { ResourceCode = "permission", ResourceName = "权限管理", ResourceType = ResourceType.Api, ResourcePath = "/api/permissions", Description = "权限管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 201 },
+            new() { ResourceCode = "menu", ResourceName = "菜单管理", ResourceType = ResourceType.Api, ResourcePath = "/api/menus", Description = "菜单管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 202 },
+            new() { ResourceCode = "config", ResourceName = "参数配置", ResourceType = ResourceType.Api, ResourcePath = "/api/configs", Description = "参数配置API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 203 },
+            new() { ResourceCode = "constraint_rule", ResourceName = "约束规则", ResourceType = ResourceType.Api, ResourcePath = "/api/constraint-rules", Description = "约束规则管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 204 },
+            new() { ResourceCode = "dict", ResourceName = "字典管理", ResourceType = ResourceType.Api, ResourcePath = "/api/dicts", Description = "数据字典管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 205 },
+            new() { ResourceCode = "task", ResourceName = "任务调度", ResourceType = ResourceType.Api, ResourcePath = "/api/tasks", Description = "任务调度管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 206 },
+            new() { ResourceCode = "monitor", ResourceName = "系统监控", ResourceType = ResourceType.Api, ResourcePath = "/api/monitors", Description = "系统监控API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 207 },
+            new() { ResourceCode = "cache", ResourceName = "缓存管理", ResourceType = ResourceType.Api, ResourcePath = "/api/caches", Description = "缓存管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 208 },
+            new() { ResourceCode = "region", ResourceName = "行政区域", ResourceType = ResourceType.Api, ResourcePath = "/api/regions", Description = "行政区域管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 209 },
+            new() { ResourceCode = "file", ResourceName = "文件管理", ResourceType = ResourceType.File, ResourcePath = "/api/files", Description = "文件管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 210 },
+            new() { ResourceCode = "plugin", ResourceName = "动态插件", ResourceType = ResourceType.Api, ResourcePath = "/api/plugins", Description = "动态插件管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 211 },
 
-            // 平台管理
-            new() { ParentId = null, ResourceCode = "tenant", ResourceName = "租户管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/tenant", Icon = "server", Description = "租户管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 200 },
-            new() { ParentId = null, ResourceCode = "permission", ResourceName = "权限管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/permission", Icon = "shield", Description = "权限管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 201 },
-            new() { ParentId = null, ResourceCode = "menu", ResourceName = "菜单管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/menu", Icon = "menu", Description = "菜单管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 202 },
-            new() { ParentId = null, ResourceCode = "config", ResourceName = "参数配置", ResourceType = ResourceType.Menu, ResourcePath = "/platform/config", Icon = "sliders-horizontal", Description = "系统参数配置", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 203 },
-            new() { ParentId = null, ResourceCode = "constraint_rule", ResourceName = "约束规则", ResourceType = ResourceType.Menu, ResourcePath = "/platform/constraint-rule", Icon = "scale", Description = "ABAC约束规则管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 2031 },
-            new() { ParentId = null, ResourceCode = "dict", ResourceName = "字典管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/dict", Icon = "book-open", Description = "数据字典管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 204 },
-            new() { ParentId = null, ResourceCode = "task", ResourceName = "任务调度", ResourceType = ResourceType.Menu, ResourcePath = "/platform/job", Icon = "clock", Description = "任务调度管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 205 },
-            new() { ParentId = null, ResourceCode = "monitor", ResourceName = "系统监控", ResourceType = ResourceType.Menu, ResourcePath = "/platform/server", Icon = "activity", Description = "系统监控功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 206 },
-            new() { ParentId = null, ResourceCode = "cache", ResourceName = "缓存管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/cache", Icon = "database", Description = "缓存管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 207 },
-            new() { ParentId = null, ResourceCode = "region", ResourceName = "行政区域", ResourceType = ResourceType.Menu, ResourcePath = "/platform/region", Icon = "globe", Description = "行政区域管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 208 },
-            new() { ParentId = null, ResourceCode = "file", ResourceName = "文件管理", ResourceType = ResourceType.Menu, ResourcePath = "/platform/file", Icon = "folder-open", Description = "文件管理功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 209 },
-            new() { ParentId = null, ResourceCode = "plugin", ResourceName = "动态插件", ResourceType = ResourceType.Menu, ResourcePath = "/platform/plugin", Icon = "puzzle", Description = "动态插件管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 210 },
+            // 消息中心 API
+            new() { ResourceCode = "message", ResourceName = "消息管理", ResourceType = ResourceType.Api, ResourcePath = "/api/messages", Description = "站内消息管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 250 },
+            new() { ResourceCode = "email", ResourceName = "邮件管理", ResourceType = ResourceType.Api, ResourcePath = "/api/emails", Description = "邮件发送管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 251 },
+            new() { ResourceCode = "sms", ResourceName = "短信管理", ResourceType = ResourceType.Api, ResourcePath = "/api/sms", Description = "短信发送管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 252 },
 
-            // 消息中心
-            new() { ParentId = null, ResourceCode = "message", ResourceName = "消息管理", ResourceType = ResourceType.Menu, ResourcePath = "/messaging/message", Icon = "bell-ring", Description = "站内消息管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 250 },
-            new() { ParentId = null, ResourceCode = "email", ResourceName = "邮件管理", ResourceType = ResourceType.Menu, ResourcePath = "/messaging/email", Icon = "mail", Description = "邮件发送管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 251 },
-            new() { ParentId = null, ResourceCode = "sms", ResourceName = "短信管理", ResourceType = ResourceType.Menu, ResourcePath = "/messaging/sms", Icon = "message-circle", Description = "短信发送管理", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 252 },
-
-            // 日志管理
-            new() { ParentId = null, ResourceCode = "access_log", ResourceName = "访问日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/vislog", Icon = "globe", Description = "访问日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 300 },
-            new() { ParentId = null, ResourceCode = "operation_log", ResourceName = "操作日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/oplog", Icon = "history", Description = "操作日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 301 },
-            new() { ParentId = null, ResourceCode = "exception_log", ResourceName = "异常日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/exlog", Icon = "alert-triangle", Description = "异常日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 302 },
-            new() { ParentId = null, ResourceCode = "audit_log", ResourceName = "差异日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/difflog", Icon = "file-diff", Description = "差异日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 303 },
-            new() { ParentId = null, ResourceCode = "login_log", ResourceName = "登录日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/loginlog", Icon = "log-in", Description = "登录日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 304 },
-            new() { ParentId = null, ResourceCode = "task_log", ResourceName = "调度日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/tasklog", Icon = "calendar-clock", Description = "调度日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 305 },
-            new() { ParentId = null, ResourceCode = "api_log", ResourceName = "接口日志", ResourceType = ResourceType.Menu, ResourcePath = "/log/apilog", Icon = "shield-check", Description = "接口安全日志查询", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 306 },
-
-            // API 资源
-            new() { ParentId = null, ResourceCode = "user_api", ResourceName = "用户API", ResourceType = ResourceType.Api, ResourcePath = "/api/users", Description = "用户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 500 },
-            new() { ParentId = null, ResourceCode = "role_api", ResourceName = "角色API", ResourceType = ResourceType.Api, ResourcePath = "/api/roles", Description = "角色管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 501 },
-            new() { ParentId = null, ResourceCode = "permission_api", ResourceName = "权限API", ResourceType = ResourceType.Api, ResourcePath = "/api/permissions", Description = "权限管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 502 },
-            new() { ParentId = null, ResourceCode = "department_api", ResourceName = "机构API", ResourceType = ResourceType.Api, ResourcePath = "/api/departments", Description = "机构管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 503 },
-            new() { ParentId = null, ResourceCode = "tenant_api", ResourceName = "租户API", ResourceType = ResourceType.Api, ResourcePath = "/api/tenants", Description = "租户管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 504 },
-            new() { ParentId = null, ResourceCode = "menu_api", ResourceName = "菜单API", ResourceType = ResourceType.Api, ResourcePath = "/api/menus", Description = "菜单管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 505 },
-            new() { ParentId = null, ResourceCode = "dict_api", ResourceName = "字典API", ResourceType = ResourceType.Api, ResourcePath = "/api/dicts", Description = "字典管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 506 },
-            new() { ParentId = null, ResourceCode = "config_api", ResourceName = "配置API", ResourceType = ResourceType.Api, ResourcePath = "/api/configs", Description = "参数配置API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 507 },
-            new() { ParentId = null, ResourceCode = "file_api", ResourceName = "文件API", ResourceType = ResourceType.Api, ResourcePath = "/api/files", Description = "文件管理API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 508 },
-            new() { ParentId = null, ResourceCode = "access_log_api", ResourceName = "访问日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/access-logs", Description = "访问日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 600 },
-            new() { ParentId = null, ResourceCode = "operation_log_api", ResourceName = "操作日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/operation-logs", Description = "操作日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 601 },
-            new() { ParentId = null, ResourceCode = "exception_log_api", ResourceName = "异常日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/exception-logs", Description = "异常日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 602 },
-            new() { ParentId = null, ResourceCode = "audit_log_api", ResourceName = "差异日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/audit-logs", Description = "差异日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 603 },
-            new() { ParentId = null, ResourceCode = "login_log_api", ResourceName = "登录日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/login-logs", Description = "登录日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 604 },
-            new() { ParentId = null, ResourceCode = "task_log_api", ResourceName = "调度日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/task-logs", Description = "调度日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 605 },
-            new() { ParentId = null, ResourceCode = "api_log_api", ResourceName = "接口日志API", ResourceType = ResourceType.Api, ResourcePath = "/api/api-logs", Description = "接口安全日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 606 },
-
-            // 关于系统
-            new() { ParentId = null, ResourceCode = "about", ResourceName = "关于系统", ResourceType = ResourceType.Menu, ResourcePath = "/about", Icon = "info", Description = "系统关于页面", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 999 },
+            // 日志 API
+            new() { ResourceCode = "access_log", ResourceName = "访问日志", ResourceType = ResourceType.Api, ResourcePath = "/api/access-logs", Description = "访问日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 300 },
+            new() { ResourceCode = "operation_log", ResourceName = "操作日志", ResourceType = ResourceType.Api, ResourcePath = "/api/operation-logs", Description = "操作日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 301 },
+            new() { ResourceCode = "exception_log", ResourceName = "异常日志", ResourceType = ResourceType.Api, ResourcePath = "/api/exception-logs", Description = "异常日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 302 },
+            new() { ResourceCode = "audit_log", ResourceName = "差异日志", ResourceType = ResourceType.Api, ResourcePath = "/api/audit-logs", Description = "差异日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 303 },
+            new() { ResourceCode = "login_log", ResourceName = "登录日志", ResourceType = ResourceType.Api, ResourcePath = "/api/login-logs", Description = "登录日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 304 },
+            new() { ResourceCode = "task_log", ResourceName = "调度日志", ResourceType = ResourceType.Api, ResourcePath = "/api/task-logs", Description = "调度日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 305 },
+            new() { ResourceCode = "api_log", ResourceName = "接口日志", ResourceType = ResourceType.Api, ResourcePath = "/api/api-logs", Description = "接口安全日志API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 306 },
         };
 
         await BulkInsertAsync(resources);
-        await UpdateResourceParentIdAsync("messaging", ["message", "email", "sms"]);
-        await UpdateResourceParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log"]);
-        await UpdateResourceParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review", "messaging", "log"]);
-        await UpdateResourceParentIdAsync("platform", ["tenant", "permission", "menu", "config", "constraint_rule", "dict", "task", "monitor", "cache", "region", "file", "plugin"]);
-
         Logger.LogInformation("成功初始化 {Count} 个系统资源", resources.Count);
-    }
-
-    private async Task UpdateResourceParentIdAsync(string parentCode, string[] childCodes)
-    {
-        var parent = await DbContext.GetClient()
-            .Queryable<SysResource>()
-            .FirstAsync(r => r.ResourceCode == parentCode);
-
-        if (parent == null)
-        {
-            return;
-        }
-
-        await DbContext.GetClient()
-            .Updateable<SysResource>()
-            .SetColumns(r => r.ParentId == parent.BasicId)
-            .Where(r => childCodes.Contains(r.ResourceCode))
-            .ExecuteCommandAsync();
     }
 }

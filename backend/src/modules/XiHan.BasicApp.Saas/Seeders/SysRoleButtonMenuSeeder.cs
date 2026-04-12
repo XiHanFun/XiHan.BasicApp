@@ -174,7 +174,7 @@ public class SysRoleButtonMenuSeeder : DataSeederBase
             buttonMenuInserts.Add(new SysMenu
             {
                 TenantId = parentMenu.TenantId,
-                ResourceId = permission.ResourceId,
+                PermissionCode = permission.PermissionCode,
                 ParentId = parentMenu.BasicId,
                 MenuName = operationName,
                 MenuCode = menuCode,
