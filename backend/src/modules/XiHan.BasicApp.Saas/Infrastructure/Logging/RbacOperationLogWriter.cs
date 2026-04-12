@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using System.Security.Claims;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
@@ -85,7 +87,7 @@ public class RbacOperationLogWriter : IOperationLogWriter
                       ?? httpContext?.TraceIdentifier;
         }
 
-        var sessionId = httpContext?.User?.FindFirst(XiHanClaimTypes.SessionId)?.Value;
+        var sessionId = ResolveSessionId(httpContext, record);
 
         var entity = new SysOperationLog
         {
@@ -130,5 +132,36 @@ public class RbacOperationLogWriter : IOperationLogWriter
     private static string BuildDescription(OperationLogRecord record)
     {
         return $"HTTP {record.Method} {record.Path} => {record.StatusCode}";
+    }
+
+    private static string? ResolveSessionId(HttpContext? httpContext, OperationLogRecord record)
+    {
+        var recordSessionId = TryGetRecordSessionId(record);
+        if (!string.IsNullOrWhiteSpace(recordSessionId))
+        {
+            return recordSessionId;
+        }
+
+        var sessionId = httpContext?.Features.Get<ISessionFeature>()?.Session?.Id;
+        if (!string.IsNullOrWhiteSpace(sessionId))
+        {
+            return sessionId;
+        }
+
+        var user = httpContext?.User;
+        return user?.FindFirstValue(XiHanClaimTypes.SessionId)
+            ?? user?.FindFirstValue(ClaimTypes.Sid)
+            ?? user?.FindFirstValue("jti");
+    }
+
+    private static string? TryGetRecordSessionId(OperationLogRecord record)
+    {
+        var sessionIdProperty = record.GetType().GetProperty(nameof(SysOperationLog.SessionId));
+        if (sessionIdProperty?.PropertyType != typeof(string))
+        {
+            return null;
+        }
+
+        return sessionIdProperty.GetValue(record) as string;
     }
 }
