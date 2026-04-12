@@ -1,7 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { MenuRoute } from '~/types'
+import { useAppContext } from '~/stores/app-context'
 
-const viewModules = import.meta.glob('@/views/**/*.vue')
 const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 
 // 后端 Component 路径（PascalCase）→ 前端实际文件路径（kebab-case）的别名映射
@@ -27,38 +27,15 @@ const componentAliasMap: Record<string, string> = {
   'system/notification/index': 'system/notification/index',
 }
 
-// 无法通过 import.meta.glob 解析的组件，直接显式映射
-const explicitComponentMap: Record<string, () => Promise<unknown>> = {
-  // Workbench（仪表板在 packages/_core 中，不在 src/views 的 glob 范围内）
+// packages 自身的 _core 视图映射（使用 ~/ 引用，无需从 src 注入）
+const coreComponentMap: Record<string, () => Promise<unknown>> = {
   'workbench/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
   'dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
   'core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
   '_core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
-  'workbench/inbox/index': () => import('@/views/workbench/inbox/index.vue'),
-  'workbench/inbox': () => import('@/views/workbench/inbox/index.vue'),
-  // About（在 packages/_core 中）
   'about/index': () => import('~/views/_core/about/index.vue'),
   'core/about/index': () => import('~/views/_core/about/index.vue'),
   '_core/about/index': () => import('~/views/_core/about/index.vue'),
-  // 日志（无 /index 后缀的组件路径需要显式映射）
-  'system/log/access': () => import('@/views/system/log/access/index.vue'),
-  'system/log/operation': () => import('@/views/system/log/operation/index.vue'),
-  'system/log/exception': () => import('@/views/system/log/exception/index.vue'),
-  'system/log/audit': () => import('@/views/system/log/audit/index.vue'),
-  'system/log/login': () => import('@/views/system/log/login/index.vue'),
-  'system/log/task': () => import('@/views/system/log/task/index.vue'),
-  'system/log/api': () => import('@/views/system/log/api/index.vue'),
-  // PascalCase → kebab-case 的显式映射
-  'system/monitor/index': () => import('@/views/system/server/index.vue'),
-  'system/cache/index': () => import('@/views/system/cache/index.vue'),
-  'system/message/index': () => import('@/views/system/message/index.vue'),
-  'system/constraintrule/index': () => import('@/views/system/constraint-rule/index.vue'),
-  'system/constraint-rule/index': () => import('@/views/system/constraint-rule/index.vue'),
-  'system/oauthapp/index': () => import('@/views/system/oauth-app/index.vue'),
-  'system/o-auth-app/index': () => import('@/views/system/oauth-app/index.vue'),
-  'system/usersession/index': () => import('@/views/system/user-session/index.vue'),
-  'system/user-session/index': () => import('@/views/system/user-session/index.vue'),
-  'system/notification/index': () => import('@/views/system/notification/index.vue'),
 }
 
 function toKebabCase(input: string) {
@@ -86,19 +63,9 @@ function resolveView(component?: string) {
     .map(segment => toKebabCase(segment))
     .join('/')
   const aliasPath = componentAliasMap[lowerPath] ?? componentAliasMap[kebabPath] ?? ''
-  for (const key of [lowerPath, kebabPath, aliasPath]) {
-    if (!key) {
-      continue
-    }
-    const explicit = explicitComponentMap[key]
-    if (explicit) {
-      return explicit
-    }
-  }
 
   const removeIndexSuffix = (path: string) => path.replace(/\/index$/i, '')
   const candidates = new Set([
-    rawPath,
     lowerPath,
     kebabPath,
     aliasPath,
@@ -108,26 +75,30 @@ function resolveView(component?: string) {
     removeIndexSuffix(aliasPath),
   ])
 
+  // 优先匹配 packages 自身的 _core 视图
   for (const candidate of candidates) {
-    if (!candidate) {
-      continue
-    }
-    const explicit = explicitComponentMap[candidate]
-    if (explicit) {
-      return explicit
-    }
+    if (!candidate) continue
+    const core = coreComponentMap[candidate]
+    if (core) return core
   }
 
+  // 然后查 src 注册的显式映射（优先级高于 glob）
+  const ctx = useAppContext()
+  for (const candidate of candidates) {
+    if (!candidate) continue
+    const explicit = ctx.explicitComponentMap[candidate]
+    if (explicit) return explicit
+  }
+
+  // 最后查 src 注册的 viewModules glob
   const keys = Array.from(candidates).flatMap(path => [
     `/src/views/${path}.vue`,
     `/src/views/${path}/index.vue`,
   ])
 
   for (const key of keys) {
-    const matched = viewModules[key]
-    if (matched) {
-      return matched
-    }
+    const matched = ctx.viewModules[key]
+    if (matched) return matched
   }
 
   return null

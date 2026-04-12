@@ -26,22 +26,8 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
-import {
-  changePasswordApi,
-  deactivateAccountApi,
-  deleteAccountApi,
-  disable2FAApi,
-  enable2FAApi,
-  getLinkedAccountsApi,
-  getLoginLogsApi,
-  getSessionsApi,
-  revokeOtherSessionsApi,
-  revokeSessionApi,
-  send2FASetupCodeApi,
-  setup2FAApi,
-  unlinkAccountApi,
-} from '@/api'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 
 const props = defineProps<{ profile: UserProfile | null }>()
@@ -49,6 +35,7 @@ const emit = defineEmits<{ updated: [] }>()
 
 const message = useMessage()
 const dialog = useDialog()
+const { apis } = useAppContext()
 
 // ==================== 2FA flags 常量（与后端 [Flags] 枚举对应） ====================
 
@@ -104,7 +91,7 @@ async function changePassword() {
     return
   pwdSaving.value = true
   try {
-    await changePasswordApi({
+    await apis.changePasswordApi({
       userId: props.profile.userId,
       oldPassword: pwdForm.value.oldPassword,
       newPassword: pwdForm.value.newPassword,
@@ -196,7 +183,7 @@ async function startTotpSetup() {
   tfTotpSetup.value = null
   tfLoading.value = true
   try {
-    tfTotpSetup.value = await setup2FAApi()
+    tfTotpSetup.value = await apis.setup2FAApi()
   }
   catch (e: unknown) {
     message.error((e as Error)?.message || '初始化失败')
@@ -214,7 +201,7 @@ async function confirmEnableTotp() {
   }
   tfLoading.value = true
   try {
-    await enable2FAApi(TF_TOTP, tfTotpCodeStr.value)
+    await apis.enable2FAApi(TF_TOTP, tfTotpCodeStr.value)
     message.success('TOTP 已启用')
     tfTotpSetup.value = null
     tfTotpCode.value = []
@@ -240,7 +227,7 @@ function cancelTotpSetup() {
 async function sendSetupCode(method: number) {
   tfLoading.value = true
   try {
-    const res = await send2FASetupCodeApi(method)
+    const res = await apis.send2FASetupCodeApi(method)
     message.success(method === TF_EMAIL ? '验证码已发送至邮箱' : '验证码已发送至手机')
     startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
   }
@@ -273,7 +260,7 @@ async function confirmEnableEmail() {
   }
   tfLoading.value = true
   try {
-    await enable2FAApi(TF_EMAIL, tfEmailCodeStr.value)
+    await apis.enable2FAApi(TF_EMAIL, tfEmailCodeStr.value)
     message.success('邮箱两步验证已启用')
     tfEmailSettingUp.value = false
     tfEmailCode.value = []
@@ -295,7 +282,7 @@ async function confirmEnablePhone() {
   }
   tfLoading.value = true
   try {
-    await enable2FAApi(TF_PHONE, tfPhoneCodeStr.value)
+    await apis.enable2FAApi(TF_PHONE, tfPhoneCodeStr.value)
     message.success('手机两步验证已启用')
     tfPhoneSettingUp.value = false
     tfPhoneCode.value = []
@@ -336,7 +323,7 @@ function startDisable(method: number) {
 async function sendDisableCode(method: number) {
   tfLoading.value = true
   try {
-    const res = await send2FASetupCodeApi(method)
+    const res = await apis.send2FASetupCodeApi(method)
     message.success('验证码已发送')
     startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
   }
@@ -355,7 +342,7 @@ async function confirmDisable() {
   }
   tfLoading.value = true
   try {
-    await disable2FAApi(tfDisableTarget.value, tfDisableCodeStr.value)
+    await apis.disable2FAApi(tfDisableTarget.value, tfDisableCodeStr.value)
     message.success('已禁用')
     tfDisableTarget.value = 0
     tfDisableCode.value = []
@@ -387,7 +374,7 @@ defineExpose({ sessions, sessionsLoaded })
 async function loadSessions() {
   sessionsLoading.value = true
   try {
-    sessions.value = await getSessionsApi()
+    sessions.value = await apis.getSessionsApi()
     sessionsLoaded.value = true
   }
   catch (e: unknown) {
@@ -400,7 +387,7 @@ async function loadSessions() {
 
 async function handleRevokeSession(sid: string) {
   try {
-    await revokeSessionApi(sid)
+    await apis.revokeSessionApi(sid)
     message.success('设备已登出')
     await loadSessions()
   }
@@ -422,7 +409,7 @@ function handleRevokeOthers() {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        await revokeOtherSessionsApi()
+        await apis.revokeOtherSessionsApi()
         message.success('已登出所有其他设备')
         await loadSessions()
       }
@@ -452,7 +439,7 @@ const linkedLoaded = ref(false)
 async function loadLinkedAccounts() {
   linkedLoading.value = true
   try {
-    linkedAccounts.value = await getLinkedAccountsApi()
+    linkedAccounts.value = await apis.getLinkedAccountsApi()
     linkedLoaded.value = true
   }
   catch (e: unknown) {
@@ -465,7 +452,7 @@ async function loadLinkedAccounts() {
 
 async function handleUnlinkAccount(provider: string) {
   try {
-    await unlinkAccountApi(provider)
+    await apis.unlinkAccountApi(provider)
     message.success('已解除绑定')
     await loadLinkedAccounts()
   }
@@ -508,7 +495,7 @@ const loginResultLabel: Record<number, string> = {
 async function loadLoginLogs(page = 1) {
   loginLogLoading.value = true
   try {
-    const res = await getLoginLogsApi(page, 10)
+    const res = await apis.getLoginLogsApi(page, 10)
     loginLogs.value = res.items
     loginLogTotal.value = res.total
     loginLogPage.value = page
@@ -551,7 +538,7 @@ function handleDeactivateAccount() {
       }
       accountActionLoading.value = true
       try {
-        await deactivateAccountApi(accountPassword.value)
+        await apis.deactivateAccountApi(accountPassword.value)
         message.success('账号已停用，即将退出登录')
         setTimeout(() => {
           window.location.href = '/auth/login'
@@ -593,7 +580,7 @@ function handleDeleteAccount() {
       }
       accountActionLoading.value = true
       try {
-        await deleteAccountApi(accountPassword.value)
+        await apis.deleteAccountApi(accountPassword.value)
         message.success('账号已注销，即将退出')
         setTimeout(() => {
           window.location.href = '/auth/login'

@@ -11,6 +11,7 @@ import { invalidateCacheIfBuildTimeChanged } from '~/stores/helpers'
 import { resetSetupStorePlugin } from '~/stores/plugins'
 
 import App from './App.vue'
+import { setupAppContext } from './bootstrap'
 import { router } from './router'
 
 import '~/design/global.css'
@@ -28,6 +29,9 @@ async function bootstrap() {
   pinia.use(piniaPluginPersistedstate)
   pinia.use(resetSetupStorePlugin())
   app.use(pinia)
+
+  // 注册 packages 依赖的 API、路由、视图模块（必须在路由守卫和 store 使用前）
+  setupAppContext()
 
   setupI18n(app)
   setupVxeTable(app)

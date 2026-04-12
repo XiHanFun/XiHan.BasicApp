@@ -1,10 +1,9 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
-import { getPermissionsApi, getUserInfoApi } from '@/api'
-import { routes as staticRoutes } from '@/router/routes'
 import { AUTH_PATH, HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { useAppContext } from '~/stores/app-context'
 import { mapMenuToRoutes } from './dynamic'
 import { filterRoutesByPermission, isStaticRouteMode } from './static'
 
@@ -13,6 +12,8 @@ const { loadingBar } = createDiscreteApi(['loadingBar'])
 const WHITE_LIST = ['/403', '/404', '/500']
 
 export function setupRouterGuard(router: Router) {
+  const ctx = useAppContext()
+
   const installDynamicRoutes = (routes: RouteRecordRaw[]) => {
     for (const route of routes) {
       const routeName = route.name ? String(route.name) : ''
@@ -31,7 +32,7 @@ export function setupRouterGuard(router: Router) {
     const appStore = useAppStore()
     const userStore = useUserStore()
     const tabbarStore = useTabbarStore()
-    let permissionInfo: null | Awaited<ReturnType<typeof getPermissionsApi>> = null
+    let permissionInfo: any = null
 
     if (appStore.transitionProgress) {
       loadingBar.start()
@@ -64,8 +65,8 @@ export function setupRouterGuard(router: Router) {
     if (!userStore.isLoggedIn || Number(userStore.userInfo?.basicId ?? 0) <= 0) {
       try {
         const [userInfo, authPermission] = await Promise.all([
-          getUserInfoApi(),
-          getPermissionsApi(),
+          ctx.apis.getUserInfoApi(),
+          ctx.apis.getPermissionsApi(),
         ])
         permissionInfo = authPermission
         userStore.setUserInfo({
@@ -89,7 +90,7 @@ export function setupRouterGuard(router: Router) {
     if (!accessStore.isRoutesLoaded) {
       try {
         if (!permissionInfo) {
-          permissionInfo = await getPermissionsApi()
+          permissionInfo = await ctx.apis.getPermissionsApi()
           accessStore.setAccessCodes(permissionInfo.permissions)
           if (userStore.userInfo) {
             userStore.setUserInfo({
@@ -102,6 +103,7 @@ export function setupRouterGuard(router: Router) {
 
         if (isStaticRouteMode()) {
           // 静态模式：基于前端路由定义 + 用户权限过滤
+          const staticRoutes = ctx.getStaticRoutes()
           const rootRoute = staticRoutes.find(r => r.path === '/')
           const children = rootRoute?.children ?? []
           const filtered = filterRoutesByPermission(
