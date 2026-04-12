@@ -50,8 +50,6 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
     {
         var db = DbContext.GetClient();
 
-        var platformResource = await db.Queryable<SysResource>()
-            .FirstAsync(resource => resource.ResourceCode == "platform");
         var constraintResource = await db.Queryable<SysResource>()
             .FirstAsync(resource => resource.ResourceCode == "constraint_rule");
 
@@ -59,13 +57,11 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
         {
             constraintResource = new SysResource
             {
-                ParentId = platformResource?.BasicId,
                 ResourceCode = "constraint_rule",
                 ResourceName = "约束规则",
-                ResourceType = ResourceType.Menu,
-                ResourcePath = "/platform/constraint-rule",
-                Icon = "scale",
-                Description = "ABAC约束规则管理",
+                ResourceType = ResourceType.Api,
+                ResourcePath = "/api/constraint-rules",
+                Description = "约束规则管理API接口",
                 IsRequireAuth = true,
                 IsPublic = false,
                 Status = YesOrNo.Yes,
@@ -83,7 +79,7 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
         {
             constraintMenu = new SysMenu
             {
-                ResourceId = constraintResource.BasicId,
+                PermissionCode = "constraint_rule:read",
                 ParentId = platformMenu?.BasicId,
                 MenuName = "约束规则",
                 MenuCode = "constraint_rule",

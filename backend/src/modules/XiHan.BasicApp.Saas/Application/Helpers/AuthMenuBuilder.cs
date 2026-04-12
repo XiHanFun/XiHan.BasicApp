@@ -25,17 +25,18 @@ internal static class AuthMenuBuilder
 {
     /// <summary>
     /// 将菜单实体列表构建为前端路由树
+    /// 菜单通过 PermissionCode 直接绑定权限，不再经由 Resource 间接关联
     /// </summary>
     public static List<AuthMenuRouteDto> BuildMenuRoutes(
         IReadOnlyList<SysMenu> menus,
-        IReadOnlyDictionary<long, IReadOnlyCollection<string>> resourcePermissionMap)
+        IReadOnlySet<string> userPermissionCodes)
     {
         var routeMenus = menus
             .Where(static menu => menu.MenuType != MenuType.Button)
             .OrderBy(static menu => menu.Sort)
             .ThenBy(static menu => menu.BasicId)
             .ToList();
-        var menuMap = routeMenus.ToDictionary(static menu => menu.BasicId, menu => MapMenuRoute(menu, resourcePermissionMap));
+        var menuMap = routeMenus.ToDictionary(static menu => menu.BasicId, menu => MapMenuRoute(menu, userPermissionCodes));
         var rootMenus = new List<AuthMenuRouteDto>();
 
         foreach (var menu in routeMenus)
@@ -55,12 +56,30 @@ internal static class AuthMenuBuilder
         return rootMenus;
     }
 
-    private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlyDictionary<long, IReadOnlyCollection<string>> resourcePermissionMap)
+    private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlySet<string> userPermissionCodes)
     {
-        var permissionCodes = menu.ResourceId.HasValue && resourcePermissionMap.TryGetValue(menu.ResourceId.Value, out var permissions)
-            ? permissions
-            : [];
-        var permissionCode = ResolvePrimaryPermission(permissionCodes);
+        // 收集当前菜单关联的所有权限编码（主权限 + 同资源下的按钮权限）
+        var permissionCodes = new List<string>();
+        if (!string.IsNullOrWhiteSpace(menu.PermissionCode))
+        {
+            permissionCodes.Add(menu.PermissionCode);
+        }
+
+        // 从按钮子菜单中提取更多权限编码
+        if (menu.Children is { Count: > 0 })
+        {
+            foreach (var child in menu.Children.Where(static c => c.MenuType == MenuType.Button && !string.IsNullOrWhiteSpace(c.PermissionCode)))
+            {
+                permissionCodes.Add(child.PermissionCode!);
+            }
+        }
+
+        // 只保留用户实际拥有的权限
+        var effectivePermissions = permissionCodes
+            .Where(code => userPermissionCodes.Contains(code))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
         return new AuthMenuRouteDto
         {
             Name = !string.IsNullOrWhiteSpace(menu.RouteName)
@@ -71,7 +90,7 @@ internal static class AuthMenuBuilder
             Path = !string.IsNullOrWhiteSpace(menu.Path) ? menu.Path : BuildFallbackMenuPath(menu),
             Component = menu.Component,
             Redirect = menu.Redirect,
-            Permission = permissionCode,
+            Permission = menu.PermissionCode,
             Meta = new AuthMenuMetaDto
             {
                 Title = !string.IsNullOrWhiteSpace(menu.Title) ? menu.Title : menu.MenuName,
@@ -79,7 +98,7 @@ internal static class AuthMenuBuilder
                 Hidden = !menu.IsVisible,
                 KeepAlive = menu.IsCache,
                 AffixTab = menu.IsAffix,
-                Permissions = [.. permissionCodes],
+                Permissions = [.. effectivePermissions],
                 Order = menu.Sort,
                 Link = menu.IsExternal ? menu.ExternalUrl : null,
                 Badge = menu.Badge,
@@ -87,30 +106,6 @@ internal static class AuthMenuBuilder
                 Dot = menu.BadgeDot
             }
         };
-    }
-
-    private static string? ResolvePrimaryPermission(IReadOnlyCollection<string> permissionCodes)
-    {
-        if (permissionCodes.Count == 0)
-        {
-            return null;
-        }
-
-        var candidates = permissionCodes
-            .Where(static permissionCode => !string.IsNullOrWhiteSpace(permissionCode))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        if (candidates.Length == 0)
-        {
-            return null;
-        }
-
-        var preferred = candidates.FirstOrDefault(static permissionCode =>
-            permissionCode.EndsWith(":read", StringComparison.OrdinalIgnoreCase)
-            || permissionCode.EndsWith(":view", StringComparison.OrdinalIgnoreCase)
-            || permissionCode.EndsWith(":list", StringComparison.OrdinalIgnoreCase)
-            || permissionCode.EndsWith(":query", StringComparison.OrdinalIgnoreCase));
-        return preferred ?? candidates[0];
     }
 
     private static void SortMenuTree(List<AuthMenuRouteDto> menus)

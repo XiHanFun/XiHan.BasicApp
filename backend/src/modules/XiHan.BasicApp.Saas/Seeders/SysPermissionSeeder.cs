@@ -108,9 +108,9 @@ public class SysPermissionSeeder : DataSeederBase
     {
         return resourceType switch
         {
-            ResourceType.Menu => ["read", "create", "update", "delete", "export", "import"],
-            ResourceType.Api => ["read", "create", "update", "delete", "execute"],
-            ResourceType.Button => ["view", "execute"],
+            ResourceType.Api => ["read", "create", "update", "delete", "export", "import"],
+            ResourceType.File => ["read", "create", "update", "delete", "upload", "download"],
+            ResourceType.DataTable => ["read", "create", "update", "delete", "export", "import"],
             _ => ["read", "create", "update", "delete"]
         };
     }
