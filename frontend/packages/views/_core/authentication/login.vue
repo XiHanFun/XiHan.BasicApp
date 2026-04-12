@@ -17,10 +17,9 @@ import {
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { getLoginConfigApi } from '@/api'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAuthStore } from '~/stores'
+import { useAppContext, useAuthStore } from '~/stores'
 
 defineOptions({ name: 'LoginPage' })
 
@@ -29,6 +28,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { apis } = useAppContext()
 const message = useMessage()
 const formRef = ref<FormInst | null>(null)
 const rememberMe = ref(true)
@@ -111,7 +111,7 @@ function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
 }
 
 async function loadLoginConfig() {
-  loginConfig.value = await getLoginConfigApi()
+  loginConfig.value = await apis.getLoginConfigApi()
 }
 
 const cachedDeviceId = ref('')

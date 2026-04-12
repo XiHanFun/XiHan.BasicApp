@@ -2,7 +2,7 @@
 import type { UserProfile } from '~/types'
 import { NSpin, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
-import { getProfileApi } from '@/api'
+import { useAppContext } from '~/stores'
 import ProfileBanner from './ProfileBanner.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabInfo from './ProfileTabInfo.vue'
@@ -12,6 +12,7 @@ import ProfileTabSecurity from './ProfileTabSecurity.vue'
 defineOptions({ name: 'ProfilePage' })
 
 const message = useMessage()
+const { apis } = useAppContext()
 const activeTab = ref('profile')
 const profileLoading = ref(false)
 const profile = ref<UserProfile | null>(null)
@@ -20,7 +21,7 @@ const securityRef = ref<InstanceType<typeof ProfileTabSecurity> | null>(null)
 async function loadProfile() {
   profileLoading.value = true
   try {
-    profile.value = await getProfileApi()
+    profile.value = await apis.getProfileApi()
   }
   // eslint-disable-next-line ts/no-explicit-any
   catch (e: any) {

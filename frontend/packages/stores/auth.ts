@@ -1,11 +1,11 @@
 import type { LoginParams, LoginResponse, LoginToken, OAuthProviderItem, PhoneLoginParams } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi, phoneLoginApi } from '@/api'
 import { useSignalR } from '~/composables'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { useAppContext } from './app-context'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()
@@ -16,17 +16,18 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false)
 
   async function afterLogin(result: LoginToken, redirect?: string) {
-    const { router } = await import('@/router')
+    const ctx = useAppContext()
+    const router = await ctx.getRouter()
 
     accessStore.setAccessToken(result.accessToken)
     accessStore.setRefreshToken(result.refreshToken)
 
-    let userInfo: Awaited<ReturnType<typeof getUserInfoApi>>
-    let permissionInfo: Awaited<ReturnType<typeof getPermissionsApi>>
+    let userInfo: any
+    let permissionInfo: any
     try {
       ;[userInfo, permissionInfo] = await Promise.all([
-        getUserInfoApi(),
-        getPermissionsApi(),
+        ctx.apis.getUserInfoApi(),
+        ctx.apis.getPermissionsApi(),
       ])
     }
     catch (error) {
@@ -66,11 +67,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /** 返回 LoginResponse 以便调用方获取可用 2FA 方式信息；null 表示登录完成 */
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
     loginLoading.value = true
     try {
-      const response = await loginApi(params)
+      const ctx = useAppContext()
+      const response = await ctx.apis.loginApi(params)
       if (response.requiresTwoFactor) {
         return response
       }
@@ -87,7 +88,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string) {
     loginLoading.value = true
     try {
-      const result = await phoneLoginApi(params)
+      const ctx = useAppContext()
+      const result = await ctx.apis.phoneLoginApi(params)
       await afterLogin(result, redirect)
     }
     finally {
@@ -95,9 +97,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 发起第三方登录（跳转到后端 OAuth 端点）
-   */
   function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | number) {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
     const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
@@ -108,9 +107,6 @@ export const useAuthStore = defineStore('auth', () => {
     window.location.href = url
   }
 
-  /**
-   * 处理 OAuth 回调（前端 callback 页面调用）
-   */
   async function handleOAuthCallback(token: LoginToken, redirect?: string) {
     loginLoading.value = true
     try {
@@ -139,9 +135,9 @@ export const useAuthStore = defineStore('auth', () => {
   ])
 
   async function logout() {
-    const { router } = await import('@/router')
+    const ctx = useAppContext()
+    const router = await ctx.getRouter()
     try {
-      // 断开 SignalR 连接
       const signalR = useSignalR()
       await signalR.destroy()
     }
@@ -150,7 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      await logoutApi()
+      await ctx.apis.logoutApi()
     }
     catch {
       // ignore logout api error
