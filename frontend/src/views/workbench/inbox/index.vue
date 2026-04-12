@@ -16,7 +16,7 @@ import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { useNotificationStore, useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
-defineOptions({ name: 'DashboardInbox' })
+defineOptions({ name: 'Inbox' })
 
 const message = useMessage()
 const userStore = useUserStore()
