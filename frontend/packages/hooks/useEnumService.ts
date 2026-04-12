@@ -1,7 +1,39 @@
-import type { EnumBatchQuery, EnumDefinition } from '@/api/modules/enum'
-import { enumApi } from '@/api/modules/enum'
 import { computed, ref } from 'vue'
+import { useAppContext } from '~/stores/app-context'
 import { useAppStore } from '~/stores'
+
+export interface EnumOption {
+  name: string
+  value: number | string | boolean | object
+  valueText: string
+  label: string
+  description: string
+  theme?: string
+  icon?: string
+  order: number
+  disabled: boolean
+  source: 'enum' | 'dict' | string
+  extra?: Record<string, any>
+}
+
+export interface EnumDefinition {
+  enumName: string
+  fullName: string
+  displayName: string
+  cultureName: string
+  isFlags: boolean
+  underlyingTypeName: string
+  items: EnumOption[]
+}
+
+export interface EnumBatchQuery {
+  enumNames: string[]
+  language?: string
+  includeHidden?: boolean
+  includeDict?: boolean
+  dictCodes?: string[]
+  tenantId?: number
+}
 
 export interface UseEnumOptions {
   language?: string
@@ -23,6 +55,7 @@ const loading = ref(false)
 
 export function useEnumService() {
   const appStore = useAppStore()
+  const ctx = useAppContext()
 
   const enumMap = computed(() => enumState.value)
 
@@ -37,7 +70,7 @@ export function useEnumService() {
 
     loading.value = true
     try {
-      const definition = await enumApi.getByName({
+      const definition = await ctx.apis.enumApi.getByName({
         enumName,
         language: resolveLanguage(options.language),
         includeHidden: options.includeHidden ?? false,
@@ -69,7 +102,7 @@ export function useEnumService() {
         dictCodes: options.dictCodes,
         tenantId: options.tenantId,
       }
-      const result = await enumApi.getBatch(query)
+      const result = await ctx.apis.enumApi.getBatch(query)
       enumState.value = {
         ...enumState.value,
         ...result,

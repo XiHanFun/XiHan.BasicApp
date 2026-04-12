@@ -4,9 +4,8 @@ import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naiv
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { sendPhoneLoginCodeApi } from '@/api'
 import { useTheme } from '~/hooks'
-import { useAuthStore } from '~/stores'
+import { useAppContext, useAuthStore } from '~/stores'
 
 defineOptions({ name: 'CodeLoginPage' })
 
@@ -15,6 +14,7 @@ const { t } = useI18n()
 const router = useRouter()
 const message = useMessage()
 const authStore = useAuthStore()
+const { apis } = useAppContext()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const countdown = ref(0)
@@ -43,7 +43,7 @@ function handleSendCode() {
       if (errors)
         return
       try {
-        const response = await sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
+        const response = await apis.sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
         countdown.value = 60
         timer = setInterval(() => {
           countdown.value--

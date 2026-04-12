@@ -9,20 +9,15 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  accessLogApi,
-  operationLogApi,
-  userApi,
-  userSessionApi,
-} from '@/api'
 import { Icon } from '~/iconify'
-import { useUserStore } from '~/stores'
+import { useAppContext, useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'WorkspacePage' })
 
 const router = useRouter()
 const userStore = useUserStore()
+const { apis } = useAppContext()
 
 const loading = ref(true)
 const userTotal = ref(0)
@@ -59,10 +54,10 @@ const quickLinks = [
 async function fetchDashboardData() {
   try {
     const [users, sessions, operations, accesses] = await Promise.allSettled([
-      userApi.page({ page: 1, pageSize: 1 }),
-      userSessionApi.page({ page: 1, pageSize: 1 }),
-      operationLogApi.page({ page: 1, pageSize: 1 }),
-      accessLogApi.page({ page: 1, pageSize: 1 }),
+      apis.userApi.page({ page: 1, pageSize: 1 }),
+      apis.userSessionApi.page({ page: 1, pageSize: 1 }),
+      apis.operationLogApi.page({ page: 1, pageSize: 1 }),
+      apis.accessLogApi.page({ page: 1, pageSize: 1 }),
     ])
 
     if (users.status === 'fulfilled')

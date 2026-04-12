@@ -4,9 +4,9 @@ import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { registerApi } from '@/api'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 
 defineOptions({ name: 'RegisterPage' })
 
@@ -14,6 +14,7 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
 const message = useMessage()
+const { apis } = useAppContext()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const showPassword = ref(false)
@@ -89,7 +90,7 @@ async function handleRegister() {
       return
     }
     loading.value = true
-    await registerApi({
+    await apis.registerApi({
       username: formData.value.username,
       password: formData.value.password,
       nickName: formData.value.username,

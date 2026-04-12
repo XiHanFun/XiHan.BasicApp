@@ -7,7 +7,7 @@ import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'v
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
+import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
@@ -26,6 +26,7 @@ const userStore = useUserStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const notificationStore = useNotificationStore()
+const appContext = useAppContext()
 const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
@@ -302,8 +303,7 @@ async function loadNotifications() {
   if (!userId) return
   notificationStore.loading = true
   try {
-    const { userInboxApi } = await import('@/api')
-    const list = await userInboxApi.list(String(userId), true, userStore.userInfo?.tenantId)
+    const list = await appContext.apis.userInboxApi.list(String(userId), true, userStore.userInfo?.tenantId)
     notificationStore.setItems(list.map(n => ({
       basicId: n.basicId,
       title: n.title,
@@ -333,8 +333,7 @@ async function handleNotificationMarkRead(id: string) {
   const prevReadTime = prev?.readTime
   notificationStore.markItemRead(id)
   try {
-    const { userInboxApi } = await import('@/api')
-    await userInboxApi.markRead(id, String(userId), userStore.userInfo?.tenantId)
+    await appContext.apis.userInboxApi.markRead(id, String(userId), userStore.userInfo?.tenantId)
   }
   catch {
     if (prev && prevStatus !== undefined) {
@@ -349,8 +348,7 @@ async function handleNotificationConfirm(id: string) {
   if (!userId) return
   notificationStore.markItemConfirmed(id)
   try {
-    const { userInboxApi } = await import('@/api')
-    await userInboxApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
+    await appContext.apis.userInboxApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
   }
   catch {
     await loadNotifications()
@@ -365,8 +363,7 @@ async function handleNotificationMarkAllRead() {
     .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
   notificationStore.markAllRead()
   try {
-    const { userInboxApi } = await import('@/api')
-    await userInboxApi.markAllRead(String(userId), userStore.userInfo?.tenantId)
+    await appContext.apis.userInboxApi.markAllRead(String(userId), userStore.userInfo?.tenantId)
   }
   catch {
     for (const s of snapshot) {
