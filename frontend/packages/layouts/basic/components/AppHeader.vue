@@ -380,7 +380,7 @@ async function handleNotificationMarkAllRead() {
 }
 
 function handleNotificationViewAll() {
-  router.push('/dashboard/inbox')
+  router.push('/workbench/inbox')
 }
 
 // SignalR 推送节流：2 秒内多次推送只触发一次全量刷新

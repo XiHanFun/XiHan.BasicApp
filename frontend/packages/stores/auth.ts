@@ -121,11 +121,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Dashboard/About 等业务菜单由后端动态注入，不在此保留
   const STATIC_ROUTE_NAMES = new Set([
     'RootLayout',
-    'DashboardWorkspace',
     'Profile',
-    'About',
+    'EditorDemo',
     'Authentication',
     'Login',
     'CodeLogin',

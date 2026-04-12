@@ -60,7 +60,7 @@ public class SysMenuSeeder : DataSeederBase
         var menus = new List<SysMenu>
         {
             // 工作台
-            new() { PermissionCode = null, ParentId = null, MenuName = "工作台", MenuCode = "workbench", MenuType = MenuType.Directory, Path = "/workbench", Component = null, RouteName = null, Redirect = "/workbench", Icon = "workbench", Title = "工作台", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 1 },
+            new() { PermissionCode = null, ParentId = null, MenuName = "工作台", MenuCode = "workbench", MenuType = MenuType.Directory, Path = "/workbench", Component = null, RouteName = null, Redirect = "/workbench/dashboard", Icon = "workbench", Title = "工作台", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 1 },
             new() { PermissionCode = null, ParentId = null, MenuName = "仪表板", MenuCode = "dashboard", MenuType = MenuType.Menu, Path = "/workbench/dashboard", Component = "Workbench/Dashboard/Index", RouteName = "Dashboard", Icon = "dashboard", Title = "工作台", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 100 },
             new() { PermissionCode = null, ParentId = null, MenuName = "站内信", MenuCode = "inbox", MenuType = MenuType.Menu, Path = "/workbench/inbox", Component = "Workbench/Inbox/Index", RouteName = "Inbox", Icon = "inbox", Title = "站内信", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
 
