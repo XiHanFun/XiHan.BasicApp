@@ -20,24 +20,24 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统菜单实体
-/// 菜单是一种特殊的资源类型，用于前端界面渲染
-/// 与 SysResource 是一对一关系，SysResource 提供权限控制，SysMenu 提供界面配置
+/// 菜单是纯 UI 结构，通过 PermissionCode 绑定所需权限
+/// 权限判断只基于 Permission，菜单仅负责展示和路由
 /// </summary>
 [SugarTable("Sys_Menu", "系统菜单表")]
 [SugarIndex("UX_SysMenu_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysMenu_MeCo", nameof(MenuCode), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_ReId", nameof(ResourceId), OrderByType.Asc)]
+[SugarIndex("IX_SysMenu_PeCo", nameof(PermissionCode), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_MeTy", nameof(MenuType), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysMenu : BasicAppAggregateRoot
 {
     /// <summary>
-    /// 关联资源ID（每个菜单对应一个资源，可为空表示纯展示菜单）
+    /// 权限编码（菜单可见性所需的权限，如 user:read，为空表示纯展示菜单无需鉴权）
     /// </summary>
-    [SugarColumn(ColumnDescription = "关联资源ID", IsNullable = true)]
-    public virtual long? ResourceId { get; set; }
+    [SugarColumn(ColumnDescription = "权限编码", Length = 200, IsNullable = true)]
+    public virtual string? PermissionCode { get; set; }
 
     /// <summary>
     /// 父级菜单ID

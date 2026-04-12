@@ -49,35 +49,22 @@ public class SysResourceSeeder : DataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbContext.GetClient();
-        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "develop" || r.ResourceCode == "code_gen" || r.ResourceCode == "code_gen_api").ToListAsync();
+        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "code_gen").ToListAsync();
         var existsCodes = exists.Select(x => x.ResourceCode).ToHashSet();
         var addList = new List<SysResource>();
-        if (!existsCodes.Contains("develop"))
-        {
-            addList.Add(new SysResource { ParentId = null, ResourceCode = "develop", ResourceName = "开发工具", ResourceType = ResourceType.Menu, ResourcePath = "/develop", Icon = "tool", Description = "开发工具目录", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 400 });
-        }
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysResource { ParentId = null, ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Menu, ResourcePath = "/develop/codeGen", Icon = "code", Description = "代码生成功能", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 401 });
-        }
-
-        if (!existsCodes.Contains("code_gen_api"))
-        {
-            addList.Add(new SysResource { ParentId = null, ResourceCode = "code_gen_api", ResourceName = "代码生成API", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 509 });
+            addList.Add(new SysResource { ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 401 });
         }
 
         if (addList.Count == 0)
         {
-            Logger.LogInformation("系统资源数据已存在，跳过种子数据"); return;
-        }
-        await BulkInsertAsync(addList);
-        var parent = await client.Queryable<SysResource>().FirstAsync(r => r.ResourceCode == "develop");
-        if (parent != null)
-        {
-            await client.Updateable<SysResource>().SetColumns(r => r.ParentId == parent.BasicId).Where(r => r.ResourceCode == "code_gen").ExecuteCommandAsync();
+            Logger.LogInformation("系统资源数据已存在，跳过种子数据");
+            return;
         }
 
+        await BulkInsertAsync(addList);
         Logger.LogInformation("成功初始化 {Count} 个系统资源", addList.Count);
     }
 }

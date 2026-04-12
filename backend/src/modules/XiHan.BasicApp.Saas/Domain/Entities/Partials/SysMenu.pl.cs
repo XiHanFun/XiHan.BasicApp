@@ -22,15 +22,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysMenu
 {
     /// <summary>
-    /// 关联的资源（多菜单可引用同一资源，ManyToOne）
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(ResourceId))]
-    public virtual SysResource? Resource { get; set; }
-
-    /// <summary>
     /// 父级菜单
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]

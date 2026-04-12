@@ -596,7 +596,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             user.BasicId,
             user.TenantId,
             token => _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId, token));
-        var userPermissions = await _permissionRepository.GetUserPermissionsAsync(user.BasicId, user.TenantId);
         var userMenus = await _menuRepository.GetUserMenusAsync(user.BasicId, user.TenantId);
 
         var permissionCodeSet = permissionCodes
@@ -604,26 +603,11 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var resourcePermissionMap = userPermissions
-            .Where(permission =>
-                permission.ResourceId > 0 &&
-                !string.IsNullOrWhiteSpace(permission.PermissionCode) &&
-                permissionCodeSet.Contains(permission.PermissionCode))
-            .GroupBy(permission => permission.ResourceId)
-            .ToDictionary(
-                group => group.Key,
-                group =>
-                    (IReadOnlyCollection<string>)[.. group
-                        .Select(static permission => permission.PermissionCode)
-                        .Where(static permissionCode => !string.IsNullOrWhiteSpace(permissionCode))
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .OrderBy(static permissionCode => permissionCode, StringComparer.OrdinalIgnoreCase)]);
-
         return new AuthPermissionDto
         {
             Roles = [.. roleCodes],
             Permissions = [.. permissionCodeSet.OrderBy(static code => code)],
-            Menus = AuthMenuBuilder.BuildMenuRoutes(userMenus, resourcePermissionMap)
+            Menus = AuthMenuBuilder.BuildMenuRoutes(userMenus, permissionCodeSet)
         };
     }
 
