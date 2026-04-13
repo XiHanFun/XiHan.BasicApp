@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
+
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
@@ -19,5 +21,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 public partial class SysConstraintRule
 {
-    // 暂无导航属性
+    /// <summary>
+    /// 约束规则目标项列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysConstraintRuleItem.ConstraintRuleId))]
+    public virtual List<SysConstraintRuleItem>? Items { get; set; }
 }

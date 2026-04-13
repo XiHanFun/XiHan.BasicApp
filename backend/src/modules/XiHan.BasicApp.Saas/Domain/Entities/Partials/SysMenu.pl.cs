@@ -39,21 +39,4 @@ public partial class SysMenu
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysMenu>? Children { get; set; }
 
-    /// <summary>
-    /// 角色菜单关联列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysRoleMenu.MenuId))]
-    public virtual List<SysRoleMenu>? RoleMenus { get; set; }
-
-    /// <summary>
-    /// 角色列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.MenuId), nameof(SysRoleMenu.RoleId))]
-    public virtual List<SysRole>? Roles { get; set; }
 }

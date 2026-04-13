@@ -28,6 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysTenant_TeSt", nameof(TenantStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTenant_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTenant_ExTi", nameof(ExpireTime), OrderByType.Asc)]
+[SugarIndex("IX_SysTenant_EdId", nameof(EditionId), OrderByType.Asc)]
 public partial class SysTenant : BasicAppAggregateRoot
 {
     /// <summary>
@@ -35,6 +36,12 @@ public partial class SysTenant : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "租户编码", Length = 50, IsNullable = false)]
     public virtual string TenantCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 版本/套餐ID（关联 SysTenantEdition 表，控制租户可用功能范围）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "版本ID", IsNullable = true)]
+    public virtual long? EditionId { get; set; }
 
     /// <summary>
     /// 租户名称

@@ -22,6 +22,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysTenant
 {
     /// <summary>
+    /// 版本/套餐信息
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.ManyToOne, nameof(EditionId))]
+    public virtual SysTenantEdition? Edition { get; set; }
+
+    /// <summary>
     /// 租户配置列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]

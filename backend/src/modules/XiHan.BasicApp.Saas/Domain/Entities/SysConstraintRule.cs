@@ -23,9 +23,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 定义 RBAC 约束规则（静态职责分离SSD、动态职责分离DSD、互斥约束等）
 /// </summary>
 [SugarTable("Sys_Constraint_Rule", "系统约束规则表")]
-[SugarIndex("IX_SysConstraintRule_RuCo", nameof(RuleCode), OrderByType.Asc, true)]
+[SugarIndex("UX_SysConstraintRule_TeId_RuCo", nameof(TenantId), OrderByType.Asc, nameof(RuleCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConstraintRule_CoTy", nameof(ConstraintType), OrderByType.Asc)]
 [SugarIndex("IX_SysConstraintRule_IsEn", nameof(IsEnabled), OrderByType.Asc)]
+[SugarIndex("IX_SysConstraintRule_TeId_CoTy", nameof(TenantId), OrderByType.Asc, nameof(ConstraintType), OrderByType.Asc)]
 public partial class SysConstraintRule : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -47,10 +48,10 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual ConstraintType ConstraintType { get; set; } = ConstraintType.SSD;
 
     /// <summary>
-    /// 约束目标类型（Role/Permission/User）
+    /// 约束目标类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束目标类型", Length = 50, IsNullable = false)]
-    public virtual string TargetType { get; set; } = "Role";
+    [SugarColumn(ColumnDescription = "约束目标类型")]
+    public virtual ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
 
     /// <summary>
     /// 约束参数（JSON格式）

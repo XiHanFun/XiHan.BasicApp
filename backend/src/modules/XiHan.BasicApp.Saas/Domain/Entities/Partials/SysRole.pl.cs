@@ -40,15 +40,6 @@ public partial class SysRole
     public virtual List<SysRolePermission>? RolePermissions { get; set; }
 
     /// <summary>
-    /// 角色菜单关联列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysRoleMenu.RoleId))]
-    public virtual List<SysRoleMenu>? RoleMenus { get; set; }
-
-    /// <summary>
     /// 用户列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -65,15 +56,6 @@ public partial class SysRole
     [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysRolePermission), nameof(SysRolePermission.RoleId), nameof(SysRolePermission.PermissionId))]
     public virtual List<SysPermission>? Permissions { get; set; }
-
-    /// <summary>
-    /// 菜单列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(typeof(SysRoleMenu), nameof(SysRoleMenu.RoleId), nameof(SysRoleMenu.MenuId))]
-    public virtual List<SysMenu>? Menus { get; set; }
 
     /// <summary>
     /// 角色自定义数据权限范围列表

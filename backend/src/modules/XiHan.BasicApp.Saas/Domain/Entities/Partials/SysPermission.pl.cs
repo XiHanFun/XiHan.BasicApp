@@ -74,4 +74,13 @@ public partial class SysPermission
     [SugarColumn(IsIgnore = true)]
     [Navigate(typeof(SysUserPermission), nameof(SysUserPermission.PermissionId), nameof(SysUserPermission.UserId))]
     public virtual List<SysUser>? Users { get; set; }
+
+    /// <summary>
+    /// 版本权限映射列表（此权限被哪些版本包含）
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysTenantEditionPermission.PermissionId))]
+    public virtual List<SysTenantEditionPermission>? EditionPermissions { get; set; }
 }

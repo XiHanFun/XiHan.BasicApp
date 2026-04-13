@@ -29,7 +29,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysPermission_ReId", nameof(ResourceId), OrderByType.Asc)]
 [SugarIndex("IX_SysPermission_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysPermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysPermission : BasicAppAggregateRoot
+[SugarIndex("IX_SysPermission_IsGl", nameof(IsGlobal), OrderByType.Asc)]
+public partial class SysPermission : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 资源ID（关联 SysResource 表，必填）
@@ -73,6 +74,12 @@ public partial class SysPermission : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
+
+    /// <summary>
+    /// 是否平台级全局权限（全局权限所有租户共享，TenantId 为空）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否全局权限")]
+    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 优先级（数字越大优先级越高，用于权限冲突时的决策）
