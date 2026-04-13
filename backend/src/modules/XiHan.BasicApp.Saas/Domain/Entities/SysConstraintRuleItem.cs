@@ -22,6 +22,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 约束规则目标项实体
 /// 将约束规则涉及的角色/权限/用户 ID 从 JSON 拆分为独立记录，保持引用完整性
 /// </summary>
+/// <remarks>
+/// 重要约定——约束检查必须展开角色继承链：
+/// SSD/DSD 约束中若 TargetId 指向角色 A，则任何继承了角色 A 的后代角色
+/// 均应视为等效目标。例如：角色 A 和 B 互斥，角色 C 继承 A，
+/// 用户同时拥有 C 和 B 时应触发 SSD 违规。
+/// 服务层在检查 SSD/DSD 时须通过 SysRoleHierarchy 展开用户所有角色的完整继承链。
+/// </remarks>
 [SugarTable("Sys_Constraint_Rule_Item", "约束规则目标项表")]
 [SugarIndex("UX_SysConstraintRuleItem_CrId_TaTy_TaId", nameof(ConstraintRuleId), OrderByType.Asc, nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConstraintRuleItem_CrId", nameof(ConstraintRuleId), OrderByType.Asc)]

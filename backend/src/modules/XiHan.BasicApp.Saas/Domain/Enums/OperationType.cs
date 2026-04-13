@@ -15,7 +15,8 @@
 namespace XiHan.BasicApp.Saas.Domain.Enums;
 
 /// <summary>
-/// 操作类型枚举
+/// 操作类型枚举（审计日志专用，记录用户执行了什么类型的操作）
+/// 注意：勿与 <see cref="OperationTypeCode"/> 混淆，后者用于 RBAC 权限模型中 SysOperation 的操作定义
 /// </summary>
 public enum OperationType
 {

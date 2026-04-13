@@ -44,6 +44,12 @@ public partial class SysRoleDataScope : BasicAppCreationEntity
     public virtual long DepartmentId { get; set; }
 
     /// <summary>
+    /// 是否包含子部门（true 时自动包含该部门的所有下级，新增子部门自动纳入范围）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否包含子部门")]
+    public virtual bool IncludeChildren { get; set; } = false;
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]

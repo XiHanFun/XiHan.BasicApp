@@ -15,7 +15,8 @@
 namespace XiHan.BasicApp.Saas.Domain.Enums;
 
 /// <summary>
-/// 操作类型枚举（RBAC 权限操作）
+/// 操作类型枚举（RBAC 权限模型专用，定义 SysOperation 可执行的操作种类）
+/// 注意：勿与 <see cref="OperationType"/> 混淆，后者用于审计日志记录
 /// </summary>
 public enum OperationTypeCode
 {
