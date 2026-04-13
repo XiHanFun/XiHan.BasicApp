@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_MeTy", nameof(MenuType), OrderByType.Asc)]
 [SugarIndex("IX_SysMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysMenu : BasicAppAggregateRoot
+public partial class SysMenu : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 权限编码（菜单可见性所需的权限，如 user:read，为空表示纯展示菜单无需鉴权）

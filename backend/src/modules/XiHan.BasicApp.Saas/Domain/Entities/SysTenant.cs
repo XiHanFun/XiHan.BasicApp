@@ -130,13 +130,13 @@ public partial class SysTenant : BasicAppAggregateRoot
     public virtual DateTimeOffset? ExpireTime { get; set; }
 
     /// <summary>
-    /// 用户数限制
+    /// 用户数限制（租户级覆盖值，为空时取 SysTenantEdition 的默认值）
     /// </summary>
     [SugarColumn(ColumnDescription = "用户数限制", IsNullable = true)]
     public virtual int? UserLimit { get; set; }
 
     /// <summary>
-    /// 存储空间限制(MB)
+    /// 存储空间限制(MB)（租户级覆盖值，为空时取 SysTenantEdition 的默认值）
     /// </summary>
     [SugarColumn(ColumnDescription = "存储空间限制(MB)", IsNullable = true)]
     public virtual long? StorageLimit { get; set; }
