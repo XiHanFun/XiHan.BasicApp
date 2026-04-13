@@ -17,6 +17,11 @@ namespace XiHan.BasicApp.Saas.Domain.Enums;
 /// <summary>
 /// 权限操作枚举
 /// </summary>
+/// <remarks>
+/// 在 SysRolePermission 中：Deny 仅覆盖当前角色继承链，不影响其他独立角色
+/// 在 SysUserPermission 中：Deny 为最终裁决，覆盖所有角色级别的 Grant
+/// 详见 SysRolePermission / SysUserPermission 实体注释
+/// </remarks>
 public enum PermissionAction
 {
     /// <summary>
@@ -25,7 +30,7 @@ public enum PermissionAction
     Grant = 0,
 
     /// <summary>
-    /// 禁用权限
+    /// 拒绝权限
     /// </summary>
     Deny = 1
 }

@@ -21,6 +21,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统用户权限关联实体（直授）
 /// </summary>
+/// <remarks>
+/// 用户直授权限优先级最高，可覆盖所有角色级别的权限决策：
+/// - Deny：最终拒绝该权限，即使用户的所有角色都 Grant 了此权限
+/// - Grant：最终授予该权限，即使用户的所有角色都未包含或 Deny 了此权限
+/// 适用场景：临时提权、特殊用户例外、紧急权限收回
+/// </remarks>
 [SugarTable("Sys_User_Permission", "系统用户权限关联表")]
 [SugarIndex("UX_SysUserPermission_UsId_PeId", nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysUserPermission_UsId", nameof(UserId), OrderByType.Asc)]

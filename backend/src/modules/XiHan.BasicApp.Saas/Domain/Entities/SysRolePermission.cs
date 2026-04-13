@@ -21,6 +21,16 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统角色权限关联实体
 /// </summary>
+/// <remarks>
+/// 权限合并优先级（从高到低）：
+/// 1. 用户直授（SysUserPermission）的 Deny → 最终拒绝，不可被任何角色 Grant 覆盖
+/// 2. 用户直授（SysUserPermission）的 Grant → 最终授予，即使所有角色 Deny
+/// 3. 角色级 Deny（本表）→ 仅作用于当前角色的继承链，不影响其他独立角色
+/// 4. 角色级 Grant（本表）→ 当前角色的权限授予
+///
+/// 角色级 Deny 语义：若角色 B 继承角色 A，B 对权限 P 标记 Deny，
+/// 则通过 B 不会获得 P；但用户若同时直接持有角色 A，仍可通过 A 获得 P。
+/// </remarks>
 [SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
 [SugarIndex("UX_SysRolePermission_RoId_PeId", nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
 [SugarIndex("IX_SysRolePermission_RoId", nameof(RoleId), OrderByType.Asc)]

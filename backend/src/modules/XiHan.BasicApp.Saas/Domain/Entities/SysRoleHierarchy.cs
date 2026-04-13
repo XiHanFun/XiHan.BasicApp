@@ -23,11 +23,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 使用闭包表模式存储角色之间的所有继承关系（包括直接和传递继承）
 /// </summary>
 /// <remarks>
-/// 支持角色多继承，后代角色继承祖先角色的所有权限
+/// 支持角色多继承（DAG），后代角色继承祖先角色的所有权限。
 /// 闭包表优点：
 /// 1. 查询所有子角色：O(1) 单次查询
 /// 2. 查询继承链：O(1) 单次查询
 /// 3. 避免递归查询的性能问题
+///
+/// 继承语义：
+/// - 权限继承：后代自动获得祖先的所有 Grant 权限，可通过 SysRolePermission.Deny 覆盖
+/// - DataScope 不继承：每个角色独立定义自己的 DataScope
+/// - SSD/DSD 传递：约束检查时须展开继承链（详见 SysConstraintRuleItem 注释）
+/// - 服务层必须在写入时做环路检测（禁止 A→B→A 循环继承）
 /// </remarks>
 [SugarTable("Sys_Role_Hierarchy", "系统角色层级关系表")]
 [SugarIndex("UX_SysRoleHierarchy_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]

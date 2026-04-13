@@ -17,6 +17,11 @@ namespace XiHan.BasicApp.Saas.Domain.Enums;
 /// <summary>
 /// 数据权限范围
 /// </summary>
+/// <remarks>
+/// 多部门用户约定：DepartmentAndChildren/DepartmentOnly 以用户主部门（SysUserDepartment.IsMain=true）为基准。
+/// 多角色用户约定：取所有角色中最大的 DataScope（All > DepartmentAndChildren > DepartmentOnly > SelfOnly），
+/// 若存在 Custom 则合并 Custom 指定的部门与其他角色的范围取并集。
+/// </remarks>
 public enum DataPermissionScope
 {
     /// <summary>
@@ -27,13 +32,13 @@ public enum DataPermissionScope
 
     /// <summary>
     /// 本部门及子部门数据权限
-    /// 可以看到本部门及其子部门的数据
+    /// 以用户主部门为基准，包含其所有下级部门
     /// </summary>
     DepartmentAndChildren = 1,
 
     /// <summary>
     /// 仅本部门数据权限
-    /// 只能看到本部门的数据
+    /// 以用户主部门为基准，仅限该部门
     /// </summary>
     DepartmentOnly = 2,
 
@@ -45,7 +50,7 @@ public enum DataPermissionScope
 
     /// <summary>
     /// 自定义数据权限
-    /// 通过自定义规则过滤数据
+    /// 通过 SysRoleDataScope 指定可访问的部门列表（支持 IncludeChildren 自动包含子部门）
     /// </summary>
     Custom = 99
 }
