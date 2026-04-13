@@ -54,15 +54,15 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
 
     /// <summary>
-    /// 约束参数（JSON格式）
+    /// 约束参数（JSON格式，存储非 ID 类配置项，具体目标 ID 请使用 SysConstraintRuleItem）
     /// 示例：
-    /// SSD: { "conflictRoles": [1, 2, 3], "maxAllowed": 1 }
-    /// DSD: { "conflictRoles": [4, 5], "timeWindow": "8h" }
-    /// Cardinality: { "targetType": "Role", "maxCount": 5 }
-    /// Prerequisite: { "requiredRole": 1, "targetRole": 2 }
+    /// SSD: { "maxAllowed": 1 }
+    /// DSD: { "timeWindow": "8h" }
+    /// Cardinality: { "maxCount": 5 }
+    /// Temporal: { "allowedHours": "09:00-18:00", "allowedDays": "Mon-Fri" }
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
-    public virtual string Parameters { get; set; } = "{}";
+    [SugarColumn(ColumnDescription = "约束参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? Parameters { get; set; }
 
     /// <summary>
     /// 是否启用
@@ -83,7 +83,7 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual string? Description { get; set; }
 
     /// <summary>
-    /// 规则优先级（数字越小优先级越高）
+    /// 规则优先级（数字越大优先级越高，与 SysPermission.Priority 方向一致）
     /// </summary>
     [SugarColumn(ColumnDescription = "规则优先级")]
     public virtual int Priority { get; set; } = 0;

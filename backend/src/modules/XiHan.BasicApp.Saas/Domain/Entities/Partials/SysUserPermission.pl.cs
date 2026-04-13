@@ -38,4 +38,13 @@ public partial class SysUserPermission
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(PermissionId))]
     public virtual SysPermission? Permission { get; set; }
+
+    /// <summary>
+    /// ABAC 条件列表
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysPermissionCondition.UserPermissionId))]
+    public virtual List<SysPermissionCondition>? Conditions { get; set; }
 }
