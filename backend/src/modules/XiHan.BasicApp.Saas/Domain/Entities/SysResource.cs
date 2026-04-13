@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统资源实体
 /// 资源是"被控制对象"（API、数据表、文件等），扁平结构，不包含 UI 层级
-/// 权限 = 资源 + 操作，菜单通过 PermissionCode 绑定权限
+/// 权限 = 资源 + 操作，菜单通过 PermissionId 外键绑定权限
 /// </summary>
 [SugarTable("Sys_Resource", "系统资源表")]
 [SugarIndex("UX_SysResource_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, true)]
@@ -71,16 +71,10 @@ public partial class SysResource : BasicAppAggregateRoot
     public virtual string? Metadata { get; set; }
 
     /// <summary>
-    /// 是否需要认证
+    /// 资源访问级别（替代原 IsRequireAuth+IsPublic，消除无效布尔组合）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要认证")]
-    public virtual bool IsRequireAuth { get; set; } = true;
-
-    /// <summary>
-    /// 是否公开资源（无需授权即可访问）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否公开")]
-    public virtual bool IsPublic { get; set; } = false;
+    [SugarColumn(ColumnDescription = "访问级别")]
+    public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
     /// 是否平台级全局资源（全局资源所有租户共享，TenantId 为空）
