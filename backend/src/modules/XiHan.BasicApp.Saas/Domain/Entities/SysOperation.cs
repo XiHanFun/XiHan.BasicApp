@@ -29,6 +29,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysOperation_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
 [SugarIndex("IX_SysOperation_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysOperation_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysOperation : BasicAppAggregateRoot
 {
     /// <summary>
@@ -90,6 +91,12 @@ public partial class SysOperation : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
+
+    /// <summary>
+    /// 是否平台级全局操作（全局操作所有租户共享，TenantId 为空）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否全局操作")]
+    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 状态

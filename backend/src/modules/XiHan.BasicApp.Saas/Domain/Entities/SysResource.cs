@@ -30,6 +30,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysResource_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_ReTy_St", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysResource_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysResource_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysResource : BasicAppAggregateRoot
 {
     /// <summary>
@@ -80,6 +81,12 @@ public partial class SysResource : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否公开")]
     public virtual bool IsPublic { get; set; } = false;
+
+    /// <summary>
+    /// 是否平台级全局资源（全局资源所有租户共享，TenantId 为空）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否全局资源")]
+    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 状态

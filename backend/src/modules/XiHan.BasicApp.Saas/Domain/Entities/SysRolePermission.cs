@@ -28,6 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysRolePermission_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysRolePermission_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_SysRolePermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysRolePermission_PeAc", nameof(PermissionAction), OrderByType.Asc)]
 public partial class SysRolePermission : BasicAppCreationEntity
 {
     /// <summary>
@@ -41,6 +42,12 @@ public partial class SysRolePermission : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "权限ID", IsNullable = false)]
     public virtual long PermissionId { get; set; }
+
+    /// <summary>
+    /// 权限操作（授予/禁用，支持角色继承时覆盖父角色权限）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "权限操作")]
+    public virtual PermissionAction PermissionAction { get; set; } = PermissionAction.Grant;
 
     /// <summary>
     /// 状态

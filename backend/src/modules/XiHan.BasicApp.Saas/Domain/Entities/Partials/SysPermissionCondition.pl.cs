@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysRolePermission.pl
-// Guid:1d28152c-d6e9-4396-addb-b479254bad21
+// FileName:SysPermissionCondition.pl
+// Guid:d0e1f2a3-b4c5-6789-3456-890123456710
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/08/14 03:40:00
+// CreateTime:2026/04/14 00:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -17,34 +17,25 @@ using SqlSugar;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 角色权限关联实体扩展
+/// 权限 ABAC 条件实体扩展
 /// </summary>
-public partial class SysRolePermission
+public partial class SysPermissionCondition
 {
     /// <summary>
-    /// 角色信息
+    /// 关联的角色权限
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(RoleId))]
-    public virtual SysRole? Role { get; set; }
+    [Navigate(NavigateType.ManyToOne, nameof(RolePermissionId))]
+    public virtual SysRolePermission? RolePermission { get; set; }
 
     /// <summary>
-    /// 权限信息
+    /// 关联的用户直授权限
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(PermissionId))]
-    public virtual SysPermission? Permission { get; set; }
-
-    /// <summary>
-    /// ABAC 条件列表
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToMany, nameof(SysPermissionCondition.RolePermissionId))]
-    public virtual List<SysPermissionCondition>? Conditions { get; set; }
+    [Navigate(NavigateType.ManyToOne, nameof(UserPermissionId))]
+    public virtual SysUserPermission? UserPermission { get; set; }
 }

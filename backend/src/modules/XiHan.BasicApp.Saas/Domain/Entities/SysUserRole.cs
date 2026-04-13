@@ -27,6 +27,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysUserRole_RoId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_SysUserRole_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysUserRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_SysUserRole_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
+[SugarIndex("IX_SysUserRole_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
 public partial class SysUserRole : BasicAppCreationEntity
 {
     /// <summary>
@@ -40,6 +42,18 @@ public partial class SysUserRole : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
     public virtual long RoleId { get; set; }
+
+    /// <summary>
+    /// 生效时间（为空表示立即生效）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    public virtual DateTimeOffset? EffectiveTime { get; set; }
+
+    /// <summary>
+    /// 失效时间（为空表示永不过期）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 状态

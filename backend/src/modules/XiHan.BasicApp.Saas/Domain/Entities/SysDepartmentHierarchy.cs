@@ -26,6 +26,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysDepartmentHierarchy_DeId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartmentHierarchy_De", nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_SysDepartmentHierarchy_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartmentHierarchy_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_SysDepartmentHierarchy_TeId_AnId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc)]
 public partial class SysDepartmentHierarchy : BasicAppCreationEntity
 {
     /// <summary>
