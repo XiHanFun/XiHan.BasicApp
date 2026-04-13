@@ -65,7 +65,7 @@
     "@tiptap/starter-kit": "^3.22.2",
     "@tiptap/vue-3": "^3.22.2",
     "@vueuse/core": "^11.3.0",
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "dayjs": "^1.11.20",
     "defu": "^6.1.7",
     "md-editor-v3": "^6.4.2",
