@@ -18,8 +18,9 @@ using XiHan.BasicApp.Core.Entities;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统部门继承关系表实体
-/// 支持部门多继承，子部门继承父部门的权限
+/// 系统部门层级闭包表实体
+/// 部门为严格树结构（SysDepartment.ParentId 保证单父），本表通过闭包表模式
+/// 预计算所有祖先-后代对，实现 O(1) 的祖先/后代查询，避免递归
 /// </summary>
 [SugarTable("Sys_Department_Hierarchy", "系统部门继承关系表")]
 [SugarIndex("UX_SysDepartmentHierarchy_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]

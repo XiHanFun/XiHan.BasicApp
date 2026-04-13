@@ -21,10 +21,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统租户实体
 /// </summary>
+/// <remarks>
+/// 租户生命周期由 TenantStatus 唯一控制：
+/// - Normal：正常运营
+/// - Suspended：管理员手动暂停（如违规）
+/// - Expired：订阅到期，自动或手动标记
+/// - Disabled：已停用/归档，等效于逻辑删除
+/// 服务层判断"租户是否可用"只需：TenantStatus == Normal
+/// </remarks>
 [SugarTable("Sys_Tenant", "系统租户表")]
 [SugarIndex("IX_SysTenant_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysTenant_TeNa", nameof(TenantName), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysTenant_TeSt", nameof(TenantStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTenant_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysTenant_ExTi", nameof(ExpireTime), OrderByType.Asc)]
@@ -146,12 +153,6 @@ public partial class SysTenant : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "租户状态")]
     public virtual TenantStatus TenantStatus { get; set; } = TenantStatus.Normal;
-
-    /// <summary>
-    /// 状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
     /// 排序

@@ -24,6 +24,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 同组条件为 AND 关系，不同组之间为 OR 关系
 /// </summary>
 /// <remarks>
+/// 排他约束：RolePermissionId 和 UserPermissionId 必须恰好有一个非空。
+/// 服务层写入时必须校验：(RolePermissionId != null) XOR (UserPermissionId != null)，
+/// 两者同时为空 → 孤儿条件；两者同时非空 → 归属歧义。数据库层无法用简单约束表达 XOR，
+/// 因此此规则由应用层保证。
+///
 /// 示例场景：
 /// - 时间限制：AttributeName="environment.hour", Operator=Between, ConditionValue="9,18"（仅工作时间可用）
 /// - 数据状态：AttributeName="resource.status", Operator=Equals, ConditionValue="draft"（只能操作草稿）

@@ -83,4 +83,13 @@ public partial class SysPermission
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysTenantEditionPermission.PermissionId))]
     public virtual List<SysTenantEditionPermission>? EditionPermissions { get; set; }
+
+    /// <summary>
+    /// 关联菜单列表（哪些菜单依赖此权限做可见性控制）
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToMany, nameof(SysMenu.PermissionId))]
+    public virtual List<SysMenu>? Menus { get; set; }
 }

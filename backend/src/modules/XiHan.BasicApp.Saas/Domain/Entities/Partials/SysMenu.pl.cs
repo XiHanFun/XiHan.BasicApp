@@ -39,4 +39,12 @@ public partial class SysMenu
     [Navigate(NavigateType.OneToMany, nameof(ParentId))]
     public virtual List<SysMenu>? Children { get; set; }
 
+    /// <summary>
+    /// 关联权限（菜单可见性所依赖的权限）
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.ManyToOne, nameof(PermissionId))]
+    public virtual SysPermission? Permission { get; set; }
 }

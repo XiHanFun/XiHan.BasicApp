@@ -22,11 +22,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统约束规则实体
 /// 定义 RBAC 约束规则（静态职责分离SSD、动态职责分离DSD、互斥约束等）
 /// </summary>
+/// <remarks>
+/// 规则生命周期由 IsEnabled 唯一控制：
+/// - true：规则生效（还须在有效期 EffectiveFrom~EffectiveTo 范围内）
+/// - false：规则停用/归档
+/// 服务层判断"规则是否生效"：IsEnabled == true AND 当前时间在有效期内
+/// </remarks>
 [SugarTable("Sys_Constraint_Rule", "系统约束规则表")]
 [SugarIndex("UX_SysConstraintRule_TeId_RuCo", nameof(TenantId), OrderByType.Asc, nameof(RuleCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysConstraintRule_CoTy", nameof(ConstraintType), OrderByType.Asc)]
 [SugarIndex("IX_SysConstraintRule_IsEn", nameof(IsEnabled), OrderByType.Asc)]
 [SugarIndex("IX_SysConstraintRule_TeId_CoTy", nameof(TenantId), OrderByType.Asc, nameof(ConstraintType), OrderByType.Asc)]
+[SugarIndex("IX_SysConstraintRule_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysConstraintRule : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -65,6 +72,12 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual string? Parameters { get; set; }
 
     /// <summary>
+    /// 是否平台级全局约束规则（全局规则对所有租户生效，TenantId 为空）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否全局约束规则")]
+    public virtual bool IsGlobal { get; set; } = false;
+
+    /// <summary>
     /// 是否启用
     /// </summary>
     [SugarColumn(ColumnDescription = "是否启用")]
@@ -99,12 +112,6 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
     public virtual DateTimeOffset? EffectiveTo { get; set; }
-
-    /// <summary>
-    /// 状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
     /// 备注
