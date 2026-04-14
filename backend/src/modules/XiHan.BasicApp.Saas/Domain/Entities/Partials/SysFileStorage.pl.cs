@@ -28,7 +28,7 @@ public partial class SysFileStorage
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(FileId))]
+    [Navigate(NavigateType.ManyToOne, nameof(FileId))]
     public virtual SysFile? File { get; set; }
 
     /// <summary>

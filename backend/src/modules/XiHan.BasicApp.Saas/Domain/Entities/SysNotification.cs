@@ -25,6 +25,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysNotification_NoTy", nameof(NotificationType), OrderByType.Asc)]
 [SugarIndex("IX_SysNotification_SeTi", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_SysNotification_Published", nameof(IsPublished), OrderByType.Asc)]
+[SugarIndex("IX_SysNotification_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
 public partial class SysNotification : BasicAppAggregateRoot
 {
     /// <summary>
@@ -104,12 +105,6 @@ public partial class SysNotification : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否已发布")]
     public virtual bool IsPublished { get; set; } = false;
-
-    /// <summary>
-    /// 状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
     /// 备注

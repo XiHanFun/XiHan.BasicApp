@@ -25,7 +25,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_SysDictItem_DiId_ItCo", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
 [SugarIndex("IX_SysDictItem_DiId", nameof(DictId), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_ItCo", nameof(ItemCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_DiCo", nameof(DictCode), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysDictItem_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
@@ -36,12 +35,6 @@ public partial class SysDictItem : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "字典ID", IsNullable = false)]
     public virtual long DictId { get; set; }
-
-    /// <summary>
-    /// 字典编码（冗余字段，便于查询）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "字典编码", Length = 100, IsNullable = false)]
-    public virtual string DictCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 父级字典项ID

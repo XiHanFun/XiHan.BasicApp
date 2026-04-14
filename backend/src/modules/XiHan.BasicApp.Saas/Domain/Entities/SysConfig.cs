@@ -27,8 +27,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysConfig_CoTy", nameof(ConfigType), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysConfig_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
+[SugarIndex("IX_SysConfig_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysConfig : BasicAppAggregateRoot
 {
+    /// <summary>
+    /// 是否平台级全局配置（全局配置对所有租户生效，TenantId 为空）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否全局配置")]
+    public virtual bool IsGlobal { get; set; } = false;
+
     /// <summary>
     /// 配置名称
     /// </summary>

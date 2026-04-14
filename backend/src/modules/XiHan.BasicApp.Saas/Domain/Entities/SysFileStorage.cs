@@ -30,6 +30,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysFileStorage_StTy", nameof(StorageType), OrderByType.Asc)]
 [SugarIndex("IX_SysFileStorage_IsPr", nameof(IsPrimary), OrderByType.Desc)]
 [SugarIndex("IX_SysFileStorage_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_SysFileStorage_TeId_FiId", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]
 public partial class SysFileStorage : BasicAppFullAuditedEntity
 {
     #region 关联信息

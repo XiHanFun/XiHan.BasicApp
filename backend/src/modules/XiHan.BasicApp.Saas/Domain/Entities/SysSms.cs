@@ -26,6 +26,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysSms_SmSt", nameof(SmsStatus), OrderByType.Asc)]
 [SugarIndex("IX_SysSms_SmTy", nameof(SmsType), OrderByType.Asc)]
 [SugarIndex("IX_SysSms_SeTi", nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_SysSms_TeId_SmSt_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SmsStatus), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
 public partial class SysSms : BasicAppAggregateRoot
 {
     /// <summary>

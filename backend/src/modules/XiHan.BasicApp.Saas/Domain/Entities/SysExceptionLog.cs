@@ -31,7 +31,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysExceptionLog_StCo", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_SysExceptionLog_BuMo", nameof(BusinessModule), OrderByType.Asc)]
 [SugarIndex("IX_SysExceptionLog_TrId", nameof(TraceId), OrderByType.Asc)]
-public partial class SysExceptionLog : BasicAppCreationEntity, ITraceableEntity
+[SugarIndex("IX_SysExceptionLog_TeId_ExTi", nameof(TenantId), OrderByType.Asc, nameof(ExceptionTime), OrderByType.Desc)]
+public partial class SysExceptionLog : BasicAppModificationEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID

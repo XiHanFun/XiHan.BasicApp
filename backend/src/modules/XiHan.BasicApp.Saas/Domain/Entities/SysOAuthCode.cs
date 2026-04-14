@@ -30,6 +30,8 @@ public partial class SysOAuthCode : BasicAppFullAuditedEntity
     /// <summary>
     /// 授权码
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "授权码", Length = 100, IsNullable = false)]
     public virtual string Code { get; set; } = string.Empty;
 

@@ -47,6 +47,8 @@ public partial class SysOAuthApp : BasicAppAggregateRoot
     /// <summary>
     /// 客户端密钥
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "客户端密钥", Length = 200, IsNullable = false)]
     public virtual string ClientSecret { get; set; } = string.Empty;
 
