@@ -21,12 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统升级分布式锁实体
 /// </summary>
 [SugarTable("Sys_Upgrade_Lock", "系统升级分布式锁表")]
+[SugarIndex("UX_SysUpgradeLock_ReKe", nameof(ResourceKey), OrderByType.Asc, true)]
 public class SysUpgradeLock : BasicAppCreationEntity
 {
     /// <summary>
-    /// 资源键
+    /// 资源键（分布式锁标识，唯一索引保证互斥）
     /// </summary>
-    [SugarColumn(IsPrimaryKey = true, ColumnDescription = "资源键", Length = 128)]
+    [SugarColumn(ColumnDescription = "资源键", Length = 128, IsNullable = false)]
     public string ResourceKey { get; set; } = string.Empty;
 
     /// <summary>

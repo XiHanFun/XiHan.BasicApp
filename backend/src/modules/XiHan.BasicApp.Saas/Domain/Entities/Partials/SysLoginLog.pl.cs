@@ -27,6 +27,15 @@ public partial class SysLoginLog
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.OneToOne, nameof(UserId))]
+    [Navigate(NavigateType.ManyToOne, nameof(UserId))]
     public virtual SysUser? User { get; set; }
+
+    /// <summary>
+    /// 所属租户
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.ManyToOne, nameof(TenantId))]
+    public virtual SysTenant? Tenant { get; set; }
 }

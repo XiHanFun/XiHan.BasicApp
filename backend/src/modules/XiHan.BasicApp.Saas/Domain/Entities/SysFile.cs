@@ -32,6 +32,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_SysFile_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_IsTe", nameof(IsTemporary), OrderByType.Asc)]
 [SugarIndex("IX_SysFile_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
+[SugarIndex("IX_SysFile_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysFile : BasicAppAggregateRoot
 {
     #region 基本信息

@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysOAuthCode.pl
-// Guid:6d28152c-d6e9-4396-addb-b479254bad40
+// FileName:SysExternalLogin.pl
+// Guid:b2c3d4e5-6f70-8192-a3b4-c5d6e7f80912
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/08/14 05:55:00
+// CreateTime:2026/04/14 10:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -17,21 +17,12 @@ using SqlSugar;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统 OAuth 授权码实体扩展
+/// 系统第三方登录绑定实体扩展
 /// </summary>
-public partial class SysOAuthCode
+public partial class SysExternalLogin
 {
     /// <summary>
-    /// OAuth应用信息
-    /// </summary>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(ClientId), nameof(SysOAuthApp.ClientId))]
-    public virtual SysOAuthApp? OAuthApp { get; set; }
-
-    /// <summary>
-    /// 用户信息
+    /// 关联用户
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]

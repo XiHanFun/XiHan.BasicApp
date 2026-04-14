@@ -22,9 +22,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统用户统计实体
 /// </summary>
 [SugarTable("Sys_User_Statistics", "系统用户统计表")]
-[SugarIndex("IX_SysUserStatistics_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserStatistics_StDa", nameof(StatisticsDate), OrderByType.Desc)]
-[SugarIndex("IX_SysUserStatistics_Pe", nameof(Period), OrderByType.Asc)]
+[SugarIndex("UX_SysUserStatistics_TeId_UsId_StDa_Pe", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(StatisticsDate), OrderByType.Desc, nameof(Period), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserStatistics_TeId_StDa", nameof(TenantId), OrderByType.Asc, nameof(StatisticsDate), OrderByType.Desc)]
 public partial class SysUserStatistics : BasicAppFullAuditedEntity
 {
     /// <summary>

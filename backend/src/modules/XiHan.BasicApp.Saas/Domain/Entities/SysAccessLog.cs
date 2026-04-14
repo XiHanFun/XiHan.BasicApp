@@ -135,10 +135,10 @@ public partial class SysAccessLog : BasicAppCreationEntity, ITraceableEntity
     public virtual string? Referer { get; set; }
 
     /// <summary>
-    /// 响应时间（毫秒）
+    /// 响应耗时（毫秒），勿与 SysApiLog.ResponseTime（响应时刻）混淆
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应时间（毫秒）")]
-    public virtual long ResponseTime { get; set; } = 0;
+    [SugarColumn(ColumnDescription = "响应耗时（毫秒）")]
+    public virtual long ResponseDuration { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）

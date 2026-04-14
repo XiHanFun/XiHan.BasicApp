@@ -22,9 +22,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 用户通知接收状态实体，记录每个用户对每条通知的已读/确认状态
 /// </summary>
 [SugarTable("Sys_User_Notification", "用户通知接收状态表")]
-[SugarIndex("IX_SysUse_Notification_NoId_UsId", nameof(NotificationId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUse_Notification_UsId_St", nameof(UserId), OrderByType.Asc, nameof(NotificationStatus), OrderByType.Asc)]
-public class SysUserNotification : BasicAppCreationEntity
+[SugarIndex("UX_SysUserNotification_TeId_NoId_UsId", nameof(TenantId), OrderByType.Asc, nameof(NotificationId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
+[SugarIndex("IX_SysUserNotification_TeId_UsId_NoSt", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(NotificationStatus), OrderByType.Asc)]
+public partial class SysUserNotification : BasicAppCreationEntity
 {
     /// <summary>
     /// 通知ID
