@@ -32,13 +32,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysConstraintRuleItem", "约束规则目标项表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_RuId_TaTy_TaId", nameof(ConstraintRuleId), OrderByType.Asc, nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TaId", nameof(TargetId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TaTy", nameof(TargetType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConstraintGroup), OrderByType.Asc)]
 [SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_RuId", nameof(TenantId), OrderByType.Asc, nameof(ConstraintRuleId), OrderByType.Asc)]
-public partial class SysConstraintRuleItem : BasicAppCreationEntity
+public partial class SysConstraintRuleItem : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 约束规则ID

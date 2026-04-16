@@ -38,9 +38,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 创建时必须同步：(1) SysUserSecurity 一对一扩展 (2) 一条 SysTenantUser 记录（TenantId=SysUser.TenantId + MemberType=Owner/Member + InviteStatus=Accepted）
 ///
 /// 查询：
-/// - 登录认证：通过 UserName + 主租户（或邮箱/手机号）定位唯一用户
+/// - 登录流程（两段式）：(1) 用户先选择目标租户（输入 TenantCode / 子域名 / 下拉）→ 定位 TenantId
+///                        (2) 输入 UserName + Password → WHERE TenantId=? AND UserName=? 唯一定位（走 UX_TeId_UsNa）
+///                        (3) 登录成功后若用户在其它租户也有 SysTenantUser，展示"切换租户"入口
 /// - 鉴权决策：UserId + 当前会话 TenantId → 查 SysTenantUser 校验成员身份 → 再查 SysUserRole 加载角色
-/// - 联系方式查询走 IX_Em / IX_Ph
+/// - 联系方式查询走 IX_Em / IX_Ph（非唯一，仅作辅助找回/验证，不用于登录定位）
 ///
 /// 删除：
 /// - 仅支持软删（IsDeleted=1）保留审计

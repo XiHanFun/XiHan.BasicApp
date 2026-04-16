@@ -63,6 +63,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsRe", nameof(IsRevoked), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PaTo", nameof(ParentTokenId), OrderByType.Asc)]
 public partial class SysOAuthToken : BasicAppCreationEntity
 {
     /// <summary>
@@ -94,10 +95,18 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     public virtual string? RefreshToken { get; set; }
 
     /// <summary>
-    /// 被替换后的新 Token 的 RefreshToken 或 JTI（轮换检测：若已撤销且存在则视为重放，需撤销整会话）
+    /// 被替换后的新 Token 的 RefreshToken 或 JTI（正向链：当前 Token 替换后指向的新 Token 标识）
+    /// 轮换检测：若 IsRevoked=true 且 ReplacedByToken 非空时再次被使用，视为重放攻击，需撤销整会话
     /// </summary>
     [SugarColumn(ColumnDescription = "被替换为的Token标识", Length = 200, IsNullable = true)]
     public virtual string? ReplacedByToken { get; set; }
+
+    /// <summary>
+    /// 父 Token ID（反向链：本 Token 由哪一条父 Token 轮换而来；初次颁发时为空）
+    /// 配合 ReplacedByToken 构成双向链路，支持 O(1) 按父查子 + 完整链路溯源
+    /// </summary>
+    [SugarColumn(ColumnDescription = "父TokenID", IsNullable = true)]
+    public virtual long? ParentTokenId { get; set; }
 
     /// <summary>
     /// 令牌类型

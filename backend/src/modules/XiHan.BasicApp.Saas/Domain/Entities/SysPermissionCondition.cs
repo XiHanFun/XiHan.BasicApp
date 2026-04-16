@@ -38,12 +38,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysPermissionCondition", "权限ABAC条件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_RoPeId", nameof(RolePermissionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_UsPeId", nameof(UserPermissionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConditionGroup), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AtNa", nameof(AttributeName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysPermissionCondition : BasicAppCreationEntity
+public partial class SysPermissionCondition : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 角色权限关联ID（绑定到角色的权限时使用，与 UserPermissionId 二选一）

@@ -50,12 +50,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysUserDepartment", "系统用户部门关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId_DeId", nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DeId", nameof(DepartmentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsMa", nameof(IsMain), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysUserDepartment : BasicAppCreationEntity
+public partial class SysUserDepartment : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 用户ID

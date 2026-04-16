@@ -38,11 +38,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysRoleHierarchy", "系统角色层级关系表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DeId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysRoleHierarchy : BasicAppCreationEntity
+public partial class SysRoleHierarchy : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 祖先角色ID（被继承的角色）

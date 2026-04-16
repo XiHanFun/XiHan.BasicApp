@@ -51,6 +51,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_RoCo", nameof(TenantId), OrderByType.Asc, nameof(RoleCode), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysRole : BasicAppAggregateRoot
 {
     /// <summary>
@@ -72,10 +73,16 @@ public partial class SysRole : BasicAppAggregateRoot
     public virtual string? RoleDescription { get; set; }
 
     /// <summary>
-    /// 角色类型
+    /// 角色类型（System=平台预置 / Tenant=租户级 / Custom=租户自定义，仅展示分类）
     /// </summary>
     [SugarColumn(ColumnDescription = "角色类型")]
     public virtual RoleType RoleType { get; set; } = RoleType.System;
+
+    /// <summary>
+    /// 是否平台级全局角色（全局角色作为所有租户的模板，TenantId 固定为 0）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否全局角色")]
+    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 数据权限范围
