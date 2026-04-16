@@ -24,19 +24,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 不存储完整 Token/RefreshToken，仅通过 AccessTokenJti 与 Token 表关联，便于黑名单与撤销。
 /// </summary>
 [SugarTable("SysUserSession", "系统用户会话表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
-[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsSeId", nameof(UserSessionId), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsOn_IsRe", nameof(IsOnline), OrderByType.Asc, nameof(IsRevoked), OrderByType.Asc)]
 public partial class SysUserSession : BasicAppAggregateRoot
 {
     /// <summary>

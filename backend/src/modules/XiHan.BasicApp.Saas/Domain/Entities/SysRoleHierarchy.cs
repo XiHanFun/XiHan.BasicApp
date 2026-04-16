@@ -36,13 +36,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 服务层必须在写入时做环路检测（禁止 A→B→A 循环继承）
 /// </remarks>
 [SugarTable("SysRoleHierarchy", "系统角色层级关系表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DeId", nameof(DescendantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRoleHierarchy : BasicAppCreationEntity

@@ -23,18 +23,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 定义可对资源执行的操作类型（增删改查、审批、导入导出等）
 /// </summary>
 [SugarTable("SysOperation", "系统操作表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
-[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_OpCo", nameof(TenantId), OrderByType.Asc, nameof(OperationCode), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_OpCo", nameof(OperationCode), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ca", nameof(Category), OrderByType.Asc)]
-[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]

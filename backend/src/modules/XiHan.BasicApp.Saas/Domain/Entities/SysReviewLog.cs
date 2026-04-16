@@ -22,8 +22,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统审查日志实体
 /// </summary>
 [SugarTable("SysReviewLog_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ReId", nameof(ReviewId), OrderByType.Asc)]

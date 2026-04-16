@@ -23,12 +23,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统登录日志实体
 /// </summary>
 [SugarTable("SysLoginLog_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_LoTi", nameof(LoginTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_LoRe", nameof(LoginResult), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsNa", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_LoIp", nameof(LoginIp), OrderByType.Asc)]

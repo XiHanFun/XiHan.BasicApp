@@ -30,12 +30,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 服务层在检查 SSD/DSD 时须通过 SysRoleHierarchy 展开用户所有角色的完整继承链。
 /// </remarks>
 [SugarTable("SysConstraintRuleItem", "约束规则目标项表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_RuId_TaTy_TaId", nameof(ConstraintRuleId), OrderByType.Asc, nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_RuId", nameof(ConstraintRuleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TaId", nameof(TargetId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TaTy", nameof(TargetType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConstraintGroup), OrderByType.Asc)]

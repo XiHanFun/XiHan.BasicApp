@@ -21,8 +21,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统迁移历史实体
 /// </summary>
 [SugarTable("SysMigrationHistory", "系统迁移历史表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ve", nameof(Version), OrderByType.Asc)]

@@ -22,8 +22,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 用户通知接收状态实体，记录每个用户对每条通知的已读/确认状态
 /// </summary>
 [SugarTable("SysUserNotification", "用户通知接收状态表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_NoId_UsId", nameof(TenantId), OrderByType.Asc, nameof(NotificationId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]

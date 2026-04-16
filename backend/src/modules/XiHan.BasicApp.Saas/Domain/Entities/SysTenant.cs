@@ -30,13 +30,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 服务层判断"租户是否可用"只需：TenantStatus == Normal
 /// </remarks>
 [SugarTable("SysTenant", "系统租户表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
-[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeNa", nameof(TenantName), OrderByType.Asc)]

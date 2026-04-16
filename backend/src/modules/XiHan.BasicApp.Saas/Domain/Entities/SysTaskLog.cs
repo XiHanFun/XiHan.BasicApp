@@ -21,13 +21,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统任务日志实体
 /// </summary>
 [SugarTable("SysTaskLog_{year}{month}{day}", "系统任务日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_TaId", nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TaSt", nameof(TaskStatus), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_StTi", nameof(StartTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TaCo", nameof(TaskCode), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_BaNu", nameof(BatchNumber), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TaskId), OrderByType.Asc)]

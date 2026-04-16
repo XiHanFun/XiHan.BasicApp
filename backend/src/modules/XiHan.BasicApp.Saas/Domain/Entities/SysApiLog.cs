@@ -23,15 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统接口日志实体
 /// </summary>
 [SugarTable("SysApiLog_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ApPa", nameof(ApiPath), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_Me", nameof(Method), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_StCo", nameof(StatusCode), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_ReTi", nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TeId_ReTi", nameof(TenantId), OrderByType.Asc, nameof(RequestTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_ExTi", nameof(ExecutionTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
