@@ -52,7 +52,7 @@ public class SmsRepository : SqlSugarAggregateRepository<SysSms, long>, ISmsRepo
 
         query = resolvedTenantId.HasValue
             ? query.Where(sms => sms.TenantId == resolvedTenantId.Value)
-            : query.Where(sms => sms.TenantId == null);
+            : query.Where(sms => sms.TenantId == 0);
 
         return await query
             .OrderBy(sms => sms.ScheduledTime)

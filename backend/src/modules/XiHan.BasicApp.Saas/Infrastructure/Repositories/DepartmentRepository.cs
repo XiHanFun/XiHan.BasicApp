@@ -57,7 +57,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
 
         query = tenantId.HasValue
             ? query.Where(department => department.TenantId == tenantId.Value)
-            : query.Where(department => department.TenantId == null);
+            : query.Where(department => department.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -112,7 +112,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
 
         query = resolvedTenantId.HasValue
             ? query.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value)
-            : query.Where(hierarchy => hierarchy.TenantId == null);
+            : query.Where(hierarchy => hierarchy.TenantId == 0);
 
         var ids = await query
             .Select(hierarchy => hierarchy.DescendantId)
@@ -135,7 +135,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
         var departmentQuery = CreateTenantQueryable();
         departmentQuery = resolvedTenantId.HasValue
             ? departmentQuery.Where(department => department.TenantId == resolvedTenantId.Value)
-            : departmentQuery.Where(department => department.TenantId == null);
+            : departmentQuery.Where(department => department.TenantId == 0);
 
         var departments = await departmentQuery.ToListAsync(cancellationToken);
         var departmentMap = departments.ToDictionary(department => department.BasicId);
@@ -143,7 +143,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
         var deleteable = DbClient.Deleteable<SysDepartmentHierarchy>();
         deleteable = resolvedTenantId.HasValue
             ? deleteable.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value)
-            : deleteable.Where(hierarchy => hierarchy.TenantId == null);
+            : deleteable.Where(hierarchy => hierarchy.TenantId == 0);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
         if (departments.Count == 0)

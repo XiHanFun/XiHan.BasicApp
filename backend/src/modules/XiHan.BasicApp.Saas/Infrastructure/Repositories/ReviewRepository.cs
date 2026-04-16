@@ -51,7 +51,7 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
 
         query = resolvedTenantId.HasValue
             ? query.Where(review => review.TenantId == resolvedTenantId.Value)
-            : query.Where(review => review.TenantId == null);
+            : query.Where(review => review.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -69,7 +69,7 @@ public class ReviewRepository : SqlSugarAggregateRepository<SysReview, long>, IR
 
         query = resolvedTenantId.HasValue
             ? query.Where(review => review.TenantId == resolvedTenantId.Value)
-            : query.Where(review => review.TenantId == null);
+            : query.Where(review => review.TenantId == 0);
 
         if (excludeReviewId.HasValue)
         {

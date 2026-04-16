@@ -918,9 +918,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             claims.Add(new Claim(XiHanClaimTypes.PhoneNumber, user.Phone));
         }
 
-        if (user.TenantId.HasValue)
+        if (user.TenantId != 0)
         {
-            claims.Add(new Claim(XiHanClaimTypes.TenantId, user.TenantId.Value.ToString()));
+            claims.Add(new Claim(XiHanClaimTypes.TenantId, user.TenantId.ToString()));
         }
 
         foreach (var roleCode in roleCodes.Where(static roleCode => !string.IsNullOrWhiteSpace(roleCode)).Distinct(StringComparer.OrdinalIgnoreCase))

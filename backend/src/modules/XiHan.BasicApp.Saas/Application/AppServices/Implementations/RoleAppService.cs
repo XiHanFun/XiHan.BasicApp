@@ -502,7 +502,7 @@ public class RoleAppService
                 if (buttonMenuCodeMap.TryGetValue(
                     BuildScopedMenuCode(permission.TenantId, buttonPermissionCode),
                     out var buttonMenu)
-                    || (permission.TenantId.HasValue
+                    || (permission.TenantId != 0
                         && buttonMenuCodeMap.TryGetValue(
                             BuildScopedMenuCode(null, buttonPermissionCode),
                             out buttonMenu)))

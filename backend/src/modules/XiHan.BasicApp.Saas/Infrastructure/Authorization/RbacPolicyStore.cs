@@ -70,7 +70,7 @@ public class RbacPolicyStore : IPolicyStore
                 config => config.TenantId == tenantId.Value && config.ConfigGroup == PolicyConfigGroup,
                 cancellationToken)
             : await _configRepository.GetListAsync(
-                config => config.TenantId == null && config.ConfigGroup == PolicyConfigGroup,
+                config => config.TenantId == 0 && config.ConfigGroup == PolicyConfigGroup,
                 cancellationToken);
 
         var policies = new List<PolicyDefinition>(configs.Count);

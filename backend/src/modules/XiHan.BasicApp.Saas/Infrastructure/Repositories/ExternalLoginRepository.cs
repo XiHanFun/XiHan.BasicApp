@@ -40,7 +40,7 @@ public class ExternalLoginRepository : IExternalLoginRepository
         return await _db.Queryable<SysExternalLogin>()
             .Where(e => e.Provider == provider && e.ProviderKey == providerKey)
             .WhereIF(tenantId.HasValue, e => e.TenantId == tenantId)
-            .WhereIF(!tenantId.HasValue, e => e.TenantId == null)
+            .WhereIF(!tenantId.HasValue, e => e.TenantId == 0)
             .FirstAsync(cancellationToken);
     }
 

@@ -69,7 +69,7 @@ public class SysRoleMenuSeeder : DataSeederBase
             .ToDictionary(
                 group => group.Key,
                 group => group
-                    .OrderBy(role => role.TenantId.HasValue ? 1 : 0)
+                    .OrderBy(role => role.TenantId != 0 ? 1 : 0)
                     .ThenBy(role => role.BasicId)
                     .First()
                     .BasicId,
@@ -81,7 +81,7 @@ public class SysRoleMenuSeeder : DataSeederBase
             .ToDictionary(
                 group => group.Key,
                 group => group
-                    .OrderBy(menu => menu.TenantId.HasValue ? 1 : 0)
+                    .OrderBy(menu => menu.TenantId != 0 ? 1 : 0)
                     .ThenBy(menu => menu.BasicId)
                     .First()
                     .BasicId,

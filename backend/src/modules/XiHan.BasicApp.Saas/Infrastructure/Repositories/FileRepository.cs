@@ -51,7 +51,7 @@ public class FileRepository : SqlSugarAggregateRepository<SysFile, long>, IFileR
 
         query = resolvedTenantId.HasValue
             ? query.Where(file => file.TenantId == resolvedTenantId.Value)
-            : query.Where(file => file.TenantId == null);
+            : query.Where(file => file.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }

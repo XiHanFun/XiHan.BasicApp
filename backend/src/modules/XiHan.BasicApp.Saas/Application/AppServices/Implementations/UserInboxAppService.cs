@@ -131,8 +131,8 @@ public class UserInboxAppService : ApplicationServiceBase, IUserInboxAppService
         }
 
         var resolvedTenantId = NormalizeTenantId(tenantId);
-        if (resolvedTenantId.HasValue && notification.TenantId.HasValue
-            && notification.TenantId.Value != resolvedTenantId.Value)
+        if (resolvedTenantId.HasValue && notification.TenantId != 0
+            && notification.TenantId != resolvedTenantId.Value)
         {
             return false;
         }

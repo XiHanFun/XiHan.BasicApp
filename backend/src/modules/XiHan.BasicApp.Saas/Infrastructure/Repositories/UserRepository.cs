@@ -119,7 +119,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             query = query.Where(user => user.BasicId != excludeUserId.Value);
         }
 
-        query = tenantId.HasValue ? query.Where(user => user.TenantId == tenantId.Value) : query.Where(user => user.TenantId == null);
+        query = tenantId.HasValue ? query.Where(user => user.TenantId == tenantId.Value) : query.Where(user => user.TenantId == 0);
 
         return await query.AnyAsync(cancellationToken);
     }
@@ -439,6 +439,6 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             }
         }
 
-        return await query.Where(user => user.TenantId == null).FirstAsync(cancellationToken);
+        return await query.Where(user => user.TenantId == 0).FirstAsync(cancellationToken);
     }
 }

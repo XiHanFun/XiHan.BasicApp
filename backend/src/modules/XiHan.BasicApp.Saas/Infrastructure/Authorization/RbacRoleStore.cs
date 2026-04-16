@@ -202,7 +202,7 @@ public class RbacRoleStore : IRoleStore
                 role => role.Status == YesOrNo.Yes && role.TenantId == tenantId.Value,
                 cancellationToken)
             : await _roleRepository.GetListAsync(
-                role => role.Status == YesOrNo.Yes && role.TenantId == null,
+                role => role.Status == YesOrNo.Yes && role.TenantId == 0,
                 cancellationToken);
 
         return [.. roles

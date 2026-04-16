@@ -71,7 +71,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
         var query = CreateTenantQueryable()
             .Where(menu => menu.MenuCode == menuCode);
 
-        query = tenantId.HasValue ? query.Where(menu => menu.TenantId == tenantId.Value) : query.Where(menu => menu.TenantId == null);
+        query = tenantId.HasValue ? query.Where(menu => menu.TenantId == tenantId.Value) : query.Where(menu => menu.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -123,7 +123,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
 
         roleQuery = tenantId.HasValue
             ? roleQuery.Where(mapping => mapping.TenantId == tenantId.Value)
-            : roleQuery.Where(mapping => mapping.TenantId == null);
+            : roleQuery.Where(mapping => mapping.TenantId == 0);
 
         var roleIds = await roleQuery
             .Select(mapping => mapping.RoleId)
@@ -145,7 +145,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
 
         roleMenuQuery = tenantId.HasValue
             ? roleMenuQuery.Where(mapping => mapping.TenantId == tenantId.Value)
-            : roleMenuQuery.Where(mapping => mapping.TenantId == null);
+            : roleMenuQuery.Where(mapping => mapping.TenantId == 0);
 
         var menuIds = await roleMenuQuery
             .Select(mapping => mapping.MenuId)

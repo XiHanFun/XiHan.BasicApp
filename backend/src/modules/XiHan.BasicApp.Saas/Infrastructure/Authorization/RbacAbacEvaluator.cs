@@ -86,8 +86,8 @@ public class RbacAbacEvaluator : IAbacEvaluator
                 && rule.Status == YesOrNo.Yes);
 
         query = tenantId.HasValue
-            ? query.Where(rule => rule.TenantId == tenantId.Value || rule.TenantId == null)
-            : query.Where(rule => rule.TenantId == null);
+            ? query.Where(rule => rule.TenantId == tenantId.Value || rule.TenantId == 0)
+            : query.Where(rule => rule.TenantId == 0);
 
         var rules = await query
             .OrderBy(rule => rule.Priority)
@@ -101,7 +101,7 @@ public class RbacAbacEvaluator : IAbacEvaluator
         if (tenantId.HasValue)
         {
             return rules.FirstOrDefault(rule => rule.TenantId == tenantId.Value)
-                   ?? rules.FirstOrDefault(rule => rule.TenantId == null);
+                   ?? rules.FirstOrDefault(rule => rule.TenantId == 0);
         }
 
         return rules[0];

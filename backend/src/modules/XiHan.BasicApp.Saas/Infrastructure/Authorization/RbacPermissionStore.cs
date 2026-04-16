@@ -264,7 +264,7 @@ public class RbacPermissionStore : IPermissionStore
                 permission => permission.Status == YesOrNo.Yes && permission.TenantId == tenantId.Value,
                 cancellationToken)
             : await _permissionRepository.GetListAsync(
-                permission => permission.Status == YesOrNo.Yes && permission.TenantId == null,
+                permission => permission.Status == YesOrNo.Yes && permission.TenantId == 0,
                 cancellationToken);
 
         return [.. permissions
