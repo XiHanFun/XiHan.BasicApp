@@ -20,7 +20,36 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统任务实体
+/// 定时/定期任务定义聚合根：承载任务元信息、触发规则、下次运行时间；执行历史在 SysTaskLog
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 本表仅存"任务配置"；每次执行的细节（结果/耗时/日志）由 SysTaskLog 按月分表承载
+///
+/// 关联：
+/// - 反向：SysTaskLog.TaskId
+///
+/// 写入：
+/// - TaskCode 全局唯一（UX_TaCo）
+/// - TriggerType=Cron 时 CronExpression 必填；TriggerType=Interval 时 IntervalSeconds 必填
+/// - NextRunTime 由调度器根据 Trigger 计算并更新，不应由用户直接修改
+///
+/// 查询：
+/// - 调度器拉取待执行队列：IX_NeRuTi + WHERE NextRunTime <= now
+/// - 运行状态概览：IX_RuTaSt
+/// - 按触发类型统计：IX_TrTy
+///
+/// 删除：
+/// - 仅软删；停用任务通过 Status 或 RunTaskStatus=Stopped 更安全
+///
+/// 状态：
+/// - Status: Yes/No 启停（No 时即使到点也不执行）
+/// - RunTaskStatus: Ready/Running/Paused/Stopped/Error
+///
+/// 场景：
+/// - 定时数据清理、报表生成、订阅续费检查
+/// - 支持分布式锁保证多实例环境下仅单实例执行
+/// </remarks>
 [SugarTable("SysTask", "系统任务表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

@@ -20,8 +20,34 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统角色自定义数据权限范围实体
-/// 用于配置角色的自定义数据权限规则（当DataScope=Custom时使用）
+/// 当 SysRole.DataScope=Custom 时使用，明确枚举该角色可见的部门范围
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 本表仅服务 Custom 范围；其它 DataScope 枚举（All/Self/Dept/DeptAndSub）由服务层直接按语义解析
+///
+/// 关联：
+/// - RoleId → SysRole；DepartmentId → SysDepartment
+///
+/// 写入：
+/// - RoleId + DepartmentId 唯一（UX_RoId_DeId），避免重复配置
+/// - IncludeChildren=true 时服务层需配合 SysDepartmentHierarchy 展开所有后代部门
+/// - 同租户约束：RoleId 与 DepartmentId 必须同 TenantId
+///
+/// 查询：
+/// - 权限决策数据过滤：按 RoleId 加载所有范围 → 生成 WHERE dept_id IN (...)
+/// - 部门反查：IX_DeId
+///
+/// 删除：
+/// - 硬删；删除部门时应级联删除相关数据范围记录
+///
+/// 状态：
+/// - Status: Yes/No
+///
+/// 场景：
+/// - 区域经理：角色 DataScope=Custom + 配置可见多个地区部门（IncludeChildren=true）
+/// - 跨部门协作：项目组长角色配置能看几个非下属部门的数据
+/// </remarks>
 [SugarTable("SysRoleDataScope", "系统角色自定义数据权限范围表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

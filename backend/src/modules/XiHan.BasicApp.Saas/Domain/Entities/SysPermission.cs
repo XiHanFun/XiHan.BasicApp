@@ -20,8 +20,36 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统权限实体
-/// 权限 = 资源 + 操作（标准 RBAC 模型）
+/// 标准 RBAC 权限点：权限 = 资源(ResourceId) + 操作(OperationId)，是授权决策的最小原子单位
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - ResourceId → SysResource（被控对象，必填）
+/// - OperationId → SysOperation（执行动作，必填）
+/// - 反向：SysRolePermission、SysUserPermission、SysTenantEditionPermission、SysPermissionCondition（ABAC 条件）
+///
+/// 写入：
+/// - TenantId + PermissionCode 租户内唯一（UX_TeId_PeCo），建议格式 "{resource}:{operation}"
+/// - TenantId + ResourceId + OperationId 租户内唯一（UX_TeId_ReId_OpId），防止重复授权
+/// - IsGlobal=true 时 TenantId 应为空或 0，作为平台模板供订阅版本引用（SysTenantEditionPermission）
+/// - IsRequireAudit=true 时，该权限的操作应强制写 SysAuditLog
+///
+/// 查询：
+/// - 全局权限 + 租户私有权限合并查询：WHERE TenantId = ? OR IsGlobal = 1
+/// - 按资源反查权限：走 IX_ReId
+///
+/// 删除：
+/// - 仅软删；删除前须校验：无角色/用户仍授权（SysRolePermission/SysUserPermission）、无菜单引用（SysMenu.PermissionId）、无 Edition 引用（SysTenantEditionPermission）
+///
+/// 状态与优先级：
+/// - Status: Yes=启用 / No=停用
+/// - Priority: 数字越大越高；冲突合并时用于决策覆盖（参考 RBAC 决策算法 deny-overrides + priority）
+///
+/// 场景：
+/// - 权限定义：user:read / order:approve 等
+/// - 菜单按钮鉴权入口：SysMenu.PermissionId 反向绑定
+/// - 版本门控：SysTenantEditionPermission 限定租户可用权限集
+/// </remarks>
 [SugarTable("SysPermission", "系统权限表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

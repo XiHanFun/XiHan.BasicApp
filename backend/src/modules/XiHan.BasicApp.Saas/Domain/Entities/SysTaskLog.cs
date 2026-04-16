@@ -19,7 +19,34 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统任务日志实体
+/// SysTask 每次执行的运行记录（开始/结束/状态/结果/日志摘要/批次号）
 /// </summary>
+/// <remarks>
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - TaskId → SysTask；TaskCode 冗余便于快速过滤
+///
+/// 写入：
+/// - 由调度框架在每次执行时写入一条：开始前预写 Running，完成后更新 Success/Failed
+/// - 失败时记录 ErrorMessage / Stacktrace（截断控制大小）
+/// - BatchNumber 用于批次任务分组（同次调度多子任务共享 BatchNumber）
+///
+/// 查询：
+/// - 任务最近执行：IX_TeId_TaId + ORDER BY StartTime DESC
+/// - 租户任务概览：IX_TeId_StTi
+/// - 失败任务扫描：IX_TaSt + WHERE TaskStatus=Failed
+/// - 按批次查询：IX_BaNu
+///
+/// 删除：
+/// - 不支持业务删除；按保留策略归档
+///
+/// 场景：
+/// - 任务管理后台展示执行历史
+/// - 失败重试决策依据
+/// - 按任务码统计成功率/平均耗时
+/// </remarks>
 [SugarTable("SysTaskLog_{year}{month}{day}", "系统任务日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

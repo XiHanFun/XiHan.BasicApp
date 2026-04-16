@@ -20,8 +20,33 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统操作实体
-/// 定义可对资源执行的操作类型（增删改查、审批、导入导出等）
+/// 权限体系中的"动作"（Action）：定义可对资源执行的操作，与 SysResource 组合形成 SysPermission
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 反向：SysPermission.OperationId
+///
+/// 写入：
+/// - TenantId + OperationCode 租户内唯一（UX_TeId_OpCo）
+/// - OperationCode 规范：小写英文（create/read/update/delete/approve/export）
+/// - IsGlobal=true 时作为平台动作模板（CRUD/Approve/Export 等通用操作）
+/// - IsDangerous=true 的操作前端应弹二次确认；IsRequireAudit=true 的操作必须写 SysAuditLog
+///
+/// 查询：
+/// - 按 Category/OperationTypeCode 过滤用于前端操作面板分组
+/// - 全局+私有合并查询：WHERE TenantId = ? OR IsGlobal = 1
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无权限引用（SysPermission.OperationId）
+///
+/// 状态：
+/// - Status: Yes/No 启停
+///
+/// 场景：
+/// - 与 SysResource 笛卡尔积生成权限点
+/// - 按 Category 分组渲染前端权限矩阵
+/// - HttpMethod 字段用于 API 类资源的接口 Method 匹配
+/// </remarks>
 [SugarTable("SysOperation", "系统操作表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

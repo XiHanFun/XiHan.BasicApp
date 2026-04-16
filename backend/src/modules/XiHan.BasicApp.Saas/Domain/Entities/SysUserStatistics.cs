@@ -20,7 +20,29 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统用户统计实体
+/// 按周期汇总的用户行为统计快照（登录次数、在线时长、操作量等），供看板/报表读取
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - UserId → SysUser
+///
+/// 写入：
+/// - TenantId + UserId + StatisticsDate + Period 唯一（UX_TeId_UsId_StDa_Pe），避免重复统计
+/// - 由定时任务按周期（Day/Week/Month/Year）批量生成，非实时写入
+/// - 同 Period 的当日行数据可被覆盖刷新（upsert），历史 Period 数据只读
+///
+/// 查询：
+/// - 用户趋势图：WHERE UserId=? AND Period=? ORDER BY StatisticsDate
+/// - 租户汇总看板：IX_TeId_StDa
+///
+/// 删除：
+/// - 仅软删；可定期归档到冷存储
+///
+/// 场景：
+/// - 管理后台用户活跃度看板
+/// - 用户画像数据源
+/// - 异常行为检测（比平时 10x 操作量 → 告警）
+/// </remarks>
 [SugarTable("SysUserStatistics", "系统用户统计表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

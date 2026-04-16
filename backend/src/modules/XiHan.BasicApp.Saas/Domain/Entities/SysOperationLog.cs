@@ -21,7 +21,38 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统操作日志实体
+/// 业务操作轨迹（用户视角：点了什么/做了什么），对应前端操作行为
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 与 SysApiLog 区别：本表关注"业务语义"（用户导出了报表），SysApiLog 关注"HTTP 请求"（POST /api/export）
+/// - 与 SysAuditLog 区别：本表覆盖更宽泛的操作，SysAuditLog 仅针对敏感/合规级操作
+///
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - UserId → SysUser；SessionId → SysUserSession；TraceId 串联请求链
+///
+/// 写入：
+/// - 由业务切面（AOP）/拦截器统一写入
+/// - OperationType 用于快速分类（查询/新增/修改/删除/导出等）
+/// - Status 记录该操作最终结果（成功/失败/部分成功）
+///
+/// 查询：
+/// - 用户操作历史（个人中心"我的操作"）：IX_UsId + 时间范围
+/// - 租户操作趋势：IX_TeId_OpTi
+/// - 按类型聚合：IX_OpTy
+/// - 失败操作分析：IX_St
+///
+/// 删除：
+/// - 不支持业务删除；按保留策略清理
+///
+/// 场景：
+/// - 用户自助查看操作历史
+/// - 管理员审查可疑行为
+/// - 行为分析驱动产品优化
+/// </remarks>
 [SugarTable("SysOperationLog_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

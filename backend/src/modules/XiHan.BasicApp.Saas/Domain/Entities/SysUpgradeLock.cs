@@ -19,7 +19,29 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统升级分布式锁实体
+/// 多实例环境下基于数据库唯一索引实现的互斥锁，保证升级/迁移任务仅被单实例执行
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 无 FK
+///
+/// 写入：
+/// - ResourceKey 全局唯一（UX_ReKe）；INSERT 成功即获锁，唯一索引冲突即抢锁失败
+/// - LockId 使用 UUID 标识持锁方，释放锁时需校验避免误释放
+/// - ExpiryTime 防止死锁：即使持锁方崩溃，超时后其它实例可抢占
+/// - OwnerNode 记录占用节点便于排查
+///
+/// 查询：
+/// - 获取当前锁状态：按 ResourceKey 精确查询
+///
+/// 删除：
+/// - 硬删（释放锁）；必须先校验 LockId 匹配
+/// - 清理任务扫描 ExpiryTime < now 的僵尸锁强制删除
+///
+/// 场景：
+/// - 启动时多实例争抢执行一次性迁移脚本
+/// - 定时任务分布式互斥（避免 Cron 重复执行）
+/// </remarks>
 [SugarTable("SysUpgradeLock", "系统升级分布式锁表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

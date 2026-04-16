@@ -20,9 +20,38 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统菜单实体
-/// 菜单是纯 UI 结构，通过 PermissionId 绑定所需权限
-/// 权限判断只基于 Permission，菜单仅负责展示和路由
+/// 纯 UI 结构：负责前端导航/路由/展示；权限鉴权完全由其关联的 SysPermission 决定
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 菜单 ≠ 资源 ≠ 权限；菜单仅描述 UI 层级，通过 PermissionId 反向绑定一个权限点
+/// - 后端鉴权永远基于 Permission，不依赖菜单存在性
+///
+/// 关联：
+/// - PermissionId → SysPermission（可空；空表示纯展示菜单，无需鉴权）
+/// - ParentId → SysMenu（自关联树结构）
+///
+/// 写入：
+/// - TenantId + MenuCode 租户内唯一（UX_TeId_MeCo）
+/// - IsGlobal=true 作为平台菜单模板，新租户初始化时克隆
+/// - 树结构写入必须做环路检测（禁止 A→B→A）
+///
+/// 查询：
+/// - 前端菜单树：按 TenantId + Status + PermissionId（可见）过滤，ORDER BY Sort
+/// - 按 ParentId 构建层级：IX_PaId
+/// - 按权限反查菜单：IX_PeId
+///
+/// 删除：
+/// - 仅软删；删除父菜单前必须先处理子菜单（级联软删或提示）
+///
+/// 状态：
+/// - Status: Yes/No 启停（停用菜单对所有用户隐藏）
+/// - MenuType: 目录/菜单/按钮/外链等
+///
+/// 场景：
+/// - 登录后按用户权限集合过滤可见菜单树
+/// - 按钮级权限：MenuType=Button 配合 PermissionId 控制按钮显示
+/// </remarks>
 [SugarTable("SysMenu", "系统菜单表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

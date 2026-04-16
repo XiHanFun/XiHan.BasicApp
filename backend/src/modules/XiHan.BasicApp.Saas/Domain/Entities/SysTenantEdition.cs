@@ -20,9 +20,37 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 租户版本/套餐实体
-/// 定义 B2B SaaS 的产品版本，控制租户可用的功能权限范围
-/// 平台级实体，TenantId 为空或 0
+/// B2B SaaS 产品订阅单元：定义可售卖版本、计费周期、资源配额；与 SysTenantEditionPermission 组合实现功能门控
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 平台级实体（TenantId 为空或 0），由平台运营管理
+/// - 本实体描述"版本能做什么"和"版本卖多少"；"某租户订阅哪个版本"由 SysTenant.EditionId 承载
+///
+/// 关联：
+/// - 反向：SysTenant.EditionId、SysTenantEditionPermission.EditionId
+///
+/// 写入：
+/// - EditionCode 全局唯一（UX_EdCo），如 free/basic/pro/enterprise
+/// - 同一时刻仅允许一个 IsDefault=true；服务层写入时必须互斥
+/// - UserLimit/StorageLimit 为空表示不限；租户级 SysTenant.UserLimit 可按需覆盖
+///
+/// 查询：
+/// - 启用中的版本列表：按 Status=Yes + IsDefault 排序
+/// - 默认版本：IX_IsDf + WHERE IsDefault=1
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无租户仍引用（SysTenant.EditionId）、非默认版本
+///
+/// 状态与生命周期：
+/// - Status: Yes=可售/在架 / No=下架（已订阅租户不受影响，仅停止新订阅）
+/// - IsFree=true 通常与 Price=null 一致
+///
+/// 场景：
+/// - 新租户注册自动分配 IsDefault=true 的免费版
+/// - 版本升级：修改 SysTenant.EditionId 并刷新权限缓存
+/// - 价格调整：维护 Price + BillingPeriodMonths
+/// </remarks>
 [SugarTable("SysTenantEdition", "租户版本套餐表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

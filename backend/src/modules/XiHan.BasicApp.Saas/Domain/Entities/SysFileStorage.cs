@@ -20,10 +20,33 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统文件存储实体
+/// SysFile 的物理副本记录：同一逻辑文件可分布于多个存储（本地/OSS/CDN/备份）
 /// </summary>
 /// <remarks>
-/// 管理文件的物理存储位置信息
-/// 一个文件可以有多个存储位置（主存储、备份存储、CDN等）
+/// 关联：
+/// - FileId → SysFile（多对一）
+///
+/// 写入：
+/// - 同一 FileId 至多一个 IsPrimary=true 的主存储；服务层必须保证互斥
+/// - StorageType 决定访问方式（Local/S3/OSS/CDN 等）
+/// - StorageKey/StoragePath 必须足够唯一，能还原文件位置
+///
+/// 查询：
+/// - 按文件取主存储：IX_FiId_StTy + WHERE IsPrimary=true
+/// - 按存储类型统计：IX_StTy
+/// - 租户文件位置汇总：IX_TeId_FiId
+///
+/// 删除：
+/// - 软删记录；物理删除需由清理任务调用对应存储 SDK 实际释放空间
+/// - 切换主存储时先写入新主 → 验证可访问 → 再 IsPrimary=false 旧主
+///
+/// 状态：
+/// - StorageStatus (FileStorageStatus): Available/Syncing/Failed/Expired
+///
+/// 场景：
+/// - 跨区域容灾：同文件异地多副本
+/// - CDN 回源：主存储 + CDN 缓存记录
+/// - 存储迁移：阿里云 → AWS 平滑切换
 /// </remarks>
 [SugarTable("SysFileStorage", "系统文件存储表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]

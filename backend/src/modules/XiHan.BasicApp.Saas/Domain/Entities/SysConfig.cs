@@ -20,7 +20,34 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统配置实体
+/// 集中化配置中心：承载租户级/全局级运行时参数（功能开关、SMTP、阈值等）
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 无 FK；通过 ConfigKey 被业务代码按键检索
+///
+/// 写入：
+/// - TenantId + ConfigKey 租户内唯一（UX_TeId_CoKe）
+/// - IsGlobal=true 作为平台级默认配置（TenantId 为空），租户级同键覆盖全局
+/// - 敏感值（密钥/密码类）必须在应用层加密后落库
+/// - 修改后应发布配置变更事件，通知相关服务刷新缓存
+///
+/// 查询：
+/// - 单键读取：按 TenantId + ConfigKey 精确定位（走 UX）
+/// - 按分组/类型分页：IX_CoGr / IX_CoTy
+/// - 合并加载：先全局后租户，租户覆盖同键
+///
+/// 删除：
+/// - 仅软删；删除前建议确认无运行时依赖
+///
+/// 状态：
+/// - Status: Yes/No（停用配置视为不存在）
+///
+/// 场景：
+/// - 功能开关（feature flag）
+/// - 邮件/短信/OSS 等第三方连接配置
+/// - 业务阈值（审批金额、并发限额）
+/// </remarks>
 [SugarTable("SysConfig", "系统配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

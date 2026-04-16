@@ -20,8 +20,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统会话角色映射实体
-/// 记录会话中激活的角色，支持动态职责分离（DSD）
+/// 记录会话运行期"当前激活"的角色子集；SysUserRole 是"持有"，本表是"激活"，用于动态职责分离 DSD
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - SessionId → SysUserSession；RoleId → SysRole
+///
+/// 写入：
+/// - SessionId + RoleId 唯一（UX_SeId_RoId）
+/// - 激活前必须校验：该用户确实持有此角色（SysUserRole 存在且未过期）
+/// - 激活时必须通过 DSD 约束检查（SysConstraintRule 中 ConstraintType=DSD）
+/// - ExpiresAt 可为空（随会话结束失效）或设定具体到期时间
+///
+/// 查询：
+/// - 会话鉴权：按 SessionId 查当前激活角色集（IX_SeId）
+/// - 角色反查活跃会话：IX_RoId
+/// - 过期清理：按 IX_ExAt 定时扫描
+///
+/// 删除：
+/// - 硬删；或将 Status 置为 Deactivated 保留审计
+///
+/// 状态：
+/// - Status (SessionRoleStatus): Active=激活中 / Deactivated=已停用 / Expired=已过期
+/// - ActivatedAt / DeactivatedAt / ExpiresAt 记录生命周期
+///
+/// 场景：
+/// - 用户持有多角色但每次会话仅激活其一（避免 SoD 冲突）
+/// - 敏感操作前临时激活特权角色，完成后立即 Deactivate
+/// - 凌晨自动扫描并失效 ExpiresAt 已过的会话角色
+/// </remarks>
 [SugarTable("SysSessionRole", "系统会话角色映射表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

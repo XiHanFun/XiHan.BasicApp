@@ -20,7 +20,34 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统用户安全状态实体
+/// SysUser 的 1:1 安全扩展：承载锁定、MFA、失败计数等敏感安全字段，避免污染主表
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 与 SysUser 一对一（UX_UsId），独立表便于高频安全字段的访问控制与脱敏
+/// - SysUser 负责"身份资料"，本表负责"安全状态"
+///
+/// 关联：
+/// - UserId → SysUser（一对一强约束）
+///
+/// 写入：
+/// - UserId 唯一（UX_UsId）
+/// - 创建 SysUser 时同步创建本表（默认未启用 MFA、失败次数=0）
+/// - FailedLoginCount 在每次登录失败时 +1；成功登录时重置为 0
+/// - 达到阈值时设置 LockoutEndTime，服务层判断是否允许登录
+///
+/// 查询：
+/// - 登录前置校验：按 UserId 查安全状态
+/// - 锁定中用户扫描：IX_LoEnTi + WHERE LockoutEndTime > now
+///
+/// 删除：
+/// - 仅软删；随 SysUser 级联软删
+///
+/// 场景：
+/// - 登录失败次数限制 / 账户临时锁定
+/// - 多因素认证（MFA/TOTP）开关与密钥管理
+/// - 密码最近修改时间、过期策略
+/// </remarks>
 [SugarTable("SysUserSecurity", "系统用户安全状态表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

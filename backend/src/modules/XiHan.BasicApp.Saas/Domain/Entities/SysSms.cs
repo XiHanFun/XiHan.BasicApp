@@ -20,7 +20,31 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统短信实体
+/// 短信发送记录聚合根：承载短信模板、收件号码、发送状态及运营商回执
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 无业务 FK；BusinessId（若有）指向业务主单据
+///
+/// 写入：
+/// - 初次入队 SmsStatus=Pending；调度器批量提交至运营商网关
+/// - 发送成功 → Sent；失败 → Failed（保留 ErrorMessage 便于排查）
+/// - 验证码类短信应设短 ExpiresAt（一般 5 分钟），防止盗用
+///
+/// 查询：
+/// - 待发队列：WHERE SmsStatus=Pending ORDER BY CreatedTime
+/// - 租户最近发送：IX_TeId_SmSt_SeTi
+/// - 按手机号反查：IX_ToPh
+///
+/// 删除：
+/// - 仅软删；可定期归档到冷存储降低成本
+///
+/// 状态：
+/// - SmsStatus: Pending/Sending/Sent/Failed/Expired
+///
+/// 场景：
+/// - 验证码、通知类短信、营销短信（需遵守运营商合规）
+/// </remarks>
 [SugarTable("SysSms", "系统短信表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

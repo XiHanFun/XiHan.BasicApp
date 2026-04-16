@@ -21,7 +21,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统接口日志实体
+/// 记录 API 层级的每次请求/响应详情（路径/方法/状态码/耗时/请求响应体摘要等）
 /// </summary>
+/// <remarks>
+/// 分表策略：
+/// - 按月分表（SplitTable.Month）
+/// - 查询/清理必须带时间范围
+///
+/// 关联：
+/// - UserId → SysUser；ClientId/AppId → SysOAuthApp；TraceId 串联同一请求
+///
+/// 写入：
+/// - 只追加，由 API 中间件异步批量写入，避免影响业务性能
+/// - 大请求/响应体建议截断（如 4KB）或只记 Hash，防止日志爆量
+/// - StatusCode>=400 的请求建议提升采样率
+///
+/// 查询：
+/// - 接口性能分析：IX_ExTi + ORDER BY ExecutionTime DESC（慢接口 Top-N）
+/// - 按路径统计调用量：IX_ApPa
+/// - 状态码分布：IX_StCo（4xx/5xx 排障）
+/// - 按 TraceId 关联跨服务调用链
+///
+/// 删除：
+/// - 不支持业务删除；按保留策略 TRUNCATE 月表
+///
+/// 场景：
+/// - API 性能监控与 APM 集成
+/// - 第三方调用量计费（按 ClientId/AppId 聚合）
+/// - 异常请求追溯
+/// </remarks>
 [SugarTable("SysApiLog_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

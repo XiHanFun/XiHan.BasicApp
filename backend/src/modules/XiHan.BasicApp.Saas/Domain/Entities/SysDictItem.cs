@@ -20,7 +20,31 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统字典项实体
+/// 字典的具体选项，支持父子结构（多级联动字典）
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - DictId → SysDict；ParentId → SysDictItem（自关联，支持树形）
+///
+/// 写入：
+/// - DictId + ItemCode 唯一（UX_DiId_ItCo），同字典下项编码不能重复
+/// - 多级联动（如省-市-区）：通过 ParentId 自关联构建
+/// - 同租户约束：DictId 必须与当前 TenantId 一致
+///
+/// 查询：
+/// - 字典选项加载：WHERE DictId=? AND Status=Yes ORDER BY Sort
+/// - 树形联动：IX_PaId + 递归
+///
+/// 删除：
+/// - 仅软删；删除父项前必须处理子项
+///
+/// 状态：
+/// - Status: Yes/No
+///
+/// 场景：
+/// - 下拉框选项加载
+/// - 多级联动选择（地区三级、组织架构选择）
+/// </remarks>
 [SugarTable("SysDictItem", "系统字典项表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

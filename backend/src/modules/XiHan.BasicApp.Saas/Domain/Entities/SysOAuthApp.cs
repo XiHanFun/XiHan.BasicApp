@@ -20,7 +20,33 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统 OAuth 应用实体
+/// OAuth2/OIDC 客户端注册信息：承载 ClientId/Secret、回调地址、授权模式、作用域
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 反向：SysOAuthCode.ClientId、SysOAuthToken.ClientId
+///
+/// 写入：
+/// - ClientId 全局唯一（UX_ClId），通常使用 UUID 或自动生成
+/// - ClientSecret 严禁明文落库（本表用 JsonIgnore 阻止序列化，但业务层仍需确保加密存储）
+/// - RedirectUris 建议 JSON 数组存多个回调；校验阶段必须严格匹配
+/// - AppType 区分机密/公开客户端（SPA 不应下发 ClientSecret）
+///
+/// 查询：
+/// - 授权请求入口：按 ClientId 精确定位
+/// - 租户应用列表：IX_TeId_St
+///
+/// 删除：
+/// - 仅软删；删除前应吊销所有相关 Token/Code
+///
+/// 状态：
+/// - Status: Yes=可用 / No=停用（停用后授权请求直接拒绝）
+///
+/// 场景：
+/// - 第三方接入：企业内其他系统接入本平台 SSO
+/// - 移动/SPA 应用授权
+/// - 对外开放 API 平台
+/// </remarks>
 [SugarTable("SysOAuthApp", "系统OAuth应用表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

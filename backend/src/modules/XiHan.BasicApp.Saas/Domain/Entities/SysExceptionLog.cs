@@ -21,7 +21,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统异常日志实体
+/// 集中记录应用运行时异常（堆栈/请求上下文/严重级别），是技术排障与稳定性改进的数据源
 /// </summary>
+/// <remarks>
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - UserId → SysUser（可空，匿名请求时无）；TraceId 串联请求链
+///
+/// 写入：
+/// - 由全局异常过滤器/中间件统一写入，业务代码不应手工写
+/// - 堆栈 StackTrace 可较长，建议限制总长度（如 32KB）或截断
+/// - IsHandled=false 表示未被代码捕获/处理；IsHandled=true 表示已妥善处理仅记录
+/// - SeverityLevel 由异常类型映射（Warn/Error/Critical）
+///
+/// 查询：
+/// - 按严重级别排序：IX_SeLe + ORDER BY SeverityLevel DESC
+/// - 未处理异常清单：IX_IsHa + WHERE IsHandled=false
+/// - 按业务模块统计：IX_BuMo
+/// - 按类型聚类：IX_ExTy
+///
+/// 删除：
+/// - 不支持业务删除；按保留策略清理
+///
+/// 场景：
+/// - 生产环境问题排查
+/// - 异常趋势分析 → 稳定性改进
+/// - 关联 Sentry/AppInsights 告警
+/// </remarks>
 [SugarTable("SysExceptionLog_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

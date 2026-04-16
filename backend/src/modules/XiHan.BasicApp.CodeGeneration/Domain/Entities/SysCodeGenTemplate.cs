@@ -21,7 +21,32 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
 /// <summary>
 /// 系统代码生成模板实体
+/// 代码生成引擎使用的模板文件元信息（Razor/Liquid 等），承载模板分组、目标文件名规则、输出路径
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 无 FK；模板分组（TemplateGroup）用于批量应用
+///
+/// 写入：
+/// - TemplateCode 全局唯一（UX_TeCo）
+/// - 模板正文（Content）建议独立 BigString 字段存储
+/// - 模板变更建议经审核流程（影响所有生成结果）
+///
+/// 查询：
+/// - 生成时按 TemplateGroup 批量加载：IX_TeGr
+/// - 模板管理后台列表：IX_TeId_St
+///
+/// 删除：
+/// - 仅软删；删除前须确认无正在使用的生成任务
+///
+/// 状态：
+/// - Status: Yes/No
+///
+/// 场景：
+/// - 全栈代码生成（Entity/DTO/Service/Controller/Vue Page）
+/// - 多风格模板（CRUD 简化版 / 完整版 / 只读展示版）
+/// - 模板版本化管理
+/// </remarks>
 [SugarTable("SysCodeGenTemplate", "系统代码生成模板表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

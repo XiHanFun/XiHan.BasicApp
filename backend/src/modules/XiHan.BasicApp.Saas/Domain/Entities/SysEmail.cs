@@ -20,7 +20,32 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统邮件实体
+/// 邮件发送记录聚合根：承载邮件内容、收件人、发送状态及重试信息
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 无业务 FK；BusinessId（若有）指向业务主单据
+///
+/// 写入：
+/// - 初次入队 EmailStatus=Pending；调度器按队列发送
+/// - 发送成功 → Sent + SendTime 落地；失败 → Failed + 记录重试次数
+/// - 敏感正文（如密码重置链接）应设置合理 ExpiresAt
+///
+/// 查询：
+/// - 待发队列：WHERE EmailStatus=Pending ORDER BY CreatedTime
+/// - 租户邮件列表：IX_TeId_EmSt_SeTi（组合最优：租户+状态+时间倒序）
+/// - 按收件人反查：IX_ToEm
+///
+/// 删除：
+/// - 仅软删；过期邮件可批量归档
+///
+/// 状态：
+/// - EmailStatus: Pending/Sending/Sent/Failed/Cancelled
+///
+/// 场景：
+/// - 用户注册验证、密码重置、订单通知、系统预警
+/// - 支持重试：失败后按指数退避策略重发
+/// </remarks>
 [SugarTable("SysEmail", "系统邮件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

@@ -19,9 +19,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统部门层级闭包表实体
-/// 部门为严格树结构（SysDepartment.ParentId 保证单父），本表通过闭包表模式
-/// 预计算所有祖先-后代对，实现 O(1) 的祖先/后代查询，避免递归
+/// 闭包表模式预计算所有祖先-后代对（含自环 Depth=0），支持 O(1) 祖先/后代/深度查询
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 本表是 SysDepartment 的"查询加速镜像"，不是独立业务数据；所有写入必须由 SysDepartment 变更触发
+///
+/// 关联：
+/// - AncestorId / DescendantId → SysDepartment
+///
+/// 写入（由服务层在部门增删移时统一维护）：
+/// - AncestorId + DescendantId 唯一（UX_AnId_DeId）
+/// - 新增部门 N 父为 P：INSERT SELECT AncestorId, N, Depth+1 FROM 本表 WHERE DescendantId=P，再补 (N,N,0)
+/// - 移动子树：先删除旧闭包，再按新父重建
+/// - 删除部门：DELETE WHERE DescendantId=N OR AncestorId=N
+/// - Path/PathName 冗余字段便于面包屑展示，服务层同步维护
+///
+/// 查询：
+/// - 某部门所有后代：WHERE AncestorId=? AND Depth&gt;0（IX_AnId_De）
+/// - 某部门所有祖先：WHERE DescendantId=?（IX_DeId）
+/// - 租户+祖先定位：IX_TeId_AnId
+///
+/// 删除：
+/// - 硬删；随部门删除级联清理
+///
+/// 场景：
+/// - DataScope=DEPT_AND_SUB 数据权限展开
+/// - 组织架构树快速渲染
+/// - 部门变更时 Path 刷新
+/// </remarks>
 [SugarTable("SysDepartmentHierarchy", "系统部门继承关系表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
