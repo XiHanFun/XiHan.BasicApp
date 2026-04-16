@@ -23,15 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统异常日志实体
 /// </summary>
 [SugarTable("SysExceptionLog_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ExTy", nameof(ExceptionType), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_IsHa", nameof(IsHandled), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_ExTi", nameof(ExceptionTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_StCo", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_BuMo", nameof(BusinessModule), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]

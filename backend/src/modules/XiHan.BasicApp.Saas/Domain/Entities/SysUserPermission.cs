@@ -28,14 +28,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 适用场景：临时提权、特殊用户例外、紧急权限收回
 /// </remarks>
 [SugarTable("SysUserPermission", "系统用户权限关联表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId_PeId", nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]

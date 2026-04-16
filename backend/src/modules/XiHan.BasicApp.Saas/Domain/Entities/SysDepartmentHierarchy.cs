@@ -23,8 +23,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 预计算所有祖先-后代对，实现 O(1) 的祖先/后代查询，避免递归
 /// </summary>
 [SugarTable("SysDepartmentHierarchy", "系统部门继承关系表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]

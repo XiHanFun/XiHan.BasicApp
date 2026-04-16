@@ -22,14 +22,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统用户角色关联实体
 /// </summary>
 [SugarTable("SysUserRole", "系统用户角色关联表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId_RoId", nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]

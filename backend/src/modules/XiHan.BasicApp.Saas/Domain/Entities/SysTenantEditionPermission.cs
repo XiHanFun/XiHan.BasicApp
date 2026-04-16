@@ -23,8 +23,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 定义每个版本/套餐包含哪些权限，租户管理员只能在此范围内分配权限
 /// </summary>
 [SugarTable("SysTenantEditionPermission", "租户版本可用权限映射表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_EdId_PeId", nameof(EditionId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]

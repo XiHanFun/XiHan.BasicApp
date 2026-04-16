@@ -22,13 +22,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统邮件实体
 /// </summary>
 [SugarTable("SysEmail", "系统邮件表")]
-[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
-[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ToEm", nameof(ToEmail), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EmSt", nameof(EmailStatus), OrderByType.Asc)]
