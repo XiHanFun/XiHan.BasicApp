@@ -21,14 +21,22 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统部门实体
 /// </summary>
-[SugarTable("Sys_Department", "系统部门表")]
-[SugarIndex("UX_SysDepartment_TeId_DeCo", nameof(TenantId), OrderByType.Asc, nameof(DepartmentCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysDepartment_DeCo", nameof(DepartmentCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartment_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartment_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartment_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartment_DeTy", nameof(DepartmentType), OrderByType.Asc)]
-[SugarIndex("IX_SysDepartment_LeId", nameof(LeaderId), OrderByType.Asc)]
+[SugarTable("SysDepartment", "系统部门表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_DeCo", nameof(TenantId), OrderByType.Asc, nameof(DepartmentCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_DeCo", nameof(DepartmentCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_DeTy", nameof(DepartmentType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_LeId", nameof(LeaderId), OrderByType.Asc)]
 public partial class SysDepartment : BasicAppAggregateRoot
 {
     /// <summary>

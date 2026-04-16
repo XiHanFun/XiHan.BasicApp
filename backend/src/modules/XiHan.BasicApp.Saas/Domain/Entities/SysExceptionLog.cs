@@ -22,16 +22,20 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统异常日志实体
 /// </summary>
-[SugarTable("Sys_Exception_Log_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysExceptionLog_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_ExTy", nameof(ExceptionType), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
-[SugarIndex("IX_SysExceptionLog_IsHa", nameof(IsHandled), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_ExTi", nameof(ExceptionTime), OrderByType.Desc)]
-[SugarIndex("IX_SysExceptionLog_StCo", nameof(StatusCode), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_BuMo", nameof(BusinessModule), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_TrId", nameof(TraceId), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_TeId_ExTi", nameof(TenantId), OrderByType.Asc, nameof(ExceptionTime), OrderByType.Desc)]
+[SugarTable("SysExceptionLog_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ExTy", nameof(ExceptionType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_IsHa", nameof(IsHandled), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ExTi", nameof(ExceptionTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_StCo", nameof(StatusCode), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_BuMo", nameof(BusinessModule), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TeId_ExTi", nameof(TenantId), OrderByType.Asc, nameof(ExceptionTime), OrderByType.Desc)]
 public partial class SysExceptionLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>

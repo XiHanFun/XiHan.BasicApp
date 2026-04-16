@@ -35,13 +35,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - IP限制：AttributeName="environment.ip", Operator=StartsWith, ConditionValue="192.168."（仅内网可用）
 /// - 金额限制：AttributeName="resource.amount", Operator=LessThan, ConditionValue="10000"（限额操作）
 /// </remarks>
-[SugarTable("Sys_Permission_Condition", "权限ABAC条件表")]
-[SugarIndex("IX_SysPermissionCondition_RoPeId", nameof(RolePermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysPermissionCondition_UsPeId", nameof(UserPermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysPermissionCondition_CoGr", nameof(ConditionGroup), OrderByType.Asc)]
-[SugarIndex("IX_SysPermissionCondition_AtNa", nameof(AttributeName), OrderByType.Asc)]
-[SugarIndex("IX_SysPermissionCondition_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysPermissionCondition_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarTable("SysPermissionCondition", "权限ABAC条件表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_RoPeId", nameof(RolePermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_UsPeId", nameof(UserPermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CoGr", nameof(ConditionGroup), OrderByType.Asc)]
+[SugarIndex("IX_{table}_AtNa", nameof(AttributeName), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysPermissionCondition : BasicAppCreationEntity
 {
     /// <summary>

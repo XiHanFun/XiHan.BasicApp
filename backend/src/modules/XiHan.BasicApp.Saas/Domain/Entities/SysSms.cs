@@ -21,12 +21,20 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统短信实体
 /// </summary>
-[SugarTable("Sys_Sms", "系统短信表")]
-[SugarIndex("IX_SysSms_ToPh", nameof(ToPhone), OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SmSt", nameof(SmsStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SmTy", nameof(SmsType), OrderByType.Asc)]
-[SugarIndex("IX_SysSms_SeTi", nameof(SendTime), OrderByType.Desc)]
-[SugarIndex("IX_SysSms_TeId_SmSt_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SmsStatus), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
+[SugarTable("SysSms", "系统短信表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ToPh", nameof(ToPhone), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SmSt", nameof(SmsStatus), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SmTy", nameof(SmsType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SeTi", nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_SmSt_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SmsStatus), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
 public partial class SysSms : BasicAppAggregateRoot
 {
     /// <summary>

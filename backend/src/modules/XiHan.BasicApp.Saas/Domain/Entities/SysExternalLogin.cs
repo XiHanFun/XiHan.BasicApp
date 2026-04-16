@@ -20,9 +20,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统第三方登录绑定实体
 /// </summary>
-[SugarTable("Sys_External_Login", "系统第三方登录绑定表")]
-[SugarIndex("UX_SysExternalLogin_Pr_PrKe_TeId", nameof(Provider), OrderByType.Asc, nameof(ProviderKey), OrderByType.Asc, nameof(TenantId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysExternalLogin_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarTable("SysExternalLogin", "系统第三方登录绑定表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_Pr_PrKe_TeId", nameof(Provider), OrderByType.Asc, nameof(ProviderKey), OrderByType.Asc, nameof(TenantId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 public partial class SysExternalLogin : BasicAppFullAuditedEntity
 {
     /// <summary>

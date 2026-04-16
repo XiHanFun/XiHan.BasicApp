@@ -22,13 +22,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统角色自定义数据权限范围实体
 /// 用于配置角色的自定义数据权限规则（当DataScope=Custom时使用）
 /// </summary>
-[SugarTable("Sys_Role_Data_Scope", "系统角色自定义数据权限范围表")]
-[SugarIndex("UX_SysRoleDataScope_RoId_DeId", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRoleDataScope_RoId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_DeId", nameof(DepartmentId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRoleDataScope_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarTable("SysRoleDataScope", "系统角色自定义数据权限范围表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_RoId_DeId", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_DeId", nameof(DepartmentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRoleDataScope : BasicAppCreationEntity
 {
     /// <summary>

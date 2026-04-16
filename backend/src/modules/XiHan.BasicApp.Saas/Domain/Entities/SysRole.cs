@@ -21,11 +21,19 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统角色实体
 /// </summary>
-[SugarTable("Sys_Role", "系统角色表")]
-[SugarIndex("UX_SysRole_TeId_RoCo", nameof(TenantId), OrderByType.Asc, nameof(RoleCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRole_RoCo", nameof(RoleCode), OrderByType.Asc)]
-[SugarIndex("IX_SysRole_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarTable("SysRole", "系统角色表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_RoCo", nameof(TenantId), OrderByType.Asc, nameof(RoleCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_RoCo", nameof(RoleCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysRole : BasicAppAggregateRoot
 {
     /// <summary>

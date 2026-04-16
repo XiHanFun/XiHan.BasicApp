@@ -22,11 +22,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 租户版本可用权限映射实体
 /// 定义每个版本/套餐包含哪些权限，租户管理员只能在此范围内分配权限
 /// </summary>
-[SugarTable("Sys_Tenant_Edition_Permission", "租户版本可用权限映射表")]
-[SugarIndex("UX_SysTenantEditionPermission_EdId_PeId", nameof(EditionId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTenantEditionPermission_EdId", nameof(EditionId), OrderByType.Asc)]
-[SugarIndex("IX_SysTenantEditionPermission_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysTenantEditionPermission_St", nameof(Status), OrderByType.Asc)]
+[SugarTable("SysTenantEditionPermission", "租户版本可用权限映射表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_EdId_PeId", nameof(EditionId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_EdId", nameof(EditionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
 public partial class SysTenantEditionPermission : BasicAppCreationEntity
 {
     /// <summary>

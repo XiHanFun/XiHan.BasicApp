@@ -20,8 +20,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统升级分布式锁实体
 /// </summary>
-[SugarTable("Sys_Upgrade_Lock", "系统升级分布式锁表")]
-[SugarIndex("UX_SysUpgradeLock_ReKe", nameof(ResourceKey), OrderByType.Asc, true)]
+[SugarTable("SysUpgradeLock", "系统升级分布式锁表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_ReKe", nameof(ResourceKey), OrderByType.Asc, true)]
 public class SysUpgradeLock : BasicAppCreationEntity
 {
     /// <summary>

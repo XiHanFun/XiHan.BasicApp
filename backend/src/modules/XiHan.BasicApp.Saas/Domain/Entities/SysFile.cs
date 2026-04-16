@@ -25,15 +25,23 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 文件元数据的聚合根，负责管理文件的基本信息、业务关联和统计信息
 /// 一个文件可以对应多个存储位置（主存储、备份、CDN等）
 /// </remarks>
-[SugarTable("Sys_File", "系统文件表")]
-[SugarIndex("IX_SysFile_FiHa", nameof(FileHash), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FiNa", nameof(FileName), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FiTy", nameof(FileType), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_IsTe", nameof(IsTemporary), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarTable("SysFile", "系统文件表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_FiHa", nameof(FileHash), OrderByType.Asc)]
+[SugarIndex("IX_{table}_FiNa", nameof(FileName), OrderByType.Asc)]
+[SugarIndex("IX_{table}_FiTy", nameof(FileType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsTe", nameof(IsTemporary), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysFile : BasicAppAggregateRoot
 {
     #region 基本信息

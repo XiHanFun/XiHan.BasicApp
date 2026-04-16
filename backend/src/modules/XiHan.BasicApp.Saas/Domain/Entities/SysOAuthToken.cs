@@ -23,14 +23,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 职责：AccessTokenJti、RefreshToken、过期时间、轮换关系、重放检测；通过 SessionId 关联会话。
 /// 不负责：设备信息、在线状态（由 SysUserSession 负责）。
 /// </summary>
-[SugarTable("Sys_OAuth_Token", "系统 OAuth 令牌表")]
-[SugarIndex("UX_SysOAuthToken_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthToken_ReTo", nameof(RefreshToken), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_SeId", nameof(SessionId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_ClId", nameof(ClientId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_IsRe", nameof(IsRevoked), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
+[SugarTable("SysOAuthToken", "系统OAuth令牌表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_ReTo", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsRe", nameof(IsRevoked), OrderByType.Asc)]
+[SugarIndex("IX_{table}_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
 public partial class SysOAuthToken : BasicAppCreationEntity
 {
     /// <summary>

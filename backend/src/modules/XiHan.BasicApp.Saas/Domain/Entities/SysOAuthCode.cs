@@ -21,10 +21,19 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统 OAuth 授权码实体
 /// </summary>
-[SugarTable("Sys_OAuth_Code", "系统 OAuth 授权码表")]
-[SugarIndex("IX_SysOAuthCode_Co", nameof(Code), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthCode_ClId", nameof(ClientId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthCode_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarTable("SysOAuthCode", "系统OAuth授权码表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_Co", nameof(Code), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpiresTime), OrderByType.Asc)]
 public partial class SysOAuthCode : BasicAppFullAuditedEntity
 {
     /// <summary>

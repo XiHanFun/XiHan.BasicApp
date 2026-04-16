@@ -21,14 +21,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统用户角色关联实体
 /// </summary>
-[SugarTable("Sys_User_Role", "系统用户角色关联表")]
-[SugarIndex("UX_SysUserRole_UsId_RoId", nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserRole_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_RoId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
-[SugarIndex("IX_SysUserRole_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarTable("SysUserRole", "系统用户角色关联表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_UsId_RoId", nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
 public partial class SysUserRole : BasicAppCreationEntity
 {
     /// <summary>
