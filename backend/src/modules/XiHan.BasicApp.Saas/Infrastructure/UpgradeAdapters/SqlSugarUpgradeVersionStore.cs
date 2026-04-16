@@ -78,7 +78,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var query = db.Queryable<SysVersion>();
         query = tenantId.HasValue
             ? query.Where(v => v.TenantId == tenantId)
-            : query.Where(v => v.TenantId == null);
+            : query.Where(v => v.TenantId == 0);
 
         var version = await query.FirstAsync(cancellationToken);
         if (version == null)
@@ -120,7 +120,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var query = db.Queryable<SysMigrationHistory>();
         query = tenantId.HasValue
             ? query.Where(v => v.TenantId == tenantId)
-            : query.Where(v => v.TenantId == null);
+            : query.Where(v => v.TenantId == 0);
 
         var history = await query.OrderBy(v => v.ExecutedTime, OrderByType.Desc).FirstAsync(cancellationToken);
         return history == null ? null : MapHistory(history);
@@ -259,7 +259,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
 
         query = tenantId.HasValue
             ? query.Where(h => h.TenantId == tenantId)
-            : query.Where(h => h.TenantId == null);
+            : query.Where(h => h.TenantId == 0);
 
         return await query.AnyAsync(cancellationToken);
     }

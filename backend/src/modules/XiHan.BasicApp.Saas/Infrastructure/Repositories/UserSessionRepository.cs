@@ -51,7 +51,7 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
 
         query = resolvedTenantId.HasValue
             ? query.Where(session => session.TenantId == resolvedTenantId.Value)
-            : query.Where(session => session.TenantId == null);
+            : query.Where(session => session.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -72,7 +72,7 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
 
         query = resolvedTenantId.HasValue
             ? query.Where(session => session.TenantId == resolvedTenantId.Value)
-            : query.Where(session => session.TenantId == null);
+            : query.Where(session => session.TenantId == 0);
 
         var sessions = await query.ToListAsync(cancellationToken);
         if (sessions.Count == 0)
@@ -114,7 +114,7 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
 
         query = resolvedTenantId.HasValue
             ? query.Where(session => session.TenantId == resolvedTenantId.Value)
-            : query.Where(session => session.TenantId == null);
+            : query.Where(session => session.TenantId == 0);
 
         var sessions = await query
             .OrderBy(session => session.LastActivityTime)
@@ -156,7 +156,7 @@ public class UserSessionRepository : SqlSugarAggregateRepository<SysUserSession,
 
         query = resolvedTenantId.HasValue
             ? query.Where(session => session.TenantId == resolvedTenantId.Value)
-            : query.Where(session => session.TenantId == null);
+            : query.Where(session => session.TenantId == 0);
 
         var sessions = await query.ToListAsync(cancellationToken);
         if (sessions.Count == 0)

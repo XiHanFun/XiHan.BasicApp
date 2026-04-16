@@ -67,8 +67,8 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             .WhereIF(!includeRead, (un, n) =>
                 un.NotificationStatus == NotificationStatus.Unread
                 || (n.NeedConfirm == true && un.ConfirmTime == null))
-            .WhereIF(resolvedTenantId.HasValue, (un, n) => n.TenantId == resolvedTenantId || n.TenantId == null)
-            .WhereIF(!resolvedTenantId.HasValue, (un, n) => n.TenantId == null)
+            .WhereIF(resolvedTenantId.HasValue, (un, n) => n.TenantId == resolvedTenantId || n.TenantId == 0)
+            .WhereIF(!resolvedTenantId.HasValue, (un, n) => n.TenantId == 0)
             .OrderBy((un, n) => n.SendTime, OrderByType.Desc)
             .Select((un, n) => new UserNotificationInfo
             {
@@ -119,8 +119,8 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             .Where((un, n) =>
                 un.NotificationStatus == NotificationStatus.Unread
                 || (n.NeedConfirm == true && un.ConfirmTime == null))
-            .WhereIF(resolvedTenantId.HasValue, (un, n) => n.TenantId == resolvedTenantId || n.TenantId == null)
-            .WhereIF(!resolvedTenantId.HasValue, (un, n) => n.TenantId == null)
+            .WhereIF(resolvedTenantId.HasValue, (un, n) => n.TenantId == resolvedTenantId || n.TenantId == 0)
+            .WhereIF(!resolvedTenantId.HasValue, (un, n) => n.TenantId == 0)
             .CountAsync(cancellationToken);
     }
 

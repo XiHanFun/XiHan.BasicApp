@@ -66,7 +66,7 @@ public class SysRolePermissionSeeder : DataSeederBase
             .ToDictionary(
                 group => group.Key,
                 group => group
-                    .OrderBy(role => role.TenantId.HasValue ? 1 : 0)
+                    .OrderBy(role => role.TenantId != 0 ? 1 : 0)
                     .ThenBy(role => role.BasicId)
                     .ToArray(),
                 StringComparer.OrdinalIgnoreCase);
@@ -193,10 +193,10 @@ public class SysRolePermissionSeeder : DataSeederBase
         {
             if (roleTenantId.HasValue)
             {
-                return [.. permissions.Where(permission => permission.TenantId == null || permission.TenantId == roleTenantId.Value)];
+                return [.. permissions.Where(permission => permission.TenantId == 0 || permission.TenantId == roleTenantId.Value)];
             }
 
-            return [.. permissions.Where(permission => permission.TenantId == null)];
+            return [.. permissions.Where(permission => permission.TenantId == 0)];
         }
     }
 }

@@ -51,7 +51,7 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
 
         query = resolvedTenantId.HasValue
             ? query.Where(task => task.TenantId == resolvedTenantId.Value)
-            : query.Where(task => task.TenantId == null);
+            : query.Where(task => task.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -69,7 +69,7 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
 
         query = resolvedTenantId.HasValue
             ? query.Where(task => task.TenantId == resolvedTenantId.Value)
-            : query.Where(task => task.TenantId == null);
+            : query.Where(task => task.TenantId == 0);
 
         if (excludeTaskId.HasValue)
         {

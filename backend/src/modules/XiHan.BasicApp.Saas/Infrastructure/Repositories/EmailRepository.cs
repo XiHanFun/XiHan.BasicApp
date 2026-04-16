@@ -52,7 +52,7 @@ public class EmailRepository : SqlSugarAggregateRepository<SysEmail, long>, IEma
 
         query = resolvedTenantId.HasValue
             ? query.Where(email => email.TenantId == resolvedTenantId.Value)
-            : query.Where(email => email.TenantId == null);
+            : query.Where(email => email.TenantId == 0);
 
         return await query
             .OrderBy(email => email.ScheduledTime)

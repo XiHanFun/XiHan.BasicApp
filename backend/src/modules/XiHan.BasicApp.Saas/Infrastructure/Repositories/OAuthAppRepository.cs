@@ -51,7 +51,7 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
 
         query = resolvedTenantId.HasValue
             ? query.Where(app => app.TenantId == resolvedTenantId.Value)
-            : query.Where(app => app.TenantId == null);
+            : query.Where(app => app.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -69,7 +69,7 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
 
         query = resolvedTenantId.HasValue
             ? query.Where(app => app.TenantId == resolvedTenantId.Value)
-            : query.Where(app => app.TenantId == null);
+            : query.Where(app => app.TenantId == 0);
 
         if (excludeAppId.HasValue)
         {

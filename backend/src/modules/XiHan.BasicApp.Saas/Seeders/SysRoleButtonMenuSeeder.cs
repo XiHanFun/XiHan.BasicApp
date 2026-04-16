@@ -270,7 +270,7 @@ public class SysRoleButtonMenuSeeder : DataSeederBase
 
             roleMenuInserts.Add(new SysRoleMenu
             {
-                TenantId = mapping.TenantId ?? buttonMenu.TenantId,
+                TenantId = mapping.TenantId != 0 ? mapping.TenantId : buttonMenu.TenantId,
                 RoleId = mapping.RoleId,
                 MenuId = buttonMenu.BasicId,
                 Status = YesOrNo.Yes

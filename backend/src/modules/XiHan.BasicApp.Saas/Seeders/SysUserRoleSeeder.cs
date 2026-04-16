@@ -66,7 +66,7 @@ public class SysUserRoleSeeder : DataSeederBase
             .ToDictionary(
                 group => group.Key,
                 group => group
-                    .OrderBy(user => user.TenantId.HasValue ? 1 : 0)
+                    .OrderBy(user => user.TenantId != 0 ? 1 : 0)
                     .ThenBy(user => user.BasicId)
                     .First()
                     .BasicId,
@@ -78,7 +78,7 @@ public class SysUserRoleSeeder : DataSeederBase
             .ToDictionary(
                 group => group.Key,
                 group => group
-                    .OrderBy(role => role.TenantId.HasValue ? 1 : 0)
+                    .OrderBy(role => role.TenantId != 0 ? 1 : 0)
                     .ThenBy(role => role.BasicId)
                     .First()
                     .BasicId,
