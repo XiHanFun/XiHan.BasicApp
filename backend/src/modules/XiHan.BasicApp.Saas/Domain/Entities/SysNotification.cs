@@ -21,11 +21,19 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统通知实体（通知内容主表，每用户投递状态存储在 SysUserNotification）
 /// </summary>
-[SugarTable("Sys_Notification", "系统通知表")]
-[SugarIndex("IX_SysNotification_NoTy", nameof(NotificationType), OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_SeTi", nameof(SendTime), OrderByType.Desc)]
-[SugarIndex("IX_SysNotification_Published", nameof(IsPublished), OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
+[SugarTable("SysNotification", "系统通知表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_NoTy", nameof(NotificationType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SeTi", nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_IsPu", nameof(IsPublished), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
 public partial class SysNotification : BasicAppAggregateRoot
 {
     /// <summary>

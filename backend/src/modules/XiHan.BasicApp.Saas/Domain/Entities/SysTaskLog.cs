@@ -20,14 +20,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统任务日志实体
 /// </summary>
-[SugarTable("Sys_Task_Log_{year}{month}{day}", "系统任务日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysTaskLog_TaId", nameof(TaskId), OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_TaSt", nameof(TaskStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_StTi", nameof(StartTime), OrderByType.Desc)]
-[SugarIndex("IX_SysTaskLog_TaCo", nameof(TaskCode), OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_BaNu", nameof(BatchNumber), OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TaskId), OrderByType.Asc)]
-[SugarIndex("IX_SysTaskLog_TeId_StTi", nameof(TenantId), OrderByType.Asc, nameof(StartTime), OrderByType.Desc)]
+[SugarTable("SysTaskLog_{year}{month}{day}", "系统任务日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TaId", nameof(TaskId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TaSt", nameof(TaskStatus), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_StTi", nameof(StartTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TaCo", nameof(TaskCode), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_BaNu", nameof(BatchNumber), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TaskId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TeId_StTi", nameof(TenantId), OrderByType.Asc, nameof(StartTime), OrderByType.Desc)]
 public partial class SysTaskLog : BasicAppCreationEntity
 {
     /// <summary>

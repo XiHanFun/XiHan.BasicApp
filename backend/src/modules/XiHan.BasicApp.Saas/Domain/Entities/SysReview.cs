@@ -21,10 +21,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统审查实体
 /// </summary>
-[SugarTable("Sys_Review", "系统审查表")]
-[SugarIndex("IX_SysReview_ReCo", nameof(ReviewCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysReview_ReTy", nameof(ReviewType), OrderByType.Asc)]
-[SugarIndex("IX_SysReview_ReSt", nameof(ReviewStatus), OrderByType.Asc)]
+[SugarTable("SysReview", "系统审查表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_ReCo", nameof(ReviewCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_ReTy", nameof(ReviewType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ReSt", nameof(ReviewStatus), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SuUsId", nameof(SubmitUserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CuReUsId", nameof(CurrentReviewUserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_ReSt", nameof(TenantId), OrderByType.Asc, nameof(ReviewStatus), OrderByType.Asc)]
 public partial class SysReview : BasicAppAggregateRoot
 {
     /// <summary>

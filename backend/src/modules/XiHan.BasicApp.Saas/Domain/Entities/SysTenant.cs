@@ -29,13 +29,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - Disabled：已停用/归档，等效于逻辑删除
 /// 服务层判断"租户是否可用"只需：TenantStatus == Normal
 /// </remarks>
-[SugarTable("Sys_Tenant", "系统租户表")]
-[SugarIndex("IX_SysTenant_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTenant_TeNa", nameof(TenantName), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_TeSt", nameof(TenantStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_ExTi", nameof(ExpireTime), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_EdId", nameof(EditionId), OrderByType.Asc)]
+[SugarTable("SysTenant", "系统租户表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_TeNa", nameof(TenantName), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeSt", nameof(TenantStatus), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpireTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EdId", nameof(EditionId), OrderByType.Asc)]
 public partial class SysTenant : BasicAppAggregateRoot
 {
     /// <summary>

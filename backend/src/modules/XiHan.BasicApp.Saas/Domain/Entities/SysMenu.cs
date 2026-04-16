@@ -23,15 +23,23 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 菜单是纯 UI 结构，通过 PermissionId 绑定所需权限
 /// 权限判断只基于 Permission，菜单仅负责展示和路由
 /// </summary>
-[SugarTable("Sys_Menu", "系统菜单表")]
-[SugarIndex("UX_SysMenu_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysMenu_MeCo", nameof(MenuCode), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_MeTy", nameof(MenuType), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_IsGl", nameof(IsGlobal), OrderByType.Asc)]
+[SugarTable("SysMenu", "系统菜单表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_MeCo", nameof(MenuCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MeTy", nameof(MenuType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysMenu : BasicAppFullAuditedEntity
 {
     /// <summary>

@@ -23,10 +23,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 定义 B2B SaaS 的产品版本，控制租户可用的功能权限范围
 /// 平台级实体，TenantId 为空或 0
 /// </summary>
-[SugarTable("Sys_Tenant_Edition", "租户版本套餐表")]
-[SugarIndex("UX_SysTenantEdition_EdCo", nameof(EditionCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTenantEdition_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysTenantEdition_IsDe", nameof(IsDefault), OrderByType.Asc)]
+[SugarTable("SysTenantEdition", "租户版本套餐表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_EdCo", nameof(EditionCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDf", nameof(IsDefault), OrderByType.Asc)]
 public partial class SysTenantEdition : BasicAppFullAuditedEntity
 {
     /// <summary>

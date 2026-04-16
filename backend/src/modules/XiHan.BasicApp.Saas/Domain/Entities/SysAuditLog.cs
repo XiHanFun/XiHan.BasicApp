@@ -22,16 +22,20 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统审计日志实体
 /// </summary>
-[SugarTable("Sys_Audit_Log_{year}{month}{day}", "系统审计日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysAuditLog_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuTy", nameof(AuditType), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_EnTy", nameof(EntityType), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_OpTy", nameof(OperationType), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_AuTi", nameof(AuditTime), OrderByType.Desc)]
-[SugarIndex("IX_SysAuditLog_TeId_AuTi", nameof(TenantId), OrderByType.Asc, nameof(AuditTime), OrderByType.Desc)]
-[SugarIndex("IX_SysAuditLog_RiLe", nameof(RiskLevel), OrderByType.Desc)]
-[SugarIndex("IX_SysAuditLog_EnId", nameof(EntityId), OrderByType.Asc)]
-[SugarIndex("IX_SysAuditLog_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarTable("SysAuditLog_{year}{month}{day}", "系统审计日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_AuTy", nameof(AuditType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_EnTy", nameof(EntityType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_OpTy", nameof(OperationType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_AuTi", nameof(AuditTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_AuTi", nameof(TenantId), OrderByType.Asc, nameof(AuditTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_RiLe", nameof(RiskLevel), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_EnId", nameof(EntityId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
 public partial class SysAuditLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>

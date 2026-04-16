@@ -22,13 +22,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统会话角色映射实体
 /// 记录会话中激活的角色，支持动态职责分离（DSD）
 /// </summary>
-[SugarTable("Sys_Session_Role", "系统会话角色映射表")]
-[SugarIndex("UX_SysSessionRole_SeId_RoId", nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysSessionRole_SeId", nameof(SessionId), OrderByType.Asc)]
-[SugarIndex("IX_SysSessionRole_RoId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysSessionRole_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysSessionRole_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
-[SugarIndex("IX_SysSessionRole_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarTable("SysSessionRole", "系统会话角色映射表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_SeId_RoId", nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysSessionRole : BasicAppCreationEntity
 {
     /// <summary>

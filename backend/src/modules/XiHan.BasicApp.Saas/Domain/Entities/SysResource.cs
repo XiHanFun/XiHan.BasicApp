@@ -23,14 +23,22 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 资源是"被控制对象"（API、数据表、文件等），扁平结构，不包含 UI 层级
 /// 权限 = 资源 + 操作，菜单通过 PermissionId 外键绑定权限
 /// </summary>
-[SugarTable("Sys_Resource", "系统资源表")]
-[SugarIndex("UX_SysResource_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysResource_ReCo", nameof(ResourceCode), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_ReTy", nameof(ResourceType), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_ReTy_St", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_IsGl", nameof(IsGlobal), OrderByType.Asc)]
+[SugarTable("SysResource", "系统资源表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_ReCo", nameof(ResourceCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ReTy", nameof(ResourceType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ReTy_St", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysResource : BasicAppAggregateRoot
 {
     /// <summary>

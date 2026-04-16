@@ -21,13 +21,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统配置实体
 /// </summary>
-[SugarTable("Sys_Config", "系统配置表")]
-[SugarIndex("UX_SysConfig_TeId_CoKe", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc, true)]
-[SugarIndex("IX_SysConfig_CoKe", nameof(ConfigKey), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_CoTy", nameof(ConfigType), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
-[SugarIndex("IX_SysConfig_IsGl", nameof(IsGlobal), OrderByType.Asc)]
+[SugarTable("SysConfig", "系统配置表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_CoKe", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_CoKe", nameof(ConfigKey), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CoTy", nameof(ConfigType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysConfig : BasicAppAggregateRoot
 {
     /// <summary>

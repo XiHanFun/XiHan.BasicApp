@@ -31,14 +31,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 角色级 Deny 语义：若角色 B 继承角色 A，B 对权限 P 标记 Deny，
 /// 则通过 B 不会获得 P；但用户若同时直接持有角色 A，仍可通过 A 获得 P。
 /// </remarks>
-[SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
-[SugarIndex("UX_SysRolePermission_RoId_PeId", nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRolePermission_RoId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_PeAc", nameof(PermissionAction), OrderByType.Asc)]
+[SugarTable("SysRolePermission", "系统角色权限关联表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_RoId_PeId", nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeAc", nameof(PermissionAction), OrderByType.Asc)]
 public partial class SysRolePermission : BasicAppCreationEntity
 {
     /// <summary>

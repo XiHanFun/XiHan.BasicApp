@@ -20,7 +20,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统版本实体
 /// </summary>
-[SugarTable("Sys_Version", "系统版本表")]
+[SugarTable("SysVersion", "系统版本表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ApVe", nameof(AppVersion), OrderByType.Asc)]
+[SugarIndex("IX_{table}_DbVe", nameof(DbVersion), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsUp", nameof(IsUpgrading), OrderByType.Asc)]
 public class SysVersion : BasicAppCreationEntity
 {
     /// <summary>

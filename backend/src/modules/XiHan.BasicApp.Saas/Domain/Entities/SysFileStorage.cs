@@ -25,12 +25,20 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 管理文件的物理存储位置信息
 /// 一个文件可以有多个存储位置（主存储、备份存储、CDN等）
 /// </remarks>
-[SugarTable("Sys_File_Storage", "系统文件存储表")]
-[SugarIndex("IX_SysFileStorage_FiId", nameof(FileId), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_StTy", nameof(StorageType), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_IsPr", nameof(IsPrimary), OrderByType.Desc)]
-[SugarIndex("IX_SysFileStorage_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_TeId_FiId", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]
+[SugarTable("SysFileStorage", "系统文件存储表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_FiId", nameof(FileId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_StTy", nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsPr", nameof(IsPrimary), OrderByType.Desc)]
+[SugarIndex("IX_{table}_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_FiId", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]
 public partial class SysFileStorage : BasicAppFullAuditedEntity
 {
     #region 关联信息

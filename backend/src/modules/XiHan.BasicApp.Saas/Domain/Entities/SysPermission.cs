@@ -22,14 +22,22 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 系统权限实体
 /// 权限 = 资源 + 操作（标准 RBAC 模型）
 /// </summary>
-[SugarTable("Sys_Permission", "系统权限表")]
-[SugarIndex("UX_SysPermission_TeId_PeCo", nameof(TenantId), OrderByType.Asc, nameof(PermissionCode), OrderByType.Asc, true)]
-[SugarIndex("UX_SysPermission_TeId_ReId_OpId", nameof(TenantId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysPermission_PeCo", nameof(PermissionCode), OrderByType.Asc)]
-[SugarIndex("IX_SysPermission_ReId", nameof(ResourceId), OrderByType.Asc)]
-[SugarIndex("IX_SysPermission_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysPermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysPermission_IsGl", nameof(IsGlobal), OrderByType.Asc)]
+[SugarTable("SysPermission", "系统权限表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_PeCo", nameof(TenantId), OrderByType.Asc, nameof(PermissionCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_ReId_OpId", nameof(TenantId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_PeCo", nameof(PermissionCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ReId", nameof(ResourceId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysPermission : BasicAppFullAuditedEntity
 {
     /// <summary>

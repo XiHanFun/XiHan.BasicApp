@@ -21,11 +21,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统审查日志实体
 /// </summary>
-[SugarTable("Sys_Review_Log_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysReviewLog_ReId", nameof(ReviewId), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReRe", nameof(ReviewResult), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReTi", nameof(ReviewTime), OrderByType.Desc)]
+[SugarTable("SysReviewLog_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReId", nameof(ReviewId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReRe", nameof(ReviewResult), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReTi", nameof(ReviewTime), OrderByType.Desc)]
 public partial class SysReviewLog : BasicAppCreationEntity
 {
     /// <summary>

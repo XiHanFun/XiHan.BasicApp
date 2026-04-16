@@ -22,17 +22,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统登录日志实体
 /// </summary>
-[SugarTable("Sys_Login_Log_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysLoginLog_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_LoTi", nameof(LoginTime), OrderByType.Desc)]
-[SugarIndex("IX_SysLoginLog_LoRe", nameof(LoginResult), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_UsNa", nameof(UserName), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_LoIp", nameof(LoginIp), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_TeId_LoTi", nameof(TenantId), OrderByType.Asc, nameof(LoginTime), OrderByType.Desc)]
-[SugarIndex("IX_SysLoginLog_TrId", nameof(TraceId), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_DeId", nameof(DeviceId), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_IsRi", nameof(IsRiskLogin), OrderByType.Asc)]
-[SugarIndex("IX_SysLoginLog_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarTable("SysLoginLog_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_LoTi", nameof(LoginTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_LoRe", nameof(LoginResult), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsNa", nameof(UserName), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_LoIp", nameof(LoginIp), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TeId_LoTi", nameof(TenantId), OrderByType.Asc, nameof(LoginTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_DeId", nameof(DeviceId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_IsRi", nameof(IsRiskLogin), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_SeId", nameof(SessionId), OrderByType.Asc)]
 public partial class SysLoginLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>

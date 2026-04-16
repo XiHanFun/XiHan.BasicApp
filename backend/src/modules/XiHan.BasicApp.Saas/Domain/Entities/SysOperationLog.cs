@@ -22,14 +22,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统操作日志实体
 /// </summary>
-[SugarTable("Sys_Operation_Log_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysOperationLog_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OpTy", nameof(OperationType), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OpTi", nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_TrId", nameof(TraceId), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarTable("SysOperationLog_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_OpTy", nameof(OperationType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_OpTi", nameof(OperationTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_SeId", nameof(SessionId), OrderByType.Asc)]
 public partial class SysOperationLog : BasicAppCreationEntity, ITraceableEntity
 {
     /// <summary>

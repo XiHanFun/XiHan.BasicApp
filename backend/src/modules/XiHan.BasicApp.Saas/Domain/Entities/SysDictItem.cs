@@ -21,13 +21,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统字典项实体
 /// </summary>
-[SugarTable("Sys_Dict_Item", "系统字典项表")]
-[SugarIndex("UX_SysDictItem_DiId_ItCo", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysDictItem_DiId", nameof(DictId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_ItCo", nameof(ItemCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
+[SugarTable("SysDictItem", "系统字典项表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_DiId_ItCo", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_DiId", nameof(DictId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ItCo", nameof(ItemCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
 public partial class SysDictItem : BasicAppFullAuditedEntity
 {
     /// <summary>

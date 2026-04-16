@@ -20,8 +20,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统迁移历史实体
 /// </summary>
-[SugarTable("Sys_Migration_History", "系统迁移历史表")]
-[SugarIndex("IX_SysMigrationHistory_Version", nameof(Version), OrderByType.Asc)]
+[SugarTable("SysMigrationHistory", "系统迁移历史表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_Ve", nameof(Version), OrderByType.Asc)]
 public class SysMigrationHistory : BasicAppCreationEntity
 {
     /// <summary>

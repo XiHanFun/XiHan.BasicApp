@@ -22,9 +22,17 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// <summary>
 /// 系统代码生成表列配置实体
 /// </summary>
-[SugarTable("Sys_Code_Gen_Table_Column", "系统代码生成表列配置表")]
-[SugarIndex("IX_SysCodeGenTableColumn_TaId", nameof(TableId), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenTableColumn_CoNa", nameof(ColumnName), OrderByType.Asc)]
+[SugarTable("SysCodeGenTableColumn", "系统代码生成表列配置表")]
+[SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CrTi", nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MoTi", nameof(ModifiedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_MoId", nameof(ModifiedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsDe", nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TaId", nameof(TableId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CoNa", nameof(ColumnName), OrderByType.Asc)]
 public partial class SysCodeGenTableColumn : BasicAppFullAuditedEntity
 {
     /// <summary>
