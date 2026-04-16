@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 规则生命周期由 IsEnabled 唯一控制：
-/// - true：规则生效（还须在有效期 EffectiveFrom~EffectiveTo 范围内）
+/// - true：规则生效（还须在有效期 EffectiveTime~ExpirationTime 范围内）
 /// - false：规则停用/归档
 /// 服务层判断"规则是否生效"：IsEnabled == true AND 当前时间在有效期内
 /// </remarks>
@@ -104,16 +104,16 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual int Priority { get; set; } = 0;
 
     /// <summary>
-    /// 生效时间
+    /// 生效时间（与 SysUserRole/SysUserPermission/SysTenantUser 命名一致）
     /// </summary>
     [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
-    public virtual DateTimeOffset? EffectiveFrom { get; set; }
+    public virtual DateTimeOffset? EffectiveTime { get; set; }
 
     /// <summary>
     /// 失效时间
     /// </summary>
     [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
-    public virtual DateTimeOffset? EffectiveTo { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 备注

@@ -54,7 +54,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TaCo", nameof(TaskCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_TaCo", nameof(TenantId), OrderByType.Asc, nameof(TaskCode), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_RuTaSt", nameof(RunTaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TrTy", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_NeRuTi", nameof(NextRunTime), OrderByType.Asc)]
