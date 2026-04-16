@@ -19,8 +19,31 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 用户通知接收状态实体，记录每个用户对每条通知的已读/确认状态
+/// 用户通知接收状态实体
+/// SysNotification × SysUser 的投递关系：承载已读/确认/已删除等个人状态
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - NotificationId → SysNotification；UserId → SysUser
+///
+/// 写入：
+/// - TenantId + NotificationId + UserId 唯一（UX_TeId_NoId_UsId）
+/// - 由 SysNotification 发布触发批量 INSERT；建议用批处理/分页避免大事务
+/// - 用户点击已读时更新 NotificationStatus=Read + ReadTime
+///
+/// 查询：
+/// - 用户未读计数：IX_TeId_UsId_NoSt + WHERE NotificationStatus=Unread
+/// - 用户消息中心列表：按 UserId + CreatedTime DESC 分页
+///
+/// 删除：
+/// - 硬删；用户"删除消息"仅软删本表记录，不影响其他用户
+///
+/// 状态：
+/// - NotificationStatus: Unread/Read/Confirmed/Archived/Deleted
+///
+/// 场景：
+/// - 消息中心未读数、已读/未读切换、用户删除消息
+/// </remarks>
 [SugarTable("SysUserNotification", "用户通知接收状态表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

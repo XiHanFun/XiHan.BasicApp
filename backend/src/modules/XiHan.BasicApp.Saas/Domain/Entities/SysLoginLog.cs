@@ -21,7 +21,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统登录日志实体
+/// 记录每次登录尝试（成功/失败）详细信息，用于风险检测与账户安全审计
 /// </summary>
+/// <remarks>
+/// 分表策略：
+/// - 按月分表，必带时间范围查询
+///
+/// 关联：
+/// - UserId → SysUser（可能为空，失败登录时）；SessionId → SysUserSession（仅成功时）
+/// - DeviceId 关联设备指纹库；TraceId 串联后续请求
+///
+/// 写入：
+/// - 所有登录尝试（含失败）都必须记录，不得丢弃
+/// - IsRiskLogin 由风控规则判定（异地/新设备/深夜登录等）
+/// - LoginIp 必填，帮助异地登录告警
+///
+/// 查询：
+/// - 用户登录历史：IX_UsId + 时间范围
+/// - 异常用户扫描：IX_IsRi + WHERE IsRiskLogin=true
+/// - 暴力破解检测：IX_LoIp / IX_UsNa + 窗口计数失败次数
+/// - 租户登录趋势：IX_TeId_LoTi
+///
+/// 删除：
+/// - 不支持业务删除；按合规保留期归档
+///
+/// 场景：
+/// - 账户安全：异地/新设备登录实时通知
+/// - 风控：短时间大量失败 → 临时封禁 IP
+/// - 合规审计
+/// </remarks>
 [SugarTable("SysLoginLog_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

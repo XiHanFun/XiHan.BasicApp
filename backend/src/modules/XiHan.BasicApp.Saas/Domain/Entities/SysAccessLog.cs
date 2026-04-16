@@ -21,7 +21,33 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统访问日志实体
+/// 记录每次资源访问决策结果（含未授权访问尝试），是鉴权链路的审计终点
 /// </summary>
+/// <remarks>
+/// 分表策略：
+/// - 按月分表（SplitTable.Month），表名 SysAccessLog_{yyyyMMdd}
+/// - 查询/清理必须带时间范围，否则框架会扫描所有月表
+///
+/// 关联：
+/// - UserId → SysUser；SessionId → SysUserSession；TraceId 串联同一请求链路
+///
+/// 写入：
+/// - 只追加，永不更新；由鉴权中间件在请求结束时异步批量写入
+/// - AccessResult 包含 Allowed/Denied/Error；Denied 必须记录原因供"为什么没权限"排查
+/// - TraceId 必填：贯穿 SysApiLog/SysOperationLog/SysAuditLog 便于跨日志查询
+///
+/// 查询：
+/// - 用户行为追溯：IX_UsId + 时间范围
+/// - 租户访问趋势：IX_TeId_AcTi
+/// - 异常访问告警：WHERE AccessResult=Denied AND 时间窗内次数 > 阈值
+///
+/// 删除：
+/// - 不支持业务删除；按合规要求定期 TRUNCATE/DROP 历史月表
+///
+/// 场景：
+/// - 安全审计、合规报告（SOC2/ISO27001）
+/// - 权限问题定位（"为什么我没权限"）
+/// </remarks>
 [SugarTable("SysAccessLog_{year}{month}{day}", "系统访问日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

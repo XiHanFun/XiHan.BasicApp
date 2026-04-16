@@ -19,8 +19,36 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统通知实体（通知内容主表，每用户投递状态存储在 SysUserNotification）
+/// 系统通知实体
+/// 站内通知内容主表：承载通知正文、发布状态、目标范围；每用户读取/确认状态由 SysUserNotification 独立维护
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 本表只有"一条通知内容"；"谁看过/是否已读"交由 SysUserNotification
+/// - 避免循环："通知表 × 用户表"直接笛卡尔积（大租户会爆）
+///
+/// 关联：
+/// - 反向：SysUserNotification.NotificationId
+///
+/// 写入：
+/// - 编辑阶段 IsPublished=false；发布后 IsPublished=true + SendTime
+/// - 发布时按 TargetType（All/Role/Department/User）展开生成 SysUserNotification 记录
+/// - 可选 ExpiresAt 控制消息过期自动隐藏
+///
+/// 查询：
+/// - 租户最近发布：IX_TeId_SeTi
+/// - 按类型过滤：IX_NoTy
+///
+/// 删除：
+/// - 仅软删；删除时级联软删所有 SysUserNotification
+///
+/// 状态：
+/// - IsPublished: false=草稿 / true=已发布
+/// - NotificationType: System/Announcement/Activity/Personal 等
+///
+/// 场景：
+/// - 系统公告、版本升级通知、营销活动、告警推送
+/// </remarks>
 [SugarTable("SysNotification", "系统通知表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

@@ -20,7 +20,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统用户角色关联实体
+/// 将角色（SysRole）赋予用户（SysUser），支持带生效期的临时授权
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - UserId → SysUser；RoleId → SysRole
+///
+/// 写入：
+/// - UserId + RoleId 唯一（UX_UsId_RoId），避免重复授权
+/// - EffectiveTime 为空表示立即生效；ExpirationTime 为空表示永不过期
+/// - 写入前必须校验：角色属于同租户（或为平台全局角色），违反则拒绝
+/// - SoD 约束：写入前调用 SysConstraintRule/Item 检查职责分离（SSD/DSD）
+///
+/// 查询：
+/// - 权限决策入口：按 UserId 查所有角色，再经 SysRoleHierarchy 展开继承链
+/// - 角色反查用户：IX_RoId
+/// - 即将过期扫描：按 ExTi 轮询清理（IX_ExTi）
+///
+/// 删除：
+/// - 硬删（无软删字段）；删除即撤销授权
+/// - 解绑时应同步撤销该用户在线会话中由此角色激活的 SysSessionRole
+///
+/// 状态：
+/// - Status: Yes/No（停用 = 暂时冻结但保留关系）
+///
+/// 场景：
+/// - 标准赋权：给用户分配角色
+/// - 临时提权：EffectiveTime + ExpirationTime 限定时间窗口
+/// - 多角色叠加：同一用户可持有多角色，权限取并集
+/// </remarks>
 [SugarTable("SysUserRole", "系统用户角色关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

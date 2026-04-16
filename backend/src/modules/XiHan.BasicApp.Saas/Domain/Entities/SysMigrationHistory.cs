@@ -19,7 +19,28 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统迁移历史实体
+/// 数据库迁移脚本执行台账：每次脚本运行追加一条，保证幂等与可追溯
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 无 FK；与 SysVersion 配合形成版本治理闭环
+///
+/// 写入：
+/// - 由迁移框架（FluentMigrator/自研脚本）自动写入，禁止业务代码手工修改
+/// - Version 通常为时间戳串（如 20260414_001），ScriptName 为脚本文件名
+/// - 同 Version + ScriptName 只能成功执行一次；失败可记录 Success=false + ErrorMessage
+///
+/// 查询：
+/// - 判断是否已执行：WHERE Version=? AND ScriptName=? AND Success=true
+/// - 按版本查执行列表：IX_Ve
+///
+/// 删除：
+/// - 不删除；任何历史都需要保留作为审计证据
+///
+/// 场景：
+/// - 应用启动时自动发现未执行脚本并顺序执行
+/// - 灰度/回滚场景下记录分支迁移路径
+/// </remarks>
 [SugarTable("SysMigrationHistory", "系统迁移历史表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

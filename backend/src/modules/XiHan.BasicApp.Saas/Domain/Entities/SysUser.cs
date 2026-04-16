@@ -20,7 +20,40 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统用户实体
+/// RBAC 主体（Subject）：承载身份、资料、安全基础信息；用户的"可访问租户集合"由 SysTenantUser 承载
 /// </summary>
+/// <remarks>
+/// 语义澄清（重要）：
+/// - SysUser.TenantId = 用户的"主账号归属租户"（注册地 / 合同所属方），不等同于"用户能进入哪个租户"
+/// - 用户实际可访问的租户集合由 SysTenantUser 多对多关系承载（含主租户 + 外部协作租户 + 平台管理租户）
+/// - 登录后的"生效租户上下文"在 SysUserSession.TenantId 中记录
+///
+/// 关联：
+/// - 反向：SysTenantUser.UserId（多对多成员关系）、SysUserRole/SysUserPermission/SysUserDepartment（按 TenantId + UserId 分别作用于不同租户上下文）、SysUserSession/SysUserSecurity/SysUserStatistics
+///
+/// 写入：
+/// - TenantId + UserName 在主归属租户内唯一（UX_TeId_UsNa）
+/// - Password 必须先经应用层加密（Argon2/BCrypt），严禁明文落库
+/// - IsSystemAccount=true 的账号禁止修改 UserName / 禁止被软删
+/// - 创建时必须同步：(1) SysUserSecurity 一对一扩展 (2) 一条 SysTenantUser 记录（TenantId=SysUser.TenantId + MemberType=Owner/Member + InviteStatus=Accepted）
+///
+/// 查询：
+/// - 登录认证：通过 UserName + 主租户（或邮箱/手机号）定位唯一用户
+/// - 鉴权决策：UserId + 当前会话 TenantId → 查 SysTenantUser 校验成员身份 → 再查 SysUserRole 加载角色
+/// - 联系方式查询走 IX_Em / IX_Ph
+///
+/// 删除：
+/// - 仅支持软删（IsDeleted=1）保留审计
+/// - 软删前必须：吊销所有 SysUserSession、吊销所有 Token、将 SysTenantUser 全部置为 Revoked
+///
+/// 状态：
+/// - Status: Yes=启用 / No=禁用（禁用后所有租户下均不可登录）
+///
+/// 场景：
+/// - 登录认证入口（身份校验）
+/// - 用户资料维护
+/// - 统一身份：同一自然人可通过 SysTenantUser 在多个租户拥有成员身份
+/// </remarks>
 [SugarTable("SysUser", "系统用户表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

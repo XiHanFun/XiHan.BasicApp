@@ -21,7 +21,33 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
 /// <summary>
 /// 系统代码生成表配置实体
+/// 单张目标表的代码生成配置主体：承载类名映射、模块归属、生成选项；列级配置在 SysCodeGenTableColumn
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - DataSourceId → SysCodeGenDataSource（可选）
+/// - 反向：SysCodeGenTableColumn.TableId、SysCodeGenHistory.TableId
+///
+/// 写入：
+/// - TableName 全局唯一（UX_TaNa），禁止同一目标表重复配置
+/// - ClassName / ModuleName 影响生成后的命名空间与目录层级
+/// - 初次导入时自动从数据库元信息填充列；后续可由用户手工调整
+///
+/// 查询：
+/// - 代码生成入口列表：IX_TeId_St
+/// - 按模块分组：IX_MoNa
+/// - 按类名搜索：IX_ClNa
+///
+/// 删除：
+/// - 仅软删；删除时级联软删 SysCodeGenTableColumn
+///
+/// 状态：
+/// - Status: Yes/No
+///
+/// 场景：
+/// - 数据库表 → 实体/DTO/API/前端页面全栈生成
+/// - 重复生成前保留历史配置
+/// </remarks>
 [SugarTable("SysCodeGenTable", "系统代码生成表配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

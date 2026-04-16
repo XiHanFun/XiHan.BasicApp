@@ -20,7 +20,31 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统 OAuth 授权码实体
+/// Authorization Code Flow 中的一次性凭据：用户同意后颁发给客户端，换取 Token 使用后立即失效
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - ClientId → SysOAuthApp.ClientId；UserId → SysUser
+///
+/// 写入：
+/// - Code 全局唯一（UX_Co），使用高强度随机串
+/// - ExpiresTime 必须短（建议 60s~10min），过期立即作废
+/// - 必须绑定 RedirectUri（颁发时记录，换 Token 时严格匹配）
+/// - 支持 PKCE：若请求方传入 CodeChallenge 则必须记录，换 Token 时校验 CodeVerifier
+///
+/// 查询：
+/// - 换 Token 入口：按 Code 精确定位 + 有效期校验
+/// - 按客户端/用户审计：IX_ClId / IX_UsId
+/// - 清理过期：IX_ExTi + WHERE ExpiresTime < now
+///
+/// 删除：
+/// - 使用后立即硬删（或标记已使用）防止重放
+/// - 过期码由定时任务批量清理
+///
+/// 场景：
+/// - OAuth2 标准授权码流程
+/// - PKCE 增强的 SPA/Mobile 授权
+/// </remarks>
 [SugarTable("SysOAuthCode", "系统OAuth授权码表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

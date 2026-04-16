@@ -21,7 +21,31 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
 /// <summary>
 /// 系统代码生成表列配置实体
+/// 单列的生成配置：承载 C# 类型映射、字段别名、必填/长度、UI 表单属性（组件类型/查询方式）
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - TableId → SysCodeGenTable（多对一）
+///
+/// 写入：
+/// - TableId + ColumnName 建议组合唯一（虽未显式 UX，服务层校验）
+/// - 列信息由表导入时自动填充；用户可补充：FormType/QueryType/字段显示名/脱敏策略
+/// - 类型映射表（DB 类型 → C# 类型）由生成器统一维护
+///
+/// 查询：
+/// - 表列清单：IX_TaId + ORDER BY Sort
+/// - 按列名搜索：IX_CoNa
+///
+/// 删除：
+/// - 仅软删；随 SysCodeGenTable 级联处理
+///
+/// 状态：
+/// - Status: Yes/No（仅影响代码生成时是否包含此列）
+///
+/// 场景：
+/// - 列级别精细控制（是否生成、显示名、表单组件类型）
+/// - 脱敏字段标记（生成的 DTO 自动应用 MaskStrategy）
+/// </remarks>
 [SugarTable("SysCodeGenTableColumn", "系统代码生成表列配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

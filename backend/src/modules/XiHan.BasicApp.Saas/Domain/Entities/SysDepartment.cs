@@ -20,7 +20,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统部门实体
+/// 组织架构树节点：承载层级关系、负责人、联系方式；是数据权限范围 DEPT/DEPT_AND_SUB 的基础
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - ParentId → SysDepartment（自关联严格树，单父约束）
+/// - LeaderId → SysUser（可空）
+/// - 反向：SysUserDepartment、SysRoleDataScope、SysDepartmentHierarchy
+///
+/// 写入：
+/// - TenantId + DepartmentCode 租户内唯一（UX_TeId_DeCo）
+/// - 写入/移动节点时服务层必须：(1) 环路检测 (2) 同步重建 SysDepartmentHierarchy 闭包表
+/// - DepartmentType 区分 集团/公司/部门/小组/项目组 便于统计维度
+///
+/// 查询：
+/// - 按 ParentId 构建一级树：IX_PaId
+/// - 按负责人反查管辖部门：IX_LeId
+/// - 祖先/后代展开：走 SysDepartmentHierarchy
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无子部门、无用户归属（SysUserDepartment）、无数据范围引用（SysRoleDataScope）
+/// - 软删后需同步清理 SysDepartmentHierarchy 中相关闭包记录
+///
+/// 状态：
+/// - Status: Yes/No（停用部门对所有数据范围计算隐藏）
+///
+/// 场景：
+/// - 组织架构树渲染、用户归属、数据权限范围计算
+/// - 按部门汇总统计（销售额/工时/审批量）
+/// </remarks>
 [SugarTable("SysDepartment", "系统部门表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

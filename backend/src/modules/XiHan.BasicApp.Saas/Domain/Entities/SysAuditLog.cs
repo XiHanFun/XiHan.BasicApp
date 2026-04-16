@@ -21,7 +21,38 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统审计日志实体
+/// 业务级敏感操作审计（含授权变更、数据变更、权限决策细节），支持合规追溯
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 与 SysAccessLog/SysApiLog 区别：本表关注"业务语义"（谁改了权限/数据），后两者关注"请求/访问"
+/// - 写入触发点：SysPermission.IsRequireAudit=true 的权限被行使、敏感字段修改、RBAC 变更等
+///
+/// 分表策略：
+/// - 按月分表，必带时间范围查询
+///
+/// 关联：
+/// - UserId → SysUser；EntityType+EntityId 定位被操作业务实体；TraceId 跨日志串联
+///
+/// 写入：
+/// - 只追加；建议写入前脱敏敏感字段（密码/Token/身份证）
+/// - OldValue / NewValue JSON 记录变更前后值；注意控制大小（大对象可改存 Hash + 存储位置）
+/// - RiskLevel 由规则引擎或人工评估（低/中/高/严重）
+///
+/// 查询：
+/// - 实体变更史：IX_EnId + WHERE EntityType=? AND EntityId=?
+/// - 高风险行为：IX_RiLe + ORDER BY RiskLevel DESC
+/// - 用户操作轨迹：IX_UsId + 时间范围
+/// - 租户审计报告：IX_TeId_AuTi
+///
+/// 删除：
+/// - 合规要求下禁止删除；仅允许按保留期归档（通常 ≥ 6 个月）
+///
+/// 场景：
+/// - SOC2 / ISO27001 / GDPR 合规报告
+/// - 权限回溯："谁在什么时候给 XX 加了 YY 角色"
+/// - 数据修改历史展示
+/// </remarks>
 [SugarTable("SysAuditLog_{year}{month}{day}", "系统审计日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

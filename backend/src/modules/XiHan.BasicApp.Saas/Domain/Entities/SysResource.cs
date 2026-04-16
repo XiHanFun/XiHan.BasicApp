@@ -20,9 +20,37 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统资源实体
-/// 资源是"被控制对象"（API、数据表、文件等），扁平结构，不包含 UI 层级
-/// 权限 = 资源 + 操作，菜单通过 PermissionId 外键绑定权限
+/// 权限体系中的"被控对象"（API/数据表/文件/报表等），扁平结构，与 UI 菜单完全解耦
 /// </summary>
+/// <remarks>
+/// 职责边界：
+/// - 本实体仅描述"保护对象"本身；"能对资源做什么"由 SysOperation 定义；"谁能做"由 SysPermission 组合
+/// - 不包含菜单/UI 层级概念（UI 由 SysMenu 单独承载）
+///
+/// 关联：
+/// - 反向：SysPermission.ResourceId、SysFieldLevelSecurity.ResourceId
+///
+/// 写入：
+/// - TenantId + ResourceCode 租户内唯一（UX_TeId_ReCo）
+/// - IsGlobal=true 时作为平台资源模板（TenantId 空），所有租户共享
+/// - ResourcePath 对 API 类资源建议填写路由模式（便于自动扫描注册）
+/// - Metadata JSON 用于扩展（如 controller/action、字段结构描述）
+///
+/// 查询：
+/// - 按资源类型+状态筛选走复合索引 IX_TeId_ReTy_St
+/// - 全局+私有合并查询：WHERE TenantId = ? OR IsGlobal = 1
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无权限引用（SysPermission.ResourceId）、无字段级策略引用（SysFieldLevelSecurity.ResourceId）
+///
+/// 状态与访问级别：
+/// - Status: Yes/No 启停
+/// - AccessLevel: 替代原 IsRequireAuth+IsPublic 组合，明确表达匿名/认证/授权访问需求
+///
+/// 场景：
+/// - 接口自动扫描注册：程序启动时将控制器 Action 注册为 API 类资源
+/// - 动态资源：管理端定义自定义资源类型（报表/数据表/业务对象等）
+/// </remarks>
 [SugarTable("SysResource", "系统资源表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

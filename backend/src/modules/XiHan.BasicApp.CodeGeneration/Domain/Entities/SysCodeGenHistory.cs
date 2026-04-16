@@ -20,7 +20,33 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
 /// <summary>
 /// 系统代码生成历史记录实体
+/// 每次代码生成的执行记录（生成时间/使用模板/结果/产物路径），便于追溯与重做
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - TableId → SysCodeGenTable
+///
+/// 写入：
+/// - 每次点击"生成"追加一条；GenTime 为执行时间
+/// - GenStatus 记录 Success/Failed；失败时记录 ErrorMessage
+/// - 建议记录：所用模板编码、生成文件列表、输出目录（便于一键清理）
+///
+/// 查询：
+/// - 表的生成历史：IX_TeId_TaId + ORDER BY GenTime DESC
+/// - 失败记录扫描：IX_GeSt + WHERE GenStatus=Failed
+/// - 时间趋势：IX_GeTi
+///
+/// 删除：
+/// - 仅软删；历史记录保留有利于问题排查
+///
+/// 状态：
+/// - GenStatus: Success/Failed/Partial
+///
+/// 场景：
+/// - 回溯"上次生成用的什么模板"
+/// - 失败重试入口
+/// - 清理历史产物文件
+/// </remarks>
 [SugarTable("SysCodeGenHistory", "系统代码生成历史记录表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

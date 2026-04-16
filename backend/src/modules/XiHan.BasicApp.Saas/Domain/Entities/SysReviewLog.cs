@@ -20,7 +20,34 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统审查日志实体
+/// SysReview 每步审批动作记录（谁在什么时候做了什么决定），构成完整审批链路
 /// </summary>
+/// <remarks>
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - ReviewId → SysReview；ReviewUserId → SysUser（执行审查动作的人）
+///
+/// 写入：
+/// - 每次审批流转（同意/拒绝/退回/加签/转办）追加一条
+/// - 与 SysReview.ReviewStatus 变更同事务写入，保证一致性
+/// - ReviewComment 记录审批意见；ReviewResult 枚举具体动作
+///
+/// 查询：
+/// - 审批链路还原：IX_ReId + ORDER BY ReviewTime ASC
+/// - 某用户的审查历史：IX_ReUsId
+/// - 审查结果统计：IX_ReRe
+/// - 按时间分析：IX_ReTi
+///
+/// 删除：
+/// - 禁止业务删除；审查记录是合规证据
+///
+/// 场景：
+/// - 审查单详情"审批历史"时间线
+/// - 审批人工作量统计
+/// - 流程分析（平均审批时长、驳回率）
+/// </remarks>
 [SugarTable("SysReviewLog_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]

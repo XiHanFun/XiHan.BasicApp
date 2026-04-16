@@ -20,7 +20,36 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统审查实体
+/// 通用审批/审查流聚合根：承载审查单主信息、当前节点、结果；每步动作由 SysReviewLog 记录
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - SubmitUserId / CurrentReviewUserId → SysUser
+/// - 反向：SysReviewLog.ReviewId（审查动作历史）
+///
+/// 写入：
+/// - ReviewCode 全局唯一（UX_ReCo）
+/// - 提交时 ReviewStatus=Pending + SubmitUserId + SubmitTime
+/// - 每次审批流转同时追加 SysReviewLog + 更新 CurrentReviewUserId / ReviewStatus
+/// - 支持多级审批：服务层按流程配置推进 CurrentReviewUserId
+///
+/// 查询：
+/// - 我的待办：WHERE CurrentReviewUserId=当前用户 AND ReviewStatus=Pending（IX_CuReUsId）
+/// - 我的提交：IX_SuUsId
+/// - 按状态分组：IX_TeId_ReSt
+///
+/// 删除：
+/// - 仅软删；已完结记录不建议删除（影响可追溯性）
+///
+/// 状态：
+/// - ReviewStatus: Draft/Pending/Approved/Rejected/Cancelled/Returned
+/// - ReviewType: 区分业务类型（请假/报销/合同/内容审核等）
+///
+/// 场景：
+/// - 通用审批流引擎
+/// - 多级审批、会签、驳回重提
+/// - 内容/资源审核（如上架前审核）
+/// </remarks>
 [SugarTable("SysReview", "系统审查表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

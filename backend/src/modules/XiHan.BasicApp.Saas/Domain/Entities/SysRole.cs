@@ -20,7 +20,31 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统角色实体
+/// RBAC 权限分配单元：承载一组权限，通过 SysUserRole 赋给用户，通过 SysRoleHierarchy 支持继承
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 反向：SysUserRole（用户赋角色）、SysRolePermission（角色持权限）、SysRoleHierarchy（闭包表继承）、SysRoleDataScope（自定义数据范围）
+///
+/// 写入：
+/// - TenantId + RoleCode 租户内唯一（UX_TeId_RoCo）
+/// - RoleType=System 为平台内置角色，禁止普通租户修改/删除
+/// - DataScope=Custom 时必须同步写入 SysRoleDataScope，否则视为无可见数据
+///
+/// 查询：
+/// - 必带 TenantId 过滤；权限合并时应同时加载 SysRoleHierarchy 展开继承链
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无用户仍持有该角色（SysUserRole 无关联记录）、无子角色继承（SysRoleHierarchy）、未被 SysConstraintRuleItem 引用
+///
+/// 状态：
+/// - Status: Yes=启用 / No=停用（停用后用户即使持有该角色也不生效）
+///
+/// 场景：
+/// - 预置角色模板（Owner/Admin/Manager/Member/Viewer/External）
+/// - 租户管理员自定义角色 + 权限组合
+/// - 角色继承：财务主管 → 财务专员 → 基础查看
+/// </remarks>
 [SugarTable("SysRole", "系统角色表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

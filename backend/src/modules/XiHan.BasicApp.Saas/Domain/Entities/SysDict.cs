@@ -20,7 +20,30 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统字典实体
+/// 静态枚举数据集的元信息（字典本身），具体选项由 SysDictItem 承载
 /// </summary>
+/// <remarks>
+/// 关联：
+/// - 反向：SysDictItem.DictId
+///
+/// 写入：
+/// - TenantId + DictCode 租户内唯一（UX_TeId_DiCo）
+/// - DictType 区分系统内置 / 业务自定义（内置字典禁止普通租户修改）
+///
+/// 查询：
+/// - 前端下拉框缓存加载：按 TenantId + Status=Yes 全量读取
+/// - 按类型过滤：IX_DiTy
+///
+/// 删除：
+/// - 仅软删；删除前必须级联处理 SysDictItem
+///
+/// 状态：
+/// - Status: Yes/No（停用字典后所有子项不再对外暴露）
+///
+/// 场景：
+/// - 订单状态、客户等级、审批类型等业务枚举
+/// - 多语言字典：可通过扩展字段承载 i18n
+/// </remarks>
 [SugarTable("SysDict", "系统字典表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
