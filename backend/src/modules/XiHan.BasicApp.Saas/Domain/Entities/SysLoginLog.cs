@@ -62,7 +62,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_DeId", nameof(DeviceId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_IsRi", nameof(IsRiskLogin), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_SeId", nameof(SessionId), OrderByType.Asc)]
-public partial class SysLoginLog : BasicAppCreationEntity, ITraceableEntity
+public partial class SysLoginLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID

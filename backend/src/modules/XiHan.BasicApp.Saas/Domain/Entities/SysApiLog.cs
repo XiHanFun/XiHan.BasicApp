@@ -62,7 +62,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ApId", nameof(AppId), OrderByType.Asc)]
-public partial class SysApiLog : BasicAppCreationEntity, ITraceableEntity
+public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
