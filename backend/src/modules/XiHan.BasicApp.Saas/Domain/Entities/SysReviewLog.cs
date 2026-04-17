@@ -16,6 +16,8 @@ using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
+using XiHan.Framework.Domain.Entities.Abstracts;
+
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
@@ -55,7 +57,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ReRe", nameof(ReviewResult), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ReTi", nameof(ReviewTime), OrderByType.Desc)]
-public partial class SysReviewLog : BasicAppCreationEntity
+public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
 {
     /// <summary>
     /// 审查ID
