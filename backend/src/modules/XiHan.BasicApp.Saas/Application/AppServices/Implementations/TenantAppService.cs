@@ -108,8 +108,7 @@ public class TenantAppService
             ContactPhone = input.ContactPhone,
             ContactEmail = input.ContactEmail,
             IsolationMode = input.IsolationMode,
-            TenantStatus = TenantStatus.Normal,
-            Status = YesOrNo.Yes
+            TenantStatus = TenantStatus.Normal
         };
 
         var created = await _tenantManager.CreateAsync(tenant);

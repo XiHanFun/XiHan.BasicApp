@@ -73,7 +73,7 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
 
         var entity = new SysAuditLog
         {
-            TenantId = record.TenantId.Value,
+            TenantId = record.TenantId ?? 0,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             AuditType = RbacLogMappingHelper.TrimOrDefault(record.AuditType, 50, "EntityChange"),

@@ -121,11 +121,11 @@ public class ConstraintRuleAppService
     {
         var entity = new SysConstraintRule
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             RuleCode = createDto.RuleCode.Trim(),
             RuleName = createDto.RuleName.Trim(),
             ConstraintType = createDto.ConstraintType,
-            TargetType = createDto.TargetType.Trim(),
+            TargetType = Enum.Parse<ConstraintTargetType>(createDto.TargetType.Trim()),
             Parameters = string.IsNullOrWhiteSpace(createDto.Parameters) ? "{}" : createDto.Parameters.Trim(),
             IsEnabled = createDto.IsEnabled,
             ViolationAction = createDto.ViolationAction,
@@ -133,7 +133,6 @@ public class ConstraintRuleAppService
             Priority = createDto.Priority,
             EffectiveFrom = createDto.EffectiveFrom,
             EffectiveTo = createDto.EffectiveTo,
-            Status = createDto.IsEnabled ? YesOrNo.Yes : YesOrNo.No,
             Remark = createDto.Remark?.Trim()
         };
 
@@ -146,7 +145,7 @@ public class ConstraintRuleAppService
         entity.RuleCode = updateDto.RuleCode.Trim();
         entity.RuleName = updateDto.RuleName.Trim();
         entity.ConstraintType = updateDto.ConstraintType;
-        entity.TargetType = updateDto.TargetType.Trim();
+        entity.TargetType = Enum.Parse<ConstraintTargetType>(updateDto.TargetType.Trim());
         entity.Parameters = string.IsNullOrWhiteSpace(updateDto.Parameters) ? "{}" : updateDto.Parameters.Trim();
         entity.IsEnabled = updateDto.IsEnabled;
         entity.ViolationAction = updateDto.ViolationAction;
@@ -154,7 +153,6 @@ public class ConstraintRuleAppService
         entity.Priority = updateDto.Priority;
         entity.EffectiveFrom = updateDto.EffectiveFrom;
         entity.EffectiveTo = updateDto.EffectiveTo;
-        entity.Status = updateDto.Status;
         entity.Remark = updateDto.Remark?.Trim();
 
         return Task.CompletedTask;
