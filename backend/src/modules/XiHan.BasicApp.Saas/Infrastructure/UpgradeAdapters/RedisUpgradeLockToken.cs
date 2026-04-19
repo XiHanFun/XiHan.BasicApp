@@ -3,40 +3,49 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SqlSugarUpgradeLockToken
-// Guid:d7c28d3c-d957-4fad-87fe-64c2e80fdb18
+// FileName:RedisUpgradeLockToken
+// Guid:c3d4e5f6-7890-1234-cdef-234567890123
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2026/03/01 16:49:40
+// CreateTime:2026/04/20 10:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Logging;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Upgrade.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.UpgradeAdapters;
 
-public partial class SqlSugarUpgradeLockProvider
+public partial class RedisUpgradeLockProvider
 {
     /// <summary>
     /// 升级锁令牌实现
     /// </summary>
-    private sealed class SqlSugarUpgradeLockToken : IUpgradeLockToken
+    private sealed class RedisUpgradeLockToken : IUpgradeLockToken
     {
-        private readonly SqlSugarUpgradeLockProvider _provider;
-        private bool _isReleased;
+        private readonly IDistributedCache<DistributedUpgradeLockCacheItem, string> _distributedCache;
+        private readonly ILogger _logger;
+        private int _released;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="resourceKey">资源键</param>
         /// <param name="lockId">锁标识</param>
-        /// <param name="provider">升级锁提供者</param>
-        public SqlSugarUpgradeLockToken(string resourceKey, string lockId, SqlSugarUpgradeLockProvider provider)
+        /// <param name="distributedCache">分布式缓存</param>
+        /// <param name="logger">日志记录器</param>
+        public RedisUpgradeLockToken(
+            string resourceKey,
+            string lockId,
+            IDistributedCache<DistributedUpgradeLockCacheItem, string> distributedCache,
+            ILogger logger)
         {
             ResourceKey = resourceKey;
             LockId = lockId;
-            _provider = provider;
+            _distributedCache = distributedCache;
+            _logger = logger;
         }
 
         /// <summary>
@@ -52,7 +61,7 @@ public partial class SqlSugarUpgradeLockProvider
         /// <summary>
         /// 是否已释放
         /// </summary>
-        public bool IsReleased => _isReleased;
+        public bool IsReleased => Volatile.Read(ref _released) == 1;
 
         /// <summary>
         /// 释放升级锁
@@ -60,13 +69,27 @@ public partial class SqlSugarUpgradeLockProvider
         /// <returns></returns>
         public async Task ReleaseAsync()
         {
-            if (_isReleased)
+            if (Interlocked.Exchange(ref _released, 1) == 1)
             {
                 return;
             }
 
-            await _provider.ReleaseAsync(ResourceKey, LockId);
-            _isReleased = true;
+            try
+            {
+                await _distributedCache.ScriptEvaluateAsync(
+                    ReleaseLuaScript,
+                    [ResourceKey],
+                    [LockId],
+                    hideErrors: false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "释放分布式升级锁失败，资源键: {ResourceKey}, 锁ID: {LockId}",
+                    ResourceKey,
+                    LockId);
+            }
         }
 
         /// <summary>
