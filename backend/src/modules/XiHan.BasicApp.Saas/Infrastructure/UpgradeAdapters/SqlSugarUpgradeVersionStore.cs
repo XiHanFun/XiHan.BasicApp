@@ -15,7 +15,6 @@
 using Microsoft.Extensions.Options;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Upgrade.Abstractions;
@@ -135,7 +134,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
     /// <param name="startTime">开始时间</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    public async Task SetUpgradingAsync(UpgradeVersionState version, string nodeName, DateTime startTime, CancellationToken cancellationToken = default)
+    public async Task SetUpgradingAsync(UpgradeVersionState version, string nodeName, DateTimeOffset startTime, CancellationToken cancellationToken = default)
     {
         version.IsUpgrading = true;
         version.UpgradeNode = nodeName;
@@ -310,7 +309,9 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
     /// <returns></returns>
     private ISqlSugarClient GetDbClient()
     {
-        return _clientResolver.GetClient(_options.ConnectionConfigId);
+        return string.IsNullOrWhiteSpace(_options.ConnectionConfigId)
+            ? _clientResolver.GetCurrentClient()
+            : _clientResolver.GetClient(_options.ConnectionConfigId);
     }
 
     /// <summary>
