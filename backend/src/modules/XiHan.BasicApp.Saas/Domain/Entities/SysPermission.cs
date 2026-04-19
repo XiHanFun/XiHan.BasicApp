@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - TenantId + PermissionCode 租户内唯一（UX_TeId_PeCo），建议格式 "{resource}:{operation}"
 /// - TenantId + ResourceId + OperationId 租户内唯一（UX_TeId_ReId_OpId），防止重复授权
-/// - IsGlobal=true 时 TenantId 应为空或 0，作为平台模板供订阅版本引用（SysTenantEditionPermission）
+/// - IsGlobal=true 时 TenantId 必须为 0（平台租户占位），作为平台模板供订阅版本引用（SysTenantEditionPermission）
 /// - IsRequireAudit=true 时，该权限的操作应强制写 SysAuditLog
 ///
 /// 查询：
@@ -105,7 +105,7 @@ public partial class SysPermission : BasicAppFullAuditedEntity
     public virtual bool IsRequireAudit { get; set; } = false;
 
     /// <summary>
-    /// 是否平台级全局权限（全局权限所有租户共享，TenantId 为空）
+    /// 是否平台级全局权限（全局权限所有租户共享，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局权限")]
     public virtual bool IsGlobal { get; set; } = false;

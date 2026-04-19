@@ -75,11 +75,22 @@ public partial class SysRole : BasicAppAggregateRoot
     /// <summary>
     /// 角色类型（System=平台预置 / Tenant=租户级 / Custom=租户自定义，仅展示分类）
     /// </summary>
+    /// <remarks>
+    /// RoleType × IsGlobal 合法组合矩阵：
+    /// ┌──────────┬─────────────────┬──────────────────┐
+    /// │ RoleType │ IsGlobal=true   │ IsGlobal=false   │
+    /// ├──────────┼─────────────────┼──────────────────┤
+    /// │ System   │ 合法（平台预置模板，如 SuperAdmin） │ 不合法（平台预置必须全局） │
+    /// │ Tenant   │ 合法（租户可见但由平台定义的通用角色） │ 合法（租户自有角色）     │
+    /// │ Custom   │ 不合法（租户自定义不应全局化）  │ 合法（租户自建角色）     │
+    /// └──────────┴─────────────────┴──────────────────┘
+    /// 服务层创建/修改角色时应校验此矩阵，拒绝非法组合。
+    /// </remarks>
     [SugarColumn(ColumnDescription = "角色类型")]
     public virtual RoleType RoleType { get; set; } = RoleType.System;
 
     /// <summary>
-    /// 是否平台级全局角色（全局角色作为所有租户的模板，TenantId 固定为 0）
+    /// 是否平台级全局角色（全局角色作为所有租户的模板，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局角色")]
     public virtual bool IsGlobal { get; set; } = false;

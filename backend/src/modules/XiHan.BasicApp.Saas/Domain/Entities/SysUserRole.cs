@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - UserId → SysUser；RoleId → SysRole
 ///
 /// 写入：
-/// - UserId + RoleId 唯一（UX_UsId_RoId），避免重复授权
+/// - TenantId + UserId + RoleId 唯一（UX_TeId_UsId_RoId），避免重复授权（含 TenantId 以支持跨租户赋权场景）
 /// - EffectiveTime 为空表示立即生效；ExpirationTime 为空表示永不过期
 /// - 写入前必须校验：角色属于同租户（或为平台全局角色），违反则拒绝
 /// - SoD 约束：写入前调用 SysConstraintRule/Item 检查职责分离（SSD/DSD）
@@ -38,7 +38,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 即将过期扫描：按 ExTi 轮询清理（IX_ExTi）
 ///
 /// 删除：
-/// - 硬删（无软删字段）；删除即撤销授权
+/// - 软删（基类 BasicAppFullAuditedEntity 提供 IsDeleted）；软删即撤销授权，保留审计记录
+/// - 所有查询必须附加 IsDeleted=false 过滤
 /// - 解绑时应同步撤销该用户在线会话中由此角色激活的 SysSessionRole
 ///
 /// 状态：
@@ -53,7 +54,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_UsId_RoId", nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_UsId_RoId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]

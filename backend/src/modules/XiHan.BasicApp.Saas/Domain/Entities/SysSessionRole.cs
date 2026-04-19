@@ -75,7 +75,7 @@ public partial class SysSessionRole : BasicAppCreationEntity
     /// 激活时间
     /// </summary>
     [SugarColumn(ColumnDescription = "激活时间")]
-    public virtual DateTimeOffset ActivatedAt { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset ActivatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 停用时间

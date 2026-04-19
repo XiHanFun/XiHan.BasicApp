@@ -57,8 +57,15 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual ConstraintType ConstraintType { get; set; } = ConstraintType.SSD;
 
     /// <summary>
-    /// 约束目标类型
+    /// 约束目标类型（规则级声明：所有 SysConstraintRuleItem.TargetType 必须与此一致，应用层写入时校验）
     /// </summary>
+    /// <remarks>
+    /// 注意：SysConstraintRuleItem 也有独立的 TargetType 字段，Item 可自描述目标类型。
+    /// 先决条件约束（Prerequisite）场景下 Item 的 TargetType 可能与 Rule 不同（如"拥有角色 A 才能获得权限 B"），
+    /// 此时 Rule.TargetType 表示主目标类型。服务层写入 Item 时应校验：
+    /// - 非 Prerequisite 约束：Item.TargetType 必须等于 Rule.TargetType
+    /// - Prerequisite 约束：允许混合，Rule.TargetType 仅表示主目标分类
+    /// </remarks>
     [SugarColumn(ColumnDescription = "约束目标类型")]
     public virtual ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
 
@@ -74,7 +81,7 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     public virtual string? Parameters { get; set; }
 
     /// <summary>
-    /// 是否平台级全局约束规则（全局规则对所有租户生效，TenantId 为空）
+    /// 是否平台级全局约束规则（全局规则对所有租户生效，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局约束规则")]
     public virtual bool IsGlobal { get; set; } = false;

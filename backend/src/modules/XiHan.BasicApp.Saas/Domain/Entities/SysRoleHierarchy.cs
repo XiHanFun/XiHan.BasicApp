@@ -14,7 +14,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -23,27 +22,37 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 使用闭包表模式存储角色之间的所有继承关系（包括直接和传递继承）
 /// </summary>
 /// <remarks>
-/// 支持角色多继承（DAG），后代角色继承祖先角色的所有权限。
+/// 闭包表核心不变式：若 (A→B) 和 (B→C) 均存在，则 (A→C) 也必须存在。
+/// 不设 Status/IsDeleted——单条记录停用会破坏传递闭包一致性，变更时应整体重建受影响路径。
+/// 设计对齐 SysDepartmentHierarchy（BasicAppCreationEntity，硬删，无 Status）。
+///
 /// 闭包表优点：
 /// 1. 查询所有子角色：O(1) 单次查询
 /// 2. 查询继承链：O(1) 单次查询
 /// 3. 避免递归查询的性能问题
+///
+/// DAG 多路径说明：
+/// 当存在多条路径（如 A→B→C 深度2 和 A→D→E→C 深度3）时，(A,C) 记录的 Depth 取最短路径深度，
+/// Path 记录最短路径。服务层维护闭包时需在增删边后 diff 式重算受影响记录。
+/// 如实际场景以单继承为主，可考虑收紧为树结构（对每个后代限制 Depth=1 祖先唯一）。
 ///
 /// 继承语义：
 /// - 权限继承：后代自动获得祖先的所有 Grant 权限，可通过 SysRolePermission.Deny 覆盖
 /// - DataScope 不继承：每个角色独立定义自己的 DataScope
 /// - SSD/DSD 传递：约束检查时须展开继承链（详见 SysConstraintRuleItem 注释）
 /// - 服务层必须在写入时做环路检测（禁止 A→B→A 循环继承）
+///
+/// 删除：
+/// - 硬删；变更继承关系时删除旧闭包记录并按新结构重建
 /// </remarks>
 [SugarTable("SysRoleHierarchy", "系统角色层级关系表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_AnId_DeId", nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DeId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysRoleHierarchy : BasicAppFullAuditedEntity
+[SugarIndex("IX_{table}_TeId_AnId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc)]
+public partial class SysRoleHierarchy : BasicAppCreationEntity
 {
     /// <summary>
     /// 祖先角色ID（被继承的角色）
@@ -84,12 +93,6 @@ public partial class SysRoleHierarchy : BasicAppFullAuditedEntity
     /// </remarks>
     [SugarColumn(ColumnDescription = "继承路径", Length = 1000, IsNullable = true)]
     public virtual string? Path { get; set; }
-
-    /// <summary>
-    /// 状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
     /// 备注
