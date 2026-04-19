@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统操作实体扩展
 /// </summary>
-public partial class SysOperation
+public partial class SysOperation : IValidatableObject
 {
     /// <summary>
     /// 操作权限列表
@@ -29,4 +30,23 @@ public partial class SysOperation
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysPermission.OperationId))]
     public virtual List<SysPermission>? Permissions { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(OperationCode))
+        {
+            yield return new ValidationResult("OperationCode 不能为空。", [nameof(OperationCode)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(OperationName))
+        {
+            yield return new ValidationResult("OperationName 不能为空。", [nameof(OperationName)]);
+        }
+
+        if (IsGlobal && TenantId != 0)
+        {
+            yield return new ValidationResult("全局操作必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
+        }
+    }
 }
