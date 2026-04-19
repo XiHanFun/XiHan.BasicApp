@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + UserId + RoleId 唯一（UX_TeId_UsId_RoId），避免重复授权（含 TenantId 以支持跨租户赋权场景）
-/// - EffectiveTime 为空表示立即生效；ExpirationTime 为空表示永不过期
+/// - EffectiveFrom 为空表示立即生效；EffectiveTo 为空表示永不过期
 /// - 写入前必须校验：角色属于同租户（或为平台全局角色），违反则拒绝
 /// - SoD 约束：写入前调用 SysConstraintRule/Item 检查职责分离（SSD/DSD）
 ///
@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 场景：
 /// - 标准赋权：给用户分配角色
-/// - 临时提权：EffectiveTime + ExpirationTime 限定时间窗口
+/// - 临时提权：EffectiveFrom + EffectiveTo 限定时间窗口
 /// - 多角色叠加：同一用户可持有多角色，权限取并集
 /// </remarks>
 [SugarTable("SysUserRole", "系统用户角色关联表")]
