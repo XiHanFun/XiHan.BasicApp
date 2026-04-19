@@ -59,7 +59,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var db = GetDbClient();
         await Task.Run(() =>
         {
-            db.CodeFirst.InitTables<SysVersion, SysMigrationHistory, SysUpgradeLock>();
+            db.CodeFirst.InitTables<SysVersion, SysMigrationHistory>();
         }, cancellationToken);
     }
 

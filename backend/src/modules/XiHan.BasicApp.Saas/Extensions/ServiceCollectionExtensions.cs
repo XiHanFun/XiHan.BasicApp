@@ -202,7 +202,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRbacLookupCacheService, RbacLookupCacheService>();
         services.AddScoped<IMessageCacheService, MessageCacheService>();
         services.AddScoped<IUpgradeVersionStore, SqlSugarUpgradeVersionStore>();
-        services.AddScoped<IUpgradeLockProvider, SqlSugarUpgradeLockProvider>();
+        services.AddScoped<IUpgradeLockProvider, RedisUpgradeLockProvider>();
         services.AddScoped<IUpgradeMigrationExecutor, SqlSugarUpgradeMigrationExecutor>();
         services.AddSingleton<IUpgradeTenantProvider, SqlSugarUpgradeTenantProvider>();
 
