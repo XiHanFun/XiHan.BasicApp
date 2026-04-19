@@ -37,6 +37,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 数据状态：AttributeName="resource.status", Operator=Equals, ConditionValue="draft"（只能操作草稿）
 /// - IP限制：AttributeName="environment.ip", Operator=StartsWith, ConditionValue="192.168."（仅内网可用）
 /// - 金额限制：AttributeName="resource.amount", Operator=LessThan, ConditionValue="10000"（限额操作）
+///
+/// 建模约定：
+/// - AttributeName 只允许使用已注册的命名空间（subject./resource./environment.）
+/// - ValueType 用于固定解释器如何解析 ConditionValue，避免同一属性在不同规则里出现值类型漂移
 /// </remarks>
 [SugarTable("SysPermissionCondition", "权限ABAC条件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -90,6 +94,12 @@ public partial class SysPermissionCondition : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "操作符")]
     public virtual ConditionOperator Operator { get; set; } = ConditionOperator.Equals;
+
+    /// <summary>
+    /// 条件值类型
+    /// </summary>
+    [SugarColumn(ColumnDescription = "条件值类型")]
+    public virtual ConfigDataType ValueType { get; set; } = ConfigDataType.String;
 
     /// <summary>
     /// 条件值（JSON格式，支持简单值和复杂类型）
