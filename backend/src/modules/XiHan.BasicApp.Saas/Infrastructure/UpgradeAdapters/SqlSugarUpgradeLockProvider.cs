@@ -16,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Upgrade.Options;
