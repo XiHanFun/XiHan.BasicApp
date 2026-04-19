@@ -36,10 +36,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 用户消息中心列表：按 UserId + CreatedTime DESC 分页
 ///
 /// 删除：
-/// - 硬删；用户"删除消息"仅软删本表记录，不影响其他用户
+/// - 用户"删除消息"通过 NotificationStatus=Deleted 状态标记，非物理删除；物理清理由定时任务按策略批量执行
 ///
 /// 状态：
-/// - NotificationStatus: Unread/Read/Confirmed/Archived/Deleted
+/// - NotificationStatus: Unread/Read/Deleted
 ///
 /// 场景：
 /// - 消息中心未读数、已读/未读切换、用户删除消息

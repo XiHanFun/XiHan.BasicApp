@@ -38,10 +38,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 过期清理：按 IX_ExAt 定时扫描
 ///
 /// 删除：
-/// - 硬删；或将 Status 置为 Deactivated 保留审计
+/// - 硬删；或将 Status 置为 Inactive 保留审计
 ///
 /// 状态：
-/// - Status (SessionRoleStatus): Active=激活中 / Deactivated=已停用 / Expired=已过期
+/// - Status (SessionRoleStatus): Active=激活中 / Inactive=已停用 / Expired=已过期
 /// - ActivatedAt / DeactivatedAt / ExpiresAt 记录生命周期
 ///
 /// 场景：

@@ -52,10 +52,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysUserStatistics : BasicAppFullAuditedEntity
 {
     /// <summary>
-    /// 用户ID（为空表示全体用户统计）
+    /// 用户ID（0 表示全体用户汇总统计）
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
-    public virtual long? UserId { get; set; }
+    [SugarColumn(ColumnDescription = "用户ID")]
+    public virtual long UserId { get; set; }
 
     /// <summary>
     /// 统计日期

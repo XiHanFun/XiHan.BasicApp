@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_UsSeId", nameof(UserSessionId), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_UsSeId", nameof(TenantId), OrderByType.Asc, nameof(UserSessionId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 public partial class SysUserSession : BasicAppAggregateRoot
@@ -45,7 +45,8 @@ public partial class SysUserSession : BasicAppAggregateRoot
     public virtual string? CurrentAccessTokenJti { get; set; }
 
     /// <summary>
-    /// 会话标识（用于区分不同设备/端，业务侧唯一）
+    /// 会话标识（用于区分不同设备/端，在同一租户上下文内唯一）
+    /// 同一自然人在不同租户同时登录时允许复用同一业务 SessionId，但会落成不同 TenantId 的独立会话记录
     /// </summary>
     [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = false)]
     public virtual string UserSessionId { get; set; } = string.Empty;
