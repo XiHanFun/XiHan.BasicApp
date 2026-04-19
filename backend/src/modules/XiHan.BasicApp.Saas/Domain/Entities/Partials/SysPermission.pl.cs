@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统权限实体扩展
 /// </summary>
-public partial class SysPermission
+public partial class SysPermission : IValidatableObject
 {
     /// <summary>
     /// 关联的资源（多权限可关联同一资源，ManyToOne）
@@ -92,4 +93,33 @@ public partial class SysPermission
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysMenu.PermissionId))]
     public virtual List<SysMenu>? Menus { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (ResourceId <= 0)
+        {
+            yield return new ValidationResult("Permission 的 ResourceId 必须大于 0。", [nameof(ResourceId)]);
+        }
+
+        if (OperationId <= 0)
+        {
+            yield return new ValidationResult("Permission 的 OperationId 必须大于 0。", [nameof(OperationId)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(PermissionCode))
+        {
+            yield return new ValidationResult("PermissionCode 不能为空。", [nameof(PermissionCode)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(PermissionName))
+        {
+            yield return new ValidationResult("PermissionName 不能为空。", [nameof(PermissionName)]);
+        }
+
+        if (IsGlobal && TenantId != 0)
+        {
+            yield return new ValidationResult("全局权限必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
+        }
+    }
 }

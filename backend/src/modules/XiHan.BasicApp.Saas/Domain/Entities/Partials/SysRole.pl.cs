@@ -13,13 +13,15 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统角色实体扩展
 /// </summary>
-public partial class SysRole
+public partial class SysRole : IValidatableObject
 {
     /// <summary>
     /// 用户角色关联列表
@@ -92,4 +94,33 @@ public partial class SysRole
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysSessionRole.RoleId))]
     public virtual List<SysSessionRole>? SessionRoles { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(RoleCode))
+        {
+            yield return new ValidationResult("RoleCode 不能为空。", [nameof(RoleCode)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(RoleName))
+        {
+            yield return new ValidationResult("RoleName 不能为空。", [nameof(RoleName)]);
+        }
+
+        if (IsGlobal && TenantId != 0)
+        {
+            yield return new ValidationResult("全局角色必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
+        }
+
+        if (RoleType == XiHan.BasicApp.Saas.Domain.Enums.RoleType.System && !IsGlobal)
+        {
+            yield return new ValidationResult("系统内置角色必须为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
+        }
+
+        if (RoleType == XiHan.BasicApp.Saas.Domain.Enums.RoleType.Custom && IsGlobal)
+        {
+            yield return new ValidationResult("租户自定义角色不能标记为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
+        }
+    }
 }

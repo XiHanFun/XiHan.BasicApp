@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 租户版本可用权限映射实体扩展
 /// </summary>
-public partial class SysTenantEditionPermission
+public partial class SysTenantEditionPermission : IValidatableObject
 {
     /// <summary>
     /// 版本信息
@@ -38,4 +39,23 @@ public partial class SysTenantEditionPermission
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(PermissionId))]
     public virtual SysPermission? Permission { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (TenantId != 0)
+        {
+            yield return new ValidationResult("版本权限映射是平台级实体，必须使用 TenantId = 0。", [nameof(TenantId)]);
+        }
+
+        if (EditionId <= 0)
+        {
+            yield return new ValidationResult("EditionId 必须大于 0。", [nameof(EditionId)]);
+        }
+
+        if (PermissionId <= 0)
+        {
+            yield return new ValidationResult("PermissionId 必须大于 0。", [nameof(PermissionId)]);
+        }
+    }
 }

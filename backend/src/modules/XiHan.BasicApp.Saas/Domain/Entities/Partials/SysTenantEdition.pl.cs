@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 租户版本套餐实体扩展
 /// </summary>
-public partial class SysTenantEdition
+public partial class SysTenantEdition : IValidatableObject
 {
     /// <summary>
     /// 版本可用权限列表
@@ -47,4 +48,23 @@ public partial class SysTenantEdition
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysTenant.EditionId))]
     public virtual List<SysTenant>? Tenants { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (TenantId != 0)
+        {
+            yield return new ValidationResult("租户版本套餐是平台级实体，必须使用 TenantId = 0。", [nameof(TenantId)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(EditionCode))
+        {
+            yield return new ValidationResult("EditionCode 不能为空。", [nameof(EditionCode)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(EditionName))
+        {
+            yield return new ValidationResult("EditionName 不能为空。", [nameof(EditionName)]);
+        }
+    }
 }

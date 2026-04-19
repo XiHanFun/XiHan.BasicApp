@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统资源实体扩展
 /// </summary>
-public partial class SysResource
+public partial class SysResource : IValidatableObject
 {
     /// <summary>
     /// 资源权限列表（一个资源可对应多个权限）
@@ -29,4 +30,23 @@ public partial class SysResource
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToMany, nameof(SysPermission.ResourceId))]
     public virtual List<SysPermission>? Permissions { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(ResourceCode))
+        {
+            yield return new ValidationResult("ResourceCode 不能为空。", [nameof(ResourceCode)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(ResourceName))
+        {
+            yield return new ValidationResult("ResourceName 不能为空。", [nameof(ResourceName)]);
+        }
+
+        if (IsGlobal && TenantId != 0)
+        {
+            yield return new ValidationResult("全局资源必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
+        }
+    }
 }
