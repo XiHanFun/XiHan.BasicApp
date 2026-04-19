@@ -20,7 +20,6 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
 using XiHan.Framework.Domain.Shared.Paging.Dtos;

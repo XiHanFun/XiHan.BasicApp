@@ -19,7 +19,6 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Core.Exceptions;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 

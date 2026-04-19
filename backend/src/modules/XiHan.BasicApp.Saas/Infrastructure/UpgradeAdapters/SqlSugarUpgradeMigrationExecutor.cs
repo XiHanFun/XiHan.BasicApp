@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Options;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Upgrade.Options;

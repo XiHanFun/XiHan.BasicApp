@@ -35,7 +35,6 @@ using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
-using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Web.RealTime.Constants;
 using XiHan.Framework.Web.RealTime.Services;
 using IAuthenticationService = XiHan.Framework.Authentication.Users.IAuthenticationService;

@@ -14,7 +14,6 @@
 
 using SqlSugar;
 using System.ComponentModel.DataAnnotations;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
