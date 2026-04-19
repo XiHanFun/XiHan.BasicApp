@@ -15,12 +15,16 @@
 namespace XiHan.BasicApp.Saas.Domain.Enums;
 
 /// <summary>
-/// 数据权限范围（数值越大范围越广，多角色取 Max 即可得最宽范围）
+/// 数据权限范围
 /// </summary>
 /// <remarks>
-/// 多部门用户约定：DepartmentAndChildren/DepartmentOnly 以用户主部门（SysUserDepartment.IsMain=true）为基准。
-/// 多角色用户约定：取所有角色中最大的 DataScope 值（Max），即 All 胜出。
-/// 若存在 Custom 则合并 Custom 指定的部门与其他角色的范围取并集。
+/// 重要：本枚举不承诺“数值越大范围越广”，禁止以数值大小作为权限合并依据。
+/// 多角色合并必须显式按语义处理：
+/// - 任一角色为 All：最终结果为全部数据；
+/// - DepartmentOnly / DepartmentAndChildren：基于用户当前租户上下文下全部有效部门归属求并集；
+/// - Custom：与其它范围按并集叠加；
+/// - 若仅存在 SelfOnly：仅返回本人数据。
+/// 这样可以避免把 Custom=99 误当成“比 All 更宽”的数值语义。
 /// </remarks>
 public enum DataPermissionScope
 {
@@ -32,13 +36,13 @@ public enum DataPermissionScope
 
     /// <summary>
     /// 仅本部门数据权限
-    /// 以用户主部门为基准，仅限该部门
+    /// 以用户当前租户上下文下的全部有效部门归属为基准，仅限这些部门
     /// </summary>
     DepartmentOnly = 1,
 
     /// <summary>
     /// 本部门及子部门数据权限
-    /// 以用户主部门为基准，包含其所有下级部门
+    /// 以用户当前租户上下文下的全部有效部门归属为基准，包含这些部门的所有下级部门
     /// </summary>
     DepartmentAndChildren = 2,
 

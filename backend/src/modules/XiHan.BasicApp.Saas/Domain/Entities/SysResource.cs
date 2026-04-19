@@ -38,7 +38,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 查询：
 /// - 按资源类型+状态筛选走复合索引 IX_TeId_ReTy_St
-/// - 全局+私有合并查询：WHERE TenantId = ? OR IsGlobal = 1
+/// - 全局+私有合并查询优先使用：WHERE TenantId IN (0, ?)
+///   IsGlobal 仅作为语义标记，不应替代 TenantId=0 的平台记录约束
 ///
 /// 删除：
 /// - 仅软删；删除前必须校验：无权限引用（SysPermission.ResourceId）、无字段级策略引用（SysFieldLevelSecurity.ResourceId）

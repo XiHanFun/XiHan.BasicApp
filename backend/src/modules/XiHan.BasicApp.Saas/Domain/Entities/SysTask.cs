@@ -44,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 状态：
 /// - Status: Yes/No 启停（No 时即使到点也不执行）
-/// - RunTaskStatus: Ready/Running/Paused/Stopped/Error
+/// - RunTaskStatus: Pending/Running/Success/Failed/Stopped/Paused
 ///
 /// 场景：
 /// - 定时数据清理、报表生成、订阅续费检查

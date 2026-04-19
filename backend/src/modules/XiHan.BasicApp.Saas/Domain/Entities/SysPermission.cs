@@ -35,7 +35,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - IsRequireAudit=true 时，该权限的操作应强制写 SysAuditLog
 ///
 /// 查询：
-/// - 全局权限 + 租户私有权限合并查询：WHERE TenantId = ? OR IsGlobal = 1
+/// - 全局权限 + 租户私有权限合并查询优先使用：WHERE TenantId IN (0, ?)
+///   IsGlobal 仅作为语义校验字段，不应替代 TenantId=0 的平台记录约束
 /// - 按资源反查权限：走 IX_ReId
 ///
 /// 删除：

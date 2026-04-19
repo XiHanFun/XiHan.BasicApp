@@ -59,7 +59,7 @@ public partial class SqlSugarUpgradeLockProvider : IUpgradeLockProvider
     {
         var db = _clientResolver.GetClient(_options.ConnectionConfigId);
         var lockId = Guid.NewGuid().ToString("N");
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
         var expiryTime = now.Add(expiry);
 
         var updated = await db.Updateable<SysUpgradeLock>()

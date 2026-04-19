@@ -39,5 +39,5 @@ public sealed record UpgradeStatusDto
     /// <summary>
     /// 升级开始时间
     /// </summary>
-    public DateTime? UpgradeStartTime { get; init; }
+    public DateTimeOffset? UpgradeStartTime { get; init; }
 }

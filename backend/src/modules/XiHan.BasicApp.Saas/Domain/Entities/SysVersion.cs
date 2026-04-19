@@ -47,41 +47,41 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ApVe", nameof(AppVersion), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DbVe", nameof(DbVersion), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsUp", nameof(IsUpgrading), OrderByType.Asc)]
-public class SysVersion : BasicAppCreationEntity
+public partial class SysVersion : BasicAppCreationEntity
 {
     /// <summary>
     /// 应用版本
     /// </summary>
     [SugarColumn(ColumnDescription = "应用版本", Length = 64)]
-    public string AppVersion { get; set; } = string.Empty;
+    public virtual string AppVersion { get; set; } = string.Empty;
 
     /// <summary>
     /// 数据库版本
     /// </summary>
     [SugarColumn(ColumnDescription = "数据库版本", Length = 64)]
-    public string DbVersion { get; set; } = "0.0.0";
+    public virtual string DbVersion { get; set; } = "0.0.0";
 
     /// <summary>
     /// 最小支持版本
     /// </summary>
     [SugarColumn(ColumnDescription = "最小支持版本", Length = 64, IsNullable = true)]
-    public string? MinSupportVersion { get; set; }
+    public virtual string? MinSupportVersion { get; set; }
 
     /// <summary>
     /// 是否升级中
     /// </summary>
     [SugarColumn(ColumnDescription = "是否升级中")]
-    public bool IsUpgrading { get; set; }
+    public virtual bool IsUpgrading { get; set; }
 
     /// <summary>
     /// 升级节点
     /// </summary>
     [SugarColumn(ColumnDescription = "升级节点", Length = 128, IsNullable = true)]
-    public string? UpgradeNode { get; set; }
+    public virtual string? UpgradeNode { get; set; }
 
     /// <summary>
     /// 升级开始时间
     /// </summary>
     [SugarColumn(ColumnDescription = "升级开始时间", IsNullable = true)]
-    public DateTime? UpgradeStartTime { get; set; }
+    public virtual DateTimeOffset? UpgradeStartTime { get; set; }
 }

@@ -46,35 +46,35 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_ReKe", nameof(ResourceKey), OrderByType.Asc, true)]
-public class SysUpgradeLock : BasicAppCreationEntity
+public partial class SysUpgradeLock : BasicAppCreationEntity
 {
     /// <summary>
     /// 资源键（分布式锁标识，唯一索引保证互斥）
     /// </summary>
     [SugarColumn(ColumnDescription = "资源键", Length = 128, IsNullable = false)]
-    public string ResourceKey { get; set; } = string.Empty;
+    public virtual string ResourceKey { get; set; } = string.Empty;
 
     /// <summary>
     /// 锁标识
     /// </summary>
     [SugarColumn(ColumnDescription = "锁标识", Length = 64)]
-    public string LockId { get; set; } = string.Empty;
+    public virtual string LockId { get; set; } = string.Empty;
 
     /// <summary>
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间")]
-    public DateTime ExpiryTime { get; set; }
+    public virtual DateTimeOffset ExpiryTime { get; set; }
 
     /// <summary>
     /// 所属节点
     /// </summary>
     [SugarColumn(ColumnDescription = "所属节点", Length = 128, IsNullable = true)]
-    public string? OwnerNode { get; set; }
+    public virtual string? OwnerNode { get; set; }
 
     /// <summary>
     /// 更新时间
     /// </summary>
     [SugarColumn(ColumnDescription = "更新时间", IsNullable = true)]
-    public DateTime? UpdatedTime { get; set; }
+    public virtual DateTimeOffset? UpdatedTime { get; set; }
 }

@@ -97,6 +97,7 @@ public partial class SysRole : BasicAppAggregateRoot
 
     /// <summary>
     /// 数据权限范围
+    /// 禁止依赖枚举数值大小做权限合并，必须按 DataPermissionScope 注释中的显式语义解释
     /// </summary>
     [SugarColumn(ColumnDescription = "数据权限范围")]
     public virtual DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;

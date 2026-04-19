@@ -45,41 +45,41 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ve", nameof(Version), OrderByType.Asc)]
-public class SysMigrationHistory : BasicAppCreationEntity
+public partial class SysMigrationHistory : BasicAppCreationEntity
 {
     /// <summary>
     /// 版本
     /// </summary>
     [SugarColumn(ColumnDescription = "版本", Length = 64)]
-    public string Version { get; set; } = string.Empty;
+    public virtual string Version { get; set; } = string.Empty;
 
     /// <summary>
     /// 脚本名称
     /// </summary>
     [SugarColumn(ColumnDescription = "脚本名称", Length = 256)]
-    public string ScriptName { get; set; } = string.Empty;
+    public virtual string ScriptName { get; set; } = string.Empty;
 
     /// <summary>
     /// 执行时间
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时间")]
-    public DateTime ExecutedTime { get; set; }
+    public virtual DateTimeOffset ExecutedTime { get; set; }
 
     /// <summary>
     /// 是否成功
     /// </summary>
     [SugarColumn(ColumnDescription = "是否成功")]
-    public bool Success { get; set; }
+    public virtual bool Success { get; set; }
 
     /// <summary>
     /// 节点名称
     /// </summary>
     [SugarColumn(ColumnDescription = "节点名称", Length = 128, IsNullable = true)]
-    public string? NodeName { get; set; }
+    public virtual string? NodeName { get; set; }
 
     /// <summary>
     /// 错误信息
     /// </summary>
     [SugarColumn(ColumnDescription = "错误信息", Length = 1024, IsNullable = true)]
-    public string? ErrorMessage { get; set; }
+    public virtual string? ErrorMessage { get; set; }
 }
