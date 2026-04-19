@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using System.Linq.Expressions;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Domain.Specifications;
 
 namespace XiHan.BasicApp.Saas.Domain.Specifications;
@@ -30,8 +30,7 @@ public sealed class AvailableTenantSpecification : Specification<SysTenant>
     /// <returns></returns>
     public override Expression<Func<SysTenant, bool>> ToExpression()
     {
-        return tenant => tenant.Status == YesOrNo.Yes
-                         && tenant.TenantStatus == TenantStatus.Normal
+        return tenant => tenant.TenantStatus == TenantStatus.Normal
                          && (tenant.ExpireTime == null || tenant.ExpireTime > DateTimeOffset.UtcNow);
     }
 }

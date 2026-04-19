@@ -177,7 +177,7 @@ public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, I
     /// 访问时间
     /// </summary>
     [SugarColumn(ColumnDescription = "访问时间")]
-    public virtual DateTimeOffset AccessTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset AccessTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 离开时间

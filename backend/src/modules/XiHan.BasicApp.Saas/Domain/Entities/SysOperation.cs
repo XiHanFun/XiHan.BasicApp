@@ -119,7 +119,7 @@ public partial class SysOperation : BasicAppAggregateRoot
     public virtual bool IsRequireAudit { get; set; } = false;
 
     /// <summary>
-    /// 是否平台级全局操作（全局操作所有租户共享，TenantId 为空）
+    /// 是否平台级全局操作（全局操作所有租户共享，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局操作")]
     public virtual bool IsGlobal { get; set; } = false;

@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + ConfigKey 租户内唯一（UX_TeId_CoKe）
-/// - IsGlobal=true 作为平台级默认配置（TenantId 为空），租户级同键覆盖全局
+/// - IsGlobal=true 作为平台级默认配置（TenantId = 0），租户级同键覆盖全局
 /// - 敏感值（密钥/密码类）必须在应用层加密后落库
 /// - 修改后应发布配置变更事件，通知相关服务刷新缓存
 ///
@@ -60,7 +60,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysConfig : BasicAppAggregateRoot
 {
     /// <summary>
-    /// 是否平台级全局配置（全局配置对所有租户生效，TenantId 为空）
+    /// 是否平台级全局配置（全局配置对所有租户生效，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局配置")]
     public virtual bool IsGlobal { get; set; } = false;

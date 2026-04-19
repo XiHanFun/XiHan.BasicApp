@@ -36,7 +36,7 @@ public partial class SysTenant
     /// </summary>
     public void Enable()
     {
-        Status = YesOrNo.Yes;
+        ChangeTenantStatus(TenantStatus.Normal);
     }
 
     /// <summary>
@@ -44,7 +44,6 @@ public partial class SysTenant
     /// </summary>
     public void Disable()
     {
-        Status = YesOrNo.No;
         ChangeTenantStatus(TenantStatus.Disabled);
     }
 }

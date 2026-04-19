@@ -277,7 +277,7 @@ public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity
     /// 异常时间
     /// </summary>
     [SugarColumn(ColumnDescription = "异常时间")]
-    public virtual DateTimeOffset ExceptionTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset ExceptionTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 是否已处理

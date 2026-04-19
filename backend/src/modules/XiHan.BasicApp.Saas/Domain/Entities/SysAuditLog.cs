@@ -298,7 +298,7 @@ public partial class SysAuditLog : BasicAppCreationEntity, ISplitTableEntity, IT
     /// 审计时间
     /// </summary>
     [SugarColumn(ColumnDescription = "审计时间")]
-    public virtual DateTimeOffset AuditTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset AuditTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 扩展数据（JSON格式）

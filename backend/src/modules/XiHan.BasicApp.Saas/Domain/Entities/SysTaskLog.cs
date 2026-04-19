@@ -111,7 +111,7 @@ public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity
     /// 开始时间
     /// </summary>
     [SugarColumn(ColumnDescription = "开始时间")]
-    public virtual DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset StartTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 结束时间

@@ -70,7 +70,7 @@ public partial class SysFileStorage
     {
         return !string.IsNullOrEmpty(SignedUrl) &&
                SignedUrlExpiresAt.HasValue &&
-               SignedUrlExpiresAt.Value > DateTimeOffset.Now;
+               SignedUrlExpiresAt.Value > DateTimeOffset.UtcNow;
     }
 
     /// <summary>
@@ -79,9 +79,9 @@ public partial class SysFileStorage
     public void MarkUploadSuccess()
     {
         Status = FileStorageStatus.Normal;
-        UploadedAt = DateTimeOffset.Now;
+        UploadedAt = DateTimeOffset.UtcNow;
         IsSynced = true;
-        SyncedAt = DateTimeOffset.Now;
+        SyncedAt = DateTimeOffset.UtcNow;
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public partial class SysFileStorage
     {
         Status = FileStorageStatus.Normal;
         IsSynced = true;
-        SyncedAt = DateTimeOffset.Now;
+        SyncedAt = DateTimeOffset.UtcNow;
     }
 
     /// <summary>
@@ -130,7 +130,7 @@ public partial class SysFileStorage
     public void MarkVerified()
     {
         IsVerified = true;
-        LastVerifiedAt = DateTimeOffset.Now;
+        LastVerifiedAt = DateTimeOffset.UtcNow;
         Status = FileStorageStatus.Normal;
     }
 
@@ -160,7 +160,7 @@ public partial class SysFileStorage
             return true;
         }
 
-        return DateTimeOffset.Now - LastVerifiedAt.Value > TimeSpan.FromHours(verifyIntervalHours);
+        return DateTimeOffset.UtcNow - LastVerifiedAt.Value > TimeSpan.FromHours(verifyIntervalHours);
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public partial class SysFileStorage
     public void GenerateSignedUrl(string signedUrl, int expiresInMinutes = 60)
     {
         SignedUrl = signedUrl;
-        SignedUrlExpiresAt = DateTimeOffset.Now.AddMinutes(expiresInMinutes);
+        SignedUrlExpiresAt = DateTimeOffset.UtcNow.AddMinutes(expiresInMinutes);
     }
 
     /// <summary>

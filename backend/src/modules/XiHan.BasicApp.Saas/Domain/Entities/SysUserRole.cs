@@ -38,8 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 即将过期扫描：按 ExTi 轮询清理（IX_ExTi）
 ///
 /// 删除：
-/// - 软删（基类 BasicAppFullAuditedEntity 提供 IsDeleted）；软删即撤销授权，保留审计记录
-/// - 所有查询必须附加 IsDeleted=false 过滤
+/// - 硬删；撤销授权时直接删除记录
 /// - 解绑时应同步撤销该用户在线会话中由此角色激活的 SysSessionRole
 ///
 /// 状态：
@@ -53,14 +52,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysUserRole", "系统用户角色关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_UsId_RoId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
-public partial class SysUserRole : BasicAppFullAuditedEntity
+public partial class SysUserRole : BasicAppCreationEntity
 {
     /// <summary>
     /// 用户ID

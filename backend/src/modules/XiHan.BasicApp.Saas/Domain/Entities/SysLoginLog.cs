@@ -152,7 +152,7 @@ public partial class SysLoginLog : BasicAppCreationEntity, ISplitTableEntity, IT
     /// 登录时间
     /// </summary>
     [SugarColumn(ColumnDescription = "登录时间")]
-    public virtual DateTimeOffset LoginTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset LoginTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 创建时间

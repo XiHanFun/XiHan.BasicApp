@@ -30,14 +30,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysUserPermission", "系统用户权限关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_UsId_PeId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysUserPermission : BasicAppFullAuditedEntity
+public partial class SysUserPermission : BasicAppCreationEntity
 {
     /// <summary>
     /// 用户ID

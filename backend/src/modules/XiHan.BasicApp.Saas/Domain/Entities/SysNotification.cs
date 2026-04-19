@@ -110,7 +110,7 @@ public partial class SysNotification : BasicAppAggregateRoot
     /// 发送时间
     /// </summary>
     [SugarColumn(ColumnDescription = "发送时间")]
-    public virtual DateTimeOffset SendTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset SendTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 过期时间
