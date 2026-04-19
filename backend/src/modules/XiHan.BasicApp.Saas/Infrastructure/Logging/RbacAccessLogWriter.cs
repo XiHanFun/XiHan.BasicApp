@@ -71,7 +71,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
 
         var entity = new SysAccessLog
         {
-            TenantId = _currentTenant.Id.Value,
+            TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             SessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
@@ -89,7 +89,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
             Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
             Device = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
             Referer = RbacLogMappingHelper.TrimOrNull(record.Referer, 500),
-            ResponseTime = elapsedMilliseconds,
+            ResponseDuration = elapsedMilliseconds,
             ResponseSize = record.ResponseSize < 0 ? 0 : record.ResponseSize,
             AccessTime = accessTime,
             LeaveTime = now,

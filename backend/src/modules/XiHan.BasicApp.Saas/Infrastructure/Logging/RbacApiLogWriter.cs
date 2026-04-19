@@ -78,7 +78,7 @@ public class RbacApiLogWriter : IApiLogWriter
 
         var entity = new SysApiLog
         {
-            TenantId = _currentTenant.Id.Value,
+            TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),

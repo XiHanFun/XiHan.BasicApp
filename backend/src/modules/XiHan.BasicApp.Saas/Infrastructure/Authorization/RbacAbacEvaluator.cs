@@ -83,8 +83,7 @@ public class RbacAbacEvaluator : IAbacEvaluator
         var query = DbClient.Queryable<SysConstraintRule>()
             .Where(rule =>
                 rule.RuleCode == policyCode
-                && rule.IsEnabled
-                && rule.Status == YesOrNo.Yes);
+                && rule.IsEnabled);
 
         query = tenantId.HasValue
             ? query.Where(rule => rule.TenantId == tenantId.Value || rule.TenantId == 0)

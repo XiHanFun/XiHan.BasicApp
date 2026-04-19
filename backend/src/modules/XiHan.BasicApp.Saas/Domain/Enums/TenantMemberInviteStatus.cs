@@ -41,7 +41,7 @@ public enum TenantMemberInviteStatus
     Revoked = 3,
 
     /// <summary>
-    /// 已过期：邀请在 ExpirationTime 前未被接受，或成员身份有效期已过
+    /// 已过期：邀请在 EffectiveTo 前未被接受，或成员身份有效期已过
     /// </summary>
     Expired = 4
 }

@@ -138,8 +138,7 @@ public class RbacTenantStore : ITenantStore
 
     private static bool IsActive(SysTenant tenant)
     {
-        return tenant.Status == YesOrNo.Yes &&
-               tenant.TenantStatus == TenantStatus.Normal &&
+        return tenant.TenantStatus == TenantStatus.Normal &&
                (!tenant.ExpireTime.HasValue || tenant.ExpireTime.Value > DateTimeOffset.UtcNow);
     }
 }
