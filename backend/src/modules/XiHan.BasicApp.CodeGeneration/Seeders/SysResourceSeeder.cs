@@ -49,14 +49,14 @@ public class SysResourceSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = DbClient;
         var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "code_gen").ToListAsync();
         var existsCodes = exists.Select(x => x.ResourceCode).ToHashSet();
         var addList = new List<SysResource>();
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysResource { ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", IsRequireAuth = true, IsPublic = false, Status = YesOrNo.Yes, Sort = 401 });
+            addList.Add(new SysResource { ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = YesOrNo.Yes, Sort = 401 });
         }
 
         if (addList.Count == 0)

@@ -86,7 +86,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         {
             var entity = new SysVersion
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 AppVersion = currentAppVersion,
                 DbVersion = "0.0.0",
                 MinSupportVersion = minSupportVersion,
@@ -231,7 +231,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
         var db = GetDbClient();
         var entity = new SysMigrationHistory
         {
-            TenantId = history.TenantId,
+            TenantId = history.TenantId ?? 0,
             Version = history.Version,
             ScriptName = history.ScriptName,
             ExecutedTime = history.ExecutedTime,

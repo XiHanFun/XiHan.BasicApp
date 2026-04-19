@@ -49,7 +49,7 @@ public class SysPermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = DbClient;
         var resources = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "code_gen").ToListAsync();
         var operations = await client.Queryable<SysOperation>().ToListAsync();
         if (resources.Count == 0 || operations.Count == 0)

@@ -94,7 +94,7 @@ public class UserSessionAppService
     {
         var entity = new SysUserSession
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             UserId = createDto.UserId,
             CurrentAccessTokenJti = createDto.CurrentAccessTokenJti,
             UserSessionId = createDto.SessionId.Trim(),

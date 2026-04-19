@@ -45,7 +45,7 @@ public class RbacExternalLoginStore : IExternalLoginStore
     {
         var entity = new SysExternalLogin
         {
-            TenantId = tenantId,
+            TenantId = tenantId ?? 0,
             UserId = userId,
             Provider = info.Provider,
             ProviderKey = info.ProviderKey,

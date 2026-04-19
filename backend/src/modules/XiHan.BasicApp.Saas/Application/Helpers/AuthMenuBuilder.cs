@@ -58,23 +58,26 @@ internal static class AuthMenuBuilder
 
     private static AuthMenuRouteDto MapMenuRoute(SysMenu menu, IReadOnlySet<string> userPermissionCodes)
     {
-        // 收集当前菜单关联的所有权限编码（主权限 + 同资源下的按钮权限）
+        var menuPermissionCode = menu.Permission?.PermissionCode;
+
         var permissionCodes = new List<string>();
-        if (!string.IsNullOrWhiteSpace(menu.PermissionCode))
+        if (!string.IsNullOrWhiteSpace(menuPermissionCode))
         {
-            permissionCodes.Add(menu.PermissionCode);
+            permissionCodes.Add(menuPermissionCode);
         }
 
-        // 从按钮子菜单中提取更多权限编码
         if (menu.Children is { Count: > 0 })
         {
-            foreach (var child in menu.Children.Where(static c => c.MenuType == MenuType.Button && !string.IsNullOrWhiteSpace(c.PermissionCode)))
+            foreach (var child in menu.Children.Where(static c => c.MenuType == MenuType.Button))
             {
-                permissionCodes.Add(child.PermissionCode!);
+                var childCode = child.Permission?.PermissionCode;
+                if (!string.IsNullOrWhiteSpace(childCode))
+                {
+                    permissionCodes.Add(childCode);
+                }
             }
         }
 
-        // 只保留用户实际拥有的权限
         var effectivePermissions = permissionCodes
             .Where(code => userPermissionCodes.Contains(code))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -90,7 +93,7 @@ internal static class AuthMenuBuilder
             Path = !string.IsNullOrWhiteSpace(menu.Path) ? menu.Path : BuildFallbackMenuPath(menu),
             Component = menu.Component,
             Redirect = menu.Redirect,
-            Permission = menu.PermissionCode,
+            Permission = menuPermissionCode,
             Meta = new AuthMenuMetaDto
             {
                 Title = !string.IsNullOrWhiteSpace(menu.Title) ? menu.Title : menu.MenuName,

@@ -48,7 +48,7 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbContext.GetClient();
+        var client = DbClient;
         var roles = await client.Queryable<SysRole>().Where(r => r.RoleCode == "super_admin" || r.RoleCode == "admin").ToListAsync();
         var permissions = await client.Queryable<SysPermission>().Where(p => p.PermissionCode.StartsWith("code_gen:") || p.PermissionCode.StartsWith("code_gen_api:")).ToListAsync();
         if (roles.Count == 0 || permissions.Count == 0)
