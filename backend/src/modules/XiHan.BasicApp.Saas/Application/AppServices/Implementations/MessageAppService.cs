@@ -193,7 +193,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                 {
                     await _emailRepository.AddAsync(new SysEmail
                     {
-                        TenantId = resolvedTenantId,
+                        TenantId = resolvedTenantId ?? 0,
                         SendUserId = command.SendUserId,
                         ReceiveUserId = recipient.BasicId,
                         EmailType = EmailType.Notification,
@@ -231,7 +231,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
                 {
                     await _smsRepository.AddAsync(new SysSms
                     {
-                        TenantId = resolvedTenantId,
+                        TenantId = resolvedTenantId ?? 0,
                         SenderId = command.SendUserId,
                         ReceiverId = recipient.BasicId,
                         SmsType = SmsType.Notification,

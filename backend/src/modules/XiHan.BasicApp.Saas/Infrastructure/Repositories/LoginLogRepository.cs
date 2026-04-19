@@ -16,8 +16,8 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -29,14 +29,10 @@ public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILo
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     public LoginLogRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider)
-        : base(dbContext, splitTableExecutor, serviceProvider)
+        ISqlSugarClientResolver clientResolver)
+        : base(clientResolver)
     {
     }
 
@@ -57,7 +53,7 @@ public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILo
         }
 
         var since = DateTimeOffset.UtcNow.AddMinutes(-minutes);
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(log => log.UserName == userName
                           && log.LoginTime >= since
                           && log.LoginResult != LoginResult.Success);
@@ -77,7 +73,7 @@ public class LoginLogRepository : SqlSugarRepositoryBase<SysLoginLog, long>, ILo
     public async Task<(List<SysLoginLog> Items, int Total)> GetPagedByUserIdAsync(
         long userId, long? tenantId, int pageIndex, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(log => log.UserId == userId);
 
         if (tenantId.HasValue)

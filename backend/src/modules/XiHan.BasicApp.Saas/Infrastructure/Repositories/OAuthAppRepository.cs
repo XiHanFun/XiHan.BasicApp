@@ -15,8 +15,9 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -30,11 +31,9 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
     /// 构造函数
     /// </summary>
     public OAuthAppRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -46,7 +45,7 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
         var resolvedTenantId = tenantId;
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(app => app.ClientId == clientId);
 
         query = resolvedTenantId.HasValue
@@ -64,7 +63,7 @@ public class OAuthAppRepository : SqlSugarAggregateRepository<SysOAuthApp, long>
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
         var resolvedTenantId = tenantId;
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(app => app.ClientId == clientId);
 
         query = resolvedTenantId.HasValue

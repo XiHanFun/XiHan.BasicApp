@@ -19,7 +19,8 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+using XiHan.Framework.Data.SqlSugar.Clients;
+
 using XiHan.Framework.Domain.Entities;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Web.Core.Clients;
@@ -31,31 +32,27 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 /// </summary>
 public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
 {
-    private readonly ISqlSugarDbContext _dbContext;
-    private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="clientInfoProvider"></param>
     /// <param name="httpContextAccessor"></param>
     public RbacEntityAuditLogWriter(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
+        ISqlSugarClientResolver clientResolver,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
     {
-        _dbContext = dbContext;
-        _splitTableExecutor = splitTableExecutor;
+        _clientResolver = clientResolver;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 写入实体审计日志
@@ -76,7 +73,7 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
 
         var entity = new SysAuditLog
         {
-            TenantId = record.TenantId,
+            TenantId = record.TenantId.Value,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             AuditType = RbacLogMappingHelper.TrimOrDefault(record.AuditType, 50, "EntityChange"),
@@ -112,7 +109,7 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
             AuditTime = DateTimeOffset.UtcNow
         };
 
-        await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);
+        await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
     private static string BuildDescription(EntityAuditLogRecord record, string entityTypeName, string? entityId)

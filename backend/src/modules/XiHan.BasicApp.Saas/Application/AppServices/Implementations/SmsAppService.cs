@@ -75,7 +75,7 @@ public class SmsAppService
     {
         var entity = new SysSms
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             SenderId = createDto.SenderId,
             ReceiverId = createDto.ReceiverId,
             SmsType = createDto.SmsType,

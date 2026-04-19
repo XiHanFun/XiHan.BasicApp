@@ -15,17 +15,15 @@
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
-using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
 /// <summary>
 /// 菜单仓储实现
 /// </summary>
-public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuRepository
+public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRepository
 {
     private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
@@ -33,17 +31,11 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// 构造函数
     /// </summary>
     /// <param name="roleHierarchyRepository"></param>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
-    /// <param name="unitOfWorkManager"></param>
+    /// <param name="clientResolver"></param>
     public MenuRepository(
         IRoleHierarchyRepository roleHierarchyRepository,
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
-        IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        ISqlSugarClientResolver clientResolver)
+        : base(clientResolver)
     {
         _roleHierarchyRepository = roleHierarchyRepository;
     }
@@ -53,7 +45,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// </summary>
     public new async Task<IReadOnlyList<SysMenu>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await CreateTenantQueryable()
+        return await CreateQueryable()
             .OrderBy(menu => menu.Sort)
             .ToListAsync(cancellationToken);
     }
@@ -68,7 +60,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     public async Task<SysMenu?> GetByMenuCodeAsync(string menuCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(menuCode);
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(menu => menu.MenuCode == menuCode);
 
         query = tenantId.HasValue ? query.Where(menu => menu.TenantId == tenantId.Value) : query.Where(menu => menu.TenantId == 0);
@@ -77,7 +69,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     }
 
     /// <summary>
-    /// 根据角色ID获取菜单
+    /// 根据角色ID获取菜单（通过 SysRolePermission + SysMenu.PermissionId 推导）
     /// </summary>
     /// <param name="roleId"></param>
     /// <param name="tenantId"></param>
@@ -85,19 +77,28 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysMenu>> GetRoleMenusAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var menuIds = await CreateTenantQueryable<SysRoleMenu>()
-            .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes)
-            .Select(mapping => mapping.MenuId)
+        var permissionQuery = CreateQueryable<SysRolePermission>()
+            .Where(rp => rp.RoleId == roleId && rp.Status == YesOrNo.Yes);
+
+        if (tenantId.HasValue)
+        {
+            permissionQuery = permissionQuery.Where(rp => rp.TenantId == tenantId.Value);
+        }
+
+        var permissionIds = await permissionQuery
+            .Select(rp => rp.PermissionId)
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        if (menuIds.Count == 0)
+        if (permissionIds.Count == 0)
         {
             return [];
         }
 
-        var query = CreateTenantQueryable()
-            .Where(menu => menuIds.Contains(menu.BasicId) && menu.Status == YesOrNo.Yes);
+        var query = CreateQueryable()
+            .Where(menu => menu.PermissionId.HasValue
+                && permissionIds.Contains(menu.PermissionId.Value)
+                && menu.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
         {
@@ -109,7 +110,7 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     }
 
     /// <summary>
-    /// 根据用户ID获取菜单
+    /// 根据用户ID获取菜单（通过用户角色→权限→菜单.PermissionId 推导）
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="tenantId"></param>
@@ -117,9 +118,8 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysMenu>> GetUserMenusAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var roleQuery = CreateTenantQueryable<SysUserRole>()
-            .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes)
-            ;
+        var roleQuery = CreateQueryable<SysUserRole>()
+            .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
         roleQuery = tenantId.HasValue
             ? roleQuery.Where(mapping => mapping.TenantId == tenantId.Value)
@@ -140,25 +140,27 @@ public class MenuRepository : SqlSugarAggregateRepository<SysMenu, long>, IMenuR
             return [];
         }
 
-        var roleMenuQuery = CreateTenantQueryable<SysRoleMenu>()
-            .Where(mapping => inheritedRoleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes);
+        var rolePermissionQuery = CreateQueryable<SysRolePermission>()
+            .Where(rp => inheritedRoleIds.Contains(rp.RoleId) && rp.Status == YesOrNo.Yes);
 
-        roleMenuQuery = tenantId.HasValue
-            ? roleMenuQuery.Where(mapping => mapping.TenantId == tenantId.Value)
-            : roleMenuQuery.Where(mapping => mapping.TenantId == 0);
+        rolePermissionQuery = tenantId.HasValue
+            ? rolePermissionQuery.Where(rp => rp.TenantId == tenantId.Value)
+            : rolePermissionQuery.Where(rp => rp.TenantId == 0);
 
-        var menuIds = await roleMenuQuery
-            .Select(mapping => mapping.MenuId)
+        var permissionIds = await rolePermissionQuery
+            .Select(rp => rp.PermissionId)
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        if (menuIds.Count == 0)
+        if (permissionIds.Count == 0)
         {
             return [];
         }
 
-        var query = CreateTenantQueryable()
-            .Where(menu => menuIds.Contains(menu.BasicId) && menu.Status == YesOrNo.Yes);
+        var query = CreateQueryable()
+            .Where(menu => menu.PermissionId.HasValue
+                && permissionIds.Contains(menu.PermissionId.Value)
+                && menu.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
         {

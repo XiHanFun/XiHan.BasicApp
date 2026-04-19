@@ -169,12 +169,10 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysUserSeeder>();              // Order = 14
         services.AddDataSeeder<SysMenuSeeder>();              // Order = 15
         services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 16
-        services.AddDataSeeder<SysRoleMenuSeeder>();          // Order = 17
-        services.AddDataSeeder<SysDictSeeder>();              // Order = 18
-        services.AddDataSeeder<SysDictItemSeeder>();          // Order = 19
-        services.AddDataSeeder<SysConfigSeeder>();            // Order = 20
-        services.AddDataSeeder<SysConstraintRuleFeatureSeeder>(); // Order = 21
-        services.AddDataSeeder<SysRoleButtonMenuSeeder>();    // Order = 22
+        services.AddDataSeeder<SysDictSeeder>();              // Order = 17
+        services.AddDataSeeder<SysDictItemSeeder>();          // Order = 18
+        services.AddDataSeeder<SysConfigSeeder>();            // Order = 19
+        services.AddDataSeeder<SysConstraintRuleFeatureSeeder>(); // Order = 20
         return services;
     }
 

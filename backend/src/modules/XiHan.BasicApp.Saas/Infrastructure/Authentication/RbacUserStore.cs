@@ -23,6 +23,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Authentication;
@@ -37,7 +38,7 @@ public class RbacUserStore : IUserStore
 
     private readonly IUserRepository _userRepository;
     private readonly IConfigRepository _configRepository;
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
@@ -45,21 +46,21 @@ public class RbacUserStore : IUserStore
     /// </summary>
     /// <param name="userRepository">用户仓储</param>
     /// <param name="configRepository">配置仓储</param>
-    /// <param name="dbContext">数据库上下文</param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant">当前租户</param>
     public RbacUserStore(
         IUserRepository userRepository,
         IConfigRepository configRepository,
-        ISqlSugarDbContext dbContext,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant)
     {
         _userRepository = userRepository;
         _configRepository = configRepository;
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
     }
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 根据用户名获取用户
@@ -365,7 +366,7 @@ public class RbacUserStore : IUserStore
 
         security = new SysUserSecurity
         {
-            TenantId = tenantId,
+            TenantId = tenantId ?? 0,
             UserId = userId
         };
 
@@ -423,7 +424,7 @@ public class RbacUserStore : IUserStore
         {
             var config = new SysConfig
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 ConfigName = $"RecoveryCodes:{userId}",
                 ConfigGroup = RecoveryCodeConfigGroup,
                 ConfigKey = configKey,

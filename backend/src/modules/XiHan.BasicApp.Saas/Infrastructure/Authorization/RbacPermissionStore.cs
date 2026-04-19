@@ -20,6 +20,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
@@ -32,10 +33,10 @@ public class RbacPermissionStore : IPermissionStore
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 构造函数
@@ -43,19 +44,19 @@ public class RbacPermissionStore : IPermissionStore
     /// <param name="userRepository">用户仓储</param>
     /// <param name="roleRepository">角色仓储</param>
     /// <param name="permissionRepository">权限仓储</param>
-    /// <param name="dbContext">数据库上下文</param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant">当前租户</param>
     public RbacPermissionStore(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
-        ISqlSugarDbContext dbContext,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
     }
 
@@ -133,7 +134,7 @@ public class RbacPermissionStore : IPermissionStore
         {
             var mapping = new SysUserPermission
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 UserId = parsedUserId,
                 PermissionId = permission.BasicId,
                 PermissionAction = PermissionAction.Grant,
@@ -210,7 +211,7 @@ public class RbacPermissionStore : IPermissionStore
         {
             var mapping = new SysRolePermission
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 RoleId = parsedRoleId,
                 PermissionId = permission.BasicId,
                 Status = YesOrNo.Yes

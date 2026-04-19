@@ -17,7 +17,8 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+using XiHan.Framework.Data.SqlSugar.Clients;
+
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Web.Api.Logging;
@@ -31,8 +32,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 /// </summary>
 public class RbacApiLogWriter : IApiLogWriter
 {
-    private readonly ISqlSugarDbContext _dbContext;
-    private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -40,26 +40,23 @@ public class RbacApiLogWriter : IApiLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant"></param>
     /// <param name="clientInfoProvider"></param>
     /// <param name="httpContextAccessor"></param>
     public RbacApiLogWriter(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
     {
-        _dbContext = dbContext;
-        _splitTableExecutor = splitTableExecutor;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 写入接口日志
@@ -81,7 +78,7 @@ public class RbacApiLogWriter : IApiLogWriter
 
         var entity = new SysApiLog
         {
-            TenantId = _currentTenant.Id,
+            TenantId = _currentTenant.Id.Value,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
@@ -114,7 +111,7 @@ public class RbacApiLogWriter : IApiLogWriter
             ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 2000)
         };
 
-        await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);
+        await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
     private static SignatureType ResolveSignatureType(string? algorithm)

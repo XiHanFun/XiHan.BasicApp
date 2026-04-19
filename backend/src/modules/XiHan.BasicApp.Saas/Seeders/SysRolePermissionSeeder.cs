@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -28,8 +29,8 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysRolePermissionSeeder(ISqlSugarDbContext dbContext, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysRolePermissionSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 
@@ -48,8 +49,8 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
-        var permissions = await DbContext.GetClient()
+        var roles = await DbClient.Queryable<SysRole>().ToListAsync();
+        var permissions = await DbClient
             .Queryable<SysPermission>()
             .Where(permission => permission.Status == YesOrNo.Yes)
             .ToListAsync();
@@ -118,7 +119,7 @@ public class SysRolePermissionSeeder : DataSeederBase
 
         var targetRoleIds = requiredPairs.Select(pair => pair.RoleId).Distinct().ToArray();
         var targetPermissionIds = requiredPairs.Select(pair => pair.PermissionId).Distinct().ToArray();
-        var existingPairs = await DbContext.GetClient()
+        var existingPairs = await DbClient
             .Queryable<SysRolePermission>()
             .Where(mapping => targetRoleIds.Contains(mapping.RoleId) && targetPermissionIds.Contains(mapping.PermissionId))
             .Select(mapping => new { mapping.BasicId, mapping.RoleId, mapping.PermissionId, mapping.Status })
@@ -151,7 +152,7 @@ public class SysRolePermissionSeeder : DataSeederBase
             .ToArray();
         if (disabledMappingIds.Length > 0)
         {
-            await DbContext.GetClient()
+            await DbClient
                 .Updateable<SysRolePermission>()
                 .SetColumns(mapping => mapping.Status == YesOrNo.Yes)
                 .Where(mapping => disabledMappingIds.Contains(mapping.BasicId))

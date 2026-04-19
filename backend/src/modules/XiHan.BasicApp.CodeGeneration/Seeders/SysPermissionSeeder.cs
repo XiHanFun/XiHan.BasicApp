@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.CodeGeneration.Seeders;
@@ -28,8 +29,8 @@ public class SysPermissionSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysPermissionSeeder(ISqlSugarDbContext dbContext, ILogger<SysPermissionSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysPermissionSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysPermissionSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 

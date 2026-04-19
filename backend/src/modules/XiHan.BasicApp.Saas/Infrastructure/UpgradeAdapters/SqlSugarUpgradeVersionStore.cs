@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Upgrade.Models;
@@ -28,22 +29,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.UpgradeAdapters;
 /// </summary>
 public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
 {
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly XiHanUpgradeOptions _options;
     private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext">SqlSugar 数据上下文</param>
+    /// <param name="clientResolver"></param>
     /// <param name="options">升级选项</param>
     /// <param name="currentTenant">当前租户</param>
     public SqlSugarUpgradeVersionStore(
-        ISqlSugarDbContext dbContext,
+        ISqlSugarClientResolver clientResolver,
         IOptions<XiHanUpgradeOptions> options,
         ICurrentTenant currentTenant)
     {
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
         _options = options.Value;
         _currentTenant = currentTenant;
     }
@@ -309,7 +310,7 @@ public class SqlSugarUpgradeVersionStore : IUpgradeVersionStore
     /// <returns></returns>
     private ISqlSugarClient GetDbClient()
     {
-        return _dbContext.GetClient(_options.ConnectionConfigId);
+        return _clientResolver.GetClient(_options.ConnectionConfigId);
     }
 
     /// <summary>

@@ -15,6 +15,7 @@
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.CodeGeneration.Seeders;
@@ -27,8 +28,8 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysRolePermissionSeeder(ISqlSugarDbContext dbContext, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysRolePermissionSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysRolePermissionSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 

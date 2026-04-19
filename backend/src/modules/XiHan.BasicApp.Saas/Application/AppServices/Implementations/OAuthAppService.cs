@@ -202,7 +202,7 @@ public class OAuthAppService
     {
         var entity = new SysOAuthApp
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             AppName = createDto.AppName.Trim(),
             AppDescription = createDto.AppDescription,
             ClientId = createDto.ClientId.Trim(),

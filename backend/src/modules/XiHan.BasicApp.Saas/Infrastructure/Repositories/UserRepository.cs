@@ -17,8 +17,9 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -31,16 +32,12 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="unitOfWorkManager"></param>
     public UserRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -55,7 +52,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(user => user.UserName == userName);
 
         return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
@@ -72,7 +69,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(phone);
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(user => user.Phone == phone);
 
         return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
@@ -89,7 +86,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(user => user.Email == email);
 
         return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
@@ -111,7 +108,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(user => user.UserName == userName);
 
         if (excludeUserId.HasValue)
@@ -133,7 +130,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <returns></returns>
     public async Task<SysUserSecurity?> GetSecurityByUserIdAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable<SysUserSecurity>()
+        var query = CreateQueryable<SysUserSecurity>()
             .Where(entity => entity.UserId == userId);
 
         if (tenantId.HasValue)
@@ -173,7 +170,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysUserRole>> GetUserRolesAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable<SysUserRole>()
+        var query = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId);
 
         if (tenantId.HasValue)
@@ -204,7 +201,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             return new Dictionary<long, IReadOnlyList<long>>();
         }
 
-        var query = CreateTenantQueryable<SysUserRole>()
+        var query = CreateQueryable<SysUserRole>()
             .Where(mapping => distinctUserIds.Contains(mapping.UserId));
 
         if (tenantId.HasValue)
@@ -236,7 +233,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var query = CreateTenantQueryable<SysUserRole>()
+        var query = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
@@ -259,7 +256,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysUserPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable<SysUserPermission>()
+        var query = CreateQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId);
 
         if (tenantId.HasValue)
@@ -279,7 +276,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysUserDepartment>> GetUserDepartmentsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable<SysUserDepartment>()
+        var query = CreateQueryable<SysUserDepartment>()
             .Where(mapping => mapping.UserId == userId);
 
         if (tenantId.HasValue)
@@ -321,7 +318,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         var mappings = distinctRoleIds.Select(roleId => new SysUserRole
         {
-            TenantId = resolvedTenantId,
+            TenantId = resolvedTenantId ?? 0,
             UserId = userId,
             RoleId = roleId,
             Status = YesOrNo.Yes
@@ -361,7 +358,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         var mappings = distinctPermissionIds.Select(permissionId => new SysUserPermission
         {
-            TenantId = resolvedTenantId,
+            TenantId = resolvedTenantId ?? 0,
             UserId = userId,
             PermissionId = permissionId,
             PermissionAction = PermissionAction.Grant,
@@ -408,7 +405,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         var mappings = distinctDepartmentIds.Select(departmentId => new SysUserDepartment
         {
-            TenantId = resolvedTenantId,
+            TenantId = resolvedTenantId ?? 0,
             UserId = userId,
             DepartmentId = departmentId,
             IsMain = mainDepartmentId.HasValue && mainDepartmentId.Value == departmentId,

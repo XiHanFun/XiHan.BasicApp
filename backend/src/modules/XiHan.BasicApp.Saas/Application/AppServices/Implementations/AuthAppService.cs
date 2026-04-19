@@ -357,7 +357,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         var user = new SysUser
         {
-            TenantId = tenantId,
+            TenantId = tenantId ?? 0,
             UserName = command.UserName,
             RealName = command.UserName,
             NickName = command.NickName ?? command.UserName,
@@ -726,7 +726,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             var tempPassword = GenerateTemporaryPassword();
             user = new SysUser
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 UserName = userName,
                 NickName = command.DisplayName ?? userName,
                 Email = command.Email,
@@ -755,7 +755,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         {
             var newBinding = new SysExternalLogin
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 UserId = user.BasicId,
                 Provider = provider,
                 ProviderKey = providerKey,
@@ -1178,7 +1178,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         var log = new SysLoginLog
         {
-            TenantId = tenantId,
+            TenantId = tenantId ?? 0,
             UserId = userId,
             UserName = userName,
             TraceId = traceId is { Length: > 64 } ? traceId[..64] : traceId,

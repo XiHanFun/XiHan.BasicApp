@@ -15,8 +15,8 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -29,10 +29,8 @@ public class TaskLogRepository : SqlSugarRepositoryBase<SysTaskLog, long>, ITask
     /// 构造函数
     /// </summary>
     public TaskLogRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider)
-        : base(dbContext, splitTableExecutor, serviceProvider)
+        ISqlSugarClientResolver clientResolver)
+        : base(clientResolver)
     {
     }
 

@@ -15,8 +15,9 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -30,11 +31,9 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
     /// 构造函数
     /// </summary>
     public TaskRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -46,7 +45,7 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
         ArgumentException.ThrowIfNullOrWhiteSpace(taskCode);
         var resolvedTenantId = tenantId;
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(task => task.TaskCode == taskCode);
 
         query = resolvedTenantId.HasValue
@@ -64,7 +63,7 @@ public class TaskRepository : SqlSugarAggregateRepository<SysTask, long>, ITaskR
         ArgumentException.ThrowIfNullOrWhiteSpace(taskCode);
         var resolvedTenantId = tenantId;
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(task => task.TaskCode == taskCode);
 
         query = resolvedTenantId.HasValue

@@ -85,25 +85,4 @@ public class RoleManager : IRoleManager
         await _roleRepository.UpdateAsync(role, cancellationToken);
     }
 
-    /// <summary>
-    /// 分配角色菜单
-    /// </summary>
-    /// <param name="roleId">角色ID</param>
-    /// <param name="menuIds">菜单ID集合</param>
-    /// <param name="tenantId">租户ID</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否成功</returns>
-    /// <exception cref="ArgumentNullException">角色为空</exception>
-    public async Task AssignMenusAsync(
-        long roleId,
-        IReadOnlyCollection<long> menuIds,
-        long? tenantId = null,
-        CancellationToken cancellationToken = default)
-    {
-        await _roleRepository.ReplaceRoleMenusAsync(
-            roleId,
-            menuIds,
-            tenantId,
-            cancellationToken);
-    }
 }

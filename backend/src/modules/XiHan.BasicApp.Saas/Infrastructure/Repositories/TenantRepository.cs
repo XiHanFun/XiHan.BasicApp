@@ -15,8 +15,9 @@
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -29,16 +30,12 @@ public class TenantRepository : SqlSugarAggregateRepository<SysTenant, long>, IT
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="unitOfWorkManager"></param>
     public TenantRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -51,7 +48,7 @@ public class TenantRepository : SqlSugarAggregateRepository<SysTenant, long>, IT
     public async Task<SysTenant?> GetByTenantCodeAsync(string tenantCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantCode);
-        var tenant = await CreateTenantQueryable()
+        var tenant = await CreateQueryable()
             .Where(tenant => tenant.TenantCode == tenantCode)
             .FirstAsync(cancellationToken);
         return tenant;
@@ -67,7 +64,7 @@ public class TenantRepository : SqlSugarAggregateRepository<SysTenant, long>, IT
     public async Task<bool> IsTenantCodeExistsAsync(string tenantCode, long? excludeTenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantCode);
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(tenant => tenant.TenantCode == tenantCode);
 
         if (excludeTenantId.HasValue)

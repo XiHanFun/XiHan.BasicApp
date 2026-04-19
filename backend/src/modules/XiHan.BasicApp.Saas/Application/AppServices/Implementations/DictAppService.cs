@@ -170,7 +170,6 @@ public class DictAppService
         {
             TenantId = input.TenantId ?? dict.TenantId,
             DictId = input.DictId,
-            DictCode = dict.DictCode,
             ParentId = input.ParentId,
             ItemCode = normalizedCode,
             ItemName = input.ItemName.Trim(),
@@ -202,7 +201,6 @@ public class DictAppService
         await EnsureDictItemCodeUniqueAsync(input.DictId, normalizedCode, dictItemId);
 
         dictItem.DictId = input.DictId;
-        dictItem.DictCode = dict.DictCode;
         dictItem.ParentId = input.ParentId;
         dictItem.ItemCode = normalizedCode;
         dictItem.ItemName = input.ItemName.Trim();
@@ -245,7 +243,7 @@ public class DictAppService
     {
         var entity = new SysDict
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             DictCode = createDto.DictCode.Trim(),
             DictName = createDto.DictName.Trim(),
             DictType = createDto.DictType.Trim(),

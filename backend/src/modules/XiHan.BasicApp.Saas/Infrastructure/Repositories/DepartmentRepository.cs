@@ -15,8 +15,9 @@
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -29,16 +30,12 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="unitOfWorkManager"></param>
     public DepartmentRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -52,7 +49,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     public async Task<SysDepartment?> GetByDepartmentCodeAsync(string departmentCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(departmentCode);
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(department => department.DepartmentCode == departmentCode);
 
         query = tenantId.HasValue
@@ -71,7 +68,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     /// <returns></returns>
     public async Task<IReadOnlyList<SysDepartment>> GetChildrenAsync(long? parentId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(department => department.ParentId == parentId);
 
         if (tenantId.HasValue)
@@ -102,7 +99,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
         }
 
         var resolvedTenantId = tenantId;
-        var query = CreateTenantQueryable<SysDepartmentHierarchy>()
+        var query = CreateQueryable<SysDepartmentHierarchy>()
             .Where(hierarchy => hierarchy.AncestorId == departmentId);
 
         if (!includeSelf)
@@ -132,7 +129,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
         cancellationToken.ThrowIfCancellationRequested();
 
         var resolvedTenantId = tenantId;
-        var departmentQuery = CreateTenantQueryable();
+        var departmentQuery = CreateQueryable();
         departmentQuery = resolvedTenantId.HasValue
             ? departmentQuery.Where(department => department.TenantId == resolvedTenantId.Value)
             : departmentQuery.Where(department => department.TenantId == 0);
@@ -164,7 +161,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
 
                 var row = new SysDepartmentHierarchy
                 {
-                    TenantId = resolvedTenantId,
+                    TenantId = resolvedTenantId ?? 0,
                     AncestorId = ancestor.BasicId,
                     DescendantId = department.BasicId,
                     Depth = pathDepartments.Length - 1,

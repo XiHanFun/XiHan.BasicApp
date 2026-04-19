@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -30,8 +31,8 @@ public class SysTenantSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysTenantSeeder(ISqlSugarDbContext dbContext, ILogger<SysTenantSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysTenantSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysTenantSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 
@@ -73,7 +74,6 @@ public class SysTenantSeeder : DataSeederBase
                 UserLimit = 10000,
                 StorageLimit = 102400,
                 TenantStatus = TenantStatus.Normal,
-                Status = YesOrNo.Yes,
                 Sort = 0,
                 Remark = "默认租户"
             }

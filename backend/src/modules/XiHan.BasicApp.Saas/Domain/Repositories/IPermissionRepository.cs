@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Saas.Domain.Repositories;
 
 /// <summary>
-/// 权限聚合仓储接口
+/// 权限仓储接口
 /// </summary>
-public interface IPermissionRepository : IAggregateRootRepository<SysPermission, long>
+public interface IPermissionRepository : IAuditedRepository<SysPermission, long>
 {
     /// <summary>
     /// 根据权限编码获取权限
