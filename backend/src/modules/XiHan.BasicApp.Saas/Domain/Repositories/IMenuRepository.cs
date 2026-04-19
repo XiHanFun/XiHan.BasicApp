@@ -18,9 +18,9 @@ using XiHan.Framework.Domain.Repositories;
 namespace XiHan.BasicApp.Saas.Domain.Repositories;
 
 /// <summary>
-/// 菜单聚合仓储接口
+/// 菜单仓储接口
 /// </summary>
-public interface IMenuRepository : IAggregateRootRepository<SysMenu, long>
+public interface IMenuRepository : IAuditedRepository<SysMenu, long>
 {
     /// <summary>
     /// 获取所有菜单

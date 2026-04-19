@@ -39,11 +39,6 @@ public interface IRoleAppService
     Task<IReadOnlyList<RolePermissionRelationDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null);
 
     /// <summary>
-    /// 获取角色菜单关系
-    /// </summary>
-    Task<IReadOnlyList<RoleMenuRelationDto>> GetRoleMenusAsync(long roleId, long? tenantId = null);
-
-    /// <summary>
     /// 获取角色自定义数据范围部门ID
     /// </summary>
     Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null);
@@ -57,11 +52,6 @@ public interface IRoleAppService
     /// 分配角色权限
     /// </summary>
     Task AssignPermissionsAsync(AssignRolePermissionsCommand command);
-
-    /// <summary>
-    /// 分配角色菜单
-    /// </summary>
-    Task AssignMenusAsync(AssignRoleMenusCommand command);
 
     /// <summary>
     /// 分配角色自定义数据范围

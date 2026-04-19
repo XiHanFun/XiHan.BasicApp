@@ -15,8 +15,9 @@
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -29,16 +30,12 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="unitOfWorkManager"></param>
     public ConfigRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -52,7 +49,7 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
     public async Task<SysConfig?> GetByConfigKeyAsync(string configKey, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(config => config.ConfigKey == configKey);
 
         query = tenantId.HasValue ? query.Where(config => config.TenantId == tenantId.Value) : query.Where(config => config.TenantId == 0);
@@ -63,7 +60,7 @@ public class ConfigRepository : SqlSugarAggregateRepository<SysConfig, long>, IC
     /// <inheritdoc />
     public async Task<IReadOnlyList<SysConfig>> GetByGroupAsync(string? configGroup, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable();
+        var query = CreateQueryable();
 
         query = tenantId.HasValue ? query.Where(config => config.TenantId == tenantId.Value) : query.Where(config => config.TenantId == 0);
 

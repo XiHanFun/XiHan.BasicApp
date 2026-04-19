@@ -30,9 +30,4 @@ public interface IRoleManager
     /// 分配角色权限
     /// </summary>
     Task AssignPermissionsAsync(SysRole role, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 分配角色菜单
-    /// </summary>
-    Task AssignMenusAsync(long roleId, IReadOnlyCollection<long> menuIds, long? tenantId = null, CancellationToken cancellationToken = default);
 }

@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -26,17 +27,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// </summary>
 public class RoleHierarchyRepository : IRoleHierarchyRepository
 {
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext">数据库上下文</param>
-    public RoleHierarchyRepository(ISqlSugarDbContext dbContext)
+    public RoleHierarchyRepository(ISqlSugarClientResolver clientResolver)
     {
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
     }
 
     /// <inheritdoc />
@@ -53,8 +53,7 @@ public class RoleHierarchyRepository : IRoleHierarchyRepository
 
         var query = DbClient.Queryable<SysRoleHierarchy>()
             .Where(hierarchy =>
-                distinctRoleIds.Contains(hierarchy.DescendantId)
-                && hierarchy.Status == YesOrNo.Yes);
+                distinctRoleIds.Contains(hierarchy.DescendantId));
         query = ApplyTenantFilter(query, tenantId);
 
         var ancestorRoleIds = await query
@@ -81,8 +80,7 @@ public class RoleHierarchyRepository : IRoleHierarchyRepository
         var query = DbClient.Queryable<SysRoleHierarchy>()
             .Where(hierarchy =>
                 hierarchy.DescendantId == roleId
-                && hierarchy.Depth == 1
-                && hierarchy.Status == YesOrNo.Yes);
+                && hierarchy.Depth == 1);
         query = ApplyTenantFilter(query, tenantId);
 
         return await query
@@ -177,7 +175,7 @@ public class RoleHierarchyRepository : IRoleHierarchyRepository
     private async Task<Dictionary<long, long[]>> GetDirectParentMapAsync(long? tenantId, CancellationToken cancellationToken)
     {
         var query = DbClient.Queryable<SysRoleHierarchy>()
-            .Where(hierarchy => hierarchy.Depth == 1 && hierarchy.Status == YesOrNo.Yes);
+            .Where(hierarchy => hierarchy.Depth == 1);
         query = ApplyTenantFilter(query, tenantId);
 
         var rows = await query.ToListAsync(cancellationToken);
@@ -249,12 +247,11 @@ public class RoleHierarchyRepository : IRoleHierarchyRepository
         {
             rows.Add(new SysRoleHierarchy
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 AncestorId = roleId,
                 DescendantId = roleId,
                 Depth = 0,
-                Path = roleId.ToString(),
-                Status = YesOrNo.Yes
+                Path = roleId.ToString()
             });
 
             var bestPaths = CollectAncestorPaths(roleId, directParentMap);
@@ -262,12 +259,11 @@ public class RoleHierarchyRepository : IRoleHierarchyRepository
             {
                 rows.Add(new SysRoleHierarchy
                 {
-                    TenantId = tenantId,
+                    TenantId = tenantId ?? 0,
                     AncestorId = ancestorPath[0],
                     DescendantId = roleId,
                     Depth = ancestorPath.Count - 1,
-                    Path = string.Join("/", ancestorPath),
-                    Status = YesOrNo.Yes
+                    Path = string.Join("/", ancestorPath)
                 });
             }
         }

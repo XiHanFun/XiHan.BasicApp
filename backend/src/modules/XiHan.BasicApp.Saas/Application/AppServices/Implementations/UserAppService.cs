@@ -387,7 +387,7 @@ public class UserAppService
 
         var user = new SysUser
         {
-            TenantId = input.TenantId,
+            TenantId = input.TenantId ?? 0,
             UserName = input.UserName.Trim(),
             RealName = input.RealName,
             NickName = input.NickName,

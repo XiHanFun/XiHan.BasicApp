@@ -17,6 +17,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Core.Data;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.MultiTenancy;
 using XiHan.Framework.MultiTenancy.ConfigurationStore;
@@ -28,17 +29,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 /// </summary>
 public class RbacTenantStore : ITenantStore
 {
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext">数据库上下文</param>
-    public RbacTenantStore(ISqlSugarDbContext dbContext)
+    public RbacTenantStore(ISqlSugarClientResolver clientResolver)
     {
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
     }
 
     /// <summary>

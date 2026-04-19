@@ -16,6 +16,7 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -29,9 +30,9 @@ public class ExternalLoginRepository : IExternalLoginRepository
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ExternalLoginRepository(ISqlSugarDbContext dbContext)
+    public ExternalLoginRepository(ISqlSugarClientResolver clientResolver)
     {
-        _db = dbContext.GetClient();
+        _db = clientResolver.GetCurrentClient();
     }
 
     /// <inheritdoc/>

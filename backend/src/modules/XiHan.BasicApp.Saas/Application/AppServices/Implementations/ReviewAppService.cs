@@ -125,7 +125,7 @@ public class ReviewAppService
     {
         var entity = new SysReview
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             ReviewCode = createDto.ReviewCode.Trim(),
             ReviewTitle = createDto.ReviewTitle.Trim(),
             ReviewType = createDto.ReviewType.Trim(),

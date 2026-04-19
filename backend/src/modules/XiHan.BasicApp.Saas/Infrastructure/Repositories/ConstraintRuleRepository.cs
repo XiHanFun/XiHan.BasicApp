@@ -15,8 +15,8 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -28,14 +28,10 @@ public class ConstraintRuleRepository : SqlSugarRepositoryBase<SysConstraintRule
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     public ConstraintRuleRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider)
-        : base(dbContext, splitTableExecutor, serviceProvider)
+        ISqlSugarClientResolver clientResolver)
+        : base(clientResolver)
     {
     }
 
@@ -44,7 +40,7 @@ public class ConstraintRuleRepository : SqlSugarRepositoryBase<SysConstraintRule
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ruleCode);
 
-        var query = CreateTenantQueryable().Where(rule => rule.RuleCode == ruleCode);
+        var query = CreateQueryable().Where(rule => rule.RuleCode == ruleCode);
         query = tenantId.HasValue ? query.Where(rule => rule.TenantId == tenantId.Value) : query.Where(rule => rule.TenantId == 0);
 
         return await query.FirstAsync(cancellationToken);

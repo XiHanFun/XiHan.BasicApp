@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -31,8 +32,8 @@ public class SysUserRoleSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysUserRoleSeeder(ISqlSugarDbContext dbContext, ILogger<SysUserRoleSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysUserRoleSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysUserRoleSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 
@@ -51,8 +52,8 @@ public class SysUserRoleSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var users = await DbContext.GetClient().Queryable<SysUser>().ToListAsync();
-        var roles = await DbContext.GetClient().Queryable<SysRole>().ToListAsync();
+        var users = await DbClient.Queryable<SysUser>().ToListAsync();
+        var roles = await DbClient.Queryable<SysRole>().ToListAsync();
 
         if (users.Count == 0 || roles.Count == 0)
         {
@@ -94,7 +95,7 @@ public class SysUserRoleSeeder : DataSeederBase
         if (roleMap.TryGetValue(SuperAdminRoleCode, out var superAdminRoleId)
             && userMap.TryGetValue(SuperAdminUserName, out var superAdminUserId))
         {
-            removedSuperAdminMappingCount = await DbContext.GetClient()
+            removedSuperAdminMappingCount = await DbClient
                 .Deleteable<SysUserRole>()
                 .Where(mapping =>
                     mapping.RoleId == superAdminRoleId
@@ -110,7 +111,7 @@ public class SysUserRoleSeeder : DataSeederBase
 
         var targetUserIds = requiredPairs.Select(pair => pair.UserId).Distinct().ToArray();
         var targetRoleIds = requiredPairs.Select(pair => pair.RoleId).Distinct().ToArray();
-        var existingPairs = await DbContext.GetClient()
+        var existingPairs = await DbClient
             .Queryable<SysUserRole>()
             .Where(mapping => targetUserIds.Contains(mapping.UserId) && targetRoleIds.Contains(mapping.RoleId))
             .Select(mapping => new { mapping.BasicId, mapping.UserId, mapping.RoleId, mapping.Status })
@@ -139,7 +140,7 @@ public class SysUserRoleSeeder : DataSeederBase
             .ToArray();
         if (disabledMappingIds.Length > 0)
         {
-            await DbContext.GetClient()
+            await DbClient
                 .Updateable<SysUserRole>()
                 .SetColumns(mapping => mapping.Status == YesOrNo.Yes)
                 .Where(mapping => disabledMappingIds.Contains(mapping.BasicId))

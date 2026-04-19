@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Options;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Upgrade.Options;
 
@@ -24,19 +25,19 @@ namespace XiHan.BasicApp.Saas.Infrastructure.UpgradeAdapters;
 /// </summary>
 public class SqlSugarUpgradeMigrationExecutor : IUpgradeMigrationExecutor
 {
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly XiHanUpgradeOptions _options;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext">SqlSugar 数据上下文</param>
+    /// <param name="clientResolver"></param>
     /// <param name="options">升级选项</param>
     public SqlSugarUpgradeMigrationExecutor(
-        ISqlSugarDbContext dbContext,
+        ISqlSugarClientResolver clientResolver,
         IOptions<XiHanUpgradeOptions> options)
     {
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
         _options = options.Value;
     }
 
@@ -48,7 +49,7 @@ public class SqlSugarUpgradeMigrationExecutor : IUpgradeMigrationExecutor
     /// <returns>表示异步操作的任务</returns>
     public async Task ExecuteAsync(string sql, CancellationToken cancellationToken = default)
     {
-        var db = _dbContext.GetClient(_options.ConnectionConfigId);
+        var db = _clientResolver.GetClient(_options.ConnectionConfigId);
 
         try
         {

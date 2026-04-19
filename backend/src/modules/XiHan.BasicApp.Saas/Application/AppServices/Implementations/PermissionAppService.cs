@@ -190,7 +190,7 @@ public class PermissionAppService
     {
         var entity = new SysPermission
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             ResourceId = createDto.ResourceId,
             OperationId = createDto.OperationId,
             PermissionCode = createDto.PermissionCode.Trim(),

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -28,8 +29,8 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysConstraintRuleFeatureSeeder(ISqlSugarDbContext dbContext, ILogger<SysConstraintRuleFeatureSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysConstraintRuleFeatureSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysConstraintRuleFeatureSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 
@@ -48,7 +49,7 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var db = DbContext.GetClient();
+        var db = DbClient;
 
         var constraintResource = await db.Queryable<SysResource>()
             .FirstAsync(resource => resource.ResourceCode == "constraint_rule");
@@ -62,8 +63,7 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
                 ResourceType = ResourceType.Api,
                 ResourcePath = "/api/constraint-rules",
                 Description = "约束规则管理API接口",
-                IsRequireAuth = true,
-                IsPublic = false,
+                AccessLevel = ResourceAccessLevel.Authorized,
                 Status = YesOrNo.Yes,
                 Sort = 2031
             };
@@ -79,7 +79,6 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
         {
             constraintMenu = new SysMenu
             {
-                PermissionCode = "constraint_rule:read",
                 ParentId = platformMenu?.BasicId,
                 MenuName = "约束规则",
                 MenuCode = "constraint_rule",
@@ -200,34 +199,9 @@ public class SysConstraintRuleFeatureSeeder : DataSeederBase
             await BulkInsertAsync(rolePermissionInserts);
         }
 
-        if (constraintMenu is null)
-        {
-            return;
-        }
-
-        var existingRoleMenus = await db.Queryable<SysRoleMenu>()
-            .Where(mapping => roleIds.Contains(mapping.RoleId) && mapping.MenuId == constraintMenu.BasicId)
-            .Select(mapping => mapping.RoleId)
-            .ToListAsync();
-        var existingRoleMenuSet = existingRoleMenus.ToHashSet();
-
-        var roleMenuInserts = roleIds
-            .Where(roleId => !existingRoleMenuSet.Contains(roleId))
-            .Select(roleId => new SysRoleMenu
-            {
-                RoleId = roleId,
-                MenuId = constraintMenu.BasicId
-            })
-            .ToList();
-        if (roleMenuInserts.Count > 0)
-        {
-            await BulkInsertAsync(roleMenuInserts);
-        }
-
         Logger.LogInformation(
-            "约束规则增量种子完成：新增权限 {PermissionCount} 条，新增角色权限 {RolePermissionCount} 条，新增角色菜单 {RoleMenuCount} 条",
+            "约束规则增量种子完成：新增权限 {PermissionCount} 条，新增角色权限 {RolePermissionCount} 条",
             permissionInserts.Count,
-            rolePermissionInserts.Count,
-            roleMenuInserts.Count);
+            rolePermissionInserts.Count);
     }
 }

@@ -22,6 +22,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Policies;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
@@ -36,24 +37,24 @@ public class RbacPolicyStore : IPolicyStore
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
     private readonly IConfigRepository _configRepository;
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="configRepository">配置仓储</param>
-    /// <param name="dbContext">数据库上下文</param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant">当前租户</param>
     public RbacPolicyStore(
         IConfigRepository configRepository,
-        ISqlSugarDbContext dbContext,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant)
     {
         _configRepository = configRepository;
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
     }
 
@@ -129,7 +130,7 @@ public class RbacPolicyStore : IPolicyStore
         var payload = SerializePolicy(policy);
         var config = new SysConfig
         {
-            TenantId = tenantId,
+            TenantId = tenantId ?? 0,
             ConfigName = NormalizeName(policy.Name),
             ConfigGroup = PolicyConfigGroup,
             ConfigKey = configKey,

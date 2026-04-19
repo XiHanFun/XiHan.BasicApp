@@ -16,7 +16,8 @@ using System.Text.Json;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+using XiHan.Framework.Data.SqlSugar.Clients;
+
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Writers;
@@ -31,31 +32,27 @@ public class RbacAccessLogWriter : IAccessLogWriter
 {
     private const int ExtendDataLimit = 32000;
 
-    private readonly ISqlSugarDbContext _dbContext;
-    private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant"></param>
     /// <param name="clientInfoProvider"></param>
     public RbacAccessLogWriter(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider)
     {
-        _dbContext = dbContext;
-        _splitTableExecutor = splitTableExecutor;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
         _clientInfoProvider = clientInfoProvider;
     }
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 写入访问日志
@@ -74,7 +71,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
 
         var entity = new SysAccessLog
         {
-            TenantId = _currentTenant.Id,
+            TenantId = _currentTenant.Id.Value,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             SessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
@@ -101,7 +98,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
             ExtendData = BuildExtendData(record)
         };
 
-        await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);
+        await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
     private static string? BuildExtendData(AccessLogRecord record)

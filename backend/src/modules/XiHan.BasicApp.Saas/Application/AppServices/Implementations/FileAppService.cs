@@ -149,7 +149,7 @@ public class FileAppService
     {
         var entity = new SysFile
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             FileName = createDto.FileName.Trim(),
             OriginalName = createDto.OriginalName.Trim(),
             FileExtension = createDto.FileExtension,

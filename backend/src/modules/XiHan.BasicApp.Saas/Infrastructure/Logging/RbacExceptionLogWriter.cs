@@ -19,7 +19,8 @@ using Microsoft.AspNetCore.Http.Features;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+using XiHan.Framework.Data.SqlSugar.Clients;
+
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Writers;
@@ -32,8 +33,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 /// </summary>
 public class RbacExceptionLogWriter : IExceptionLogWriter
 {
-    private readonly ISqlSugarDbContext _dbContext;
-    private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IWebHostEnvironment _hostingEnvironment;
@@ -42,29 +42,26 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant"></param>
     /// <param name="clientInfoProvider"></param>
     /// <param name="hostingEnvironment"></param>
     /// <param name="httpContextAccessor"></param>
     public RbacExceptionLogWriter(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider,
         IWebHostEnvironment hostingEnvironment,
         IHttpContextAccessor httpContextAccessor)
     {
-        _dbContext = dbContext;
-        _splitTableExecutor = splitTableExecutor;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
         _clientInfoProvider = clientInfoProvider;
         _hostingEnvironment = hostingEnvironment;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 写入异常日志
@@ -83,7 +80,7 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
 
         var entity = new SysExceptionLog
         {
-            TenantId = _currentTenant.Id,
+            TenantId = _currentTenant.Id.Value,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
@@ -123,7 +120,7 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
             ErrorCode = RbacLogMappingHelper.TrimOrNull(record.StatusCode.ToString(), 50)
         };
 
-        await _splitTableExecutor.InsertAsync(DbClient, [entity], cancellationToken);
+        await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
     private static string? BuildExceptionLocation(ExceptionLogRecord record)

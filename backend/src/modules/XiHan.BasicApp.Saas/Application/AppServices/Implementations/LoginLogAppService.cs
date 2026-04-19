@@ -21,7 +21,8 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Data.SqlSugar;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+using XiHan.Framework.Data.SqlSugar.Clients;
+
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
@@ -32,19 +33,16 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
 public class LoginLogAppService : ApplicationServiceBase, ILoginLogAppService
 {
-    private readonly ISqlSugarDbContext _dbContext;
-    private readonly ISqlSugarSplitTableExecutor _splitTableExecutor;
-
+    private readonly ISqlSugarClientResolver _clientResolver;
     /// <summary>
     /// 构造函数
     /// </summary>
-    public LoginLogAppService(ISqlSugarDbContext dbContext, ISqlSugarSplitTableExecutor splitTableExecutor)
+    public LoginLogAppService(ISqlSugarClientResolver clientResolver)
     {
-        _dbContext = dbContext;
-        _splitTableExecutor = splitTableExecutor;
-    }
+        _clientResolver = clientResolver;
+        }
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 分页查询
@@ -56,7 +54,7 @@ public class LoginLogAppService : ApplicationServiceBase, ILoginLogAppService
         var pageSize = input.Page.PageSize;
         RefAsync<int> total = 0;
 
-        var list = await _splitTableExecutor.CreateQueryable<SysLoginLog>(DbClient)
+        var list = await DbClient.Queryable<SysLoginLog>().SplitTable()
             .OrderByDescending(static x => x.CreatedTime)
             .ToPageListAsync(pageIndex, pageSize, total);
 

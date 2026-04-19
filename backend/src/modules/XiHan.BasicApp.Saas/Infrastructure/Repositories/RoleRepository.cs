@@ -16,8 +16,9 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -30,16 +31,12 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -53,7 +50,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     public async Task<SysRole?> GetByRoleCodeAsync(string roleCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
-        var query = CreateTenantQueryable().Where(role => role.RoleCode == roleCode);
+        var query = CreateQueryable().Where(role => role.RoleCode == roleCode);
 
         query = tenantId.HasValue ? query.Where(role => role.TenantId == tenantId.Value) : query.Where(role => role.TenantId == 0);
 
@@ -75,7 +72,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
-        var query = CreateTenantQueryable().Where(role => role.RoleCode == roleCode);
+        var query = CreateQueryable().Where(role => role.RoleCode == roleCode);
 
         if (excludeRoleId.HasValue)
         {
@@ -101,7 +98,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
             return [];
         }
 
-        var query = CreateTenantQueryable<SysRoleDataScope>()
+        var query = CreateQueryable<SysRoleDataScope>()
             .Where(scope => scope.RoleId == roleId && scope.Status == YesOrNo.Yes);
 
         if (tenantId.HasValue)
@@ -155,7 +152,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
 
         var scopes = distinctDepartmentIds.Select(departmentId => new SysRoleDataScope
         {
-            TenantId = resolvedTenantId,
+            TenantId = resolvedTenantId ?? 0,
             RoleId = roleId,
             DepartmentId = departmentId,
             Status = YesOrNo.Yes
@@ -173,27 +170,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysRolePermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable<SysRolePermission>()
-            .Where(mapping => mapping.RoleId == roleId);
-
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
-
-        return await query.ToListAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// 获取角色菜单关系
-    /// </summary>
-    /// <param name="roleId"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public async Task<IReadOnlyList<SysRoleMenu>> GetRoleMenusAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
-    {
-        var query = CreateTenantQueryable<SysRoleMenu>()
+        var query = CreateQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId);
 
         if (tenantId.HasValue)
@@ -235,7 +212,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
 
         var mappings = distinctPermissionIds.Select(permissionId => new SysRolePermission
         {
-            TenantId = resolvedTenantId,
+            TenantId = resolvedTenantId ?? 0,
             RoleId = roleId,
             PermissionId = permissionId,
             Status = YesOrNo.Yes
@@ -244,43 +221,4 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// 替换角色菜单关系
-    /// </summary>
-    /// <param name="roleId"></param>
-    /// <param name="menuIds"></param>
-    /// <param name="tenantId"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public async Task ReplaceRoleMenusAsync(long roleId, IReadOnlyCollection<long> menuIds, long? tenantId = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId;
-
-        var deleteable = DbClient.Deleteable<SysRoleMenu>()
-            .Where(mapping => mapping.RoleId == roleId);
-
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
-
-        await deleteable.ExecuteCommandAsync(cancellationToken);
-
-        var distinctMenuIds = menuIds.Where(id => id > 0).Distinct().ToArray();
-        if (distinctMenuIds.Length == 0)
-        {
-            return;
-        }
-
-        var mappings = distinctMenuIds.Select(menuId => new SysRoleMenu
-        {
-            TenantId = resolvedTenantId,
-            RoleId = roleId,
-            MenuId = menuId,
-            Status = YesOrNo.Yes
-        }).ToArray();
-
-        await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
-    }
 }

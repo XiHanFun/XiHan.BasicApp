@@ -120,7 +120,7 @@ public class TaskAppService
     {
         var entity = new SysTask
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             TaskCode = createDto.TaskCode.Trim(),
             TaskName = createDto.TaskName.Trim(),
             TaskDescription = createDto.TaskDescription,

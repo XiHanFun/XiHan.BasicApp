@@ -75,7 +75,7 @@ public class EmailAppService
     {
         var entity = new SysEmail
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             SendUserId = createDto.SendUserId,
             ReceiveUserId = createDto.ReceiveUserId,
             EmailType = createDto.EmailType,

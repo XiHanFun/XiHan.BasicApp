@@ -18,8 +18,9 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -33,11 +34,9 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
     /// 构造函数
     /// </summary>
     public NotificationRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -62,7 +61,6 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             .InnerJoin<SysNotification>((un, n) => un.NotificationId == n.BasicId)
             .Where((un, n) => un.UserId == userId)
             .Where((un, n) => n.IsPublished == true)
-            .Where((un, n) => n.Status == YesOrNo.Yes)
             .Where((un, n) => n.ExpireTime == null || n.ExpireTime > now)
             .WhereIF(!includeRead, (un, n) =>
                 un.NotificationStatus == NotificationStatus.Unread
@@ -87,7 +85,6 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
                 IsGlobal = n.IsGlobal,
                 NeedConfirm = n.NeedConfirm,
                 IsPublished = n.IsPublished,
-                Status = n.Status,
                 Remark = n.Remark,
                 NotificationStatus = un.NotificationStatus,
                 ReadTime = un.ReadTime,
@@ -114,7 +111,6 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
             .Where((un, n) =>
                 un.UserId == userId
                 && n.IsPublished == true
-                && n.Status == YesOrNo.Yes
                 && (n.ExpireTime == null || n.ExpireTime > now))
             .Where((un, n) =>
                 un.NotificationStatus == NotificationStatus.Unread

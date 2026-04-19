@@ -102,7 +102,7 @@ public class ConfigAppService
     {
         var entity = new SysConfig
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             ConfigName = createDto.ConfigName.Trim(),
             ConfigKey = createDto.ConfigKey.Trim(),
             ConfigValue = createDto.ConfigValue,

@@ -15,17 +15,15 @@
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
-using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
 /// <summary>
 /// 权限仓储实现
 /// </summary>
-public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, long>, IPermissionRepository
+public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, long>, IPermissionRepository
 {
     private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
@@ -33,17 +31,11 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     /// 构造函数
     /// </summary>
     /// <param name="roleHierarchyRepository"></param>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
-    /// <param name="unitOfWorkManager"></param>
+    /// <param name="clientResolver"></param>
     public PermissionRepository(
         IRoleHierarchyRepository roleHierarchyRepository,
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
-        IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        ISqlSugarClientResolver clientResolver)
+        : base(clientResolver)
     {
         _roleHierarchyRepository = roleHierarchyRepository;
     }
@@ -58,7 +50,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     public async Task<SysPermission?> GetByPermissionCodeAsync(string permissionCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
-        var query = CreateTenantQueryable().Where(permission => permission.PermissionCode == permissionCode);
+        var query = CreateQueryable().Where(permission => permission.PermissionCode == permissionCode);
 
         query = tenantId.HasValue
             ? query.Where(permission => permission.TenantId == tenantId.Value)
@@ -77,7 +69,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     public async Task<IReadOnlyList<SysPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var resolvedTenantId = tenantId;
-        var roleQuery = CreateTenantQueryable<SysUserRole>()
+        var roleQuery = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
         roleQuery = resolvedTenantId.HasValue
@@ -97,7 +89,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
         var rolePermissionIds = new List<long>();
         if (inheritedRoleIds.Count > 0)
         {
-            var rolePermissionQuery = CreateTenantQueryable<SysRolePermission>()
+            var rolePermissionQuery = CreateQueryable<SysRolePermission>()
                 .Where(mapping =>
                     inheritedRoleIds.Contains(mapping.RoleId)
                     && mapping.Status == YesOrNo.Yes);
@@ -112,7 +104,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
                 .ToListAsync(cancellationToken);
         }
 
-        var directPermissionQuery = CreateTenantQueryable<SysUserPermission>()
+        var directPermissionQuery = CreateQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
         directPermissionQuery = resolvedTenantId.HasValue
@@ -149,7 +141,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             return [];
         }
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(permission => permissionIdSet.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
         query = resolvedTenantId.HasValue
@@ -170,7 +162,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
     public async Task<IReadOnlyList<SysPermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         var resolvedTenantId = tenantId;
-        var mappingQuery = CreateTenantQueryable<SysRolePermission>()
+        var mappingQuery = CreateQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
 
         mappingQuery = resolvedTenantId.HasValue
@@ -187,7 +179,7 @@ public class PermissionRepository : SqlSugarAggregateRepository<SysPermission, l
             return [];
         }
 
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(permission => permissionIds.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
         query = resolvedTenantId.HasValue

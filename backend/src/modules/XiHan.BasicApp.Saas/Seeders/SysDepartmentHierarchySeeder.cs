@@ -15,6 +15,7 @@
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -28,10 +29,9 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
     /// 构造函数
     /// </summary>
     public SysDepartmentHierarchySeeder(
-        ISqlSugarDbContext dbContext,
-        ILogger<SysDepartmentHierarchySeeder> logger,
+        ISqlSugarClientResolver clientResolver, ILogger<SysDepartmentHierarchySeeder> logger,
         IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 
@@ -56,7 +56,7 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
             return;
         }
 
-        var db = DbContext.GetClient();
+        var db = DbClient;
         var departments = await db.Queryable<SysDepartment>().ToListAsync();
         if (departments.Count == 0)
         {

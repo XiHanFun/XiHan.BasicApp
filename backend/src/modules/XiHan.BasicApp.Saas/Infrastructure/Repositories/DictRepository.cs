@@ -15,8 +15,9 @@
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-using XiHan.Framework.Data.SqlSugar.SplitTables;
+
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -29,16 +30,12 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="splitTableExecutor"></param>
-    /// <param name="serviceProvider"></param>
+    /// <param name="clientResolver"></param>
     /// <param name="unitOfWorkManager"></param>
     public DictRepository(
-        ISqlSugarDbContext dbContext,
-        ISqlSugarSplitTableExecutor splitTableExecutor,
-        IServiceProvider serviceProvider,
+        ISqlSugarClientResolver clientResolver,
         IUnitOfWorkManager unitOfWorkManager)
-        : base(dbContext, splitTableExecutor, serviceProvider, unitOfWorkManager)
+        : base(clientResolver, unitOfWorkManager)
     {
     }
 
@@ -52,7 +49,7 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
     public async Task<SysDict?> GetByDictCodeAsync(string dictCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dictCode);
-        var query = CreateTenantQueryable()
+        var query = CreateQueryable()
             .Where(dict => dict.DictCode == dictCode);
 
         query = tenantId.HasValue ? query.Where(dict => dict.TenantId == tenantId.Value) : query.Where(dict => dict.TenantId == 0);
@@ -69,7 +66,7 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
     /// <returns></returns>
     public async Task<IReadOnlyList<SysDictItem>> GetDictItemsAsync(long dictId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var query = CreateTenantQueryable<SysDictItem>()
+        var query = CreateQueryable<SysDictItem>()
             .Where(item => item.DictId == dictId);
 
         if (tenantId.HasValue)
@@ -88,7 +85,7 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
     /// <returns></returns>
     public async Task<SysDictItem?> GetDictItemByIdAsync(long dictItemId, CancellationToken cancellationToken = default)
     {
-        return await CreateTenantQueryable<SysDictItem>()
+        return await CreateQueryable<SysDictItem>()
             .Where(item => item.BasicId == dictItemId)
             .FirstAsync(cancellationToken);
     }
@@ -103,7 +100,7 @@ public class DictRepository : SqlSugarAggregateRepository<SysDict, long>, IDictR
     public async Task<SysDictItem?> GetDictItemByCodeAsync(long dictId, string itemCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(itemCode);
-        return await CreateTenantQueryable<SysDictItem>()
+        return await CreateQueryable<SysDictItem>()
             .Where(item => item.DictId == dictId && item.ItemCode == itemCode)
             .FirstAsync(cancellationToken);
     }

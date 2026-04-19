@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -28,8 +29,8 @@ public class SysDictSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysDictSeeder(ISqlSugarDbContext dbContext, ILogger<SysDictSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysDictSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysDictSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 

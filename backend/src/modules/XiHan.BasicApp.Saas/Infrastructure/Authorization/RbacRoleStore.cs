@@ -20,6 +20,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Roles;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
@@ -32,10 +33,10 @@ public class RbacRoleStore : IRoleStore
     private readonly IRoleRepository _roleRepository;
     private readonly IRoleHierarchyRepository _roleHierarchyRepository;
     private readonly IUserRepository _userRepository;
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 构造函数
@@ -43,19 +44,19 @@ public class RbacRoleStore : IRoleStore
     /// <param name="roleRepository">角色仓储</param>
     /// <param name="roleHierarchyRepository">角色层级仓储</param>
     /// <param name="userRepository">用户仓储</param>
-    /// <param name="dbContext">数据库上下文</param>
+    /// <param name="clientResolver"></param>
     /// <param name="currentTenant">当前租户</param>
     public RbacRoleStore(
         IRoleRepository roleRepository,
         IRoleHierarchyRepository roleHierarchyRepository,
         IUserRepository userRepository,
-        ISqlSugarDbContext dbContext,
+        ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant)
     {
         _roleRepository = roleRepository;
         _roleHierarchyRepository = roleHierarchyRepository;
         _userRepository = userRepository;
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
         _currentTenant = currentTenant;
     }
 
@@ -145,7 +146,7 @@ public class RbacRoleStore : IRoleStore
         {
             var mapping = new SysUserRole
             {
-                TenantId = tenantId,
+                TenantId = tenantId ?? 0,
                 UserId = parsedUserId,
                 RoleId = role.BasicId,
                 Status = YesOrNo.Yes
@@ -277,7 +278,7 @@ public class RbacRoleStore : IRoleStore
 
         var entity = new SysRole
         {
-            TenantId = tenantId,
+            TenantId = tenantId ?? 0,
             RoleCode = roleCode,
             RoleName = string.IsNullOrWhiteSpace(role.DisplayName) ? roleCode : role.DisplayName.Trim(),
             RoleDescription = string.IsNullOrWhiteSpace(role.Description) ? null : role.Description.Trim(),
@@ -362,10 +363,6 @@ public class RbacRoleStore : IRoleStore
         var rolePermissionDeleteable = DbClient.Deleteable<SysRolePermission>().Where(mapping => mapping.RoleId == parsedRoleId);
         rolePermissionDeleteable = ApplyTenantFilter(rolePermissionDeleteable, tenantId);
         await rolePermissionDeleteable.ExecuteCommandAsync(cancellationToken);
-
-        var roleMenuDeleteable = DbClient.Deleteable<SysRoleMenu>().Where(mapping => mapping.RoleId == parsedRoleId);
-        roleMenuDeleteable = ApplyTenantFilter(roleMenuDeleteable, tenantId);
-        await roleMenuDeleteable.ExecuteCommandAsync(cancellationToken);
     }
 
     /// <summary>

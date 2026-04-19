@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
@@ -30,8 +31,8 @@ public class SysUserSeeder : DataSeederBase
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SysUserSeeder(ISqlSugarDbContext dbContext, ILogger<SysUserSeeder> logger, IServiceProvider serviceProvider)
-        : base(dbContext, logger, serviceProvider)
+    public SysUserSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysUserSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
     {
     }
 
@@ -64,7 +65,7 @@ public class SysUserSeeder : DataSeederBase
             // 超级管理员
             new()
             {
-                TenantId = null,
+                TenantId = 0,
                 UserName = "superadmin",
                 Password = passwordHasher.HashPassword("SuperAdmin@123"),
                 RealName = "超级管理员",
@@ -80,7 +81,7 @@ public class SysUserSeeder : DataSeederBase
             // 系统管理员
             new()
             {
-                TenantId = null,
+                TenantId = 0,
                 UserName = "admin",
                 Password = passwordHasher.HashPassword("Admin@123"),
                 RealName = "系统管理员",
@@ -96,7 +97,7 @@ public class SysUserSeeder : DataSeederBase
             // 测试用户
             new()
             {
-                TenantId = null,
+                TenantId = 0,
                 UserName = "test",
                 Password = passwordHasher.HashPassword("Test@123"),
                 RealName = "测试用户",
@@ -111,7 +112,7 @@ public class SysUserSeeder : DataSeederBase
             // 演示用户
             new()
             {
-                TenantId = null,
+                TenantId = 0,
                 UserName = "demo",
                 Password = passwordHasher.HashPassword("Demo@123"),
                 RealName = "演示用户",

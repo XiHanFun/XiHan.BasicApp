@@ -179,7 +179,7 @@ public class DepartmentAppService
     {
         var entity = new SysDepartment
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             ParentId = createDto.ParentId,
             DepartmentName = createDto.DepartmentName.Trim(),
             DepartmentCode = createDto.DepartmentCode.Trim(),

@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Authorization.Abac;
 using XiHan.Framework.Data.SqlSugar;
+using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
 
@@ -26,17 +27,17 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Authorization;
 /// </summary>
 public class RbacAbacEvaluator : IAbacEvaluator
 {
-    private readonly ISqlSugarDbContext _dbContext;
+    private readonly ISqlSugarClientResolver _clientResolver;
     private readonly DefaultAbacEvaluator _fallbackEvaluator = new();
 
-    private ISqlSugarClient DbClient => _dbContext.GetClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacAbacEvaluator(ISqlSugarDbContext dbContext)
+    public RbacAbacEvaluator(ISqlSugarClientResolver clientResolver)
     {
-        _dbContext = dbContext;
+        _clientResolver = clientResolver;
     }
 
     /// <inheritdoc />

@@ -227,7 +227,7 @@ public class NotificationAppService
 
             var userNotifications = targetUserIds.Select(uid => new SysUserNotification
             {
-                TenantId = resolvedTenantId,
+                TenantId = resolvedTenantId ?? 0,
                 NotificationId = notification.BasicId,
                 UserId = uid,
                 NotificationStatus = NotificationStatus.Unread,
@@ -347,7 +347,7 @@ public class NotificationAppService
 
         var notification = new SysNotification
         {
-            TenantId = resolvedTenantId,
+            TenantId = resolvedTenantId ?? 0,
             SendUserId = parsedSendUserId,
             NotificationType = command.NotificationType,
             Title = title,
@@ -361,7 +361,6 @@ public class NotificationAppService
             IsGlobal = command.IsGlobal,
             NeedConfirm = command.NeedConfirm,
             IsPublished = true,
-            Status = YesOrNo.Yes,
             Remark = command.Remark
         };
 
@@ -371,7 +370,7 @@ public class NotificationAppService
         {
             var userNotifications = targetUserIds.Select(uid => new SysUserNotification
             {
-                TenantId = resolvedTenantId,
+                TenantId = resolvedTenantId ?? 0,
                 NotificationId = saved.BasicId,
                 UserId = uid,
                 NotificationStatus = NotificationStatus.Unread,
@@ -402,7 +401,7 @@ public class NotificationAppService
     {
         var entity = new SysNotification
         {
-            TenantId = createDto.TenantId,
+            TenantId = createDto.TenantId ?? 0,
             SendUserId = createDto.SendUserId,
             NotificationType = createDto.NotificationType,
             Title = createDto.Title.Trim(),
@@ -415,7 +414,6 @@ public class NotificationAppService
             ExpireTime = createDto.ExpireTime,
             IsGlobal = createDto.IsGlobal,
             NeedConfirm = createDto.NeedConfirm,
-            Status = YesOrNo.Yes,
             Remark = createDto.Remark
         };
 
@@ -436,7 +434,6 @@ public class NotificationAppService
         entity.ExpireTime = updateDto.ExpireTime;
         entity.IsGlobal = updateDto.IsGlobal;
         entity.NeedConfirm = updateDto.NeedConfirm;
-        entity.Status = updateDto.Status;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
     }
