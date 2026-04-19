@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + ResourceCode 租户内唯一（UX_TeId_ReCo）
-/// - IsGlobal=true 时作为平台资源模板（TenantId 空），所有租户共享
+/// - IsGlobal=true 时作为平台资源模板（TenantId = 0），所有租户共享
 /// - ResourcePath 对 API 类资源建议填写路由模式（便于自动扫描注册）
 /// - Metadata JSON 用于扩展（如 controller/action、字段结构描述）
 ///
@@ -105,7 +105,7 @@ public partial class SysResource : BasicAppAggregateRoot
     public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
-    /// 是否平台级全局资源（全局资源所有租户共享，TenantId 为空）
+    /// 是否平台级全局资源（全局资源所有租户共享，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局资源")]
     public virtual bool IsGlobal { get; set; } = false;

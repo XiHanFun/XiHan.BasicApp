@@ -39,7 +39,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 部门反查：IX_DeId
 ///
 /// 删除：
-/// - 硬删；删除部门时应级联删除相关数据范围记录
+/// - 软删（基类 BasicAppFullAuditedEntity 提供 IsDeleted）；保留审计记录
+/// - 删除部门时应级联软删相关数据范围记录
+/// - 所有查询必须附加 IsDeleted=false 过滤
 ///
 /// 状态：
 /// - Status: Yes/No

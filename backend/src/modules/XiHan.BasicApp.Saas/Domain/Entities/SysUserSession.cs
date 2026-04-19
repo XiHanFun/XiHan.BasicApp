@@ -96,13 +96,13 @@ public partial class SysUserSession : BasicAppAggregateRoot
     /// 登录时间
     /// </summary>
     [SugarColumn(ColumnDescription = "登录时间")]
-    public virtual DateTimeOffset LoginTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset LoginTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 最后活动时间
     /// </summary>
     [SugarColumn(ColumnDescription = "最后活动时间")]
-    public virtual DateTimeOffset LastActivityTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset LastActivityTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 是否在线

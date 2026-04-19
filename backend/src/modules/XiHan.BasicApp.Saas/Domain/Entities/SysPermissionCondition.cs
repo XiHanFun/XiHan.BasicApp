@@ -26,8 +26,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <remarks>
 /// 排他约束：RolePermissionId 和 UserPermissionId 必须恰好有一个非空。
 /// 服务层写入时必须校验：(RolePermissionId != null) XOR (UserPermissionId != null)，
-/// 两者同时为空 → 孤儿条件；两者同时非空 → 归属歧义。数据库层无法用简单约束表达 XOR，
-/// 因此此规则由应用层保证。
+/// 两者同时为空 → 孤儿条件；两者同时非空 → 归属歧义。
+/// 建议在数据库层补充 CHECK 约束（需通过迁移脚本手工添加）：
+///   CHECK (RolePermissionId IS NOT NULL AND UserPermissionId IS NULL
+///       OR RolePermissionId IS NULL AND UserPermissionId IS NOT NULL)
+/// 迁移脚本/手工修数据等绕过服务层的操作也能得到数据库层保护。
 ///
 /// 示例场景：
 /// - 时间限制：AttributeName="environment.hour", Operator=Between, ConditionValue="9,18"（仅工作时间可用）
