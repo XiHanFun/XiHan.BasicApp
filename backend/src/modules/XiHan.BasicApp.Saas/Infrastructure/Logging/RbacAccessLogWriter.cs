@@ -15,7 +15,6 @@
 using System.Text.Json;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
 using XiHan.Framework.MultiTenancy.Abstractions;

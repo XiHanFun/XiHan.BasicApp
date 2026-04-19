@@ -24,7 +24,6 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 

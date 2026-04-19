@@ -12,16 +12,12 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.Auditing;
-using XiHan.Framework.Data.SqlSugar;
 using XiHan.Framework.Data.SqlSugar.Clients;
-
-using XiHan.Framework.Domain.Entities;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Web.Core.Clients;
 
