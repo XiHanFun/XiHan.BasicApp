@@ -48,12 +48,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysOAuthCode", "系统OAuth授权码表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_Co", nameof(Code), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpiresTime), OrderByType.Asc)]
-public partial class SysOAuthCode : BasicAppFullAuditedEntity
+public partial class SysOAuthCode : BasicAppCreationEntity
 {
     /// <summary>
     /// 授权码

@@ -230,7 +230,7 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     /// 请求时间
     /// </summary>
     [SugarColumn(ColumnDescription = "请求时间")]
-    public virtual DateTimeOffset RequestTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset RequestTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 响应时间

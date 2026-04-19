@@ -194,7 +194,7 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     /// 操作时间
     /// </summary>
     [SugarColumn(ColumnDescription = "操作时间")]
-    public virtual DateTimeOffset OperationTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset OperationTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 创建时间

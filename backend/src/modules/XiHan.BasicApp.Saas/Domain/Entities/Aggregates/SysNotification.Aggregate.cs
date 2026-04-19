@@ -37,6 +37,6 @@ public partial class SysNotification
     /// </summary>
     public bool IsActive(DateTimeOffset? now = null)
     {
-        return Status == Enums.YesOrNo.Yes && !IsExpired(now);
+        return IsPublished && !IsExpired(now);
     }
 }

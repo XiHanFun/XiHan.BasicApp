@@ -143,7 +143,7 @@ public partial class SysReview : BasicAppAggregateRoot
     /// 提交时间
     /// </summary>
     [SugarColumn(ColumnDescription = "提交时间")]
-    public virtual DateTimeOffset SubmitTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset SubmitTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 当前审查人ID

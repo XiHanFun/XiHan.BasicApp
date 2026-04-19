@@ -195,7 +195,7 @@ public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
     /// 审查时间
     /// </summary>
     [SugarColumn(ColumnDescription = "审查时间")]
-    public virtual DateTimeOffset ReviewTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset ReviewTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 审查耗时（毫秒）

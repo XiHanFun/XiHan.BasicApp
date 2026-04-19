@@ -90,7 +90,7 @@ public partial class SysCodeGenHistory : BasicAppFullAuditedEntity
     /// 生成时间
     /// </summary>
     [SugarColumn(ColumnDescription = "生成时间")]
-    public virtual DateTimeOffset GenTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset GenTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 生成耗时（毫秒）

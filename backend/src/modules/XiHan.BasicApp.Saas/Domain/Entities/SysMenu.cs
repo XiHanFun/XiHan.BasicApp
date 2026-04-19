@@ -71,7 +71,7 @@ public partial class SysMenu : BasicAppFullAuditedEntity
     public virtual long? PermissionId { get; set; }
 
     /// <summary>
-    /// 是否平台级全局菜单（全局菜单作为所有租户的基础模板，TenantId 为空）
+    /// 是否平台级全局菜单（全局菜单作为所有租户的基础模板，TenantId = 0）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全局菜单")]
     public virtual bool IsGlobal { get; set; } = false;

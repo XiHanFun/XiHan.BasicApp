@@ -39,9 +39,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 部门反查：IX_DeId
 ///
 /// 删除：
-/// - 软删（基类 BasicAppFullAuditedEntity 提供 IsDeleted）；保留审计记录
-/// - 删除部门时应级联软删相关数据范围记录
-/// - 所有查询必须附加 IsDeleted=false 过滤
+/// - 硬删；删除部门时应级联删除相关数据范围记录
 ///
 /// 状态：
 /// - Status: Yes/No
@@ -53,12 +51,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysRoleDataScope", "系统角色自定义数据权限范围表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_RoId_DeId", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DeId", nameof(DepartmentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysRoleDataScope : BasicAppFullAuditedEntity
+public partial class SysRoleDataScope : BasicAppCreationEntity
 {
     /// <summary>
     /// 角色ID
