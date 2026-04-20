@@ -30,22 +30,4 @@ public partial class SysFile
         Status = FileStatus.Expired;
         AddLocalEvent(new FileChangedDomainEvent(BasicId));
     }
-
-    /// <summary>
-    /// 记录下载
-    /// </summary>
-    public void IncrementDownloadCount()
-    {
-        DownloadCount++;
-        LastDownloadTime = DateTimeOffset.UtcNow;
-    }
-
-    /// <summary>
-    /// 记录访问
-    /// </summary>
-    public void IncrementViewCount()
-    {
-        ViewCount++;
-        LastAccessTime = DateTimeOffset.UtcNow;
-    }
 }

@@ -64,7 +64,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
-    private readonly IAuthorizationDomainService _authorizationDomainService;
+    private readonly IPermissionDomainService _permissionDomainService;
     private readonly IRbacAuthorizationCacheService _authorizationCacheService;
     private readonly IRoleRepository _roleRepository;
     private readonly IRoleHierarchyRepository _roleHierarchyRepository;
@@ -93,7 +93,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public AuthAppService(
         IUserRepository userRepository,
         IUserManager userManager,
-        IAuthorizationDomainService authorizationDomainService,
+        IPermissionDomainService permissionDomainService,
         IRbacAuthorizationCacheService authorizationCacheService,
         IRoleRepository roleRepository,
         IRoleHierarchyRepository roleHierarchyRepository,
@@ -118,7 +118,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         _userRepository = userRepository;
         _userManager = userManager;
-        _authorizationDomainService = authorizationDomainService;
+        _permissionDomainService = permissionDomainService;
         _authorizationCacheService = authorizationCacheService;
         _roleRepository = roleRepository;
         _roleHierarchyRepository = roleHierarchyRepository;
@@ -595,7 +595,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
             user.BasicId,
             user.TenantId,
-            token => _authorizationDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId, token));
+            token => _permissionDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId, token));
         var userMenus = await _menuRepository.GetUserMenusAsync(user.BasicId, user.TenantId);
 
         var permissionCodeSet = permissionCodes
@@ -661,7 +661,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
             query.UserId,
             query.TenantId,
-            token => _authorizationDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId, token));
+            token => _permissionDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId, token));
         return permissionCodes;
     }
 
@@ -680,7 +680,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         var departmentIds = await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
             query.UserId,
             query.TenantId,
-            token => _authorizationDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
+            token => _permissionDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
         return departmentIds;
     }
 
