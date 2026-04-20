@@ -14,7 +14,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Enums;
 
-namespace XiHan.BasicApp.Saas.Application.Dtos;
+namespace XiHan.BasicApp.Saas.Domain.ReadModels;
 
 /// <summary>
 /// 用户通知读模型 —— JOIN SysNotification + SysUserNotification 的投影结果，
