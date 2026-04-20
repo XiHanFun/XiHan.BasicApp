@@ -1,0 +1,51 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:SysFile.Aggregate.cs
+// Guid:c5e9a3b6-0d4f-4c8a-b123-f7e0d9c4a6b8
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/04/20 12:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Events;
+
+namespace XiHan.BasicApp.Saas.Domain.Entities;
+
+/// <summary>
+/// 文件聚合领域行为
+/// </summary>
+public partial class SysFile
+{
+    /// <summary>
+    /// 标记文件过期
+    /// </summary>
+    public void MarkAsExpired()
+    {
+        Status = FileStatus.Expired;
+        AddLocalEvent(new FileChangedDomainEvent(BasicId));
+    }
+
+    /// <summary>
+    /// 记录下载
+    /// </summary>
+    public void IncrementDownloadCount()
+    {
+        DownloadCount++;
+        LastDownloadTime = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// 记录访问
+    /// </summary>
+    public void IncrementViewCount()
+    {
+        ViewCount++;
+        LastAccessTime = DateTimeOffset.UtcNow;
+    }
+}
