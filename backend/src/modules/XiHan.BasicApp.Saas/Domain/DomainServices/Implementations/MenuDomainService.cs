@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 菜单领域服务
 /// </summary>
-public class MenuDomainService : IMenuDomainService, ITransientDependency
+public class MenuDomainService : IMenuDomainService, IScopedDependency
 {
     private readonly IMenuRepository _menuRepository;
     private readonly ILocalEventBus _localEventBus;

@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 审核领域服务
 /// </summary>
-public class ReviewDomainService : IReviewDomainService, ITransientDependency
+public class ReviewDomainService : IReviewDomainService, IScopedDependency
 {
     private readonly IReviewRepository _reviewRepository;
     private readonly ILocalEventBus _localEventBus;

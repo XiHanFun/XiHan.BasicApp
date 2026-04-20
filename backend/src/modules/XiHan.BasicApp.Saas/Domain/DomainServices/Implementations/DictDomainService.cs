@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 字典领域服务
 /// </summary>
-public class DictDomainService : IDictDomainService, ITransientDependency
+public class DictDomainService : IDictDomainService, IScopedDependency
 {
     private readonly IDictRepository _dictRepository;
     private readonly ILocalEventBus _localEventBus;

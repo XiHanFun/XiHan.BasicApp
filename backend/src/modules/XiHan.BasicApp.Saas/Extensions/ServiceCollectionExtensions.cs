@@ -85,6 +85,13 @@ public static class ServiceCollectionExtensions
         // 日志仓储
         services.AddScoped<ILoginLogRepository, LoginLogRepository>();
 
+        // 分表日志仓储
+        services.AddScoped<IAccessLogSplitRepository, AccessLogSplitRepository>();
+        services.AddScoped<IAuditLogSplitRepository, AuditLogSplitRepository>();
+        services.AddScoped<IExceptionLogSplitRepository, ExceptionLogSplitRepository>();
+        services.AddScoped<ILoginLogSplitRepository, LoginLogSplitRepository>();
+        services.AddScoped<IOperationLogSplitRepository, OperationLogSplitRepository>();
+
         return services;
     }
 

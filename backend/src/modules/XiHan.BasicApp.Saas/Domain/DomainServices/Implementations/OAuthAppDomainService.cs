@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// OAuth 应用领域服务
 /// </summary>
-public class OAuthAppDomainService : IOAuthAppDomainService, ITransientDependency
+public class OAuthAppDomainService : IOAuthAppDomainService, IScopedDependency
 {
     private readonly IOAuthAppRepository _oauthAppRepository;
     private readonly ILocalEventBus _localEventBus;

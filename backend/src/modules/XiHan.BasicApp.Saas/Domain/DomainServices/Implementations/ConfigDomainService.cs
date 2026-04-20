@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 配置领域服务
 /// </summary>
-public class ConfigDomainService : IConfigDomainService, ITransientDependency
+public class ConfigDomainService : IConfigDomainService, IScopedDependency
 {
     private readonly IConfigRepository _configRepository;
     private readonly ILocalEventBus _localEventBus;

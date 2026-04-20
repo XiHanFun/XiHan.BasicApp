@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 权限规则领域服务实现
 /// </summary>
-public class PermissionDomainService : IPermissionDomainService, ITransientDependency
+public class PermissionDomainService : IPermissionDomainService, IScopedDependency
 {
     private readonly IPermissionRepository _permissionRepository;
     private readonly IRoleRepository _roleRepository;
