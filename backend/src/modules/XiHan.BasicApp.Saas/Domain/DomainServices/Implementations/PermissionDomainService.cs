@@ -28,8 +28,8 @@ public class PermissionDomainService : IPermissionDomainService, IScopedDependen
 {
     private readonly IPermissionRepository _permissionRepository;
     private readonly IRoleRepository _roleRepository;
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IRoleResolutionDomainService _roleResolutionDomainService;
     private readonly IOrganizationDomainService _organizationDomainService;
     private readonly ILocalEventBus _localEventBus;
 
@@ -39,15 +39,15 @@ public class PermissionDomainService : IPermissionDomainService, IScopedDependen
     public PermissionDomainService(
         IPermissionRepository permissionRepository,
         IRoleRepository roleRepository,
-        IRoleHierarchyRepository roleHierarchyRepository,
         IUserRepository userRepository,
+        IRoleResolutionDomainService roleResolutionDomainService,
         IOrganizationDomainService organizationDomainService,
         ILocalEventBus localEventBus)
     {
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
-        _roleHierarchyRepository = roleHierarchyRepository;
         _userRepository = userRepository;
+        _roleResolutionDomainService = roleResolutionDomainService;
         _organizationDomainService = organizationDomainService;
         _localEventBus = localEventBus;
     }
@@ -157,28 +157,11 @@ public class PermissionDomainService : IPermissionDomainService, IScopedDependen
 
     private async Task<IReadOnlyCollection<SysRole>> GetActiveUserRolesAsync(long userId, long? tenantId, CancellationToken cancellationToken)
     {
-        var roleRelations = await _userRepository.GetUserRolesAsync(userId, tenantId, cancellationToken);
-        var roleIds = roleRelations
-            .Where(relation => relation.Status == YesOrNo.Yes)
-            .Select(relation => relation.RoleId)
-            .Distinct()
-            .ToArray();
-
-        if (roleIds.Length == 0)
-        {
+        var effectiveRoleIds = await _roleResolutionDomainService.GetEffectiveRoleIdsAsync(userId, tenantId, cancellationToken);
+        if (effectiveRoleIds.Count == 0)
             return [];
-        }
 
-        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(
-            roleIds,
-            tenantId,
-            cancellationToken);
-        if (inheritedRoleIds.Count == 0)
-        {
-            return [];
-        }
-
-        var roles = await _roleRepository.GetByIdsAsync([.. inheritedRoleIds], cancellationToken);
+        var roles = await _roleRepository.GetByIdsAsync([.. effectiveRoleIds], cancellationToken);
         return roles
             .Where(role => role.Status == YesOrNo.Yes)
             .Where(role => !tenantId.HasValue || role.TenantId == tenantId.Value)

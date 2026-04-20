@@ -108,6 +108,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrganizationDomainService, OrganizationDomainService>();
         services.AddScoped<IPermissionDomainService, PermissionDomainService>();
         services.AddScoped<IAuthorizationDomainService, AuthorizationDomainService>();
+        services.AddScoped<IRoleResolutionDomainService, RoleResolutionDomainService>();
         services.AddScoped<IConfigDomainService, ConfigDomainService>();
         services.AddScoped<IDictDomainService, DictDomainService>();
         services.AddScoped<IDepartmentDomainService, DepartmentDomainService>();

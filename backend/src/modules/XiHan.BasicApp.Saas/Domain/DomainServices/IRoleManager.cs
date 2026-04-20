@@ -30,4 +30,19 @@ public interface IRoleManager
     /// 分配角色权限
     /// </summary>
     Task AssignPermissionsAsync(SysRole role, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 创建角色
+    /// </summary>
+    Task<SysRole> CreateRoleAsync(SysRole role, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 分配数据范围
+    /// </summary>
+    Task AssignDataScopeAsync(SysRole role, IReadOnlyCollection<long> departmentIds, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 分配角色继承关系
+    /// </summary>
+    Task AssignInheritanceAsync(SysRole role, IReadOnlyCollection<long> parentRoleIds, CancellationToken cancellationToken = default);
 }

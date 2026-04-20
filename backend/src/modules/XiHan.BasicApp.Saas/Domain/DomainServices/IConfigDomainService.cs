@@ -35,4 +35,9 @@ public interface IConfigDomainService
     /// 删除配置
     /// </summary>
     Task<bool> DeleteAsync(long id);
+
+    /// <summary>
+    /// 按 ConfigKey 创建或更新配置
+    /// </summary>
+    Task<SysConfig> UpsertByKeyAsync(SysConfig config, CancellationToken cancellationToken = default);
 }
