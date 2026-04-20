@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 任务领域服务
 /// </summary>
-public class TaskDomainService : ITaskDomainService, ITransientDependency
+public class TaskDomainService : ITaskDomainService, IScopedDependency
 {
     private readonly ITaskRepository _taskRepository;
     private readonly ILocalEventBus _localEventBus;

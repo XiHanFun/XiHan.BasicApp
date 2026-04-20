@@ -14,14 +14,11 @@
 
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using SqlSugar;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Data.SqlSugar.Clients;
-
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
@@ -30,35 +27,17 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 /// 登录日志应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
-public class LoginLogAppService : ApplicationServiceBase, ILoginLogAppService
+public class LoginLogAppService(ILoginLogSplitRepository repository) : ApplicationServiceBase, ILoginLogAppService
 {
-    private readonly ISqlSugarClientResolver _clientResolver;
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public LoginLogAppService(ISqlSugarClientResolver clientResolver)
-    {
-        _clientResolver = clientResolver;
-        }
-
-    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
-
     /// <summary>
     /// 分页查询
     /// </summary>
     [HttpPost]
     public async Task<PageResultDtoBase<LoginLogDto>> PageAsync(BasicAppPRDto input)
     {
-        var pageIndex = input.Page.PageIndex;
-        var pageSize = input.Page.PageSize;
-        RefAsync<int> total = 0;
-
-        var list = await DbClient.Queryable<SysLoginLog>().SplitTable()
-            .OrderByDescending(static x => x.CreatedTime)
-            .ToPageListAsync(pageIndex, pageSize, total);
-
-        var dtos = list.Adapt<List<LoginLogDto>>() ?? [];
-        return PageResultDtoBase<LoginLogDto>.Create(dtos, pageIndex, pageSize, total);
+        var result = await repository.ScanPagedAsync(input.Page.PageIndex, input.Page.PageSize);
+        var dtos = result.Items.Adapt<List<LoginLogDto>>() ?? [];
+        return PageResultDtoBase<LoginLogDto>.Create(dtos, input.Page.PageIndex, input.Page.PageSize, result.TotalCount);
     }
 
     /// <summary>
@@ -67,6 +46,6 @@ public class LoginLogAppService : ApplicationServiceBase, ILoginLogAppService
     [HttpDelete]
     public async Task<bool> ClearAsync()
     {
-        return await DbClient.Deleteable<SysLoginLog>().SplitTable().ExecuteCommandAsync() > 0;
+        return await repository.ClearAllAsync();
     }
 }

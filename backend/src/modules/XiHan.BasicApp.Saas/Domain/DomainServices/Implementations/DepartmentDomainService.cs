@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 部门领域服务
 /// </summary>
-public class DepartmentDomainService : IDepartmentDomainService, ITransientDependency
+public class DepartmentDomainService : IDepartmentDomainService, IScopedDependency
 {
     private readonly IDepartmentRepository _departmentRepository;
     private readonly ILocalEventBus _localEventBus;

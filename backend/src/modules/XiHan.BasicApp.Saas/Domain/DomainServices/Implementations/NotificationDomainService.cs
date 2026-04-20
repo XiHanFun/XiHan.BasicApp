@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 通知领域服务
 /// </summary>
-public class NotificationDomainService : INotificationDomainService, ITransientDependency
+public class NotificationDomainService : INotificationDomainService, IScopedDependency
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly ILocalEventBus _localEventBus;

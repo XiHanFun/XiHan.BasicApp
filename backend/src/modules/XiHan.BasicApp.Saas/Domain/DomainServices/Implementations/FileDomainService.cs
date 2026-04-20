@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 /// <summary>
 /// 文件领域服务
 /// </summary>
-public class FileDomainService : IFileDomainService, ITransientDependency
+public class FileDomainService : IFileDomainService, IScopedDependency
 {
     private readonly IFileRepository _fileRepository;
     private readonly ILocalEventBus _localEventBus;
