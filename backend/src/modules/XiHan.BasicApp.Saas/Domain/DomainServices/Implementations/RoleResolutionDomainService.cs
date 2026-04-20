@@ -57,7 +57,7 @@ public class RoleResolutionDomainService : IRoleResolutionDomainService, IScoped
         if (directRoleIds.Length == 0)
             return [];
 
-        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(directRoleIds, cancellationToken);
+        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(directRoleIds, tenantId, cancellationToken);
         return inheritedRoleIds.Distinct().ToArray();
     }
 

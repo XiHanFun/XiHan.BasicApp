@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -43,6 +44,7 @@ public class NotificationAppService
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly IUserRepository _userRepository;
+    private readonly INotificationDomainService _domainService;
     private readonly INotificationQueryService _queryService;
     private readonly IMessageCacheService _messageCacheService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
@@ -54,6 +56,7 @@ public class NotificationAppService
     public NotificationAppService(
         INotificationRepository notificationRepository,
         IUserRepository userRepository,
+        INotificationDomainService domainService,
         INotificationQueryService queryService,
         IMessageCacheService messageCacheService,
         IUnitOfWorkManager unitOfWorkManager,
@@ -62,6 +65,7 @@ public class NotificationAppService
     {
         _notificationRepository = notificationRepository;
         _userRepository = userRepository;
+        _domainService = domainService;
         _queryService = queryService;
         _messageCacheService = messageCacheService;
         _unitOfWorkManager = unitOfWorkManager;
@@ -92,7 +96,7 @@ public class NotificationAppService
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
         var entity = await MapDtoToEntityAsync(input);
-        var saved = await _notificationRepository.AddAsync(entity);
+        var saved = await _domainService.CreateAsync(entity);
 
         if (!input.IsGlobal && parsedRecipientUserId.HasValue)
         {
@@ -134,7 +138,7 @@ public class NotificationAppService
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
         await MapDtoToEntityAsync(input, notification);
-        var updated = await _notificationRepository.UpdateAsync(notification);
+        var updated = await _domainService.UpdateAsync(notification);
 
         await _notificationRepository.DeleteRecipientsByNotificationIdAsync(notification.BasicId);
         if (!input.IsGlobal && parsedRecipientUserId.HasValue)
@@ -175,7 +179,7 @@ public class NotificationAppService
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
         await _notificationRepository.DeleteRecipientsByNotificationIdAsync(id);
-        var deleted = await _notificationRepository.DeleteAsync(entity);
+        var deleted = await _domainService.DeleteAsync(id);
 
         await uow.CompleteAsync();
 
