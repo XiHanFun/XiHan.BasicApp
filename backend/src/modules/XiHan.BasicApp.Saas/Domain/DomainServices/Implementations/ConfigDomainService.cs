@@ -81,4 +81,28 @@ public class ConfigDomainService : IConfigDomainService, IScopedDependency
             throw new BusinessException(message: $"配置键 '{configKey}' 已存在");
         }
     }
+
+    /// <inheritdoc />
+    public async Task<SysConfig> UpsertByKeyAsync(SysConfig config, CancellationToken cancellationToken = default)
+    {
+        var existing = await _configRepository.GetByConfigKeyAsync(config.ConfigKey, config.TenantId, cancellationToken);
+        if (existing is null)
+        {
+            var created = await _configRepository.AddAsync(config, cancellationToken);
+            await _localEventBus.PublishAsync(new ConfigChangedDomainEvent(created.BasicId, created.ConfigKey, created.TenantId, created.ConfigGroup));
+            return created;
+        }
+
+        existing.ConfigName = config.ConfigName;
+        existing.ConfigGroup = config.ConfigGroup;
+        existing.ConfigValue = config.ConfigValue;
+        existing.ConfigType = config.ConfigType;
+        existing.DataType = config.DataType;
+        existing.ConfigDescription = config.ConfigDescription;
+        existing.Status = config.Status;
+
+        var updated = await _configRepository.UpdateAsync(existing, cancellationToken);
+        await _localEventBus.PublishAsync(new ConfigChangedDomainEvent(updated.BasicId, updated.ConfigKey, updated.TenantId, updated.ConfigGroup));
+        return updated;
+    }
 }

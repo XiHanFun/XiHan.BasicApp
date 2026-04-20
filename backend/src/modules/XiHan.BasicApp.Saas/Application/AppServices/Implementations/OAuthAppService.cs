@@ -37,6 +37,7 @@ public class OAuthAppService
 {
     private readonly IOAuthAppRepository _oauthAppRepository;
     private readonly IConfigRepository _configRepository;
+    private readonly IConfigDomainService _configDomainService;
     private readonly IOAuthAppQueryService _queryService;
     private readonly IOAuthAppDomainService _domainService;
     private readonly IRbacLookupCacheService _lookupCacheService;
@@ -47,6 +48,7 @@ public class OAuthAppService
     public OAuthAppService(
         IOAuthAppRepository oauthAppRepository,
         IConfigRepository configRepository,
+        IConfigDomainService configDomainService,
         IOAuthAppQueryService queryService,
         IOAuthAppDomainService domainService,
         IRbacLookupCacheService lookupCacheService)
@@ -54,6 +56,7 @@ public class OAuthAppService
     {
         _oauthAppRepository = oauthAppRepository;
         _configRepository = configRepository;
+        _configDomainService = configDomainService;
         _queryService = queryService;
         _domainService = domainService;
         _lookupCacheService = lookupCacheService;
@@ -128,35 +131,20 @@ public class OAuthAppService
             app.ClientSecret);
 
         var configKey = OpenApiClientSecurityConfigHelper.BuildConfigKey(app.ClientId);
-        var existing = await _configRepository.GetByConfigKeyAsync(configKey, app.TenantId);
-        if (existing is null)
+        await _configDomainService.UpsertByKeyAsync(new SysConfig
         {
-            await _configRepository.AddAsync(new SysConfig
-            {
-                TenantId = app.TenantId,
-                ConfigName = OpenApiClientSecurityConfigHelper.BuildConfigName(app.ClientId),
-                ConfigGroup = OpenApiClientSecurityConfigHelper.ConfigGroup,
-                ConfigKey = configKey,
-                ConfigValue = OpenApiClientSecurityConfigHelper.Serialize(normalized),
-                ConfigType = ConfigType.Application,
-                DataType = ConfigDataType.Json,
-                ConfigDescription = OpenApiClientSecurityConfigHelper.BuildConfigDescription(app.ClientId),
-                IsBuiltIn = false,
-                IsEncrypted = false,
-                Status = normalized.IsEnabled ? YesOrNo.Yes : YesOrNo.No
-            });
-        }
-        else
-        {
-            existing.ConfigName = OpenApiClientSecurityConfigHelper.BuildConfigName(app.ClientId);
-            existing.ConfigGroup = OpenApiClientSecurityConfigHelper.ConfigGroup;
-            existing.ConfigValue = OpenApiClientSecurityConfigHelper.Serialize(normalized);
-            existing.ConfigType = ConfigType.Application;
-            existing.DataType = ConfigDataType.Json;
-            existing.ConfigDescription = OpenApiClientSecurityConfigHelper.BuildConfigDescription(app.ClientId);
-            existing.Status = normalized.IsEnabled ? YesOrNo.Yes : YesOrNo.No;
-            await _configRepository.UpdateAsync(existing);
-        }
+            TenantId = app.TenantId,
+            ConfigName = OpenApiClientSecurityConfigHelper.BuildConfigName(app.ClientId),
+            ConfigGroup = OpenApiClientSecurityConfigHelper.ConfigGroup,
+            ConfigKey = configKey,
+            ConfigValue = OpenApiClientSecurityConfigHelper.Serialize(normalized),
+            ConfigType = ConfigType.Application,
+            DataType = ConfigDataType.Json,
+            ConfigDescription = OpenApiClientSecurityConfigHelper.BuildConfigDescription(app.ClientId),
+            IsBuiltIn = false,
+            IsEncrypted = false,
+            Status = normalized.IsEnabled ? YesOrNo.Yes : YesOrNo.No
+        });
 
         await _lookupCacheService.InvalidateOAuthAppLookupAsync(app.TenantId);
         return ToOpenApiSecurityDto(app.BasicId, normalized);

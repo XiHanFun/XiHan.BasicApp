@@ -26,20 +26,23 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 public class UserManager : IUserManager
 {
     private const string SuperAdminUserName = "superadmin";
+    private const int MaxFailedAttempts = 5;
+    private const int LockoutMinutes = 15;
 
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IPasswordHasher _passwordHasher;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="userRepository">用户仓储</param>
-    /// <param name="passwordHasher">密码哈希器</param>
     public UserManager(
         IUserRepository userRepository,
+        IRoleRepository roleRepository,
         IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
         _passwordHasher = passwordHasher;
     }
 
@@ -127,15 +130,12 @@ public class UserManager : IUserManager
     /// <summary>
     /// 确保用户安全配置存在
     /// </summary>
-    /// <param name="user">用户实体</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns></returns>
-    private async Task EnsureSecurityProfileAsync(SysUser user, CancellationToken cancellationToken)
+    public async Task<SysUserSecurity> EnsureSecurityProfileAsync(SysUser user, CancellationToken cancellationToken = default)
     {
         var current = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
         if (current is not null)
         {
-            return;
+            return current;
         }
 
         var security = new SysUserSecurity
@@ -149,5 +149,75 @@ public class UserManager : IUserManager
         };
 
         await _userRepository.SaveSecurityAsync(security, cancellationToken);
+        return security;
+    }
+
+    /// <summary>
+    /// 处理密码验证失败
+    /// </summary>
+    public async Task HandlePasswordFailureAsync(SysUserSecurity security, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+
+        security.FailedLoginAttempts++;
+        security.LastFailedLoginTime = DateTimeOffset.UtcNow;
+
+        if (security.FailedLoginAttempts >= MaxFailedAttempts)
+        {
+            security.IsLocked = true;
+            security.LockoutTime = DateTimeOffset.UtcNow;
+            security.LockoutEndTime = DateTimeOffset.UtcNow.AddMinutes(LockoutMinutes);
+        }
+
+        await _userRepository.SaveSecurityAsync(security, cancellationToken);
+    }
+
+    /// <summary>
+    /// 检查账户是否被锁定
+    /// </summary>
+    public Task<bool> IsAccountLockedAsync(SysUserSecurity security, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+
+        if (!security.IsLocked)
+            return Task.FromResult(false);
+
+        if (security.LockoutEndTime.HasValue && security.LockoutEndTime.Value <= DateTimeOffset.UtcNow)
+        {
+            security.IsLocked = false;
+            security.FailedLoginAttempts = 0;
+            return Task.FromResult(false);
+        }
+
+        return Task.FromResult(true);
+    }
+
+    /// <summary>
+    /// 重置登录失败计数
+    /// </summary>
+    public async Task ResetFailedLoginAttemptsAsync(SysUserSecurity security, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+
+        security.FailedLoginAttempts = 0;
+        security.LastFailedLoginTime = null;
+        security.IsLocked = false;
+        security.LockoutTime = null;
+        security.LockoutEndTime = null;
+
+        await _userRepository.SaveSecurityAsync(security, cancellationToken);
+    }
+
+    /// <summary>
+    /// 解析默认角色ID
+    /// </summary>
+    public async Task<long?> ResolveDefaultRoleIdAsync(long? tenantId, CancellationToken cancellationToken = default)
+    {
+        var role = await _roleRepository.GetByRoleCodeAsync("employee", tenantId, cancellationToken)
+                   ?? await _roleRepository.GetByRoleCodeAsync("employee", 0, cancellationToken)
+                   ?? await _roleRepository.GetByRoleCodeAsync("guest", tenantId, cancellationToken)
+                   ?? await _roleRepository.GetByRoleCodeAsync("guest", 0, cancellationToken);
+
+        return role?.BasicId;
     }
 }

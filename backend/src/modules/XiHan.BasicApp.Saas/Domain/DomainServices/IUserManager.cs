@@ -35,4 +35,29 @@ public interface IUserManager
     /// 校验用户名是否可用
     /// </summary>
     Task EnsureUserNameUniqueAsync(string userName, long? excludeUserId = null, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 确保用户安全配置存在
+    /// </summary>
+    Task<SysUserSecurity> EnsureSecurityProfileAsync(SysUser user, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 处理密码验证失败（递增失败次数、触发锁定）
+    /// </summary>
+    Task HandlePasswordFailureAsync(SysUserSecurity security, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 检查账户是否被锁定
+    /// </summary>
+    Task<bool> IsAccountLockedAsync(SysUserSecurity security, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 重置登录失败计数
+    /// </summary>
+    Task ResetFailedLoginAttemptsAsync(SysUserSecurity security, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 解析默认角色ID
+    /// </summary>
+    Task<long?> ResolveDefaultRoleIdAsync(long? tenantId, CancellationToken cancellationToken = default);
 }

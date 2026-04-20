@@ -35,4 +35,9 @@ public interface IOAuthAppDomainService
     /// 删除 OAuth 应用
     /// </summary>
     Task<bool> DeleteAsync(long id);
+
+    /// <summary>
+    /// 更新 OpenAPI 安全配置（upsert 到 SysConfig）
+    /// </summary>
+    Task UpdateOpenApiSecurityConfigAsync(SysOAuthApp app, string configKey, string normalizedConfigJson, CancellationToken cancellationToken = default);
 }

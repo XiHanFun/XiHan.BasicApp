@@ -189,4 +189,40 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
         return await query.OrderBy(permission => permission.Sort)
             .ToListAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 获取多个角色的权限ID集合
+    /// </summary>
+    public async Task<IReadOnlyList<long>> GetRolePermissionIdsAsync(IReadOnlyList<long> roleIds, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        if (roleIds.Count == 0)
+            return [];
+
+        var query = CreateQueryable<SysRolePermission>()
+            .Where(mapping => roleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes);
+
+        query = tenantId.HasValue
+            ? query.Where(mapping => mapping.TenantId == tenantId.Value)
+            : query.Where(mapping => mapping.TenantId == 0);
+
+        return await query
+            .Select(mapping => mapping.PermissionId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取用户直接授权记录
+    /// </summary>
+    public async Task<IReadOnlyList<SysUserPermission>> GetUserDirectPermissionGrantsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
+    {
+        var query = CreateQueryable<SysUserPermission>()
+            .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
+
+        query = tenantId.HasValue
+            ? query.Where(mapping => mapping.TenantId == tenantId.Value)
+            : query.Where(mapping => mapping.TenantId == 0);
+
+        return await query.ToListAsync(cancellationToken);
+    }
 }

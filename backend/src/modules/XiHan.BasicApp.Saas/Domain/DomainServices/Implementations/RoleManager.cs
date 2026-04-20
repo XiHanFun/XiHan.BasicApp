@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Core.Exceptions;
@@ -24,15 +25,20 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 public class RoleManager : IRoleManager
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="roleRepository">角色仓储</param>
     public RoleManager(
-        IRoleRepository roleRepository)
+        IRoleRepository roleRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
+        IDepartmentRepository departmentRepository)
     {
         _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
+        _departmentRepository = departmentRepository;
     }
 
     /// <summary>
@@ -83,6 +89,74 @@ public class RoleManager : IRoleManager
 
         role.MarkPermissionsChanged(permissionIds.Distinct().ToArray());
         await _roleRepository.UpdateAsync(role, cancellationToken);
+    }
+
+    /// <summary>
+    /// 创建角色
+    /// </summary>
+    public async Task<SysRole> CreateRoleAsync(SysRole role, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+
+        await EnsureRoleCodeUniqueAsync(role.RoleCode, null, role.TenantId, cancellationToken);
+        return await _roleRepository.AddAsync(role, cancellationToken);
+    }
+
+    /// <summary>
+    /// 分配数据范围
+    /// </summary>
+    public async Task AssignDataScopeAsync(
+        SysRole role,
+        IReadOnlyCollection<long> departmentIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+
+        var resolvedTenantId = tenantId ?? role.TenantId;
+
+        if (departmentIds.Count > 0)
+        {
+            var existingDepts = await _departmentRepository.GetByIdsAsync(departmentIds, cancellationToken);
+            if (existingDepts.Count != departmentIds.Count)
+            {
+                throw new BusinessException(message: "部分部门ID不存在");
+            }
+        }
+
+        await _roleRepository.ReplaceCustomDataScopeDepartmentIdsAsync(
+            role.BasicId, departmentIds, resolvedTenantId, cancellationToken);
+
+        if (role.DataScope != DataPermissionScope.Custom && departmentIds.Count > 0)
+        {
+            role.DataScope = DataPermissionScope.Custom;
+        }
+
+        role.MarkDataScopeChanged(departmentIds.Distinct().ToArray());
+        await _roleRepository.UpdateAsync(role, cancellationToken);
+    }
+
+    /// <summary>
+    /// 分配角色继承关系
+    /// </summary>
+    public async Task AssignInheritanceAsync(
+        SysRole role,
+        IReadOnlyCollection<long> parentRoleIds,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+
+        if (parentRoleIds.Count > 0)
+        {
+            var existingRoles = await _roleRepository.GetByIdsAsync(parentRoleIds, cancellationToken);
+            if (existingRoles.Count != parentRoleIds.Count)
+            {
+                throw new BusinessException(message: "部分父角色ID不存在");
+            }
+        }
+
+        await _roleHierarchyRepository.ReplaceDirectParentsAsync(
+            role.BasicId, parentRoleIds, cancellationToken: cancellationToken);
     }
 
 }

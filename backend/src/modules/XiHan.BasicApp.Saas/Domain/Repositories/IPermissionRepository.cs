@@ -36,4 +36,14 @@ public interface IPermissionRepository : IAuditedRepository<SysPermission, long>
     /// 获取角色权限
     /// </summary>
     Task<IReadOnlyList<SysPermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取多个角色的权限ID集合（纯数据查询，不含业务逻辑）
+    /// </summary>
+    Task<IReadOnlyList<long>> GetRolePermissionIdsAsync(IReadOnlyList<long> roleIds, long? tenantId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取用户直接授权记录（纯数据查询，含 Grant/Deny 标记）
+    /// </summary>
+    Task<IReadOnlyList<SysUserPermission>> GetUserDirectPermissionGrantsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default);
 }
