@@ -108,6 +108,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrganizationDomainService, OrganizationDomainService>();
         services.AddScoped<IPermissionDomainService, PermissionDomainService>();
         services.AddScoped<IAuthorizationDomainService, AuthorizationDomainService>();
+        services.AddScoped<IConfigDomainService, ConfigDomainService>();
+        services.AddScoped<IDictDomainService, DictDomainService>();
+        services.AddScoped<IDepartmentDomainService, DepartmentDomainService>();
+        services.AddScoped<IMenuDomainService, MenuDomainService>();
+        services.AddScoped<IFileDomainService, FileDomainService>();
+        services.AddScoped<INotificationDomainService, NotificationDomainService>();
+        services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();
+        services.AddScoped<IReviewDomainService, ReviewDomainService>();
+        services.AddScoped<ITaskDomainService, TaskDomainService>();
 
         return services;
     }
