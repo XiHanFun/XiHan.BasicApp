@@ -340,7 +340,7 @@
 ## Batch Status
 
 - [x] Batch-01 方案与第一批契约基线
-- [ ] Batch-02 第二批契约基线
+- [x] Batch-02 第二批契约基线
 - [x] Batch-03 框架能力盘点与复用基线
 - [ ] Batch-04 仓储与查询层重建
 - [ ] Batch-05 服务与内部服务重建
@@ -357,7 +357,7 @@
 | Batch | Validation | Result | Notes |
 |------|------------|--------|-------|
 | Batch-01 | `dotnet build` / `pnpm type-check` / 契约自检 | Partial | `dotnet build` 当前只返回“生成失败，0 错误”；`pnpm type-check` 仍被全局历史错误阻塞，但本批引入的 `tenant/constraint-rule` 页面类型错误已收口 |
-| Batch-02 | `dotnet build` / 契约自检 | Pending |  |
+| Batch-02 | 前端定向 `eslint` / 契约自检 | Partial | `Role/Permission/Department` DTO、前端 API 与系统页已按实体语义对齐；已消除本批新增静态错误。定向 `eslint` 仅剩这些文件中已有的 `ts/no-explicit-any` warning；未执行全量 `pnpm type-check`，因仓库其他历史错误仍会阻塞结论 |
 | Batch-03 | 方案自检 / 底层类型存在性核对 | Passed | 已核对 `ApplicationServiceBase`、`SugarMultiTenantAggregateRoot`、`SqlSugarAggregateRepository`、`XiHanHybridCache`、`SettingManager`、`IDataSeeder`、`CurrentTenant`、`ITenantStore` 以及 `BasicAppEntity`、`IQueryService` 的真实路径，复用矩阵已落入方案 |
 | Batch-04 | `dotnet build` / 服务边界自检 | Pending |  |
 | Batch-05 | `dotnet build` / 缓存配置自检 | Pending |  |

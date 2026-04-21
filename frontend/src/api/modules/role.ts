@@ -13,9 +13,12 @@ export interface SysRole {
   roleDescription?: string
   roleType?: number
   dataScope?: number
+  isGlobal?: boolean
   status: number
   sort: number
   permissions: string[]
+  remark?: string
+  tenantId?: number
   createTime: string
   updateTime?: string
 }
@@ -33,10 +36,10 @@ const ROLE_TYPE_MAP: Record<string, number> = {
 }
 
 const DATA_SCOPE_MAP: Record<string, number> = {
-  All: 0,
-  DepartmentAndChildren: 1,
-  DepartmentOnly: 2,
-  SelfOnly: 3,
+  SelfOnly: 0,
+  DepartmentOnly: 1,
+  DepartmentAndChildren: 2,
+  All: 3,
   Custom: 99,
 }
 
@@ -66,9 +69,14 @@ function normalizeRole(raw: Record<string, any>): SysRole {
     roleDescription: raw.roleDescription ?? raw.RoleDescription ?? raw.description ?? '',
     roleType: resolveEnum(raw.roleType ?? raw.RoleType, ROLE_TYPE_MAP, 0),
     dataScope: resolveEnum(raw.dataScope ?? raw.DataScope, DATA_SCOPE_MAP, 0),
+    isGlobal: Boolean(raw.isGlobal ?? raw.IsGlobal),
     status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
     sort: toNumber(raw.sort ?? raw.Sort, 0),
     permissions: Array.isArray(raw.permissions ?? raw.Permissions) ? (raw.permissions ?? raw.Permissions) : [],
+    remark: raw.remark ?? raw.Remark ?? undefined,
+    tenantId: raw.tenantId === null || raw.tenantId === undefined
+      ? (raw.TenantId === null || raw.TenantId === undefined ? undefined : toNumber(raw.TenantId, 0))
+      : toNumber(raw.tenantId, 0),
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.createdTimeUtc ?? raw.CreatedTime ?? '',
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
   }
@@ -81,7 +89,10 @@ function toCreatePayload(data: Partial<SysRole>) {
     roleDescription: data.roleDescription ?? '',
     roleType: toNumber(data.roleType, 0),
     dataScope: toNumber(data.dataScope, 0),
+    isGlobal: Boolean(data.isGlobal),
     sort: toNumber(data.sort, 0),
+    tenantId: data.tenantId === undefined ? null : toNumber(data.tenantId, 0),
+    remark: data.remark ?? '',
   }
 }
 
@@ -90,8 +101,10 @@ function toUpdatePayload(id: string, data: Partial<SysRole>) {
     roleName: data.roleName ?? '',
     roleDescription: data.roleDescription ?? '',
     dataScope: toNumber(data.dataScope, 0),
+    isGlobal: Boolean(data.isGlobal),
     status: toNumber(data.status, 1),
     sort: toNumber(data.sort, 0),
+    remark: data.remark ?? '',
     basicId: toId(id),
   }
 }

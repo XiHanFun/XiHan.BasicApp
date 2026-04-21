@@ -95,7 +95,7 @@ const options = useVxeTable<SysDepartment>({
       width: 100,
       formatter: ({ cellValue }) => getOptionLabel(DEPARTMENT_TYPE_OPTIONS, cellValue),
     },
-    { field: 'leader', title: '负责人', minWidth: 120, showOverflow: 'tooltip' },
+    { field: 'leaderName', title: '负责人', minWidth: 120, showOverflow: 'tooltip' },
     { field: 'phone', title: '电话', minWidth: 130, showOverflow: 'tooltip' },
     { field: 'email', title: '邮箱', minWidth: 180, showOverflow: 'tooltip' },
     { field: 'address', title: '地址', minWidth: 180, showOverflow: 'tooltip' },

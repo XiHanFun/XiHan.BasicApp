@@ -53,20 +53,20 @@ const ROLE_TYPE_OPTIONS = [
 ]
 
 const DATA_SCOPE_OPTIONS = [
-  { label: '全部数据', value: 0 },
+  { label: '仅本人', value: 0 },
+  { label: '本部门', value: 1 },
+  { label: '本部门及以下', value: 2 },
+  { label: '全部数据', value: 3 },
   { label: '自定义', value: 99 },
-  { label: '本部门', value: 2 },
-  { label: '本部门及以下', value: 1 },
-  { label: '仅本人', value: 3 },
 ]
 
 const ROLE_TYPE_MAP: Record<number, string> = { 0: '系统角色', 1: '业务角色', 2: '自定义角色' }
 const DATA_SCOPE_MAP: Record<number, string> = {
-  0: '全部',
+  0: '仅本人',
+  1: '本部门',
+  2: '本部门及以下',
+  3: '全部',
   99: '自定义',
-  2: '本部门',
-  1: '本部门及以下',
-  3: '仅本人',
 }
 
 // ==================== 列表 ====================
@@ -105,6 +105,12 @@ const gridOptions = useVxeTable<SysRole>(
         title: '角色类型',
         width: 100,
         formatter: ({ cellValue }) => ROLE_TYPE_MAP[cellValue] ?? '-',
+      },
+      {
+        field: 'isGlobal',
+        title: '全局',
+        width: 80,
+        slots: { default: 'col_global' },
       },
       {
         field: 'dataScope',
@@ -275,7 +281,7 @@ const isMenuAllExpanded = computed(() =>
 const permissionGroups = computed(() => {
   const groups = new Map<string, SysPermission[]>()
   allPermissions.value.forEach((p) => {
-    const group = p.groupName || '未分组'
+    const group = p.primaryTag || '未标记'
     if (!groups.has(group))
       groups.set(group, [])
     groups.get(group)!.push(p)
@@ -314,6 +320,7 @@ function handleAdd() {
     roleDescription: '',
     roleType: 0,
     dataScope: 0,
+    isGlobal: false,
     status: 1,
     sort: 100,
   }
@@ -686,6 +693,11 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
             {{ row.status === 1 ? '启用' : '禁用' }}
           </NTag>
         </template>
+        <template #col_global="{ row }">
+          <NTag :type="row.isGlobal ? 'warning' : 'default'" size="small" round>
+            {{ row.isGlobal ? '是' : '否' }}
+          </NTag>
+        </template>
         <template #col_actions="{ row }">
           <NSpace size="small">
             <NButton v-access="['role:update']" size="small" type="primary" text @click="handleEdit(row)">
@@ -717,7 +729,7 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
         <NTabs v-model:value="activeTab" type="line" @update:value="handleTabChange">
           <!-- ===== 基本信息 ===== -->
           <NTabPane name="basic" tab="基本信息">
-      <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="80px">
+            <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="80px">
               <NFormItem label="角色名称" path="roleName">
                 <NInput v-model:value="formData.roleName" placeholder="请输入角色名称" />
               </NFormItem>
@@ -741,6 +753,15 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
               </NFormItem>
               <NFormItem label="数据范围" path="dataScope">
                 <NSelect v-model:value="formData.dataScope" :options="DATA_SCOPE_OPTIONS" />
+              </NFormItem>
+              <NFormItem label="全局角色" path="isGlobal">
+                <NSelect
+                  v-model:value="formData.isGlobal"
+                  :options="[
+                    { label: '否', value: false },
+                    { label: '是', value: true },
+                  ]"
+                />
               </NFormItem>
               <NFormItem label="排序" path="sort">
                 <NInputNumber

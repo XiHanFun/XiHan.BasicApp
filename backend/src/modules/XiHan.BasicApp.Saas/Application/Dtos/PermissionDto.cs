@@ -55,15 +55,14 @@ public class PermissionDto : BasicAppDto
     public string? Tags { get; set; }
 
     /// <summary>
-    /// 权限分组
-    /// </summary>
-    [StringLength(100, ErrorMessage = "权限分组名称长度不能超过 100")]
-    public string? GroupName { get; set; }
-
-    /// <summary>
     /// 是否需要审核
     /// </summary>
     public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 是否全局权限
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 优先级
@@ -145,15 +144,14 @@ public class PermissionCreateDto : BasicAppCDto
     public string? Tags { get; set; }
 
     /// <summary>
-    /// 权限分组
-    /// </summary>
-    [StringLength(100, ErrorMessage = "权限分组名称长度不能超过 100")]
-    public string? GroupName { get; set; }
-
-    /// <summary>
     /// 是否需要审计
     /// </summary>
     public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 是否全局权限
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 优先级
@@ -221,15 +219,14 @@ public class PermissionUpdateDto : BasicAppUDto
     public string? Tags { get; set; }
 
     /// <summary>
-    /// 权限分组
-    /// </summary>
-    [StringLength(100, ErrorMessage = "权限分组名称长度不能超过 100")]
-    public string? GroupName { get; set; }
-
-    /// <summary>
     /// 是否需要审计
     /// </summary>
     public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 是否全局权限
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 优先级
