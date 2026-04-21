@@ -19,6 +19,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Constants.Caching;
+using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -563,7 +565,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         }
 
         var expiresInSeconds = Math.Clamp(
-            _configuration.GetValue("XiHan:Authentication:EmailCodeExpiresInSeconds", 300), 60, 1800);
+            _configuration.GetValue(SaasSettingKeys.Auth.EmailCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         var code = GenerateNumericCode(6);
@@ -648,7 +650,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         }
 
         var expiresInSeconds = Math.Clamp(
-            _configuration.GetValue("XiHan:Authentication:PhoneCodeExpiresInSeconds", 300), 60, 1800);
+            _configuration.GetValue(SaasSettingKeys.Auth.PhoneCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         var code = GenerateNumericCode(6);
@@ -743,7 +745,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
         // 缓存中同时保存新邮箱地址，确认时使用
         var expiresInSeconds = Math.Clamp(
-            _configuration.GetValue("XiHan:Authentication:EmailCodeExpiresInSeconds", 300), 60, 1800);
+            _configuration.GetValue(SaasSettingKeys.Auth.EmailCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         var code = GenerateNumericCode(6);
@@ -843,7 +845,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         }
 
         var expiresInSeconds = Math.Clamp(
-            _configuration.GetValue("XiHan:Authentication:PhoneCodeExpiresInSeconds", 300), 60, 1800);
+            _configuration.GetValue(SaasSettingKeys.Auth.PhoneCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         var code = GenerateNumericCode(6);
@@ -1162,7 +1164,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private bool ShouldExposeDebugSecrets()
     {
         return _hostEnvironment.IsDevelopment()
-               || _configuration.GetValue("XiHan:Authentication:ExposeDebugSecrets", false);
+               || _configuration.GetValue(SaasSettingKeys.Auth.ExposeDebugSecrets, false);
     }
 
     private static string GenerateNumericCode(int length)
@@ -1178,14 +1180,12 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
     private static string BuildEmailVerifyCodeCacheKey(long? tenantId, string email)
     {
-        var tenantSegment = tenantId?.ToString() ?? "0";
-        return $"auth:email-verify:{tenantSegment}:{email.ToLowerInvariant()}";
+        return SaasCacheKeys.AuthEmailVerifyCode(tenantId, email);
     }
 
     private static string BuildPhoneVerifyCodeCacheKey(long? tenantId, string phone)
     {
-        var tenantSegment = tenantId?.ToString() ?? "0";
-        return $"auth:phone-verify:{tenantSegment}:{phone}";
+        return SaasCacheKeys.AuthPhoneVerifyCode(tenantId, phone);
     }
 
     /// <summary>
@@ -1193,14 +1193,12 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     /// </summary>
     private static string BuildChangeContactCacheKey(long? tenantId, long userId, string purpose)
     {
-        var tenantSegment = tenantId?.ToString() ?? "0";
-        return $"auth:{purpose}:{tenantSegment}:{userId}";
+        return SaasCacheKeys.AuthChangeContact(tenantId, userId, purpose);
     }
 
     private static string Build2FAVerifyCodeCacheKey(long? tenantId, string target, string purpose)
     {
-        var tenantSegment = tenantId?.ToString() ?? "0";
-        return $"auth:2fa:{purpose}:{tenantSegment}:{target.ToLowerInvariant()}";
+        return SaasCacheKeys.AuthTwoFactorCode(tenantId, purpose, target);
     }
 
     /// <summary>
@@ -1209,7 +1207,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private async Task<AuthVerificationCodeDto> SendVerificationCodeInternalAsync(long? tenantId, string target, string purpose)
     {
         var expiresInSeconds = Math.Clamp(
-            _configuration.GetValue("XiHan:Authentication:TwoFactorCodeExpiresInSeconds", 300), 60, 1800);
+            _configuration.GetValue(SaasSettingKeys.Auth.TwoFactorCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         var code = GenerateNumericCode(6);

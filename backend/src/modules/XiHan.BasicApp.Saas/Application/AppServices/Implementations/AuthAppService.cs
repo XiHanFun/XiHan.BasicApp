@@ -27,6 +27,8 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Helpers;
 using XiHan.BasicApp.Saas.Application.InternalServices;
+using XiHan.BasicApp.Saas.Constants.Caching;
+using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -131,7 +133,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     [AllowAnonymous]
     public Task<LoginConfigDto> GetLoginConfigAsync()
     {
-        var loginMethods = _configuration.GetSection("XiHan:Authentication:LoginMethods").Get<string[]>();
+        var loginMethods = _configuration.GetSection(SaasSettingKeys.Auth.LoginMethods).Get<string[]>();
         var oauth = _oauthOptions;
 
         var providers = oauth is { Enabled: true }
@@ -148,7 +150,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
         var response = new LoginConfigDto
         {
-            TenantEnabled = _configuration.GetValue("XiHan:MultiTenancy:Enabled", true),
+            TenantEnabled = _configuration.GetValue(SaasSettingKeys.MultiTenancy.Enabled, true),
             LoginMethods = loginMethods is { Length: > 0 } ? [.. loginMethods] : ["password"],
             OauthProviders = providers
         };
@@ -371,7 +373,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.ValidateAnnotations();
         var phone = command.Phone.Trim();
         var tenantId = NormalizeTenantId(command.TenantId);
-        var expiresInSeconds = Math.Clamp(_configuration.GetValue("XiHan:Authentication:PhoneCodeExpiresInSeconds", 300), 60, 1800);
+        var expiresInSeconds = Math.Clamp(_configuration.GetValue(SaasSettingKeys.Auth.PhoneCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         var user = await _userRepository.GetByPhoneAsync(phone, tenantId);
@@ -898,7 +900,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private static string BuildPhoneLoginCodeCacheKey(long? tenantId, string phone)
     {
         var tenantSegment = tenantId?.ToString() ?? "0";
-        return $"auth:phone-code:{tenantSegment}:{phone}";
+        return SaasCacheKeys.AuthPhoneLoginCode(tenantId, phone);
     }
 
     /// <summary>
@@ -1164,7 +1166,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private bool ShouldExposeDebugSecrets()
     {
         return _hostEnvironment.IsDevelopment()
-               || _configuration.GetValue("XiHan:Authentication:ExposeDebugSecrets", false);
+               || _configuration.GetValue(SaasSettingKeys.Auth.ExposeDebugSecrets, false);
     }
 
     /// <summary>
@@ -1198,13 +1200,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private async Task Send2FALoginCodeAsync(long? tenantId, string target, string purpose)
     {
         var expiresInSeconds = Math.Clamp(
-            _configuration.GetValue("XiHan:Authentication:TwoFactorCodeExpiresInSeconds", 300), 60, 1800);
+            _configuration.GetValue(SaasSettingKeys.Auth.TwoFactorCodeExpiresInSeconds, 300), 60, 1800);
 
         var code = GenerateNumericCode(6);
         var expireAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
 
-        var tenantSegment = tenantId?.ToString() ?? "0";
-        var cacheKey = $"auth:2fa:{purpose}:{tenantSegment}:{target.ToLowerInvariant()}";
+        var cacheKey = SaasCacheKeys.AuthTwoFactorCode(tenantId, purpose, target);
 
         await _verificationCodeCache.SetAsync(
             cacheKey,
@@ -1227,8 +1228,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     private async Task<bool> Verify2FALoginCodeAsync(long? tenantId, string target, string purpose, string code)
     {
-        var tenantSegment = tenantId?.ToString() ?? "0";
-        var cacheKey = $"auth:2fa:{purpose}:{tenantSegment}:{target.ToLowerInvariant()}";
+        var cacheKey = SaasCacheKeys.AuthTwoFactorCode(tenantId, purpose, target);
 
         var cached = await _verificationCodeCache.GetAsync(cacheKey, hideErrors: true);
         if (cached is null || cached.ExpireAt <= DateTimeOffset.UtcNow

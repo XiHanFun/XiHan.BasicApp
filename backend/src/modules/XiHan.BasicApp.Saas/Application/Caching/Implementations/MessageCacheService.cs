@@ -13,6 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using XiHan.BasicApp.Saas.Constants.Caching;
+using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.Caching.Implementations;
@@ -27,24 +30,21 @@ public class MessageCacheService : IMessageCacheService
         AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
     };
 
-    private static readonly DistributedCacheEntryOptions UnreadCacheOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
-        SlidingExpiration = TimeSpan.FromMinutes(3)
-    };
-
     private readonly IDistributedCache<MessageCacheVersionItem> _versionCache;
     private readonly IDistributedCache<MessageUnreadCountCacheItem> _unreadCountCache;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public MessageCacheService(
         IDistributedCache<MessageCacheVersionItem> versionCache,
-        IDistributedCache<MessageUnreadCountCacheItem> unreadCountCache)
+        IDistributedCache<MessageUnreadCountCacheItem> unreadCountCache,
+        IConfiguration configuration)
     {
         _versionCache = versionCache;
         _unreadCountCache = unreadCountCache;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public class MessageCacheService : IMessageCacheService
             {
                 Count = await factory(cancellationToken)
             },
-            optionsFactory: () => UnreadCacheOptions,
+            optionsFactory: BuildUnreadCacheOptions,
             token: cancellationToken);
 
         return item?.Count ?? 0;
@@ -107,16 +107,29 @@ public class MessageCacheService : IMessageCacheService
 
     private static string BuildUnreadVersionKey(long? tenantId)
     {
-        return $"message:unread:ver:{FormatTenantSegment(tenantId)}";
+        return SaasCacheKeys.MessageUnreadVersion(tenantId);
     }
 
     private static string BuildUnreadUserKey(long? tenantId, long userId, long version)
     {
-        return $"message:unread:user:{FormatTenantSegment(tenantId)}:{userId}:v{version}";
+        return SaasCacheKeys.MessageUnread(tenantId, userId, version);
     }
 
-    private static string FormatTenantSegment(long? tenantId)
+    private DistributedCacheEntryOptions BuildUnreadCacheOptions()
     {
-        return tenantId?.ToString() ?? "host";
+        var absoluteMinutes = Math.Clamp(
+            _configuration.GetValue(SaasSettingKeys.Caching.MessageUnreadAbsoluteExpirationMinutes, 10),
+            1,
+            1440);
+        var slidingMinutes = Math.Clamp(
+            _configuration.GetValue(SaasSettingKeys.Caching.MessageUnreadSlidingExpirationMinutes, 3),
+            1,
+            absoluteMinutes);
+
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(absoluteMinutes),
+            SlidingExpiration = TimeSpan.FromMinutes(slidingMinutes)
+        };
     }
 }
