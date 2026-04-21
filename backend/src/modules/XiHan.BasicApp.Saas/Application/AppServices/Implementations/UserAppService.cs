@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -27,7 +28,6 @@ using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
-using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -43,17 +43,15 @@ public class UserAppService
     : CrudApplicationServiceBase<SysUser, UserDto, long, UserCreateDto, UserUpdateDto, BasicAppPRDto>,
         IUserAppService
 {
-    private const string SuperAdminRoleCode = "super_admin";
-    private const string SuperAdminUserName = "superadmin";
-
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IDepartmentRepository _departmentRepository;
     private readonly IUserManager _userManager;
     private readonly IUserQueryService _queryService;
+    private readonly ISuperAdminGuard _superAdminGuard;
+    private readonly IRbacChangeNotifier _rbacChangeNotifier;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
-    private readonly ILocalEventBus _localEventBus;
 
     /// <summary>
     /// 构造函数
@@ -64,8 +62,9 @@ public class UserAppService
     /// <param name="departmentRepository"></param>
     /// <param name="userManager"></param>
     /// <param name="queryService"></param>
+    /// <param name="superAdminGuard"></param>
+    /// <param name="rbacChangeNotifier"></param>
     /// <param name="unitOfWorkManager"></param>
-    /// <param name="localEventBus"></param>
     public UserAppService(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
@@ -73,8 +72,9 @@ public class UserAppService
         IDepartmentRepository departmentRepository,
         IUserManager userManager,
         IUserQueryService queryService,
-        IUnitOfWorkManager unitOfWorkManager,
-        ILocalEventBus localEventBus)
+        ISuperAdminGuard superAdminGuard,
+        IRbacChangeNotifier rbacChangeNotifier,
+        IUnitOfWorkManager unitOfWorkManager)
         : base(userRepository)
     {
         _userRepository = userRepository;
@@ -83,8 +83,9 @@ public class UserAppService
         _departmentRepository = departmentRepository;
         _userManager = userManager;
         _queryService = queryService;
+        _superAdminGuard = superAdminGuard;
+        _rbacChangeNotifier = rbacChangeNotifier;
         _unitOfWorkManager = unitOfWorkManager;
-        _localEventBus = localEventBus;
     }
 
     /// <summary>
@@ -187,7 +188,7 @@ public class UserAppService
                 throw new BusinessException(message: "存在无效角色 ID");
             }
         }
-        await EnsureSuperAdminRoleAssignmentAsync(user, roleIds, roles, command.TenantId ?? user.TenantId);
+        await _superAdminGuard.EnsureRoleAssignmentAllowedAsync(user, roleIds, roles, command.TenantId ?? user.TenantId);
 
         await _userRepository.ReplaceUserRolesAsync(
             command.UserId,
@@ -197,7 +198,7 @@ public class UserAppService
         user.MarkRolesChanged(roleIds);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -236,7 +237,7 @@ public class UserAppService
         user.MarkPermissionsChanged(permissionIds);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -283,7 +284,7 @@ public class UserAppService
         user.MarkDepartmentsChanged(departmentIds, command.MainDepartmentId);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.DataScope);
     }
 
     /// <summary>
@@ -306,7 +307,7 @@ public class UserAppService
 
         if (command.Status != YesOrNo.Yes)
         {
-            await EnsureSuperAdminAccountImmutableAsync(user, user.TenantId, "禁用");
+            await _superAdminGuard.EnsureAccountMutableAsync(user, user.TenantId, "禁用");
         }
 
         if (command.Status == YesOrNo.Yes)
@@ -407,7 +408,7 @@ public class UserAppService
         }
         else
         {
-            await EnsureSuperAdminAccountImmutableAsync(user, user.TenantId, "禁用");
+            await _superAdminGuard.EnsureAccountMutableAsync(user, user.TenantId, "禁用");
             user.Disable();
         }
 
@@ -468,7 +469,7 @@ public class UserAppService
         {
             return false;
         }
-        await EnsureSuperAdminAccountImmutableAsync(user, user.TenantId, "删除");
+        await _superAdminGuard.EnsureAccountMutableAsync(user, user.TenantId, "删除");
 
         await _userRepository.DeleteAsync(user);
         await uow.CompleteAsync();
@@ -488,80 +489,4 @@ public class UserAppService
         return dto;
     }
 
-    private async Task EnsureSuperAdminRoleAssignmentAsync(
-        SysUser user,
-        IReadOnlyCollection<long> targetRoleIds,
-        IReadOnlyCollection<SysRole> targetRoles,
-        long? tenantId)
-    {
-        var superAdminRole = targetRoles.FirstOrDefault(role =>
-                                 string.Equals(role.RoleCode, SuperAdminRoleCode, StringComparison.OrdinalIgnoreCase))
-                             ?? await _roleRepository.GetByRoleCodeAsync(SuperAdminRoleCode, null);
-        if (superAdminRole is null)
-        {
-            return;
-        }
-
-        var superAdminRoleId = superAdminRole.BasicId;
-        var assignAsSuperAdmin = targetRoleIds.Contains(superAdminRoleId);
-        var currentUserRoles = await _userRepository.GetUserRolesAsync(user.BasicId, tenantId);
-        var currentAsSuperAdmin = currentUserRoles.Any(mapping =>
-            mapping.Status == YesOrNo.Yes
-            && mapping.RoleId == superAdminRoleId);
-
-        if (assignAsSuperAdmin)
-        {
-            if (!string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new BusinessException(message: "系统只允许内置 superadmin 账号持有超级管理员角色");
-            }
-
-            var holderUserIds = await _userRepository.GetUserIdsByRoleIdAsync(superAdminRoleId);
-            if (holderUserIds.Any(userId => userId != user.BasicId))
-            {
-                throw new BusinessException(message: "系统仅允许一个超级管理员账号");
-            }
-
-            return;
-        }
-
-        if (currentAsSuperAdmin || string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new BusinessException(message: "超级管理员账号必须保留超级管理员角色");
-        }
-    }
-
-    private async Task EnsureSuperAdminAccountImmutableAsync(SysUser user, long? tenantId, string operationName)
-    {
-        if (!await IsSuperAdminAccountAsync(user, tenantId))
-        {
-            return;
-        }
-
-        throw new BusinessException(message: $"超级管理员账号不允许{operationName}");
-    }
-
-    private async Task<bool> IsSuperAdminAccountAsync(SysUser user, long? tenantId)
-    {
-        if (string.Equals(user.UserName, SuperAdminUserName, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        var superAdminRole = await _roleRepository.GetByRoleCodeAsync(SuperAdminRoleCode, null);
-        if (superAdminRole is null)
-        {
-            return false;
-        }
-
-        var userRoles = await _userRepository.GetUserRolesAsync(user.BasicId, tenantId);
-        return userRoles.Any(mapping =>
-            mapping.Status == YesOrNo.Yes
-            && mapping.RoleId == superAdminRole.BasicId);
-    }
-
-    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
-    {
-        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
-    }
 }

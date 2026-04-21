@@ -15,17 +15,17 @@
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -45,7 +45,7 @@ public class DepartmentAppService
     private readonly IUserRepository _userRepository;
     private readonly IDepartmentQueryService _queryService;
     private readonly IDepartmentDomainService _domainService;
-    private readonly ILocalEventBus _localEventBus;
+    private readonly IRbacChangeNotifier _rbacChangeNotifier;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -55,14 +55,14 @@ public class DepartmentAppService
     /// <param name="userRepository"></param>
     /// <param name="queryService"></param>
     /// <param name="domainService"></param>
-    /// <param name="localEventBus"></param>
+    /// <param name="rbacChangeNotifier"></param>
     /// <param name="unitOfWorkManager"></param>
     public DepartmentAppService(
         IDepartmentRepository departmentRepository,
         IUserRepository userRepository,
         IDepartmentQueryService queryService,
         IDepartmentDomainService domainService,
-        ILocalEventBus localEventBus,
+        IRbacChangeNotifier rbacChangeNotifier,
         IUnitOfWorkManager unitOfWorkManager)
         : base(departmentRepository)
     {
@@ -70,7 +70,7 @@ public class DepartmentAppService
         _userRepository = userRepository;
         _queryService = queryService;
         _domainService = domainService;
-        _localEventBus = localEventBus;
+        _rbacChangeNotifier = rbacChangeNotifier;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -111,7 +111,7 @@ public class DepartmentAppService
         var entity = await MapDtoToEntityAsync(input);
         var created = await _domainService.CreateAsync(entity);
         await _departmentRepository.RebuildHierarchyAsync(created.TenantId);
-        await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(created.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
         return await MapDepartmentToDtoInternalAsync(created);
     }
@@ -133,7 +133,7 @@ public class DepartmentAppService
         await MapDtoToEntityAsync(input, department);
         var updated = await _domainService.UpdateAsync(department);
         await _departmentRepository.RebuildHierarchyAsync(updated.TenantId);
-        await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(updated.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
         return await MapDepartmentToDtoInternalAsync(updated);
     }
@@ -165,7 +165,7 @@ public class DepartmentAppService
         }
 
         await _departmentRepository.RebuildHierarchyAsync(department.TenantId);
-        await PublishAuthorizationChangedEventAsync(department.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(department.TenantId, AuthorizationChangeType.DataScope);
         await uow.CompleteAsync();
         return true;
     }
@@ -297,8 +297,4 @@ public class DepartmentAppService
         return user.UserName;
     }
 
-    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
-    {
-        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
-    }
 }

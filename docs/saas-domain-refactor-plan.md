@@ -337,6 +337,13 @@
 | Batch-04A | 核心授权聚合读写边界基线 | `Role/Permission/Department` 仓储、QueryService、ReadModel mapper | 多租户过滤规则统一，AppService 的只读查询下沉到 QueryService，读模型映射从服务层拼装中抽离 |
 | Batch-04B | 剩余主链查询与仓储收口 | `User/Tenant/Menu/ConstraintRule` 等剩余主链 | 剩余主链完成同样的边界收敛，避免继续在 AppService 里直连仓储拼读模型 |
 
+## Batch-05 Breakdown
+
+| Sub-Batch | 标题 | 范围 | 完成标准 |
+|-----------|------|------|----------|
+| Batch-05A | RBAC 变更通知与超管保护收敛 | `User/Role/Permission/Menu/Department` AppService、`Application/InternalServices` | 授权变更通知统一走内部服务，超管保护规则从用户服务抽离，AppService 只保留事务编排 |
+| Batch-05B | 授权编排与租户成员解析收敛 | `AuthAppService`、授权/租户内部服务 | 登录后授权装配、菜单/权限/数据范围解析从 AppService 继续拆出稳定内部服务 |
+
 ## Execution Rules
 
 1. 每个 Batch 完成后立即更新本文件状态。
@@ -364,6 +371,11 @@
 - [x] Batch-04A 核心授权聚合读写边界基线
 - [x] Batch-04B 剩余主链查询与仓储收口
 
+### Batch-05 Sub-Status
+
+- [x] Batch-05A RBAC 变更通知与超管保护收敛
+- [ ] Batch-05B 授权编排与租户成员解析收敛
+
 ## Validation Template
 
 | Batch | Validation | Result | Notes |
@@ -372,7 +384,7 @@
 | Batch-02 | 前端定向 `eslint` / 契约自检 | Partial | `Role/Permission/Department` DTO、前端 API 与系统页已按实体语义对齐；已消除本批新增静态错误。定向 `eslint` 仅剩这些文件中已有的 `ts/no-explicit-any` warning；未执行全量 `pnpm type-check`，因仓库其他历史错误仍会阻塞结论 |
 | Batch-03 | 方案自检 / 底层类型存在性核对 | Passed | 已核对 `ApplicationServiceBase`、`SugarMultiTenantAggregateRoot`、`SqlSugarAggregateRepository`、`XiHanHybridCache`、`SettingManager`、`IDataSeeder`、`CurrentTenant`、`ITenantStore` 以及 `BasicAppEntity`、`IQueryService` 的真实路径，复用矩阵已落入方案 |
 | Batch-04 | 代码事实检索 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department/User/Tenant/Menu/ConstraintRule` 的对外只读查询已下沉到 QueryService，核心仓储租户过滤规则已统一收敛；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，未获得可信的业务编译成功信号 |
-| Batch-05 | `dotnet build` / 缓存配置自检 | Pending |  |
+| Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05A 已将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`，消除了 AppService 内重复的本地事件发布和超管判定实现；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
 | Batch-06 | `dotnet build` / 种子初始化自检 | Pending |  |
 | Batch-07 | `dotnet build` / 认证链自检 | Pending |  |
 | Batch-08 | `dotnet build` / 授权链自检 | Pending |  |
@@ -386,3 +398,9 @@
 |-----------|------------|--------|-------|
 | Batch-04A | 代码事实检索 / AppService 读仓储残留扫描 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department` 已建立统一租户过滤辅助器、读模型 mapper，并把只读查询下沉到 QueryService；针对性检索已确认三个 AppService 不再直连对应只读仓储方法。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，失败原因为 `MSB4276` 解析 `Microsoft.NET.SDK.WorkloadAutoImportPropsLocator` 和 `Microsoft.NET.SDK.WorkloadManifestTargetsLocator` 时目录缺失，不属于本批业务代码编译错误信号 |
 | Batch-04B | 代码事实检索 / AppService 读仓储残留扫描 / `dotnet build` 定向验证 | Partial | `User/Tenant/Menu/ConstraintRule` 的对外只读入口已下沉到 QueryService；AppService 残留的仓储读取仅用于写路径内部校验与映射。`dotnet build` 仍受同一 `MSB4276` SDK workload 环境问题阻塞，未暴露新的业务代码编译错误信息 |
+
+### Batch-05 Sub-Validation
+
+| Sub-Batch | Validation | Result | Notes |
+|-----------|------------|--------|-------|
+| Batch-05A | 代码事实检索 / 重复逻辑残留扫描 / `dotnet build` 定向验证 | Partial | `User/Role/Permission/Menu/Department` 已不再保留本地 `PublishAuthorizationChangedEventAsync` 和用户服务内联的 superadmin 判定逻辑，统一改为调用 `IRbacChangeNotifier` 与 `ISuperAdminGuard`；新增内部服务实现遵循 `XiHan.Framework` 的 scoped dependency 注册约定。`dotnet build` 仍受本机 SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
