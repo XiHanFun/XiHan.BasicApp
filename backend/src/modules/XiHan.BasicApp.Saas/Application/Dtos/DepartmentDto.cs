@@ -54,6 +54,11 @@ public class DepartmentDto : BasicAppDto
     public string? LeaderName { get; set; }
 
     /// <summary>
+    /// 是否存在子部门
+    /// </summary>
+    public bool HasChildren { get; set; }
+
+    /// <summary>
     /// 联系电话
     /// </summary>
     public string? Phone { get; set; }

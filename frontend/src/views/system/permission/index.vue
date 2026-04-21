@@ -24,7 +24,7 @@ import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
 
-/** 分组列标签颜色池：同名字符串哈希后稳定取色 */
+/** 标签列颜色池：同名字符串哈希后稳定取色 */
 const GROUP_TAG_TYPES = ['info', 'success', 'warning', 'error', 'primary'] as const
 
 function groupNameTagType(name: string | undefined) {
@@ -69,10 +69,10 @@ const options = useVxeTable<SysPermission>(
       },
       { field: 'permissionCode', title: '权限编码', minWidth: 180, showOverflow: 'tooltip' },
       {
-        field: 'groupName',
-        title: '分组',
+        field: 'primaryTag',
+        title: '主标签',
         minWidth: 120,
-        slots: { default: 'col_groupName' },
+        slots: { default: 'col_primaryTag' },
       },
       { field: 'tags', title: '标签', minWidth: 120, showOverflow: 'tooltip' },
       { field: 'permissionDescription', title: '描述', minWidth: 200, showOverflow: 'tooltip' },
@@ -82,6 +82,12 @@ const options = useVxeTable<SysPermission>(
         title: '需要审计',
         width: 90,
         slots: { default: 'col_audit' },
+      },
+      {
+        field: 'isGlobal',
+        title: '全局',
+        width: 80,
+        slots: { default: 'col_global' },
       },
       { field: 'sort', title: '排序', width: 70 },
       {
@@ -138,7 +144,8 @@ function resetForm() {
     permissionName: '',
     permissionCode: '',
     permissionDescription: '',
-    groupName: '',
+    tags: '',
+    isGlobal: false,
     isRequireAudit: false,
     priority: 0,
     remark: '',
@@ -296,15 +303,20 @@ async function handleBatchSetStatus(status: number) {
             </NPopconfirm>
           </NSpace>
         </template>
-        <template #col_groupName="{ row }">
-          <NTag v-if="row.groupName" :type="groupNameTagType(row.groupName)" size="small" round>
-            {{ row.groupName }}
+        <template #col_primaryTag="{ row }">
+          <NTag v-if="row.primaryTag" :type="groupNameTagType(row.primaryTag)" size="small" round>
+            {{ row.primaryTag }}
           </NTag>
           <span v-else class="text-gray-400">—</span>
         </template>
         <template #col_audit="{ row }">
           <NTag :type="row.isRequireAudit ? 'error' : 'success'" size="small" round>
             {{ row.isRequireAudit ? '是' : '否' }}
+          </NTag>
+        </template>
+        <template #col_global="{ row }">
+          <NTag :type="row.isGlobal ? 'warning' : 'default'" size="small" round>
+            {{ row.isGlobal ? '是' : '否' }}
           </NTag>
         </template>
         <template #col_status="{ row }">
@@ -344,8 +356,8 @@ async function handleBatchSetStatus(status: number) {
         <NFormItem label="权限编码" path="permissionCode">
           <NInput v-model:value="formData.permissionCode" placeholder="如: system:user:list" />
         </NFormItem>
-        <NFormItem label="分组" path="groupName">
-          <NInput v-model:value="formData.groupName" placeholder="权限分组名称" />
+        <NFormItem label="标签" path="tags">
+          <NInput v-model:value="formData.tags" placeholder="多个标签使用逗号分隔" />
         </NFormItem>
         <NFormItem label="描述" path="permissionDescription">
           <NInput
@@ -357,6 +369,9 @@ async function handleBatchSetStatus(status: number) {
         </NFormItem>
         <NFormItem label="需要审计" path="isRequireAudit">
           <NSwitch v-model:value="formData.isRequireAudit" />
+        </NFormItem>
+        <NFormItem label="全局权限" path="isGlobal">
+          <NSwitch v-model:value="formData.isGlobal" />
         </NFormItem>
         <NFormItem label="优先级" path="priority">
           <NInputNumber v-model:value="formData.priority" :min="0" style="width: 100%" />

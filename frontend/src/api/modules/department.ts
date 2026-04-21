@@ -13,7 +13,8 @@ export interface SysDepartment {
   departmentCode?: string
   departmentType?: number
   leaderId?: string
-  leader?: string
+  leaderName?: string
+  hasChildren?: boolean
   phone?: string
   email?: string
   address?: string
@@ -89,7 +90,8 @@ function normalizeDepartment(raw: Record<string, any>): SysDepartment {
     departmentCode: raw.departmentCode ?? raw.DepartmentCode ?? '',
     departmentType: resolveEnum(raw.departmentType ?? raw.DepartmentType, DEPARTMENT_TYPE_MAP, 6),
     leaderId,
-    leader: raw.leaderName ?? raw.LeaderName ?? raw.leader ?? raw.Leader ?? undefined,
+    leaderName: raw.leaderName ?? raw.LeaderName ?? raw.leader ?? raw.Leader ?? undefined,
+    hasChildren: Boolean(raw.hasChildren ?? raw.HasChildren),
     phone: raw.phone ?? raw.Phone ?? '',
     email: raw.email ?? raw.Email ?? '',
     address: raw.address ?? raw.Address ?? undefined,

@@ -49,6 +49,11 @@ public class RoleDto : BasicAppDto
     public DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
 
     /// <summary>
+    /// 是否全局角色
+    /// </summary>
+    public bool IsGlobal { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -110,6 +115,11 @@ public class RoleCreateDto : BasicAppCDto
     public DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
 
     /// <summary>
+    /// 是否全局角色
+    /// </summary>
+    public bool IsGlobal { get; set; }
+
+    /// <summary>
     /// 排序
     /// </summary>
     public int Sort { get; set; }
@@ -141,6 +151,11 @@ public class RoleUpdateDto : BasicAppUDto
     /// 数据权限范围
     /// </summary>
     public DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
+
+    /// <summary>
+    /// 是否全局角色
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 状态

@@ -15,14 +15,16 @@ export interface SysPermission {
   permissionDescription?: string
   description?: string
   isRequireAudit?: boolean
+  isGlobal?: boolean
   priority?: number
   sort?: number
   tenantId?: number
   remark?: string
   createTime?: string
   updateTime?: string
-  groupName?: string
   tags?: string
+  tagList?: string[]
+  primaryTag?: string
   status?: number
 }
 
@@ -52,34 +54,19 @@ function resolveEnum(value: unknown, map: Record<string, number>, fallback: numb
   return fallback
 }
 
-function resolveGroupName(tags: unknown, groupName: unknown): string {
-  if (typeof groupName === 'string' && groupName.trim().length > 0) {
-    return groupName.trim()
-  }
+function splitTags(tags: unknown): string[] {
   if (typeof tags !== 'string' || tags.trim().length === 0) {
-    return ''
+    return []
   }
-  const first = tags
+  return tags
     .split(/[,\uFF0C;\uFF1B|\u3001]/)
     .map(item => item.trim())
-    .find(Boolean)
-  return first ?? ''
-}
-
-function normalizeTags(tags: unknown, groupName: unknown): string {
-  if (typeof tags === 'string' && tags.trim().length > 0) {
-    return tags.trim()
-  }
-  if (typeof groupName === 'string' && groupName.trim().length > 0) {
-    return groupName.trim()
-  }
-  return ''
+    .filter(Boolean)
 }
 
 function normalizePermission(raw: Record<string, any>): SysPermission {
-  const rawTags = raw.tags ?? raw.Tags
-  const rawGroupName = raw.groupName ?? raw.GroupName
-  const normalizedTags = normalizeTags(rawTags, rawGroupName)
+  const tags = raw.tags ?? raw.Tags
+  const tagList = splitTags(tags)
   return {
     basicId: toId(raw.basicId ?? raw.BasicId),
     resourceId: toId(raw.resourceId ?? raw.ResourceId),
@@ -89,6 +76,7 @@ function normalizePermission(raw: Record<string, any>): SysPermission {
     permissionDescription: raw.permissionDescription ?? raw.PermissionDescription ?? raw.description ?? raw.Description ?? '',
     description: raw.permissionDescription ?? raw.PermissionDescription ?? raw.description ?? raw.Description ?? '',
     isRequireAudit: Boolean(raw.isRequireAudit ?? raw.IsRequireAudit),
+    isGlobal: Boolean(raw.isGlobal ?? raw.IsGlobal),
     priority: toNumber(raw.priority ?? raw.Priority, 0),
     sort: toNumber(raw.sort ?? raw.Sort, 0),
     tenantId: raw.tenantId === null || raw.tenantId === undefined
@@ -97,24 +85,28 @@ function normalizePermission(raw: Record<string, any>): SysPermission {
     remark: raw.remark ?? raw.Remark ?? undefined,
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.CreatedTime ?? undefined,
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
-    groupName: resolveGroupName(rawTags, rawGroupName),
-    tags: normalizedTags || undefined,
+    tags: typeof tags === 'string' && tags.trim().length > 0 ? tags.trim() : undefined,
+    tagList,
+    primaryTag: tagList[0],
     status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
   }
 }
 
 function toCreatePayload(data: Partial<SysPermission>) {
-  const groupName = resolveGroupName(data.tags, data.groupName)
-  const tags = normalizeTags(data.tags, groupName)
+  const normalizedTags = typeof data.tags === 'string'
+    ? data.tags.trim()
+    : Array.isArray(data.tagList)
+      ? data.tagList.map(item => item.trim()).filter(Boolean).join(',')
+      : ''
   return {
     resourceId: toId(data.resourceId ?? '1') || '1',
     operationId: toId(data.operationId ?? '1') || '1',
     permissionCode: data.permissionCode ?? '',
     permissionName: data.permissionName ?? '',
     permissionDescription: data.permissionDescription ?? data.description ?? '',
-    groupName,
-    tags,
+    tags: normalizedTags,
     isRequireAudit: Boolean(data.isRequireAudit),
+    isGlobal: Boolean(data.isGlobal),
     priority: toNumber(data.priority, 0),
     sort: toNumber(data.sort, 0),
     tenantId: data.tenantId === undefined ? null : toNumber(data.tenantId, 0),
