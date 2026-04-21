@@ -19,6 +19,8 @@ namespace XiHan.BasicApp.Saas.Constants.Basic;
 /// </summary>
 public static class RoleBasicConstants
 {
+    public const long PlatformTenantId = 0;
+
     /// <summary>
     /// 超级管理员角色编码
     /// </summary>
@@ -27,15 +29,20 @@ public static class RoleBasicConstants
     /// <summary>
     /// 管理员角色编码
     /// </summary>
-    public const string AdminRoleCode = "admin";
+    public const string PlatformAdminRoleCode = "platform_admin";
 
     /// <summary>
-    /// 普通用户角色编码
+    /// 租户管理员模板角色编码
     /// </summary>
-    public const string UserRoleCode = "user";
+    public const string TenantAdminRoleCode = "tenant_admin";
 
     /// <summary>
-    /// 游客角色编码
+    /// 租户成员模板角色编码
     /// </summary>
-    public const string GuestRoleCode = "guest";
+    public const string TenantMemberRoleCode = "tenant_member";
+
+    /// <summary>
+    /// 租户只读模板角色编码
+    /// </summary>
+    public const string TenantViewerRoleCode = "tenant_viewer";
 }

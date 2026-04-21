@@ -13,76 +13,125 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统操作种子数据
+/// 系统操作种子数据。
 /// </summary>
 public class SysOperationSeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysOperationSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysOperationSeeder> logger, IServiceProvider serviceProvider)
+    public SysOperationSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysOperationSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
-    public override int Order => 0;
+    public override int Order => SaasSeedOrder.Operations;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统操作种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysOperation>(o => true))
+        var templates = BuildTemplates();
+        var operationCodes = templates.Select(item => item.OperationCode).ToArray();
+        var existingOperations = await DbClient
+            .Queryable<SysOperation>()
+            .Where(operation => operationCodes.Contains(operation.OperationCode))
+            .ToListAsync();
+
+        var existingMap = existingOperations.ToDictionary(operation => operation.OperationCode, StringComparer.OrdinalIgnoreCase);
+        var toInsert = templates
+            .Where(template => !existingMap.ContainsKey(template.OperationCode))
+            .ToList();
+
+        if (toInsert.Count > 0)
         {
-            Logger.LogInformation("系统操作数据已存在，跳过种子数据");
-            return;
+            await BulkInsertAsync(toInsert);
         }
 
-        var operations = new List<SysOperation>
+        var toEnableIds = existingOperations
+            .Where(operation =>
+                operation.TenantId == SaasSeedDefaults.PlatformTenantId
+                && operation.IsGlobal
+                && operation.Status != YesOrNo.Yes)
+            .Select(operation => operation.BasicId)
+            .ToArray();
+
+        if (toEnableIds.Length > 0)
         {
-            // CRUD 操作
-            new() { OperationCode = "create", OperationName = "创建", OperationTypeCode = OperationTypeCode.Create, Category = OperationCategory.Crud, HttpMethod = HttpMethodType.POST, Description = "创建新记录", Icon = "plus", Color = "success", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 1 },
-            new() { OperationCode = "read", OperationName = "查看", OperationTypeCode = OperationTypeCode.Read, Category = OperationCategory.Crud, HttpMethod = HttpMethodType.GET, Description = "查看记录详情", Icon = "eye", Color = "info", IsRequireAudit = false, Status = YesOrNo.Yes, Sort = 2 },
-            new() { OperationCode = "update", OperationName = "更新", OperationTypeCode = OperationTypeCode.Update, Category = OperationCategory.Crud, HttpMethod = HttpMethodType.PUT, Description = "更新记录", Icon = "edit", Color = "primary", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 3 },
-            new() { OperationCode = "delete", OperationName = "删除", OperationTypeCode = OperationTypeCode.Delete, Category = OperationCategory.Crud, HttpMethod = HttpMethodType.DELETE, Description = "删除记录", Icon = "delete", Color = "danger", IsDangerous = true, IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 4 },
-            new() { OperationCode = "view", OperationName = "查看详情", OperationTypeCode = OperationTypeCode.View, Category = OperationCategory.Crud, HttpMethod = HttpMethodType.GET, Description = "查看详细信息", Icon = "file-text", Color = "info", IsRequireAudit = false, Status = YesOrNo.Yes, Sort = 5 },
+            await DbClient
+                .Updateable<SysOperation>()
+                .SetColumns(operation => operation.Status == YesOrNo.Yes)
+                .Where(operation => toEnableIds.Contains(operation.BasicId))
+                .ExecuteCommandAsync();
+        }
 
-            // 业务操作
-            new() { OperationCode = "approve", OperationName = "审批", OperationTypeCode = OperationTypeCode.Approve, Category = OperationCategory.Business, HttpMethod = HttpMethodType.POST, Description = "审批操作", Icon = "check-circle", Color = "success", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 10 },
-            new() { OperationCode = "execute", OperationName = "执行", OperationTypeCode = OperationTypeCode.Execute, Category = OperationCategory.Business, HttpMethod = HttpMethodType.POST, Description = "执行操作", Icon = "play-circle", Color = "primary", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 11 },
+        Logger.LogInformation(
+            "系统操作模板种子完成：新增 {InsertCount} 项，启用 {EnableCount} 项",
+            toInsert.Count,
+            toEnableIds.Length);
+    }
 
-            // 系统操作
-            new() { OperationCode = "import", OperationName = "导入", OperationTypeCode = OperationTypeCode.Import, Category = OperationCategory.System, HttpMethod = HttpMethodType.POST, Description = "导入数据", Icon = "upload", Color = "info", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 20 },
-            new() { OperationCode = "export", OperationName = "导出", OperationTypeCode = OperationTypeCode.Export, Category = OperationCategory.System, HttpMethod = HttpMethodType.GET, Description = "导出数据", Icon = "download", Color = "success", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 21 },
-            new() { OperationCode = "upload", OperationName = "上传", OperationTypeCode = OperationTypeCode.Upload, Category = OperationCategory.System, HttpMethod = HttpMethodType.POST, Description = "上传文件", Icon = "upload", Color = "info", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 22 },
-            new() { OperationCode = "download", OperationName = "下载", OperationTypeCode = OperationTypeCode.Download, Category = OperationCategory.System, HttpMethod = HttpMethodType.GET, Description = "下载文件", Icon = "download", Color = "success", IsRequireAudit = false, Status = YesOrNo.Yes, Sort = 23 },
-            new() { OperationCode = "print", OperationName = "打印", OperationTypeCode = OperationTypeCode.Print, Category = OperationCategory.System, HttpMethod = HttpMethodType.GET, Description = "打印文件", Icon = "print", Color = "primary", IsRequireAudit = false, Status = YesOrNo.Yes, Sort = 25 },
-            new() { OperationCode = "share", OperationName = "分享", OperationTypeCode = OperationTypeCode.Share, Category = OperationCategory.System, HttpMethod = HttpMethodType.GET, Description = "分享文件", Icon = "share", Color = "warning", IsRequireAudit = false, Status = YesOrNo.Yes, Sort = 26 },
+    private static List<SysOperation> BuildTemplates()
+    {
+        return
+        [
+            Create("create", "创建", OperationTypeCode.Create, OperationCategory.Crud, HttpMethodType.POST, "创建新记录", "plus", "success", false, true, 10),
+            Create("read", "读取", OperationTypeCode.Read, OperationCategory.Crud, HttpMethodType.GET, "读取列表或概览", "eye", "info", false, false, 20),
+            Create("view", "详情", OperationTypeCode.View, OperationCategory.Crud, HttpMethodType.GET, "读取详情数据", "file-text", "info", false, false, 30),
+            Create("update", "更新", OperationTypeCode.Update, OperationCategory.Crud, HttpMethodType.PUT, "更新既有记录", "edit", "primary", false, true, 40),
+            Create("delete", "删除", OperationTypeCode.Delete, OperationCategory.Crud, HttpMethodType.DELETE, "删除或归档记录", "trash-2", "danger", true, true, 50),
+            Create("approve", "审批", OperationTypeCode.Approve, OperationCategory.Business, HttpMethodType.POST, "执行审批或通过动作", "check-circle", "success", false, true, 60),
+            Create("execute", "执行", OperationTypeCode.Execute, OperationCategory.Business, HttpMethodType.POST, "执行任务或流程动作", "play-circle", "primary", false, true, 70),
+            Create("grant", "授权", OperationTypeCode.Grant, OperationCategory.Admin, HttpMethodType.POST, "授予角色、权限或成员能力", "key-round", "warning", false, true, 80),
+            Create("revoke", "撤销", OperationTypeCode.Revoke, OperationCategory.Admin, HttpMethodType.DELETE, "撤销角色、权限或成员能力", "shield-x", "danger", true, true, 90),
+            Create("enable", "启用", OperationTypeCode.Enable, OperationCategory.Admin, HttpMethodType.PUT, "启用实体或功能", "check", "success", false, true, 100),
+            Create("disable", "禁用", OperationTypeCode.Disable, OperationCategory.Admin, HttpMethodType.PUT, "禁用实体或功能", "ban", "danger", true, true, 110),
+            Create("import", "导入", OperationTypeCode.Import, OperationCategory.System, HttpMethodType.POST, "导入批量数据", "upload", "info", false, true, 120),
+            Create("export", "导出", OperationTypeCode.Export, OperationCategory.System, HttpMethodType.GET, "导出批量数据", "download", "success", false, true, 130),
+            Create("upload", "上传", OperationTypeCode.Upload, OperationCategory.System, HttpMethodType.POST, "上传文件内容", "upload-cloud", "info", false, true, 140),
+            Create("download", "下载", OperationTypeCode.Download, OperationCategory.System, HttpMethodType.GET, "下载文件内容", "download-cloud", "success", false, false, 150),
+            Create("print", "打印", OperationTypeCode.Print, OperationCategory.System, HttpMethodType.GET, "打印输出内容", "printer", "primary", false, false, 160),
+            Create("share", "分享", OperationTypeCode.Share, OperationCategory.System, HttpMethodType.POST, "分享链接或内容", "share-2", "warning", false, true, 170)
+        ];
+    }
 
-            // 管理操作
-            new() { OperationCode = "grant", OperationName = "授权", OperationTypeCode = OperationTypeCode.Grant, Category = OperationCategory.Admin, HttpMethod = HttpMethodType.POST, Description = "授予权限", Icon = "key", Color = "warning", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 30 },
-            new() { OperationCode = "revoke", OperationName = "撤销", OperationTypeCode = OperationTypeCode.Revoke, Category = OperationCategory.Admin, HttpMethod = HttpMethodType.DELETE, Description = "撤销权限", Icon = "lock", Color = "danger", IsDangerous = true, IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 31 },
-            new() { OperationCode = "enable", OperationName = "启用", OperationTypeCode = OperationTypeCode.Enable, Category = OperationCategory.Admin, HttpMethod = HttpMethodType.PUT, Description = "启用功能", Icon = "check", Color = "success", IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 32 },
-            new() { OperationCode = "disable", OperationName = "禁用", OperationTypeCode = OperationTypeCode.Disable, Category = OperationCategory.Admin, HttpMethod = HttpMethodType.PUT, Description = "禁用功能", Icon = "close", Color = "danger", IsDangerous = true, IsRequireAudit = true, Status = YesOrNo.Yes, Sort = 33 },
+    private static SysOperation Create(
+        string code,
+        string name,
+        OperationTypeCode operationTypeCode,
+        OperationCategory category,
+        HttpMethodType httpMethod,
+        string description,
+        string icon,
+        string color,
+        bool isDangerous,
+        bool isRequireAudit,
+        int sort)
+    {
+        return new SysOperation
+        {
+            TenantId = SaasSeedDefaults.PlatformTenantId,
+            IsGlobal = true,
+            OperationCode = code,
+            OperationName = name,
+            OperationTypeCode = operationTypeCode,
+            Category = category,
+            HttpMethod = httpMethod,
+            Description = description,
+            Icon = icon,
+            Color = color,
+            IsDangerous = isDangerous,
+            IsRequireAudit = isRequireAudit,
+            Status = YesOrNo.Yes,
+            Sort = sort
         };
-
-        await BulkInsertAsync(operations);
-        Logger.LogInformation($"成功初始化 {operations.Count} 个系统操作");
     }
 }

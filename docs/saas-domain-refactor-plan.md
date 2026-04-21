@@ -399,7 +399,7 @@
 ### Batch-07 Sub-Status
 
 - [x] Batch-07A Seeder 编排骨架与基线成员链
-- [ ] Batch-07B 平台模板种子重建
+- [x] Batch-07B 平台模板种子重建
 - [ ] Batch-07C 租户初始化模板重建
 
 ## Validation Template
@@ -412,7 +412,7 @@
 | Batch-04 | 代码事实检索 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department/User/Tenant/Menu/ConstraintRule` 的对外只读查询已下沉到 QueryService，核心仓储租户过滤规则已统一收敛；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，未获得可信的业务编译成功信号 |
 | Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05 已完成两段收敛：05A 将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`；05B 进一步将 `AuthAppService` 的当前用户解析、角色码展开、权限集/菜单树/数据范围装配收敛到 `IAuthorizationContextService`，同时复用既有 `IUserManager.ResolveDefaultRoleIdAsync`。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
 | Batch-06 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-06 已完成两段收敛：06A 建立 `SaasCacheKeys` 与 `SaasSettingKeys`，并将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存及 `RbacSettingStore` 的键前缀统一到 `basicapp:saas:*` / `BasicApp:Saas:*`；06B 进一步将 `AuthTokenCacheHelper`、`RbacUserStore`、QueryService 的 `[Cacheable]` 键模板及对应缓存失效处理器全部切到统一键体系。`dotnet build` 继续受本机 .NET SDK workload 异常阻塞，仅输出“生成失败，0 个警告 0 个错误” |
-| Batch-07 | `dotnet build` / 认证链自检 | Partial | Batch-07A 已将正式初始化链中的 demo/test 数据从注册链剥离，新增 `SysUserSecuritySeeder` 与 `SysTenantUserSeeder` 用于补齐 `SysUser` 的安全档案和主租户成员关系，并将平台运行配置种子统一切到 `BasicApp:Saas:*`。针对性残留扫描已不再命中 `SysUserSeeder` / `SysUserRoleSeeder` / `ServiceCollectionExtensions` 中的 demo/test 自动注入。`dotnet build` 仍受本机 .NET SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
+| Batch-07 | `dotnet build` / 认证链自检 | Partial | Batch-07 已完成前两段收敛：07A 将正式初始化链中的 demo/test 数据从注册链剥离，新增 `SysUserSecuritySeeder` 与 `SysTenantUserSeeder` 用于补齐 `SysUser` 的安全档案和主租户成员关系，并将平台运行配置种子统一切到 `BasicApp:Saas:*`；07B 则重建了 `SysOperation/SysResource/SysPermission/SysRole/SysRolePermission/SysMenu` 的平台模板 Seeder，全部改为 `TenantId=0 + IsGlobal=true` 的业务键幂等模式，并删除了 `SysConstraintRuleFeatureSeeder` 这类补丁式增量 Seeder。针对性残留扫描已不再命中旧角色码、旧路由假设和旧增量 Seeder 引用。`dotnet build` 仍受本机 .NET SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
 | Batch-08 | `dotnet build` / 授权链自检 | Pending |  |
 | Batch-09 | `dotnet build` / 安全出口自检 | Pending |  |
 | Batch-10 | `pnpm type-check` / 页面联调自检 | Pending |  |
@@ -444,5 +444,5 @@
 | Sub-Batch | Validation | Result | Notes |
 |-----------|------------|--------|-------|
 | Batch-07A | 种子注册链扫描 / 实体语义对齐自检 / `dotnet build` 定向验证 | Partial | 已确认 `AddRbacDataSeeders` 不再注册 `SysConstraintRuleFeatureSeeder` 这类 ad hoc 增量 Seeder，正式链改为包含 `SysUserSecuritySeeder`、`SysTenantUserSeeder`；`SysUserSeeder` 与 `SysUserRoleSeeder` 不再自动注入 `test/demo` 账号；`SysConfigSeeder` 已切换到 `BasicApp:Saas:*` 统一键体系。`dotnet build` 仍受本机 SDK workload 环境问题阻塞，仅输出“生成失败，0 个警告 0 个错误” |
-| Batch-07B | 平台模板业务键残留扫描 / `dotnet build` 定向验证 | Pending |  |
+| Batch-07B | 平台模板业务键残留扫描 / `dotnet build` 定向验证 | Partial | 已将平台模板链 `SysOperation/SysResource/SysPermission/SysRole/SysRolePermission/SysMenu` 重写为 `TenantId=0 + IsGlobal=true` 的业务键幂等 Seeder，并删除 `SysConstraintRuleFeatureSeeder`；定向残留扫描已不再命中 `dept_admin/dept_manager/employee/guest`、旧日志路由 `/log/vislog`、旧任务路由 `/platform/job`、旧 OAuth 路由 `/system/weChatUser` 等历史假设。`UserManager.ResolveDefaultRoleIdAsync` 与角色基础常量也已切到 `tenant_member/tenant_viewer` 新模板。`dotnet build` 仍受本机 SDK workload 环境问题阻塞，仅输出“生成失败，0 个警告 0 个错误” |
 | Batch-07C | 初始化链自检 / `dotnet build` 定向验证 | Pending |  |

@@ -13,149 +13,286 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统菜单种子数据
-/// 菜单是纯 UI 结构，通过 PermissionId 绑定所需权限
+/// 系统菜单种子数据。
 /// </summary>
 public class SysMenuSeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysMenuSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysMenuSeeder> logger, IServiceProvider serviceProvider)
+    public SysMenuSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysMenuSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.Menus;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统菜单种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysMenu>(m => true))
+        var permissionCodes = new[]
         {
-            Logger.LogInformation("系统菜单数据已存在，执行菜单层级校准");
-            await NormalizeMenuHierarchyAsync();
-            return;
-        }
-
-        // 菜单通过 PermissionId 绑定权限，目录类菜单无需权限（null）
-        var menus = new List<SysMenu>
-        {
-            // 工作台
-            new() { ParentId = null, MenuName = "工作台", MenuCode = "workbench", MenuType = MenuType.Directory, Path = "/workbench", Component = null, RouteName = null, Redirect = "/workbench/dashboard", Icon = "workbench", Title = "工作台", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 1 },
-            new() { ParentId = null, MenuName = "仪表板", MenuCode = "dashboard", MenuType = MenuType.Menu, Path = "/workbench/dashboard", Component = "Workbench/Dashboard/Index", RouteName = "Dashboard", Icon = "dashboard", Title = "工作台", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = true, Status = YesOrNo.Yes, Sort = 100 },
-            new() { ParentId = null, MenuName = "站内信", MenuCode = "inbox", MenuType = MenuType.Menu, Path = "/workbench/inbox", Component = "Workbench/Inbox/Index", RouteName = "Inbox", Icon = "inbox", Title = "站内信", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
-
-            // 消息中心
-            new() { ParentId = null, MenuName = "消息中心", MenuCode = "messaging", MenuType = MenuType.Directory, Path = "/messaging", Component = null, RouteName = null, Redirect = "/messaging/message", Icon = "message-square", Title = "消息中心", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, BadgeDot = true, Status = YesOrNo.Yes, Sort = 7000 },
-            new() { ParentId = null, MenuName = "消息管理", MenuCode = "message", MenuType = MenuType.Menu, Path = "/messaging/message", Component = "System/Message/Index", RouteName = "SystemMessage", Icon = "bell-ring", Title = "消息管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 100 },
-            new() { ParentId = null, MenuName = "邮件管理", MenuCode = "email", MenuType = MenuType.Menu, Path = "/messaging/email", Component = "System/Email/Index", RouteName = "SystemEmail", Icon = "mail", Title = "邮件管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
-            new() { ParentId = null, MenuName = "短信管理", MenuCode = "sms", MenuType = MenuType.Menu, Path = "/messaging/sms", Component = "System/Sms/Index", RouteName = "SystemSms", Icon = "message-circle", Title = "短信管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 300 },
-
-            // 系统管理
-            new() { ParentId = null, MenuName = "系统管理", MenuCode = "system", MenuType = MenuType.Directory, Path = "/system", Component = null, RouteName = null, Redirect = "/system/user", Icon = "settings", Title = "系统管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 8000 },
-            new() { ParentId = null, MenuName = "账号管理", MenuCode = "user", MenuType = MenuType.Menu, Path = "/system/user", Component = "System/User/Index", RouteName = "SystemUser", Icon = "user", Title = "账号管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 100 },
-            new() { ParentId = null, MenuName = "角色管理", MenuCode = "role", MenuType = MenuType.Menu, Path = "/system/role", Component = "System/Role/Index", RouteName = "SystemRole", Icon = "users", Title = "角色管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
-            new() { ParentId = null, MenuName = "机构管理", MenuCode = "department", MenuType = MenuType.Menu, Path = "/system/org", Component = "System/Department/Index", RouteName = "SystemDepartment", Icon = "building-2", Title = "机构管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 300 },
-            new() { ParentId = null, MenuName = "通知公告", MenuCode = "notice", MenuType = MenuType.Menu, Path = "/system/notice", Component = "System/Notification/Index", RouteName = "SystemNotice", Icon = "bell", Title = "通知公告", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 400 },
-            new() { ParentId = null, MenuName = "三方账号", MenuCode = "oauth_app", MenuType = MenuType.Menu, Path = "/system/weChatUser", Component = "System/OAuthApp/Index", RouteName = "SystemOAuthApp", Icon = "link", Title = "三方账号", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 500 },
-            new() { ParentId = null, MenuName = "会话管理", MenuCode = "user_session", MenuType = MenuType.Menu, Path = "/system/session", Component = "System/UserSession/Index", RouteName = "SystemUserSession", Icon = "shield-check", Title = "会话管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 600 },
-            new() { ParentId = null, MenuName = "审核管理", MenuCode = "review", MenuType = MenuType.Menu, Path = "/system/review", Component = "System/Review/Index", RouteName = "SystemReview", Icon = "clipboard-check", Title = "审核管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 700 },
-
-            // 平台管理
-            new() { ParentId = null, MenuName = "平台管理", MenuCode = "platform", MenuType = MenuType.Directory, Path = "/platform", Component = null, RouteName = null, Redirect = "/platform/menu", Icon = "layout-grid", Title = "平台管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 8001 },
-            new() { ParentId = null, MenuName = "租户管理", MenuCode = "tenant", MenuType = MenuType.Menu, Path = "/platform/tenant", Component = "System/Tenant/Index", RouteName = "SystemTenant", Icon = "server", Title = "租户管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 100 },
-            new() { ParentId = null, MenuName = "权限管理", MenuCode = "permission", MenuType = MenuType.Menu, Path = "/platform/permission", Component = "System/Permission/Index", RouteName = "SystemPermission", Icon = "shield", Title = "权限管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
-            new() { ParentId = null, MenuName = "约束规则", MenuCode = "constraint_rule", MenuType = MenuType.Menu, Path = "/platform/constraint-rule", Component = "System/ConstraintRule/Index", RouteName = "SystemConstraintRule", Icon = "scale", Title = "约束规则", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 300 },
-            new() { ParentId = null, MenuName = "菜单管理", MenuCode = "menu", MenuType = MenuType.Menu, Path = "/platform/menu", Component = "System/Menu/Index", RouteName = "SystemMenu", Icon = "menu", Title = "菜单管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 400 },
-            new() { ParentId = null, MenuName = "参数配置", MenuCode = "config", MenuType = MenuType.Menu, Path = "/platform/config", Component = "System/Config/Index", RouteName = "SystemConfig", Icon = "sliders-horizontal", Title = "参数配置", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 500 },
-            new() { ParentId = null, MenuName = "字典管理", MenuCode = "dict", MenuType = MenuType.Menu, Path = "/platform/dict", Component = "System/Dict/Index", RouteName = "SystemDict", Icon = "book-open", Title = "字典管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 600 },
-            new() { ParentId = null, MenuName = "任务调度", MenuCode = "task", MenuType = MenuType.Menu, Path = "/platform/job", Component = "System/Task/Index", RouteName = "SystemTask", Icon = "clock", Title = "任务调度", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 700 },
-            new() { ParentId = null, MenuName = "缓存管理", MenuCode = "cache", MenuType = MenuType.Menu, Path = "/platform/cache", Component = "System/Cache/Index", RouteName = "SystemCache", Icon = "database", Title = "缓存管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 800 },
-            new() { ParentId = null, MenuName = "文件管理", MenuCode = "file", MenuType = MenuType.Menu, Path = "/platform/file", Component = "System/File/Index", RouteName = "SystemFile", Icon = "folder-open", Title = "文件管理", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 900 },
-            new() { ParentId = null, MenuName = "系统监控", MenuCode = "monitor", MenuType = MenuType.Menu, Path = "/platform/server", Component = "System/Monitor/Index", RouteName = "SystemMonitor", Icon = "activity", Title = "系统监控", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 1000 },
-
-            // 日志管理
-            new() { ParentId = null, MenuName = "日志管理", MenuCode = "log", MenuType = MenuType.Directory, Path = "/log", Component = null, RouteName = null, Redirect = "/log/vislog", Icon = "file-text", Title = "日志管理", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 8002 },
-            new() { ParentId = null, MenuName = "访问日志", MenuCode = "access_log", MenuType = MenuType.Menu, Path = "/log/vislog", Component = "System/Log/Access", RouteName = "AccessLog", Icon = "globe", Title = "访问日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 100 },
-            new() { ParentId = null, MenuName = "操作日志", MenuCode = "operation_log", MenuType = MenuType.Menu, Path = "/log/oplog", Component = "System/Log/Operation", RouteName = "OperationLog", Icon = "history", Title = "操作日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 200 },
-            new() { ParentId = null, MenuName = "异常日志", MenuCode = "exception_log", MenuType = MenuType.Menu, Path = "/log/exlog", Component = "System/Log/Exception", RouteName = "ExceptionLog", Icon = "alert-triangle", Title = "异常日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 300 },
-            new() { ParentId = null, MenuName = "差异日志", MenuCode = "audit_log", MenuType = MenuType.Menu, Path = "/log/difflog", Component = "System/Log/Audit", RouteName = "AuditLog", Icon = "file-diff", Title = "差异日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 400 },
-            new() { ParentId = null, MenuName = "登录日志", MenuCode = "login_log", MenuType = MenuType.Menu, Path = "/log/loginlog", Component = "System/Log/Login", RouteName = "LoginLog", Icon = "log-in", Title = "登录日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 500 },
-            new() { ParentId = null, MenuName = "调度日志", MenuCode = "task_log", MenuType = MenuType.Menu, Path = "/log/tasklog", Component = "System/Log/Task", RouteName = "TaskLog", Icon = "calendar-clock", Title = "调度日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 600 },
-            new() { ParentId = null, MenuName = "接口日志", MenuCode = "api_log", MenuType = MenuType.Menu, Path = "/log/apilog", Component = "System/Log/Api", RouteName = "ApiLog", Icon = "shield-check", Title = "接口日志", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 700 },
-
-            // 关于系统
-            new() { ParentId = null, MenuName = "关于系统", MenuCode = "about", MenuType = MenuType.Menu, Path = "/about", Component = "About/Index", RouteName = "About", Icon = "info", Title = "关于系统", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 9999 },
+            "tenant:read",
+            "user:read",
+            "role:read",
+            "permission:read",
+            "menu:read",
+            "department:read",
+            "constraint_rule:read",
+            "config:read",
+            "dict:read",
+            "notification:read",
+            "message:read",
+            "email:read",
+            "sms:read",
+            "oauth_app:read",
+            "user_session:read",
+            "review:read",
+            "task:read",
+            "file:read",
+            "cache:read",
+            "monitor:read",
+            "access_log:read",
+            "operation_log:read",
+            "exception_log:read",
+            "audit_log:read",
+            "login_log:read",
+            "task_log:read"
         };
 
-        await BulkInsertAsync(menus);
-        await NormalizeMenuHierarchyAsync();
+        var permissions = await DbClient
+            .Queryable<SysPermission>()
+            .Where(permission => permissionCodes.Contains(permission.PermissionCode))
+            .ToListAsync();
+        var permissionMap = permissions.ToDictionary(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase);
 
-        Logger.LogInformation("成功初始化 {Count} 个系统菜单", menus.Count);
-    }
-
-    /// <summary>
-    /// 标准化菜单层级
-    /// </summary>
-    private async Task NormalizeMenuHierarchyAsync()
-    {
-        await SetMenuAsRootAsync("workbench");
-        await SetMenuAsRootAsync("messaging");
-        await SetMenuAsRootAsync("system");
-        await SetMenuAsRootAsync("platform");
-        await SetMenuAsRootAsync("log");
-        await SetMenuAsRootAsync("about");
-
-        await UpdateMenuParentIdAsync("workbench", ["dashboard", "inbox"]);
-        await UpdateMenuParentIdAsync("messaging", ["message", "email", "sms"]);
-        await UpdateMenuParentIdAsync("system", ["user", "role", "department", "notice", "oauth_app", "user_session", "review"]);
-        await UpdateMenuParentIdAsync("platform", ["tenant", "permission", "constraint_rule", "menu", "config", "dict", "task", "cache", "file", "monitor"]);
-        await UpdateMenuParentIdAsync("log", ["access_log", "operation_log", "exception_log", "audit_log", "login_log", "task_log", "api_log"]);
-    }
-
-    private async Task SetMenuAsRootAsync(string menuCode)
-    {
-        await DbClient
-            .Updateable<SysMenu>()
-            .SetColumns(menu => menu.ParentId == null)
-            .Where(menu => menu.MenuCode == menuCode)
-            .ExecuteCommandAsync();
-    }
-
-    private async Task UpdateMenuParentIdAsync(string parentCode, string[] childCodes)
-    {
-        var parentMenu = await DbClient
+        var templates = BuildTemplates(permissionMap);
+        var menuCodes = templates.Select(item => item.MenuCode).ToArray();
+        var existingMenus = await DbClient
             .Queryable<SysMenu>()
-            .FirstAsync(m => m.MenuCode == parentCode);
+            .Where(menu => menuCodes.Contains(menu.MenuCode))
+            .ToListAsync();
 
-        if (parentMenu == null)
+        var existingMap = existingMenus.ToDictionary(menu => menu.MenuCode, StringComparer.OrdinalIgnoreCase);
+        var toInsert = templates
+            .Where(template => !existingMap.ContainsKey(template.MenuCode))
+            .ToList();
+
+        if (toInsert.Count > 0)
         {
-            return;
+            await BulkInsertAsync(toInsert);
         }
 
-        await DbClient
-            .Updateable<SysMenu>()
-            .SetColumns(m => m.ParentId == parentMenu.BasicId)
-            .Where(m => childCodes.Contains(m.MenuCode))
-            .ExecuteCommandAsync();
+        await NormalizeMenuHierarchyAsync(templates.Select(item => item.MenuCode).ToArray());
+
+        var toEnableIds = existingMenus
+            .Where(menu =>
+                menu.TenantId == SaasSeedDefaults.PlatformTenantId
+                && menu.IsGlobal
+                && menu.Status != YesOrNo.Yes)
+            .Select(menu => menu.BasicId)
+            .ToArray();
+
+        if (toEnableIds.Length > 0)
+        {
+            await DbClient
+                .Updateable<SysMenu>()
+                .SetColumns(menu => menu.Status == YesOrNo.Yes)
+                .Where(menu => toEnableIds.Contains(menu.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        Logger.LogInformation(
+            "系统菜单模板种子完成：新增 {InsertCount} 项，启用 {EnableCount} 项",
+            toInsert.Count,
+            toEnableIds.Length);
+    }
+
+    private static List<SysMenu> BuildTemplates(IReadOnlyDictionary<string, SysPermission> permissionMap)
+    {
+        return
+        [
+            CreateDirectory("workbench", "工作台", "/workbench", "/workbench/inbox", "layout-dashboard", 100),
+            CreateMenu("inbox", "我的消息", "workbench", "/workbench/inbox", "System/Message/Index", "WorkbenchInbox", "inbox", 110, LookupPermissionId(permissionMap, "message:read")),
+
+            CreateDirectory("system", "租户空间", "/system", "/system/user", "settings-2", 200),
+            CreateMenu("user", "账号管理", "system", "/system/user", "System/User/Index", "SystemUser", "users", 210, LookupPermissionId(permissionMap, "user:read")),
+            CreateMenu("role", "角色管理", "system", "/system/role", "System/Role/Index", "SystemRole", "shield", 220, LookupPermissionId(permissionMap, "role:read")),
+            CreateMenu("department", "部门管理", "system", "/system/department", "System/Department/Index", "SystemDepartment", "building-2", 230, LookupPermissionId(permissionMap, "department:read")),
+            CreateMenu("notification", "通知公告", "system", "/system/notification", "System/Notification/Index", "SystemNotification", "bell", 240, LookupPermissionId(permissionMap, "notification:read")),
+            CreateMenu("oauth_app", "三方应用", "system", "/system/oauth-app", "System/OAuthApp/Index", "SystemOAuthApp", "link", 250, LookupPermissionId(permissionMap, "oauth_app:read")),
+            CreateMenu("user_session", "会话管理", "system", "/system/user-session", "System/UserSession/Index", "SystemUserSession", "shield-check", 260, LookupPermissionId(permissionMap, "user_session:read")),
+            CreateMenu("review", "审核中心", "system", "/system/review", "System/Review/Index", "SystemReview", "clipboard-check", 270, LookupPermissionId(permissionMap, "review:read")),
+
+            CreateDirectory("platform", "平台管理", "/platform", "/platform/tenant", "server-cog", 300),
+            CreateMenu("tenant", "租户管理", "platform", "/platform/tenant", "System/Tenant/Index", "SystemTenant", "server", 310, LookupPermissionId(permissionMap, "tenant:read")),
+            CreateMenu("permission", "权限管理", "platform", "/platform/permission", "System/Permission/Index", "SystemPermission", "key-round", 320, LookupPermissionId(permissionMap, "permission:read")),
+            CreateMenu("menu", "菜单管理", "platform", "/platform/menu", "System/Menu/Index", "SystemMenu", "panel-left", 330, LookupPermissionId(permissionMap, "menu:read")),
+            CreateMenu("constraint_rule", "约束规则", "platform", "/platform/constraint-rule", "System/ConstraintRule/Index", "SystemConstraintRule", "scale", 340, LookupPermissionId(permissionMap, "constraint_rule:read")),
+            CreateMenu("config", "运行配置", "platform", "/platform/config", "System/Config/Index", "SystemConfig", "sliders-horizontal", 350, LookupPermissionId(permissionMap, "config:read")),
+            CreateMenu("dict", "字典中心", "platform", "/platform/dict", "System/Dict/Index", "SystemDict", "book-marked", 360, LookupPermissionId(permissionMap, "dict:read")),
+            CreateMenu("task", "任务调度", "platform", "/platform/task", "System/Task/Index", "SystemTask", "clock-3", 370, LookupPermissionId(permissionMap, "task:read")),
+            CreateMenu("file", "文件中心", "platform", "/platform/file", "System/File/Index", "SystemFile", "folder-open", 380, LookupPermissionId(permissionMap, "file:read")),
+            CreateMenu("cache", "缓存管理", "platform", "/platform/cache", "System/Cache/Index", "SystemCache", "database-zap", 390, LookupPermissionId(permissionMap, "cache:read")),
+            CreateMenu("monitor", "系统监控", "platform", "/platform/monitor", "System/Monitor/Index", "SystemMonitor", "activity", 400, LookupPermissionId(permissionMap, "monitor:read")),
+
+            CreateDirectory("messaging", "消息投递", "/messaging", "/messaging/message", "send", 500),
+            CreateMenu("message", "站内消息", "messaging", "/messaging/message", "System/Message/Index", "SystemMessage", "mailbox", 510, LookupPermissionId(permissionMap, "message:read")),
+            CreateMenu("email", "邮件管理", "messaging", "/messaging/email", "System/Email/Index", "SystemEmail", "mail", 520, LookupPermissionId(permissionMap, "email:read")),
+            CreateMenu("sms", "短信管理", "messaging", "/messaging/sms", "System/Sms/Index", "SystemSms", "message-square-more", 530, LookupPermissionId(permissionMap, "sms:read")),
+
+            CreateDirectory("audit", "审计与日志", "/audit", "/audit/access-log", "scroll-text", 600),
+            CreateMenu("access_log", "访问日志", "audit", "/audit/access-log", "System/Log/Access", "AccessLog", "globe", 610, LookupPermissionId(permissionMap, "access_log:read")),
+            CreateMenu("operation_log", "操作日志", "audit", "/audit/operation-log", "System/Log/Operation", "OperationLog", "history", 620, LookupPermissionId(permissionMap, "operation_log:read")),
+            CreateMenu("exception_log", "异常日志", "audit", "/audit/exception-log", "System/Log/Exception", "ExceptionLog", "triangle-alert", 630, LookupPermissionId(permissionMap, "exception_log:read")),
+            CreateMenu("audit_log", "审计日志", "audit", "/audit/audit-log", "System/Log/Audit", "AuditLog", "file-diff", 640, LookupPermissionId(permissionMap, "audit_log:read")),
+            CreateMenu("login_log", "登录日志", "audit", "/audit/login-log", "System/Log/Login", "LoginLog", "log-in", 650, LookupPermissionId(permissionMap, "login_log:read")),
+            CreateMenu("task_log", "调度日志", "audit", "/audit/task-log", "System/Log/Task", "TaskLog", "calendar-clock", 660, LookupPermissionId(permissionMap, "task_log:read"))
+        ];
+    }
+
+    private async Task NormalizeMenuHierarchyAsync(string[] menuCodes)
+    {
+        var menus = await DbClient
+            .Queryable<SysMenu>()
+            .Where(menu => menuCodes.Contains(menu.MenuCode))
+            .ToListAsync();
+
+        var menuMap = menus.ToDictionary(menu => menu.MenuCode, StringComparer.OrdinalIgnoreCase);
+        var parentMap = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["workbench"] = null,
+            ["inbox"] = "workbench",
+            ["system"] = null,
+            ["user"] = "system",
+            ["role"] = "system",
+            ["department"] = "system",
+            ["notification"] = "system",
+            ["oauth_app"] = "system",
+            ["user_session"] = "system",
+            ["review"] = "system",
+            ["platform"] = null,
+            ["tenant"] = "platform",
+            ["permission"] = "platform",
+            ["menu"] = "platform",
+            ["constraint_rule"] = "platform",
+            ["config"] = "platform",
+            ["dict"] = "platform",
+            ["task"] = "platform",
+            ["file"] = "platform",
+            ["cache"] = "platform",
+            ["monitor"] = "platform",
+            ["messaging"] = null,
+            ["message"] = "messaging",
+            ["email"] = "messaging",
+            ["sms"] = "messaging",
+            ["audit"] = null,
+            ["access_log"] = "audit",
+            ["operation_log"] = "audit",
+            ["exception_log"] = "audit",
+            ["audit_log"] = "audit",
+            ["login_log"] = "audit",
+            ["task_log"] = "audit"
+        };
+
+        foreach (var pair in parentMap)
+        {
+            if (!menuMap.TryGetValue(pair.Key, out var menu))
+            {
+                continue;
+            }
+
+            long? expectedParentId = null;
+            if (!string.IsNullOrWhiteSpace(pair.Value) && menuMap.TryGetValue(pair.Value, out var parentMenu))
+            {
+                expectedParentId = parentMenu.BasicId;
+            }
+
+            if (menu.ParentId == expectedParentId)
+            {
+                continue;
+            }
+
+            await DbClient
+                .Updateable<SysMenu>()
+                .SetColumns(item => item.ParentId == expectedParentId)
+                .Where(item => item.BasicId == menu.BasicId)
+                .ExecuteCommandAsync();
+        }
+    }
+
+    private static long? LookupPermissionId(IReadOnlyDictionary<string, SysPermission> permissionMap, string permissionCode)
+    {
+        return permissionMap.TryGetValue(permissionCode, out var permission) ? permission.BasicId : null;
+    }
+
+    private static SysMenu CreateDirectory(
+        string code,
+        string name,
+        string path,
+        string redirect,
+        string icon,
+        int sort)
+    {
+        return new SysMenu
+        {
+            TenantId = SaasSeedDefaults.PlatformTenantId,
+            IsGlobal = true,
+            MenuCode = code,
+            MenuName = name,
+            MenuType = MenuType.Directory,
+            Path = path,
+            Redirect = redirect,
+            Icon = icon,
+            Title = name,
+            IsVisible = true,
+            IsCache = false,
+            IsAffix = false,
+            Status = YesOrNo.Yes,
+            Sort = sort
+        };
+    }
+
+    private static SysMenu CreateMenu(
+        string code,
+        string name,
+        string parentCode,
+        string path,
+        string component,
+        string routeName,
+        string icon,
+        int sort,
+        long? permissionId)
+    {
+        return new SysMenu
+        {
+            TenantId = SaasSeedDefaults.PlatformTenantId,
+            IsGlobal = true,
+            ParentId = null,
+            PermissionId = permissionId,
+            MenuCode = code,
+            MenuName = name,
+            MenuType = MenuType.Menu,
+            Path = path,
+            Component = component,
+            RouteName = routeName,
+            Icon = icon,
+            Title = name,
+            IsVisible = true,
+            IsCache = true,
+            IsAffix = false,
+            Status = YesOrNo.Yes,
+            Sort = sort,
+            Metadata = $"{{\"templateParent\":\"{parentCode}\"}}"
+        };
     }
 }
