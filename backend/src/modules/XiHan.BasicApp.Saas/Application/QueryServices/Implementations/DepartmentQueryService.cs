@@ -14,8 +14,9 @@
 
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Constants.Caching;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
@@ -40,7 +41,7 @@ public class DepartmentQueryService : IDepartmentQueryService, ITransientDepende
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "dept:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.DepartmentById, ExpireSeconds = 300)]
     public async Task<DepartmentDto?> GetByIdAsync(long id)
     {
         var entity = await _departmentRepository.GetByIdAsync(id);

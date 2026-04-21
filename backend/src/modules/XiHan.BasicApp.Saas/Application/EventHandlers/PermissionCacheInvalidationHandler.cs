@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Hybrid;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -37,6 +38,6 @@ public class PermissionCacheInvalidationHandler : ILocalEventHandler<PermissionC
     /// <inheritdoc />
     public async Task HandleEventAsync(PermissionChangedDomainEvent eventData)
     {
-        await _hybridCache.RemoveAsync($"perm:id:{eventData.EntityId}");
+        await _hybridCache.RemoveAsync(QueryCacheKeys.PermissionByIdValue(eventData.EntityId));
     }
 }

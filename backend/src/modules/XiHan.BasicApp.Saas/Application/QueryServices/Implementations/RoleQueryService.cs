@@ -15,6 +15,7 @@
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.Caching.Attributes;
@@ -39,7 +40,7 @@ public class RoleQueryService : IRoleQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "role:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.RoleById, ExpireSeconds = 300)]
     public async Task<RoleDto?> GetByIdAsync(long id)
     {
         var entity = await _roleRepository.GetByIdAsync(id);

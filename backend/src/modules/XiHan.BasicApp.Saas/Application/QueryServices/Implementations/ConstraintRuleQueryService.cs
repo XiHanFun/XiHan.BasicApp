@@ -1,4 +1,5 @@
 using Mapster;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -18,7 +19,7 @@ public class ConstraintRuleQueryService : IConstraintRuleQueryService, ITransien
         _constraintRuleRepository = constraintRuleRepository;
     }
 
-    [Cacheable(Key = "constraint-rule:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.ConstraintRuleById, ExpireSeconds = 300)]
     public async Task<ConstraintRuleDto?> GetByIdAsync(long id)
     {
         var entity = await _constraintRuleRepository.GetByIdAsync(id);

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -36,7 +37,7 @@ public class ReviewQueryService : IReviewQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "review:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.ReviewById, ExpireSeconds = 300)]
     public async Task<ReviewDto?> GetByIdAsync(long id)
     {
         var entity = await _reviewRepository.GetByIdAsync(id);

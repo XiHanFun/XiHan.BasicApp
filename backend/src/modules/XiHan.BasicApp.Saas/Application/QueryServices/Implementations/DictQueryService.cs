@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -36,7 +37,7 @@ public class DictQueryService : IDictQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "dict:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.DictById, ExpireSeconds = 300)]
     public async Task<DictDto?> GetByIdAsync(long id)
     {
         var entity = await _dictRepository.GetByIdAsync(id);
@@ -44,7 +45,7 @@ public class DictQueryService : IDictQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "dict:code:{code}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.DictByCode, ExpireSeconds = 300)]
     public async Task<DictDto?> GetByCodeAsync(string code)
     {
         var entity = await _dictRepository.GetByDictCodeAsync(code);

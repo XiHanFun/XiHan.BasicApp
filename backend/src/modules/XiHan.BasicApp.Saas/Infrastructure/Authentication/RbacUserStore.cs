@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -305,7 +306,7 @@ public class RbacUserStore : IUserStore
         var tenantPart = tenantId.HasValue ? tenantId.Value.ToString(CultureInfo.InvariantCulture) : "host";
         var raw = $"auth-recovery|{tenantPart}|{userId}";
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
-        return $"auth:{hash}";
+        return SaasCacheKeys.AuthRecoveryCodes(tenantId, userId, hash);
     }
 
     private static bool TryParseUserId(string? userId, out long parsedUserId)

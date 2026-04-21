@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Caching.Distributed.Abstracts;
@@ -125,11 +126,11 @@ public class AuthTokenCacheHelper : IAuthTokenCacheHelper
     {
         var tokenBytes = Encoding.UTF8.GetBytes(refreshToken);
         var tokenHash = Convert.ToHexString(SHA256.HashData(tokenBytes));
-        return $"auth:refresh:{tokenHash}";
+        return SaasCacheKeys.AuthRefreshToken(tokenHash);
     }
 
     private static string BuildSessionTokenMapCacheKey(string sessionId)
     {
-        return $"auth:session:{sessionId}";
+        return SaasCacheKeys.AuthSessionTokenMap(sessionId);
     }
 }

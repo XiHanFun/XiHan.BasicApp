@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -36,7 +37,7 @@ public class ProfileQueryService : IProfileQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "profile:user:{userId}", ExpireSeconds = 180)]
+    [Cacheable(Key = QueryCacheKeys.ProfileUserById, ExpireSeconds = 180)]
     public async Task<UserDto?> GetCurrentUserAsync(long userId)
     {
         var entity = await _userRepository.GetByIdAsync(userId);
