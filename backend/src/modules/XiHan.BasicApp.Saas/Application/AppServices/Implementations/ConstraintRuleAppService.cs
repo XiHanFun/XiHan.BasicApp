@@ -16,6 +16,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -37,15 +38,25 @@ public class ConstraintRuleAppService
         IConstraintRuleAppService
 {
     private readonly IConstraintRuleRepository _constraintRuleRepository;
+    private readonly IConstraintRuleQueryService _queryService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="constraintRuleRepository"></param>
-    public ConstraintRuleAppService(IConstraintRuleRepository constraintRuleRepository)
+    public ConstraintRuleAppService(
+        IConstraintRuleRepository constraintRuleRepository,
+        IConstraintRuleQueryService queryService)
         : base(constraintRuleRepository)
     {
         _constraintRuleRepository = constraintRuleRepository;
+        _queryService = queryService;
+    }
+
+    [PermissionAuthorize("constraint_rule:read")]
+    public override async Task<ConstraintRuleDto?> GetByIdAsync(long id)
+    {
+        return await _queryService.GetByIdAsync(id);
     }
 
     /// <summary>
@@ -57,9 +68,7 @@ public class ConstraintRuleAppService
     [PermissionAuthorize("constraint_rule:read")]
     public async Task<ConstraintRuleDto?> GetRuleByCodeAsync(string ruleCode, long? tenantId = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ruleCode);
-        var rule = await _constraintRuleRepository.GetByRuleCodeAsync(ruleCode.Trim(), tenantId);
-        return rule?.Adapt<ConstraintRuleDto>();
+        return await _queryService.GetByCodeAsync(ruleCode, tenantId);
     }
 
     /// <summary>

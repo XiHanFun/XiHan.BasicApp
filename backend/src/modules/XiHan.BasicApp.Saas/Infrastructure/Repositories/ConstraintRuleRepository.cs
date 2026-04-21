@@ -40,7 +40,9 @@ public class ConstraintRuleRepository : SqlSugarRepositoryBase<SysConstraintRule
         ArgumentException.ThrowIfNullOrWhiteSpace(ruleCode);
 
         var query = CreateQueryable().Where(rule => rule.RuleCode == ruleCode);
-        query = tenantId.HasValue ? query.Where(rule => rule.TenantId == tenantId.Value) : query.Where(rule => rule.TenantId == 0);
+        query = SaasTenantQueryHelper
+            .ApplyTenantFilter(query, tenantId, includePlatform: true)
+            .OrderByDescending(rule => rule.TenantId);
 
         return await query.FirstAsync(cancellationToken);
     }

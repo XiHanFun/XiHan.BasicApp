@@ -45,8 +45,62 @@ public class UserQueryService : IUserQueryService, ITransientDependency
             return null;
         }
 
+        return await MapUserToDtoAsync(entity, entity.TenantId);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userName);
+        var entity = await _userRepository.GetByUserNameAsync(userName, tenantId);
+        return entity is null ? null : await MapUserToDtoAsync(entity, tenantId ?? entity.TenantId);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<UserRoleRelationDto>> GetUserRolesAsync(long userId, long? tenantId = null)
+    {
+        var relations = await _userRepository.GetUserRolesAsync(userId, tenantId);
+        return relations.Select(relation => new UserRoleRelationDto
+        {
+            TenantId = relation.TenantId,
+            UserId = relation.UserId,
+            RoleId = relation.RoleId,
+            Status = relation.Status
+        }).ToArray();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<UserPermissionRelationDto>> GetUserPermissionsAsync(long userId, long? tenantId = null)
+    {
+        var relations = await _userRepository.GetUserPermissionsAsync(userId, tenantId);
+        return relations.Select(relation => new UserPermissionRelationDto
+        {
+            TenantId = relation.TenantId,
+            UserId = relation.UserId,
+            PermissionId = relation.PermissionId,
+            PermissionAction = relation.PermissionAction,
+            Status = relation.Status
+        }).ToArray();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<UserDepartmentRelationDto>> GetUserDepartmentsAsync(long userId, long? tenantId = null)
+    {
+        var relations = await _userRepository.GetUserDepartmentsAsync(userId, tenantId);
+        return relations.Select(relation => new UserDepartmentRelationDto
+        {
+            TenantId = relation.TenantId,
+            UserId = relation.UserId,
+            DepartmentId = relation.DepartmentId,
+            IsMain = relation.IsMain,
+            Status = relation.Status
+        }).ToArray();
+    }
+
+    private async Task<UserDto> MapUserToDtoAsync(SysUser entity, long? tenantId)
+    {
         var dto = entity.Adapt<UserDto>()!;
-        var relations = await _userRepository.GetUserRolesAsync(entity.BasicId, entity.TenantId);
+        var relations = await _userRepository.GetUserRolesAsync(entity.BasicId, tenantId);
         dto.RoleIds = relations
             .Select(relation => relation.RoleId)
             .Distinct()

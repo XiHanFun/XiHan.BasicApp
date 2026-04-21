@@ -26,4 +26,19 @@ public interface IMenuQueryService : IQueryService
     /// 根据 ID 获取菜单
     /// </summary>
     Task<MenuDto?> GetByIdAsync(long id);
+
+    /// <summary>
+    /// 获取菜单树。
+    /// </summary>
+    Task<IReadOnlyList<MenuDto>> GetListAsync();
+
+    /// <summary>
+    /// 获取角色菜单。
+    /// </summary>
+    Task<IReadOnlyList<MenuDto>> GetRoleMenusAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户菜单。
+    /// </summary>
+    Task<IReadOnlyList<MenuDto>> GetUserMenusAsync(long userId, long? tenantId = null);
 }

@@ -84,8 +84,7 @@ public class TenantAppService
     public async Task<TenantDto?> GetByCodeAsync(TenantByCodeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        var tenant = await _tenantRepository.GetByTenantCodeAsync(query.TenantCode);
-        return tenant?.Adapt<TenantDto>();
+        return await _queryService.GetByCodeAsync(query.TenantCode);
     }
 
     /// <summary>
