@@ -20,46 +20,28 @@ using XiHan.Framework.Data.SqlSugar.Seeders;
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统部门层级种子数据
+/// 系统部门层级种子数据。
 /// </summary>
 public class SysDepartmentHierarchySeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
     public SysDepartmentHierarchySeeder(
-        ISqlSugarClientResolver clientResolver, ILogger<SysDepartmentHierarchySeeder> logger,
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysDepartmentHierarchySeeder> logger,
         IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.DepartmentHierarchies;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统部门层级种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysDepartmentHierarchy>(r => true))
-        {
-            Logger.LogInformation("系统资源数据已存在，跳过种子数据");
-            return;
-        }
-
-        var db = DbClient;
-        var departments = await db.Queryable<SysDepartment>().ToListAsync();
+        var departments = await DbClient.Queryable<SysDepartment>().ToListAsync();
         if (departments.Count == 0)
         {
-            Logger.LogInformation("部门数据为空，跳过部门层级种子数据");
+            Logger.LogInformation("部门数据为空，跳过部门层级初始化");
             return;
         }
 
@@ -70,13 +52,14 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
             return;
         }
 
-        await db.Insertable(rows).ExecuteCommandAsync();
+        await DbClient.Deleteable<SysDepartmentHierarchy>().ExecuteCommandAsync();
+        await DbClient.Insertable(rows).ExecuteCommandAsync();
         Logger.LogInformation("成功重建 {Count} 条部门层级数据", rows.Count);
     }
 
     private static List<SysDepartmentHierarchy> BuildHierarchyRows(IReadOnlyCollection<SysDepartment> departments)
     {
-        var rows = new List<SysDepartmentHierarchy>(departments.Count * 2);
+        var rows = new List<SysDepartmentHierarchy>(departments.Count * 3);
         foreach (var tenantGroup in departments.GroupBy(department => department.TenantId))
         {
             var map = tenantGroup.ToDictionary(department => department.BasicId);
@@ -87,7 +70,6 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
                 {
                     var ancestor = chain[index];
                     var pathDepartments = chain.Skip(index).ToArray();
-
                     rows.Add(new SysDepartmentHierarchy
                     {
                         TenantId = tenantGroup.Key,
