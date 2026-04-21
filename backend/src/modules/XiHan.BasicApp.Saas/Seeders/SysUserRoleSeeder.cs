@@ -25,7 +25,6 @@ namespace XiHan.BasicApp.Saas.Seeders;
 /// </summary>
 public class SysUserRoleSeeder : DataSeederBase
 {
-    private const string SuperAdminUserName = "superadmin";
     private const string SuperAdminRoleCode = "super_admin";
 
     /// <summary>
@@ -39,7 +38,7 @@ public class SysUserRoleSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 16;
+    public override int Order => SaasSeedOrder.UserRoles;
 
     /// <summary>
     /// 种子数据名称
@@ -85,14 +84,12 @@ public class SysUserRoleSeeder : DataSeederBase
                 StringComparer.OrdinalIgnoreCase);
 
         var requiredPairs = new List<(long UserId, long RoleId)>();
-        AddUserRole(requiredPairs, userMap, roleMap, SuperAdminUserName, SuperAdminRoleCode);
-        AddUserRole(requiredPairs, userMap, roleMap, "admin", "admin");
-        AddUserRole(requiredPairs, userMap, roleMap, "test", "employee");
-        AddUserRole(requiredPairs, userMap, roleMap, "demo", "guest");
+        AddUserRole(requiredPairs, userMap, roleMap, SaasSeedDefaults.BootstrapAdminUserName, SuperAdminRoleCode);
+        AddUserRole(requiredPairs, userMap, roleMap, SaasSeedDefaults.PlatformAdminUserName, "admin");
 
         var removedSuperAdminMappingCount = 0;
         if (roleMap.TryGetValue(SuperAdminRoleCode, out var superAdminRoleId)
-            && userMap.TryGetValue(SuperAdminUserName, out var superAdminUserId))
+            && userMap.TryGetValue(SaasSeedDefaults.BootstrapAdminUserName, out var superAdminUserId))
         {
             removedSuperAdminMappingCount = await DbClient
                 .Deleteable<SysUserRole>()

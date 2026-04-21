@@ -30,4 +30,12 @@ public static class SaasSettingKeys
         public const string MessageUnreadAbsoluteExpirationMinutes = $"{Prefix}:Caching:MessageUnread:AbsoluteExpirationMinutes";
         public const string MessageUnreadSlidingExpirationMinutes = $"{Prefix}:Caching:MessageUnread:SlidingExpirationMinutes";
     }
+
+    public static class Seed
+    {
+        public const string EnableDemoData = $"{Prefix}:Seed:EnableDemoData";
+        public const string BootstrapTenantCode = $"{Prefix}:Seed:BootstrapTenantCode";
+        public const string BootstrapTenantName = $"{Prefix}:Seed:BootstrapTenantName";
+        public const string BootstrapAdminUserName = $"{Prefix}:Seed:BootstrapAdminUserName";
+    }
 }

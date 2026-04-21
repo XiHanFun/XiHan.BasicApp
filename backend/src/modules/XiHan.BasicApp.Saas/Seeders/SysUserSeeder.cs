@@ -38,7 +38,7 @@ public class SysUserSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 14;
+    public override int Order => SaasSeedOrder.Users;
 
     /// <summary>
     /// 种子数据名称
@@ -50,22 +50,13 @@ public class SysUserSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        // 检查是否已有用户数据
-        if (await HasDataAsync<SysUser>(u => true))
-        {
-            Logger.LogInformation("系统用户数据已存在，跳过种子数据");
-            return;
-        }
-
         var passwordHasher = ServiceProvider.GetRequiredService<IPasswordHasher>();
-
-        var users = new List<SysUser>
+        var bootstrapUsers = new List<SysUser>
         {
-            // 超级管理员
             new()
             {
-                TenantId = 0,
-                UserName = "superadmin",
+                TenantId = SaasSeedDefaults.PlatformTenantId,
+                UserName = SaasSeedDefaults.BootstrapAdminUserName,
                 Password = passwordHasher.HashPassword("SuperAdmin@123"),
                 RealName = "超级管理员",
                 NickName = "SuperAdmin",
@@ -77,11 +68,10 @@ public class SysUserSeeder : DataSeederBase
                 Status = YesOrNo.Yes,
                 IsSystemAccount = true
             },
-            // 系统管理员
             new()
             {
-                TenantId = 0,
-                UserName = "admin",
+                TenantId = SaasSeedDefaults.PlatformTenantId,
+                UserName = SaasSeedDefaults.PlatformAdminUserName,
                 Password = passwordHasher.HashPassword("Admin@123"),
                 RealName = "系统管理员",
                 NickName = "Admin",
@@ -92,40 +82,48 @@ public class SysUserSeeder : DataSeederBase
                 Language = "zh-CN",
                 Status = YesOrNo.Yes,
                 IsSystemAccount = true
-            },
-            // 测试用户
-            new()
-            {
-                TenantId = 0,
-                UserName = "test",
-                Password = passwordHasher.HashPassword("Test@123"),
-                RealName = "测试用户",
-                NickName = "Test",
-                Gender = UserGender.Unknown,
-                Email = "test@xihanfun.com",
-                Phone = "13800138002",
-                Avatar = "/assets/avatars/default.png",
-                Language = "zh-CN",
-                Status = YesOrNo.Yes
-            },
-            // 演示用户
-            new()
-            {
-                TenantId = 0,
-                UserName = "demo",
-                Password = passwordHasher.HashPassword("Demo@123"),
-                RealName = "演示用户",
-                NickName = "Demo",
-                Gender = UserGender.Unknown,
-                Email = "demo@xihanfun.com",
-                Phone = "13800138003",
-                Avatar = "/assets/avatars/default.png",
-                Language = "zh-CN",
-                Status = YesOrNo.Yes
             }
         };
 
-        await BulkInsertAsync(users);
-        Logger.LogInformation($"成功初始化 {users.Count} 个系统用户");
+        var existingUsers = await DbClient
+            .Queryable<SysUser>()
+            .Where(user =>
+                user.UserName == SaasSeedDefaults.BootstrapAdminUserName
+                || user.UserName == SaasSeedDefaults.PlatformAdminUserName)
+            .ToListAsync();
+
+        var existingUserMap = existingUsers.ToDictionary(user => user.UserName, StringComparer.OrdinalIgnoreCase);
+        var usersToInsert = bootstrapUsers
+            .Where(user => !existingUserMap.ContainsKey(user.UserName))
+            .ToList();
+
+        if (usersToInsert.Count > 0)
+        {
+            await BulkInsertAsync(usersToInsert);
+        }
+
+        var usersToNormalize = existingUsers
+            .Where(user => user.Status != YesOrNo.Yes || !user.IsSystemAccount)
+            .Select(user => user.BasicId)
+            .Distinct()
+            .ToArray();
+
+        if (usersToNormalize.Length > 0)
+        {
+            await DbClient
+                .Updateable<SysUser>()
+                .SetColumns(user => new SysUser
+                {
+                    Status = YesOrNo.Yes,
+                    IsSystemAccount = true
+                })
+                .Where(user => usersToNormalize.Contains(user.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        Logger.LogInformation(
+            "系统用户种子完成：新增 {InsertCount} 个平台内置账号，校准 {NormalizeCount} 个账号状态",
+            usersToInsert.Count,
+            usersToNormalize.Length);
     }
 }
