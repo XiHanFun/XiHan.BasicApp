@@ -42,4 +42,12 @@ public class TenantQueryService : ITenantQueryService, ITransientDependency
         var entity = await _tenantRepository.GetByIdAsync(id);
         return entity?.Adapt<TenantDto>();
     }
+
+    /// <inheritdoc />
+    public async Task<TenantDto?> GetByCodeAsync(string tenantCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantCode);
+        var entity = await _tenantRepository.GetByTenantCodeAsync(tenantCode);
+        return entity?.Adapt<TenantDto>();
+    }
 }

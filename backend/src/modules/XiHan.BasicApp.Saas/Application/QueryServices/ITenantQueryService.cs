@@ -26,4 +26,9 @@ public interface ITenantQueryService : IQueryService
     /// 根据 ID 获取租户
     /// </summary>
     Task<TenantDto?> GetByIdAsync(long id);
+
+    /// <summary>
+    /// 根据编码获取租户。
+    /// </summary>
+    Task<TenantDto?> GetByCodeAsync(string tenantCode);
 }

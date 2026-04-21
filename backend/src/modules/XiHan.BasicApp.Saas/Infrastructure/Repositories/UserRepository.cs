@@ -115,7 +115,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
             query = query.Where(user => user.BasicId != excludeUserId.Value);
         }
 
-        query = tenantId.HasValue ? query.Where(user => user.TenantId == tenantId.Value) : query.Where(user => user.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.AnyAsync(cancellationToken);
     }
@@ -132,10 +132,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable<SysUserSecurity>()
             .Where(entity => entity.UserId == userId);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(entity => entity.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -172,10 +169,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.ToListAsync(cancellationToken);
     }
@@ -203,10 +197,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable<SysUserRole>()
             .Where(mapping => distinctUserIds.Contains(mapping.UserId));
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         var mappings = await query.ToListAsync(cancellationToken);
         return mappings
@@ -235,10 +226,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query
             .Select(mapping => mapping.UserId)
@@ -258,10 +246,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.ToListAsync(cancellationToken);
     }
@@ -278,10 +263,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable<SysUserDepartment>()
             .Where(mapping => mapping.UserId == userId);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.ToListAsync(cancellationToken);
     }
@@ -297,15 +279,12 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     public async Task ReplaceUserRolesAsync(long userId, IReadOnlyCollection<long> roleIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
 
         var deleteable = DbClient.Deleteable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
+        deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
 
@@ -317,7 +296,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         var mappings = distinctRoleIds.Select(roleId => new SysUserRole
         {
-            TenantId = resolvedTenantId ?? 0,
+            TenantId = resolvedTenantId,
             UserId = userId,
             RoleId = roleId,
             Status = YesOrNo.Yes
@@ -337,15 +316,12 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     public async Task ReplaceUserPermissionsAsync(long userId, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
 
         var deleteable = DbClient.Deleteable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
+        deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
 
@@ -357,7 +333,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         var mappings = distinctPermissionIds.Select(permissionId => new SysUserPermission
         {
-            TenantId = resolvedTenantId ?? 0,
+            TenantId = resolvedTenantId,
             UserId = userId,
             PermissionId = permissionId,
             PermissionAction = PermissionAction.Grant,
@@ -384,15 +360,12 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
 
         var deleteable = DbClient.Deleteable<SysUserDepartment>()
             .Where(mapping => mapping.UserId == userId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
+        deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
 
@@ -404,7 +377,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
 
         var mappings = distinctDepartmentIds.Select(departmentId => new SysUserDepartment
         {
-            TenantId = resolvedTenantId ?? 0,
+            TenantId = resolvedTenantId,
             UserId = userId,
             DepartmentId = departmentId,
             IsMain = mainDepartmentId.HasValue && mainDepartmentId.Value == departmentId,

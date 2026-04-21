@@ -349,7 +349,7 @@
 - [x] Batch-01 方案与第一批契约基线
 - [x] Batch-02 第二批契约基线
 - [x] Batch-03 框架能力盘点与复用基线
-- [ ] Batch-04 仓储与查询层重建
+- [x] Batch-04 仓储与查询层重建
 - [ ] Batch-05 服务与内部服务重建
 - [ ] Batch-06 缓存与配置体系重建
 - [ ] Batch-07 种子数据与初始化链重建
@@ -362,7 +362,7 @@
 ### Batch-04 Sub-Status
 
 - [x] Batch-04A 核心授权聚合读写边界基线
-- [ ] Batch-04B 剩余主链查询与仓储收口
+- [x] Batch-04B 剩余主链查询与仓储收口
 
 ## Validation Template
 
@@ -371,7 +371,7 @@
 | Batch-01 | `dotnet build` / `pnpm type-check` / 契约自检 | Partial | `dotnet build` 当前只返回“生成失败，0 错误”；`pnpm type-check` 仍被全局历史错误阻塞，但本批引入的 `tenant/constraint-rule` 页面类型错误已收口 |
 | Batch-02 | 前端定向 `eslint` / 契约自检 | Partial | `Role/Permission/Department` DTO、前端 API 与系统页已按实体语义对齐；已消除本批新增静态错误。定向 `eslint` 仅剩这些文件中已有的 `ts/no-explicit-any` warning；未执行全量 `pnpm type-check`，因仓库其他历史错误仍会阻塞结论 |
 | Batch-03 | 方案自检 / 底层类型存在性核对 | Passed | 已核对 `ApplicationServiceBase`、`SugarMultiTenantAggregateRoot`、`SqlSugarAggregateRepository`、`XiHanHybridCache`、`SettingManager`、`IDataSeeder`、`CurrentTenant`、`ITenantStore` 以及 `BasicAppEntity`、`IQueryService` 的真实路径，复用矩阵已落入方案 |
-| Batch-04 | `dotnet build` / 服务边界自检 | Pending |  |
+| Batch-04 | 代码事实检索 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department/User/Tenant/Menu/ConstraintRule` 的对外只读查询已下沉到 QueryService，核心仓储租户过滤规则已统一收敛；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，未获得可信的业务编译成功信号 |
 | Batch-05 | `dotnet build` / 缓存配置自检 | Pending |  |
 | Batch-06 | `dotnet build` / 种子初始化自检 | Pending |  |
 | Batch-07 | `dotnet build` / 认证链自检 | Pending |  |
@@ -385,4 +385,4 @@
 | Sub-Batch | Validation | Result | Notes |
 |-----------|------------|--------|-------|
 | Batch-04A | 代码事实检索 / AppService 读仓储残留扫描 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department` 已建立统一租户过滤辅助器、读模型 mapper，并把只读查询下沉到 QueryService；针对性检索已确认三个 AppService 不再直连对应只读仓储方法。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，失败原因为 `MSB4276` 解析 `Microsoft.NET.SDK.WorkloadAutoImportPropsLocator` 和 `Microsoft.NET.SDK.WorkloadManifestTargetsLocator` 时目录缺失，不属于本批业务代码编译错误信号 |
-| Batch-04B | `dotnet build` / 查询边界自检 | Pending |  |
+| Batch-04B | 代码事实检索 / AppService 读仓储残留扫描 / `dotnet build` 定向验证 | Partial | `User/Tenant/Menu/ConstraintRule` 的对外只读入口已下沉到 QueryService；AppService 残留的仓储读取仅用于写路径内部校验与映射。`dotnet build` 仍受同一 `MSB4276` SDK workload 环境问题阻塞，未暴露新的业务代码编译错误信息 |

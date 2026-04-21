@@ -60,10 +60,9 @@ public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRep
     public async Task<SysMenu?> GetByMenuCodeAsync(string menuCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(menuCode);
-        var query = CreateQueryable()
-            .Where(menu => menu.MenuCode == menuCode);
-
-        query = tenantId.HasValue ? query.Where(menu => menu.TenantId == tenantId.Value) : query.Where(menu => menu.TenantId == 0);
+        var query = SaasTenantQueryHelper
+            .ApplyTenantFilter(CreateQueryable().Where(menu => menu.MenuCode == menuCode), tenantId, includePlatform: true)
+            .OrderByDescending(menu => menu.TenantId);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -80,10 +79,7 @@ public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRep
         var permissionQuery = CreateQueryable<SysRolePermission>()
             .Where(rp => rp.RoleId == roleId && rp.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
-        {
-            permissionQuery = permissionQuery.Where(rp => rp.TenantId == tenantId.Value);
-        }
+        permissionQuery = SaasTenantQueryHelper.ApplyTenantFilter(permissionQuery, tenantId);
 
         var permissionIds = await permissionQuery
             .Select(rp => rp.PermissionId)
@@ -100,10 +96,7 @@ public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRep
                 && permissionIds.Contains(menu.PermissionId.Value)
                 && menu.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(menu => menu.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId, includePlatform: true);
 
         return await query.OrderBy(menu => menu.Sort)
             .ToListAsync(cancellationToken);
@@ -121,9 +114,7 @@ public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRep
         var roleQuery = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
-        roleQuery = tenantId.HasValue
-            ? roleQuery.Where(mapping => mapping.TenantId == tenantId.Value)
-            : roleQuery.Where(mapping => mapping.TenantId == 0);
+        roleQuery = SaasTenantQueryHelper.ApplyTenantFilter(roleQuery, tenantId);
 
         var roleIds = await roleQuery
             .Select(mapping => mapping.RoleId)
@@ -143,9 +134,7 @@ public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRep
         var rolePermissionQuery = CreateQueryable<SysRolePermission>()
             .Where(rp => inheritedRoleIds.Contains(rp.RoleId) && rp.Status == YesOrNo.Yes);
 
-        rolePermissionQuery = tenantId.HasValue
-            ? rolePermissionQuery.Where(rp => rp.TenantId == tenantId.Value)
-            : rolePermissionQuery.Where(rp => rp.TenantId == 0);
+        rolePermissionQuery = SaasTenantQueryHelper.ApplyTenantFilter(rolePermissionQuery, tenantId);
 
         var permissionIds = await rolePermissionQuery
             .Select(rp => rp.PermissionId)
@@ -162,10 +151,7 @@ public class MenuRepository : SqlSugarAuditedRepository<SysMenu, long>, IMenuRep
                 && permissionIds.Contains(menu.PermissionId.Value)
                 && menu.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(menu => menu.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId, includePlatform: true);
 
         return await query.OrderBy(menu => menu.Sort)
             .ToListAsync(cancellationToken);

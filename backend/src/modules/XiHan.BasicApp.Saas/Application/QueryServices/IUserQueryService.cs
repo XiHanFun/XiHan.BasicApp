@@ -26,4 +26,24 @@ public interface IUserQueryService : IQueryService
     /// 根据 ID 获取用户
     /// </summary>
     Task<UserDto?> GetByIdAsync(long id);
+
+    /// <summary>
+    /// 根据用户名获取用户。
+    /// </summary>
+    Task<UserDto?> GetByUserNameAsync(string userName, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户角色关系。
+    /// </summary>
+    Task<IReadOnlyList<UserRoleRelationDto>> GetUserRolesAsync(long userId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户权限关系。
+    /// </summary>
+    Task<IReadOnlyList<UserPermissionRelationDto>> GetUserPermissionsAsync(long userId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户部门关系。
+    /// </summary>
+    Task<IReadOnlyList<UserDepartmentRelationDto>> GetUserDepartmentsAsync(long userId, long? tenantId = null);
 }

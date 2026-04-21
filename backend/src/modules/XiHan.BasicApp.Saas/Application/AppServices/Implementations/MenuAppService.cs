@@ -85,34 +85,7 @@ public class MenuAppService
     [PermissionAuthorize("menu:read")]
     public async Task<IReadOnlyList<MenuDto>> GetListAsync()
     {
-        var menus = await _menuRepository.GetAllAsync();
-        var allDtos = menus
-            .OrderBy(static m => m.Sort)
-            .ThenBy(static m => m.BasicId)
-            .Select(static m =>
-            {
-                var dto = m.Adapt<MenuDto>()!;
-                dto.Children ??= [];
-                return dto;
-            })
-            .ToList();
-
-        var map = allDtos.ToDictionary(static d => d.BasicId);
-        var roots = new List<MenuDto>();
-
-        foreach (var dto in allDtos)
-        {
-            if (dto.ParentId.HasValue && map.TryGetValue(dto.ParentId.Value, out var parent))
-            {
-                parent.Children.Add(dto);
-            }
-            else
-            {
-                roots.Add(dto);
-            }
-        }
-
-        return roots;
+        return await _queryService.GetListAsync();
     }
 
     /// <summary>
@@ -129,8 +102,7 @@ public class MenuAppService
             throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
-        var menus = await _menuRepository.GetRoleMenusAsync(roleId, tenantId);
-        return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
+        return await _queryService.GetRoleMenusAsync(roleId, tenantId);
     }
 
     /// <summary>
@@ -147,8 +119,7 @@ public class MenuAppService
             throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
         }
 
-        var menus = await _menuRepository.GetUserMenusAsync(query.UserId, query.TenantId);
-        return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
+        return await _queryService.GetUserMenusAsync(query.UserId, query.TenantId);
     }
 
     /// <summary>
