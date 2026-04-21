@@ -15,6 +15,7 @@
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
@@ -37,7 +38,7 @@ public class PermissionQueryService : IPermissionQueryService, ITransientDepende
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "perm:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.PermissionById, ExpireSeconds = 300)]
     public async Task<PermissionDto?> GetByIdAsync(long id)
     {
         var entity = await _permissionRepository.GetByIdAsync(id);

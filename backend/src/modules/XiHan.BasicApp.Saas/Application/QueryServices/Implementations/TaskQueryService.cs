@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -36,7 +37,7 @@ public class TaskQueryService : ITaskQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "task:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.TaskById, ExpireSeconds = 300)]
     public async Task<TaskDto?> GetByIdAsync(long id)
     {
         var entity = await _taskRepository.GetByIdAsync(id);

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
@@ -34,7 +35,7 @@ public class AuthQueryService : IAuthQueryService, ITransientDependency
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "auth:perms:{userId}:{tenantId}", ExpireSeconds = 120)]
+    [Cacheable(Key = QueryCacheKeys.AuthPermissionCodes, ExpireSeconds = 120)]
     public async Task<IReadOnlyList<string>> GetUserPermissionCodesAsync(long userId, long? tenantId = null)
     {
         var permissions = await _permissionRepository.GetUserPermissionsAsync(userId, tenantId);

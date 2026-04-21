@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Hybrid;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -37,6 +38,6 @@ public class TaskCacheInvalidationHandler : ILocalEventHandler<TaskChangedDomain
     /// <inheritdoc />
     public async Task HandleEventAsync(TaskChangedDomainEvent eventData)
     {
-        await _hybridCache.RemoveAsync($"task:id:{eventData.EntityId}");
+        await _hybridCache.RemoveAsync(QueryCacheKeys.TaskByIdValue(eventData.EntityId));
     }
 }

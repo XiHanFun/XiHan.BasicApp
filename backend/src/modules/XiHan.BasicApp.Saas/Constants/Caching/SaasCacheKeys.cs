@@ -51,6 +51,15 @@ public static class SaasCacheKeys
     public static string AuthTwoFactorCode(long? tenantId, string purpose, string target)
         => $"{Prefix}:auth:2fa:{purpose.Trim().ToLowerInvariant()}:{TenantSegment(tenantId)}:{target.Trim().ToLowerInvariant()}";
 
+    public static string AuthRefreshToken(string tokenHash)
+        => $"{Prefix}:auth:refresh:{tokenHash}";
+
+    public static string AuthSessionTokenMap(string sessionId)
+        => $"{Prefix}:auth:session:{sessionId.Trim()}";
+
+    public static string AuthRecoveryCodes(long? tenantId, long userId, string hash)
+        => $"{Prefix}:auth:recovery:{TenantSegment(tenantId)}:{userId}:{hash}";
+
     public static string SettingsValue(string providerName, string providerKey, string settingName)
         => $"{Prefix}:config:setting:{providerName}:{providerKey}:{settingName}";
 }

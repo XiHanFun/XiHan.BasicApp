@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Mapster;
+using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -36,7 +37,7 @@ public class NotificationQueryService : INotificationQueryService, ITransientDep
     }
 
     /// <inheritdoc />
-    [Cacheable(Key = "notif:id:{id}", ExpireSeconds = 300)]
+    [Cacheable(Key = QueryCacheKeys.NotificationById, ExpireSeconds = 300)]
     public async Task<NotificationDto?> GetByIdAsync(long id)
     {
         var entity = await _notificationRepository.GetByIdAsync(id);

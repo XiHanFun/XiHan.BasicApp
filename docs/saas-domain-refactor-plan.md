@@ -365,7 +365,7 @@
 - [x] Batch-03 框架能力盘点与复用基线
 - [x] Batch-04 仓储与查询层重建
 - [x] Batch-05 服务与内部服务重建
-- [ ] Batch-06 缓存与配置体系重建
+- [x] Batch-06 缓存与配置体系重建
 - [ ] Batch-07 种子数据与初始化链重建
 - [ ] Batch-08 用户/租户主链重建
 - [ ] Batch-09 RBAC 主链重建
@@ -386,7 +386,7 @@
 ### Batch-06 Sub-Status
 
 - [x] Batch-06A 缓存键与配置键统一基线
-- [ ] Batch-06B 缓存注解与剩余认证缓存收口
+- [x] Batch-06B 缓存注解与剩余认证缓存收口
 
 ## Validation Template
 
@@ -397,7 +397,7 @@
 | Batch-03 | 方案自检 / 底层类型存在性核对 | Passed | 已核对 `ApplicationServiceBase`、`SugarMultiTenantAggregateRoot`、`SqlSugarAggregateRepository`、`XiHanHybridCache`、`SettingManager`、`IDataSeeder`、`CurrentTenant`、`ITenantStore` 以及 `BasicAppEntity`、`IQueryService` 的真实路径，复用矩阵已落入方案 |
 | Batch-04 | 代码事实检索 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department/User/Tenant/Menu/ConstraintRule` 的对外只读查询已下沉到 QueryService，核心仓储租户过滤规则已统一收敛；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，未获得可信的业务编译成功信号 |
 | Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05 已完成两段收敛：05A 将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`；05B 进一步将 `AuthAppService` 的当前用户解析、角色码展开、权限集/菜单树/数据范围装配收敛到 `IAuthorizationContextService`，同时复用既有 `IUserManager.ResolveDefaultRoleIdAsync`。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
-| Batch-06 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-06A 已建立 `SaasCacheKeys` 与 `SaasSettingKeys`，并将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存及 `RbacSettingStore` 的键前缀统一到 `basicapp:saas:*` / `BasicApp:Saas:*` 基线；仍有 `AuthTokenCacheHelper`、`RbacUserStore` 和部分 `Cacheable` 注解键待在 Batch-06B 收口。`dotnet build` 继续受本机 .NET SDK workload 异常阻塞，仅输出“生成失败，0 个警告 0 个错误” |
+| Batch-06 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-06 已完成两段收敛：06A 建立 `SaasCacheKeys` 与 `SaasSettingKeys`，并将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存及 `RbacSettingStore` 的键前缀统一到 `basicapp:saas:*` / `BasicApp:Saas:*`；06B 进一步将 `AuthTokenCacheHelper`、`RbacUserStore`、QueryService 的 `[Cacheable]` 键模板及对应缓存失效处理器全部切到统一键体系。`dotnet build` 继续受本机 .NET SDK workload 异常阻塞，仅输出“生成失败，0 个警告 0 个错误” |
 | Batch-07 | `dotnet build` / 认证链自检 | Pending |  |
 | Batch-08 | `dotnet build` / 授权链自检 | Pending |  |
 | Batch-09 | `dotnet build` / 安全出口自检 | Pending |  |
@@ -423,3 +423,4 @@
 | Sub-Batch | Validation | Result | Notes |
 |-----------|------------|--------|-------|
 | Batch-06A | 旧键残留扫描 / 缓存服务差异自检 / `dotnet build` 定向验证 | Partial | 已将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存和设置存储键统一切到 `basicapp:saas:*` / `BasicApp:Saas:*` 基线，并把缓存 TTL 改为从 `SaasSettingKeys` 统一读取；仓库中仍残留 `AuthTokenCacheHelper`、`RbacUserStore` 和若干 `[Cacheable]` 注解旧键，留待 Batch-06B 收口。`dotnet build` 仍被本机 SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误” |
+| Batch-06B | 旧键残留扫描 / 注解与失效链对齐自检 / `dotnet build` 定向验证 | Partial | 已将 `AuthTokenCacheHelper`、`RbacUserStore` 的认证缓存键，以及 `Auth/ConstraintRule/Dict/Department/File/Menu/Notification/OAuthApp/Permission/Profile/Review/Role/Task/Tenant/User` 查询缓存注解和对应失效处理器统一切到 `QueryCacheKeys`/`SaasCacheKeys`。针对性残留扫描已不再命中旧缓存键模板。`dotnet build` 仍被本机 SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误” |
