@@ -34,6 +34,11 @@ public class TenantDto : BasicAppDto
     public string TenantName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 版本/套餐ID
+    /// </summary>
+    public long? EditionId { get; set; }
+
+    /// <summary>
     /// 租户简称
     /// </summary>
     public string? TenantShortName { get; set; }
@@ -54,9 +59,39 @@ public class TenantDto : BasicAppDto
     public string? ContactEmail { get; set; }
 
     /// <summary>
+    /// 地址
+    /// </summary>
+    public string? Address { get; set; }
+
+    /// <summary>
+    /// Logo
+    /// </summary>
+    public string? Logo { get; set; }
+
+    /// <summary>
+    /// 域名
+    /// </summary>
+    public string? Domain { get; set; }
+
+    /// <summary>
     /// 隔离模式
     /// </summary>
     public TenantIsolationMode IsolationMode { get; set; } = TenantIsolationMode.Field;
+
+    /// <summary>
+    /// 数据库类型
+    /// </summary>
+    public TenantDatabaseType? DatabaseType { get; set; }
+
+    /// <summary>
+    /// 数据库 Schema
+    /// </summary>
+    public string? DatabaseSchema { get; set; }
+
+    /// <summary>
+    /// 配置状态
+    /// </summary>
+    public TenantConfigStatus ConfigStatus { get; set; } = TenantConfigStatus.Pending;
 
     /// <summary>
     /// 租户状态
@@ -64,14 +99,39 @@ public class TenantDto : BasicAppDto
     public TenantStatus TenantStatus { get; set; } = TenantStatus.Normal;
 
     /// <summary>
-    /// 状态
+    /// 用户上限
     /// </summary>
-    public YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public int? UserLimit { get; set; }
+
+    /// <summary>
+    /// 存储上限(MB)
+    /// </summary>
+    public long? StorageLimit { get; set; }
 
     /// <summary>
     /// 过期时间
     /// </summary>
     public DateTimeOffset? ExpireTime { get; set; }
+
+    /// <summary>
+    /// 排序
+    /// </summary>
+    public int Sort { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTimeOffset? ModifiedTime { get; set; }
 }
 
 /// <summary>
@@ -94,6 +154,11 @@ public class TenantCreateDto : BasicAppCDto
     public string TenantName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 版本/套餐ID
+    /// </summary>
+    public long? EditionId { get; set; }
+
+    /// <summary>
     /// 租户简称
     /// </summary>
     public string? TenantShortName { get; set; }
@@ -114,9 +179,69 @@ public class TenantCreateDto : BasicAppCDto
     public string? ContactEmail { get; set; }
 
     /// <summary>
+    /// 地址
+    /// </summary>
+    public string? Address { get; set; }
+
+    /// <summary>
+    /// Logo
+    /// </summary>
+    public string? Logo { get; set; }
+
+    /// <summary>
+    /// 域名
+    /// </summary>
+    public string? Domain { get; set; }
+
+    /// <summary>
     /// 隔离模式
     /// </summary>
     public TenantIsolationMode IsolationMode { get; set; } = TenantIsolationMode.Field;
+
+    /// <summary>
+    /// 数据库类型
+    /// </summary>
+    public TenantDatabaseType? DatabaseType { get; set; }
+
+    /// <summary>
+    /// 数据库 Schema
+    /// </summary>
+    public string? DatabaseSchema { get; set; }
+
+    /// <summary>
+    /// 配置状态
+    /// </summary>
+    public TenantConfigStatus ConfigStatus { get; set; } = TenantConfigStatus.Pending;
+
+    /// <summary>
+    /// 用户上限
+    /// </summary>
+    public int? UserLimit { get; set; }
+
+    /// <summary>
+    /// 存储上限(MB)
+    /// </summary>
+    public long? StorageLimit { get; set; }
+
+    /// <summary>
+    /// 租户状态
+    /// </summary>
+    public TenantStatus TenantStatus { get; set; } = TenantStatus.Normal;
+
+    /// <summary>
+    /// 过期时间
+    /// </summary>
+    public DateTimeOffset? ExpireTime { get; set; }
+
+    /// <summary>
+    /// 排序
+    /// </summary>
+    public int Sort { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 }
 
 /// <summary>
@@ -124,6 +249,11 @@ public class TenantCreateDto : BasicAppCDto
 /// </summary>
 public class TenantUpdateDto : BasicAppUDto
 {
+    /// <summary>
+    /// 版本/套餐ID
+    /// </summary>
+    public long? EditionId { get; set; }
+
     /// <summary>
     /// 租户名称
     /// </summary>
@@ -152,14 +282,59 @@ public class TenantUpdateDto : BasicAppUDto
     public string? ContactEmail { get; set; }
 
     /// <summary>
+    /// 地址
+    /// </summary>
+    public string? Address { get; set; }
+
+    /// <summary>
+    /// Logo
+    /// </summary>
+    public string? Logo { get; set; }
+
+    /// <summary>
+    /// 域名
+    /// </summary>
+    public string? Domain { get; set; }
+
+    /// <summary>
+    /// 数据库类型
+    /// </summary>
+    public TenantDatabaseType? DatabaseType { get; set; }
+
+    /// <summary>
+    /// 数据库 Schema
+    /// </summary>
+    public string? DatabaseSchema { get; set; }
+
+    /// <summary>
+    /// 配置状态
+    /// </summary>
+    public TenantConfigStatus ConfigStatus { get; set; } = TenantConfigStatus.Pending;
+
+    /// <summary>
     /// 过期时间
     /// </summary>
     public DateTimeOffset? ExpireTime { get; set; }
 
     /// <summary>
-    /// 状态
+    /// 租户状态
     /// </summary>
-    public YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public TenantStatus TenantStatus { get; set; } = TenantStatus.Normal;
+
+    /// <summary>
+    /// 用户上限
+    /// </summary>
+    public int? UserLimit { get; set; }
+
+    /// <summary>
+    /// 存储上限(MB)
+    /// </summary>
+    public long? StorageLimit { get; set; }
+
+    /// <summary>
+    /// 排序
+    /// </summary>
+    public int Sort { get; set; }
 
     /// <summary>
     /// 备注

@@ -24,6 +24,11 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public class UserDto : BasicAppDto
 {
     /// <summary>
+    /// 主归属租户ID
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
     /// 用户名
     /// </summary>
     public string UserName { get; set; } = string.Empty;
@@ -54,6 +59,11 @@ public class UserDto : BasicAppDto
     public UserGender Gender { get; set; } = UserGender.Unknown;
 
     /// <summary>
+    /// 生日
+    /// </summary>
+    public DateTimeOffset? Birthday { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -74,9 +84,49 @@ public class UserDto : BasicAppDto
     public string? LastLoginIp { get; set; }
 
     /// <summary>
+    /// 时区
+    /// </summary>
+    public string? TimeZone { get; set; }
+
+    /// <summary>
+    /// 语言
+    /// </summary>
+    public string? Language { get; set; }
+
+    /// <summary>
+    /// 国家/地区
+    /// </summary>
+    public string? Country { get; set; }
+
+    /// <summary>
+    /// 是否系统内置账号
+    /// </summary>
+    public bool IsSystemAccount { get; set; }
+
+    /// <summary>
     /// 角色 ID 列表
     /// </summary>
     public IReadOnlyCollection<long> RoleIds { get; set; } = [];
+
+    /// <summary>
+    /// 直属权限 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> PermissionIds { get; set; } = [];
+
+    /// <summary>
+    /// 关联部门 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> DepartmentIds { get; set; } = [];
+
+    /// <summary>
+    /// 主部门 ID
+    /// </summary>
+    public long? MainDepartmentId { get; set; }
+
+    /// <summary>
+    /// 可访问租户 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> AccessibleTenantIds { get; set; } = [];
 
     /// <summary>
     /// 创建时间
@@ -84,14 +134,14 @@ public class UserDto : BasicAppDto
     public DateTimeOffset CreatedTime { get; set; }
 
     /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTimeOffset? ModifiedTime { get; set; }
+
+    /// <summary>
     /// 备注
     /// </summary>
     public string? Remark { get; set; }
-
-    /// <summary>
-    /// 租户ID
-    /// </summary>
-    public long? TenantId { get; set; }
 }
 
 /// <summary>
@@ -99,6 +149,11 @@ public class UserDto : BasicAppDto
 /// </summary>
 public class UserCreateDto : BasicAppCDto
 {
+    /// <summary>
+    /// 主归属租户ID
+    /// </summary>
+    public long? TenantId { get; set; }
+
     /// <summary>
     /// 用户名
     /// </summary>
@@ -139,9 +194,49 @@ public class UserCreateDto : BasicAppCDto
     public UserGender Gender { get; set; } = UserGender.Unknown;
 
     /// <summary>
-    /// 租户ID
+    /// 生日
     /// </summary>
-    public long? TenantId { get; set; }
+    public DateTimeOffset? Birthday { get; set; }
+
+    /// <summary>
+    /// 时区
+    /// </summary>
+    public string? TimeZone { get; set; }
+
+    /// <summary>
+    /// 语言
+    /// </summary>
+    public string? Language { get; set; } = "zh-CN";
+
+    /// <summary>
+    /// 国家/地区
+    /// </summary>
+    public string? Country { get; set; }
+
+    /// <summary>
+    /// 角色 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> RoleIds { get; set; } = [];
+
+    /// <summary>
+    /// 直属权限 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> PermissionIds { get; set; } = [];
+
+    /// <summary>
+    /// 关联部门 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> DepartmentIds { get; set; } = [];
+
+    /// <summary>
+    /// 主部门 ID
+    /// </summary>
+    public long? MainDepartmentId { get; set; }
+
+    /// <summary>
+    /// 可访问租户 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> AccessibleTenantIds { get; set; } = [];
 }
 
 /// <summary>
@@ -175,6 +270,11 @@ public class UserUpdateDto : BasicAppUDto
     public UserGender Gender { get; set; } = UserGender.Unknown;
 
     /// <summary>
+    /// 生日
+    /// </summary>
+    public DateTimeOffset? Birthday { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -183,6 +283,46 @@ public class UserUpdateDto : BasicAppUDto
     /// 头像
     /// </summary>
     public string? Avatar { get; set; }
+
+    /// <summary>
+    /// 时区
+    /// </summary>
+    public string? TimeZone { get; set; }
+
+    /// <summary>
+    /// 语言
+    /// </summary>
+    public string? Language { get; set; }
+
+    /// <summary>
+    /// 国家/地区
+    /// </summary>
+    public string? Country { get; set; }
+
+    /// <summary>
+    /// 角色 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> RoleIds { get; set; } = [];
+
+    /// <summary>
+    /// 直属权限 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> PermissionIds { get; set; } = [];
+
+    /// <summary>
+    /// 关联部门 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> DepartmentIds { get; set; } = [];
+
+    /// <summary>
+    /// 主部门 ID
+    /// </summary>
+    public long? MainDepartmentId { get; set; }
+
+    /// <summary>
+    /// 可访问租户 ID 列表
+    /// </summary>
+    public IReadOnlyCollection<long> AccessibleTenantIds { get; set; } = [];
 
     /// <summary>
     /// 备注

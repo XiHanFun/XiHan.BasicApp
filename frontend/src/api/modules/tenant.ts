@@ -8,18 +8,27 @@ const api = useBaseApi('Tenant')
 
 export interface SysTenant {
   basicId: string
+  tenantCode: string
   tenantName: string
-  tenantCode?: string
+  editionId?: string
   tenantShortName?: string
   contactPerson?: string
   contactName?: string
   contactPhone?: string
   contactEmail?: string
+  address?: string
+  logo?: string
+  domain?: string
   isolationMode?: number
+  databaseType?: number
+  databaseSchema?: string
+  configStatus?: number
   tenantStatus?: number
-  status?: number
+  userLimit?: number
+  storageLimit?: number
   expireTime?: string
   expiredTime?: string
+  sort?: number
   createTime?: string
   updateTime?: string
   remark?: string
@@ -37,23 +46,46 @@ function toCreatePayload(data: Partial<SysTenant>) {
   return {
     tenantCode: data.tenantCode ?? '',
     tenantName: data.tenantName ?? '',
+    editionId: data.editionId ? toId(data.editionId) : null,
     tenantShortName: data.tenantShortName ?? '',
     contactPerson: data.contactPerson ?? data.contactName ?? '',
     contactPhone: data.contactPhone ?? '',
     contactEmail: data.contactEmail ?? '',
+    address: data.address ?? '',
+    logo: data.logo ?? '',
+    domain: data.domain ?? '',
     isolationMode: toNumber(data.isolationMode, 0),
+    databaseType: data.databaseType === undefined ? null : toNumber(data.databaseType, 0),
+    databaseSchema: data.databaseSchema ?? '',
+    configStatus: toNumber(data.configStatus, 0),
+    tenantStatus: toNumber(data.tenantStatus, 0),
+    userLimit: data.userLimit === undefined ? null : toNumber(data.userLimit, 0),
+    storageLimit: data.storageLimit === undefined ? null : toNumber(data.storageLimit, 0),
+    expireTime: data.expireTime ?? data.expiredTime ?? null,
+    sort: toNumber(data.sort, 0),
+    remark: data.remark ?? '',
   }
 }
 
 function toUpdatePayload(id: string, data: Partial<SysTenant>) {
   return {
+    editionId: data.editionId ? toId(data.editionId) : null,
     tenantName: data.tenantName ?? '',
     tenantShortName: data.tenantShortName ?? '',
     contactPerson: data.contactPerson ?? data.contactName ?? '',
     contactPhone: data.contactPhone ?? '',
     contactEmail: data.contactEmail ?? '',
+    address: data.address ?? '',
+    logo: data.logo ?? '',
+    domain: data.domain ?? '',
+    databaseType: data.databaseType === undefined ? null : toNumber(data.databaseType, 0),
+    databaseSchema: data.databaseSchema ?? '',
+    configStatus: toNumber(data.configStatus, 0),
     expireTime: data.expireTime ?? data.expiredTime ?? null,
-    status: toNumber(data.status, 1),
+    tenantStatus: toNumber(data.tenantStatus, 0),
+    userLimit: data.userLimit === undefined ? null : toNumber(data.userLimit, 0),
+    storageLimit: data.storageLimit === undefined ? null : toNumber(data.storageLimit, 0),
+    sort: toNumber(data.sort, 0),
     remark: data.remark ?? '',
     basicId: toId(id),
   }

@@ -16,7 +16,7 @@ import {
 import { reactive, ref } from 'vue'
 import { tenantApi } from '@/api'
 import { XSystemQueryPanel } from '~/components'
-import { STATUS_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS } from '~/constants'
+import { TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -27,16 +27,16 @@ const xGrid = ref<VxeGridInstance>()
 
 const queryParams = reactive({
   keyword: '',
-  status: undefined as number | undefined,
+  tenantStatus: undefined as number | undefined,
 })
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
   return tenantApi.page({
-    page: page.currentPage,
-    pageSize: page.pageSize,
-    keyword: queryParams.keyword,
-    status: queryParams.status,
-  })
+      page: page.currentPage,
+      pageSize: page.pageSize,
+      keyword: queryParams.keyword,
+      tenantStatus: queryParams.tenantStatus,
+    })
 }
 
 const options = useVxeTable<SysTenant>(
@@ -70,12 +70,6 @@ const options = useVxeTable<SysTenant>(
         slots: { default: 'col_tenantStatus' },
       },
       { field: 'userLimit', title: '用户上限', width: 90 },
-      {
-        field: 'status',
-        title: '状态',
-        width: 80,
-        slots: { default: 'col_status' },
-      },
       {
         field: 'expireTime',
         title: '到期时间',
@@ -114,7 +108,7 @@ function handleSearch() {
 
 function handleReset() {
   queryParams.keyword = ''
-  queryParams.status = undefined
+  queryParams.tenantStatus = undefined
   xGrid.value?.commitProxy('reload')
 }
 
@@ -131,7 +125,7 @@ function resetForm() {
     contactPhone: '',
     contactEmail: '',
     isolationMode: 0,
-    status: 1,
+    tenantStatus: 0,
     remark: '',
   }
 }
@@ -193,9 +187,9 @@ async function handleSubmit() {
           @keyup.enter="handleSearch"
         />
         <NSelect
-          v-model:value="queryParams.status"
-          :options="STATUS_OPTIONS"
-          placeholder="状态"
+          v-model:value="queryParams.tenantStatus"
+          :options="TENANT_STATUS_OPTIONS"
+          placeholder="租户状态"
           clearable
           style="width: 120px"
         />
@@ -222,11 +216,6 @@ async function handleSubmit() {
             size="small"
           >
             {{ getOptionLabel(TENANT_STATUS_OPTIONS, row.tenantStatus) }}
-          </NTag>
-        </template>
-        <template #col_status="{ row }">
-          <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
-            {{ row.status === 1 ? '启用' : '禁用' }}
           </NTag>
         </template>
         <template #col_actions="{ row }">
@@ -276,8 +265,8 @@ async function handleSubmit() {
             :options="TENANT_ISOLATION_MODE_OPTIONS"
           />
         </NFormItem>
-        <NFormItem label="状态" path="status">
-          <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+        <NFormItem label="租户状态" path="tenantStatus">
+          <NSelect v-model:value="formData.tenantStatus" :options="TENANT_STATUS_OPTIONS" />
         </NFormItem>
         <NFormItem label="备注" path="remark">
           <NInput v-model:value="formData.remark" type="textarea" :rows="2" placeholder="备注" />

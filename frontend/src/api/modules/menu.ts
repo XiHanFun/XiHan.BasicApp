@@ -8,6 +8,8 @@ const api = useBaseApi('Menu')
 
 export interface SysMenu {
   basicId: string
+  permissionId?: string
+  isGlobal?: boolean
   parentId?: string
   menuName: string
   menuCode: string
@@ -26,11 +28,13 @@ export interface SysMenu {
   badge?: string
   badgeType?: string
   badgeDot?: boolean
+  metadata?: string
   sort: number
   status: number
   remark?: string
   children?: SysMenu[]
   createTime?: string
+  updateTime?: string
 }
 
 // -------- 内部 --------
@@ -72,6 +76,8 @@ function normalizeMenu(raw: Record<string, any>): SysMenu {
     : undefined
   return {
     basicId: toId(raw.basicId ?? raw.BasicId),
+    permissionId: toId(raw.permissionId ?? raw.PermissionId) || undefined,
+    isGlobal: resolveBool(raw.isGlobal ?? raw.IsGlobal, false),
     parentId: raw.parentId !== null && raw.parentId !== undefined
       ? toId(raw.parentId)
       : (raw.ParentId !== null && raw.ParentId !== undefined ? toId(raw.ParentId) : undefined),
@@ -92,11 +98,13 @@ function normalizeMenu(raw: Record<string, any>): SysMenu {
     badge: raw.badge ?? raw.Badge ?? undefined,
     badgeType: raw.badgeType ?? raw.BadgeType ?? undefined,
     badgeDot: resolveBool(raw.badgeDot ?? raw.BadgeDot, false),
+    metadata: raw.metadata ?? raw.Metadata ?? undefined,
     sort: toNumber(raw.sort ?? raw.Sort, 0),
     status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
     remark: raw.remark ?? raw.Remark ?? undefined,
     children,
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.CreatedTime ?? '',
+    updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
   }
 }
 
@@ -125,6 +133,8 @@ function toMenuRoute(menu: SysMenu): MenuRoute {
 
 function toCreatePayload(data: Partial<SysMenu>) {
   return {
+    permissionId: data.permissionId ? toId(data.permissionId) : null,
+    isGlobal: data.isGlobal ?? false,
     parentId: data.parentId ? toId(data.parentId) : null,
     menuName: data.menuName ?? '',
     menuCode: data.menuCode ?? '',
@@ -143,6 +153,7 @@ function toCreatePayload(data: Partial<SysMenu>) {
     badge: data.badge ?? '',
     badgeType: data.badgeType ?? '',
     badgeDot: data.badgeDot ?? false,
+    metadata: data.metadata ?? '',
     sort: data.sort ?? 0,
     remark: data.remark ?? '',
   }

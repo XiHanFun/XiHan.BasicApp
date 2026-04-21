@@ -24,9 +24,14 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public class MenuDto : BasicAppDto
 {
     /// <summary>
-    /// 权限编码（菜单可见性所需的权限）
+    /// 权限ID（菜单可见性所需的权限）
     /// </summary>
-    public string? PermissionCode { get; set; }
+    public long? PermissionId { get; set; }
+
+    /// <summary>
+    /// 是否平台级全局菜单
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 父级菜单ID
@@ -119,6 +124,11 @@ public class MenuDto : BasicAppDto
     public bool BadgeDot { get; set; }
 
     /// <summary>
+    /// 菜单元数据 JSON
+    /// </summary>
+    public string? Metadata { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
@@ -134,6 +144,16 @@ public class MenuDto : BasicAppDto
     public string? Remark { get; set; }
 
     /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTimeOffset? ModifiedTime { get; set; }
+
+    /// <summary>
     /// 子菜单
     /// </summary>
     public List<MenuDto> Children { get; set; } = [];
@@ -145,10 +165,14 @@ public class MenuDto : BasicAppDto
 public class MenuCreateDto : BasicAppCDto
 {
     /// <summary>
-    /// 权限编码（菜单可见性所需的权限）
+    /// 权限ID（菜单可见性所需的权限）
     /// </summary>
-    [StringLength(200, ErrorMessage = "权限编码长度不能超过 200")]
-    public string? PermissionCode { get; set; }
+    public long? PermissionId { get; set; }
+
+    /// <summary>
+    /// 是否平台级全局菜单
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 父级菜单ID
@@ -209,6 +233,11 @@ public class MenuCreateDto : BasicAppCDto
     /// </summary>
     [StringLength(100, ErrorMessage = "标题长度不能超过 100")]
     public string? Title { get; set; }
+
+    /// <summary>
+    /// 菜单元数据 JSON
+    /// </summary>
+    public string? Metadata { get; set; }
 
     /// <summary>
     /// 是否外链
@@ -276,10 +305,14 @@ public class MenuCreateDto : BasicAppCDto
 public class MenuUpdateDto : BasicAppUDto
 {
     /// <summary>
-    /// 权限编码（菜单可见性所需的权限）
+    /// 权限ID（菜单可见性所需的权限）
     /// </summary>
-    [StringLength(200, ErrorMessage = "权限编码长度不能超过 200")]
-    public string? PermissionCode { get; set; }
+    public long? PermissionId { get; set; }
+
+    /// <summary>
+    /// 是否平台级全局菜单
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 父级菜单ID
@@ -340,6 +373,11 @@ public class MenuUpdateDto : BasicAppUDto
     /// </summary>
     [StringLength(100, ErrorMessage = "标题长度不能超过 100")]
     public string? Title { get; set; }
+
+    /// <summary>
+    /// 菜单元数据 JSON
+    /// </summary>
+    public string? Metadata { get; set; }
 
     /// <summary>
     /// 是否外链
