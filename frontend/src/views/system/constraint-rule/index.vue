@@ -33,6 +33,12 @@ const IS_ENABLED_OPTIONS = [
   { label: '禁用', value: 0 },
 ]
 
+const TARGET_TYPE_OPTIONS = [
+  { label: '角色', value: 0 },
+  { label: '权限', value: 1 },
+  { label: '用户', value: 2 },
+]
+
 const queryParams = reactive({
   keyword: '',
   constraintType: undefined as number | undefined,
@@ -71,7 +77,12 @@ const options = useVxeTable<SysConstraintRule>(
         width: 120,
         formatter: ({ cellValue }) => getOptionLabel(CONSTRAINT_TYPE_OPTIONS, cellValue),
       },
-      { field: 'targetType', title: '目标类型', width: 100, showOverflow: 'tooltip' },
+      {
+        field: 'targetType',
+        title: '目标类型',
+        width: 100,
+        formatter: ({ cellValue }) => getOptionLabel(TARGET_TYPE_OPTIONS, cellValue),
+      },
       {
         field: 'violationAction',
         title: '违规处理',
@@ -151,7 +162,7 @@ function resetForm() {
     ruleName: '',
     ruleCode: '',
     constraintType: 0,
-    targetType: 'Role',
+    targetType: 0,
     parameters: '{}',
     isEnabled: true,
     violationAction: 0,
@@ -302,7 +313,7 @@ async function handleSubmit() {
           <NSelect v-model:value="formData.constraintType" :options="CONSTRAINT_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="目标类型" path="targetType">
-          <NInput v-model:value="formData.targetType" placeholder="Role / Permission / User / Resource" />
+          <NSelect v-model:value="formData.targetType" :options="TARGET_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem label="违规处理" path="violationAction">
           <NSelect v-model:value="formData.violationAction" :options="VIOLATION_ACTION_OPTIONS" />

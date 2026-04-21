@@ -8,6 +8,7 @@ const api = useBaseApi('User')
 
 export interface SysUser {
   basicId: string
+  tenantId?: string
   userName: string
   nickName: string
   realName?: string
@@ -15,10 +16,19 @@ export interface SysUser {
   email?: string
   phone?: string
   gender: number
+  birthday?: string
   status: number
   lastLoginTime?: string
   lastLoginIp?: string
+  timeZone?: string
+  language?: string
+  country?: string
+  isSystemAccount?: boolean
   roles: string[]
+  permissionIds?: string[]
+  departmentIds?: string[]
+  mainDepartmentId?: string
+  accessibleTenantIds?: string[]
   deptId?: string
   createTime: string
   updateTime?: string
@@ -62,8 +72,13 @@ function normalizeRoles(rawRoleIds: unknown): string[] {
 
 function normalizeUser(raw: Record<string, any>): SysUser {
   const rawRoleIds = raw.roles ?? raw.Roles ?? raw.roleIds ?? raw.RoleIds
+  const rawPermissionIds = raw.permissionIds ?? raw.PermissionIds
+  const rawDepartmentIds = raw.departmentIds ?? raw.DepartmentIds
+  const rawAccessibleTenantIds = raw.accessibleTenantIds ?? raw.AccessibleTenantIds
+  const mainDepartmentId = toId(raw.mainDepartmentId ?? raw.MainDepartmentId)
   return {
     basicId: toId(raw.basicId ?? raw.BasicId),
+    tenantId: toId(raw.tenantId ?? raw.TenantId) || undefined,
     userName: raw.userName ?? raw.UserName ?? '',
     nickName: raw.nickName ?? raw.NickName ?? '',
     realName: raw.realName ?? raw.RealName ?? undefined,
@@ -71,11 +86,20 @@ function normalizeUser(raw: Record<string, any>): SysUser {
     email: raw.email ?? raw.Email ?? undefined,
     phone: raw.phone ?? raw.Phone ?? undefined,
     gender: resolveEnum(raw.gender ?? raw.Gender, GENDER_MAP, 0),
+    birthday: raw.birthday ?? raw.Birthday ?? undefined,
     status: resolveEnum(raw.status ?? raw.Status, STATUS_MAP, 1),
     lastLoginTime: raw.lastLoginTime ?? raw.LastLoginTime ?? undefined,
     lastLoginIp: raw.lastLoginIp ?? raw.LastLoginIp ?? undefined,
+    timeZone: raw.timeZone ?? raw.TimeZone ?? undefined,
+    language: raw.language ?? raw.Language ?? undefined,
+    country: raw.country ?? raw.Country ?? undefined,
+    isSystemAccount: Boolean(raw.isSystemAccount ?? raw.IsSystemAccount),
     roles: normalizeRoles(rawRoleIds),
-    deptId: toId(raw.deptId ?? raw.DeptId ?? raw.mainDepartmentId ?? raw.MainDepartmentId) || undefined,
+    permissionIds: normalizeRoles(rawPermissionIds),
+    departmentIds: normalizeRoles(rawDepartmentIds),
+    mainDepartmentId: mainDepartmentId || undefined,
+    accessibleTenantIds: normalizeRoles(rawAccessibleTenantIds),
+    deptId: toId(raw.deptId ?? raw.DeptId ?? mainDepartmentId) || undefined,
     createTime: raw.createTime ?? raw.creationTime ?? raw.createdTime ?? raw.CreatedTime ?? '',
     updateTime: raw.updateTime ?? raw.lastModificationTime ?? raw.modifiedTime ?? raw.ModifiedTime ?? undefined,
     remark: raw.remark ?? raw.Remark ?? undefined,
@@ -89,6 +113,7 @@ function normalizeUserPayload(raw: unknown): SysUser {
 
 function toCreatePayload(data: Partial<SysUser & { password?: string }>) {
   return {
+    tenantId: data.tenantId ? toId(data.tenantId) : null,
     userName: (data.userName ?? '').trim(),
     password: data.password ?? '',
     realName: (data.realName ?? data.nickName ?? '').trim(),
@@ -96,6 +121,15 @@ function toCreatePayload(data: Partial<SysUser & { password?: string }>) {
     email: (data.email ?? '').trim(),
     phone: (data.phone ?? '').trim(),
     gender: toNumber(data.gender, 0),
+    birthday: data.birthday ?? null,
+    timeZone: (data.timeZone ?? '').trim(),
+    language: (data.language ?? '').trim(),
+    country: (data.country ?? '').trim(),
+    roleIds: (data.roles ?? []).map(item => toId(item)).filter(Boolean),
+    permissionIds: (data.permissionIds ?? []).map(item => toId(item)).filter(Boolean),
+    departmentIds: (data.departmentIds ?? []).map(item => toId(item)).filter(Boolean),
+    mainDepartmentId: data.mainDepartmentId ? toId(data.mainDepartmentId) : null,
+    accessibleTenantIds: (data.accessibleTenantIds ?? []).map(item => toId(item)).filter(Boolean),
   }
 }
 
@@ -106,8 +140,17 @@ function toUpdatePayload(id: string, data: Partial<SysUser>) {
     email: (data.email ?? '').trim(),
     phone: (data.phone ?? '').trim(),
     gender: toNumber(data.gender, 0),
+    birthday: data.birthday ?? null,
     status: toNumber(data.status, 1),
     avatar: (data.avatar ?? '').trim(),
+    timeZone: (data.timeZone ?? '').trim(),
+    language: (data.language ?? '').trim(),
+    country: (data.country ?? '').trim(),
+    roleIds: (data.roles ?? []).map(item => toId(item)).filter(Boolean),
+    permissionIds: (data.permissionIds ?? []).map(item => toId(item)).filter(Boolean),
+    departmentIds: (data.departmentIds ?? []).map(item => toId(item)).filter(Boolean),
+    mainDepartmentId: data.mainDepartmentId ? toId(data.mainDepartmentId) : null,
+    accessibleTenantIds: (data.accessibleTenantIds ?? []).map(item => toId(item)).filter(Boolean),
     remark: (data.remark ?? '').trim(),
     basicId: toId(id),
   }

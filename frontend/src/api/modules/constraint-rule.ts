@@ -8,11 +8,13 @@ const api = useBaseApi('ConstraintRule')
 
 export interface SysConstraintRule {
   basicId: string
+  tenantId?: string
   ruleCode: string
   ruleName: string
   constraintType: number
-  targetType: string
+  targetType: number
   parameters: string
+  isGlobal?: boolean
   isEnabled: boolean
   violationAction: number
   description?: string
@@ -67,11 +69,13 @@ function resolveEnum(value: unknown, map: Record<string, number>, fallback: numb
 function normalizeConstraintRule(raw: Record<string, any>): SysConstraintRule {
   return {
     basicId: toId(raw.basicId ?? raw.BasicId),
+    tenantId: toId(raw.tenantId ?? raw.TenantId) || undefined,
     ruleCode: raw.ruleCode ?? raw.RuleCode ?? '',
     ruleName: raw.ruleName ?? raw.RuleName ?? '',
     constraintType: toNumber(raw.constraintType ?? raw.ConstraintType, 0),
-    targetType: raw.targetType ?? raw.TargetType ?? 'Role',
+    targetType: toNumber(raw.targetType ?? raw.TargetType, 0),
     parameters: raw.parameters ?? raw.Parameters ?? '{}',
+    isGlobal: resolveBool(raw.isGlobal ?? raw.IsGlobal, false),
     isEnabled: resolveBool(raw.isEnabled ?? raw.IsEnabled, true),
     violationAction: toNumber(raw.violationAction ?? raw.ViolationAction, 0),
     description: raw.description ?? raw.Description ?? undefined,
@@ -86,11 +90,13 @@ function normalizeConstraintRule(raw: Record<string, any>): SysConstraintRule {
 
 function toCreatePayload(data: Partial<SysConstraintRule>) {
   return {
+    tenantId: data.tenantId ? toId(data.tenantId) : null,
     ruleCode: (data.ruleCode ?? '').trim(),
     ruleName: (data.ruleName ?? '').trim(),
     constraintType: toNumber(data.constraintType, 0),
-    targetType: (data.targetType ?? 'Role').trim(),
+    targetType: toNumber(data.targetType, 0),
     parameters: (data.parameters ?? '{}').trim(),
+    isGlobal: data.isGlobal ?? false,
     isEnabled: data.isEnabled !== false,
     violationAction: toNumber(data.violationAction, 0),
     description: (data.description ?? '').trim(),

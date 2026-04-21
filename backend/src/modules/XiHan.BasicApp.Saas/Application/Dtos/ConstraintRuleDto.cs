@@ -24,6 +24,11 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public class ConstraintRuleDto : BasicAppDto
 {
     /// <summary>
+    /// 租户ID
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
     /// 规则编码
     /// </summary>
     public string RuleCode { get; set; } = string.Empty;
@@ -41,12 +46,17 @@ public class ConstraintRuleDto : BasicAppDto
     /// <summary>
     /// 目标类型
     /// </summary>
-    public string TargetType { get; set; } = "Role";
+    public ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
 
     /// <summary>
     /// 规则参数
     /// </summary>
     public string Parameters { get; set; } = "{}";
+
+    /// <summary>
+    /// 是否平台级全局规则
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 是否启用
@@ -82,6 +92,21 @@ public class ConstraintRuleDto : BasicAppDto
     /// 状态
     /// </summary>
     public YesOrNo Status { get; set; } = YesOrNo.Yes;
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTimeOffset? ModifiedTime { get; set; }
 }
 
 /// <summary>
@@ -111,9 +136,12 @@ public class ConstraintRuleCreateDto : BasicAppCDto
     /// <summary>
     /// 目标类型
     /// </summary>
-    [Required(ErrorMessage = "目标类型不能为空")]
-    [StringLength(50, MinimumLength = 1, ErrorMessage = "目标类型长度必须在 1～50 之间")]
-    public string TargetType { get; set; } = "Role";
+    public ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
+
+    /// <summary>
+    /// 是否平台级全局规则
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 规则参数
@@ -191,9 +219,12 @@ public class ConstraintRuleUpdateDto : BasicAppUDto
     /// <summary>
     /// 目标类型
     /// </summary>
-    [Required(ErrorMessage = "目标类型不能为空")]
-    [StringLength(50, MinimumLength = 1, ErrorMessage = "目标类型长度必须在 1～50 之间")]
-    public string TargetType { get; set; } = "Role";
+    public ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
+
+    /// <summary>
+    /// 是否平台级全局规则
+    /// </summary>
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 规则参数
