@@ -13,7 +13,10 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Constants.Caching;
+using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.Caching.Implementations;
@@ -28,16 +31,11 @@ public class RbacLookupCacheService : IRbacLookupCacheService
         AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
     };
 
-    private static readonly DistributedCacheEntryOptions LookupCacheOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
-        SlidingExpiration = TimeSpan.FromMinutes(10)
-    };
-
     private readonly IDistributedCache<LookupCacheVersionItem> _versionCache;
     private readonly IDistributedCache<FileLookupCacheItem> _fileLookupCache;
     private readonly IDistributedCache<TaskLookupCacheItem> _taskLookupCache;
     private readonly IDistributedCache<OAuthAppLookupCacheItem> _oauthAppLookupCache;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// 构造函数
@@ -46,12 +44,14 @@ public class RbacLookupCacheService : IRbacLookupCacheService
         IDistributedCache<LookupCacheVersionItem> versionCache,
         IDistributedCache<FileLookupCacheItem> fileLookupCache,
         IDistributedCache<TaskLookupCacheItem> taskLookupCache,
-        IDistributedCache<OAuthAppLookupCacheItem> oauthAppLookupCache)
+        IDistributedCache<OAuthAppLookupCacheItem> oauthAppLookupCache,
+        IConfiguration configuration)
     {
         _versionCache = versionCache;
         _fileLookupCache = fileLookupCache;
         _taskLookupCache = taskLookupCache;
         _oauthAppLookupCache = oauthAppLookupCache;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class RbacLookupCacheService : IRbacLookupCacheService
             {
                 Item = await factory(cancellationToken)
             },
-            optionsFactory: () => LookupCacheOptions,
+            optionsFactory: BuildLookupCacheOptions,
             token: cancellationToken);
 
         return item?.Item;
@@ -100,7 +100,7 @@ public class RbacLookupCacheService : IRbacLookupCacheService
             {
                 Item = await factory(cancellationToken)
             },
-            optionsFactory: () => LookupCacheOptions,
+            optionsFactory: BuildLookupCacheOptions,
             token: cancellationToken);
 
         return item?.Item;
@@ -126,7 +126,7 @@ public class RbacLookupCacheService : IRbacLookupCacheService
             {
                 Item = await factory(cancellationToken)
             },
-            optionsFactory: () => LookupCacheOptions,
+            optionsFactory: BuildLookupCacheOptions,
             token: cancellationToken);
 
         return item?.Item;
@@ -207,37 +207,50 @@ public class RbacLookupCacheService : IRbacLookupCacheService
 
     private static string BuildFileLookupVersionKey(long? tenantId)
     {
-        return $"lookup:file:ver:{FormatTenantSegment(tenantId)}";
+        return SaasCacheKeys.LookupVersion(tenantId, "file");
     }
 
     private static string BuildTaskLookupVersionKey(long? tenantId)
     {
-        return $"lookup:task:ver:{FormatTenantSegment(tenantId)}";
+        return SaasCacheKeys.LookupVersion(tenantId, "task");
     }
 
     private static string BuildOAuthAppLookupVersionKey(long? tenantId)
     {
-        return $"lookup:oauth:ver:{FormatTenantSegment(tenantId)}";
+        return SaasCacheKeys.LookupVersion(tenantId, "oauth-app");
     }
 
     private static string BuildFileLookupItemKey(long? tenantId, string fileHash, long version)
     {
-        return $"lookup:file:item:{FormatTenantSegment(tenantId)}:{NormalizeKey(fileHash)}:v{version}";
+        return SaasCacheKeys.LookupItem(tenantId, "file", NormalizeKey(fileHash), version);
     }
 
     private static string BuildTaskLookupItemKey(long? tenantId, string taskCode, long version)
     {
-        return $"lookup:task:item:{FormatTenantSegment(tenantId)}:{NormalizeKey(taskCode)}:v{version}";
+        return SaasCacheKeys.LookupItem(tenantId, "task", NormalizeKey(taskCode), version);
     }
 
     private static string BuildOAuthAppLookupItemKey(long? tenantId, string clientId, long version)
     {
-        return $"lookup:oauth:item:{FormatTenantSegment(tenantId)}:{NormalizeKey(clientId)}:v{version}";
+        return SaasCacheKeys.LookupItem(tenantId, "oauth-app", NormalizeKey(clientId), version);
     }
 
-    private static string FormatTenantSegment(long? tenantId)
+    private DistributedCacheEntryOptions BuildLookupCacheOptions()
     {
-        return tenantId?.ToString() ?? "host";
+        var absoluteMinutes = Math.Clamp(
+            _configuration.GetValue(SaasSettingKeys.Caching.LookupAbsoluteExpirationMinutes, 30),
+            1,
+            1440);
+        var slidingMinutes = Math.Clamp(
+            _configuration.GetValue(SaasSettingKeys.Caching.LookupSlidingExpirationMinutes, 10),
+            1,
+            absoluteMinutes);
+
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(absoluteMinutes),
+            SlidingExpiration = TimeSpan.FromMinutes(slidingMinutes)
+        };
     }
 
     private static string NormalizeKey(string raw)

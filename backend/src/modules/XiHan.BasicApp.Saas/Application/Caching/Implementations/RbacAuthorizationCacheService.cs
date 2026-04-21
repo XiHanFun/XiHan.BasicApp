@@ -13,6 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using XiHan.BasicApp.Saas.Constants.Caching;
+using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.Caching.Implementations;
@@ -27,21 +30,10 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
         AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
     };
 
-    private static readonly DistributedCacheEntryOptions PermissionCacheOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
-        SlidingExpiration = TimeSpan.FromMinutes(10)
-    };
-
-    private static readonly DistributedCacheEntryOptions DataScopeCacheOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
-        SlidingExpiration = TimeSpan.FromMinutes(10)
-    };
-
     private readonly IDistributedCache<AuthorizationCacheVersionItem> _versionCache;
     private readonly IDistributedCache<UserPermissionCodesCacheItem> _permissionCodesCache;
     private readonly IDistributedCache<UserDataScopeDepartmentIdsCacheItem> _dataScopeCache;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// 构造函数
@@ -52,11 +44,13 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
     public RbacAuthorizationCacheService(
         IDistributedCache<AuthorizationCacheVersionItem> versionCache,
         IDistributedCache<UserPermissionCodesCacheItem> permissionCodesCache,
-        IDistributedCache<UserDataScopeDepartmentIdsCacheItem> dataScopeCache)
+        IDistributedCache<UserDataScopeDepartmentIdsCacheItem> dataScopeCache,
+        IConfiguration configuration)
     {
         _versionCache = versionCache;
         _permissionCodesCache = permissionCodesCache;
         _dataScopeCache = dataScopeCache;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -87,7 +81,7 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
             {
                 PermissionCodes = [.. (await factory(cancellationToken))]
             },
-            optionsFactory: () => PermissionCacheOptions,
+            optionsFactory: BuildAuthorizationCacheOptions,
             token: cancellationToken);
 
         return item?.PermissionCodes ?? [];
@@ -121,7 +115,7 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
             {
                 DepartmentIds = [.. (await factory(cancellationToken))]
             },
-            optionsFactory: () => DataScopeCacheOptions,
+            optionsFactory: BuildAuthorizationCacheOptions,
             token: cancellationToken);
 
         return item?.DepartmentIds ?? [];
@@ -195,27 +189,40 @@ public class RbacAuthorizationCacheService : IRbacAuthorizationCacheService
 
     private static string BuildPermissionVersionKey(long? tenantId)
     {
-        return $"perm:ver:{FormatTenantSegment(tenantId)}";
+        return SaasCacheKeys.AuthorizationPermissionVersion(tenantId);
     }
 
     private static string BuildDataScopeVersionKey(long? tenantId)
     {
-        return $"scope:ver:{FormatTenantSegment(tenantId)}";
+        return SaasCacheKeys.AuthorizationDataScopeVersion(tenantId);
     }
 
     private static string BuildPermissionUserCacheKey(long? tenantId, long userId, long version)
     {
-        return $"perm:user:{FormatTenantSegment(tenantId)}:{userId}:v{version}";
+        return SaasCacheKeys.AuthorizationPermissionSet(tenantId, userId, version);
     }
 
     private static string BuildDataScopeUserCacheKey(long? tenantId, long userId, long version)
     {
-        return $"scope:user:{FormatTenantSegment(tenantId)}:{userId}:v{version}";
+        return SaasCacheKeys.AuthorizationDataScope(tenantId, userId, version);
     }
 
-    private static string FormatTenantSegment(long? tenantId)
+    private DistributedCacheEntryOptions BuildAuthorizationCacheOptions()
     {
-        return tenantId?.ToString() ?? "host";
+        var absoluteMinutes = Math.Clamp(
+            _configuration.GetValue(SaasSettingKeys.Caching.AuthorizationAbsoluteExpirationMinutes, 30),
+            1,
+            1440);
+        var slidingMinutes = Math.Clamp(
+            _configuration.GetValue(SaasSettingKeys.Caching.AuthorizationSlidingExpirationMinutes, 10),
+            1,
+            absoluteMinutes);
+
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(absoluteMinutes),
+            SlidingExpiration = TimeSpan.FromMinutes(slidingMinutes)
+        };
     }
 
     private async Task<long> GetPermissionVersionAsync(long? tenantId, CancellationToken cancellationToken)

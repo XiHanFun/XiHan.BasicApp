@@ -14,6 +14,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -27,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Settings;
 /// </summary>
 public class RbacSettingStore : ISettingStore
 {
-    private const string SettingConfigGroup = "Framework.Settings";
+    private const string SettingConfigGroup = "BasicApp.Saas.Settings";
     private const string GlobalProviderName = "G";
     private const string UserProviderName = "U";
 
@@ -142,7 +143,7 @@ public class RbacSettingStore : ISettingStore
         var normalizedProviderKey = providerKey?.Trim() ?? string.Empty;
         var rawKey = $"{normalizedProviderName}|{normalizedProviderKey}|{normalizedName}";
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawKey)));
-        return $"set:{hash}";
+        return $"{SaasSettingKeys.Prefix}:Store:{hash}";
     }
 
     private static string NormalizeConfigName(string name)
