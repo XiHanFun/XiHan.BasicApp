@@ -17,7 +17,6 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Repository;
-
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -49,9 +48,9 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     public async Task<SysRole?> GetByRoleCodeAsync(string roleCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
-        var query = CreateQueryable().Where(role => role.RoleCode == roleCode);
-
-        query = tenantId.HasValue ? query.Where(role => role.TenantId == tenantId.Value) : query.Where(role => role.TenantId == 0);
+        var query = SaasTenantQueryHelper
+            .ApplyTenantFilter(CreateQueryable().Where(role => role.RoleCode == roleCode), tenantId, includePlatform: true)
+            .OrderByDescending(role => role.TenantId);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -78,7 +77,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
             query = query.Where(role => role.BasicId != excludeRoleId.Value);
         }
 
-        query = tenantId.HasValue ? query.Where(role => role.TenantId == tenantId.Value) : query.Where(role => role.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.AnyAsync(cancellationToken);
     }
@@ -100,10 +99,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         var query = CreateQueryable<SysRoleDataScope>()
             .Where(scope => scope.RoleId == roleId && scope.Status == YesOrNo.Yes);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(scope => scope.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query
             .Select(scope => scope.DepartmentId)
@@ -131,15 +127,12 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
 
         var deleteable = DbClient.Deleteable<SysRoleDataScope>()
             .Where(scope => scope.RoleId == roleId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(scope => scope.TenantId == resolvedTenantId.Value);
-        }
+        deleteable = deleteable.Where(scope => scope.TenantId == resolvedTenantId);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
 
@@ -151,7 +144,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
 
         var scopes = distinctDepartmentIds.Select(departmentId => new SysRoleDataScope
         {
-            TenantId = resolvedTenantId ?? 0,
+            TenantId = resolvedTenantId,
             RoleId = roleId,
             DepartmentId = departmentId,
             Status = YesOrNo.Yes
@@ -172,10 +165,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
         var query = CreateQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(mapping => mapping.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.ToListAsync(cancellationToken);
     }
@@ -191,15 +181,12 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
     public async Task ReplaceRolePermissionsAsync(long roleId, IReadOnlyCollection<long> permissionIds, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var resolvedTenantId = tenantId;
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
 
         var deleteable = DbClient.Deleteable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId);
 
-        if (resolvedTenantId.HasValue)
-        {
-            deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId.Value);
-        }
+        deleteable = deleteable.Where(mapping => mapping.TenantId == resolvedTenantId);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
 
@@ -211,7 +198,7 @@ public class RoleRepository : SqlSugarAggregateRepository<SysRole, long>, IRoleR
 
         var mappings = distinctPermissionIds.Select(permissionId => new SysRolePermission
         {
-            TenantId = resolvedTenantId ?? 0,
+            TenantId = resolvedTenantId,
             RoleId = roleId,
             PermissionId = permissionId,
             Status = YesOrNo.Yes

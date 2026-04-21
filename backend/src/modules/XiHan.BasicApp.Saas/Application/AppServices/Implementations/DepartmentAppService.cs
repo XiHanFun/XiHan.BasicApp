@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -93,8 +94,7 @@ public class DepartmentAppService
     [PermissionAuthorize("department:read")]
     public async Task<IReadOnlyList<DepartmentDto>> GetChildrenAsync(long? parentId, long? tenantId = null)
     {
-        var departments = await _departmentRepository.GetChildrenAsync(parentId, tenantId);
-        return (await MapDepartmentsToDtosInternalAsync(departments)).ToArray();
+        return await _queryService.GetChildrenAsync(parentId, tenantId);
     }
 
     /// <summary>
@@ -257,17 +257,15 @@ public class DepartmentAppService
             .ToArray();
 
         var leaderNameMap = await BuildLeaderNameMapAsync(leaderIds);
+        var hasChildrenMap = await _departmentRepository.GetHasChildrenMapAsync(
+            departmentList.Select(item => item.BasicId).ToArray(),
+            departmentList[0].TenantId);
 
         return departmentList
-            .Select(department =>
-            {
-                var dto = department.Adapt<DepartmentDto>()!;
-                if (department.LeaderId.HasValue && leaderNameMap.TryGetValue(department.LeaderId.Value, out var leaderName))
-                {
-                    dto.LeaderName = leaderName;
-                }
-                return dto;
-            })
+            .Select(department => SaasReadModelMapper.MapDepartment(
+                department,
+                leaderNameMap,
+                hasChildrenMap.TryGetValue(department.BasicId, out var hasChildren) && hasChildren))
             .ToArray();
     }
 

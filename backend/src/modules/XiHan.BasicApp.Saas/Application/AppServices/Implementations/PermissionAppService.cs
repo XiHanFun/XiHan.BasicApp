@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -90,8 +91,7 @@ public class PermissionAppService
             throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
-        var permissions = await _permissionRepository.GetRolePermissionsAsync(roleId, tenantId);
-        return permissions.Select(MapPermission).ToArray();
+        return await _queryService.GetRolePermissionsAsync(roleId, tenantId);
     }
 
     /// <summary>
@@ -108,8 +108,7 @@ public class PermissionAppService
             throw new ArgumentException("用户 ID 无效", nameof(query.UserId));
         }
 
-        var permissions = await _permissionRepository.GetUserPermissionsAsync(query.UserId, query.TenantId);
-        return permissions.Select(MapPermission).ToArray();
+        return await _queryService.GetUserPermissionsAsync(query.UserId, query.TenantId);
     }
 
     /// <summary>
@@ -196,8 +195,9 @@ public class PermissionAppService
             PermissionCode = createDto.PermissionCode.Trim(),
             PermissionName = createDto.PermissionName.Trim(),
             PermissionDescription = createDto.PermissionDescription,
-            Tags = NormalizePermissionTags(createDto.Tags, createDto.GroupName),
+            Tags = NormalizeNullable(createDto.Tags),
             IsRequireAudit = createDto.IsRequireAudit,
+            IsGlobal = createDto.IsGlobal,
             Priority = createDto.Priority,
             Sort = createDto.Sort,
             Remark = createDto.Remark
@@ -218,8 +218,9 @@ public class PermissionAppService
         entity.PermissionCode = updateDto.PermissionCode.Trim();
         entity.PermissionName = updateDto.PermissionName.Trim();
         entity.PermissionDescription = updateDto.PermissionDescription;
-        entity.Tags = NormalizePermissionTags(updateDto.Tags, updateDto.GroupName, entity.Tags);
+        entity.Tags = NormalizeNullable(updateDto.Tags) ?? entity.Tags;
         entity.IsRequireAudit = updateDto.IsRequireAudit;
+        entity.IsGlobal = updateDto.IsGlobal;
         entity.Priority = updateDto.Priority;
         entity.Status = updateDto.Status;
         entity.Sort = updateDto.Sort;
@@ -266,38 +267,7 @@ public class PermissionAppService
 
     private static PermissionDto MapPermission(SysPermission permission)
     {
-        var dto = permission.Adapt<PermissionDto>()!;
-        dto.GroupName = ResolveGroupName(permission.Tags);
-        return dto;
-    }
-
-    private static string? NormalizePermissionTags(string? tags, string? groupName, string? fallback = null)
-    {
-        var normalizedTags = NormalizeNullable(tags);
-        if (!string.IsNullOrWhiteSpace(normalizedTags))
-        {
-            return normalizedTags;
-        }
-
-        var normalizedGroup = NormalizeNullable(groupName);
-        if (!string.IsNullOrWhiteSpace(normalizedGroup))
-        {
-            return normalizedGroup;
-        }
-
-        return NormalizeNullable(fallback);
-    }
-
-    private static string? ResolveGroupName(string? tags)
-    {
-        if (string.IsNullOrWhiteSpace(tags))
-        {
-            return null;
-        }
-
-        return tags
-            .Split(new[] { ',', '，', ';', '；', '|', '、' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .FirstOrDefault();
+        return SaasReadModelMapper.MapPermission(permission);
     }
 
     private static string? NormalizeNullable(string? value)

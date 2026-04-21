@@ -103,8 +103,7 @@ public class RoleAppService
     public async Task<RoleDto?> GetByCodeAsync(RoleByCodeQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        var role = await _roleRepository.GetByRoleCodeAsync(query.RoleCode, query.TenantId);
-        return role?.Adapt<RoleDto>();
+        return await _queryService.GetByCodeAsync(query.RoleCode, query.TenantId);
     }
 
     /// <summary>
@@ -121,14 +120,7 @@ public class RoleAppService
             throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
-        var relations = await _roleRepository.GetRolePermissionsAsync(roleId, tenantId);
-        return relations.Select(relation => new RolePermissionRelationDto
-        {
-            TenantId = relation.TenantId,
-            RoleId = relation.RoleId,
-            PermissionId = relation.PermissionId,
-            Status = relation.Status
-        }).ToArray();
+        return await _queryService.GetRolePermissionsAsync(roleId, tenantId);
     }
 
     /// <summary>
@@ -145,7 +137,7 @@ public class RoleAppService
             throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
-        return await _roleRepository.GetCustomDataScopeDepartmentIdsAsync(roleId, tenantId);
+        return await _queryService.GetRoleDataScopeDepartmentIdsAsync(roleId, tenantId);
     }
 
     /// <summary>
@@ -162,7 +154,7 @@ public class RoleAppService
             throw new ArgumentException("角色 ID 无效", nameof(roleId));
         }
 
-        return await _roleHierarchyRepository.GetDirectParentRoleIdsAsync(roleId, tenantId);
+        return await _queryService.GetRoleParentRoleIdsAsync(roleId, tenantId);
     }
 
     /// <summary>
