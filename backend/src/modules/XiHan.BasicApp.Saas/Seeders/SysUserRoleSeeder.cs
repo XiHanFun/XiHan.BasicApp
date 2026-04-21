@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Saas.Constants.Basic;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
@@ -21,159 +22,115 @@ using XiHan.Framework.Data.SqlSugar.Seeders;
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统用户角色关系种子数据
+/// 系统用户角色关系种子数据。
 /// </summary>
 public class SysUserRoleSeeder : DataSeederBase
 {
-    private const string SuperAdminRoleCode = "super_admin";
-
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysUserRoleSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysUserRoleSeeder> logger, IServiceProvider serviceProvider)
+    public SysUserRoleSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysUserRoleSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.UserRoles;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统用户角色关系种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
         var users = await DbClient.Queryable<SysUser>().ToListAsync();
         var roles = await DbClient.Queryable<SysRole>().ToListAsync();
-
         if (users.Count == 0 || roles.Count == 0)
         {
-            Logger.LogWarning("找不到用户或角色数据，跳过用户角色关系种子数据");
+            Logger.LogWarning("找不到用户或角色数据，跳过用户角色关系初始化");
             return;
         }
 
-        var userMap = users
-            .Where(user => !string.IsNullOrWhiteSpace(user.UserName))
-            .GroupBy(user => user.UserName, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                group => group.Key,
-                group => group
-                    .OrderBy(user => user.TenantId != 0 ? 1 : 0)
-                    .ThenBy(user => user.BasicId)
-                    .First()
-                    .BasicId,
-                StringComparer.OrdinalIgnoreCase);
+        var bootstrapTenant = await DbClient
+            .Queryable<SysTenant>()
+            .FirstAsync(tenant => tenant.TenantCode == SaasSeedDefaults.BootstrapTenantCode);
 
+        var userMap = users.ToDictionary(user => user.UserName, StringComparer.OrdinalIgnoreCase);
         var roleMap = roles
-            .Where(role => !string.IsNullOrWhiteSpace(role.RoleCode))
-            .GroupBy(role => role.RoleCode, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                group => group.Key,
-                group => group
-                    .OrderBy(role => role.TenantId != 0 ? 1 : 0)
-                    .ThenBy(role => role.BasicId)
-                    .First()
-                    .BasicId,
-                StringComparer.OrdinalIgnoreCase);
+            .GroupBy(role => $"{role.TenantId}:{role.RoleCode}", StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.OrderBy(item => item.BasicId).First(), StringComparer.OrdinalIgnoreCase);
 
-        var requiredPairs = new List<(long UserId, long RoleId)>();
-        AddUserRole(requiredPairs, userMap, roleMap, SaasSeedDefaults.BootstrapAdminUserName, SuperAdminRoleCode);
-        AddUserRole(requiredPairs, userMap, roleMap, SaasSeedDefaults.PlatformAdminUserName, "admin");
+        var requiredMappings = new List<SysUserRole>();
 
-        var removedSuperAdminMappingCount = 0;
-        if (roleMap.TryGetValue(SuperAdminRoleCode, out var superAdminRoleId)
-            && userMap.TryGetValue(SaasSeedDefaults.BootstrapAdminUserName, out var superAdminUserId))
+        if (userMap.TryGetValue(SaasSeedDefaults.BootstrapAdminUserName, out var superAdmin)
+            && roleMap.TryGetValue($"{RoleBasicConstants.PlatformTenantId}:{RoleBasicConstants.SuperAdminRoleCode}", out var superAdminRole))
         {
-            removedSuperAdminMappingCount = await DbClient
-                .Deleteable<SysUserRole>()
-                .Where(mapping =>
-                    mapping.RoleId == superAdminRoleId
-                    && mapping.UserId != superAdminUserId)
-                .ExecuteCommandAsync();
+            requiredMappings.Add(CreateMapping(superAdmin, superAdminRole, RoleBasicConstants.PlatformTenantId));
         }
 
-        if (requiredPairs.Count == 0)
+        if (userMap.TryGetValue(SaasSeedDefaults.PlatformAdminUserName, out var platformAdmin)
+            && roleMap.TryGetValue($"{RoleBasicConstants.PlatformTenantId}:{RoleBasicConstants.PlatformAdminRoleCode}", out var platformAdminRole))
         {
-            Logger.LogWarning("未解析到任何用户角色关系，跳过用户角色关系种子数据");
-            return;
+            requiredMappings.Add(CreateMapping(platformAdmin, platformAdminRole, RoleBasicConstants.PlatformTenantId));
         }
 
-        var targetUserIds = requiredPairs.Select(pair => pair.UserId).Distinct().ToArray();
-        var targetRoleIds = requiredPairs.Select(pair => pair.RoleId).Distinct().ToArray();
-        var existingPairs = await DbClient
+        if (bootstrapTenant is not null
+            && roleMap.TryGetValue($"{RoleBasicConstants.PlatformTenantId}:tenant_owner", out var tenantOwnerRole)
+            && userMap.TryGetValue(SaasSeedDefaults.PlatformAdminUserName, out var bootstrapOwner))
+        {
+            requiredMappings.Add(CreateMapping(bootstrapOwner, tenantOwnerRole, bootstrapTenant.BasicId));
+        }
+
+        var targetUserIds = requiredMappings.Select(item => item.UserId).Distinct().ToArray();
+        var existingMappings = await DbClient
             .Queryable<SysUserRole>()
-            .Where(mapping => targetUserIds.Contains(mapping.UserId) && targetRoleIds.Contains(mapping.RoleId))
-            .Select(mapping => new { mapping.BasicId, mapping.UserId, mapping.RoleId, mapping.Status })
+            .Where(mapping => targetUserIds.Contains(mapping.UserId))
             .ToListAsync();
 
-        var existingSet = existingPairs
-            .Select(pair => $"{pair.UserId}_{pair.RoleId}")
+        var existingSet = existingMappings
+            .Select(mapping => $"{mapping.TenantId}:{mapping.UserId}:{mapping.RoleId}")
             .ToHashSet(StringComparer.Ordinal);
 
-        var userRoles = requiredPairs
-            .Where(pair => !existingSet.Contains($"{pair.UserId}_{pair.RoleId}"))
-            .Select(pair => new SysUserRole
-            {
-                UserId = pair.UserId,
-                RoleId = pair.RoleId,
-                Status = YesOrNo.Yes
-            })
+        var inserts = requiredMappings
+            .Where(mapping => !existingSet.Contains($"{mapping.TenantId}:{mapping.UserId}:{mapping.RoleId}"))
             .ToList();
 
-        var disabledMappingIds = existingPairs
-            .Where(pair =>
-                pair.Status != YesOrNo.Yes
-                && requiredPairs.Contains((pair.UserId, pair.RoleId)))
-            .Select(pair => pair.BasicId)
-            .Distinct()
+        if (inserts.Count > 0)
+        {
+            await BulkInsertAsync(inserts);
+        }
+
+        var disabledIds = existingMappings
+            .Where(mapping =>
+                requiredMappings.Any(required =>
+                    required.TenantId == mapping.TenantId
+                    && required.UserId == mapping.UserId
+                    && required.RoleId == mapping.RoleId)
+                && mapping.Status != YesOrNo.Yes)
+            .Select(mapping => mapping.BasicId)
             .ToArray();
-        if (disabledMappingIds.Length > 0)
+
+        if (disabledIds.Length > 0)
         {
             await DbClient
                 .Updateable<SysUserRole>()
                 .SetColumns(mapping => mapping.Status == YesOrNo.Yes)
-                .Where(mapping => disabledMappingIds.Contains(mapping.BasicId))
+                .Where(mapping => disabledIds.Contains(mapping.BasicId))
                 .ExecuteCommandAsync();
         }
 
-        if (userRoles.Count == 0 && disabledMappingIds.Length == 0 && removedSuperAdminMappingCount == 0)
-        {
-            Logger.LogInformation("用户角色关系数据已存在，跳过新增");
-            return;
-        }
-
-        if (userRoles.Count > 0)
-        {
-            await BulkInsertAsync(userRoles);
-        }
-
         Logger.LogInformation(
-            "用户角色关系种子完成：新增 {InsertCount} 条，启用 {EnableCount} 条，清理多余超管绑定 {RemovedSuperAdminCount} 条",
-            userRoles.Count,
-            disabledMappingIds.Length,
-            removedSuperAdminMappingCount);
+            "用户角色种子完成：新增 {InsertCount} 条，启用 {EnableCount} 条",
+            inserts.Count,
+            disabledIds.Length);
     }
 
-    /// <summary>
-    /// 添加用户角色关系
-    /// </summary>
-    private static void AddUserRole(
-        ICollection<(long UserId, long RoleId)> target,
-        IReadOnlyDictionary<string, long> userMap,
-        IReadOnlyDictionary<string, long> roleMap,
-        string userName,
-        string roleCode)
+    private static SysUserRole CreateMapping(SysUser user, SysRole role, long tenantId)
     {
-        if (userMap.TryGetValue(userName, out var userId) && roleMap.TryGetValue(roleCode, out var roleId))
+        return new SysUserRole
         {
-            target.Add((userId, roleId));
-        }
+            TenantId = tenantId,
+            UserId = user.BasicId,
+            RoleId = role.BasicId,
+            EffectiveTime = DateTimeOffset.UtcNow,
+            Status = YesOrNo.Yes
+        };
     }
 }

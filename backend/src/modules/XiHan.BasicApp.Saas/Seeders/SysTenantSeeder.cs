@@ -21,64 +21,66 @@ using XiHan.Framework.Data.SqlSugar.Seeders;
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统租户种子数据
+/// 系统租户种子数据。
 /// </summary>
 public class SysTenantSeeder : DataSeederBase
 {
-    private const string DefaultTenantCode = "DEFAULT";
-
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysTenantSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysTenantSeeder> logger, IServiceProvider serviceProvider)
+    public SysTenantSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysTenantSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.Tenants;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统租户种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        // 仅保证默认租户存在；若已有其他租户，仍可补齐默认租户。
-        if (await HasDataAsync<SysTenant>(tenant => tenant.TenantCode == DefaultTenantCode))
+        var template = new SysTenant
         {
-            Logger.LogInformation("默认租户数据已存在，跳过种子数据");
+            TenantCode = SaasSeedDefaults.BootstrapTenantCode,
+            TenantName = SaasSeedDefaults.BootstrapTenantName,
+            TenantShortName = "默认",
+            ContactPerson = "系统管理员",
+            ContactPhone = "13800138000",
+            ContactEmail = "admin@xihanfun.com",
+            IsolationMode = TenantIsolationMode.Field,
+            ConfigStatus = TenantConfigStatus.Configured,
+            ExpireTime = DateTimeOffset.UtcNow.AddYears(30),
+            UserLimit = 200,
+            StorageLimit = 102400,
+            TenantStatus = TenantStatus.Normal,
+            Sort = 0,
+            Remark = "系统初始化默认租户"
+        };
+
+        var existingTenant = await DbClient
+            .Queryable<SysTenant>()
+            .FirstAsync(tenant => tenant.TenantCode == template.TenantCode);
+
+        if (existingTenant is null)
+        {
+            await BulkInsertAsync([template]);
+            Logger.LogInformation("默认租户种子完成：新增租户 {TenantCode}", template.TenantCode);
             return;
         }
 
-        var tenants = new List<SysTenant>
+        if (existingTenant.TenantStatus != TenantStatus.Normal || existingTenant.ConfigStatus != TenantConfigStatus.Configured)
         {
-            new()
-            {
-                TenantCode = DefaultTenantCode,
-                TenantName = "默认租户",
-                TenantShortName = "默认",
-                ContactPerson = "系统管理员",
-                ContactPhone = "13800138000",
-                ContactEmail = "admin@xihanfun.com",
-                IsolationMode = TenantIsolationMode.Field,
-                ConfigStatus = TenantConfigStatus.Configured,
-                ExpireTime = DateTimeOffset.UtcNow.AddYears(30),
-                UserLimit = 10000,
-                StorageLimit = 102400,
-                TenantStatus = TenantStatus.Normal,
-                Sort = 0,
-                Remark = "默认租户"
-            }
-        };
+            await DbClient
+                .Updateable<SysTenant>()
+                .SetColumns(tenant => new SysTenant
+                {
+                    TenantStatus = TenantStatus.Normal,
+                    ConfigStatus = TenantConfigStatus.Configured
+                })
+                .Where(tenant => tenant.BasicId == existingTenant.BasicId)
+                .ExecuteCommandAsync();
+        }
 
-        await BulkInsertAsync(tenants);
-        Logger.LogInformation("成功初始化 {Count} 个租户", tenants.Count);
+        Logger.LogInformation("默认租户已存在，保留现有租户资料并完成状态校准");
     }
 }

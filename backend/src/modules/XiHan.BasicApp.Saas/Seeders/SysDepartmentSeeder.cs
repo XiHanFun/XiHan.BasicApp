@@ -13,119 +13,119 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统部门种子数据
+/// 系统部门种子数据。
 /// </summary>
 public class SysDepartmentSeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysDepartmentSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysDepartmentSeeder> logger, IServiceProvider serviceProvider)
+    public SysDepartmentSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysDepartmentSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.Departments;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统部门种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysDepartment>(d => true))
+        var bootstrapTenant = await DbClient
+            .Queryable<SysTenant>()
+            .FirstAsync(tenant => tenant.TenantCode == SaasSeedDefaults.BootstrapTenantCode);
+
+        if (bootstrapTenant is null)
         {
-            Logger.LogInformation("系统部门数据已存在，跳过种子数据");
+            Logger.LogWarning("默认租户不存在，跳过部门初始化");
             return;
         }
 
-        var departments = new List<SysDepartment>
+        var templates = new[]
         {
-            // 根部门
-            new()
-            {
-                ParentId = null,
-                DepartmentCode = "ROOT",
-                DepartmentName = "曦寒科技",
-                DepartmentType = DepartmentType.Company,
-                Remark = "公司根部门",
-                Status = YesOrNo.Yes,
-                Sort = 0
-            },
-            // 技术部
-            new()
-            {
-                ParentId = null, // 将在插入后更新
-                DepartmentCode = "TECH",
-                DepartmentName = "技术部",
-                DepartmentType = DepartmentType.Department,
-                Remark = "技术研发部门",
-                Status = YesOrNo.Yes,
-                Sort = 1
-            },
-            // 产品部
-            new()
-            {
-                ParentId = null,
-                DepartmentCode = "PRODUCT",
-                DepartmentName = "产品部",
-                DepartmentType = DepartmentType.Department,
-                Remark = "产品规划部门",
-                Status = YesOrNo.Yes,
-                Sort = 2
-            },
-            // 运营部
-            new()
-            {
-                ParentId = null,
-                DepartmentCode = "OPERATION",
-                DepartmentName = "运营部",
-                DepartmentType = DepartmentType.Department,
-                Remark = "运营推广部门",
-                Status = YesOrNo.Yes,
-                Sort = 3
-            },
-            // 行政部
-            new()
-            {
-                ParentId = null,
-                DepartmentCode = "ADMIN",
-                DepartmentName = "行政部",
-                DepartmentType = DepartmentType.Department,
-                Remark = "行政管理部门",
-                Status = YesOrNo.Yes,
-                Sort = 4
-            }
+            new DepartmentTemplate("ROOT", "默认租户总部", DepartmentType.Company, null, 0, "默认租户组织根节点"),
+            new DepartmentTemplate("OPS", "平台运营部", DepartmentType.Department, "ROOT", 10, "负责默认租户运营与客服"),
+            new DepartmentTemplate("DELIVERY", "交付实施部", DepartmentType.Department, "ROOT", 20, "负责租户交付与实施"),
+            new DepartmentTemplate("SECURITY", "安全与合规部", DepartmentType.Department, "ROOT", 30, "负责权限、审计与合规治理")
         };
 
-        // 批量插入
-        await BulkInsertAsync(departments);
+        var existingDepartments = await DbClient
+            .Queryable<SysDepartment>()
+            .Where(department => department.TenantId == bootstrapTenant.BasicId)
+            .ToListAsync();
+        var existingMap = existingDepartments.ToDictionary(department => department.DepartmentCode, StringComparer.OrdinalIgnoreCase);
 
-        // 更新子部门的 ParentId
-        var rootDept = await DbClient.Queryable<SysDepartment>().FirstAsync(d => d.DepartmentCode == "ROOT");
-        if (rootDept != null)
+        var inserts = templates
+            .Where(template => !existingMap.ContainsKey(template.Code))
+            .Select(template => new SysDepartment
+            {
+                TenantId = bootstrapTenant.BasicId,
+                DepartmentCode = template.Code,
+                DepartmentName = template.Name,
+                DepartmentType = template.Type,
+                Status = YesOrNo.Yes,
+                Sort = template.Sort,
+                Remark = template.Remark
+            })
+            .ToList();
+
+        if (inserts.Count > 0)
         {
-            await DbClient.Updateable<SysDepartment>()
-                .SetColumns(d => d.ParentId == rootDept.BasicId)
-                .Where(d => d.DepartmentCode != "ROOT")
+            await BulkInsertAsync(inserts);
+            existingDepartments = await DbClient
+                .Queryable<SysDepartment>()
+                .Where(department => department.TenantId == bootstrapTenant.BasicId)
+                .ToListAsync();
+            existingMap = existingDepartments.ToDictionary(department => department.DepartmentCode, StringComparer.OrdinalIgnoreCase);
+        }
+
+        foreach (var template in templates)
+        {
+            if (!existingMap.TryGetValue(template.Code, out var department))
+            {
+                continue;
+            }
+
+            long? parentId = null;
+            if (!string.IsNullOrWhiteSpace(template.ParentCode) && existingMap.TryGetValue(template.ParentCode, out var parent))
+            {
+                parentId = parent.BasicId;
+            }
+
+            if (department.ParentId == parentId && department.Status == YesOrNo.Yes)
+            {
+                continue;
+            }
+
+            await DbClient
+                .Updateable<SysDepartment>()
+                .SetColumns(item => new SysDepartment
+                {
+                    ParentId = parentId,
+                    Status = YesOrNo.Yes
+                })
+                .Where(item => item.BasicId == department.BasicId)
                 .ExecuteCommandAsync();
         }
 
-        Logger.LogInformation($"成功初始化 {departments.Count} 个系统部门");
+        Logger.LogInformation(
+            "默认租户部门种子完成：新增 {InsertCount} 个部门模板",
+            inserts.Count);
     }
+
+    private sealed record DepartmentTemplate(
+        string Code,
+        string Name,
+        DepartmentType Type,
+        string? ParentCode,
+        int Sort,
+        string Remark);
 }

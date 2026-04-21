@@ -13,58 +13,72 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Constants.Basic;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统字典种子数据
+/// 系统字典种子数据。
 /// </summary>
 public class SysDictSeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysDictSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysDictSeeder> logger, IServiceProvider serviceProvider)
+    public SysDictSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysDictSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.Dicts;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统字典种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysDict>(d => true))
+        var templates = new List<SysDict>
         {
-            Logger.LogInformation("系统字典数据已存在，跳过种子数据");
-            return;
-        }
-
-        var dicts = new List<SysDict>
-        {
-            new() { DictCode = "sys_yes_no", DictName = "是否", DictType = "enum", DictDescription = "通用是否枚举", IsBuiltIn = true, Status = YesOrNo.Yes, Sort = 1 },
-            new() { DictCode = "sys_user_gender", DictName = "用户性别", DictType = "enum", DictDescription = "用户性别枚举", IsBuiltIn = true, Status = YesOrNo.Yes, Sort = 2 },
-            new() { DictCode = "sys_menu_type", DictName = "菜单类型", DictType = "enum", DictDescription = "系统菜单类型枚举", IsBuiltIn = true, Status = YesOrNo.Yes, Sort = 3 },
-            new() { DictCode = "sys_resource_type", DictName = "资源类型", DictType = "enum", DictDescription = "系统资源类型枚举", IsBuiltIn = true, Status = YesOrNo.Yes, Sort = 4 },
-            new() { DictCode = "codegen_template_type", DictName = "代码生成模板类型", DictType = "enum", DictDescription = "代码生成模板类型", IsBuiltIn = true, Status = YesOrNo.Yes, Sort = 5 },
-            new() { DictCode = "codegen_gen_status", DictName = "代码生成状态", DictType = "enum", DictDescription = "代码生成执行状态", IsBuiltIn = true, Status = YesOrNo.Yes, Sort = 6 }
+            Create("sys_yes_no", "是否", "enum", "通用是否枚举", 10),
+            Create("sys_user_gender", "用户性别", "enum", "用户性别枚举", 20),
+            Create("sys_menu_type", "菜单类型", "enum", "系统菜单类型枚举", 30),
+            Create("sys_resource_type", "资源类型", "enum", "系统资源类型枚举", 40),
+            Create("sys_tenant_member_type", "租户成员类型", "enum", "租户成员类型枚举", 50),
+            Create("sys_tenant_invite_status", "租户成员邀请状态", "enum", "租户成员邀请状态枚举", 60),
+            Create("sys_data_scope", "数据权限范围", "enum", "角色数据范围枚举", 70)
         };
 
-        await BulkInsertAsync(dicts);
-        Logger.LogInformation("成功初始化 {Count} 个系统字典", dicts.Count);
+        var codes = templates.Select(item => item.DictCode).ToArray();
+        var existing = await DbClient
+            .Queryable<SysDict>()
+            .Where(dict => codes.Contains(dict.DictCode))
+            .ToListAsync();
+
+        var existingMap = existing.ToDictionary(dict => dict.DictCode, StringComparer.OrdinalIgnoreCase);
+        var inserts = templates.Where(template => !existingMap.ContainsKey(template.DictCode)).ToList();
+        if (inserts.Count > 0)
+        {
+            await BulkInsertAsync(inserts);
+        }
+
+        Logger.LogInformation("系统字典种子完成：新增 {Count} 个字典模板", inserts.Count);
+    }
+
+    private static SysDict Create(string code, string name, string type, string description, int sort)
+    {
+        return new SysDict
+        {
+            TenantId = RoleBasicConstants.PlatformTenantId,
+            DictCode = code,
+            DictName = name,
+            DictType = type,
+            DictDescription = description,
+            IsBuiltIn = true,
+            Status = YesOrNo.Yes,
+            Sort = sort
+        };
     }
 }
