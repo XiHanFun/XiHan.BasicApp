@@ -50,11 +50,9 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
     public async Task<SysPermission?> GetByPermissionCodeAsync(string permissionCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
-        var query = CreateQueryable().Where(permission => permission.PermissionCode == permissionCode);
-
-        query = tenantId.HasValue
-            ? query.Where(permission => permission.TenantId == tenantId.Value)
-            : query.Where(permission => permission.TenantId == 0);
+        var query = SaasTenantQueryHelper
+            .ApplyTenantFilter(CreateQueryable().Where(permission => permission.PermissionCode == permissionCode), tenantId, includePlatform: true)
+            .OrderByDescending(permission => permission.TenantId);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -68,13 +66,10 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetUserPermissionsAsync(long userId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var resolvedTenantId = tenantId;
         var roleQuery = CreateQueryable<SysUserRole>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
-        roleQuery = resolvedTenantId.HasValue
-            ? roleQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
-            : roleQuery.Where(mapping => mapping.TenantId == 0);
+        roleQuery = SaasTenantQueryHelper.ApplyTenantFilter(roleQuery, tenantId);
 
         var directRoleIds = await roleQuery
             .Select(mapping => mapping.RoleId)
@@ -83,7 +78,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
 
         var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(
             directRoleIds,
-            resolvedTenantId,
+            tenantId,
             cancellationToken);
 
         var rolePermissionIds = new List<long>();
@@ -94,9 +89,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
                     inheritedRoleIds.Contains(mapping.RoleId)
                     && mapping.Status == YesOrNo.Yes);
 
-            rolePermissionQuery = resolvedTenantId.HasValue
-                ? rolePermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
-                : rolePermissionQuery.Where(mapping => mapping.TenantId == 0);
+            rolePermissionQuery = SaasTenantQueryHelper.ApplyTenantFilter(rolePermissionQuery, tenantId);
 
             rolePermissionIds = await rolePermissionQuery
                 .Select(mapping => mapping.PermissionId)
@@ -107,9 +100,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
         var directPermissionQuery = CreateQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
-        directPermissionQuery = resolvedTenantId.HasValue
-            ? directPermissionQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
-            : directPermissionQuery.Where(mapping => mapping.TenantId == 0);
+        directPermissionQuery = SaasTenantQueryHelper.ApplyTenantFilter(directPermissionQuery, tenantId);
 
         // 获取用户直接授权的权限列表，包括授权和拒绝
         var allUserPermissions = await directPermissionQuery
@@ -144,9 +135,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
         var query = CreateQueryable()
             .Where(permission => permissionIdSet.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
-        query = resolvedTenantId.HasValue
-            ? query.Where(permission => permission.TenantId == resolvedTenantId.Value)
-            : query.Where(permission => permission.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId, includePlatform: true);
 
         return await query.OrderBy(permission => permission.Sort)
             .ToListAsync(cancellationToken);
@@ -161,13 +150,10 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
     /// <returns></returns>
     public async Task<IReadOnlyList<SysPermission>> GetRolePermissionsAsync(long roleId, long? tenantId = null, CancellationToken cancellationToken = default)
     {
-        var resolvedTenantId = tenantId;
         var mappingQuery = CreateQueryable<SysRolePermission>()
             .Where(mapping => mapping.RoleId == roleId && mapping.Status == YesOrNo.Yes);
 
-        mappingQuery = resolvedTenantId.HasValue
-            ? mappingQuery.Where(mapping => mapping.TenantId == resolvedTenantId.Value)
-            : mappingQuery.Where(mapping => mapping.TenantId == 0);
+        mappingQuery = SaasTenantQueryHelper.ApplyTenantFilter(mappingQuery, tenantId);
 
         var permissionIds = await mappingQuery
             .Select(mapping => mapping.PermissionId)
@@ -182,9 +168,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
         var query = CreateQueryable()
             .Where(permission => permissionIds.Contains(permission.BasicId) && permission.Status == YesOrNo.Yes);
 
-        query = resolvedTenantId.HasValue
-            ? query.Where(permission => permission.TenantId == resolvedTenantId.Value)
-            : query.Where(permission => permission.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId, includePlatform: true);
 
         return await query.OrderBy(permission => permission.Sort)
             .ToListAsync(cancellationToken);
@@ -201,9 +185,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
         var query = CreateQueryable<SysRolePermission>()
             .Where(mapping => roleIds.Contains(mapping.RoleId) && mapping.Status == YesOrNo.Yes);
 
-        query = tenantId.HasValue
-            ? query.Where(mapping => mapping.TenantId == tenantId.Value)
-            : query.Where(mapping => mapping.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query
             .Select(mapping => mapping.PermissionId)
@@ -219,9 +201,7 @@ public class PermissionRepository : SqlSugarAuditedRepository<SysPermission, lon
         var query = CreateQueryable<SysUserPermission>()
             .Where(mapping => mapping.UserId == userId && mapping.Status == YesOrNo.Yes);
 
-        query = tenantId.HasValue
-            ? query.Where(mapping => mapping.TenantId == tenantId.Value)
-            : query.Where(mapping => mapping.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.ToListAsync(cancellationToken);
     }

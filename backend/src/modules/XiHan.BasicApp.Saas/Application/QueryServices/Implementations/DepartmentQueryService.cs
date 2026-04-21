@@ -15,6 +15,7 @@
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
@@ -48,13 +49,58 @@ public class DepartmentQueryService : IDepartmentQueryService, ITransientDepende
             return null;
         }
 
-        var dto = entity.Adapt<DepartmentDto>()!;
+        IReadOnlyDictionary<long, string>? leaderNameMap = null;
         if (entity.LeaderId.HasValue && entity.LeaderId.Value > 0)
         {
             var user = await _userRepository.GetByIdAsync(entity.LeaderId.Value);
-            dto.LeaderName = ResolveUserDisplayName(user);
+            if (user is not null)
+            {
+                leaderNameMap = new Dictionary<long, string>
+                {
+                    [user.BasicId] = ResolveUserDisplayName(user)
+                };
+            }
         }
-        return dto;
+
+        var hasChildrenMap = await _departmentRepository.GetHasChildrenMapAsync([entity.BasicId], entity.TenantId);
+        return SaasReadModelMapper.MapDepartment(
+            entity,
+            leaderNameMap,
+            hasChildrenMap.TryGetValue(entity.BasicId, out var hasChildren) && hasChildren);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DepartmentDto>> GetChildrenAsync(long? parentId, long? tenantId = null)
+    {
+        var departments = await _departmentRepository.GetChildrenAsync(parentId, tenantId);
+        if (departments.Count == 0)
+        {
+            return [];
+        }
+
+        var leaderIds = departments
+            .Where(item => item.LeaderId.HasValue && item.LeaderId.Value > 0)
+            .Select(item => item.LeaderId!.Value)
+            .Distinct()
+            .ToArray();
+
+        IReadOnlyDictionary<long, string> leaderNameMap = new Dictionary<long, string>();
+        if (leaderIds.Length > 0)
+        {
+            var users = await _userRepository.GetByIdsAsync(leaderIds);
+            leaderNameMap = users.ToDictionary(user => user.BasicId, ResolveUserDisplayName);
+        }
+
+        var hasChildrenMap = await _departmentRepository.GetHasChildrenMapAsync(
+            departments.Select(item => item.BasicId).ToArray(),
+            tenantId ?? departments[0].TenantId);
+
+        return departments
+            .Select(department => SaasReadModelMapper.MapDepartment(
+                department,
+                leaderNameMap,
+                hasChildrenMap.TryGetValue(department.BasicId, out var hasChildren) && hasChildren))
+            .ToArray();
     }
 
     private static string? ResolveUserDisplayName(SysUser? user)

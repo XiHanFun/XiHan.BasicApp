@@ -26,4 +26,14 @@ public interface IPermissionQueryService : IQueryService
     /// 根据 ID 获取权限
     /// </summary>
     Task<PermissionDto?> GetByIdAsync(long id);
+
+    /// <summary>
+    /// 获取角色权限。
+    /// </summary>
+    Task<IReadOnlyList<PermissionDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取用户权限。
+    /// </summary>
+    Task<IReadOnlyList<PermissionDto>> GetUserPermissionsAsync(long userId, long? tenantId = null);
 }

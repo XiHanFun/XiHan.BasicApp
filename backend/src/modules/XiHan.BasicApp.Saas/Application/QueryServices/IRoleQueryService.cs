@@ -26,4 +26,24 @@ public interface IRoleQueryService : IQueryService
     /// 根据 ID 获取角色
     /// </summary>
     Task<RoleDto?> GetByIdAsync(long id);
+
+    /// <summary>
+    /// 根据编码获取角色。
+    /// </summary>
+    Task<RoleDto?> GetByCodeAsync(string roleCode, long? tenantId = null);
+
+    /// <summary>
+    /// 获取角色权限关系。
+    /// </summary>
+    Task<IReadOnlyList<RolePermissionRelationDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取角色自定义数据范围部门ID。
+    /// </summary>
+    Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null);
+
+    /// <summary>
+    /// 获取角色直接父角色ID。
+    /// </summary>
+    Task<IReadOnlyCollection<long>> GetRoleParentRoleIdsAsync(long roleId, long? tenantId = null);
 }

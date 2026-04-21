@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
@@ -40,25 +41,20 @@ public class PermissionQueryService : IPermissionQueryService, ITransientDepende
     public async Task<PermissionDto?> GetByIdAsync(long id)
     {
         var entity = await _permissionRepository.GetByIdAsync(id);
-        if (entity is null)
-        {
-            return null;
-        }
-
-        var dto = entity.Adapt<PermissionDto>()!;
-        dto.GroupName = ResolveGroupName(entity.Tags);
-        return dto;
+        return entity is null ? null : SaasReadModelMapper.MapPermission(entity);
     }
 
-    private static string? ResolveGroupName(string? tags)
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<PermissionDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null)
     {
-        if (string.IsNullOrWhiteSpace(tags))
-        {
-            return null;
-        }
+        var permissions = await _permissionRepository.GetRolePermissionsAsync(roleId, tenantId);
+        return permissions.Select(SaasReadModelMapper.MapPermission).ToArray();
+    }
 
-        return tags
-            .Split(new[] { ',', '，', ';', '；', '|', '、' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .FirstOrDefault();
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<PermissionDto>> GetUserPermissionsAsync(long userId, long? tenantId = null)
+    {
+        var permissions = await _permissionRepository.GetUserPermissionsAsync(userId, tenantId);
+        return permissions.Select(SaasReadModelMapper.MapPermission).ToArray();
     }
 }

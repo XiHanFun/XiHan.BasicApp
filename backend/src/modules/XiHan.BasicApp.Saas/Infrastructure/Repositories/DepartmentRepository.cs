@@ -48,12 +48,9 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     public async Task<SysDepartment?> GetByDepartmentCodeAsync(string departmentCode, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(departmentCode);
-        var query = CreateQueryable()
-            .Where(department => department.DepartmentCode == departmentCode);
-
-        query = tenantId.HasValue
-            ? query.Where(department => department.TenantId == tenantId.Value)
-            : query.Where(department => department.TenantId == 0);
+        var query = SaasTenantQueryHelper.ApplyTenantFilter(
+            CreateQueryable().Where(department => department.DepartmentCode == departmentCode),
+            tenantId);
 
         return await query.FirstAsync(cancellationToken);
     }
@@ -70,10 +67,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
         var query = CreateQueryable()
             .Where(department => department.ParentId == parentId);
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(department => department.TenantId == tenantId.Value);
-        }
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         return await query.OrderBy(department => department.Sort).ToListAsync(cancellationToken);
     }
@@ -97,7 +91,6 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
             return [];
         }
 
-        var resolvedTenantId = tenantId;
         var query = CreateQueryable<SysDepartmentHierarchy>()
             .Where(hierarchy => hierarchy.AncestorId == departmentId);
 
@@ -106,15 +99,44 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
             query = query.Where(hierarchy => hierarchy.Depth > 0);
         }
 
-        query = resolvedTenantId.HasValue
-            ? query.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value)
-            : query.Where(hierarchy => hierarchy.TenantId == 0);
+        query = SaasTenantQueryHelper.ApplyTenantFilter(query, tenantId);
 
         var ids = await query
             .Select(hierarchy => hierarchy.DescendantId)
             .Distinct()
             .ToListAsync(cancellationToken);
         return ids;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<long, bool>> GetHasChildrenMapAsync(
+        IReadOnlyCollection<long> departmentIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var result = departmentIds
+            .Where(id => id > 0)
+            .Distinct()
+            .ToDictionary(id => id, _ => false);
+
+        if (result.Count == 0)
+        {
+            return result;
+        }
+
+        var childParentIds = await SaasTenantQueryHelper
+            .ApplyTenantFilter(CreateQueryable(), tenantId)
+            .Where(department => department.ParentId.HasValue && result.Keys.Contains(department.ParentId.Value))
+            .Select(department => department.ParentId!.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        foreach (var parentId in childParentIds)
+        {
+            result[parentId] = true;
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -127,19 +149,14 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var resolvedTenantId = tenantId;
-        var departmentQuery = CreateQueryable();
-        departmentQuery = resolvedTenantId.HasValue
-            ? departmentQuery.Where(department => department.TenantId == resolvedTenantId.Value)
-            : departmentQuery.Where(department => department.TenantId == 0);
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
+        var departmentQuery = CreateQueryable().Where(department => department.TenantId == resolvedTenantId);
 
         var departments = await departmentQuery.ToListAsync(cancellationToken);
         var departmentMap = departments.ToDictionary(department => department.BasicId);
 
         var deleteable = DbClient.Deleteable<SysDepartmentHierarchy>();
-        deleteable = resolvedTenantId.HasValue
-            ? deleteable.Where(hierarchy => hierarchy.TenantId == resolvedTenantId.Value)
-            : deleteable.Where(hierarchy => hierarchy.TenantId == 0);
+        deleteable = deleteable.Where(hierarchy => hierarchy.TenantId == resolvedTenantId);
 
         await deleteable.ExecuteCommandAsync(cancellationToken);
         if (departments.Count == 0)
@@ -160,7 +177,7 @@ public class DepartmentRepository : SqlSugarAggregateRepository<SysDepartment, l
 
                 var row = new SysDepartmentHierarchy
                 {
-                    TenantId = resolvedTenantId ?? 0,
+                    TenantId = resolvedTenantId,
                     AncestorId = ancestor.BasicId,
                     DescendantId = department.BasicId,
                     Depth = pathDepartments.Length - 1,

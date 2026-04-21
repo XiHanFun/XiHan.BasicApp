@@ -26,4 +26,9 @@ public interface IDepartmentQueryService : IQueryService
     /// 根据 ID 获取部门
     /// </summary>
     Task<DepartmentDto?> GetByIdAsync(long id);
+
+    /// <summary>
+    /// 获取子部门。
+    /// </summary>
+    Task<IReadOnlyList<DepartmentDto>> GetChildrenAsync(long? parentId, long? tenantId = null);
 }

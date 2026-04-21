@@ -42,6 +42,14 @@ public interface IDepartmentRepository : IAggregateRootRepository<SysDepartment,
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量获取部门是否存在子节点。
+    /// </summary>
+    Task<IReadOnlyDictionary<long, bool>> GetHasChildrenMapAsync(
+        IReadOnlyCollection<long> departmentIds,
+        long? tenantId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 重建部门层级闭包表
     /// </summary>
     Task RebuildHierarchyAsync(long? tenantId = null, CancellationToken cancellationToken = default);

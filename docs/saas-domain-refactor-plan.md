@@ -330,6 +330,13 @@
 | REQ-010 | 重建前端系统页 | `frontend/src/views/system/**` | 管理页面按新模型完成联调 | REQ-001, REQ-007, REQ-008, REQ-009 |
 | REQ-011 | 完成质量门禁与交付 | 构建、类型检查、回归、文档 | 可验证、可回滚、结果可追踪 | REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007, REQ-008, REQ-009, REQ-010 |
 
+## Batch-04 Breakdown
+
+| Sub-Batch | 标题 | 范围 | 完成标准 |
+|-----------|------|------|----------|
+| Batch-04A | 核心授权聚合读写边界基线 | `Role/Permission/Department` 仓储、QueryService、ReadModel mapper | 多租户过滤规则统一，AppService 的只读查询下沉到 QueryService，读模型映射从服务层拼装中抽离 |
+| Batch-04B | 剩余主链查询与仓储收口 | `User/Tenant/Menu/ConstraintRule` 等剩余主链 | 剩余主链完成同样的边界收敛，避免继续在 AppService 里直连仓储拼读模型 |
+
 ## Execution Rules
 
 1. 每个 Batch 完成后立即更新本文件状态。
@@ -352,6 +359,11 @@
 - [ ] Batch-11 前端系统页重建与联调
 - [ ] Batch-12 质量门禁与收尾
 
+### Batch-04 Sub-Status
+
+- [x] Batch-04A 核心授权聚合读写边界基线
+- [ ] Batch-04B 剩余主链查询与仓储收口
+
 ## Validation Template
 
 | Batch | Validation | Result | Notes |
@@ -367,3 +379,10 @@
 | Batch-09 | `dotnet build` / 安全出口自检 | Pending |  |
 | Batch-10 | `pnpm type-check` / 页面联调自检 | Pending |  |
 | Batch-11 | 汇总验证 | Pending |  |
+
+### Batch-04 Sub-Validation
+
+| Sub-Batch | Validation | Result | Notes |
+|-----------|------------|--------|-------|
+| Batch-04A | 代码事实检索 / AppService 读仓储残留扫描 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department` 已建立统一租户过滤辅助器、读模型 mapper，并把只读查询下沉到 QueryService；针对性检索已确认三个 AppService 不再直连对应只读仓储方法。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，失败原因为 `MSB4276` 解析 `Microsoft.NET.SDK.WorkloadAutoImportPropsLocator` 和 `Microsoft.NET.SDK.WorkloadManifestTargetsLocator` 时目录缺失，不属于本批业务代码编译错误信号 |
+| Batch-04B | `dotnet build` / 查询边界自检 | Pending |  |

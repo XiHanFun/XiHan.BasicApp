@@ -14,9 +14,10 @@
 
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
+using XiHan.Framework.Caching.Attributes;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -26,13 +27,15 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public class RoleQueryService : IRoleQueryService, ITransientDependency
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RoleQueryService(IRoleRepository roleRepository)
+    public RoleQueryService(IRoleRepository roleRepository, IRoleHierarchyRepository roleHierarchyRepository)
     {
         _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
     }
 
     /// <inheritdoc />
@@ -40,6 +43,39 @@ public class RoleQueryService : IRoleQueryService, ITransientDependency
     public async Task<RoleDto?> GetByIdAsync(long id)
     {
         var entity = await _roleRepository.GetByIdAsync(id);
-        return entity?.Adapt<RoleDto>();
+        return entity is null ? null : SaasReadModelMapper.MapRole(entity);
+    }
+
+    /// <inheritdoc />
+    public async Task<RoleDto?> GetByCodeAsync(string roleCode, long? tenantId = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
+        var entity = await _roleRepository.GetByRoleCodeAsync(roleCode, tenantId);
+        return entity is null ? null : SaasReadModelMapper.MapRole(entity);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<RolePermissionRelationDto>> GetRolePermissionsAsync(long roleId, long? tenantId = null)
+    {
+        var relations = await _roleRepository.GetRolePermissionsAsync(roleId, tenantId);
+        return relations.Select(relation => new RolePermissionRelationDto
+        {
+            TenantId = relation.TenantId,
+            RoleId = relation.RoleId,
+            PermissionId = relation.PermissionId,
+            Status = relation.Status
+        }).ToArray();
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyCollection<long>> GetRoleDataScopeDepartmentIdsAsync(long roleId, long? tenantId = null)
+    {
+        return _roleRepository.GetCustomDataScopeDepartmentIdsAsync(roleId, tenantId);
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyCollection<long>> GetRoleParentRoleIdsAsync(long roleId, long? tenantId = null)
+    {
+        return _roleHierarchyRepository.GetDirectParentRoleIdsAsync(roleId, tenantId);
     }
 }
