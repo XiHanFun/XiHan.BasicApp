@@ -26,6 +26,7 @@ using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Helpers;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -64,12 +65,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
 
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
-    private readonly IPermissionDomainService _permissionDomainService;
-    private readonly IRbacAuthorizationCacheService _authorizationCacheService;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IMenuRepository _menuRepository;
+    private readonly IAuthorizationContextService _authorizationContextService;
     private readonly ILoginLogRepository _loginLogRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IOtpService _otpService;
@@ -78,7 +74,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IDistributedCache<AuthVerificationCodeCacheItem> _verificationCodeCache;
     private readonly IConfiguration _configuration;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly ICurrentUser _currentUser;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
@@ -93,12 +88,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     public AuthAppService(
         IUserRepository userRepository,
         IUserManager userManager,
-        IPermissionDomainService permissionDomainService,
-        IRbacAuthorizationCacheService authorizationCacheService,
-        IRoleRepository roleRepository,
-        IRoleHierarchyRepository roleHierarchyRepository,
-        IPermissionRepository permissionRepository,
-        IMenuRepository menuRepository,
+        IAuthorizationContextService authorizationContextService,
         ILoginLogRepository loginLogRepository,
         IJwtTokenService jwtTokenService,
         IOtpService otpService,
@@ -107,7 +97,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IDistributedCache<AuthVerificationCodeCacheItem> verificationCodeCache,
         IConfiguration configuration,
         IHostEnvironment hostEnvironment,
-        ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWorkManager unitOfWorkManager,
@@ -118,12 +107,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         _userRepository = userRepository;
         _userManager = userManager;
-        _permissionDomainService = permissionDomainService;
-        _authorizationCacheService = authorizationCacheService;
-        _roleRepository = roleRepository;
-        _roleHierarchyRepository = roleHierarchyRepository;
-        _permissionRepository = permissionRepository;
-        _menuRepository = menuRepository;
+        _authorizationContextService = authorizationContextService;
         _loginLogRepository = loginLogRepository;
         _jwtTokenService = jwtTokenService;
         _otpService = otpService;
@@ -132,7 +116,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _verificationCodeCache = verificationCodeCache;
         _configuration = configuration;
         _hostEnvironment = hostEnvironment;
-        _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
         _unitOfWorkManager = unitOfWorkManager;
@@ -368,7 +351,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         };
 
         var created = await _userManager.CreateAsync(user, command.Password);
-        var defaultRoleId = await ResolveDefaultRoleIdAsync(created.TenantId);
+        var defaultRoleId = await _userManager.ResolveDefaultRoleIdAsync(created.TenantId);
         if (defaultRoleId.HasValue)
         {
             await _userRepository.ReplaceUserRolesAsync(created.BasicId, [defaultRoleId.Value], created.TenantId);
@@ -539,7 +522,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new UnauthorizedAccessException("会话已失效，请重新登录");
         }
 
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var roleCodes = await _authorizationContextService.GetUserRoleCodesAsync(user.BasicId, user.TenantId);
         var accessTokenJti = Guid.NewGuid().ToString("N");
         var sessionId = string.IsNullOrWhiteSpace(cachedToken.SessionId) ? Guid.NewGuid().ToString("N") : cachedToken.SessionId;
         var tokenResult = _jwtTokenService.GenerateAccessToken(
@@ -572,7 +555,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task<CurrentUserDto> GetCurrentUserAsync()
     {
-        var user = await ResolveCurrentUserEntityAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+        var user = await _authorizationContextService.GetCurrentUserAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
         return new CurrentUserDto
         {
             BasicId = user.BasicId,
@@ -590,25 +573,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task<AuthPermissionDto> GetPermissionsAsync()
     {
-        var user = await ResolveCurrentUserEntityAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
-        var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
-            user.BasicId,
-            user.TenantId,
-            token => _permissionDomainService.GetUserPermissionCodesAsync(user.BasicId, user.TenantId, token));
-        var userMenus = await _menuRepository.GetUserMenusAsync(user.BasicId, user.TenantId);
-
-        var permissionCodeSet = permissionCodes
-            .Where(static code => !string.IsNullOrWhiteSpace(code))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        return new AuthPermissionDto
-        {
-            Roles = [.. roleCodes],
-            Permissions = [.. permissionCodeSet.OrderBy(static code => code)],
-            Menus = AuthMenuBuilder.BuildMenuRoutes(userMenus, permissionCodeSet)
-        };
+        var user = await _authorizationContextService.GetCurrentUserAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+        return await _authorizationContextService.BuildPermissionContextAsync(user);
     }
 
     /// <summary>
@@ -616,13 +582,13 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task LogoutAsync()
     {
-        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
+        if (!CurrentUser.IsAuthenticated || !CurrentUser.UserId.HasValue)
         {
             return;
         }
 
-        var userId = _currentUser.UserId.Value;
-        var tenantId = _currentUser.TenantId;
+        var userId = CurrentUser.UserId.Value;
+        var tenantId = CurrentUser.TenantId;
         var sessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -658,11 +624,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new ArgumentException("用户 ID 无效", nameof(query));
         }
 
-        var permissionCodes = await _authorizationCacheService.GetUserPermissionCodesAsync(
-            query.UserId,
-            query.TenantId,
-            token => _permissionDomainService.GetUserPermissionCodesAsync(query.UserId, query.TenantId, token));
-        return permissionCodes;
+        return await _authorizationContextService.GetUserPermissionCodesAsync(query.UserId, query.TenantId);
     }
 
     /// <summary>
@@ -677,11 +639,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new ArgumentException("用户 ID 无效", nameof(query));
         }
 
-        var departmentIds = await _authorizationCacheService.GetUserDataScopeDepartmentIdsAsync(
-            query.UserId,
-            query.TenantId,
-            token => _permissionDomainService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId, token));
-        return departmentIds;
+        return await _authorizationContextService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId);
     }
 
     /// <summary>
@@ -736,7 +694,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             };
             user = await _userManager.CreateAsync(user, tempPassword);
 
-            var defaultRoleId = await ResolveDefaultRoleIdAsync(tenantId);
+            var defaultRoleId = await _userManager.ResolveDefaultRoleIdAsync(tenantId);
             if (defaultRoleId.HasValue)
             {
                 await _userRepository.ReplaceUserRolesAsync(user.BasicId, [defaultRoleId.Value], tenantId);
@@ -1095,7 +1053,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         user.LastLoginIp = clientInfo.IpAddress;
         await _userRepository.UpdateAsync(user);
 
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var roleCodes = await _authorizationContextService.GetUserRoleCodesAsync(user.BasicId, user.TenantId);
         var sessionId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
         var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
@@ -1200,55 +1158,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     }
 
     /// <summary>
-    /// 获取当前用户实体
-    /// </summary>
-    /// <returns></returns>
-    private async Task<SysUser?> ResolveCurrentUserEntityAsync()
-    {
-        if (!_currentUser.UserId.HasValue)
-        {
-            return null;
-        }
-
-        var user = await _userRepository.GetByIdAsync(_currentUser.UserId.Value);
-        return user is not null && user.Status == YesOrNo.Yes ? user : null;
-    }
-
-    /// <summary>
-    /// 获取用户角色编码
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    private async Task<IReadOnlyCollection<string>> GetUserRoleCodesAsync(long userId, long? tenantId)
-    {
-        var userRoles = await _userRepository.GetUserRolesAsync(userId, tenantId);
-        var directRoleIds = userRoles
-            .Where(role => role.Status == YesOrNo.Yes)
-            .Select(static role => role.RoleId)
-            .Distinct()
-            .ToArray();
-
-        if (directRoleIds.Length == 0)
-        {
-            return [];
-        }
-
-        var inheritedRoleIds = await _roleHierarchyRepository.GetInheritedRoleIdsAsync(directRoleIds, tenantId);
-        if (inheritedRoleIds.Count == 0)
-        {
-            return [];
-        }
-
-        var roles = await _roleRepository.GetByIdsAsync([.. inheritedRoleIds]);
-        return [.. roles
-            .Where(role => role.Status == YesOrNo.Yes && !string.IsNullOrWhiteSpace(role.RoleCode))
-            .OrderBy(static role => role.Sort)
-            .Select(static role => role.RoleCode)
-            .Distinct(StringComparer.OrdinalIgnoreCase)];
-    }
-
-    /// <summary>
     /// 是否返回调试信息
     /// </summary>
     /// <returns></returns>
@@ -1256,25 +1165,6 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         return _hostEnvironment.IsDevelopment()
                || _configuration.GetValue("XiHan:Authentication:ExposeDebugSecrets", false);
-    }
-
-    /// <summary>
-    /// 解析注册默认角色ID
-    /// </summary>
-    /// <param name="tenantId"></param>
-    /// <returns></returns>
-    private async Task<long?> ResolveDefaultRoleIdAsync(long? tenantId)
-    {
-        var role = await _roleRepository.GetByRoleCodeAsync("employee", tenantId);
-        role ??= await _roleRepository.GetByRoleCodeAsync("guest", tenantId);
-
-        if (role is null && tenantId.HasValue)
-        {
-            role = await _roleRepository.GetByRoleCodeAsync("employee", null);
-            role ??= await _roleRepository.GetByRoleCodeAsync("guest", null);
-        }
-
-        return role?.BasicId;
     }
 
     /// <summary>

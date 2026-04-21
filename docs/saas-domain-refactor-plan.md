@@ -357,7 +357,7 @@
 - [x] Batch-02 第二批契约基线
 - [x] Batch-03 框架能力盘点与复用基线
 - [x] Batch-04 仓储与查询层重建
-- [ ] Batch-05 服务与内部服务重建
+- [x] Batch-05 服务与内部服务重建
 - [ ] Batch-06 缓存与配置体系重建
 - [ ] Batch-07 种子数据与初始化链重建
 - [ ] Batch-08 用户/租户主链重建
@@ -374,7 +374,7 @@
 ### Batch-05 Sub-Status
 
 - [x] Batch-05A RBAC 变更通知与超管保护收敛
-- [ ] Batch-05B 授权编排与租户成员解析收敛
+- [x] Batch-05B 授权编排与租户成员解析收敛
 
 ## Validation Template
 
@@ -384,7 +384,7 @@
 | Batch-02 | 前端定向 `eslint` / 契约自检 | Partial | `Role/Permission/Department` DTO、前端 API 与系统页已按实体语义对齐；已消除本批新增静态错误。定向 `eslint` 仅剩这些文件中已有的 `ts/no-explicit-any` warning；未执行全量 `pnpm type-check`，因仓库其他历史错误仍会阻塞结论 |
 | Batch-03 | 方案自检 / 底层类型存在性核对 | Passed | 已核对 `ApplicationServiceBase`、`SugarMultiTenantAggregateRoot`、`SqlSugarAggregateRepository`、`XiHanHybridCache`、`SettingManager`、`IDataSeeder`、`CurrentTenant`、`ITenantStore` 以及 `BasicAppEntity`、`IQueryService` 的真实路径，复用矩阵已落入方案 |
 | Batch-04 | 代码事实检索 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department/User/Tenant/Menu/ConstraintRule` 的对外只读查询已下沉到 QueryService，核心仓储租户过滤规则已统一收敛；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，未获得可信的业务编译成功信号 |
-| Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05A 已将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`，消除了 AppService 内重复的本地事件发布和超管判定实现；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
+| Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05 已完成两段收敛：05A 将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`；05B 进一步将 `AuthAppService` 的当前用户解析、角色码展开、权限集/菜单树/数据范围装配收敛到 `IAuthorizationContextService`，同时复用既有 `IUserManager.ResolveDefaultRoleIdAsync`。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
 | Batch-06 | `dotnet build` / 种子初始化自检 | Pending |  |
 | Batch-07 | `dotnet build` / 认证链自检 | Pending |  |
 | Batch-08 | `dotnet build` / 授权链自检 | Pending |  |
@@ -404,3 +404,4 @@
 | Sub-Batch | Validation | Result | Notes |
 |-----------|------------|--------|-------|
 | Batch-05A | 代码事实检索 / 重复逻辑残留扫描 / `dotnet build` 定向验证 | Partial | `User/Role/Permission/Menu/Department` 已不再保留本地 `PublishAuthorizationChangedEventAsync` 和用户服务内联的 superadmin 判定逻辑，统一改为调用 `IRbacChangeNotifier` 与 `ISuperAdminGuard`；新增内部服务实现遵循 `XiHan.Framework` 的 scoped dependency 注册约定。`dotnet build` 仍受本机 SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
+| Batch-05B | 代码事实检索 / 授权装配残留扫描 / `dotnet build` 定向验证 | Partial | `AuthAppService` 已不再直连角色层级仓储、菜单仓储和授权缓存细节；当前用户解析、角色码展开、权限集/菜单树/数据范围装配统一收敛到 `IAuthorizationContextService`，注册默认角色解析复用 `IUserManager.ResolveDefaultRoleIdAsync`。`dotnet build` 仍受本机 SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
