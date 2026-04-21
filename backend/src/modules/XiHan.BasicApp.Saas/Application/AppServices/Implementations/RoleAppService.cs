@@ -15,8 +15,8 @@
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
@@ -28,7 +28,6 @@ using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
-using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 
@@ -50,7 +49,7 @@ public class RoleAppService
     private readonly IRoleHierarchyRepository _roleHierarchyRepository;
     private readonly IRoleManager _roleManager;
     private readonly IRoleQueryService _queryService;
-    private readonly ILocalEventBus _localEventBus;
+    private readonly IRbacChangeNotifier _rbacChangeNotifier;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -62,7 +61,7 @@ public class RoleAppService
     /// <param name="roleHierarchyRepository"></param>
     /// <param name="roleManager"></param>
     /// <param name="queryService"></param>
-    /// <param name="localEventBus"></param>
+    /// <param name="rbacChangeNotifier"></param>
     /// <param name="unitOfWorkManager"></param>
     public RoleAppService(
         IRoleRepository roleRepository,
@@ -71,7 +70,7 @@ public class RoleAppService
         IRoleHierarchyRepository roleHierarchyRepository,
         IRoleManager roleManager,
         IRoleQueryService queryService,
-        ILocalEventBus localEventBus,
+        IRbacChangeNotifier rbacChangeNotifier,
         IUnitOfWorkManager unitOfWorkManager)
         : base(roleRepository)
     {
@@ -81,7 +80,7 @@ public class RoleAppService
         _roleHierarchyRepository = roleHierarchyRepository;
         _roleManager = roleManager;
         _queryService = queryService;
-        _localEventBus = localEventBus;
+        _rbacChangeNotifier = rbacChangeNotifier;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -192,7 +191,7 @@ public class RoleAppService
             resolvedTenantId);
 
         await uow.CompleteAsync();
-        await PublishAuthorizationChangedEventAsync(resolvedTenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(resolvedTenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -236,7 +235,7 @@ public class RoleAppService
         role.MarkDataScopeChanged(departmentIds);
         await _roleRepository.UpdateAsync(role);
         await uow.CompleteAsync();
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.DataScope);
     }
 
     /// <summary>
@@ -272,7 +271,7 @@ public class RoleAppService
             command.TenantId ?? role.TenantId);
 
         await uow.CompleteAsync();
-        await PublishAuthorizationChangedEventAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.All);
+        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.All);
     }
 
     /// <summary>
@@ -335,7 +334,7 @@ public class RoleAppService
         }
 
         var updated = await _roleRepository.UpdateAsync(role);
-        await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.All);
+        await _rbacChangeNotifier.NotifyAsync(updated.TenantId, AuthorizationChangeType.All);
         await uow.CompleteAsync();
         return updated.Adapt<RoleDto>()!;
     }
@@ -361,13 +360,8 @@ public class RoleAppService
         }
 
         await _roleRepository.DeleteAsync(role);
-        await PublishAuthorizationChangedEventAsync(role.TenantId, AuthorizationChangeType.All);
+        await _rbacChangeNotifier.NotifyAsync(role.TenantId, AuthorizationChangeType.All);
         await uow.CompleteAsync();
         return true;
-    }
-
-    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
-    {
-        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
     }
 }

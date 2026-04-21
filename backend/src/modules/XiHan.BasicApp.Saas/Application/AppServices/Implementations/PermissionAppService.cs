@@ -15,19 +15,19 @@
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.UseCases.Queries;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Core.Exceptions;
-using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 
@@ -44,7 +44,7 @@ public class PermissionAppService
     private readonly IPermissionRepository _permissionRepository;
     private readonly IPermissionQueryService _queryService;
     private readonly IPermissionDomainService _domainService;
-    private readonly ILocalEventBus _localEventBus;
+    private readonly IRbacChangeNotifier _rbacChangeNotifier;
 
     /// <summary>
     /// 构造函数
@@ -52,18 +52,18 @@ public class PermissionAppService
     /// <param name="permissionRepository"></param>
     /// <param name="queryService"></param>
     /// <param name="domainService"></param>
-    /// <param name="localEventBus"></param>
+    /// <param name="rbacChangeNotifier"></param>
     public PermissionAppService(
         IPermissionRepository permissionRepository,
         IPermissionQueryService queryService,
         IPermissionDomainService domainService,
-        ILocalEventBus localEventBus)
+        IRbacChangeNotifier rbacChangeNotifier)
         : base(permissionRepository)
     {
         _permissionRepository = permissionRepository;
         _queryService = queryService;
         _domainService = domainService;
-        _localEventBus = localEventBus;
+        _rbacChangeNotifier = rbacChangeNotifier;
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class PermissionAppService
 
         var entity = await MapDtoToEntityAsync(input);
         var created = await _domainService.CreateAsync(entity);
-        await PublishAuthorizationChangedEventAsync(created.TenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(created.TenantId, AuthorizationChangeType.Permission);
         return MapPermission(created);
     }
 
@@ -148,7 +148,7 @@ public class PermissionAppService
 
         await MapDtoToEntityAsync(input, permission);
         var updated = await _domainService.UpdateAsync(permission);
-        await PublishAuthorizationChangedEventAsync(updated.TenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(updated.TenantId, AuthorizationChangeType.Permission);
         return MapPermission(updated);
     }
 
@@ -174,7 +174,7 @@ public class PermissionAppService
         var deleted = await _domainService.DeleteAsync(id);
         if (deleted)
         {
-            await PublishAuthorizationChangedEventAsync(permission.TenantId, AuthorizationChangeType.Permission);
+            await _rbacChangeNotifier.NotifyAsync(permission.TenantId, AuthorizationChangeType.Permission);
         }
 
         return deleted;
@@ -275,8 +275,4 @@ public class PermissionAppService
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private Task PublishAuthorizationChangedEventAsync(long? tenantId, AuthorizationChangeType changeType)
-    {
-        return _localEventBus.PublishAsync(new RbacAuthorizationChangedEvent(tenantId, changeType));
-    }
 }
