@@ -38,7 +38,7 @@ public class SysTenantSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 9;
+    public override int Order => SaasSeedOrder.Tenants;
 
     /// <summary>
     /// 种子数据名称

@@ -172,23 +172,23 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddRbacDataSeeders(this IServiceCollection services)
     {
-        // 按执行顺序注册
-        services.AddDataSeeder<SysOperationSeeder>();        // Order = 0
-        services.AddDataSeeder<SysResourceSeeder>();          // Order = 1
-        services.AddDataSeeder<SysPermissionSeeder>();        // Order = 2
-
-        services.AddDataSeeder<SysTenantSeeder>();            // Order = 9
-        services.AddDataSeeder<SysDepartmentSeeder>();        // Order = 10
-        services.AddDataSeeder<SysDepartmentHierarchySeeder>(); // Order = 11
-        services.AddDataSeeder<SysRoleSeeder>();              // Order = 12
-        services.AddDataSeeder<SysRolePermissionSeeder>();    // Order = 13
-        services.AddDataSeeder<SysUserSeeder>();              // Order = 14
-        services.AddDataSeeder<SysMenuSeeder>();              // Order = 15
-        services.AddDataSeeder<SysUserRoleSeeder>();          // Order = 16
-        services.AddDataSeeder<SysDictSeeder>();              // Order = 17
-        services.AddDataSeeder<SysDictItemSeeder>();          // Order = 18
-        services.AddDataSeeder<SysConfigSeeder>();            // Order = 19
-        services.AddDataSeeder<SysConstraintRuleFeatureSeeder>(); // Order = 20
+        // 正式初始化链只注册平台模板与租户基线，演示/兼容数据必须显式拆分。
+        services.AddDataSeeder<SysOperationSeeder>();
+        services.AddDataSeeder<SysResourceSeeder>();
+        services.AddDataSeeder<SysPermissionSeeder>();
+        services.AddDataSeeder<SysTenantSeeder>();
+        services.AddDataSeeder<SysDepartmentSeeder>();
+        services.AddDataSeeder<SysDepartmentHierarchySeeder>();
+        services.AddDataSeeder<SysRoleSeeder>();
+        services.AddDataSeeder<SysRolePermissionSeeder>();
+        services.AddDataSeeder<SysUserSeeder>();
+        services.AddDataSeeder<SysUserSecuritySeeder>();
+        services.AddDataSeeder<SysTenantUserSeeder>();
+        services.AddDataSeeder<SysMenuSeeder>();
+        services.AddDataSeeder<SysUserRoleSeeder>();
+        services.AddDataSeeder<SysDictSeeder>();
+        services.AddDataSeeder<SysDictItemSeeder>();
+        services.AddDataSeeder<SysConfigSeeder>();
         return services;
     }
 

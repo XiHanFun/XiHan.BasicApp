@@ -36,7 +36,7 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 13;
+    public override int Order => SaasSeedOrder.RolePermissions;
 
     /// <summary>
     /// 种子数据名称

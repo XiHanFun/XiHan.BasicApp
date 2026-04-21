@@ -351,6 +351,14 @@
 | Batch-06A | 缓存键与配置键统一基线 | 缓存服务、认证验证码缓存、设置存储、配置常量 | `basicapp:saas:*` 与 `BasicApp:Saas:*` 基线落地，核心缓存服务与验证码缓存不再手写旧键 |
 | Batch-06B | 缓存注解与剩余认证缓存收口 | `Cacheable` 注解、`AuthTokenCacheHelper`、认证存储、剩余 TTL | 剩余旧缓存键移除，TTL 与失效链继续统一 |
 
+## Batch-07 Breakdown
+
+| Sub-Batch | 标题 | 范围 | 完成标准 |
+|-----------|------|------|----------|
+| Batch-07A | Seeder 编排骨架与基线成员链 | `ServiceCollectionExtensions`、Seed 顺序常量、`SysUser/SysUserSecurity/SysTenantUser/SaaS Config` 种子 | 正式初始化链与可选演示数据边界拆开；用户创建补齐安全档案与租户成员关系；配置种子统一切到 `BasicApp:Saas:*` |
+| Batch-07B | 平台模板种子重建 | `SysOperation/SysResource/SysPermission/SysMenu/SysRole/SysRolePermission` | 平台模板按业务键幂等重建，移除旧页面/旧角色假设和 ad hoc 增量 Seeder |
+| Batch-07C | 租户初始化模板重建 | `SysTenant/SysDepartment/SysDepartmentHierarchy/SysUserRole/Dict/Config` 等租户初始化链 | 默认租户、组织、角色绑定、配置覆盖按新实体语义落地；demo/test 数据仅在显式开关下执行 |
+
 ## Execution Rules
 
 1. 每个 Batch 完成后立即更新本文件状态。
@@ -388,6 +396,12 @@
 - [x] Batch-06A 缓存键与配置键统一基线
 - [x] Batch-06B 缓存注解与剩余认证缓存收口
 
+### Batch-07 Sub-Status
+
+- [x] Batch-07A Seeder 编排骨架与基线成员链
+- [ ] Batch-07B 平台模板种子重建
+- [ ] Batch-07C 租户初始化模板重建
+
 ## Validation Template
 
 | Batch | Validation | Result | Notes |
@@ -398,7 +412,7 @@
 | Batch-04 | 代码事实检索 / `dotnet build` 定向验证 | Partial | `Role/Permission/Department/User/Tenant/Menu/ConstraintRule` 的对外只读查询已下沉到 QueryService，核心仓储租户过滤规则已统一收敛；`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，未获得可信的业务编译成功信号 |
 | Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05 已完成两段收敛：05A 将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`；05B 进一步将 `AuthAppService` 的当前用户解析、角色码展开、权限集/菜单树/数据范围装配收敛到 `IAuthorizationContextService`，同时复用既有 `IUserManager.ResolveDefaultRoleIdAsync`。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
 | Batch-06 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-06 已完成两段收敛：06A 建立 `SaasCacheKeys` 与 `SaasSettingKeys`，并将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存及 `RbacSettingStore` 的键前缀统一到 `basicapp:saas:*` / `BasicApp:Saas:*`；06B 进一步将 `AuthTokenCacheHelper`、`RbacUserStore`、QueryService 的 `[Cacheable]` 键模板及对应缓存失效处理器全部切到统一键体系。`dotnet build` 继续受本机 .NET SDK workload 异常阻塞，仅输出“生成失败，0 个警告 0 个错误” |
-| Batch-07 | `dotnet build` / 认证链自检 | Pending |  |
+| Batch-07 | `dotnet build` / 认证链自检 | Partial | Batch-07A 已将正式初始化链中的 demo/test 数据从注册链剥离，新增 `SysUserSecuritySeeder` 与 `SysTenantUserSeeder` 用于补齐 `SysUser` 的安全档案和主租户成员关系，并将平台运行配置种子统一切到 `BasicApp:Saas:*`。针对性残留扫描已不再命中 `SysUserSeeder` / `SysUserRoleSeeder` / `ServiceCollectionExtensions` 中的 demo/test 自动注入。`dotnet build` 仍受本机 .NET SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
 | Batch-08 | `dotnet build` / 授权链自检 | Pending |  |
 | Batch-09 | `dotnet build` / 安全出口自检 | Pending |  |
 | Batch-10 | `pnpm type-check` / 页面联调自检 | Pending |  |
@@ -424,3 +438,11 @@
 |-----------|------------|--------|-------|
 | Batch-06A | 旧键残留扫描 / 缓存服务差异自检 / `dotnet build` 定向验证 | Partial | 已将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存和设置存储键统一切到 `basicapp:saas:*` / `BasicApp:Saas:*` 基线，并把缓存 TTL 改为从 `SaasSettingKeys` 统一读取；仓库中仍残留 `AuthTokenCacheHelper`、`RbacUserStore` 和若干 `[Cacheable]` 注解旧键，留待 Batch-06B 收口。`dotnet build` 仍被本机 SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误” |
 | Batch-06B | 旧键残留扫描 / 注解与失效链对齐自检 / `dotnet build` 定向验证 | Partial | 已将 `AuthTokenCacheHelper`、`RbacUserStore` 的认证缓存键，以及 `Auth/ConstraintRule/Dict/Department/File/Menu/Notification/OAuthApp/Permission/Profile/Review/Role/Task/Tenant/User` 查询缓存注解和对应失效处理器统一切到 `QueryCacheKeys`/`SaasCacheKeys`。针对性残留扫描已不再命中旧缓存键模板。`dotnet build` 仍被本机 SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误” |
+
+### Batch-07 Sub-Validation
+
+| Sub-Batch | Validation | Result | Notes |
+|-----------|------------|--------|-------|
+| Batch-07A | 种子注册链扫描 / 实体语义对齐自检 / `dotnet build` 定向验证 | Partial | 已确认 `AddRbacDataSeeders` 不再注册 `SysConstraintRuleFeatureSeeder` 这类 ad hoc 增量 Seeder，正式链改为包含 `SysUserSecuritySeeder`、`SysTenantUserSeeder`；`SysUserSeeder` 与 `SysUserRoleSeeder` 不再自动注入 `test/demo` 账号；`SysConfigSeeder` 已切换到 `BasicApp:Saas:*` 统一键体系。`dotnet build` 仍受本机 SDK workload 环境问题阻塞，仅输出“生成失败，0 个警告 0 个错误” |
+| Batch-07B | 平台模板业务键残留扫描 / `dotnet build` 定向验证 | Pending |  |
+| Batch-07C | 初始化链自检 / `dotnet build` 定向验证 | Pending |  |

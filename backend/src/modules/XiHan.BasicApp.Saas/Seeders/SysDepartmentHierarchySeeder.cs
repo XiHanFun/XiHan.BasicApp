@@ -37,7 +37,7 @@ public class SysDepartmentHierarchySeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 11;
+    public override int Order => SaasSeedOrder.DepartmentHierarchies;
 
     /// <summary>
     /// 种子数据名称
