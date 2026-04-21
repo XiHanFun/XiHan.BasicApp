@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.ValueObjects;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Constants.Basic;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Core.Exceptions;
 
@@ -213,10 +214,10 @@ public class UserManager : IUserManager
     /// </summary>
     public async Task<long?> ResolveDefaultRoleIdAsync(long? tenantId, CancellationToken cancellationToken = default)
     {
-        var role = await _roleRepository.GetByRoleCodeAsync("employee", tenantId, cancellationToken)
-                   ?? await _roleRepository.GetByRoleCodeAsync("employee", 0, cancellationToken)
-                   ?? await _roleRepository.GetByRoleCodeAsync("guest", tenantId, cancellationToken)
-                   ?? await _roleRepository.GetByRoleCodeAsync("guest", 0, cancellationToken);
+        var role = await _roleRepository.GetByRoleCodeAsync(RoleBasicConstants.TenantMemberRoleCode, tenantId, cancellationToken)
+                   ?? await _roleRepository.GetByRoleCodeAsync(RoleBasicConstants.TenantMemberRoleCode, RoleBasicConstants.PlatformTenantId, cancellationToken)
+                   ?? await _roleRepository.GetByRoleCodeAsync(RoleBasicConstants.TenantViewerRoleCode, tenantId, cancellationToken)
+                   ?? await _roleRepository.GetByRoleCodeAsync(RoleBasicConstants.TenantViewerRoleCode, RoleBasicConstants.PlatformTenantId, cancellationToken);
 
         return role?.BasicId;
     }

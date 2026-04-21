@@ -13,119 +13,105 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统角色种子数据
+/// 系统角色种子数据。
 /// </summary>
 public class SysRoleSeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysRoleSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysRoleSeeder> logger, IServiceProvider serviceProvider)
+    public SysRoleSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysRoleSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
     public override int Order => SaasSeedOrder.Roles;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统角色种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        // 检查是否已有角色数据
-        if (await HasDataAsync<SysRole>(r => true))
+        var templates = BuildTemplates();
+        var roleCodes = templates.Select(item => item.RoleCode).ToArray();
+        var existingRoles = await DbClient
+            .Queryable<SysRole>()
+            .Where(role => roleCodes.Contains(role.RoleCode))
+            .ToListAsync();
+
+        var existingMap = existingRoles.ToDictionary(role => role.RoleCode, StringComparer.OrdinalIgnoreCase);
+        var toInsert = templates
+            .Where(template => !existingMap.ContainsKey(template.RoleCode))
+            .ToList();
+
+        if (toInsert.Count > 0)
         {
-            Logger.LogInformation("系统角色数据已存在，跳过种子数据");
-            return;
+            await BulkInsertAsync(toInsert);
         }
 
-        var roles = new List<SysRole>
-        {
-            // 超级管理员
-            new()
-            {
-                RoleCode = "super_admin",
-                RoleName = "超级管理员",
-                RoleDescription = "系统最高权限角色，拥有所有功能权限",
-                RoleType = RoleType.System,
-                DataScope = DataPermissionScope.All,
-                Status = YesOrNo.Yes,
-                Sort = 1
-            },
-            // 系统管理员
-            new()
-            {
-                RoleCode = "admin",
-                RoleName = "系统管理员",
-                RoleDescription = "系统管理员，拥有系统配置和管理权限",
-                RoleType = RoleType.System,
-                DataScope = DataPermissionScope.All,
-                Status = YesOrNo.Yes,
-                Sort = 2
-            },
-            // 部门管理员
-            new()
-            {
-                RoleCode = "dept_admin",
-                RoleName = "部门管理员",
-                RoleDescription = "部门管理员，管理本部门及子部门数据",
-                RoleType = RoleType.Custom,
-                DataScope = DataPermissionScope.DepartmentAndChildren,
-                Status = YesOrNo.Yes,
-                Sort = 10
-            },
-            // 部门经理
-            new()
-            {
-                RoleCode = "dept_manager",
-                RoleName = "部门经理",
-                RoleDescription = "部门经理，管理本部门数据",
-                RoleType = RoleType.Custom,
-                DataScope = DataPermissionScope.DepartmentOnly,
-                Status = YesOrNo.Yes,
-                Sort = 11
-            },
-            // 普通员工
-            new()
-            {
-                RoleCode = "employee",
-                RoleName = "普通员工",
-                RoleDescription = "普通员工，查看和管理自己的数据",
-                RoleType = RoleType.Custom,
-                DataScope = DataPermissionScope.SelfOnly,
-                Status = YesOrNo.Yes,
-                Sort = 20
-            },
-            // 访客
-            new()
-            {
-                RoleCode = "guest",
-                RoleName = "访客",
-                RoleDescription = "访客角色，仅拥有基础查看权限",
-                RoleType = RoleType.Custom,
-                DataScope = DataPermissionScope.SelfOnly,
-                Status = YesOrNo.Yes,
-                Sort = 30
-            }
-        };
+        var toEnableIds = existingRoles
+            .Where(role =>
+                role.TenantId == SaasSeedDefaults.PlatformTenantId
+                && role.IsGlobal
+                && role.Status != YesOrNo.Yes)
+            .Select(role => role.BasicId)
+            .ToArray();
 
-        await BulkInsertAsync(roles);
-        Logger.LogInformation($"成功初始化 {roles.Count} 个系统角色");
+        if (toEnableIds.Length > 0)
+        {
+            await DbClient
+                .Updateable<SysRole>()
+                .SetColumns(role => role.Status == YesOrNo.Yes)
+                .Where(role => toEnableIds.Contains(role.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        Logger.LogInformation(
+            "系统角色模板种子完成：新增 {InsertCount} 项，启用 {EnableCount} 项",
+            toInsert.Count,
+            toEnableIds.Length);
+    }
+
+    private static List<SysRole> BuildTemplates()
+    {
+        return
+        [
+            Create("super_admin", "平台超级管理员", "平台最高权限模板，拥有所有平台与租户入口", RoleType.System, DataPermissionScope.All, 100),
+            Create("platform_admin", "平台运营管理员", "平台运营、客服、风控与配置管理模板", RoleType.System, DataPermissionScope.All, 110),
+            Create("tenant_owner", "租户所有者模板", "租户初始化时克隆的所有者角色模板", RoleType.System, DataPermissionScope.All, 120),
+            Create("tenant_admin", "租户管理员模板", "租户初始化时克隆的管理员角色模板", RoleType.System, DataPermissionScope.DepartmentAndChildren, 130),
+            Create("tenant_member", "租户成员模板", "租户初始化时克隆的成员角色模板", RoleType.System, DataPermissionScope.SelfOnly, 140),
+            Create("tenant_viewer", "租户只读模板", "租户初始化时克隆的只读角色模板", RoleType.System, DataPermissionScope.SelfOnly, 150),
+            Create("external_collaborator", "外部协作模板", "外部协作者或顾问的受限角色模板", RoleType.System, DataPermissionScope.SelfOnly, 160)
+        ];
+    }
+
+    private static SysRole Create(
+        string code,
+        string name,
+        string description,
+        RoleType roleType,
+        DataPermissionScope dataScope,
+        int sort)
+    {
+        return new SysRole
+        {
+            TenantId = SaasSeedDefaults.PlatformTenantId,
+            IsGlobal = true,
+            RoleCode = code,
+            RoleName = name,
+            RoleDescription = description,
+            RoleType = roleType,
+            DataScope = dataScope,
+            Status = YesOrNo.Yes,
+            Sort = sort
+        };
     }
 }

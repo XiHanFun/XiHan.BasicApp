@@ -13,133 +13,192 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Seeders;
 
 /// <summary>
-/// 系统权限种子数据
+/// 系统权限种子数据。
 /// </summary>
 public class SysPermissionSeeder : DataSeederBase
 {
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SysPermissionSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysPermissionSeeder> logger, IServiceProvider serviceProvider)
+    public SysPermissionSeeder(
+        ISqlSugarClientResolver clientResolver,
+        ILogger<SysPermissionSeeder> logger,
+        IServiceProvider serviceProvider)
         : base(clientResolver, logger, serviceProvider)
     {
     }
 
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
-    public override int Order => 2;
+    public override int Order => SaasSeedOrder.Permissions;
 
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
     public override string Name => "[Saas]系统权限种子数据";
 
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        if (await HasDataAsync<SysPermission>(p => true))
-        {
-            Logger.LogInformation("系统权限数据已存在，跳过种子数据");
-            return;
-        }
-
-        // 获取资源和操作
-        var resources = await DbClient.Queryable<SysResource>().ToListAsync();
-        var operations = await DbClient.Queryable<SysOperation>().ToListAsync();
+        var resources = await DbClient
+            .Queryable<SysResource>()
+            .Where(resource => resource.TenantId == SaasSeedDefaults.PlatformTenantId && resource.IsGlobal)
+            .ToListAsync();
+        var operations = await DbClient
+            .Queryable<SysOperation>()
+            .Where(operation => operation.TenantId == SaasSeedDefaults.PlatformTenantId && operation.IsGlobal)
+            .ToListAsync();
 
         if (resources.Count == 0 || operations.Count == 0)
         {
-            Logger.LogWarning("资源或操作数据不存在，跳过权限种子数据");
+            Logger.LogWarning("资源或操作模板不存在，跳过权限模板种子");
             return;
         }
 
-        var permissions = new List<SysPermission>();
-        var permissionId = 1;
+        var operationMap = operations.ToDictionary(operation => operation.OperationCode, StringComparer.OrdinalIgnoreCase);
+        var templates = new List<SysPermission>();
+        var sort = 1000;
 
-        // 为每个资源创建权限（除了系统管理根节点）
-        var resourcesNeedPermissions = resources.Where(r => r.ResourceCode != "system").ToList();
-
-        foreach (var resource in resourcesNeedPermissions)
+        foreach (var resource in resources.OrderBy(item => item.Sort).ThenBy(item => item.ResourceCode, StringComparer.OrdinalIgnoreCase))
         {
-            // 根据资源类型决定需要哪些操作
-            var operationCodes = GetOperationsForResource(resource.ResourceType);
-
-            foreach (var opCode in operationCodes)
+            foreach (var operationCode in ResolveOperationCodes(resource.ResourceCode, resource.ResourceType))
             {
-                var operation = operations.FirstOrDefault(o => o.OperationCode == opCode);
-                if (operation != null)
+                if (!operationMap.TryGetValue(operationCode, out var operation))
                 {
-                    permissions.Add(new SysPermission
-                    {
-                        ResourceId = resource.BasicId,
-                        OperationId = operation.BasicId,
-                        PermissionCode = $"{resource.ResourceCode}:{operation.OperationCode}",
-                        PermissionName = $"{resource.ResourceName}-{operation.OperationName}",
-                        PermissionDescription = $"对{resource.ResourceName}执行{operation.OperationName}操作",
-                        IsRequireAudit = operation.IsRequireAudit,
-                        Tags = GetPermissionTags(resource.ResourceCode, operation.OperationCode),
-                        Status = YesOrNo.Yes,
-                        Sort = permissionId
-                    });
-                    permissionId++;
+                    continue;
                 }
+
+                templates.Add(new SysPermission
+                {
+                    TenantId = SaasSeedDefaults.PlatformTenantId,
+                    IsGlobal = true,
+                    ResourceId = resource.BasicId,
+                    OperationId = operation.BasicId,
+                    PermissionCode = $"{resource.ResourceCode}:{operation.OperationCode}",
+                    PermissionName = $"{resource.ResourceName}-{operation.OperationName}",
+                    PermissionDescription = $"{resource.ResourceName}的{operation.OperationName}权限",
+                    Tags = ResolvePermissionTags(resource.ResourceCode, operation.OperationCode),
+                    IsRequireAudit = operation.IsRequireAudit,
+                    Priority = ResolvePermissionPriority(resource.ResourceCode, operation.OperationCode),
+                    Status = YesOrNo.Yes,
+                    Sort = sort
+                });
+
+                sort += 10;
             }
         }
 
-        await BulkInsertAsync(permissions);
-        Logger.LogInformation($"成功初始化 {permissions.Count} 个系统权限");
+        var permissionCodes = templates.Select(item => item.PermissionCode).ToArray();
+        var existingPermissions = await DbClient
+            .Queryable<SysPermission>()
+            .Where(permission => permissionCodes.Contains(permission.PermissionCode))
+            .ToListAsync();
+
+        var existingMap = existingPermissions.ToDictionary(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase);
+        var toInsert = templates
+            .Where(template => !existingMap.ContainsKey(template.PermissionCode))
+            .ToList();
+
+        if (toInsert.Count > 0)
+        {
+            await BulkInsertAsync(toInsert);
+        }
+
+        var toEnableIds = existingPermissions
+            .Where(permission =>
+                permission.TenantId == SaasSeedDefaults.PlatformTenantId
+                && permission.IsGlobal
+                && permission.Status != YesOrNo.Yes)
+            .Select(permission => permission.BasicId)
+            .ToArray();
+
+        if (toEnableIds.Length > 0)
+        {
+            await DbClient
+                .Updateable<SysPermission>()
+                .SetColumns(permission => permission.Status == YesOrNo.Yes)
+                .Where(permission => toEnableIds.Contains(permission.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        Logger.LogInformation(
+            "系统权限模板种子完成：新增 {InsertCount} 项，启用 {EnableCount} 项",
+            toInsert.Count,
+            toEnableIds.Length);
     }
 
-    /// <summary>
-    /// 根据资源类型获取需要的操作
-    /// </summary>
-    private static List<string> GetOperationsForResource(ResourceType resourceType)
+    private static IReadOnlyList<string> ResolveOperationCodes(string resourceCode, ResourceType resourceType)
     {
+        if (resourceCode.EndsWith("_log", StringComparison.OrdinalIgnoreCase))
+        {
+            return ["read", "view", "export"];
+        }
+
+        if (resourceCode is "constraint_rule" or "role" or "permission" or "tenant")
+        {
+            return ["read", "view", "create", "update", "delete", "grant", "revoke", "enable", "disable", "export"];
+        }
+
+        if (resourceCode is "user" or "department" or "config" or "dict" or "notification" or "oauth_app" or "user_session" or "review" or "task")
+        {
+            return ["read", "view", "create", "update", "delete", "enable", "disable", "export"];
+        }
+
+        if (resourceCode is "message" or "email" or "sms")
+        {
+            return ["read", "view", "create", "update", "delete", "execute", "export"];
+        }
+
+        if (resourceCode is "cache" or "monitor")
+        {
+            return ["read", "view", "execute"];
+        }
+
         return resourceType switch
         {
-            ResourceType.Api => ["read", "create", "update", "delete", "export", "import"],
-            ResourceType.File => ["read", "create", "update", "delete", "upload", "download"],
-            ResourceType.DataTable => ["read", "create", "update", "delete", "export", "import"],
-            _ => ["read", "create", "update", "delete"]
+            ResourceType.File => ["read", "view", "create", "update", "delete", "upload", "download"],
+            _ => ["read", "view", "create", "update", "delete", "export"]
         };
     }
 
-    /// <summary>
-    /// 获取权限标签
-    /// </summary>
-    private static string GetPermissionTags(string resourceCode, string operationCode)
+    private static string? ResolvePermissionTags(string resourceCode, string operationCode)
     {
         var tags = new List<string>();
 
-        // 敏感操作标签
-        if (operationCode is "delete" or "revoke" or "disable")
+        if (resourceCode is "tenant" or "permission" or "role" or "constraint_rule" or "menu")
         {
-            tags.Add("sensitive");
+            tags.Add("platform");
         }
 
-        // 管理员操作标签
-        if (resourceCode is "role" or "permission" or "tenant")
-        {
-            tags.Add("admin");
-        }
-
-        // 审计相关标签
-        if (resourceCode.Contains("log") || resourceCode.Contains("audit"))
+        if (resourceCode.EndsWith("_log", StringComparison.OrdinalIgnoreCase))
         {
             tags.Add("audit");
         }
 
-        return tags.Count != 0 ? string.Join(",", tags) : "";
+        if (operationCode is "delete" or "disable" or "revoke" or "grant")
+        {
+            tags.Add("sensitive");
+        }
+
+        return tags.Count == 0 ? null : string.Join(",", tags.Distinct(StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static int ResolvePermissionPriority(string resourceCode, string operationCode)
+    {
+        if (resourceCode is "tenant" or "permission" or "constraint_rule")
+        {
+            return 100;
+        }
+
+        if (operationCode is "delete" or "revoke" or "disable")
+        {
+            return 80;
+        }
+
+        if (operationCode is "grant" or "enable" or "execute")
+        {
+            return 60;
+        }
+
+        return 10;
     }
 }
