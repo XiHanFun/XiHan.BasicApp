@@ -25,7 +25,7 @@ public interface IAuthTokenCacheHelper
     /// <summary>
     /// 保存刷新令牌到缓存
     /// </summary>
-    Task SaveRefreshTokenAsync(string refreshToken, SysUser user, string sessionId);
+    Task SaveRefreshTokenAsync(string refreshToken, SysUser user, long? effectiveTenantId, string sessionId);
 
     /// <summary>
     /// 移除会话关联的刷新令牌缓存（通过 SessionTokenMap 间接移除）

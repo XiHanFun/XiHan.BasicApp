@@ -19,6 +19,8 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Caching.EventHandlers;
 using XiHan.BasicApp.Saas.Application.Caching.Events;
 using XiHan.BasicApp.Saas.Application.Caching.Implementations;
+using XiHan.BasicApp.Saas.Application.InternalServices;
+using XiHan.BasicApp.Saas.Application.InternalServices.Implementations;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.Saas.Domain.Events;
@@ -132,6 +134,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRoleAppService, RoleAppService>();
         services.AddScoped<IAuthSessionManager, AuthSessionManager>();
         services.AddScoped<IAuthNotificationService, AuthNotificationService>();
+        services.AddScoped<ITenantAccessContextService, TenantAccessContextService>();
+        services.AddScoped<IAuthorizationContextService, AuthorizationContextService>();
         services.AddScoped<IAuthAppService, AuthAppService>();
         services.AddScoped<IProfileAppService, ProfileAppService>();
         services.AddScoped<IAuthTokenCacheHelper, AuthTokenCacheHelper>();

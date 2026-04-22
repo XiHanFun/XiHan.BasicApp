@@ -27,6 +27,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Helpers;
 using XiHan.BasicApp.Saas.Application.InternalServices;
+using XiHan.BasicApp.Saas.Constants.Claims;
 using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
@@ -83,6 +84,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly OAuthOptions _oauthOptions;
     private readonly IAuthSessionManager _authSessionManager;
     private readonly IAuthNotificationService _authNotificationService;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
 
     /// <summary>
     /// 构造函数
@@ -105,7 +107,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IExternalLoginRepository externalLoginRepository,
         IOptions<OAuthOptions> oauthOptions,
         IAuthSessionManager authSessionManager,
-        IAuthNotificationService authNotificationService)
+        IAuthNotificationService authNotificationService,
+        ITenantAccessContextService tenantAccessContextService)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -125,6 +128,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _oauthOptions = oauthOptions.Value;
         _authSessionManager = authSessionManager;
         _authNotificationService = authNotificationService;
+        _tenantAccessContextService = tenantAccessContextService;
     }
 
     /// <summary>
@@ -167,15 +171,18 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.ValidateAnnotations();
         command.UserName = command.UserName.Trim();
         var clientInfo = _clientInfoProvider.GetCurrent();
+        var effectiveTenantId = await _tenantAccessContextService.ResolveTargetTenantIdAsync(command.TargetTenantId, command.TargetTenantCode);
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        var user = await _userRepository.GetByUserNameAsync(command.UserName, command.TenantId);
+        var user = await _userRepository.GetByUserNameAsync(command.UserName, effectiveTenantId);
         if (user is null)
         {
             await WriteLoginLogAsync(0, command, LoginResult.InvalidCredentials, clientInfo, "用户名或密码错误");
             await uow.CompleteAsync();
             throw new UnauthorizedAccessException("用户名或密码错误");
         }
+
+        await _tenantAccessContextService.EnsureTenantAccessAsync(user.BasicId, effectiveTenantId);
 
         if (user.Status != YesOrNo.Yes)
         {
@@ -259,12 +266,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                 var codeSent = false;
                 if (chosenMethod == "email")
                 {
-                    await Send2FALoginCodeAsync(user.TenantId, user.Email!, "2FA-Login-Email");
+                    await Send2FALoginCodeAsync(effectiveTenantId, user.Email!, "2FA-Login-Email");
                     codeSent = true;
                 }
                 else if (chosenMethod == "phone")
                 {
-                    await Send2FALoginCodeAsync(user.TenantId, user.Phone!, "2FA-Login-Phone");
+                    await Send2FALoginCodeAsync(effectiveTenantId, user.Phone!, "2FA-Login-Phone");
                     codeSent = true;
                 }
 
@@ -283,8 +290,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             var codeValid = chosenMethod switch
             {
                 "totp" => _otpService.VerifyTotpCode(security.TwoFactorSecret!, twoFactorCode),
-                "email" => await Verify2FALoginCodeAsync(user.TenantId, user.Email!, "2FA-Login-Email", twoFactorCode),
-                "phone" => await Verify2FALoginCodeAsync(user.TenantId, user.Phone!, "2FA-Login-Phone", twoFactorCode),
+                "email" => await Verify2FALoginCodeAsync(effectiveTenantId, user.Email!, "2FA-Login-Email", twoFactorCode),
+                "phone" => await Verify2FALoginCodeAsync(effectiveTenantId, user.Phone!, "2FA-Login-Phone", twoFactorCode),
                 _ => false
             };
 
@@ -296,7 +303,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             }
         }
 
-        var token = await IssueTokenAfterAuthAsync(user, security, clientInfo, uow, command.UserName, command.TenantId, "登录成功");
+        var token = await IssueTokenAfterAuthAsync(user, effectiveTenantId, security, clientInfo, uow, command.UserName, effectiveTenantId, "登录成功");
 
         return new LoginResponseDto
         {
@@ -459,7 +466,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new BusinessException(message: $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
         }
 
-        return await IssueTokenAfterAuthAsync(user, security, clientInfo, uow, user.UserName, tenantId, "手机验证码登录成功");
+        await _tenantAccessContextService.EnsureTenantAccessAsync(user.BasicId, tenantId);
+        return await IssueTokenAfterAuthAsync(user, tenantId, security, clientInfo, uow, user.UserName, tenantId, "手机验证码登录成功");
     }
 
     /// <summary>
@@ -516,7 +524,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new UnauthorizedAccessException("登录状态已失效，请重新登录");
         }
 
-        var sessionValid = await _authSessionManager.IsSessionValidAsync(cachedToken.SessionId, user.TenantId);
+        var sessionValid = await _authSessionManager.IsSessionValidAsync(cachedToken.SessionId, cachedToken.TenantId);
         if (!sessionValid)
         {
             await _authTokenCacheHelper.RemoveRefreshTokenDirectAsync(refreshToken);
@@ -524,18 +532,19 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new UnauthorizedAccessException("会话已失效，请重新登录");
         }
 
-        var roleCodes = await _authorizationContextService.GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        await _tenantAccessContextService.EnsureTenantAccessAsync(user.BasicId, cachedToken.TenantId);
+        var roleCodes = await _authorizationContextService.GetUserRoleCodesAsync(user.BasicId, cachedToken.TenantId);
         var accessTokenJti = Guid.NewGuid().ToString("N");
         var sessionId = string.IsNullOrWhiteSpace(cachedToken.SessionId) ? Guid.NewGuid().ToString("N") : cachedToken.SessionId;
         var tokenResult = _jwtTokenService.GenerateAccessToken(
-            BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+            BuildUserClaims(user, cachedToken.TenantId, roleCodes, sessionId, accessTokenJti));
 
         var clientInfo = _clientInfoProvider.GetCurrent();
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
+        await _authSessionManager.SaveOrUpdateSessionAsync(user, cachedToken.TenantId, sessionId, accessTokenJti, clientInfo);
         await uow.CompleteAsync();
 
-        await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
+        await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, cachedToken.TenantId, sessionId);
         if (!string.Equals(refreshToken, tokenResult.RefreshToken, StringComparison.Ordinal))
         {
             await _authTokenCacheHelper.RemoveRefreshTokenDirectAsync(refreshToken);
@@ -548,7 +557,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             TokenType = tokenResult.TokenType,
             ExpiresIn = tokenResult.ExpiresIn,
             IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
-            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt),
+            CurrentTenantId = cachedToken.TenantId,
+            HomeTenantId = user.TenantId,
+            SessionId = sessionId
         };
     }
 
@@ -557,7 +569,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task<CurrentUserDto> GetCurrentUserAsync()
     {
-        var user = await _authorizationContextService.GetCurrentUserAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+        var context = await _authorizationContextService.GetCurrentContextAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+        var user = context.User;
         return new CurrentUserDto
         {
             BasicId = user.BasicId,
@@ -566,7 +579,9 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             Avatar = user.Avatar,
             Email = user.Email,
             Phone = user.Phone,
-            TenantId = user.TenantId
+            CurrentTenantId = context.CurrentTenantId,
+            HomeTenantId = user.TenantId,
+            SessionId = context.SessionId
         };
     }
 
@@ -575,8 +590,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task<AuthPermissionDto> GetPermissionsAsync()
     {
-        var user = await _authorizationContextService.GetCurrentUserAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
-        return await _authorizationContextService.BuildPermissionContextAsync(user);
+        var context = await _authorizationContextService.GetCurrentContextAsync() ?? throw new UnauthorizedAccessException("未登录或登录已过期");
+        return await _authorizationContextService.BuildPermissionContextAsync(context.User);
     }
 
     /// <summary>
@@ -652,7 +667,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.ValidateAnnotations();
         var provider = command.Provider.Trim().ToLowerInvariant();
         var providerKey = command.ProviderKey.Trim();
-        var tenantId = NormalizeTenantId(command.TenantId);
+        var tenantId = await _tenantAccessContextService.ResolveTargetTenantIdAsync(command.TargetTenantId, command.TargetTenantCode);
         var clientInfo = _clientInfoProvider.GetCurrent();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -710,6 +725,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new BusinessException(message: "账号已禁用");
         }
 
+        await _tenantAccessContextService.EnsureTenantAccessAsync(user.BasicId, tenantId);
+
         // 创建绑定记录（如果还不存在）
         if (existingBinding is null)
         {
@@ -728,7 +745,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         var security = await EnsureSecurityProfileAsync(user);
-        return await IssueTokenAfterAuthAsync(user, security, clientInfo, uow, user.UserName, tenantId, $"第三方登录({provider})成功");
+        return await IssueTokenAfterAuthAsync(user, tenantId, security, clientInfo, uow, user.UserName, tenantId, $"第三方登录({provider})成功");
     }
 
     /// <summary>
@@ -824,7 +841,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                 DisplayName = displayName,
                 Email = email,
                 AvatarUrl = avatarUrl,
-                TenantId = tenantId
+                TargetTenantId = tenantId
             };
 
             var tokenDto = await ExternalLoginAsync(command);
@@ -853,7 +870,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <param name="sessionId"></param>
     /// <param name="accessTokenJti"></param>
     /// <returns></returns>
-    private static List<Claim> BuildUserClaims(SysUser user, IReadOnlyCollection<string> roleCodes, string sessionId, string accessTokenJti)
+    private static List<Claim> BuildUserClaims(SysUser user, long? effectiveTenantId, IReadOnlyCollection<string> roleCodes, string sessionId, string accessTokenJti)
     {
         var claims = new List<Claim>
         {
@@ -878,9 +895,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             claims.Add(new Claim(XiHanClaimTypes.PhoneNumber, user.Phone));
         }
 
-        if (user.TenantId != 0)
+        if (effectiveTenantId.HasValue)
         {
-            claims.Add(new Claim(XiHanClaimTypes.TenantId, user.TenantId.ToString()));
+            claims.Add(new Claim(XiHanClaimTypes.TenantId, effectiveTenantId.Value.ToString()));
+        }
+
+        if (user.TenantId > 0)
+        {
+            claims.Add(new Claim(SaasClaimTypes.HomeTenantId, user.TenantId.ToString()));
         }
 
         foreach (var roleCode in roleCodes.Where(static roleCode => !string.IsNullOrWhiteSpace(roleCode)).Distinct(StringComparer.OrdinalIgnoreCase))
@@ -1033,6 +1055,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     private async Task<AuthTokenDto> IssueTokenAfterAuthAsync(
         SysUser user,
+        long? effectiveTenantId,
         SysUserSecurity security,
         ClientInfo clientInfo,
         IUnitOfWork uow,
@@ -1040,7 +1063,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         long? tenantId,
         string successMessage)
     {
-        var revokedSessionIds = await _authSessionManager.EnforceSessionPolicyAsync(user, security);
+        var revokedSessionIds = await _authSessionManager.EnforceSessionPolicyAsync(user, security, effectiveTenantId);
 
         security.FailedLoginAttempts = 0;
         security.IsLocked = false;
@@ -1055,12 +1078,12 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         user.LastLoginIp = clientInfo.IpAddress;
         await _userRepository.UpdateAsync(user);
 
-        var roleCodes = await _authorizationContextService.GetUserRoleCodesAsync(user.BasicId, user.TenantId);
+        var roleCodes = await _authorizationContextService.GetUserRoleCodesAsync(user.BasicId, effectiveTenantId);
         var sessionId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
-        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, roleCodes, sessionId, accessTokenJti));
+        var tokenResult = _jwtTokenService.GenerateAccessToken(BuildUserClaims(user, effectiveTenantId, roleCodes, sessionId, accessTokenJti));
 
-        await _authSessionManager.SaveOrUpdateSessionAsync(user, sessionId, accessTokenJti, clientInfo);
+        await _authSessionManager.SaveOrUpdateSessionAsync(user, effectiveTenantId, sessionId, accessTokenJti, clientInfo);
         await WriteLoginLogAsync(user.BasicId, loginIdentifier, tenantId, LoginResult.Success, clientInfo, successMessage, sessionId, previousLoginIp);
         await uow.CompleteAsync();
 
@@ -1076,7 +1099,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         await _authNotificationService.NotifyNewDeviceLoginAsync(user.BasicId.ToString(), clientInfo);
-        await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, sessionId);
+        await _authTokenCacheHelper.SaveRefreshTokenAsync(tokenResult.RefreshToken, user, effectiveTenantId, sessionId);
 
         return new AuthTokenDto
         {
@@ -1085,7 +1108,10 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             TokenType = tokenResult.TokenType,
             ExpiresIn = tokenResult.ExpiresIn,
             IssuedAt = new DateTimeOffset(tokenResult.IssuedAt),
-            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt)
+            ExpiresAt = new DateTimeOffset(tokenResult.ExpiresAt),
+            CurrentTenantId = effectiveTenantId,
+            HomeTenantId = user.TenantId,
+            SessionId = sessionId
         };
     }
 
@@ -1102,7 +1128,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// <returns></returns>
     private async Task WriteLoginLogAsync(long userId, UserLoginCommand command, LoginResult loginResult, ClientInfo clientInfo, string message, string? sessionId = null, string? previousLoginIp = null)
     {
-        await WriteLoginLogAsync(userId, command.UserName, command.TenantId, loginResult, clientInfo, message, sessionId, previousLoginIp, command.DeviceId);
+        await WriteLoginLogAsync(userId, command.UserName, command.TargetTenantId, loginResult, clientInfo, message, sessionId, previousLoginIp, command.DeviceId);
     }
 
     /// <summary>

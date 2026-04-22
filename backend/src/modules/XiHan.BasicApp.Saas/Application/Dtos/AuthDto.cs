@@ -116,6 +116,21 @@ public class AuthTokenDto
     /// 过期时间
     /// </summary>
     public DateTimeOffset ExpiresAt { get; set; }
+
+    /// <summary>
+    /// 当前会话租户ID。
+    /// </summary>
+    public long? CurrentTenantId { get; set; }
+
+    /// <summary>
+    /// 主归属租户ID。
+    /// </summary>
+    public long? HomeTenantId { get; set; }
+
+    /// <summary>
+    /// 会话ID。
+    /// </summary>
+    public string SessionId { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -186,9 +201,19 @@ public class CurrentUserDto
     public string? Phone { get; set; }
 
     /// <summary>
-    /// 租户ID
+    /// 当前会话租户ID
     /// </summary>
-    public long? TenantId { get; set; }
+    public long? CurrentTenantId { get; set; }
+
+    /// <summary>
+    /// 主归属租户ID
+    /// </summary>
+    public long? HomeTenantId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public string? SessionId { get; set; }
 }
 
 /// <summary>

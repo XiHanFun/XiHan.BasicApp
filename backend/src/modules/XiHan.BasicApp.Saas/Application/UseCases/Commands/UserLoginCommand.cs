@@ -47,9 +47,15 @@ public class UserLoginCommand
     public string? TwoFactorMethod { get; set; }
 
     /// <summary>
-    /// 租户ID
+    /// 目标租户ID
     /// </summary>
-    public long? TenantId { get; set; } = 1;
+    public long? TargetTenantId { get; set; }
+
+    /// <summary>
+    /// 目标租户编码
+    /// </summary>
+    [StringLength(64, ErrorMessage = "租户编码长度不能超过 64")]
+    public string? TargetTenantCode { get; set; }
 
     /// <summary>
     /// 设备唯一标识（由前端生成的设备指纹）

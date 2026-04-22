@@ -54,7 +54,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable()
             .Where(user => user.UserName == userName);
 
-        return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
+        return await FirstByTenantAsync(query, tenantId, cancellationToken);
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable()
             .Where(user => user.Phone == phone);
 
-        return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
+        return await FirstByTenantAsync(query, tenantId, cancellationToken);
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         var query = CreateQueryable()
             .Where(user => user.Email == email);
 
-        return await FirstWithTenantFallbackAsync(query, tenantId, cancellationToken);
+        return await FirstByTenantAsync(query, tenantId, cancellationToken);
     }
 
     /// <summary>
@@ -387,6 +387,27 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         await DbClient.Insertable(mappings).ExecuteCommandAsync(cancellationToken);
     }
 
+    public async Task<SysTenantUser?> GetTenantMembershipAsync(long userId, long tenantId, CancellationToken cancellationToken = default)
+    {
+        return await CreateQueryable<SysTenantUser>()
+            .Where(membership => membership.UserId == userId && membership.TenantId == tenantId)
+            .FirstAsync(cancellationToken);
+    }
+
+    public async Task<SysTenantUser> SaveTenantMembershipAsync(SysTenantUser membership, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(membership);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (membership.BasicId <= 0)
+        {
+            return await DbClient.Insertable(membership).ExecuteReturnEntityAsync();
+        }
+
+        await DbClient.Updateable(membership).ExecuteCommandAsync(cancellationToken);
+        return membership;
+    }
+
     /// <summary>
     /// 按租户优先级获取首个用户（优先指定租户，回退到全局租户）
     /// </summary>
@@ -394,20 +415,12 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
     /// <param name="tenantId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private static async Task<SysUser?> FirstWithTenantFallbackAsync(
+    private static async Task<SysUser?> FirstByTenantAsync(
         ISugarQueryable<SysUser> query,
         long? tenantId,
         CancellationToken cancellationToken)
     {
-        if (tenantId.HasValue)
-        {
-            var tenantUser = await query.Where(user => user.TenantId == tenantId.Value).FirstAsync(cancellationToken);
-            if (tenantUser is not null)
-            {
-                return tenantUser;
-            }
-        }
-
-        return await query.Where(user => user.TenantId == 0).FirstAsync(cancellationToken);
+        var resolvedTenantId = SaasTenantQueryHelper.ResolveWriteTenantId(tenantId);
+        return await query.Where(user => user.TenantId == resolvedTenantId).FirstAsync(cancellationToken);
     }
 }

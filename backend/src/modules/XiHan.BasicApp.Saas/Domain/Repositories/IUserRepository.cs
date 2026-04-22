@@ -102,4 +102,14 @@ public interface IUserRepository : IAggregateRootRepository<SysUser, long>
         long? mainDepartmentId = null,
         long? tenantId = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取指定租户成员关系。
+    /// </summary>
+    Task<SysTenantUser?> GetTenantMembershipAsync(long userId, long tenantId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 保存租户成员关系。
+    /// </summary>
+    Task<SysTenantUser> SaveTenantMembershipAsync(SysTenantUser membership, CancellationToken cancellationToken = default);
 }
