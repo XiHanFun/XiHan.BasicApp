@@ -25,6 +25,7 @@ export interface SysUser {
   country?: string
   isSystemAccount?: boolean
   roles: string[]
+  roleIds?: string[]
   permissionIds?: string[]
   departmentIds?: string[]
   mainDepartmentId?: string
@@ -112,6 +113,7 @@ function normalizeUserPayload(raw: unknown): SysUser {
 }
 
 function toCreatePayload(data: Partial<SysUser & { password?: string }>) {
+  const roleIds = data.roleIds ?? data.roles ?? []
   return {
     tenantId: data.tenantId ? toId(data.tenantId) : null,
     userName: (data.userName ?? '').trim(),
@@ -125,7 +127,7 @@ function toCreatePayload(data: Partial<SysUser & { password?: string }>) {
     timeZone: (data.timeZone ?? '').trim(),
     language: (data.language ?? '').trim(),
     country: (data.country ?? '').trim(),
-    roleIds: (data.roles ?? []).map(item => toId(item)).filter(Boolean),
+    roleIds: roleIds.map((item: string) => toId(item)).filter(Boolean),
     permissionIds: (data.permissionIds ?? []).map(item => toId(item)).filter(Boolean),
     departmentIds: (data.departmentIds ?? []).map(item => toId(item)).filter(Boolean),
     mainDepartmentId: data.mainDepartmentId ? toId(data.mainDepartmentId) : null,
@@ -134,6 +136,7 @@ function toCreatePayload(data: Partial<SysUser & { password?: string }>) {
 }
 
 function toUpdatePayload(id: string, data: Partial<SysUser>) {
+  const roleIds = data.roleIds ?? data.roles ?? []
   return {
     realName: (data.realName ?? data.nickName ?? '').trim(),
     nickName: (data.nickName ?? '').trim(),
@@ -146,7 +149,7 @@ function toUpdatePayload(id: string, data: Partial<SysUser>) {
     timeZone: (data.timeZone ?? '').trim(),
     language: (data.language ?? '').trim(),
     country: (data.country ?? '').trim(),
-    roleIds: (data.roles ?? []).map(item => toId(item)).filter(Boolean),
+    roleIds: roleIds.map((item: string) => toId(item)).filter(Boolean),
     permissionIds: (data.permissionIds ?? []).map(item => toId(item)).filter(Boolean),
     departmentIds: (data.departmentIds ?? []).map(item => toId(item)).filter(Boolean),
     mainDepartmentId: data.mainDepartmentId ? toId(data.mainDepartmentId) : null,

@@ -153,7 +153,7 @@ const options = useVxeTable<SysUser>(
         slots: { default: 'col_roles' },
       },
       {
-        field: 'deptId',
+        field: 'mainDepartmentId',
         title: '主部门',
         minWidth: 140,
         slots: { default: 'col_department' },
@@ -247,8 +247,8 @@ async function handleEdit(row: SysUser) {
     password: '',
     roleIds: [],
     permissionIds: [],
-    departmentIds: row.deptId ? [row.deptId] : [],
-    mainDepartmentId: row.deptId,
+    departmentIds: row.departmentIds ? [...row.departmentIds] : [],
+    mainDepartmentId: row.mainDepartmentId,
   }
   modalVisible.value = true
   try {
@@ -449,8 +449,8 @@ watch(
           <span v-else class="text-gray-400">—</span>
         </template>
         <template #col_department="{ row }">
-          <NTag v-if="row.deptId" size="small" type="default" round>
-            {{ departmentLabelForCell(row.deptId) }}
+          <NTag v-if="row.mainDepartmentId" size="small" type="default" round>
+            {{ departmentLabelForCell(row.mainDepartmentId) }}
           </NTag>
           <span v-else class="text-gray-400">—</span>
         </template>
@@ -507,6 +507,9 @@ watch(
         <NFormItem label="邮箱" path="email">
           <NInput v-model:value="formData.email" placeholder="请输入邮箱" />
         </NFormItem>
+        <NFormItem label="真实姓名" path="realName">
+          <NInput v-model:value="formData.realName" placeholder="请输入真实姓名" />
+        </NFormItem>
         <NFormItem label="手机号" path="phone">
           <NInput v-model:value="formData.phone" placeholder="请输入手机号" />
         </NFormItem>
@@ -561,6 +564,13 @@ watch(
             clearable
             filterable
             placeholder="选择直授权限"
+          />
+        </NFormItem>
+        <NFormItem label="可访问租户" path="accessibleTenantIds" class="xh-form-full-row">
+          <NInput
+            :value="(formData.accessibleTenantIds ?? []).join(', ')"
+            placeholder="当前批次暂只展示 DTO 中的可访问租户结果"
+            readonly
           />
         </NFormItem>
       </NForm>

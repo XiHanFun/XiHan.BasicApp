@@ -194,7 +194,6 @@ const menuTreeData = ref<MenuTreeOption[]>([])
 const checkedMenuKeys = ref<string[]>([])
 const menuExpandedKeys = ref<string[]>([])
 const menuLoading = ref(false)
-const menuSaving = ref(false)
 const menuDataLoaded = ref(false)
 
 // Tab 3: 操作权限
@@ -365,7 +364,7 @@ async function loadMenuData() {
     const [tree, assigned] = await Promise.all([
       menuApi.tree(),
       currentRoleId.value
-        ? roleApi.getRoleMenus(currentRoleId.value)
+        ? menuApi.roleMenus(currentRoleId.value).then(items => items.map(item => item.basicId))
         : Promise.resolve([] as string[]),
     ])
     menuTreeData.value = menuToTree(tree)
@@ -495,24 +494,6 @@ async function handleSaveBasic() {
   }
   finally {
     basicSaving.value = false
-  }
-}
-
-async function handleSaveMenus() {
-  if (!currentRoleId.value) {
-    message.warning('请先保存基本信息')
-    return
-  }
-  menuSaving.value = true
-  try {
-    await roleApi.assignMenus(currentRoleId.value, checkedMenuKeys.value)
-    message.success('菜单权限保存成功')
-  }
-  catch {
-    message.error('菜单权限保存失败')
-  }
-  finally {
-    menuSaving.value = false
   }
 }
 
@@ -817,6 +798,9 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 >
                   展开全部
                 </NCheckbox>
+                <span class="text-xs text-gray-500">
+                  菜单可见性由角色权限自动推导，需调整请切到“操作权限”页签。
+                </span>
               </div>
               <div style="max-height: 460px; overflow-y: auto">
                 <NTree
@@ -838,11 +822,6 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
                 description="暂无菜单数据"
               />
             </NSpin>
-            <div class="xh-form-actions">
-              <NButton v-access="['role:update']" type="primary" :loading="menuSaving" @click="handleSaveMenus">
-                保存
-              </NButton>
-            </div>
           </NTabPane>
 
           <!-- ===== 操作权限 ===== -->

@@ -444,7 +444,17 @@
 | Batch-08 | `dotnet build` / 授权链自检 | Partial | Batch-08 已完成三段收口：08A 将认证、刷新令牌、当前用户、权限上下文和个人中心会话统一切到生效租户语义；08B 将注册与第三方登录入口统一切到目标租户 ID/编码解析，并补齐授权/回调链路透传；08C 则将 `UserAppService` 的角色/权限/部门分配、超管保护、用户创建默认租户，以及 `UserQueryService` 的角色映射和可访问租户读模型统一切到成员租户模型，不再把 `SysUser.TenantId` 当作当前操作租户。`dotnet build` 仍受本机 .NET SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误”，因此本批验证仍以代码事实扫描为主 |
 | Batch-09 | `dotnet build` / 安全出口自检 | Partial | Batch-09 已完成三段收口：09A 将角色/部门写路径统一切到显式租户或当前会话租户语义；09B 修复了菜单写路径未回写 `PermissionId/IsGlobal/Metadata` 的问题，并将全量菜单、角色菜单、用户菜单统一改为树形 UI 结构输出；09C 则把角色自定义数据范围正式收口到 `RoleManager.AssignDataScopeAsync`，补齐“数据范围部门必须属于同租户”的校验，并移除了 `OrganizationDomainService` 对部门闭包表失效的 BFS 兼容兜底，让闭包表回归正式语义。`dotnet build` 仍受本机 .NET SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误”，当前结论仍以代码事实扫描为主 |
 | Batch-10 | `pnpm type-check` / 页面联调自检 | Partial | Batch-10A 已完成前端基础类型基线修复：`useTheme`、`iconify offline loader`、`request client`、`tabbar`、`AppHeader/AppSidebar`、`PreferenceLayoutTab`、`system/role`、`system/server`、`vite.config.ts` 已收敛到可通过 `pnpm type-check` 与 `pnpm build`。Batch-10B 进一步完成后端编译收口：`global.json` 锁定 `.NET SDK 10.0.107` 后，已修复 `AuthorizationChangeType` 引用漂移、`TenantAccessContextService` 客户端解析、日志分表 AppService 读写适配、`SysConfigSeeder` 字段名、`ConstraintRuleAppService` 枚举映射、`RoleManager`/`OrganizationDomainService`/`TenantAppService`/`AuthAppService` 的签名与字段偏差，并将 `SaasTenantQueryHelper` 重构为基于表达式树按 `TenantId` 属性过滤，消除了仓储层与 `IMultiTenantEntity` 的强耦合。当前 `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj`、`pnpm type-check`、`pnpm build` 均已通过；剩余为 XML 注释与 nullable 等 warning，留待质量门禁批次统一治理 |
-| Batch-11 | 汇总验证 | Pending |  |
+| Batch-11 | 前端系统页契约联调第一轮 | Partial | 已修正 `system/user`、`system/role`、`system/menu`、`system/tenant` 与 SaaS 新实体契约的关键偏差：用户页改为 `mainDepartmentId` 语义并展示 DTO 中的可访问租户结果；角色页移除旧模型下“直接分配菜单”的错误写入口，改为按 `RolePermission -> Menu.PermissionId` 推导的只读菜单可见性展示；菜单页补齐 `permissionId/isGlobal/title/externalUrl/metadata` 等真实实体字段；租户页补齐简称、域名、配额、到期时间与排序等核心字段。验证结果：`pnpm type-check`、`pnpm build`、`dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj -v minimal` 均通过；剩余为前端 chunk 体积 warning，以及后端 XML 注释、nullable 和 NuGet `NU5104` warning，留待后续质量批次收口 |
+
+### Batch-11 Sub-Status
+
+- [x] Batch-11A 核心系统页契约联调第一轮
+
+### Batch-11 Sub-Validation
+
+| Sub-Batch | Validation | Result | Notes |
+|-----------|------------|--------|-------|
+| Batch-11A | `pnpm type-check` / `pnpm build` / `dotnet build` | Passed | 已完成用户、角色、菜单、租户四个高风险系统页的第一轮契约联调。前端类型检查和生产构建通过；后端 SaaS 模块编译通过，剩余为 XML 注释、nullable、NuGet 预发布依赖等 warning |
 
 ### Batch-04 Sub-Validation
 
