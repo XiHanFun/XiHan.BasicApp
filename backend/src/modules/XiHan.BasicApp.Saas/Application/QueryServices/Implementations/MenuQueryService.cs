@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -27,13 +28,15 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public class MenuQueryService : IMenuQueryService, ITransientDependency
 {
     private readonly IMenuRepository _menuRepository;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public MenuQueryService(IMenuRepository menuRepository)
+    public MenuQueryService(IMenuRepository menuRepository, ITenantAccessContextService tenantAccessContextService)
     {
         _menuRepository = menuRepository;
+        _tenantAccessContextService = tenantAccessContextService;
     }
 
     /// <inheritdoc />
@@ -47,22 +50,29 @@ public class MenuQueryService : IMenuQueryService, ITransientDependency
     /// <inheritdoc />
     public async Task<IReadOnlyList<MenuDto>> GetListAsync()
     {
+        var tenantId = await ResolveTenantIdAsync(null);
         var menus = await _menuRepository.GetAllAsync();
+        menus = menus
+            .Where(menu => tenantId.HasValue ? menu.TenantId == tenantId.Value || menu.TenantId == 0 : menu.TenantId == 0)
+            .Where(menu => menu.Status == Domain.Enums.YesOrNo.Yes)
+            .ToArray();
         return BuildMenuTree(menus);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<MenuDto>> GetRoleMenusAsync(long roleId, long? tenantId = null)
     {
-        var menus = await _menuRepository.GetRoleMenusAsync(roleId, tenantId);
-        return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
+        var resolvedTenantId = await ResolveTenantIdAsync(tenantId);
+        var menus = await _menuRepository.GetRoleMenusAsync(roleId, resolvedTenantId);
+        return BuildMenuTree(menus);
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<MenuDto>> GetUserMenusAsync(long userId, long? tenantId = null)
     {
-        var menus = await _menuRepository.GetUserMenusAsync(userId, tenantId);
-        return menus.Select(static menu => menu.Adapt<MenuDto>()!).ToArray();
+        var resolvedTenantId = await ResolveTenantIdAsync(tenantId);
+        var menus = await _menuRepository.GetUserMenusAsync(userId, resolvedTenantId);
+        return BuildMenuTree(menus);
     }
 
     private static IReadOnlyList<MenuDto> BuildMenuTree(IReadOnlyList<XiHan.BasicApp.Saas.Domain.Entities.SysMenu> menus)
@@ -94,5 +104,16 @@ public class MenuQueryService : IMenuQueryService, ITransientDependency
         }
 
         return roots;
+    }
+
+    private async Task<long?> ResolveTenantIdAsync(long? tenantId)
+    {
+        if (tenantId.HasValue && tenantId.Value > 0)
+        {
+            return tenantId;
+        }
+
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        return currentContext?.CurrentTenantId;
     }
 }

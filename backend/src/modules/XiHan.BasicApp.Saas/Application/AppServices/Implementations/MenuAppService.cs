@@ -45,6 +45,7 @@ public class MenuAppService
     private readonly IMenuQueryService _queryService;
     private readonly IMenuDomainService _domainService;
     private readonly IRbacChangeNotifier _rbacChangeNotifier;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
 
     /// <summary>
     /// 构造函数
@@ -57,13 +58,15 @@ public class MenuAppService
         IMenuRepository menuRepository,
         IMenuQueryService queryService,
         IMenuDomainService domainService,
-        IRbacChangeNotifier rbacChangeNotifier)
+        IRbacChangeNotifier rbacChangeNotifier,
+        ITenantAccessContextService tenantAccessContextService)
         : base(menuRepository)
     {
         _menuRepository = menuRepository;
         _queryService = queryService;
         _domainService = domainService;
         _rbacChangeNotifier = rbacChangeNotifier;
+        _tenantAccessContextService = tenantAccessContextService;
     }
 
     /// <summary>
@@ -132,10 +135,11 @@ public class MenuAppService
         input.ValidateAnnotations();
 
         var normalizedCode = input.MenuCode.Trim();
-        await EnsureMenuCodeUniqueAsync(normalizedCode, null, input.TenantId);
-        await EnsureValidParentAsync(input.ParentId, null, input.TenantId);
+        var resolvedTenantId = await ResolveOperationTenantIdAsync(input.TenantId);
+        await EnsureMenuCodeUniqueAsync(normalizedCode, null, resolvedTenantId);
+        await EnsureValidParentAsync(input.ParentId, null, resolvedTenantId);
 
-        var entity = await MapDtoToEntityAsync(input);
+        var entity = await MapCreateDtoToEntityAsync(input, resolvedTenantId);
         var created = await _domainService.CreateAsync(entity);
         await _rbacChangeNotifier.NotifyAsync(created.TenantId, AuthorizationChangeType.Permission);
         return created.Adapt<MenuDto>()!;
@@ -194,9 +198,16 @@ public class MenuAppService
     /// <returns></returns>
     protected override Task<SysMenu> MapDtoToEntityAsync(MenuCreateDto createDto)
     {
+        return MapCreateDtoToEntityAsync(createDto, createDto.TenantId);
+    }
+
+    private Task<SysMenu> MapCreateDtoToEntityAsync(MenuCreateDto createDto, long? tenantId)
+    {
         var entity = new SysMenu
         {
-            TenantId = createDto.TenantId ?? 0,
+            TenantId = tenantId ?? 0,
+            PermissionId = createDto.PermissionId,
+            IsGlobal = createDto.IsGlobal,
             ParentId = createDto.ParentId,
             MenuName = createDto.MenuName.Trim(),
             MenuCode = createDto.MenuCode.Trim(),
@@ -215,6 +226,7 @@ public class MenuAppService
             Badge = createDto.Badge,
             BadgeType = createDto.BadgeType,
             BadgeDot = createDto.BadgeDot,
+            Metadata = createDto.Metadata,
             Sort = createDto.Sort,
             Remark = createDto.Remark
         };
@@ -230,6 +242,8 @@ public class MenuAppService
     /// <returns></returns>
     protected override Task MapDtoToEntityAsync(MenuUpdateDto updateDto, SysMenu entity)
     {
+        entity.PermissionId = updateDto.PermissionId;
+        entity.IsGlobal = updateDto.IsGlobal;
         entity.ParentId = updateDto.ParentId;
         entity.MenuName = updateDto.MenuName.Trim();
         entity.MenuCode = updateDto.MenuCode.Trim();
@@ -248,6 +262,7 @@ public class MenuAppService
         entity.Badge = updateDto.Badge;
         entity.BadgeType = updateDto.BadgeType;
         entity.BadgeDot = updateDto.BadgeDot;
+        entity.Metadata = updateDto.Metadata;
         entity.Status = updateDto.Status;
         entity.Sort = updateDto.Sort;
         entity.Remark = updateDto.Remark;
@@ -332,6 +347,17 @@ public class MenuAppService
 
             currentParent = nextParent;
         }
+    }
+
+    private async Task<long?> ResolveOperationTenantIdAsync(long? requestedTenantId)
+    {
+        if (requestedTenantId.HasValue && requestedTenantId.Value > 0)
+        {
+            return requestedTenantId;
+        }
+
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        return currentContext?.CurrentTenantId;
     }
 
 }
