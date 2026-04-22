@@ -137,6 +137,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthNotificationService, AuthNotificationService>();
         services.AddScoped<ITenantAccessContextService, TenantAccessContextService>();
         services.AddScoped<IAuthorizationContextService, AuthorizationContextService>();
+        services.AddScoped<IFieldSecurityService, FieldSecurityService>();
         services.AddScoped<IAuthAppService, AuthAppService>();
         services.AddScoped<IProfileAppService, ProfileAppService>();
         services.AddScoped<IAuthTokenCacheHelper, AuthTokenCacheHelper>();
@@ -221,6 +222,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEntityAuditContextProvider, RbacEntityAuditContextProvider>();
         services.AddScoped<IEntityAuditLogWriter, RbacEntityAuditLogWriter>();
         services.AddScoped<IRbacAuthorizationCacheService, RbacAuthorizationCacheService>();
+        services.AddScoped<IFieldSecurityCacheService, FieldSecurityCacheService>();
         services.AddScoped<IRbacLookupCacheService, RbacLookupCacheService>();
         services.AddScoped<IMessageCacheService, MessageCacheService>();
         services.AddScoped<IUpgradeVersionStore, SqlSugarUpgradeVersionStore>();

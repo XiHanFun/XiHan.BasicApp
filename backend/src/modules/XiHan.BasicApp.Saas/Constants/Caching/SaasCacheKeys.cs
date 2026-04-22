@@ -36,6 +36,12 @@ public static class SaasCacheKeys
     public static string MessageUnread(long? tenantId, long userId, long version)
         => $"{Prefix}:message:unread:{TenantSegment(tenantId)}:{userId}:v{version}";
 
+    public static string FieldSecurityVersion(long? tenantId)
+        => $"{Prefix}:fls:version:{TenantSegment(tenantId)}";
+
+    public static string FieldSecurityDecision(long? tenantId, long userId, string resourceCode, long version, string fieldSignature)
+        => $"{Prefix}:fls:{TenantSegment(tenantId)}:{userId}:{resourceCode.Trim().ToLowerInvariant()}:v{version}:{fieldSignature.Trim().ToLowerInvariant()}";
+
     public static string AuthPhoneLoginCode(long? tenantId, string phone)
         => $"{Prefix}:auth:phone-login:{TenantSegment(tenantId)}:{phone.Trim()}";
 

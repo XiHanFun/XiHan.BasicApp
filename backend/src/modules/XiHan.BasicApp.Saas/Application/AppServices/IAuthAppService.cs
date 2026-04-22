@@ -88,6 +88,11 @@ public interface IAuthAppService : IApplicationService
     Task<IReadOnlyCollection<long>> GetDataScopeDepartmentIdsAsync(UserDataScopeQuery query);
 
     /// <summary>
+    /// 获取当前登录用户对指定资源的字段级安全决策。
+    /// </summary>
+    Task<FieldSecurityDecisionDto> GetFieldSecurityAsync(UserFieldSecurityQuery query);
+
+    /// <summary>
     /// 处理第三方登录（查找或自动创建用户，签发令牌）
     /// </summary>
     Task<AuthTokenDto> ExternalLoginAsync(ExternalLoginCommand command);

@@ -237,6 +237,30 @@ public class AuthPermissionDto
     public IReadOnlyList<AuthMenuRouteDto> Menus { get; set; } = [];
 }
 
+public class FieldSecurityDecisionDto
+{
+    public string ResourceCode { get; set; } = string.Empty;
+
+    public long ResourceId { get; set; }
+
+    public IReadOnlyList<FieldSecurityFieldDecisionDto> Fields { get; set; } = [];
+}
+
+public class FieldSecurityFieldDecisionDto
+{
+    public string FieldName { get; set; } = string.Empty;
+
+    public bool IsReadable { get; set; } = true;
+
+    public bool IsEditable { get; set; } = true;
+
+    public XiHan.BasicApp.Saas.Domain.Enums.FieldMaskStrategy MaskStrategy { get; set; }
+
+    public string? MaskPattern { get; set; }
+
+    public int Priority { get; set; }
+}
+
 /// <summary>
 /// 鉴权菜单路由
 /// </summary>
