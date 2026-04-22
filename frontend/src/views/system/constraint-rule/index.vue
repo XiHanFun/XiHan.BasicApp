@@ -91,6 +91,12 @@ const options = useVxeTable<SysConstraintRule>(
       },
       { field: 'priority', title: '优先级', width: 90, sortable: true },
       {
+        field: 'isGlobal',
+        title: '全局',
+        width: 80,
+        slots: { default: 'col_global' },
+      },
+      {
         field: 'isEnabled',
         title: '规则开关',
         width: 90,
@@ -164,6 +170,7 @@ function resetForm() {
     constraintType: 0,
     targetType: 0,
     parameters: '{}',
+    isGlobal: false,
     isEnabled: true,
     violationAction: 0,
     priority: 0,
@@ -272,6 +279,11 @@ async function handleSubmit() {
             {{ row.isEnabled ? '启用' : '禁用' }}
           </NTag>
         </template>
+        <template #col_global="{ row }">
+          <NTag :type="row.isGlobal ? 'warning' : 'default'" size="small" round>
+            {{ row.isGlobal ? '是' : '否' }}
+          </NTag>
+        </template>
         <template #col_status="{ row }">
           <NTag :type="row.status === 1 ? 'success' : 'error'" size="small" round>
             {{ row.status === 1 ? '启用' : '禁用' }}
@@ -317,6 +329,9 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem label="违规处理" path="violationAction">
           <NSelect v-model:value="formData.violationAction" :options="VIOLATION_ACTION_OPTIONS" />
+        </NFormItem>
+        <NFormItem label="全局规则" path="isGlobal">
+          <NSwitch v-model:value="formData.isGlobal" />
         </NFormItem>
         <NFormItem label="规则开关" path="isEnabled">
           <NSwitch v-model:value="formData.isEnabled" />

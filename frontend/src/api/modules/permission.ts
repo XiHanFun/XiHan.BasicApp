@@ -99,8 +99,8 @@ function toCreatePayload(data: Partial<SysPermission>) {
       ? data.tagList.map(item => item.trim()).filter(Boolean).join(',')
       : ''
   return {
-    resourceId: toId(data.resourceId ?? '1') || '1',
-    operationId: toId(data.operationId ?? '1') || '1',
+    resourceId: toId(data.resourceId ?? ''),
+    operationId: toId(data.operationId ?? ''),
     permissionCode: data.permissionCode ?? '',
     permissionName: data.permissionName ?? '',
     permissionDescription: data.permissionDescription ?? data.description ?? '',

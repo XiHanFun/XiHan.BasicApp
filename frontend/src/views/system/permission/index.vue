@@ -141,6 +141,8 @@ const formData = ref<Partial<SysPermission>>({})
 
 function resetForm() {
   formData.value = {
+    resourceId: '',
+    operationId: '',
     permissionName: '',
     permissionCode: '',
     permissionDescription: '',
@@ -179,6 +181,10 @@ async function handleDelete(id: string) {
 
 async function handleSubmit() {
   try {
+    if (!formData.value.resourceId || !formData.value.operationId) {
+      message.warning('请输入资源 ID 和操作 ID')
+      return
+    }
     submitLoading.value = true
     if (formData.value.basicId) {
       await permissionApi.update(formData.value.basicId, formData.value)
@@ -350,6 +356,12 @@ async function handleBatchSetStatus(status: number) {
       :auto-focus="false"
     >
       <NForm class="xh-edit-form-grid" :model="formData" label-placement="top" label-width="90px">
+        <NFormItem label="资源 ID" path="resourceId">
+          <NInput v-model:value="formData.resourceId" placeholder="请输入资源 ID" />
+        </NFormItem>
+        <NFormItem label="操作 ID" path="operationId">
+          <NInput v-model:value="formData.operationId" placeholder="请输入操作 ID" />
+        </NFormItem>
         <NFormItem label="权限名称" path="permissionName">
           <NInput v-model:value="formData.permissionName" placeholder="请输入权限名称" />
         </NFormItem>

@@ -144,6 +144,7 @@ function resetForm() {
     leaderId: undefined,
     phone: '',
     email: '',
+    address: '',
     sort: 0,
     status: 1,
     remark: '',
@@ -271,11 +272,17 @@ onMounted(async () => {
         <NFormItem label="邮箱" path="email">
           <NInput v-model:value="formData.email" placeholder="邮箱" />
         </NFormItem>
+        <NFormItem label="地址" path="address">
+          <NInput v-model:value="formData.address" placeholder="联系地址" />
+        </NFormItem>
         <NFormItem label="排序" path="sort">
           <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem label="状态" path="status">
           <NSelect v-model:value="formData.status" :options="STATUS_OPTIONS" />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput v-model:value="formData.remark" type="textarea" :rows="2" placeholder="备注" />
         </NFormItem>
       </NForm>
       <template #footer>
