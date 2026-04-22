@@ -60,6 +60,11 @@ const DATA_SCOPE_OPTIONS = [
   { label: '自定义', value: 99 },
 ]
 
+const GLOBAL_ROLE_OPTIONS = [
+  { label: '否', value: 0 },
+  { label: '是', value: 1 },
+]
+
 const ROLE_TYPE_MAP: Record<number, string> = { 0: '系统角色', 1: '业务角色', 2: '自定义角色' }
 const DATA_SCOPE_MAP: Record<number, string> = {
   0: '仅本人',
@@ -756,11 +761,9 @@ function onDeptExpandedKeysUpdate(keys: Array<string | number>) {
               </NFormItem>
               <NFormItem label="全局角色" path="isGlobal">
                 <NSelect
-                  v-model:value="formData.isGlobal"
-                  :options="[
-                    { label: '否', value: false },
-                    { label: '是', value: true },
-                  ]"
+                  :value="formData.isGlobal ? 1 : 0"
+                  :options="GLOBAL_ROLE_OPTIONS"
+                  @update:value="value => (formData.isGlobal = value === 1)"
                 />
               </NFormItem>
               <NFormItem label="排序" path="sort">

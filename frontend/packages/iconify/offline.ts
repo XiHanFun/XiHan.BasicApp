@@ -56,8 +56,9 @@ const PACKAGE_LOADERS: Record<string, () => Promise<IconifyJSON>> = {
 /** 按 prefix 懒加载图标名称列表 */
 export async function loadIconNames(prefix: string): Promise<string[]> {
   const meta = ICON_SET_META.find(m => m.prefix === prefix)
-  if (!meta || !PACKAGE_LOADERS[meta.package])
+  const loader = meta ? PACKAGE_LOADERS[meta.package] : undefined
+  if (!loader)
     return []
-  const data = await PACKAGE_LOADERS[meta.package]().catch(() => ({ icons: {} }))
+  const data = await loader().catch(() => ({ icons: {} }))
   return Object.keys(data.icons || {}).sort()
 }

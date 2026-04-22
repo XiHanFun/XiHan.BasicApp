@@ -7,7 +7,7 @@ import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
-import { useAccessStore, useAppStore, useLayoutBridgeStore } from '~/stores'
+import { useAccessStore, useAppStore } from '~/stores'
 import { useLayoutMenuDomain } from '../composables'
 import { renderSidebarBadgeLabel } from './MenuBadge.vue'
 import SidebarBrand from './sidebar/SidebarBrand.vue'
@@ -82,7 +82,6 @@ interface Props {
 
 const appStore = useAppStore()
 const accessStore = useAccessStore()
-const layoutBridgeStore = useLayoutBridgeStore()
 const { t, te } = useI18n()
 const {
   route,
@@ -106,7 +105,6 @@ const appLogo = computed(
 const activeKey = computed(() => String(route.meta?.activePath || route.path || ''))
 const isSideMixedLayout = computed(() => appStore.layoutMode === 'side-mixed')
 const isHeaderMixLayout = computed(() => appStore.layoutMode === 'header-mix')
-const _isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
 const isSplitMenuLayout = computed(() => appStore.navigationSplit && appStore.layoutMode === 'mix')
 
 const extraMenuTheme = computed<'dark' | 'light'>(() => {
@@ -251,8 +249,6 @@ const headerMixSecondaryOptions = computed(() =>
 )
 
 // --- Sidebar styles ---
-const _SIDEBAR_COLLAPSE_WIDTH = 60
-
 const placeholderStyle = computed((): CSSProperties => {
   let widthValue = `${props.sidebarWidth}px`
 
@@ -348,9 +344,10 @@ function handleMenuUpdate(key: string) {
 function resolveFirstVisiblePath(target: LayoutRouteRecord, parentPath = ''): string {
   const currentPath = resolveFullPath(target.path, parentPath)
   const visibleChildren = target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
-  if (!visibleChildren.length)
+  const firstVisibleChild = visibleChildren[0]
+  if (!firstVisibleChild)
     return currentPath
-  return resolveFirstVisiblePath(visibleChildren[0], currentPath)
+  return resolveFirstVisiblePath(firstVisibleChild, currentPath)
 }
 
 function jumpToFirstVisibleChild(target: LayoutRouteRecord, parentPath = '') {
@@ -387,18 +384,6 @@ function handleBrandClick() {
     router.push(targetPath)
 }
 
-function _handleToggleCollapse() {
-  if (typeof window !== 'undefined' && window.innerWidth < 960) {
-    layoutBridgeStore.requestSidebarToggle()
-    return
-  }
-  appStore.toggleSidebar()
-}
-
-function _handleTogglePin() {
-  appStore.setSidebarExpandOnHover(!appStore.sidebarExpandOnHover)
-}
-
 function handlePrimaryColumnHover(e: MouseEvent, mode: 'header-mix' | 'side-mixed') {
   if (appStore.sidebarExpandOnHover)
     return
@@ -415,6 +400,8 @@ function handlePrimaryColumnHover(e: MouseEvent, mode: 'header-mix' | 'side-mixe
     return
   const parentPath = mode === 'header-mix' ? headerMixParentPath.value : ''
   const target = routes[idx]
+  if (!target)
+    return
   const key = resolveFullPath(target.path, parentPath)
   if (mode === 'side-mixed') {
     sideMixedHoverKey.value = key

@@ -92,9 +92,9 @@ function getCssColorVar(varName: string, fallback = ''): string {
   // "142 71% 45%" → "hsl(142, 71%, 45%)"
   const parts = raw.split(/\s+/)
   if (parts.length >= 3) {
-    const h = parts[0]
-    const s = parts[1].endsWith('%') ? parts[1] : `${parts[1]}%`
-    const l = parts[2].endsWith('%') ? parts[2] : `${parts[2]}%`
+    const [h = '', sRaw = '', lRaw = ''] = parts
+    const s = sRaw.endsWith('%') ? sRaw : `${sRaw}%`
+    const l = lRaw.endsWith('%') ? lRaw : `${lRaw}%`
     return `hsl(${h}, ${s}, ${l})`
   }
   return fallback

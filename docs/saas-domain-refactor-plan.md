@@ -14,7 +14,7 @@
 4. `SysDepartment` 已要求树结构环路校验和闭包表语义，现有实现只做了普通树形 CRUD。
 5. `SysConstraintRule` 与 `SysFieldLevelSecurity` 已成为正式领域对象，但现有契约、查询、前端管理能力不完整。
 6. 现有前端页面和 API 类型中仍混用旧字段，如 `deptId`、`PermissionCode`、`Status`/`TenantStatus`、`RoleType`/`DataScope` 的旧数值假设。
-7. 当前前端 `pnpm type-check` 还有一批基础包错误，会影响 SaaS 模块的验证闭环，需要在后续质量门禁阶段统一收敛。
+7. 当前前端基础包类型错误已完成一轮收敛，`pnpm type-check` 与 `pnpm build` 均已通过；后端在切换到 `.NET SDK 10.0.107` 后开始暴露真实业务编译错误，说明后续批次可以围绕这些错误继续收口，而不再受先前 `10.0.202` workload 环境噪音干扰。
 8. 当前 `Infrastructure/Repositories` 基本按单实体平铺，缺少围绕聚合、租户上下文、授权上下文的数据访问边界，容易把查询拼装、租户过滤、软删过滤散落到服务层。
 9. 当前 `Application/AppServices/Implementations` 数量较多且职责偏横向 CRUD，后续必须按“命令编排 + 查询服务 + 内部领域服务”重切，而不是继续在 AppService 上叠逻辑。
 10. 当前 `Infrastructure/Settings` 仅看到 `RbacSettingStore`，说明配置键体系尚未系统化；缓存键、配置键、种子编码需要统一命名规范。
@@ -443,7 +443,7 @@
 | Batch-07 | `dotnet build` / 认证链自检 | Partial | Batch-07 三段已全部完成：07A 将正式初始化链中的 demo/test 数据从注册链剥离，新增 `SysUserSecuritySeeder` 与 `SysTenantUserSeeder` 用于补齐 `SysUser` 的安全档案和主租户成员关系，并将平台运行配置种子统一切到 `BasicApp:Saas:*`；07B 重建了 `SysOperation/SysResource/SysPermission/SysRole/SysRolePermission/SysMenu` 的平台模板 Seeder，全部改为 `TenantId=0 + IsGlobal=true` 的业务键幂等模式，并删除了 `SysConstraintRuleFeatureSeeder` 这类补丁式增量 Seeder；07C 则将 `SysTenant/SysDepartment/SysDepartmentHierarchy/SysUserRole/SysDict/SysDictItem` 改为默认租户业务键补齐模式，补齐默认租户部门树、平台用户与默认租户的角色绑定，并重建平台内置字典与字典项模板。针对性残留扫描已不再命中旧角色码、旧组织模板和旧增量 Seeder 引用。`dotnet build` 仍受本机 .NET SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
 | Batch-08 | `dotnet build` / 授权链自检 | Partial | Batch-08 已完成三段收口：08A 将认证、刷新令牌、当前用户、权限上下文和个人中心会话统一切到生效租户语义；08B 将注册与第三方登录入口统一切到目标租户 ID/编码解析，并补齐授权/回调链路透传；08C 则将 `UserAppService` 的角色/权限/部门分配、超管保护、用户创建默认租户，以及 `UserQueryService` 的角色映射和可访问租户读模型统一切到成员租户模型，不再把 `SysUser.TenantId` 当作当前操作租户。`dotnet build` 仍受本机 .NET SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误”，因此本批验证仍以代码事实扫描为主 |
 | Batch-09 | `dotnet build` / 安全出口自检 | Partial | Batch-09 已完成三段收口：09A 将角色/部门写路径统一切到显式租户或当前会话租户语义；09B 修复了菜单写路径未回写 `PermissionId/IsGlobal/Metadata` 的问题，并将全量菜单、角色菜单、用户菜单统一改为树形 UI 结构输出；09C 则把角色自定义数据范围正式收口到 `RoleManager.AssignDataScopeAsync`，补齐“数据范围部门必须属于同租户”的校验，并移除了 `OrganizationDomainService` 对部门闭包表失效的 BFS 兼容兜底，让闭包表回归正式语义。`dotnet build` 仍受本机 .NET SDK workload 异常阻塞，只输出“生成失败，0 个警告 0 个错误”，当前结论仍以代码事实扫描为主 |
-| Batch-10 | `pnpm type-check` / 页面联调自检 | Pending |  |
+| Batch-10 | `pnpm type-check` / 页面联调自检 | Partial | Batch-10A 已完成前端基础类型基线修复：`useTheme`、`iconify offline loader`、`request client`、`tabbar`、`AppHeader/AppSidebar`、`PreferenceLayoutTab`、`system/role`、`system/server`、`vite.config.ts` 已收敛到可通过 `pnpm type-check` 与 `pnpm build`。后端增加 `global.json` 后已强制切换到 `.NET SDK 10.0.107`，真实编译错误开始显性化，当前主要集中在仓储租户过滤泛型约束、日志分表仓储接口缺口、`AuthorizationChangeType` 引用漂移、若干 DTO/实体字段不匹配与服务实现签名偏差，作为下一批后端收口入口 |
 | Batch-11 | 汇总验证 | Pending |  |
 
 ### Batch-04 Sub-Validation
