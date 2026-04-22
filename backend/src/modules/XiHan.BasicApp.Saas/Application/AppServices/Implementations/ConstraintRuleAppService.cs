@@ -134,7 +134,7 @@ public class ConstraintRuleAppService
             RuleCode = createDto.RuleCode.Trim(),
             RuleName = createDto.RuleName.Trim(),
             ConstraintType = createDto.ConstraintType,
-            TargetType = Enum.Parse<ConstraintTargetType>(createDto.TargetType.Trim()),
+            TargetType = createDto.TargetType,
             Parameters = string.IsNullOrWhiteSpace(createDto.Parameters) ? "{}" : createDto.Parameters.Trim(),
             IsEnabled = createDto.IsEnabled,
             ViolationAction = createDto.ViolationAction,
@@ -154,7 +154,7 @@ public class ConstraintRuleAppService
         entity.RuleCode = updateDto.RuleCode.Trim();
         entity.RuleName = updateDto.RuleName.Trim();
         entity.ConstraintType = updateDto.ConstraintType;
-        entity.TargetType = Enum.Parse<ConstraintTargetType>(updateDto.TargetType.Trim());
+        entity.TargetType = updateDto.TargetType;
         entity.Parameters = string.IsNullOrWhiteSpace(updateDto.Parameters) ? "{}" : updateDto.Parameters.Trim();
         entity.IsEnabled = updateDto.IsEnabled;
         entity.ViolationAction = updateDto.ViolationAction;

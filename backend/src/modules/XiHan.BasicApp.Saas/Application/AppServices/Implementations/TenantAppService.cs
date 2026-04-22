@@ -137,7 +137,7 @@ public class TenantAppService
         tenant.ExpireTime = input.ExpireTime;
         tenant.Remark = input.Remark;
 
-        if (input.Status == YesOrNo.Yes)
+        if (input.TenantStatus == TenantStatus.Normal)
         {
             tenant.Enable();
         }

@@ -33,7 +33,7 @@ public class TenantAccessContextService(
     {
         var resolvedTenantId = NormalizeTenantId(tenantId) ?? 0;
         var now = DateTimeOffset.UtcNow;
-        var db = clientResolver.GetClient();
+        var db = clientResolver.GetCurrentClient();
 
         var membership = await db.Queryable<SysTenantUser>()
             .Where(m => m.UserId == userId && m.TenantId == resolvedTenantId)

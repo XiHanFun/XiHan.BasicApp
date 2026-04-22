@@ -123,8 +123,8 @@ public class RoleManager : IRoleManager
                 throw new BusinessException(message: "部分部门ID不存在");
             }
 
-            if (resolvedTenantId.HasValue
-                && existingDepts.Any(department => department.TenantId != resolvedTenantId.Value))
+            if (resolvedTenantId > 0
+                && existingDepts.Any(department => department.TenantId != resolvedTenantId))
             {
                 throw new BusinessException(message: "存在不属于当前租户的数据范围部门");
             }

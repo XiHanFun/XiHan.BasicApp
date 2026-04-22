@@ -599,13 +599,13 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// </summary>
     public async Task LogoutAsync()
     {
-        if (!CurrentUser.IsAuthenticated || !CurrentUser.UserId.HasValue)
+        var principal = _httpContextAccessor.HttpContext?.User;
+        var userId = principal?.FindUserId();
+        var tenantId = principal?.FindTenantId();
+        if (!userId.HasValue)
         {
             return;
         }
-
-        var userId = CurrentUser.UserId.Value;
-        var tenantId = CurrentUser.TenantId;
         var sessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -615,7 +615,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
         else
         {
-            await _authSessionManager.RevokeUserSessionsAsync(userId, "用户主动退出", tenantId);
+            await _authSessionManager.RevokeUserSessionsAsync(userId.Value, "用户主动退出", tenantId);
         }
 
         await uow.CompleteAsync();
