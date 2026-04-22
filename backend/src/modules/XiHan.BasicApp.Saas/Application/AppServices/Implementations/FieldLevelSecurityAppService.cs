@@ -15,6 +15,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -36,11 +37,15 @@ public class FieldLevelSecurityAppService
         IFieldLevelSecurityAppService
 {
     private readonly IFieldLevelSecurityRepository _repository;
+    private readonly IFieldSecurityCacheService _fieldSecurityCacheService;
 
-    public FieldLevelSecurityAppService(IFieldLevelSecurityRepository repository)
+    public FieldLevelSecurityAppService(
+        IFieldLevelSecurityRepository repository,
+        IFieldSecurityCacheService fieldSecurityCacheService)
         : base(repository)
     {
         _repository = repository;
+        _fieldSecurityCacheService = fieldSecurityCacheService;
     }
 
     [PermissionAuthorize("field_level_security:create")]
@@ -49,6 +54,7 @@ public class FieldLevelSecurityAppService
         input.ValidateAnnotations();
         var entity = await MapDtoToEntityAsync(input);
         var created = await _repository.AddAsync(entity);
+        await _fieldSecurityCacheService.InvalidateAsync(created.TenantId);
         return created.Adapt<FieldLevelSecurityDto>()!;
     }
 
@@ -62,6 +68,7 @@ public class FieldLevelSecurityAppService
 
         await MapDtoToEntityAsync(input, entity);
         var updated = await _repository.UpdateAsync(entity);
+        await _fieldSecurityCacheService.InvalidateAsync(updated.TenantId);
         return updated.Adapt<FieldLevelSecurityDto>()!;
     }
 
@@ -74,7 +81,13 @@ public class FieldLevelSecurityAppService
             return false;
         }
 
-        return await _repository.DeleteAsync(entity);
+        var deleted = await _repository.DeleteAsync(entity);
+        if (deleted)
+        {
+            await _fieldSecurityCacheService.InvalidateAsync(entity.TenantId);
+        }
+
+        return deleted;
     }
 
     protected override Task<SysFieldLevelSecurity> MapDtoToEntityAsync(FieldLevelSecurityCreateDto createDto)

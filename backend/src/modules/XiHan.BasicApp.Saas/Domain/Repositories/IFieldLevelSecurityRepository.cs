@@ -22,4 +22,12 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IFieldLevelSecurityRepository : IRepositoryBase<SysFieldLevelSecurity, long>
 {
+    Task<IReadOnlyCollection<SysFieldLevelSecurity>> GetEffectiveRulesAsync(
+        long userId,
+        long? tenantId,
+        long resourceId,
+        IReadOnlyCollection<long> roleIds,
+        IReadOnlyCollection<long> permissionIds,
+        IReadOnlyCollection<string>? fieldNames = null,
+        CancellationToken cancellationToken = default);
 }

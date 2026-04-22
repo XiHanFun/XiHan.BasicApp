@@ -463,6 +463,7 @@
 - [x] Batch-10A 前端基础类型与构建基线修复
 - [x] Batch-10B 后端编译基线收口
 - [x] Batch-10C FLS 管理纵向切片补齐
+- [x] Batch-10D FLS 决策执行链基线
 
 ### Batch-10 Sub-Validation
 
@@ -471,6 +472,7 @@
 | Batch-10A | `pnpm type-check` / `pnpm build` | Passed | 已完成前端基础类型与构建基线修复，`useTheme`、request client、布局与系统页的关键类型错误已收口，前端类型检查与生产构建通过 |
 | Batch-10B | `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj -v minimal` / `pnpm type-check` / `pnpm build` | Passed | 已完成 SaaS 模块后端编译收口，`global.json` 锁定 `.NET SDK 10.0.107` 后，SaaS 模块编译通过；前端类型检查与生产构建继续通过，剩余为 XML 注释、nullable、NuGet `NU5104` 及前端打包 warning |
 | Batch-10C | `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj -v minimal` / `pnpm type-check` / `pnpm build` / 组件路径自检 | Passed | 已新增 `SysFieldLevelSecurity` 的 DTO、仓储、应用服务、服务注册与前端 API/系统页，并将平台资源、权限、角色权限模板、菜单模板补齐到 FLS 管理链；前端 `bootstrap` 额外补齐 `System/FieldLevelSecurity/Index -> system/field-level-security/index.vue` 的显式映射，避免动态菜单组件路径在 PascalCase/连字符转换上出现运行时缺口。当前 SaaS 模块编译、前端类型检查和生产构建均通过；种子变更需重新执行 Seeder 后才会反映到运行菜单 |
+| Batch-10D | `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj -v minimal` / 代码事实自检 | Passed | 已新增 `IFieldSecurityService`、`IFieldSecurityCacheService`、`UserFieldSecurityQuery` 和 `AuthAppService.GetFieldSecurityAsync`，把 FLS 从“仅管理 CRUD”推进到“当前会话用户可按资源查询实际字段决策”的执行链；命中规则按 `Priority` 优先级收敛，优先级相同则执行 deny-overrides，并引入 `basicapp:saas:fls:*` 版本化缓存键，FLS 写路径变更时同步失效对应租户缓存。当前后端 SaaS 模块编译通过；前端尚未接入该新查询出口，留待后续系统页联调批次使用 |
 
 ### Batch-04 Sub-Validation
 

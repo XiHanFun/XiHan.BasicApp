@@ -85,6 +85,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IAuthSessionManager _authSessionManager;
     private readonly IAuthNotificationService _authNotificationService;
     private readonly ITenantAccessContextService _tenantAccessContextService;
+    private readonly IFieldSecurityService _fieldSecurityService;
 
     /// <summary>
     /// 构造函数
@@ -108,7 +109,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IOptions<OAuthOptions> oauthOptions,
         IAuthSessionManager authSessionManager,
         IAuthNotificationService authNotificationService,
-        ITenantAccessContextService tenantAccessContextService)
+        ITenantAccessContextService tenantAccessContextService,
+        IFieldSecurityService fieldSecurityService)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -129,6 +131,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         _authSessionManager = authSessionManager;
         _authNotificationService = authNotificationService;
         _tenantAccessContextService = tenantAccessContextService;
+        _fieldSecurityService = fieldSecurityService;
     }
 
     /// <summary>
@@ -657,6 +660,15 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         }
 
         return await _authorizationContextService.GetUserDataScopeDepartmentIdsAsync(query.UserId, query.TenantId);
+    }
+
+    /// <summary>
+    /// 获取当前登录用户的字段级安全决策
+    /// </summary>
+    public async Task<FieldSecurityDecisionDto> GetFieldSecurityAsync(UserFieldSecurityQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        return await _fieldSecurityService.GetCurrentUserFieldSecurityAsync(query.ResourceCode, query.FieldNames);
     }
 
     /// <summary>

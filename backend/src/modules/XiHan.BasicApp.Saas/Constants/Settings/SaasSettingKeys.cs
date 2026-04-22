@@ -25,6 +25,8 @@ public static class SaasSettingKeys
     {
         public const string AuthorizationAbsoluteExpirationMinutes = $"{Prefix}:Caching:Authorization:AbsoluteExpirationMinutes";
         public const string AuthorizationSlidingExpirationMinutes = $"{Prefix}:Caching:Authorization:SlidingExpirationMinutes";
+        public const string FieldSecurityAbsoluteExpirationMinutes = $"{Prefix}:Caching:FieldSecurity:AbsoluteExpirationMinutes";
+        public const string FieldSecuritySlidingExpirationMinutes = $"{Prefix}:Caching:FieldSecurity:SlidingExpirationMinutes";
         public const string LookupAbsoluteExpirationMinutes = $"{Prefix}:Caching:Lookup:AbsoluteExpirationMinutes";
         public const string LookupSlidingExpirationMinutes = $"{Prefix}:Caching:Lookup:SlidingExpirationMinutes";
         public const string MessageUnreadAbsoluteExpirationMinutes = $"{Prefix}:Caching:MessageUnread:AbsoluteExpirationMinutes";
