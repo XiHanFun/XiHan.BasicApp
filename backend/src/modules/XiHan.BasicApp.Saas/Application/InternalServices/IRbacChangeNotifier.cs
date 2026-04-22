@@ -1,4 +1,4 @@
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Application.Caching.Events;
 
 namespace XiHan.BasicApp.Saas.Application.InternalServices;
 

@@ -51,11 +51,15 @@ function fmtBytes(bytes: unknown) {
 function fmtUptime(raw: unknown) {
   const s = String(raw ?? '')
   const dm = s.match(/^(\d+)\.(\d+):(\d+):(\d+)/)
-  if (dm)
-    return `${dm[1]}天 ${dm[2]}时${dm[3]}分${dm[4]}秒`
+  if (dm) {
+    const [, day = '0', hour = '0', minute = '0', second = '0'] = dm
+    return `${day}天 ${hour}时${minute}分${second}秒`
+  }
   const hm = s.match(/^(\d+):(\d+):(\d+)/)
-  if (hm)
-    return `${hm[1]}时${hm[2]}分${hm[3].split('.')[0]}秒`
+  if (hm) {
+    const [, hour = '0', minute = '0', second = '0'] = hm
+    return `${hour}时${minute}分${second.split('.')[0]}秒`
+  }
   return s || '-'
 }
 

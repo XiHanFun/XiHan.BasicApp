@@ -1,5 +1,4 @@
 using XiHan.BasicApp.Saas.Application.Caching.Events;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 

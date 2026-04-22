@@ -13,6 +13,7 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
+  const apiPrefix = env.VITE_API_PREFIX || '/api'
 
   return {
     define: {
@@ -51,7 +52,7 @@ export default defineConfig(({ mode }) => {
         clientFiles: ['./src/main.ts', './src/App.vue', './packages/layouts/basic/index.vue'],
       },
       proxy: {
-        [env.VITE_API_PREFIX]: {
+        [apiPrefix]: {
           target: env.VITE_DEV_PROXY_TARGET,
           changeOrigin: true,
         },

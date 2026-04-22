@@ -304,7 +304,7 @@ async function loadNotifications() {
   notificationStore.loading = true
   try {
     const list = await appContext.apis.userInboxApi.list(String(userId), true, userStore.userInfo?.tenantId)
-    notificationStore.setItems(list.map(n => ({
+    notificationStore.setItems(list.map((n: Record<string, any>) => ({
       basicId: n.basicId,
       title: n.title,
       content: n.content,

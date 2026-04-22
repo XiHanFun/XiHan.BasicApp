@@ -23,6 +23,19 @@ interface RequestMeta {
   url: string
 }
 
+function asRecord(value: unknown): AnyRecord | undefined {
+  return value && typeof value === 'object' ? value as AnyRecord : undefined
+}
+
+function readResponseLogFields(payload: unknown) {
+  const record = asRecord(payload)
+  return {
+    code: record?.code as string | number | undefined,
+    message: typeof record?.message === 'string' ? record.message : undefined,
+    traceId: typeof record?.traceId === 'string' ? record.traceId : undefined,
+  }
+}
+
 /** Flat 请求的返回结构：data 和 error 互斥 */
 export interface FlatRequestResult<T> {
   data: T | null
@@ -77,7 +90,7 @@ export class RequestClient {
   }
 
   private tryExtractMeta(config: unknown): RequestMeta | null {
-    const raw = (config as AnyRecord | undefined)?._meta as RequestMeta | undefined
+    const raw = asRecord(config)?._meta as RequestMeta | undefined
     return raw ?? null
   }
 
@@ -100,7 +113,7 @@ export class RequestClient {
             method,
             url,
           }
-          Object.assign(config as AnyRecord, { _meta: meta })
+          Object.assign(config as unknown as AnyRecord, { _meta: meta })
           config.headers['X-Request-Id'] = requestId
 
           appendRequestLog({
@@ -131,15 +144,15 @@ export class RequestClient {
         const meta = this.tryExtractMeta(response.config)
         if (meta) {
           const now = Date.now()
-          const payload = response.data as AnyRecord | undefined
+          const payload = readResponseLogFields(response.data)
           updateRequestLog(meta.requestId, {
             finishedAt: now,
             duration: Math.max(0, now - meta.startedAt),
             status: 'success',
             statusCode: response.status,
-            responseCode: payload?.code,
-            message: payload?.message,
-            traceId: payload?.traceId,
+            responseCode: payload.code,
+            message: payload.message,
+            traceId: payload.traceId,
           })
         }
         return response
@@ -157,15 +170,15 @@ export class RequestClient {
         const meta = this.tryExtractMeta(error?.config)
         if (meta) {
           const now = Date.now()
-          const payload = error?.response?.data as AnyRecord | undefined
+          const payload = readResponseLogFields(error?.response?.data)
           updateRequestLog(meta.requestId, {
             finishedAt: now,
             duration: Math.max(0, now - meta.startedAt),
             status: 'error',
             statusCode: error?.response?.status,
-            responseCode: payload?.code,
-            message: payload?.message ?? error?.message ?? '请求失败',
-            traceId: payload?.traceId,
+            responseCode: payload.code,
+            message: payload.message ?? error?.message ?? '请求失败',
+            traceId: payload.traceId,
           })
         }
 
@@ -275,14 +288,15 @@ export class RequestClient {
   async request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.request<ApiResponse<T> | T>(config)
     const { data } = response
-    const typed = data as AnyRecord
+    const typed = asRecord(data)
     const meta = this.tryExtractMeta(response.config)
 
-    if (typed && typeof typed === 'object') {
+    if (typed) {
       const responseData = typed.data
       const responseCode = typed.code
       const responseSuccess = typed.isSuccess
       const responseMessage = typed.message
+      const traceId = typeof typed.traceId === 'string' ? typed.traceId : undefined
       const hasEnvelope = responseData !== undefined && (responseCode !== undefined || responseSuccess !== undefined)
 
       if (hasEnvelope) {
@@ -296,12 +310,12 @@ export class RequestClient {
             duration: Math.max(0, now - meta.startedAt),
             status: 'error',
             statusCode: response.status,
-            responseCode,
-            message: (responseMessage as string) || '请求失败',
-            traceId: typed.traceId,
+            responseCode: typeof responseCode === 'string' || typeof responseCode === 'number' ? responseCode : undefined,
+            message: typeof responseMessage === 'string' ? responseMessage : '请求失败',
+            traceId,
           })
         }
-        return Promise.reject(new Error((responseMessage as string) || '请求失败'))
+        return Promise.reject(new Error(typeof responseMessage === 'string' ? responseMessage : '请求失败'))
       }
     }
 
