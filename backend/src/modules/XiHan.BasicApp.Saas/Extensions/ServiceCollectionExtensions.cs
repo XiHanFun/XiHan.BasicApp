@@ -72,6 +72,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IConfigRepository, ConfigRepository>();
         services.AddScoped<IConstraintRuleRepository, ConstraintRuleRepository>();
+        services.AddScoped<IFieldLevelSecurityRepository, FieldLevelSecurityRepository>();
         services.AddScoped<IDictRepository, DictRepository>();
         services.AddScoped<IFileRepository, FileRepository>();
         services.AddScoped<IEmailRepository, EmailRepository>();
@@ -145,6 +146,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantAppService, TenantAppService>();
         services.AddScoped<IConfigAppService, ConfigAppService>();
         services.AddScoped<IConstraintRuleAppService, ConstraintRuleAppService>();
+        services.AddScoped<IFieldLevelSecurityAppService, FieldLevelSecurityAppService>();
         services.AddScoped<IDictAppService, DictAppService>();
         services.AddScoped<IEnumAppService, EnumAppService>();
         services.AddScoped<IFileAppService, FileAppService>();

@@ -133,7 +133,7 @@ public class SysPermissionSeeder : DataSeederBase
             return ["read", "view", "export"];
         }
 
-        if (resourceCode is "constraint_rule" or "role" or "permission" or "tenant")
+        if (resourceCode is "constraint_rule" or "field_level_security" or "role" or "permission" or "tenant")
         {
             return ["read", "view", "create", "update", "delete", "grant", "revoke", "enable", "disable", "export"];
         }
@@ -164,7 +164,7 @@ public class SysPermissionSeeder : DataSeederBase
     {
         var tags = new List<string>();
 
-        if (resourceCode is "tenant" or "permission" or "role" or "constraint_rule" or "menu")
+        if (resourceCode is "tenant" or "permission" or "role" or "constraint_rule" or "field_level_security" or "menu")
         {
             tags.Add("platform");
         }
@@ -184,7 +184,7 @@ public class SysPermissionSeeder : DataSeederBase
 
     private static int ResolvePermissionPriority(string resourceCode, string operationCode)
     {
-        if (resourceCode is "tenant" or "permission" or "constraint_rule")
+        if (resourceCode is "tenant" or "permission" or "constraint_rule" or "field_level_security")
         {
             return 100;
         }
