@@ -84,10 +84,11 @@ public class RbacOperationLogWriter : IOperationLogWriter
         }
 
         var sessionId = ResolveSessionId(httpContext, record);
+        var tenantId = _currentTenant.Id ?? 0;
 
         var entity = new SysOperationLog
         {
-            TenantId = _currentTenant.Id.Value,
+            TenantId = tenantId,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             TraceId = RbacLogMappingHelper.TrimOrNull(traceId, 64),
