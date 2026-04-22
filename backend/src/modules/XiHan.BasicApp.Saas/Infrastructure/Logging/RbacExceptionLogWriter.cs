@@ -76,10 +76,11 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
         var clientInfo = _clientInfoProvider.GetCurrent();
         var sessionId = _httpContextAccessor.HttpContext?.Features.Get<ISessionFeature>()?.Session?.Id;
         var operationType = RbacLogMappingHelper.ResolveOperationTypeByHttpMethod(record.Method);
+        var tenantId = _currentTenant.Id ?? 0;
 
         var entity = new SysExceptionLog
         {
-            TenantId = _currentTenant.Id.Value,
+            TenantId = tenantId,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
