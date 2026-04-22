@@ -449,12 +449,14 @@
 ### Batch-11 Sub-Status
 
 - [x] Batch-11A 核心系统页契约联调第一轮
+- [x] Batch-11B 剩余系统页字段语义收口
 
 ### Batch-11 Sub-Validation
 
 | Sub-Batch | Validation | Result | Notes |
 |-----------|------------|--------|-------|
 | Batch-11A | `pnpm type-check` / `pnpm build` / `dotnet build` | Passed | 已完成用户、角色、菜单、租户四个高风险系统页的第一轮契约联调。前端类型检查和生产构建通过；后端 SaaS 模块编译通过，剩余为 XML 注释、nullable、NuGet 预发布依赖等 warning |
+| Batch-11B | `pnpm type-check` / `pnpm build` | Passed | 已继续收口 `system/permission`、`system/department`、`system/constraint-rule` 三个系统页的实体字段语义：权限页不再静默使用旧的 `resourceId=1 / operationId=1` 默认挂载，改为显式维护资源/操作 ID；部门页补齐地址与备注；约束规则页补齐平台级全局规则开关。当前前端类型检查和生产构建继续通过；权限页仍缺资源/操作专用下拉 API，后续可在更细分批次补齐读模型与选择器体验 |
 
 ### Batch-04 Sub-Validation
 
