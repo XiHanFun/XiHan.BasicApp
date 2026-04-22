@@ -51,6 +51,7 @@ public class UserAppService
     private readonly IUserQueryService _queryService;
     private readonly ISuperAdminGuard _superAdminGuard;
     private readonly IRbacChangeNotifier _rbacChangeNotifier;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -74,6 +75,7 @@ public class UserAppService
         IUserQueryService queryService,
         ISuperAdminGuard superAdminGuard,
         IRbacChangeNotifier rbacChangeNotifier,
+        ITenantAccessContextService tenantAccessContextService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(userRepository)
     {
@@ -85,6 +87,7 @@ public class UserAppService
         _queryService = queryService;
         _superAdminGuard = superAdminGuard;
         _rbacChangeNotifier = rbacChangeNotifier;
+        _tenantAccessContextService = tenantAccessContextService;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -179,6 +182,7 @@ public class UserAppService
                    ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
 
         var roleIds = command.RoleIds.Where(id => id > 0).Distinct().ToArray();
+        var assignmentTenantId = await ResolveOperationTenantIdAsync(command.TenantId, user);
         var roles = Array.Empty<SysRole>();
         if (roleIds.Length > 0)
         {
@@ -188,17 +192,17 @@ public class UserAppService
                 throw new BusinessException(message: "存在无效角色 ID");
             }
         }
-        await _superAdminGuard.EnsureRoleAssignmentAllowedAsync(user, roleIds, roles, command.TenantId ?? user.TenantId);
+        await _superAdminGuard.EnsureRoleAssignmentAllowedAsync(user, roleIds, roles, assignmentTenantId);
 
         await _userRepository.ReplaceUserRolesAsync(
             command.UserId,
             roleIds,
-            command.TenantId ?? user.TenantId);
+            assignmentTenantId);
 
         user.MarkRolesChanged(roleIds);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(assignmentTenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -220,6 +224,7 @@ public class UserAppService
                    ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
 
         var permissionIds = command.PermissionIds.Where(id => id > 0).Distinct().ToArray();
+        var assignmentTenantId = await ResolveOperationTenantIdAsync(command.TenantId, user);
         if (permissionIds.Length > 0)
         {
             var permissions = await _permissionRepository.GetByIdsAsync(permissionIds);
@@ -232,12 +237,12 @@ public class UserAppService
         await _userRepository.ReplaceUserPermissionsAsync(
             command.UserId,
             permissionIds,
-            command.TenantId ?? user.TenantId);
+            assignmentTenantId);
 
         user.MarkPermissionsChanged(permissionIds);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.Permission);
+        await _rbacChangeNotifier.NotifyAsync(assignmentTenantId, AuthorizationChangeType.Permission);
     }
 
     /// <summary>
@@ -259,6 +264,7 @@ public class UserAppService
                    ?? throw new KeyNotFoundException($"未找到用户: {command.UserId}");
 
         var departmentIds = command.DepartmentIds.Where(id => id > 0).Distinct().ToArray();
+        var assignmentTenantId = await ResolveOperationTenantIdAsync(command.TenantId, user);
         if (departmentIds.Length > 0)
         {
             var departments = await _departmentRepository.GetByIdsAsync(departmentIds);
@@ -279,12 +285,12 @@ public class UserAppService
             command.UserId,
             departmentIds,
             command.MainDepartmentId,
-            command.TenantId ?? user.TenantId);
+            assignmentTenantId);
 
         user.MarkDepartmentsChanged(departmentIds, command.MainDepartmentId);
         await _userRepository.UpdateAsync(user);
         await uow.CompleteAsync();
-        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? user.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(assignmentTenantId, AuthorizationChangeType.DataScope);
     }
 
     /// <summary>
@@ -307,7 +313,8 @@ public class UserAppService
 
         if (command.Status != YesOrNo.Yes)
         {
-            await _superAdminGuard.EnsureAccountMutableAsync(user, user.TenantId, "禁用");
+            var operationTenantId = await ResolveOperationTenantIdAsync(null, user);
+            await _superAdminGuard.EnsureAccountMutableAsync(user, operationTenantId, "禁用");
         }
 
         if (command.Status == YesOrNo.Yes)
@@ -364,7 +371,7 @@ public class UserAppService
 
         var user = new SysUser
         {
-            TenantId = input.TenantId ?? 0,
+            TenantId = await ResolveCreateTenantIdAsync(input),
             UserName = input.UserName.Trim(),
             RealName = input.RealName,
             NickName = input.NickName,
@@ -408,7 +415,8 @@ public class UserAppService
         }
         else
         {
-            await _superAdminGuard.EnsureAccountMutableAsync(user, user.TenantId, "禁用");
+            var operationTenantId = await ResolveOperationTenantIdAsync(null, user);
+            await _superAdminGuard.EnsureAccountMutableAsync(user, operationTenantId, "禁用");
             user.Disable();
         }
 
@@ -469,7 +477,8 @@ public class UserAppService
         {
             return false;
         }
-        await _superAdminGuard.EnsureAccountMutableAsync(user, user.TenantId, "删除");
+        var operationTenantId = await ResolveOperationTenantIdAsync(null, user);
+        await _superAdminGuard.EnsureAccountMutableAsync(user, operationTenantId, "删除");
 
         await _userRepository.DeleteAsync(user);
         await uow.CompleteAsync();
@@ -478,8 +487,11 @@ public class UserAppService
 
     private async Task<UserDto> MapUserToDtoAsync(SysUser user)
     {
-        var relations = await _userRepository.GetUserRolesAsync(user.BasicId, user.TenantId);
-        return MapUser(user, relations.Select(relation => relation.RoleId).Distinct().ToArray());
+        var operationTenantId = await ResolveOperationTenantIdAsync(null, user);
+        var relations = await _userRepository.GetUserRolesAsync(user.BasicId, operationTenantId);
+        var dto = MapUser(user, relations.Select(relation => relation.RoleId).Distinct().ToArray());
+        dto.AccessibleTenantIds = await _userRepository.GetAccessibleTenantIdsAsync(user.BasicId);
+        return dto;
     }
 
     private static UserDto MapUser(SysUser user, IReadOnlyList<long>? roleIds)
@@ -487,6 +499,40 @@ public class UserAppService
         var dto = user.Adapt<UserDto>()!;
         dto.RoleIds = roleIds?.Where(id => id > 0).Distinct().ToArray() ?? [];
         return dto;
+    }
+
+    private async Task<long?> ResolveOperationTenantIdAsync(long? requestedTenantId, SysUser user)
+    {
+        if (requestedTenantId.HasValue && requestedTenantId.Value > 0)
+        {
+            await _tenantAccessContextService.EnsureTenantAccessAsync(user.BasicId, requestedTenantId);
+            return requestedTenantId;
+        }
+
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        if (currentContext?.CurrentTenantId is { } currentTenantId)
+        {
+            await _tenantAccessContextService.EnsureTenantAccessAsync(user.BasicId, currentTenantId);
+            return currentTenantId;
+        }
+
+        return user.TenantId > 0 ? user.TenantId : null;
+    }
+
+    private async Task<long> ResolveCreateTenantIdAsync(UserCreateDto input)
+    {
+        if (input.TenantId.HasValue && input.TenantId.Value > 0)
+        {
+            return input.TenantId.Value;
+        }
+
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        if (currentContext?.CurrentTenantId is { } currentTenantId)
+        {
+            return currentTenantId;
+        }
+
+        return 0;
     }
 
 }

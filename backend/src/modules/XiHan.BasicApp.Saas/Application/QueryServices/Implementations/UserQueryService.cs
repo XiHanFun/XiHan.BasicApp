@@ -14,6 +14,7 @@
 
 using Mapster;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Attributes;
@@ -27,13 +28,15 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public class UserQueryService : IUserQueryService, ITransientDependency
 {
     private readonly IUserRepository _userRepository;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public UserQueryService(IUserRepository userRepository)
+    public UserQueryService(IUserRepository userRepository, ITenantAccessContextService tenantAccessContextService)
     {
         _userRepository = userRepository;
+        _tenantAccessContextService = tenantAccessContextService;
     }
 
     /// <inheritdoc />
@@ -46,7 +49,8 @@ public class UserQueryService : IUserQueryService, ITransientDependency
             return null;
         }
 
-        return await MapUserToDtoAsync(entity, entity.TenantId);
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        return await MapUserToDtoAsync(entity, currentContext?.CurrentTenantId ?? (entity.TenantId > 0 ? entity.TenantId : null));
     }
 
     /// <inheritdoc />
@@ -102,6 +106,7 @@ public class UserQueryService : IUserQueryService, ITransientDependency
     {
         var dto = entity.Adapt<UserDto>()!;
         var relations = await _userRepository.GetUserRolesAsync(entity.BasicId, tenantId);
+        dto.AccessibleTenantIds = await _userRepository.GetAccessibleTenantIdsAsync(entity.BasicId);
         dto.RoleIds = relations
             .Select(relation => relation.RoleId)
             .Distinct()

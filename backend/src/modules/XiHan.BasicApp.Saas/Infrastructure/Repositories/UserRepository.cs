@@ -408,6 +408,22 @@ public class UserRepository : SqlSugarAggregateRepository<SysUser, long>, IUserR
         return membership;
     }
 
+    public async Task<IReadOnlyCollection<long>> GetAccessibleTenantIdsAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        return await CreateQueryable<SysTenantUser>()
+            .Where(membership => membership.UserId == userId)
+            .Where(membership => !membership.IsDeleted
+                                 && membership.Status == YesOrNo.Yes
+                                 && membership.InviteStatus == TenantMemberInviteStatus.Accepted)
+            .Where(membership => !membership.EffectiveTime.HasValue || membership.EffectiveTime <= now)
+            .Where(membership => !membership.ExpirationTime.HasValue || membership.ExpirationTime >= now)
+            .Select(membership => membership.TenantId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     /// <summary>
     /// 按租户优先级获取首个用户（优先指定租户，回退到全局租户）
     /// </summary>
