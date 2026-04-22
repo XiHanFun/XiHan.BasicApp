@@ -85,9 +85,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
 
-        // 日志仓储
-        services.AddScoped<ILoginLogRepository, LoginLogRepository>();
-
         // 分表日志仓储
         services.AddScoped<IAccessLogSplitRepository, AccessLogSplitRepository>();
         services.AddScoped<IAuditLogSplitRepository, AuditLogSplitRepository>();

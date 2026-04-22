@@ -69,7 +69,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     private readonly IUserRepository _userRepository;
     private readonly IUserManager _userManager;
     private readonly IAuthorizationContextService _authorizationContextService;
-    private readonly ILoginLogRepository _loginLogRepository;
+    private readonly ILoginLogSplitRepository _loginLogRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IOtpService _otpService;
     private readonly IPasswordHasher _passwordHasher;
@@ -94,7 +94,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         IUserRepository userRepository,
         IUserManager userManager,
         IAuthorizationContextService authorizationContextService,
-        ILoginLogRepository loginLogRepository,
+        ILoginLogSplitRepository loginLogRepository,
         IJwtTokenService jwtTokenService,
         IOtpService otpService,
         IPasswordHasher passwordHasher,
