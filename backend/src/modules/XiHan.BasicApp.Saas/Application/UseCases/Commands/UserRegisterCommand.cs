@@ -55,7 +55,13 @@ public class UserRegisterCommand
     public string? Phone { get; set; }
 
     /// <summary>
-    /// 租户ID
+    /// 目标租户ID
     /// </summary>
-    public long? TenantId { get; set; }
+    public long? TargetTenantId { get; set; }
+
+    /// <summary>
+    /// 目标租户编码
+    /// </summary>
+    [StringLength(64, ErrorMessage = "租户编码长度不能超过 64")]
+    public string? TargetTenantCode { get; set; }
 }
