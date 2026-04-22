@@ -198,6 +198,13 @@ export const menuApi = {
 
   delete: (id: string) => api.delete(id),
 
+  roleMenus: async (roleId: string, tenantId?: string): Promise<SysMenu[]> => {
+    const id = toId(roleId)
+    const resolvedTenantId = tenantId ? toId(tenantId) : '0'
+    const data = await api.request.get<any>(`${api.baseUrl}RoleMenus/${id}/${resolvedTenantId}`)
+    return normalizeMenuArray(data)
+  },
+
   userMenuRoutes: async (): Promise<MenuRoute[]> => {
     const data = await api.request.get<any>(`${api.baseUrl}UserMenus`)
     const menus = normalizeMenuArray(data)
@@ -215,4 +222,5 @@ export function updateMenuApi(id: string, data: Partial<SysMenu>) {
   return menuApi.update({ ...data, basicId: data.basicId ?? id })
 }
 export const deleteMenuApi = menuApi.delete
+export const getRoleMenusApi = menuApi.roleMenus
 export const getUserMenuRoutesApi = menuApi.userMenuRoutes

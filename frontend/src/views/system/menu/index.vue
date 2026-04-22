@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VxeGridInstance } from 'vxe-table'
 import type { SysMenu } from '@/api/modules/menu'
+import type { SysPermission } from '@/api/modules/permission'
 import {
   NButton,
   NCascader,
@@ -17,7 +18,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
-import { menuApi } from '@/api'
+import { menuApi, permissionApi } from '@/api'
 import { useVxeTable } from '~/hooks'
 import { Icon, IconPicker } from '~/iconify'
 import { getOptionLabel } from '~/utils'
@@ -28,6 +29,7 @@ const message = useMessage()
 const xGrid = ref<VxeGridInstance>()
 const loading = ref(false)
 const tableData = ref<SysMenu[]>([])
+const permissionOptions = ref<Array<{ label: string, value: string }>>([])
 
 const MENU_TYPE_OPTIONS = [
   { label: '目录', value: 0 },
@@ -85,15 +87,22 @@ const treeOptions = computed(() => {
 async function fetchData() {
   try {
     loading.value = true
-    const list = await menuApi.list()
+    const [list, permissions] = await Promise.all([
+      menuApi.list(),
+      permissionApi.list(),
+    ])
     const flat = flattenMenuTree(list)
     tableData.value = flat.map(item => ({
       ...item,
       parentId: item.parentId || ROOT_ID,
     }))
+    permissionOptions.value = permissions.map((item: SysPermission) => ({
+      label: `${item.permissionName} (${item.permissionCode})`,
+      value: item.basicId,
+    }))
   }
   catch {
-    message.error('获取菜单列表失败')
+    message.error('获取菜单或权限列表失败')
   }
   finally {
     loading.value = false
@@ -115,10 +124,22 @@ const options = useVxeTable<SysMenu>(
       },
       { field: 'menuCode', title: '权限标识', minWidth: 160, showOverflow: 'tooltip' },
       {
+        field: 'permissionId',
+        title: '可见权限',
+        minWidth: 180,
+        showOverflow: 'tooltip',
+      },
+      {
         field: 'menuType',
         title: '类型',
         width: 80,
         slots: { default: 'col_type' },
+      },
+      {
+        field: 'isGlobal',
+        title: '全局',
+        width: 70,
+        slots: { default: 'col_global' },
       },
       { field: 'icon', title: '图标', width: 80, slots: { default: 'col_icon' } },
       { field: 'path', title: '路由路径', minWidth: 180, showOverflow: 'tooltip' },
@@ -192,13 +213,17 @@ function resetForm() {
     redirect: '',
     icon: '',
     title: '',
+    permissionId: undefined,
+    isGlobal: false,
     isExternal: false,
+    externalUrl: '',
     isCache: true,
     isVisible: true,
     isAffix: false,
     badge: '',
     badgeType: '',
     badgeDot: false,
+    metadata: '',
     sort: 0,
     status: 1,
     remark: '',
@@ -273,6 +298,11 @@ onMounted(fetchData)
             size="small"
           >
             {{ getOptionLabel(MENU_TYPE_OPTIONS, row.menuType) }}
+          </NTag>
+        </template>
+        <template #col_global="{ row }">
+          <NTag :type="row.isGlobal ? 'warning' : 'default'" size="small">
+            {{ row.isGlobal ? '是' : '否' }}
           </NTag>
         </template>
         <template #col_icon="{ row }">
@@ -367,6 +397,18 @@ onMounted(fetchData)
           <NFormItem label="排序" path="sort">
             <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
           </NFormItem>
+          <NFormItem label="可见权限" path="permissionId">
+            <NSelect
+              v-model:value="formData.permissionId"
+              :options="permissionOptions"
+              clearable
+              filterable
+              placeholder="不绑定则默认不受权限点控制"
+            />
+          </NFormItem>
+          <NFormItem label="全局菜单" path="isGlobal">
+            <NSwitch v-model:value="formData.isGlobal" />
+          </NFormItem>
 
           <!-- 路由信息（仅目录/菜单） -->
           <NFormItem v-if="formData.menuType !== 2" label="路由路径" path="path">
@@ -383,6 +425,12 @@ onMounted(fetchData)
           </NFormItem>
           <NFormItem v-if="formData.menuType !== 2" label="图标" path="icon">
             <IconPicker v-model="formData.icon" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="标题" path="title">
+            <NInput v-model:value="formData.title" placeholder="路由标题，不填则默认菜单名称" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2 && formData.isExternal" label="外链地址" path="externalUrl">
+            <NInput v-model:value="formData.externalUrl" placeholder="https://example.com" />
           </NFormItem>
 
           <!-- 标签信息（仅目录/菜单） -->
@@ -404,6 +452,20 @@ onMounted(fetchData)
           </NFormItem>
           <NFormItem v-if="formData.menuType !== 2" label="仅显示圆点">
             <NSwitch v-model:value="formData.badgeDot" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="外链菜单">
+            <NSwitch v-model:value="formData.isExternal" />
+          </NFormItem>
+          <NFormItem v-if="formData.menuType !== 2" label="固定标签">
+            <NSwitch v-model:value="formData.isAffix" />
+          </NFormItem>
+          <NFormItem label="元数据 JSON" path="metadata" class="menu-form-full">
+            <NInput
+              v-model:value="formData.metadata"
+              type="textarea"
+              :rows="3"
+              placeholder="扩展元数据 JSON，可留空"
+            />
           </NFormItem>
 
           <!-- 状态开关 -->

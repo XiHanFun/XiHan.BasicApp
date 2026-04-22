@@ -6,6 +6,7 @@ import {
   NForm,
   NFormItem,
   NInput,
+  NInputNumber,
   NModal,
   NPopconfirm,
   NSelect,
@@ -121,11 +122,17 @@ function resetForm() {
   formData.value = {
     tenantName: '',
     tenantCode: '',
+    tenantShortName: '',
     contactPerson: '',
     contactPhone: '',
     contactEmail: '',
+    domain: '',
     isolationMode: 0,
     tenantStatus: 0,
+    userLimit: undefined,
+    storageLimit: undefined,
+    expireTime: undefined,
+    sort: 0,
     remark: '',
   }
 }
@@ -253,11 +260,17 @@ async function handleSubmit() {
         <NFormItem label="联系人" path="contactPerson">
           <NInput v-model:value="formData.contactPerson" placeholder="联系人姓名" />
         </NFormItem>
+        <NFormItem label="租户简称" path="tenantShortName">
+          <NInput v-model:value="formData.tenantShortName" placeholder="租户简称" />
+        </NFormItem>
         <NFormItem label="联系电话" path="contactPhone">
           <NInput v-model:value="formData.contactPhone" placeholder="联系电话" />
         </NFormItem>
         <NFormItem label="联系邮箱" path="contactEmail">
           <NInput v-model:value="formData.contactEmail" placeholder="联系邮箱" />
+        </NFormItem>
+        <NFormItem label="域名" path="domain">
+          <NInput v-model:value="formData.domain" placeholder="tenant.example.com" />
         </NFormItem>
         <NFormItem label="隔离模式" path="isolationMode">
           <NSelect
@@ -267,6 +280,21 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem label="租户状态" path="tenantStatus">
           <NSelect v-model:value="formData.tenantStatus" :options="TENANT_STATUS_OPTIONS" />
+        </NFormItem>
+        <NFormItem label="用户上限" path="userLimit">
+          <NInputNumber v-model:value="formData.userLimit" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="存储上限(MB)" path="storageLimit">
+          <NInputNumber v-model:value="formData.storageLimit" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="到期时间" path="expireTime">
+          <NInput
+            v-model:value="formData.expireTime"
+            placeholder="2026-12-31T23:59:59+08:00"
+          />
+        </NFormItem>
+        <NFormItem label="排序" path="sort">
+          <NInputNumber v-model:value="formData.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem label="备注" path="remark">
           <NInput v-model:value="formData.remark" type="textarea" :rows="2" placeholder="备注" />
