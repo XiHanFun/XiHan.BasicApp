@@ -50,6 +50,7 @@ public class RoleAppService
     private readonly IRoleManager _roleManager;
     private readonly IRoleQueryService _queryService;
     private readonly IRbacChangeNotifier _rbacChangeNotifier;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -71,6 +72,7 @@ public class RoleAppService
         IRoleManager roleManager,
         IRoleQueryService queryService,
         IRbacChangeNotifier rbacChangeNotifier,
+        ITenantAccessContextService tenantAccessContextService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(roleRepository)
     {
@@ -81,6 +83,7 @@ public class RoleAppService
         _roleManager = roleManager;
         _queryService = queryService;
         _rbacChangeNotifier = rbacChangeNotifier;
+        _tenantAccessContextService = tenantAccessContextService;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -184,7 +187,7 @@ public class RoleAppService
             }
         }
 
-        var resolvedTenantId = command.TenantId ?? role.TenantId;
+        var resolvedTenantId = await ResolveOperationTenantIdAsync(command.TenantId, role.TenantId);
         await _roleManager.AssignPermissionsAsync(
             role,
             permissionIds,
@@ -222,10 +225,11 @@ public class RoleAppService
             }
         }
 
+        var resolvedTenantId = await ResolveOperationTenantIdAsync(command.TenantId, role.TenantId);
         await _roleRepository.ReplaceCustomDataScopeDepartmentIdsAsync(
             command.RoleId,
             departmentIds,
-            command.TenantId ?? role.TenantId);
+            resolvedTenantId);
 
         if (role.DataScope != DataPermissionScope.Custom)
         {
@@ -235,7 +239,7 @@ public class RoleAppService
         role.MarkDataScopeChanged(departmentIds);
         await _roleRepository.UpdateAsync(role);
         await uow.CompleteAsync();
-        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.DataScope);
+        await _rbacChangeNotifier.NotifyAsync(resolvedTenantId, AuthorizationChangeType.DataScope);
     }
 
     /// <summary>
@@ -265,13 +269,14 @@ public class RoleAppService
             }
         }
 
+        var resolvedTenantId = await ResolveOperationTenantIdAsync(command.TenantId, role.TenantId);
         await _roleHierarchyRepository.ReplaceDirectParentsAsync(
             command.RoleId,
             parentRoleIds,
-            command.TenantId ?? role.TenantId);
+            resolvedTenantId);
 
         await uow.CompleteAsync();
-        await _rbacChangeNotifier.NotifyAsync(command.TenantId ?? role.TenantId, AuthorizationChangeType.All);
+        await _rbacChangeNotifier.NotifyAsync(resolvedTenantId, AuthorizationChangeType.All);
     }
 
     /// <summary>
@@ -285,11 +290,12 @@ public class RoleAppService
         input.ValidateAnnotations();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        await _roleManager.EnsureRoleCodeUniqueAsync(input.RoleCode, null, input.TenantId);
+        var resolvedTenantId = await ResolveOperationTenantIdAsync(input.TenantId, null);
+        await _roleManager.EnsureRoleCodeUniqueAsync(input.RoleCode, null, resolvedTenantId);
 
         var role = new SysRole
         {
-            TenantId = input.TenantId ?? 0,
+            TenantId = resolvedTenantId ?? 0,
             RoleCode = input.RoleCode.Trim(),
             RoleName = input.RoleName.Trim(),
             RoleDescription = input.RoleDescription,
@@ -363,5 +369,21 @@ public class RoleAppService
         await _rbacChangeNotifier.NotifyAsync(role.TenantId, AuthorizationChangeType.All);
         await uow.CompleteAsync();
         return true;
+    }
+
+    private async Task<long?> ResolveOperationTenantIdAsync(long? requestedTenantId, long? fallbackTenantId)
+    {
+        if (requestedTenantId.HasValue && requestedTenantId.Value > 0)
+        {
+            return requestedTenantId;
+        }
+
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        if (currentContext?.CurrentTenantId is { } currentTenantId)
+        {
+            return currentTenantId;
+        }
+
+        return fallbackTenantId is > 0 ? fallbackTenantId : null;
     }
 }

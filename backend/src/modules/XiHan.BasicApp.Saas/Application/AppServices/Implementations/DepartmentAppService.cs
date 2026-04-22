@@ -46,6 +46,7 @@ public class DepartmentAppService
     private readonly IDepartmentQueryService _queryService;
     private readonly IDepartmentDomainService _domainService;
     private readonly IRbacChangeNotifier _rbacChangeNotifier;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
@@ -63,6 +64,7 @@ public class DepartmentAppService
         IDepartmentQueryService queryService,
         IDepartmentDomainService domainService,
         IRbacChangeNotifier rbacChangeNotifier,
+        ITenantAccessContextService tenantAccessContextService,
         IUnitOfWorkManager unitOfWorkManager)
         : base(departmentRepository)
     {
@@ -71,6 +73,7 @@ public class DepartmentAppService
         _queryService = queryService;
         _domainService = domainService;
         _rbacChangeNotifier = rbacChangeNotifier;
+        _tenantAccessContextService = tenantAccessContextService;
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -177,9 +180,15 @@ public class DepartmentAppService
     /// <returns></returns>
     protected override Task<SysDepartment> MapDtoToEntityAsync(DepartmentCreateDto createDto)
     {
+        return MapCreateDtoToEntityAsync(createDto);
+    }
+
+    private async Task<SysDepartment> MapCreateDtoToEntityAsync(DepartmentCreateDto createDto)
+    {
+        var tenantId = await ResolveOperationTenantIdAsync(createDto.TenantId);
         var entity = new SysDepartment
         {
-            TenantId = createDto.TenantId ?? 0,
+            TenantId = tenantId ?? 0,
             ParentId = createDto.ParentId,
             DepartmentName = createDto.DepartmentName.Trim(),
             DepartmentCode = createDto.DepartmentCode.Trim(),
@@ -192,7 +201,7 @@ public class DepartmentAppService
             Remark = createDto.Remark
         };
 
-        return Task.FromResult(entity);
+        return entity;
     }
 
     /// <summary>
@@ -295,6 +304,17 @@ public class DepartmentAppService
         }
 
         return user.UserName;
+    }
+
+    private async Task<long?> ResolveOperationTenantIdAsync(long? requestedTenantId)
+    {
+        if (requestedTenantId.HasValue && requestedTenantId.Value > 0)
+        {
+            return requestedTenantId;
+        }
+
+        var currentContext = await _tenantAccessContextService.GetCurrentContextAsync();
+        return currentContext?.CurrentTenantId;
     }
 
 }
