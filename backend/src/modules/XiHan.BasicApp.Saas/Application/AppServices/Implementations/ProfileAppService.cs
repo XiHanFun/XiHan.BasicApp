@@ -54,7 +54,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private readonly IUserManager _userManager;
     private readonly IUserSessionRepository _userSessionRepository;
     private readonly IExternalLoginRepository _externalLoginRepository;
-    private readonly ILoginLogRepository _loginLogRepository;
+    private readonly ILoginLogSplitRepository _loginLogRepository;
     private readonly IOtpService _otpService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthTokenCacheHelper _authTokenCacheHelper;
@@ -81,7 +81,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         IUserManager userManager,
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
-        ILoginLogRepository loginLogRepository,
+        ILoginLogSplitRepository loginLogRepository,
         IOtpService otpService,
         IPasswordHasher passwordHasher,
         IAuthTokenCacheHelper authTokenCacheHelper,
