@@ -101,7 +101,7 @@ public interface IAuthAppService : IApplicationService
     /// </remarks>
     /// <param name="provider">提供商名称（google、github、qq）</param>
     /// <param name="tenantId">租户ID（可选）</param>
-    Task GetExternalLoginAuthorizeAsync(string provider, long? tenantId = null);
+    Task GetExternalLoginAuthorizeAsync(string provider, long? targetTenantId = null, string? targetTenantCode = null);
 
     /// <summary>
     /// 处理第三方登录回调（从外部 Cookie 读取认证结果，签发令牌，重定向到前端）
@@ -113,5 +113,5 @@ public interface IAuthAppService : IApplicationService
     /// </remarks>
     /// <param name="provider">提供商名称</param>
     /// <param name="tenantId">租户ID（可选）</param>
-    Task GetExternalLoginCallbackAsync(string provider, long? tenantId = null);
+    Task GetExternalLoginCallbackAsync(string provider, long? targetTenantId = null, string? targetTenantCode = null);
 }

@@ -325,7 +325,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.Email = string.IsNullOrWhiteSpace(command.Email) ? null : command.Email.Trim();
         command.Phone = string.IsNullOrWhiteSpace(command.Phone) ? null : command.Phone.Trim();
         command.NickName = string.IsNullOrWhiteSpace(command.NickName) ? null : command.NickName.Trim();
-        var tenantId = NormalizeTenantId(command.TenantId);
+        var tenantId = await _tenantAccessContextService.ResolveTargetTenantIdAsync(command.TargetTenantId, command.TargetTenantCode);
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
 
@@ -752,7 +752,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// 发起第三方登录（验证提供商并通过 ChallengeAsync 重定向到授权页）
     /// </summary>
     [AllowAnonymous]
-    public async Task GetExternalLoginAuthorizeAsync(string provider, long? tenantId = null)
+    public async Task GetExternalLoginAuthorizeAsync(string provider, long? targetTenantId = null, string? targetTenantCode = null)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
@@ -776,9 +776,14 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             : $"/api/Auth/{callbackSegment}";
 
         var queryParts = new List<string> { $"provider={Uri.EscapeDataString(provider)}" };
-        if (tenantId.HasValue)
+        if (targetTenantId.HasValue)
         {
-            queryParts.Add($"tenantId={tenantId.Value}");
+            queryParts.Add($"tenantId={targetTenantId.Value}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(targetTenantCode))
+        {
+            queryParts.Add($"tenantCode={Uri.EscapeDataString(targetTenantCode)}");
         }
 
         var callbackUrl = $"{request.Scheme}://{request.Host}{callbackPath}?{string.Join("&", queryParts)}";
@@ -789,7 +794,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             Items =
             {
                 ["provider"] = provider,
-                ["tenantId"] = tenantId?.ToString() ?? string.Empty
+                ["tenantId"] = targetTenantId?.ToString() ?? string.Empty,
+                ["tenantCode"] = targetTenantCode ?? string.Empty
             }
         };
 
@@ -801,7 +807,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     /// 处理第三方登录回调（从外部 Cookie 读取认证结果，签发令牌，重定向到前端）
     /// </summary>
     [AllowAnonymous]
-    public async Task GetExternalLoginCallbackAsync(string provider, long? tenantId = null)
+    public async Task GetExternalLoginCallbackAsync(string provider, long? targetTenantId = null, string? targetTenantCode = null)
     {
         var httpContext = _httpContextAccessor.HttpContext
                          ?? throw new InvalidOperationException("无法获取 HTTP 上下文");
@@ -841,7 +847,8 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
                 DisplayName = displayName,
                 Email = email,
                 AvatarUrl = avatarUrl,
-                TargetTenantId = tenantId
+                TargetTenantId = targetTenantId,
+                TargetTenantCode = targetTenantCode
             };
 
             var tokenDto = await ExternalLoginAsync(command);
