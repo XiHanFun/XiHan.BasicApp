@@ -66,6 +66,7 @@ public class SysRolePermissionSeeder : DataSeederBase
             !permissionCode.StartsWith("tenant:", StringComparison.OrdinalIgnoreCase)
             && !permissionCode.StartsWith("permission:", StringComparison.OrdinalIgnoreCase)
             && !permissionCode.StartsWith("constraint_rule:", StringComparison.OrdinalIgnoreCase)
+            && !permissionCode.StartsWith("field_level_security:", StringComparison.OrdinalIgnoreCase)
             && !permissionCode.EndsWith(":revoke", StringComparison.OrdinalIgnoreCase));
         AddPairs("tenant_admin", permissionCode =>
             (permissionCode.StartsWith("user:", StringComparison.OrdinalIgnoreCase)

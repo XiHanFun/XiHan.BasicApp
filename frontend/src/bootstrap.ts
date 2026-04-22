@@ -83,6 +83,8 @@ export function setupAppContext() {
       'system/message/index': () => import('@/views/system/message/index.vue'),
       'system/constraintrule/index': () => import('@/views/system/constraint-rule/index.vue'),
       'system/constraint-rule/index': () => import('@/views/system/constraint-rule/index.vue'),
+      'system/fieldlevelsecurity/index': () => import('@/views/system/field-level-security/index.vue'),
+      'system/field-level-security/index': () => import('@/views/system/field-level-security/index.vue'),
       'system/oauthapp/index': () => import('@/views/system/oauth-app/index.vue'),
       'system/o-auth-app/index': () => import('@/views/system/oauth-app/index.vue'),
       'system/usersession/index': () => import('@/views/system/user-session/index.vue'),

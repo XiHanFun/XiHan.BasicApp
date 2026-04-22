@@ -458,6 +458,20 @@
 | Batch-11A | `pnpm type-check` / `pnpm build` / `dotnet build` | Passed | 已完成用户、角色、菜单、租户四个高风险系统页的第一轮契约联调。前端类型检查和生产构建通过；后端 SaaS 模块编译通过，剩余为 XML 注释、nullable、NuGet 预发布依赖等 warning |
 | Batch-11B | `pnpm type-check` / `pnpm build` | Passed | 已继续收口 `system/permission`、`system/department`、`system/constraint-rule` 三个系统页的实体字段语义：权限页不再静默使用旧的 `resourceId=1 / operationId=1` 默认挂载，改为显式维护资源/操作 ID；部门页补齐地址与备注；约束规则页补齐平台级全局规则开关。当前前端类型检查和生产构建继续通过；权限页仍缺资源/操作专用下拉 API，后续可在更细分批次补齐读模型与选择器体验 |
 
+### Batch-10 Sub-Status
+
+- [x] Batch-10A 前端基础类型与构建基线修复
+- [x] Batch-10B 后端编译基线收口
+- [x] Batch-10C FLS 管理纵向切片补齐
+
+### Batch-10 Sub-Validation
+
+| Sub-Batch | Validation | Result | Notes |
+|-----------|------------|--------|-------|
+| Batch-10A | `pnpm type-check` / `pnpm build` | Passed | 已完成前端基础类型与构建基线修复，`useTheme`、request client、布局与系统页的关键类型错误已收口，前端类型检查与生产构建通过 |
+| Batch-10B | `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj -v minimal` / `pnpm type-check` / `pnpm build` | Passed | 已完成 SaaS 模块后端编译收口，`global.json` 锁定 `.NET SDK 10.0.107` 后，SaaS 模块编译通过；前端类型检查与生产构建继续通过，剩余为 XML 注释、nullable、NuGet `NU5104` 及前端打包 warning |
+| Batch-10C | `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj -v minimal` / `pnpm type-check` / `pnpm build` / 组件路径自检 | Passed | 已新增 `SysFieldLevelSecurity` 的 DTO、仓储、应用服务、服务注册与前端 API/系统页，并将平台资源、权限、角色权限模板、菜单模板补齐到 FLS 管理链；前端 `bootstrap` 额外补齐 `System/FieldLevelSecurity/Index -> system/field-level-security/index.vue` 的显式映射，避免动态菜单组件路径在 PascalCase/连字符转换上出现运行时缺口。当前 SaaS 模块编译、前端类型检查和生产构建均通过；种子变更需重新执行 Seeder 后才会反映到运行菜单 |
+
 ### Batch-04 Sub-Validation
 
 | Sub-Batch | Validation | Result | Notes |
