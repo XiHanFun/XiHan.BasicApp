@@ -72,6 +72,7 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
         var httpContext = _httpContextAccessor.HttpContext;
         var requestContext = _requestContextAccessor.Current;
         var requestId = ResolveRequestId(requestContext, httpContext);
+        var tenantId = requestContext?.TenantId ?? _currentTenant.Id ?? _currentUser.TenantId ?? 0;
 
         return new EntityAuditLogRecord
         {
@@ -82,7 +83,7 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
             RequestId = requestId,
             UserId = requestContext?.UserId ?? _currentUser.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(requestContext?.UserName ?? _currentUser.UserName, 50),
-            TenantId = requestContext?.TenantId ?? _currentTenant.Id ?? _currentUser.TenantId
+            TenantId = tenantId
         };
     }
 
