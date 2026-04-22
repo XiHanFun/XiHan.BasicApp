@@ -216,28 +216,11 @@ public class RoleAppService
                    ?? throw new KeyNotFoundException($"未找到角色: {command.RoleId}");
 
         var departmentIds = command.DepartmentIds.Where(id => id > 0).Distinct().ToArray();
-        if (departmentIds.Length > 0)
-        {
-            var departments = await _departmentRepository.GetByIdsAsync(departmentIds);
-            if (departments.Count != departmentIds.Length)
-            {
-                throw new BusinessException(message: "存在无效部门 ID");
-            }
-        }
-
         var resolvedTenantId = await ResolveOperationTenantIdAsync(command.TenantId, role.TenantId);
-        await _roleRepository.ReplaceCustomDataScopeDepartmentIdsAsync(
-            command.RoleId,
+        await _roleManager.AssignDataScopeAsync(
+            role,
             departmentIds,
             resolvedTenantId);
-
-        if (role.DataScope != DataPermissionScope.Custom)
-        {
-            role.DataScope = DataPermissionScope.Custom;
-        }
-
-        role.MarkDataScopeChanged(departmentIds);
-        await _roleRepository.UpdateAsync(role);
         await uow.CompleteAsync();
         await _rbacChangeNotifier.NotifyAsync(resolvedTenantId, AuthorizationChangeType.DataScope);
     }

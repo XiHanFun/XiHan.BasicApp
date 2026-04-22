@@ -122,6 +122,12 @@ public class RoleManager : IRoleManager
             {
                 throw new BusinessException(message: "部分部门ID不存在");
             }
+
+            if (resolvedTenantId.HasValue
+                && existingDepts.Any(department => department.TenantId != resolvedTenantId.Value))
+            {
+                throw new BusinessException(message: "存在不属于当前租户的数据范围部门");
+            }
         }
 
         await _roleRepository.ReplaceCustomDataScopeDepartmentIdsAsync(
