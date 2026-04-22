@@ -9,6 +9,11 @@ namespace XiHan.BasicApp.Saas.Application.InternalServices;
 public interface IAuthorizationContextService
 {
     /// <summary>
+    /// 解析当前登录用户会话上下文。
+    /// </summary>
+    Task<CurrentUserSessionContext?> GetCurrentContextAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 解析当前登录用户实体。
     /// </summary>
     Task<SysUser?> GetCurrentUserAsync(CancellationToken cancellationToken = default);

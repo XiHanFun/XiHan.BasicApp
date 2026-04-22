@@ -6,7 +6,6 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
-using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.InternalServices.Implementations;
 
@@ -20,7 +19,7 @@ public class AuthorizationContextService : IAuthorizationContextService, IScoped
     private readonly IPermissionDomainService _permissionDomainService;
     private readonly IRbacAuthorizationCacheService _authorizationCacheService;
     private readonly IMenuRepository _menuRepository;
-    private readonly ICurrentUser _currentUser;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
 
     public AuthorizationContextService(
         IUserRepository userRepository,
@@ -28,25 +27,25 @@ public class AuthorizationContextService : IAuthorizationContextService, IScoped
         IPermissionDomainService permissionDomainService,
         IRbacAuthorizationCacheService authorizationCacheService,
         IMenuRepository menuRepository,
-        ICurrentUser currentUser)
+        ITenantAccessContextService tenantAccessContextService)
     {
         _userRepository = userRepository;
         _roleResolutionDomainService = roleResolutionDomainService;
         _permissionDomainService = permissionDomainService;
         _authorizationCacheService = authorizationCacheService;
         _menuRepository = menuRepository;
-        _currentUser = currentUser;
+        _tenantAccessContextService = tenantAccessContextService;
+    }
+
+    public Task<CurrentUserSessionContext?> GetCurrentContextAsync(CancellationToken cancellationToken = default)
+    {
+        return _tenantAccessContextService.GetCurrentContextAsync(cancellationToken);
     }
 
     public async Task<SysUser?> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
-        if (!_currentUser.UserId.HasValue)
-        {
-            return null;
-        }
-
-        var user = await _userRepository.GetByIdAsync(_currentUser.UserId.Value, cancellationToken);
-        return user is not null && user.Status == YesOrNo.Yes ? user : null;
+        var context = await GetCurrentContextAsync(cancellationToken);
+        return context?.User;
     }
 
     public async Task<IReadOnlyCollection<string>> GetUserRoleCodesAsync(long userId, long? tenantId, CancellationToken cancellationToken = default)
@@ -79,9 +78,12 @@ public class AuthorizationContextService : IAuthorizationContextService, IScoped
 
     public async Task<AuthPermissionDto> BuildPermissionContextAsync(SysUser user, CancellationToken cancellationToken = default)
     {
-        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, user.TenantId, cancellationToken);
-        var permissionCodes = await GetUserPermissionCodesAsync(user.BasicId, user.TenantId, cancellationToken);
-        var userMenus = await _menuRepository.GetUserMenusAsync(user.BasicId, user.TenantId, cancellationToken);
+        var context = await GetCurrentContextAsync(cancellationToken);
+        var effectiveTenantId = context?.CurrentTenantId ?? (user.TenantId > 0 ? user.TenantId : null);
+
+        var roleCodes = await GetUserRoleCodesAsync(user.BasicId, effectiveTenantId, cancellationToken);
+        var permissionCodes = await GetUserPermissionCodesAsync(user.BasicId, effectiveTenantId, cancellationToken);
+        var userMenus = await _menuRepository.GetUserMenusAsync(user.BasicId, effectiveTenantId, cancellationToken);
 
         var permissionCodeSet = permissionCodes
             .Where(static code => !string.IsNullOrWhiteSpace(code))

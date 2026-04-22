@@ -48,7 +48,7 @@ public class AuthTokenCacheHelper : IAuthTokenCacheHelper
     /// <summary>
     /// 保存刷新令牌到缓存
     /// </summary>
-    public async Task SaveRefreshTokenAsync(string refreshToken, SysUser user, string sessionId)
+    public async Task SaveRefreshTokenAsync(string refreshToken, SysUser user, long? effectiveTenantId, string sessionId)
     {
         var refreshTokenCacheKey = BuildRefreshTokenCacheKey(refreshToken);
         var expireAt = DateTimeOffset.UtcNow.AddDays(Math.Max(1, _jwtOptions.RefreshTokenExpirationDays));
@@ -63,7 +63,7 @@ public class AuthTokenCacheHelper : IAuthTokenCacheHelper
             {
                 UserId = user.BasicId,
                 UserName = user.UserName,
-                TenantId = user.TenantId,
+                TenantId = effectiveTenantId,
                 SessionId = sessionId,
                 ExpireAt = expireAt
             },

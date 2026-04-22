@@ -19,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.InternalServices;
 using XiHan.BasicApp.Saas.Constants.Caching;
 using XiHan.BasicApp.Saas.Constants.Settings;
 using XiHan.BasicApp.Saas.Application.UseCases.Commands;
@@ -65,6 +66,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IAuthenticationService _authenticationService;
     private readonly IRealtimeNotificationService<Hubs.BasicAppNotificationHub> _realtimeNotifier;
+    private readonly ITenantAccessContextService _tenantAccessContextService;
 
     /// <summary>
     /// 用户名修改冷却天数
@@ -90,7 +92,8 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWorkManager unitOfWorkManager,
         IAuthenticationService authenticationService,
-        IRealtimeNotificationService<Hubs.BasicAppNotificationHub> realtimeNotifier)
+        IRealtimeNotificationService<Hubs.BasicAppNotificationHub> realtimeNotifier,
+        ITenantAccessContextService tenantAccessContextService)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -108,6 +111,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         _unitOfWorkManager = unitOfWorkManager;
         _authenticationService = authenticationService;
         _realtimeNotifier = realtimeNotifier;
+        _tenantAccessContextService = tenantAccessContextService;
     }
 
     /// <summary>
@@ -257,7 +261,8 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
         var currentSessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
-        var sessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
+        var currentTenantId = await ResolveCurrentTenantIdAsync();
+        var sessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, currentTenantId);
 
         return [.. sessions
             .OrderByDescending(s => s.LastActivityTime)
@@ -286,7 +291,8 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         var user = await ResolveCurrentUserEntityAsync()
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
-        var session = await _userSessionRepository.GetBySessionIdAsync(command.SessionId, user.TenantId);
+        var currentTenantId = await ResolveCurrentTenantIdAsync();
+        var session = await _userSessionRepository.GetBySessionIdAsync(command.SessionId, currentTenantId);
         if (session is null || session.UserId != user.BasicId)
         {
             throw new BusinessException(message: "会话不存在或无权操作");
@@ -299,7 +305,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        await MarkSessionRevokedAsync(command.SessionId, user.TenantId, "用户在个人中心主动撤销");
+        await MarkSessionRevokedAsync(command.SessionId, currentTenantId, "用户在个人中心主动撤销");
         await uow.CompleteAsync();
 
         await _authTokenCacheHelper.RemoveSessionTokenAsync(command.SessionId);
@@ -315,7 +321,8 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
         var currentSessionId = _httpContextAccessor.HttpContext?.User.FindSessionId();
-        var sessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
+        var currentTenantId = await ResolveCurrentTenantIdAsync();
+        var sessions = await _userSessionRepository.GetOnlineSessionsAsync(user.BasicId, currentTenantId);
         var otherSessionIds = sessions
             .Where(s => !string.Equals(s.UserSessionId, currentSessionId, StringComparison.Ordinal))
             .Select(s => s.UserSessionId)
@@ -327,7 +334,7 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         }
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
-        await _userSessionRepository.RevokeSessionsAsync(otherSessionIds, "用户在个人中心撤销所有其他会话", user.TenantId);
+        await _userSessionRepository.RevokeSessionsAsync(otherSessionIds, "用户在个人中心撤销所有其他会话", currentTenantId);
         await uow.CompleteAsync();
 
         foreach (var sessionId in otherSessionIds)
@@ -1107,6 +1114,12 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
         var user = await _userRepository.GetByIdAsync(_currentUser.UserId.Value);
         return user is not null && user.Status == YesOrNo.Yes ? user : null;
+    }
+
+    private async Task<long?> ResolveCurrentTenantIdAsync()
+    {
+        var context = await _tenantAccessContextService.GetCurrentContextAsync();
+        return context?.CurrentTenantId;
     }
 
     private async Task<SysUserSecurity> EnsureSecurityProfileAsync(SysUser user)

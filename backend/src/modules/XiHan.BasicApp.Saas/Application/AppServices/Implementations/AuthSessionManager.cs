@@ -25,9 +25,9 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Implementations;
 public class AuthSessionManager(IUserSessionRepository userSessionRepository) : IAuthSessionManager
 {
     /// <inheritdoc />
-    public async Task<IReadOnlyList<string>> EnforceSessionPolicyAsync(SysUser user, SysUserSecurity security)
+    public async Task<IReadOnlyList<string>> EnforceSessionPolicyAsync(SysUser user, SysUserSecurity security, long? effectiveTenantId)
     {
-        var onlineSessions = await userSessionRepository.GetOnlineSessionsAsync(user.BasicId, user.TenantId);
+        var onlineSessions = await userSessionRepository.GetOnlineSessionsAsync(user.BasicId, effectiveTenantId);
         if (onlineSessions.Count == 0)
         {
             return [];
@@ -58,20 +58,20 @@ public class AuthSessionManager(IUserSessionRepository userSessionRepository) : 
             return [];
         }
 
-        await userSessionRepository.RevokeSessionsAsync(toRevokeSessionIds, "触发多端登录策略", user.TenantId);
+        await userSessionRepository.RevokeSessionsAsync(toRevokeSessionIds, "触发多端登录策略", effectiveTenantId);
         return toRevokeSessionIds;
     }
 
     /// <inheritdoc />
-    public async Task SaveOrUpdateSessionAsync(SysUser user, string sessionId, string accessTokenJti, ClientInfo clientInfo)
+    public async Task SaveOrUpdateSessionAsync(SysUser user, long? effectiveTenantId, string sessionId, string accessTokenJti, ClientInfo clientInfo)
     {
         var now = DateTimeOffset.UtcNow;
-        var userSession = await userSessionRepository.GetBySessionIdAsync(sessionId, user.TenantId);
+        var userSession = await userSessionRepository.GetBySessionIdAsync(sessionId, effectiveTenantId);
         if (userSession is null)
         {
             userSession = new SysUserSession
             {
-                TenantId = user.TenantId,
+                TenantId = effectiveTenantId ?? 0,
                 UserId = user.BasicId,
                 CurrentAccessTokenJti = accessTokenJti,
                 UserSessionId = sessionId,

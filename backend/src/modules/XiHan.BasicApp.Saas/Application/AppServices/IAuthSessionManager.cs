@@ -25,12 +25,12 @@ public interface IAuthSessionManager
     /// <summary>
     /// 按安全策略限制会话数量，返回被撤销的会话ID集合
     /// </summary>
-    Task<IReadOnlyList<string>> EnforceSessionPolicyAsync(SysUser user, SysUserSecurity security);
+    Task<IReadOnlyList<string>> EnforceSessionPolicyAsync(SysUser user, SysUserSecurity security, long? effectiveTenantId);
 
     /// <summary>
     /// 保存或更新会话
     /// </summary>
-    Task SaveOrUpdateSessionAsync(SysUser user, string sessionId, string accessTokenJti, ClientInfo clientInfo);
+    Task SaveOrUpdateSessionAsync(SysUser user, long? effectiveTenantId, string sessionId, string accessTokenJti, ClientInfo clientInfo);
 
     /// <summary>
     /// 标记会话已撤销

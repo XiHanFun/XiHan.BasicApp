@@ -13,8 +13,9 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.BasicApp.Saas.Domain.ValueObjects;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.ValueObjects;
 using XiHan.BasicApp.Saas.Constants.Basic;
 using XiHan.Framework.Authentication.Password;
 using XiHan.Framework.Core.Exceptions;
@@ -73,6 +74,7 @@ public class UserManager : IUserManager
 
         var created = await _userRepository.AddAsync(user, cancellationToken);
         await EnsureSecurityProfileAsync(created, cancellationToken);
+        await EnsurePrimaryMembershipAsync(created, cancellationToken);
         return created;
     }
 
@@ -151,6 +153,32 @@ public class UserManager : IUserManager
 
         await _userRepository.SaveSecurityAsync(security, cancellationToken);
         return security;
+    }
+
+    private async Task EnsurePrimaryMembershipAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        var membership = await _userRepository.GetTenantMembershipAsync(user.BasicId, user.TenantId, cancellationToken);
+        if (membership is not null)
+        {
+            membership.MemberType = user.IsSystemAccount ? TenantMemberType.Owner : TenantMemberType.Member;
+            membership.InviteStatus = TenantMemberInviteStatus.Accepted;
+            membership.Status = YesOrNo.Yes;
+            membership.EffectiveTime ??= DateTimeOffset.UtcNow;
+            membership.RespondedTime ??= DateTimeOffset.UtcNow;
+            await _userRepository.SaveTenantMembershipAsync(membership, cancellationToken);
+            return;
+        }
+
+        await _userRepository.SaveTenantMembershipAsync(new SysTenantUser
+        {
+            TenantId = user.TenantId,
+            UserId = user.BasicId,
+            MemberType = user.IsSystemAccount ? TenantMemberType.Owner : TenantMemberType.Member,
+            InviteStatus = TenantMemberInviteStatus.Accepted,
+            EffectiveTime = DateTimeOffset.UtcNow,
+            RespondedTime = DateTimeOffset.UtcNow,
+            Status = YesOrNo.Yes
+        }, cancellationToken);
     }
 
     /// <summary>

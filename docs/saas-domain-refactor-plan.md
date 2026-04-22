@@ -314,6 +314,14 @@
 | Batch-11 | 前端整体验证与交互重建 | `frontend/src/views/system/**`、路由与交互 | 系统管理页面按新模型可用，页面不再依赖旧字段 | 页面状态错乱、批量编辑丢字段、树与列表联动错误 |
 | Batch-12 | 质量门禁与收尾 | 后端构建、前端 type-check、回归清单、文档 | 关键构建通过，输出验证结果、风险余项、回滚建议 | 全局类型错误挡住 SaaS 验证、未覆盖的边界场景 |
 
+## Batch-08 Breakdown
+
+| Sub-Batch | 标题 | 范围 | 完成标准 |
+|-----------|------|------|----------|
+| Batch-08A | 生效租户上下文与会话语义收敛 | `Auth/Profile/AuthorizationContext/UserRepository/UserManager` | `SysUser.TenantId` 回归主归属租户语义；登录/刷新/当前用户/个人中心会话统一以会话生效租户为准；运行时创建用户自动补齐 `SysTenantUser` 主成员关系 |
+| Batch-08B | 注册与外部登录成员链补齐 | 注册、外部登录、租户成员初始化、相关 DTO/API | 注册与外部登录支持目标租户解析，成员身份与默认角色链路按新模型完整落地 |
+| Batch-08C | 用户与租户管理用例收口 | `User/Tenant` 应用服务、查询与前端入口 | 用户维护、租户可见性、租户切换及授权分配按成员租户模型一致运行 |
+
 ## Requirement Table
 
 | ID | 标题 | 范围 | 完成标准 | 依赖 |
@@ -374,7 +382,7 @@
 - [x] Batch-04 仓储与查询层重建
 - [x] Batch-05 服务与内部服务重建
 - [x] Batch-06 缓存与配置体系重建
-- [ ] Batch-07 种子数据与初始化链重建
+- [x] Batch-07 种子数据与初始化链重建
 - [ ] Batch-08 用户/租户主链重建
 - [ ] Batch-09 RBAC 主链重建
 - [ ] Batch-10 ABAC/FLS 重建
@@ -402,6 +410,12 @@
 - [x] Batch-07B 平台模板种子重建
 - [x] Batch-07C 租户初始化模板重建
 
+### Batch-08 Sub-Status
+
+- [x] Batch-08A 生效租户上下文与会话语义收敛
+- [ ] Batch-08B 注册与外部登录成员链补齐
+- [ ] Batch-08C 用户与租户管理用例收口
+
 ## Validation Template
 
 | Batch | Validation | Result | Notes |
@@ -413,7 +427,7 @@
 | Batch-05 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-05 已完成两段收敛：05A 将 `User/Role/Permission/Menu/Department` 的授权变更通知统一收敛到 `IRbacChangeNotifier`，并将 superadmin 保护规则收敛到 `ISuperAdminGuard`；05B 进一步将 `AuthAppService` 的当前用户解析、角色码展开、权限集/菜单树/数据范围装配收敛到 `IAuthorizationContextService`，同时复用既有 `IUserManager.ResolveDefaultRoleIdAsync`。`dotnet build` 仍被本机 .NET SDK workload 解析异常阻塞，仅输出“生成失败，0 个警告 0 个错误”，暂不能作为可信业务编译结论 |
 | Batch-06 | 代码事实检索 / `dotnet build` 定向验证 | Partial | Batch-06 已完成两段收敛：06A 建立 `SaasCacheKeys` 与 `SaasSettingKeys`，并将 RBAC 授权缓存、Lookup 缓存、消息未读缓存、认证验证码缓存及 `RbacSettingStore` 的键前缀统一到 `basicapp:saas:*` / `BasicApp:Saas:*`；06B 进一步将 `AuthTokenCacheHelper`、`RbacUserStore`、QueryService 的 `[Cacheable]` 键模板及对应缓存失效处理器全部切到统一键体系。`dotnet build` 继续受本机 .NET SDK workload 异常阻塞，仅输出“生成失败，0 个警告 0 个错误” |
 | Batch-07 | `dotnet build` / 认证链自检 | Partial | Batch-07 三段已全部完成：07A 将正式初始化链中的 demo/test 数据从注册链剥离，新增 `SysUserSecuritySeeder` 与 `SysTenantUserSeeder` 用于补齐 `SysUser` 的安全档案和主租户成员关系，并将平台运行配置种子统一切到 `BasicApp:Saas:*`；07B 重建了 `SysOperation/SysResource/SysPermission/SysRole/SysRolePermission/SysMenu` 的平台模板 Seeder，全部改为 `TenantId=0 + IsGlobal=true` 的业务键幂等模式，并删除了 `SysConstraintRuleFeatureSeeder` 这类补丁式增量 Seeder；07C 则将 `SysTenant/SysDepartment/SysDepartmentHierarchy/SysUserRole/SysDict/SysDictItem` 改为默认租户业务键补齐模式，补齐默认租户部门树、平台用户与默认租户的角色绑定，并重建平台内置字典与字典项模板。针对性残留扫描已不再命中旧角色码、旧组织模板和旧增量 Seeder 引用。`dotnet build` 仍受本机 .NET SDK workload 异常影响，只输出“生成失败，0 个警告 0 个错误”，未提供可信业务编译结论 |
-| Batch-08 | `dotnet build` / 授权链自检 | Pending |  |
+| Batch-08 | `dotnet build` / 授权链自检 | Partial | Batch-08A 已完成认证主链第一段收口：登录命令与第三方登录命令新增目标租户语义，`XiHanClaimTypes.TenantId` 改为承载当前会话生效租户，新增 SaaS `HomeTenantId` 声明承载主归属租户；`AuthorizationContextService`、`AuthAppService`、`AuthSessionManager`、`ProfileAppService` 已开始按会话租户而非 `SysUser.TenantId` 处理当前用户、权限上下文、会话读写与撤销；`UserRepository` 已移除按平台租户兜底查人的旧逻辑，`UserManager.CreateAsync` 已自动补齐 `SysTenantUser` 主成员关系。Batch-08B/08C 尚未完成，`dotnet build` 仍预计受本机 .NET SDK workload 异常阻塞，需继续结合代码事实扫描验证 |
 | Batch-09 | `dotnet build` / 安全出口自检 | Pending |  |
 | Batch-10 | `pnpm type-check` / 页面联调自检 | Pending |  |
 | Batch-11 | 汇总验证 | Pending |  |
