@@ -346,7 +346,7 @@ public class SysConfigSeeder : DataSeederBase
                     IsGlobal = true,
                     IsBuiltIn = true,
                     Status = YesOrNo.Yes,
-                    UpdatedTime = now
+                    ModifiedTime = now
                 })
                 .Where(config => configIdsToNormalize.Contains(config.BasicId))
                 .ExecuteCommandAsync();

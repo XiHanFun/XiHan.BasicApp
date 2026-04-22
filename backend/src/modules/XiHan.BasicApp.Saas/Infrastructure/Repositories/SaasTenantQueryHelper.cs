@@ -1,5 +1,5 @@
 using SqlSugar;
-using XiHan.Framework.Domain.Entities.Abstracts;
+using System.Linq.Expressions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -20,16 +20,31 @@ internal static class SaasTenantQueryHelper
         ISugarQueryable<TEntity> query,
         long? tenantId,
         bool includePlatform = false)
-        where TEntity : class, IMultiTenantEntity, new()
+        where TEntity : class, new()
     {
+        ArgumentNullException.ThrowIfNull(query);
+
+        var parameter = Expression.Parameter(typeof(TEntity), "entity");
+        var tenantProperty = Expression.PropertyOrField(parameter, "TenantId");
+        var platformTenant = Expression.Constant(PlatformTenantId, tenantProperty.Type);
+
+        Expression predicateBody;
         if (tenantId.HasValue)
         {
-            return includePlatform
-                ? query.Where(entity => entity.TenantId == tenantId.Value || entity.TenantId == PlatformTenantId)
-                : query.Where(entity => entity.TenantId == tenantId.Value);
+            var tenantValue = Expression.Constant(Convert.ChangeType(tenantId.Value, tenantProperty.Type), tenantProperty.Type);
+            predicateBody = includePlatform
+                ? Expression.OrElse(
+                    Expression.Equal(tenantProperty, tenantValue),
+                    Expression.Equal(tenantProperty, platformTenant))
+                : Expression.Equal(tenantProperty, tenantValue);
+        }
+        else
+        {
+            predicateBody = Expression.Equal(tenantProperty, platformTenant);
         }
 
-        return query.Where(entity => entity.TenantId == PlatformTenantId);
+        var lambda = Expression.Lambda<Func<TEntity, bool>>(predicateBody, parameter);
+        return query.Where(lambda);
     }
 
     /// <summary>

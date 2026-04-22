@@ -60,9 +60,7 @@ public class OrganizationDomainService : IOrganizationDomainService
 
         return descendantIds.Count > 0
             ? descendantIds
-            : includeSelf
-                ? [departmentId]
-                : [];
+            : [departmentId];
     }
 
     /// <summary>

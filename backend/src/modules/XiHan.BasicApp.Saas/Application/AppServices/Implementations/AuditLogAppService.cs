@@ -35,9 +35,17 @@ public class AuditLogAppService(IAuditLogSplitRepository repository) : Applicati
     [HttpPost]
     public async Task<PageResultDtoBase<AuditLogDto>> PageAsync(BasicAppPRDto input)
     {
-        var result = await repository.ScanPagedAsync(input.Page.PageIndex, input.Page.PageSize);
-        var dtos = result.Items.Adapt<List<AuditLogDto>>();
-        return PageResultDtoBase<AuditLogDto>.Create(dtos, input.Page.PageIndex, input.Page.PageSize, result.TotalCount);
+        var pageIndex = input.Page.PageIndex;
+        var pageSize = input.Page.PageSize;
+        var totalCount = await repository.ScanCountAsync();
+        var items = await repository.ScanAllAsync();
+        var pagedItems = items
+            .OrderByDescending(log => log.CreatedTime)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        var dtos = pagedItems.Adapt<List<AuditLogDto>>() ?? [];
+        return PageResultDtoBase<AuditLogDto>.Create(dtos, pageIndex, pageSize, (int)totalCount);
     }
 
     /// <summary>
@@ -46,6 +54,12 @@ public class AuditLogAppService(IAuditLogSplitRepository repository) : Applicati
     [HttpDelete]
     public async Task<bool> ClearAsync()
     {
-        return await repository.ClearAllAsync();
+        var items = await repository.ScanAllAsync();
+        foreach (var item in items)
+        {
+            await repository.DeleteByIdAsync(item.BasicId);
+        }
+
+        return true;
     }
 }

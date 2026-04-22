@@ -35,9 +35,17 @@ public class ExceptionLogAppService(IExceptionLogSplitRepository repository) : A
     [HttpPost]
     public async Task<PageResultDtoBase<ExceptionLogDto>> PageAsync(BasicAppPRDto input)
     {
-        var result = await repository.ScanPagedAsync(input.Page.PageIndex, input.Page.PageSize);
-        var dtos = result.Items.Adapt<List<ExceptionLogDto>>();
-        return PageResultDtoBase<ExceptionLogDto>.Create(dtos, input.Page.PageIndex, input.Page.PageSize, result.TotalCount);
+        var pageIndex = input.Page.PageIndex;
+        var pageSize = input.Page.PageSize;
+        var totalCount = await repository.ScanCountAsync();
+        var items = await repository.ScanAllAsync();
+        var pagedItems = items
+            .OrderByDescending(log => log.CreatedTime)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        var dtos = pagedItems.Adapt<List<ExceptionLogDto>>() ?? [];
+        return PageResultDtoBase<ExceptionLogDto>.Create(dtos, pageIndex, pageSize, (int)totalCount);
     }
 
     /// <summary>
@@ -46,6 +54,12 @@ public class ExceptionLogAppService(IExceptionLogSplitRepository repository) : A
     [HttpDelete]
     public async Task<bool> ClearAsync()
     {
-        return await repository.ClearAllAsync();
+        var items = await repository.ScanAllAsync();
+        foreach (var item in items)
+        {
+            await repository.DeleteByIdAsync(item.BasicId);
+        }
+
+        return true;
     }
 }
