@@ -11,7 +11,7 @@ internal static class SaasTenantQueryHelper
     /// <summary>
     /// 平台租户占位。
     /// </summary>
-    public const long PlatformTenantId = 0;
+    public const long PlatformTenantId = 1;
 
     /// <summary>
     /// 为多租户查询应用租户过滤。

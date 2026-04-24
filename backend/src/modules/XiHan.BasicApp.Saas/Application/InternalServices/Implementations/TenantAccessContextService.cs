@@ -31,7 +31,7 @@ public class TenantAccessContextService(
 
     public async Task EnsureTenantAccessAsync(long userId, long? tenantId, CancellationToken cancellationToken = default)
     {
-        var resolvedTenantId = NormalizeTenantId(tenantId) ?? 0;
+        var resolvedTenantId = NormalizeTenantId(tenantId) ?? 1;
         var now = DateTimeOffset.UtcNow;
         var db = clientResolver.GetCurrentClient();
 

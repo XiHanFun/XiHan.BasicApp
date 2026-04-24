@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Saas.Constants.Basic;
 /// </summary>
 public static class RoleBasicConstants
 {
-    public const long PlatformTenantId = 0;
+    public const long PlatformTenantId = 1;
 
     /// <summary>
     /// 超级管理员角色编码

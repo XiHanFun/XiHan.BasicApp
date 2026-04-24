@@ -102,7 +102,7 @@ export const authApi = {
     const raw = await requestClient.post<any>(`${AUTH}/Login`, {
       userName: data.username,
       password: data.password,
-      tenantId: data.tenantId,
+      targetTenantId: data.tenantId,
       twoFactorCode: data.twoFactorCode || undefined,
       twoFactorMethod: data.twoFactorMethod || undefined,
       deviceId: data.deviceId || undefined,
@@ -117,12 +117,12 @@ export const authApi = {
       nickName: data.nickName,
       email: data.email,
       phone: data.phone,
-      tenantId: data.tenantId,
+      targetTenantId: data.tenantId,
     })
   },
 
   sendPhoneLoginCode: async (phone: string, tenantId?: null | number): Promise<VerificationCodeResult> => {
-    const raw = await requestClient.post<any>(`${AUTH}/SendPhoneLoginCode`, { phone, tenantId })
+    const raw = await requestClient.post<any>(`${AUTH}/SendPhoneLoginCode`, { phone, targetTenantId: tenantId })
     return normalizeVerificationCode(raw)
   },
 
@@ -130,13 +130,13 @@ export const authApi = {
     const raw = await requestClient.post<any>(`${AUTH}/PhoneLogin`, {
       phone: data.phone,
       code: data.code,
-      tenantId: data.tenantId,
+      targetTenantId: data.tenantId,
     })
     return normalizeToken(raw)
   },
 
   requestPasswordReset: async (email: string, tenantId?: null | number): Promise<PasswordResetResult> => {
-    const raw = await requestClient.post<any>(`${AUTH}/RequestPasswordReset`, { email, tenantId })
+    const raw = await requestClient.post<any>(`${AUTH}/RequestPasswordReset`, { email, targetTenantId: tenantId })
     return normalizePasswordReset(raw)
   },
 

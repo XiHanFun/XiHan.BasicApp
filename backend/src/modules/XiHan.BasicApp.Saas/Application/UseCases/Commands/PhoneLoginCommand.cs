@@ -36,7 +36,7 @@ public class PhoneLoginCommand
     public string Code { get; set; } = string.Empty;
 
     /// <summary>
-    /// 租户ID
+    /// 目标租户ID
     /// </summary>
-    public long? TenantId { get; set; } = 1;
+    public long? TargetTenantId { get; set; }
 }
