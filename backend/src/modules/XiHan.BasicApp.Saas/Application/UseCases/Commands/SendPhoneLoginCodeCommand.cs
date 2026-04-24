@@ -29,7 +29,7 @@ public class SendPhoneLoginCodeCommand
     public string Phone { get; set; } = string.Empty;
 
     /// <summary>
-    /// 租户ID
+    /// 目标租户ID
     /// </summary>
-    public long? TenantId { get; set; } = 1;
+    public long? TargetTenantId { get; set; }
 }

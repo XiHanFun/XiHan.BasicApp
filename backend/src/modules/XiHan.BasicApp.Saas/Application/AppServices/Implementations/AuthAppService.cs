@@ -382,7 +382,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         command.ValidateAnnotations();
         var phone = command.Phone.Trim();
-        var tenantId = NormalizeTenantId(command.TenantId);
+        var tenantId = NormalizeTenantId(command.TargetTenantId);
         var expiresInSeconds = Math.Clamp(_configuration.GetValue(SaasSettingKeys.Auth.PhoneCodeExpiresInSeconds, 300), 60, 1800);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
@@ -428,7 +428,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
         command.ValidateAnnotations();
         var phone = command.Phone.Trim();
         var code = command.Code.Trim();
-        var tenantId = NormalizeTenantId(command.TenantId);
+        var tenantId = NormalizeTenantId(command.TargetTenantId);
         var clientInfo = _clientInfoProvider.GetCurrent();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -483,7 +483,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
     {
         command.ValidateAnnotations();
         var email = command.Email.Trim();
-        var tenantId = NormalizeTenantId(command.TenantId);
+        var tenantId = NormalizeTenantId(command.TargetTenantId);
         var exposeDebugSecrets = ShouldExposeDebugSecrets();
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
