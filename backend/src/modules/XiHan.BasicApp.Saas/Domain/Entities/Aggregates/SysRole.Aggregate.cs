@@ -51,6 +51,11 @@ public partial class SysRole
     /// </summary>
     public void MarkDataScopeChanged(IReadOnlyCollection<long> departmentIds)
     {
-        AddLocalEvent(new RoleDataScopeChangedDomainEvent(BasicId, DataScope, departmentIds, TenantId));
+        if (DataScope == DataPermissionScope.Custom && (departmentIds == null || departmentIds.Count == 0))
+        {
+            throw new InvalidOperationException("DataScope 为 Custom 时必须指定至少一个部门。");
+        }
+
+        AddLocalEvent(new RoleDataScopeChangedDomainEvent(BasicId, DataScope, departmentIds ?? [], TenantId));
     }
 }

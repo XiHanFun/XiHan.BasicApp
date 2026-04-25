@@ -122,10 +122,10 @@ public partial class SysReview : BasicAppAggregateRoot
     public virtual AuditResult? ReviewResult { get; set; }
 
     /// <summary>
-    /// 优先级（1-5，数字越小优先级越高）
+    /// 优先级（数字越大优先级越高，与 SysPermission/SysConstraintRule/SysFieldLevelSecurity 方向一致）
     /// </summary>
     [SugarColumn(ColumnDescription = "优先级")]
-    public virtual int Priority { get; set; } = 3;
+    public virtual int Priority { get; set; } = 0;
 
     /// <summary>
     /// 提交人ID

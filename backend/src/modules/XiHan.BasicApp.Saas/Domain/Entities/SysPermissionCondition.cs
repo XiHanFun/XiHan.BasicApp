@@ -96,6 +96,12 @@ public partial class SysPermissionCondition : BasicAppFullAuditedEntity
     public virtual ConditionOperator Operator { get; set; } = ConditionOperator.Equals;
 
     /// <summary>
+    /// 是否取反（true 时对 Operator 结果取反，如 Equals+IsNegated=NotEquals）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否取反")]
+    public virtual bool IsNegated { get; set; } = false;
+
+    /// <summary>
     /// 条件值类型
     /// </summary>
     [SugarColumn(ColumnDescription = "条件值类型")]

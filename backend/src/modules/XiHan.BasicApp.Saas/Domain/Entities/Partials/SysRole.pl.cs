@@ -126,5 +126,17 @@ public partial class SysRole : IValidatableObject
         {
             yield return new ValidationResult("租户自定义角色不能标记为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
         }
+
+        if (DataScope == XiHan.BasicApp.Saas.Domain.Enums.DataPermissionScope.All
+            && !(IsGlobal && RoleType == XiHan.BasicApp.Saas.Domain.Enums.RoleType.System))
+        {
+            yield return new ValidationResult("全部数据权限范围（DataScope=All）仅限平台超管角色（IsGlobal=true 且 RoleType=System）。",
+                [nameof(DataScope), nameof(IsGlobal), nameof(RoleType)]);
+        }
+
+        if (MaxMembers < 0)
+        {
+            yield return new ValidationResult("MaxMembers 不能为负数。", [nameof(MaxMembers)]);
+        }
     }
 }

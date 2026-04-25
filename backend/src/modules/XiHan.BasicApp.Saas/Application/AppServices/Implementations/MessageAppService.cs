@@ -85,7 +85,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
         var hasEmail = channels.HasFlag(MessageChannel.Email);
         var hasSms = channels.HasFlag(MessageChannel.Sms);
 
-        if (command.IsGlobal && (hasEmail || hasSms))
+        if (command.IsBroadcast && (hasEmail || hasSms))
         {
             throw new BusinessException(message: "邮件和短信暂不支持全员发送，请指定接收用户");
         }
@@ -95,7 +95,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
             .Distinct()
             .ToArray();
 
-        if (!command.IsGlobal && recipientIds.Length == 0)
+        if (!command.IsBroadcast && recipientIds.Length == 0)
         {
             throw new BusinessException(message: "非全员消息必须指定接收用户");
         }
@@ -153,7 +153,7 @@ public class MessageAppService : ApplicationServiceBase, IMessageAppService
             result.NotificationCount = await _notificationAppService.PushAsync(new PushNotificationCommand
             {
                 RecipientUserIds = recipientIds.Select(id => id.ToString()).ToArray(),
-                IsGlobal = command.IsGlobal,
+                IsBroadcast = command.IsBroadcast,
                 SendUserId = command.SendUserId?.ToString(),
                 NotificationType = command.NotificationType,
                 Title = title,

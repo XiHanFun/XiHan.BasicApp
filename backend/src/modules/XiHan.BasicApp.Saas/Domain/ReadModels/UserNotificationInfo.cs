@@ -36,7 +36,7 @@ public class UserNotificationInfo
     public long? BusinessId { get; set; }
     public DateTimeOffset SendTime { get; set; }
     public DateTimeOffset? ExpireTime { get; set; }
-    public bool IsGlobal { get; set; }
+    public bool IsBroadcast { get; set; }
     public bool NeedConfirm { get; set; }
     public bool IsPublished { get; set; }
     public YesOrNo Status { get; set; }

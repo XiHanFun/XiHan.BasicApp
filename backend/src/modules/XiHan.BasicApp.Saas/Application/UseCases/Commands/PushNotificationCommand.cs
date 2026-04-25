@@ -69,7 +69,7 @@ public class PushNotificationCommand
     /// <summary>
     /// 是否全员通知
     /// </summary>
-    public bool IsGlobal { get; set; }
+    public bool IsBroadcast { get; set; }
 
     /// <summary>
     /// 是否需要确认

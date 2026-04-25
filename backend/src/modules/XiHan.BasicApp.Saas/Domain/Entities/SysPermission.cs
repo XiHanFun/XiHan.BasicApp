@@ -112,7 +112,7 @@ public partial class SysPermission : BasicAppFullAuditedEntity
     public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
-    /// 优先级（数字越大优先级越高，用于权限冲突时的决策）
+    /// 优先级（数字越大优先级越高；仅用于同级别 Grant/Deny 之间的排序，不参与 Grant vs Deny 的跨级覆盖决策——Deny 始终优先于 Grant）
     /// </summary>
     [SugarColumn(ColumnDescription = "优先级")]
     public virtual int Priority { get; set; } = 0;
