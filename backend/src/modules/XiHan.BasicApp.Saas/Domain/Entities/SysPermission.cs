@@ -75,7 +75,13 @@ public partial class SysPermission : BasicAppFullAuditedEntity
     public virtual long OperationId { get; set; }
 
     /// <summary>
-    /// 权限编码（唯一标识，格式：资源编码:操作编码，如：user:create, order:view）
+    /// 所属模块编码（支持三段式权限码 module:resource:action，如 saas/crm/billing）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "模块编码", Length = 50, IsNullable = true)]
+    public virtual string? ModuleCode { get; set; }
+
+    /// <summary>
+    /// 权限编码（唯一标识，推荐三段式格式：模块编码:资源编码:操作编码，如：saas:user:create）
     /// </summary>
     [SugarColumn(ColumnDescription = "权限编码", Length = 200, IsNullable = false)]
     public virtual string PermissionCode { get; set; } = string.Empty;
