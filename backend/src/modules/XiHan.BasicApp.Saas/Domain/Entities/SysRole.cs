@@ -87,7 +87,7 @@ public partial class SysRole : BasicAppAggregateRoot
     /// 服务层创建/修改角色时应校验此矩阵，拒绝非法组合。
     /// </remarks>
     [SugarColumn(ColumnDescription = "角色类型")]
-    public virtual RoleType RoleType { get; set; } = RoleType.System;
+    public virtual RoleType RoleType { get; set; } = RoleType.Custom;
 
     /// <summary>
     /// 是否平台级全局角色（全局角色作为所有租户的模板，TenantId = 0）

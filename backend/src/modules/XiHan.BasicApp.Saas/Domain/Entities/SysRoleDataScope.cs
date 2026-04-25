@@ -51,7 +51,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysRoleDataScope", "系统角色自定义数据权限范围表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("UX_{table}_RoId_DeId", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_RoId_DeId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DeId", nameof(DepartmentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
