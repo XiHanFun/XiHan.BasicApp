@@ -60,7 +60,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysFile : BasicAppAggregateRoot
+public partial class SysFile : BasicAppFullAuditedEntity
 {
     #region 基本信息
 

@@ -54,7 +54,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_SmTy", nameof(SmsType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_SeTi", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_SmSt_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SmsStatus), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
-public partial class SysSms : BasicAppAggregateRoot
+public partial class SysSms : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 发送用户ID

@@ -36,7 +36,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_CoTy", nameof(TenantId), OrderByType.Asc, nameof(ConstraintType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysConstraintRule : BasicAppAggregateRoot
+public partial class SysConstraintRule : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 规则编码（唯一标识）

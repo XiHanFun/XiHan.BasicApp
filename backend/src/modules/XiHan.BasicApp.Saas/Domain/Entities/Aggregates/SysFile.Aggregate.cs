@@ -13,12 +13,11 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Events;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 文件聚合领域行为
+/// 文件领域行为
 /// </summary>
 public partial class SysFile
 {
@@ -28,6 +27,5 @@ public partial class SysFile
     public void MarkAsExpired()
     {
         Status = FileStatus.Expired;
-        AddLocalEvent(new FileChangedDomainEvent(BasicId));
     }
 }

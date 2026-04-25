@@ -55,7 +55,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_EmTy", nameof(EmailType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_SeTi", nameof(SendTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_EmSt_SeTi", nameof(TenantId), OrderByType.Asc, nameof(EmailStatus), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
-public partial class SysEmail : BasicAppAggregateRoot
+public partial class SysEmail : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 发送用户ID
