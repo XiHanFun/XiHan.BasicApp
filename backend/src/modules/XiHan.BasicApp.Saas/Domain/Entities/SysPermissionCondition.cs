@@ -41,6 +41,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 建模约定：
 /// - AttributeName 只允许使用已注册的命名空间（subject./resource./environment.）
 /// - ValueType 用于固定解释器如何解析 ConditionValue，避免同一属性在不同规则里出现值类型漂移
+/// - 服务层写入时应校验：同一 AttributeName 在不同条件中的 ValueType 必须一致
+/// - 条件总数限制：单条权限关联最多 5 个条件组（ConditionGroup），每组最多 10 条条件，超出应拒绝写入
 /// </remarks>
 [SugarTable("SysPermissionCondition", "权限ABAC条件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]

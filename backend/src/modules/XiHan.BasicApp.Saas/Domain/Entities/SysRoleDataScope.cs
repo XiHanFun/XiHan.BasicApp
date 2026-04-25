@@ -76,6 +76,18 @@ public partial class SysRoleDataScope : BasicAppCreationEntity
     public virtual bool IncludeChildren { get; set; } = false;
 
     /// <summary>
+    /// 生效时间（为空表示立即生效）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    public virtual DateTimeOffset? EffectiveTime { get; set; }
+
+    /// <summary>
+    /// 失效时间（为空表示永不过期）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]

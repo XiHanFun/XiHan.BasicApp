@@ -14,7 +14,6 @@
 
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
-using XiHan.BasicApp.Saas.Domain.ValueObjects;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -46,15 +45,6 @@ public partial class SysUser
     public void Disable()
     {
         Status = YesOrNo.No;
-    }
-
-    /// <summary>
-    /// 更新密码
-    /// </summary>
-    public void ChangePassword(PasswordValueObject password)
-    {
-        Password = password.Hash;
-        AddLocalEvent(new UserPasswordChangedDomainEvent(BasicId));
     }
 
     /// <summary>
