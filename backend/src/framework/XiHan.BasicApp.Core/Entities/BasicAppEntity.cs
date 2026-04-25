@@ -21,11 +21,6 @@ namespace XiHan.BasicApp.Core.Entities;
 /// BasicApp 实体基类
 /// </summary>
 /// <remarks>
-/// 【多租户 TenantId 约定（重要）】
-/// 框架基类 SugarMultiTenantEntity&lt;TKey&gt;.TenantId 类型为 long?，数据库允许 NULL。
-/// 由于 MySQL/PostgreSQL 对 UNIQUE 约束中的 NULL 不视为相等，若全局记录 TenantId=NULL
-/// 会导致 UX_TeId_XxCo 类唯一索引对全局记录失效（可重复插入）。
-///
 /// 本项目统一约定：
 /// - 平台级/全局记录统一使用 TenantId = 0（"平台租户"占位），不得使用 NULL
 /// - 业务租户 Id 从 1 开始分配；0 号租户由平台保留
