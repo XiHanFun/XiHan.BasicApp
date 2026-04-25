@@ -192,16 +192,10 @@ public partial class SysFile : BasicAppAggregateRoot
     #region 安全与权限
 
     /// <summary>
-    /// 是否公开访问
+    /// 文件访问级别（替代原 IsPublic+RequireAuth 布尔组合，消除无效组合）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否公开访问")]
-    public virtual bool IsPublic { get; set; } = true;
-
-    /// <summary>
-    /// 是否需要授权访问
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要授权访问")]
-    public virtual bool RequireAuth { get; set; } = false;
+    [SugarColumn(ColumnDescription = "访问级别")]
+    public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
     /// 访问权限（角色、用户等）

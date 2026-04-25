@@ -157,8 +157,11 @@ public class FileAppService
             MimeType = createDto.MimeType,
             FileSize = createDto.FileSize,
             FileHash = createDto.FileHash,
-            IsPublic = createDto.IsPublic,
-            RequireAuth = createDto.RequireAuth,
+            AccessLevel = createDto.RequireAuth
+                ? XiHan.BasicApp.Saas.Domain.Enums.ResourceAccessLevel.Authorized
+                : createDto.IsPublic
+                    ? XiHan.BasicApp.Saas.Domain.Enums.ResourceAccessLevel.Public
+                    : XiHan.BasicApp.Saas.Domain.Enums.ResourceAccessLevel.Authenticated,
             AccessPermissions = createDto.AccessPermissions,
             IsTemporary = createDto.IsTemporary,
             ExpiresAt = createDto.ExpiresAt,
@@ -181,8 +184,11 @@ public class FileAppService
         entity.MimeType = updateDto.MimeType;
         entity.FileSize = updateDto.FileSize;
         entity.FileHash = updateDto.FileHash;
-        entity.IsPublic = updateDto.IsPublic;
-        entity.RequireAuth = updateDto.RequireAuth;
+        entity.AccessLevel = updateDto.RequireAuth
+            ? XiHan.BasicApp.Saas.Domain.Enums.ResourceAccessLevel.Authorized
+            : updateDto.IsPublic
+                ? XiHan.BasicApp.Saas.Domain.Enums.ResourceAccessLevel.Public
+                : XiHan.BasicApp.Saas.Domain.Enums.ResourceAccessLevel.Authenticated;
         entity.AccessPermissions = updateDto.AccessPermissions;
         entity.IsTemporary = updateDto.IsTemporary;
         entity.ExpiresAt = updateDto.ExpiresAt;
