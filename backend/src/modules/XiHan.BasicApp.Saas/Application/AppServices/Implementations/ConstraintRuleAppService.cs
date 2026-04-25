@@ -136,12 +136,12 @@ public class ConstraintRuleAppService
             ConstraintType = createDto.ConstraintType,
             TargetType = createDto.TargetType,
             Parameters = string.IsNullOrWhiteSpace(createDto.Parameters) ? "{}" : createDto.Parameters.Trim(),
-            IsEnabled = createDto.IsEnabled,
+            Status = createDto.IsEnabled ? YesOrNo.Yes : YesOrNo.No,
             ViolationAction = createDto.ViolationAction,
             Description = createDto.Description?.Trim(),
             Priority = createDto.Priority,
-            EffectiveFrom = createDto.EffectiveFrom,
-            EffectiveTo = createDto.EffectiveTo,
+            EffectiveTime = createDto.EffectiveFrom,
+            ExpirationTime = createDto.EffectiveTo,
             Remark = createDto.Remark?.Trim()
         };
 
@@ -156,12 +156,12 @@ public class ConstraintRuleAppService
         entity.ConstraintType = updateDto.ConstraintType;
         entity.TargetType = updateDto.TargetType;
         entity.Parameters = string.IsNullOrWhiteSpace(updateDto.Parameters) ? "{}" : updateDto.Parameters.Trim();
-        entity.IsEnabled = updateDto.IsEnabled;
+        entity.Status = updateDto.IsEnabled ? YesOrNo.Yes : YesOrNo.No;
         entity.ViolationAction = updateDto.ViolationAction;
         entity.Description = updateDto.Description?.Trim();
         entity.Priority = updateDto.Priority;
-        entity.EffectiveFrom = updateDto.EffectiveFrom;
-        entity.EffectiveTo = updateDto.EffectiveTo;
+        entity.EffectiveTime = updateDto.EffectiveFrom;
+        entity.ExpirationTime = updateDto.EffectiveTo;
         entity.Remark = updateDto.Remark?.Trim();
 
         return Task.CompletedTask;

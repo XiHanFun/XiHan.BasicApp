@@ -82,7 +82,7 @@ public class RbacAbacEvaluator : IAbacEvaluator
         var query = DbClient.Queryable<SysConstraintRule>()
             .Where(rule =>
                 rule.RuleCode == policyCode
-                && rule.IsEnabled);
+                && rule.Status == YesOrNo.Yes);
 
         query = tenantId.HasValue
             ? query.Where(rule => rule.TenantId == tenantId.Value || rule.TenantId == 0)
@@ -160,12 +160,12 @@ public class RbacAbacEvaluator : IAbacEvaluator
 
     private static bool IsEffective(SysConstraintRule rule, DateTimeOffset evaluationTime)
     {
-        if (rule.EffectiveFrom.HasValue && evaluationTime < rule.EffectiveFrom.Value)
+        if (rule.EffectiveTime.HasValue && evaluationTime < rule.EffectiveTime.Value)
         {
             return false;
         }
 
-        if (rule.EffectiveTo.HasValue && evaluationTime > rule.EffectiveTo.Value)
+        if (rule.ExpirationTime.HasValue && evaluationTime > rule.ExpirationTime.Value)
         {
             return false;
         }
