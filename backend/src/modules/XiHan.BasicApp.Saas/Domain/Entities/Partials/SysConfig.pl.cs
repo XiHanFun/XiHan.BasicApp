@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统配置实体扩展
 /// </summary>
-public partial class SysConfig
+public partial class SysConfig : IValidatableObject
 {
     /// <summary>
     /// 租户信息
@@ -29,4 +30,28 @@ public partial class SysConfig
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.OneToOne, nameof(TenantId))]
     public virtual SysTenant? Tenant { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (IsGlobal && TenantId != 0)
+        {
+            yield return new ValidationResult("全局配置必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
+        }
+
+        if (TenantId == 0 && !IsGlobal)
+        {
+            yield return new ValidationResult("平台租户（TenantId=0）的配置必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(ConfigKey))
+        {
+            yield return new ValidationResult("ConfigKey 不能为空。", [nameof(ConfigKey)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(ConfigName))
+        {
+            yield return new ValidationResult("ConfigName 不能为空。", [nameof(ConfigName)]);
+        }
+    }
 }

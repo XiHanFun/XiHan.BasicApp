@@ -61,7 +61,7 @@ public partial class SysUserStatistics : BasicAppFullAuditedEntity
     /// 统计日期
     /// </summary>
     [SugarColumn(ColumnDescription = "统计日期")]
-    public virtual DateOnly StatisticsDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    public virtual DateOnly StatisticsDate { get; set; }
 
     /// <summary>
     /// 统计时间范围

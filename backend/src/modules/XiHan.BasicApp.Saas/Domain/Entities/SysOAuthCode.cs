@@ -86,11 +86,10 @@ public partial class SysOAuthCode : BasicAppCreationEntity
     public virtual string? Scopes { get; set; }
 
     /// <summary>
-    /// 状态
-    /// 防 CSRF 的随机字符串
+    /// CSRF 状态参数（OAuth2 防 CSRF 的随机字符串，非业务状态）
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态", IsNullable = true)]
-    public virtual string? State { get; set; }
+    [SugarColumn(ColumnDescription = "跨站请求伪造防护状态参数", Length = 200, IsNullable = true)]
+    public virtual string? CsrfState { get; set; }
 
     /// <summary>
     /// 质询码

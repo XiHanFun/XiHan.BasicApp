@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统菜单实体扩展
 /// </summary>
-public partial class SysMenu
+public partial class SysMenu : IValidatableObject
 {
     /// <summary>
     /// 父级菜单
@@ -47,4 +48,28 @@ public partial class SysMenu
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(PermissionId))]
     public virtual SysPermission? Permission { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (IsGlobal && TenantId != 0)
+        {
+            yield return new ValidationResult("全局菜单必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
+        }
+
+        if (TenantId == 0 && !IsGlobal)
+        {
+            yield return new ValidationResult("平台租户（TenantId=0）的菜单必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(MenuCode))
+        {
+            yield return new ValidationResult("MenuCode 不能为空。", [nameof(MenuCode)]);
+        }
+
+        if (string.IsNullOrWhiteSpace(MenuName))
+        {
+            yield return new ValidationResult("MenuName 不能为空。", [nameof(MenuName)]);
+        }
+    }
 }
