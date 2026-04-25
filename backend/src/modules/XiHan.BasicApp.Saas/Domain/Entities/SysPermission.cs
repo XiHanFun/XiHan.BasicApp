@@ -99,10 +99,10 @@ public partial class SysPermission : BasicAppAggregateRoot
     public virtual string? PermissionDescription { get; set; }
 
     /// <summary>
-    /// 权限标签（多个标签用逗号分隔，如：admin,sensitive,audit）
+    /// 权限标签（JSON 数组格式，如：["admin","sensitive","audit"]）
     /// 用于权限分类和快速筛选
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限标签", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnDescription = "权限标签", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Tags { get; set; }
 
     /// <summary>

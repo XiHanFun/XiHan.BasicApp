@@ -74,19 +74,6 @@ public partial class SysUser : BasicAppAggregateRoot
     public virtual string UserName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 密码（已加密）
-    /// </summary>
-    /// <remarks>
-    /// TODO: 后续版本考虑将 Password 迁移到 SysUserSecurity，SysUser 不再持有密码哈希。
-    /// 当前保留在此是因为登录流程（AuthAppService）、种子数据、密码校验均直接依赖此字段，
-    /// 迁移影响面较大，需要独立版本处理。
-    /// </remarks>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "密码", Length = 200, IsNullable = false)]
-    public virtual string Password { get; set; } = string.Empty;
-
-    /// <summary>
     /// 真实姓名
     /// </summary>
     [SugarColumn(ColumnDescription = "真实姓名", Length = 50, IsNullable = true)]
