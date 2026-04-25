@@ -27,7 +27,7 @@ public partial class SysPermission
     /// </summary>
     public void Enable()
     {
-        Status = YesOrNo.Yes;
+        Status = EnableStatus.Enabled;
         AddLocalEvent(new PermissionChangedDomainEvent(BasicId));
     }
 
@@ -36,7 +36,7 @@ public partial class SysPermission
     /// </summary>
     public void Disable()
     {
-        Status = YesOrNo.No;
+        Status = EnableStatus.Disabled;
         AddLocalEvent(new PermissionChangedDomainEvent(BasicId));
     }
 }
