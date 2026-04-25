@@ -33,5 +33,10 @@ public enum FieldSecurityTargetType
     /// <summary>
     /// 权限：策略随权限一起生效（用户拥有该权限时受限）
     /// </summary>
-    Permission = 2
+    Permission = 2,
+
+    /// <summary>
+    /// 部门：策略应用于该部门下的所有用户（适用于"某部门可见/不可见某字段"场景）
+    /// </summary>
+    Department = 3
 }

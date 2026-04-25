@@ -81,7 +81,7 @@ public class NotificationRepository : SqlSugarAggregateRepository<SysNotificatio
                 BusinessId = n.BusinessId,
                 SendTime = n.SendTime,
                 ExpireTime = n.ExpireTime,
-                IsGlobal = n.IsGlobal,
+                IsBroadcast = n.IsBroadcast,
                 NeedConfirm = n.NeedConfirm,
                 IsPublished = n.IsPublished,
                 Remark = n.Remark,

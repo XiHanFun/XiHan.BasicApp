@@ -34,7 +34,7 @@ public class SendMessageCommand
     /// <summary>
     /// 是否全员通知（仅站内通知支持）
     /// </summary>
-    public bool IsGlobal { get; set; }
+    public bool IsBroadcast { get; set; }
 
     /// <summary>
     /// 发送用户ID

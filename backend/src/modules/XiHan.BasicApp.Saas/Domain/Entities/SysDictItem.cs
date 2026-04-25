@@ -49,7 +49,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_DiId_ItCo", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_DiId_ItCo", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
 public partial class SysDictItem : BasicAppFullAuditedEntity
@@ -91,22 +91,10 @@ public partial class SysDictItem : BasicAppFullAuditedEntity
     public virtual string? ItemDescription { get; set; }
 
     /// <summary>
-    /// 扩展属性1
+    /// 扩展元数据（JSON格式，替代固定扩展列，支持自描述的灵活扩展）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展属性1", Length = 200, IsNullable = true)]
-    public virtual string? ExtendField1 { get; set; }
-
-    /// <summary>
-    /// 扩展属性2
-    /// </summary>
-    [SugarColumn(ColumnDescription = "扩展属性2", Length = 200, IsNullable = true)]
-    public virtual string? ExtendField2 { get; set; }
-
-    /// <summary>
-    /// 扩展属性3
-    /// </summary>
-    [SugarColumn(ColumnDescription = "扩展属性3", Length = 200, IsNullable = true)]
-    public virtual string? ExtendField3 { get; set; }
+    [SugarColumn(ColumnDescription = "扩展元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? Metadata { get; set; }
 
     /// <summary>
     /// 是否默认

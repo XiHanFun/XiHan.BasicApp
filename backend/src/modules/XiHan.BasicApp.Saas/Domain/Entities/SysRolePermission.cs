@@ -39,6 +39,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_PeAc", nameof(PermissionAction), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
 public partial class SysRolePermission : BasicAppCreationEntity
 {
     /// <summary>
@@ -58,6 +60,24 @@ public partial class SysRolePermission : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "权限操作")]
     public virtual PermissionAction PermissionAction { get; set; } = PermissionAction.Grant;
+
+    /// <summary>
+    /// 生效时间（为空表示立即生效）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    public virtual DateTimeOffset? EffectiveTime { get; set; }
+
+    /// <summary>
+    /// 失效时间（为空表示永不过期）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
+
+    /// <summary>
+    /// 授权原因（关联审批单号、工单号等，用于审计追溯）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "授权原因", Length = 500, IsNullable = true)]
+    public virtual string? GrantReason { get; set; }
 
     /// <summary>
     /// 状态

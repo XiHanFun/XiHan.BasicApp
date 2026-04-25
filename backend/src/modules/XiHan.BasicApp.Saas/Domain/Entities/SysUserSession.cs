@@ -30,6 +30,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_UsSeId", nameof(TenantId), OrderByType.Asc, nameof(UserSessionId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
 public partial class SysUserSession : BasicAppAggregateRoot
 {
     /// <summary>
@@ -134,6 +135,12 @@ public partial class SysUserSession : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "登出时间", IsNullable = true)]
     public virtual DateTimeOffset? LogoutTime { get; set; }
+
+    /// <summary>
+    /// 会话过期时间（绝对超时，如 24 小时强制重登；为空表示不限）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话过期时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>
     /// 备注

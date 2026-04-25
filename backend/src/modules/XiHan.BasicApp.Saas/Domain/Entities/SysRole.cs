@@ -103,6 +103,12 @@ public partial class SysRole : BasicAppAggregateRoot
     public virtual DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
 
     /// <summary>
+    /// 最大成员数（角色基数约束，0 表示不限；如"总经理"角色最多 1 人）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "最大成员数")]
+    public virtual int MaxMembers { get; set; } = 0;
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]

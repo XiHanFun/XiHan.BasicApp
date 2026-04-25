@@ -90,7 +90,7 @@ public class NotificationAppService
         input.ValidateAnnotations();
 
         var parsedRecipientUserId = ParseNullableLong(input.RecipientUserId);
-        ValidateNotificationPayload(input.Title, input.IsGlobal, parsedRecipientUserId, input.SendTime, input.ExpireTime);
+        ValidateNotificationPayload(input.Title, input.IsBroadcast, parsedRecipientUserId, input.SendTime, input.ExpireTime);
         await EnsureUsersExistsAsync(parsedRecipientUserId, input.SendUserId, input.TenantId);
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -98,7 +98,7 @@ public class NotificationAppService
         var entity = await MapDtoToEntityAsync(input);
         var saved = await _domainService.CreateAsync(entity);
 
-        if (!input.IsGlobal && parsedRecipientUserId.HasValue)
+        if (!input.IsBroadcast && parsedRecipientUserId.HasValue)
         {
             await _notificationRepository.AddRecipientsAsync(
             [
@@ -132,7 +132,7 @@ public class NotificationAppService
         }
 
         var parsedRecipientUserId = ParseNullableLong(input.RecipientUserId);
-        ValidateNotificationPayload(input.Title, input.IsGlobal, parsedRecipientUserId, input.SendTime, input.ExpireTime);
+        ValidateNotificationPayload(input.Title, input.IsBroadcast, parsedRecipientUserId, input.SendTime, input.ExpireTime);
         await EnsureUsersExistsAsync(parsedRecipientUserId, input.SendUserId, notification.TenantId);
 
         using var uow = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(), true);
@@ -141,7 +141,7 @@ public class NotificationAppService
         var updated = await _domainService.UpdateAsync(notification);
 
         await _notificationRepository.DeleteRecipientsByNotificationIdAsync(notification.BasicId);
-        if (!input.IsGlobal && parsedRecipientUserId.HasValue)
+        if (!input.IsBroadcast && parsedRecipientUserId.HasValue)
         {
             await _notificationRepository.AddRecipientsAsync(
             [
@@ -221,7 +221,7 @@ public class NotificationAppService
         var resolvedTenantId = NormalizeTenantId(notification.TenantId);
         IReadOnlyList<long> targetUserIds;
 
-        if (notification.IsGlobal)
+        if (notification.IsBroadcast)
         {
             targetUserIds = await ResolveAllActiveUserIdsAsync(resolvedTenantId);
             if (targetUserIds.Count == 0)
@@ -278,7 +278,7 @@ public class NotificationAppService
             throw new ArgumentException("通知标题不能为空", nameof(command.Title));
         }
 
-        if (command.IsGlobal && command.RecipientUserIds.Count > 0)
+        if (command.IsBroadcast && command.RecipientUserIds.Count > 0)
         {
             throw new BusinessException(message: "全员通知不允许指定接收人");
         }
@@ -289,7 +289,7 @@ public class NotificationAppService
             .Distinct()
             .ToArray();
 
-        if (!command.IsGlobal && recipientIds.Length == 0)
+        if (!command.IsBroadcast && recipientIds.Length == 0)
         {
             throw new BusinessException(message: "非全员通知必须指定至少一个接收人");
         }
@@ -312,7 +312,7 @@ public class NotificationAppService
         }
 
         IReadOnlyList<long> targetUserIds;
-        if (command.IsGlobal)
+        if (command.IsBroadcast)
         {
             targetUserIds = await ResolveAllActiveUserIdsAsync(resolvedTenantId);
         }
@@ -362,7 +362,7 @@ public class NotificationAppService
             BusinessId = command.BusinessId,
             SendTime = sendTime,
             ExpireTime = command.ExpireTime,
-            IsGlobal = command.IsGlobal,
+            IsBroadcast = command.IsBroadcast,
             NeedConfirm = command.NeedConfirm,
             IsPublished = true,
             Remark = command.Remark
@@ -416,7 +416,7 @@ public class NotificationAppService
             BusinessId = createDto.BusinessId,
             SendTime = createDto.SendTime,
             ExpireTime = createDto.ExpireTime,
-            IsGlobal = createDto.IsGlobal,
+            IsBroadcast = createDto.IsBroadcast,
             NeedConfirm = createDto.NeedConfirm,
             Remark = createDto.Remark
         };
@@ -436,7 +436,7 @@ public class NotificationAppService
         entity.BusinessId = updateDto.BusinessId;
         entity.SendTime = updateDto.SendTime;
         entity.ExpireTime = updateDto.ExpireTime;
-        entity.IsGlobal = updateDto.IsGlobal;
+        entity.IsBroadcast = updateDto.IsBroadcast;
         entity.NeedConfirm = updateDto.NeedConfirm;
         entity.Remark = updateDto.Remark;
         return Task.CompletedTask;
@@ -500,13 +500,13 @@ public class NotificationAppService
             notification.Title,
             Content = notification.Content ?? string.Empty,
             notification.NeedConfirm,
-            notification.IsGlobal,
+            notification.IsBroadcast,
             NotificationType = (int)notification.NotificationType,
             TenantId = tenantId,
             SendTime = DateTimeOffset.UtcNow
         };
 
-        if (notification.IsGlobal && !tenantId.HasValue)
+        if (notification.IsBroadcast && !tenantId.HasValue)
         {
             await _realtimeNotifier.SendToAllAsync(SignalRConstants.ClientMethods.ReceiveNotification, payload);
             return;

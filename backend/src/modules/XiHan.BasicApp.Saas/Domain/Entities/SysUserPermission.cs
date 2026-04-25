@@ -69,6 +69,12 @@ public partial class SysUserPermission : BasicAppCreationEntity
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
+    /// 授权原因（关联审批单号、工单号等，用于审计追溯）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "授权原因", Length = 500, IsNullable = true)]
+    public virtual string? GrantReason { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]

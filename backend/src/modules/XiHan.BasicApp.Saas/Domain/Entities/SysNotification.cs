@@ -110,7 +110,7 @@ public partial class SysNotification : BasicAppAggregateRoot
     /// 发送时间
     /// </summary>
     [SugarColumn(ColumnDescription = "发送时间")]
-    public virtual DateTimeOffset SendTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset SendTime { get; set; }
 
     /// <summary>
     /// 过期时间
@@ -119,10 +119,10 @@ public partial class SysNotification : BasicAppAggregateRoot
     public virtual DateTimeOffset? ExpireTime { get; set; }
 
     /// <summary>
-    /// 是否全员通知
+    /// 是否全员通知（注意：此字段表示"广播给所有用户"，与权限体系中 IsGlobal 表示"平台级 TenantId=0"的语义不同）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否全员通知")]
-    public virtual bool IsGlobal { get; set; } = false;
+    public virtual bool IsBroadcast { get; set; } = false;
 
     /// <summary>
     /// 是否需要确认
