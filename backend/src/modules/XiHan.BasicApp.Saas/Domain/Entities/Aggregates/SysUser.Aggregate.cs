@@ -48,6 +48,14 @@ public partial class SysUser
     }
 
     /// <summary>
+    /// 记录密码变更（发布领域事件，密码本身由 SysUserSecurity 管理）
+    /// </summary>
+    public void MarkPasswordChanged()
+    {
+        AddLocalEvent(new UserPasswordChangedDomainEvent(BasicId));
+    }
+
+    /// <summary>
     /// 记录角色变更
     /// </summary>
     public void MarkRolesChanged(IReadOnlyCollection<long> roleIds)

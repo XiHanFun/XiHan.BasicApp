@@ -51,13 +51,18 @@ public class SysUserSeeder : DataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var passwordHasher = ServiceProvider.GetRequiredService<IPasswordHasher>();
+        var userPasswords = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [SaasSeedDefaults.BootstrapAdminUserName] = passwordHasher.HashPassword("SuperAdmin@123"),
+            [SaasSeedDefaults.PlatformAdminUserName] = passwordHasher.HashPassword("Admin@123")
+        };
+
         var bootstrapUsers = new List<SysUser>
         {
             new()
             {
                 TenantId = SaasSeedDefaults.PlatformTenantId,
                 UserName = SaasSeedDefaults.BootstrapAdminUserName,
-                Password = passwordHasher.HashPassword("SuperAdmin@123"),
                 RealName = "超级管理员",
                 NickName = "SuperAdmin",
                 Gender = UserGender.Male,
@@ -72,7 +77,6 @@ public class SysUserSeeder : DataSeederBase
             {
                 TenantId = SaasSeedDefaults.PlatformTenantId,
                 UserName = SaasSeedDefaults.PlatformAdminUserName,
-                Password = passwordHasher.HashPassword("Admin@123"),
                 RealName = "系统管理员",
                 NickName = "Admin",
                 Gender = UserGender.Male,
@@ -100,6 +104,41 @@ public class SysUserSeeder : DataSeederBase
         if (usersToInsert.Count > 0)
         {
             await BulkInsertAsync(usersToInsert);
+
+            var insertedUsers = await DbClient
+                .Queryable<SysUser>()
+                .Where(user => usersToInsert.Select(u => u.UserName).Contains(user.UserName))
+                .ToListAsync();
+
+            var securityRecords = insertedUsers
+                .Where(user => userPasswords.ContainsKey(user.UserName))
+                .Select(user => new SysUserSecurity
+                {
+                    TenantId = user.TenantId,
+                    UserId = user.BasicId,
+                    Password = userPasswords[user.UserName],
+                    LastPasswordChangeTime = DateTimeOffset.UtcNow,
+                    SecurityStamp = Guid.NewGuid().ToString("N")
+                })
+                .ToList();
+
+            if (securityRecords.Count > 0)
+            {
+                var existingSecurityUserIds = await DbClient
+                    .Queryable<SysUserSecurity>()
+                    .Where(s => insertedUsers.Select(u => u.BasicId).Contains(s.UserId))
+                    .Select(s => s.UserId)
+                    .ToListAsync();
+
+                var newSecurityRecords = securityRecords
+                    .Where(s => !existingSecurityUserIds.Contains(s.UserId))
+                    .ToList();
+
+                if (newSecurityRecords.Count > 0)
+                {
+                    await DbClient.Insertable(newSecurityRecords).ExecuteCommandAsync();
+                }
+            }
         }
 
         var usersToNormalize = existingUsers

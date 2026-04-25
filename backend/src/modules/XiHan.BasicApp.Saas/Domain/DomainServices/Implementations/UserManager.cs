@@ -69,11 +69,14 @@ public class UserManager : IUserManager
         await EnsureUserNameUniqueAsync(user.UserName, null, user.TenantId, cancellationToken);
 
         var password = PasswordValueObject.Create(plainPassword, _passwordHasher);
-        user.ChangePassword(password);
         user.MarkCreated();
 
         var created = await _userRepository.AddAsync(user, cancellationToken);
-        await EnsureSecurityProfileAsync(created, cancellationToken);
+        var security = await EnsureSecurityProfileAsync(created, cancellationToken);
+        security.Password = password.Hash;
+        security.LastPasswordChangeTime = DateTimeOffset.UtcNow;
+        security.SecurityStamp = Guid.NewGuid().ToString("N");
+        await _userRepository.SaveSecurityAsync(security, cancellationToken);
         await EnsurePrimaryMembershipAsync(created, cancellationToken);
         return created;
     }
@@ -91,20 +94,19 @@ public class UserManager : IUserManager
         ArgumentException.ThrowIfNullOrWhiteSpace(newPassword);
 
         var password = PasswordValueObject.Create(newPassword, _passwordHasher);
-        user.ChangePassword(password);
-        await _userRepository.UpdateAsync(user, cancellationToken);
 
         var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId, cancellationToken);
         if (security is null)
         {
-            await EnsureSecurityProfileAsync(user, cancellationToken);
-            return;
+            security = await EnsureSecurityProfileAsync(user, cancellationToken);
         }
 
+        security.Password = password.Hash;
         security.LastPasswordChangeTime = DateTimeOffset.UtcNow;
         security.PasswordExpiryTime = DateTimeOffset.UtcNow.AddDays(90);
         security.SecurityStamp = Guid.NewGuid().ToString("N");
         await _userRepository.SaveSecurityAsync(security, cancellationToken);
+        user.MarkPasswordChanged();
     }
 
     /// <summary>
