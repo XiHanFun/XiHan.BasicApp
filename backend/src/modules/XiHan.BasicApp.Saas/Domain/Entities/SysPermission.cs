@@ -60,7 +60,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ReId", nameof(ResourceId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
-public partial class SysPermission : BasicAppFullAuditedEntity
+public partial class SysPermission : BasicAppAggregateRoot
 {
     /// <summary>
     /// 资源ID（关联 SysResource 表，必填）

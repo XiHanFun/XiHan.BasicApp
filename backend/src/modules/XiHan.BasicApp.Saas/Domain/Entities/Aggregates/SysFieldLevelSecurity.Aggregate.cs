@@ -1,0 +1,42 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:SysFieldLevelSecurity.Aggregate
+// Guid:a1b2c3d4-5e6f-7890-abcd-ef12345678d3
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/04/26 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Events;
+
+namespace XiHan.BasicApp.Saas.Domain.Entities;
+
+/// <summary>
+/// 字段级安全策略聚合领域行为
+/// </summary>
+public partial class SysFieldLevelSecurity
+{
+    /// <summary>
+    /// 启用策略
+    /// </summary>
+    public void Enable()
+    {
+        Status = YesOrNo.Yes;
+        AddLocalEvent(new FieldLevelSecurityChangedDomainEvent(BasicId, TenantId));
+    }
+
+    /// <summary>
+    /// 停用策略
+    /// </summary>
+    public void Disable()
+    {
+        Status = YesOrNo.No;
+        AddLocalEvent(new FieldLevelSecurityChangedDomainEvent(BasicId, TenantId));
+    }
+}
