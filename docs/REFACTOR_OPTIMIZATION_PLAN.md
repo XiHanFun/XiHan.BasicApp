@@ -581,3 +581,31 @@ pnpm lint
 6. 建立后端扫描命令并纳入每次重构验收。
 
 这些任务完成后，再进入 DTO、AppService、前端 API 和页面重构。
+
+## 18. 阶段执行记录
+
+### 2026-04-26 B0 基线扫描与保护
+
+本阶段只做基线验证与文档更新，不修改业务行为。
+
+执行结果：
+
+- `dotnet --info`：本机安装 .NET SDK `8.0.413`、`9.0.313`、`10.0.107`、`10.0.202`。BasicApp `global.json` 固定 `10.0.107` 且 `rollForward = disable`。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx`：失败。沙箱内 Restore 阶段无具体错误；沙箱外还原成功，但构建写入 `obj\Debug\net10.0\*.AssemblyReference.cache` 和 `WebHost\obj\Debug\net10.0\apphost.exe` 被拒绝，最终 `CreateAppHost` 抛出 `UnauthorizedAccessException`。该失败属于本地构建输出目录权限/锁定问题，非本阶段代码变更导致。
+- `pnpm type-check`：通过。
+- `pnpm build`：沙箱内因 Vite/esbuild 子进程 `spawn EPERM` 失败；沙箱外通过。构建产物 `frontend/dist/` 为 ignored。
+- `rg -n "class .*Controller" backend/src -g "*.cs"`：0 个匹配，当前未发现业务 Controller。
+- 严格租户扫描：`TenantId IS NULL` / `TenantId = null` / `TenantId == null` / `PlatformTenantId = 1` 共 9 个匹配，分布在：
+  - `Constants/Basic/RoleBasicConstants.cs`
+  - `Seeders/SaasSeedDefaults.cs`
+  - `Infrastructure/Repositories/SaasTenantQueryHelper.cs`
+  - `Infrastructure/Authorization/RbacRoleStore.cs`
+  - `Infrastructure/Authorization/RbacPermissionStore.cs`
+  - `Infrastructure/Repositories/RoleHierarchyRepository.cs`
+- `rg -n "YesOrNo" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：301 个匹配。
+
+协作状态：
+
+- 本阶段未修改后端和前端业务代码。
+- 构建生成的 `backend/nupkgs/`、`frontend/dist/` 为 ignored，不纳入提交。
+- 后续 B1/B2 进入代码修改前，必须再次检查两个仓库 git 状态，只提交本任务修改的文件。
