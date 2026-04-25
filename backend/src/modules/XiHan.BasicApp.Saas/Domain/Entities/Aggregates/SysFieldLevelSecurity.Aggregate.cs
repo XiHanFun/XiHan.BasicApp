@@ -13,12 +13,11 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Events;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 字段级安全策略聚合领域行为
+/// 字段级安全策略领域行为
 /// </summary>
 public partial class SysFieldLevelSecurity
 {
@@ -27,8 +26,7 @@ public partial class SysFieldLevelSecurity
     /// </summary>
     public void Enable()
     {
-        Status = YesOrNo.Yes;
-        AddLocalEvent(new FieldLevelSecurityChangedDomainEvent(BasicId, TenantId));
+        Status = EnableStatus.Enabled;
     }
 
     /// <summary>
@@ -36,7 +34,6 @@ public partial class SysFieldLevelSecurity
     /// </summary>
     public void Disable()
     {
-        Status = YesOrNo.No;
-        AddLocalEvent(new FieldLevelSecurityChangedDomainEvent(BasicId, TenantId));
+        Status = EnableStatus.Disabled;
     }
 }

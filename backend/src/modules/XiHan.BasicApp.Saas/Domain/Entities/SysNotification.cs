@@ -56,7 +56,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_NoTy", nameof(NotificationType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsPu", nameof(IsPublished), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
-public partial class SysNotification : BasicAppAggregateRoot
+public partial class SysNotification : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 发送用户ID

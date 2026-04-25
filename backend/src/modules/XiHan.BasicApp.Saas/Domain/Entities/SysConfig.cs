@@ -57,7 +57,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
-public partial class SysConfig : BasicAppAggregateRoot
+public partial class SysConfig : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 是否平台级全局配置（全局配置对所有租户生效，TenantId = 0）

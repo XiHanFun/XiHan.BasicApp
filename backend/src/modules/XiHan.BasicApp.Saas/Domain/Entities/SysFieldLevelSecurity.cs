@@ -52,7 +52,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TaTy_TaId", nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ReId_FiNa", nameof(ResourceId), OrderByType.Asc, nameof(FieldName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysFieldLevelSecurity : BasicAppAggregateRoot
+public partial class SysFieldLevelSecurity : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 目标类型（策略绑定到角色/用户/权限）

@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
-public partial class SysUserSession : BasicAppAggregateRoot
+public partial class SysUserSession : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 用户ID
