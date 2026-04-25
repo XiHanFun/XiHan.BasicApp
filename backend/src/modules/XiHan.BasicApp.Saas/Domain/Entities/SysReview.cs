@@ -20,15 +20,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统审查实体
-/// 通用审批/审查流聚合根：承载审查单主信息、当前节点、结果；每步动作由 SysReviewLog 记录
+/// 通用业务审批/审查流聚合根：承载审查单主信息、当前节点、结果；每步审批动作由 SysReviewLog 记录
 /// </summary>
 /// <remarks>
+/// 职责边界：
+/// - 本表承载"业务审批决策过程"（谁提交了什么、谁审批了、结果如何）
+/// - 与 SysAuditLog（数据库实体变更审计）职责分离：SysAuditLog 记录数据变更事实，本表记录业务审批流程
+/// - 敏感操作（如权限变更、角色分配）可关联审查单，实现"先审批后执行"
+///
 /// 关联：
 /// - SubmitUserId / CurrentReviewUserId → SysUser
+/// - EntityType + EntityId → 被审查的业务实体
 /// - 反向：SysReviewLog.ReviewId（审查动作历史）
 ///
 /// 写入：
-/// - ReviewCode 全局唯一（UX_ReCo）
+/// - TenantId + ReviewCode 租户内唯一（UX_TeId_ReCo）
 /// - 提交时 ReviewStatus=Pending + SubmitUserId + SubmitTime
 /// - 每次审批流转同时追加 SysReviewLog + 更新 CurrentReviewUserId / ReviewStatus
 /// - 支持多级审批：服务层按流程配置推进 CurrentReviewUserId
@@ -42,13 +48,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 仅软删；已完结记录不建议删除（影响可追溯性）
 ///
 /// 状态：
-/// - ReviewStatus: Draft/Pending/Approved/Rejected/Cancelled/Returned
-/// - ReviewType: 区分业务类型（请假/报销/合同/内容审核等）
+/// - ReviewStatus: Pending/InProgress/Approved/Rejected/Withdrawn
+/// - ReviewType: 区分业务类型（权限申请/角色变更/数据导出审批/内容审核等）
 ///
 /// 场景：
-/// - 通用审批流引擎
+/// - 权限申请审批：用户申请角色/权限 → 主管审批 → 自动授权
+/// - 敏感操作审批：批量删除/数据导出 → 需二次确认
 /// - 多级审批、会签、驳回重提
-/// - 内容/资源审核（如上架前审核）
 /// </remarks>
 [SugarTable("SysReview", "系统审查表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -134,28 +140,16 @@ public partial class SysReview : BasicAppAggregateRoot
     public virtual long? SubmitUserId { get; set; }
 
     /// <summary>
-    /// 提交人名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "提交人名称", Length = 50, IsNullable = true)]
-    public virtual string? SubmitUserName { get; set; }
-
-    /// <summary>
     /// 提交时间
     /// </summary>
     [SugarColumn(ColumnDescription = "提交时间")]
-    public virtual DateTimeOffset SubmitTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset SubmitTime { get; set; }
 
     /// <summary>
     /// 当前审查人ID
     /// </summary>
     [SugarColumn(ColumnDescription = "当前审查人ID", IsNullable = true)]
     public virtual long? CurrentReviewUserId { get; set; }
-
-    /// <summary>
-    /// 当前审查人名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "当前审查人名称", Length = 50, IsNullable = true)]
-    public virtual string? CurrentReviewUserName { get; set; }
 
     /// <summary>
     /// 审查人ID列表（JSON格式）
@@ -176,12 +170,6 @@ public partial class SysReview : BasicAppAggregateRoot
     public virtual int CurrentLevel { get; set; } = 1;
 
     /// <summary>
-    /// 审查意见
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查意见", Length = 1000, IsNullable = true)]
-    public virtual string? ReviewComment { get; set; }
-
-    /// <summary>
     /// 审查开始时间
     /// </summary>
     [SugarColumn(ColumnDescription = "审查开始时间", IsNullable = true)]
@@ -192,12 +180,6 @@ public partial class SysReview : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "审查结束时间", IsNullable = true)]
     public virtual DateTimeOffset? ReviewEndTime { get; set; }
-
-    /// <summary>
-    /// 审查耗时（秒）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查耗时（秒）")]
-    public virtual long ReviewDuration { get; set; } = 0;
 
     /// <summary>
     /// 附件信息（JSON格式）

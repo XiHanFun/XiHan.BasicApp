@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Entities.Abstracts;
@@ -79,29 +80,18 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
             EntityName = entityTypeName,
             PrimaryKey = nameof(IEntityBase<>.BasicId),
             PrimaryKeyValue = entityId,
-            Module = "Data",
-            Function = RbacLogMappingHelper.TrimOrNull(record.OperationType, 50),
+            TableName = entityTypeName,
             Description = RbacLogMappingHelper.TrimOrNull(BuildDescription(record, entityTypeName, entityId), 500),
             BeforeData = RbacLogMappingHelper.TrimOrNull(record.BeforeData, 32000),
             AfterData = RbacLogMappingHelper.TrimOrNull(record.AfterData, 32000),
             ChangedFields = RbacLogMappingHelper.TrimOrNull(record.ChangedFields, 32000),
             ChangeDescription = RbacLogMappingHelper.TrimOrNull(BuildChangeDescription(record), 1000),
-            RequestPath = RbacLogMappingHelper.TrimOrNull(record.RequestPath, 500),
-            RequestMethod = RbacLogMappingHelper.TrimOrNull(record.RequestMethod, 10),
             OperationIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.OperationIp, 50),
-            OperationLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
-            Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
-            DeviceType = RbacLogMappingHelper.ResolveDeviceType(clientInfo.DeviceName),
-            DeviceInfo = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 200),
-            UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent, 500),
             SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
             RequestId = requestId,
             TraceId = RbacLogMappingHelper.TrimOrNull(requestId, 64),
-            BusinessId = entityId,
-            BusinessType = entityTypeName,
             IsSuccess = true,
-            RiskLevel = RbacLogMappingHelper.ResolveRiskLevel(operationType),
+            RiskLevel = (AuditRiskLevel)RbacLogMappingHelper.ResolveRiskLevel(operationType),
             AuditTime = DateTimeOffset.UtcNow
         };
 

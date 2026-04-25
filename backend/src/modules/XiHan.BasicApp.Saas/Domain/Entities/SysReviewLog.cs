@@ -22,9 +22,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统审查日志实体
-/// SysReview 每步审批动作记录（谁在什么时候做了什么决定），构成完整审批链路
+/// SysReview 每步审批动作的不可变记录：谁在什么时候做了什么决定，构成完整审批链路
 /// </summary>
 /// <remarks>
+/// 职责边界：
+/// - 本表记录"审批决策动作"（同意/拒绝/退回/加签/转办），是业务审批的合规证据
+/// - 与 SysAuditLog（数据库实体变更审计）职责分离：数据变更由 SysAuditLog 自动捕获，本表只记录审批人的决策行为
+/// - 设备/浏览器等请求上下文通过 TraceId 关联 SysAccessLog 查询，本表不冗余
+///
 /// 分表策略：
 /// - 按月分表；查询/清理必带时间范围
 ///
@@ -34,21 +39,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - 每次审批流转（同意/拒绝/退回/加签/转办）追加一条
 /// - 与 SysReview.ReviewStatus 变更同事务写入，保证一致性
-/// - ReviewComment 记录审批意见；ReviewResult 枚举具体动作
+/// - ReviewComment 记录本步审批意见；ReviewResult 枚举具体动作
 ///
 /// 查询：
 /// - 审批链路还原：IX_ReId + ORDER BY ReviewTime ASC
 /// - 某用户的审查历史：IX_ReUsId
 /// - 审查结果统计：IX_ReRe
-/// - 按时间分析：IX_ReTi
 ///
 /// 删除：
 /// - 禁止业务删除；审查记录是合规证据
-///
-/// 场景：
-/// - 审查单详情"审批历史"时间线
-/// - 审批人工作量统计
-/// - 流程分析（平均审批时长、驳回率）
 /// </remarks>
 [SugarTable("SysReviewLog_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -132,76 +131,28 @@ public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string? ReviewComment { get; set; }
 
     /// <summary>
-    /// 审查动作
+    /// 审查动作（Approve/Reject/Return/Countersign/Transfer 等）
     /// </summary>
     [SugarColumn(ColumnDescription = "审查动作", Length = 50, IsNullable = true)]
     public virtual string? ReviewAction { get; set; }
 
     /// <summary>
-    /// 审查前数据（JSON格式）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查前数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? BeforeData { get; set; }
-
-    /// <summary>
-    /// 审查后数据（JSON格式）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查后数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? AfterData { get; set; }
-
-    /// <summary>
-    /// 数据变更内容（JSON格式）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "数据变更内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? ChangeContent { get; set; }
-
-    /// <summary>
-    /// 附件信息（JSON格式）
+    /// 附件信息（JSON格式，本步审批附带的附件）
     /// </summary>
     [SugarColumn(ColumnDescription = "附件信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Attachments { get; set; }
 
     /// <summary>
-    /// 审查IP
+    /// 操作IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
     public virtual string? ReviewIp { get; set; }
-
-    /// <summary>
-    /// 审查地址
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查地址", Length = 200, IsNullable = true)]
-    public virtual string? ReviewLocation { get; set; }
-
-    /// <summary>
-    /// 浏览器类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
-    public virtual string? Browser { get; set; }
-
-    /// <summary>
-    /// 操作系统
-    /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
-    public virtual string? Os { get; set; }
-
-    /// <summary>
-    /// 设备类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "设备类型", Length = 50, IsNullable = true)]
-    public virtual string? Device { get; set; }
 
     /// <summary>
     /// 审查时间
     /// </summary>
     [SugarColumn(ColumnDescription = "审查时间")]
-    public virtual DateTimeOffset ReviewTime { get; set; } = DateTimeOffset.UtcNow;
-
-    /// <summary>
-    /// 审查耗时（毫秒）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查耗时（毫秒）")]
-    public virtual long ReviewDuration { get; set; } = 0;
+    public virtual DateTimeOffset ReviewTime { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）

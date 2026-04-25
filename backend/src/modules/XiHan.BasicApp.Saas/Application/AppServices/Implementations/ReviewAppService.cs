@@ -136,10 +136,8 @@ public class ReviewAppService
             BusinessData = createDto.BusinessData,
             Priority = createDto.Priority,
             SubmitUserId = createDto.SubmitUserId,
-            SubmitUserName = createDto.SubmitUserName,
             SubmitTime = createDto.SubmitTime,
             CurrentReviewUserId = createDto.CurrentReviewUserId,
-            CurrentReviewUserName = createDto.CurrentReviewUserName,
             ReviewUserIds = createDto.ReviewUserIds,
             ReviewLevel = createDto.ReviewLevel,
             CurrentLevel = createDto.CurrentLevel,
@@ -165,11 +163,9 @@ public class ReviewAppService
         entity.ReviewResult = updateDto.ReviewResult;
         entity.Priority = updateDto.Priority;
         entity.CurrentReviewUserId = updateDto.CurrentReviewUserId;
-        entity.CurrentReviewUserName = updateDto.CurrentReviewUserName;
         entity.ReviewUserIds = updateDto.ReviewUserIds;
         entity.ReviewLevel = updateDto.ReviewLevel;
         entity.CurrentLevel = updateDto.CurrentLevel;
-        entity.ReviewComment = updateDto.ReviewComment;
         entity.ReviewStartTime = updateDto.ReviewStartTime;
         entity.ReviewEndTime = updateDto.ReviewEndTime;
         entity.Status = updateDto.Status;

@@ -48,7 +48,7 @@ public partial class SysTenant : BasicAppAggregateRoot
     public virtual string TenantCode { get; set; } = string.Empty;
 
     /// <summary>
-    /// 版本/套餐ID（关联 SysTenantEdition 表，控制租户可用功能范围）
+    /// 版本/套餐ID（关联 SysTenantEdition 表，控制租户可用功能范围；null 表示使用 IsDefault=true 的默认版本）
     /// </summary>
     [SugarColumn(ColumnDescription = "版本ID", IsNullable = true)]
     public virtual long? EditionId { get; set; }
@@ -126,6 +126,12 @@ public partial class SysTenant : BasicAppAggregateRoot
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "数据库连接字符串", Length = 1000, IsNullable = true)]
     public virtual string? ConnectionString { get; set; }
+
+    /// <summary>
+    /// 连接字符串是否已加密（用于密钥轮换和加密状态审计）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "连接字符串是否已加密")]
+    public virtual bool IsConnectionStringEncrypted { get; set; } = false;
 
     /// <summary>
     /// 配置状态

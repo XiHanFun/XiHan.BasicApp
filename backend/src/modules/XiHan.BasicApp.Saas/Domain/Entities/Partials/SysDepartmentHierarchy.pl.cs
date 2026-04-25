@@ -13,13 +13,14 @@
 #endregion <<版权版本注释>>
 
 using SqlSugar;
+using System.ComponentModel.DataAnnotations;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统部门继承关系实体扩展
 /// </summary>
-public partial class SysDepartmentHierarchy
+public partial class SysDepartmentHierarchy : IValidatableObject
 {
     /// <summary>
     /// 祖先部门（多条层级记录可指向同一部门，ManyToOne）
@@ -38,4 +39,25 @@ public partial class SysDepartmentHierarchy
     [SugarColumn(IsIgnore = true)]
     [Navigate(NavigateType.ManyToOne, nameof(DescendantId))]
     public virtual SysDepartment? Descendant { get; set; }
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Depth < 0)
+        {
+            yield return new ValidationResult("Depth 不能为负数。", [nameof(Depth)]);
+        }
+
+        if (Depth == 0 && AncestorId != DescendantId)
+        {
+            yield return new ValidationResult("Depth=0 时 AncestorId 必须等于 DescendantId（自环记录）。",
+                [nameof(Depth), nameof(AncestorId), nameof(DescendantId)]);
+        }
+
+        if (Depth > 0 && AncestorId == DescendantId)
+        {
+            yield return new ValidationResult("Depth>0 时 AncestorId 不能等于 DescendantId。",
+                [nameof(Depth), nameof(AncestorId), nameof(DescendantId)]);
+        }
+    }
 }
