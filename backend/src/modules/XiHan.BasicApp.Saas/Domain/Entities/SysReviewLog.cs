@@ -65,24 +65,6 @@ public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual long ReviewId { get; set; }
 
     /// <summary>
-    /// 审查编码
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查编码", Length = 100, IsNullable = true)]
-    public virtual string? ReviewCode { get; set; }
-
-    /// <summary>
-    /// 审查标题
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查标题", Length = 200, IsNullable = true)]
-    public virtual string? ReviewTitle { get; set; }
-
-    /// <summary>
-    /// 审查类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查类型", Length = 50, IsNullable = true)]
-    public virtual string? ReviewType { get; set; }
-
-    /// <summary>
     /// 审查级别
     /// </summary>
     [SugarColumn(ColumnDescription = "审查级别")]
@@ -93,18 +75,6 @@ public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "审查人ID", IsNullable = true)]
     public virtual long? ReviewUserId { get; set; }
-
-    /// <summary>
-    /// 审查人名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查人名称", Length = 50, IsNullable = true)]
-    public virtual string? ReviewUserName { get; set; }
-
-    /// <summary>
-    /// 审查人部门
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查人部门", Length = 100, IsNullable = true)]
-    public virtual string? ReviewUserDepartment { get; set; }
 
     /// <summary>
     /// 原审查状态

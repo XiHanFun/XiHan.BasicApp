@@ -58,7 +58,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_IsHa", nameof(IsHandled), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_StCo", nameof(StatusCode), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_BuMo", nameof(BusinessModule), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_ExTi", nameof(TenantId), OrderByType.Asc, nameof(ExceptionTime), OrderByType.Desc)]
 public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
@@ -76,6 +75,12 @@ public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string? UserName { get; set; }
 
     /// <summary>
+    /// 会话ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
+
+    /// <summary>
     /// 请求ID
     /// </summary>
     [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
@@ -86,12 +91,6 @@ public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
-
-    /// <summary>
-    /// 会话ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
 
     /// <summary>
     /// 异常类型
@@ -106,28 +105,10 @@ public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string ExceptionMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// 异常堆栈
+    /// 异常堆栈（含内部异常堆栈）
     /// </summary>
     [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
-
-    /// <summary>
-    /// 内部异常类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内部异常类型", Length = 200, IsNullable = true)]
-    public virtual string? InnerExceptionType { get; set; }
-
-    /// <summary>
-    /// 内部异常消息
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内部异常消息", Length = 2000, IsNullable = true)]
-    public virtual string? InnerExceptionMessage { get; set; }
-
-    /// <summary>
-    /// 内部异常堆栈
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内部异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? InnerExceptionStackTrace { get; set; }
 
     /// <summary>
     /// 异常源
@@ -277,7 +258,7 @@ public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity
     /// 异常时间
     /// </summary>
     [SugarColumn(ColumnDescription = "异常时间")]
-    public virtual DateTimeOffset ExceptionTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset ExceptionTime { get; set; }
 
     /// <summary>
     /// 是否已处理
@@ -298,34 +279,10 @@ public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual long? HandledBy { get; set; }
 
     /// <summary>
-    /// 处理人名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "处理人名称", Length = 50, IsNullable = true)]
-    public virtual string? HandledByName { get; set; }
-
-    /// <summary>
     /// 处理备注
     /// </summary>
     [SugarColumn(ColumnDescription = "处理备注", Length = 1000, IsNullable = true)]
     public virtual string? HandledRemark { get; set; }
-
-    /// <summary>
-    /// 业务模块
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务模块", Length = 100, IsNullable = true)]
-    public virtual string? BusinessModule { get; set; }
-
-    /// <summary>
-    /// 业务ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务ID", Length = 100, IsNullable = true)]
-    public virtual string? BusinessId { get; set; }
-
-    /// <summary>
-    /// 业务类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
-    public virtual string? BusinessType { get; set; }
 
     /// <summary>
     /// 错误代码

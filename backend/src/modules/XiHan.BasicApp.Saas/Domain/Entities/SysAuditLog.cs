@@ -72,6 +72,24 @@ public partial class SysAuditLog : BasicAppCreationEntity, ISplitTableEntity, IT
     public virtual string? UserName { get; set; }
 
     /// <summary>
+    /// 会话ID（关联 SysUserSession，用于串联同一会话内的操作）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
+
+    /// <summary>
+    /// 请求ID（关联 SysApiLog，用于定位触发本次变更的 API 请求）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
+    public virtual string? RequestId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID（串联 SysAccessLog/SysApiLog/SysAuditLog 的完整请求生命周期）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
+
+    /// <summary>
     /// 审计类型
     /// </summary>
     [SugarColumn(ColumnDescription = "审计类型", Length = 50, IsNullable = false)]
@@ -160,24 +178,6 @@ public partial class SysAuditLog : BasicAppCreationEntity, ISplitTableEntity, IT
     /// </summary>
     [SugarColumn(ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
     public virtual string? OperationIp { get; set; }
-
-    /// <summary>
-    /// 会话ID（关联 SysUserSession，用于串联同一会话内的操作）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
-
-    /// <summary>
-    /// 请求ID（关联 SysApiLog，用于定位触发本次变更的 API 请求）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
-    public virtual string? RequestId { get; set; }
-
-    /// <summary>
-    /// 链路追踪ID（串联 SysAccessLog/SysApiLog/SysAuditLog 的完整请求生命周期）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
-    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 是否成功

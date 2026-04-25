@@ -99,7 +99,6 @@ public class RbacApiLogWriter : IApiLogWriter
             RequestLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
             UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
             Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
             Referer = RbacLogMappingHelper.TrimOrNull(record.Referer, 500),
             RequestTime = requestTime,
             ResponseTime = now,

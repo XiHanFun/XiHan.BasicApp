@@ -77,6 +77,12 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     public virtual string? UserName { get; set; }
 
     /// <summary>
+    /// 会话ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
+
+    /// <summary>
     /// 请求ID
     /// </summary>
     [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
@@ -87,12 +93,6 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     /// </summary>
     [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
-
-    /// <summary>
-    /// 会话ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
 
     /// <summary>
     /// 客户端标识，用于区分不同的 API 调用方
@@ -129,12 +129,6 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     /// </summary>
     [SugarColumn(ColumnDescription = "API名称", Length = 200, IsNullable = true)]
     public virtual string? ApiName { get; set; }
-
-    /// <summary>
-    /// API描述
-    /// </summary>
-    [SugarColumn(ColumnDescription = "API描述", Length = 500, IsNullable = true)]
-    public virtual string? ApiDescription { get; set; }
 
     /// <summary>
     /// 请求方法
@@ -215,12 +209,6 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     public virtual string? Browser { get; set; }
 
     /// <summary>
-    /// 操作系统
-    /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
-    public virtual string? Os { get; set; }
-
-    /// <summary>
     /// 请求来源
     /// </summary>
     [SugarColumn(ColumnDescription = "请求来源", Length = 500, IsNullable = true)]
@@ -230,7 +218,7 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     /// 请求时间
     /// </summary>
     [SugarColumn(ColumnDescription = "请求时间")]
-    public virtual DateTimeOffset RequestTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset RequestTime { get; set; }
 
     /// <summary>
     /// 响应时间
@@ -279,12 +267,6 @@ public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITra
     /// </summary>
     [SugarColumn(ColumnDescription = "API版本", Length = 20, IsNullable = true)]
     public virtual string? ApiVersion { get; set; }
-
-    /// <summary>
-    /// 业务类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
-    public virtual string? BusinessType { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）

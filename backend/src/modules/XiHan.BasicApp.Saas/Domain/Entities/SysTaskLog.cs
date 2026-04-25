@@ -84,24 +84,6 @@ public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string? BatchNumber { get; set; }
 
     /// <summary>
-    /// 服务器名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "服务器名称", Length = 100, IsNullable = true)]
-    public virtual string? ServerName { get; set; }
-
-    /// <summary>
-    /// 进程ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "进程ID", IsNullable = true)]
-    public virtual int? ProcessId { get; set; }
-
-    /// <summary>
-    /// 线程ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "线程ID", IsNullable = true)]
-    public virtual int? ThreadId { get; set; }
-
-    /// <summary>
     /// 任务状态
     /// </summary>
     [SugarColumn(ColumnDescription = "任务状态")]
@@ -111,7 +93,7 @@ public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity
     /// 开始时间
     /// </summary>
     [SugarColumn(ColumnDescription = "开始时间")]
-    public virtual DateTimeOffset StartTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset StartTime { get; set; }
 
     /// <summary>
     /// 结束时间
@@ -148,18 +130,6 @@ public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "输出日志", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? OutputLog { get; set; }
-
-    /// <summary>
-    /// 内存使用（MB）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内存使用（MB）", IsNullable = true)]
-    public virtual decimal? MemoryUsage { get; set; }
-
-    /// <summary>
-    /// CPU使用率（%）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "CPU使用率（%）", IsNullable = true)]
-    public virtual decimal? CpuUsage { get; set; }
 
     /// <summary>
     /// 重试次数
