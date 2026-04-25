@@ -83,6 +83,12 @@ public partial class SysTenantUser : BasicAppFullAuditedEntity
     /// <summary>
     /// 成员类型（Owner/Admin/Member/External/Guest/Consultant/PlatformAdmin）
     /// </summary>
+    /// <remarks>
+    /// 设计决策：MemberType 表达"成员身份类型"而非"权限级别"。
+    /// 服务层禁止直接判断 MemberType 做鉴权（如 if MemberType==Admin），
+    /// 必须走 RBAC 权限链（SysUserRole → SysRolePermission → SysPermission）。
+    /// MemberType 仅用于：成员列表展示分类、邀请流程控制、PlatformAdmin 创建权限校验。
+    /// </remarks>
     [SugarColumn(ColumnDescription = "成员类型")]
     public virtual TenantMemberType MemberType { get; set; } = TenantMemberType.Member;
 

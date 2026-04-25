@@ -67,6 +67,12 @@ public partial class SysMenu : BasicAppFullAuditedEntity
     /// <summary>
     /// 权限ID（菜单可见性所需的权限，为空表示纯展示菜单无需鉴权）
     /// </summary>
+    /// <remarks>
+    /// 设计决策：单一 PermissionId 是有意设计——菜单可见性由一个权限点控制。
+    /// 若菜单需要多个权限才能访问（如同时需要 user:read 和 department:read），
+    /// 应创建组合权限点（如 user-dept:view）绑定到菜单，而非引入多对多关联表。
+    /// 这样保证后端鉴权永远基于 Permission，菜单只是 UI 层的展示映射。
+    /// </remarks>
     [SugarColumn(ColumnDescription = "权限ID", IsNullable = true)]
     public virtual long? PermissionId { get; set; }
 
