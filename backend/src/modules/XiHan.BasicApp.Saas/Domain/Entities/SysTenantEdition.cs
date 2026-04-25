@@ -112,8 +112,7 @@ public partial class SysTenantEdition : BasicAppFullAuditedEntity
     /// 是否默认版本（新租户注册时自动分配）
     /// </summary>
     /// <remarks>
-    /// 同一时刻仅允许一个 IsDefault=true。当前索引 IX_IsDf 为非唯一索引，
-    /// 数据库层无法通过简单唯一索引实现互斥（需 filtered unique index 仅对 IsDefault=true 行生效）。
+    /// 同一时刻仅允许一个 IsDefault=true。
     /// 服务层写入时必须：在事务内先将原 IsDefault=true 的记录置 false，再设置新记录为 true，
     /// 或使用乐观锁 / 分布式锁防止并发冲突。
     /// </remarks>

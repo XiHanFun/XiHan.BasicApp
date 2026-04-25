@@ -26,6 +26,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 职责边界：
 /// - 与 SysUser 一对一（UX_UsId），独立表便于高频安全字段的访问控制与脱敏
 /// - SysUser 负责"身份资料"，本表负责"安全状态"
+/// - 设计决策：本表按用户唯一（不含 TenantId），表达统一身份的安全状态。
+///   租户级安全策略（如"进入某租户必须 MFA"）应在 SysConfig 中按租户配置（ConfigKey=security.mfa.required），
+///   登录时由服务层组合判断：用户安全状态（本表） + 目标租户安全策略（SysConfig）。
 ///
 /// 关联：
 /// - UserId → SysUser（一对一强约束）
