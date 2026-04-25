@@ -66,7 +66,7 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     public virtual long UserId { get; set; }
 
     /// <summary>
-    /// 密码（已加密，Argon2/BCrypt 哈希）
+    /// 密码（已加密，Argon2/BCrypt 哈希，严禁明文落库）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]

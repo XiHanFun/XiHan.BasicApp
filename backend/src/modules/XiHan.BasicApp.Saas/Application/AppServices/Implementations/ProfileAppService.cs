@@ -228,7 +228,9 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         var user = await ResolveCurrentUserEntityAsync()
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId)
+                       ?? throw new BusinessException(message: "用户安全信息不存在");
+        var currentPassword = PasswordValueObject.FromHash(security.Password);
         if (!currentPassword.Verify(command.OldPassword, _passwordHasher))
         {
             throw new BusinessException(message: "原密码错误");
@@ -732,7 +734,9 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         var user = await ResolveCurrentUserEntityAsync()
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId)
+                       ?? throw new BusinessException(message: "用户安全信息不存在");
+        var currentPassword = PasswordValueObject.FromHash(security.Password);
         if (!currentPassword.Verify(command.Password, _passwordHasher))
         {
             throw new BusinessException(message: "密码错误");
@@ -833,7 +837,9 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         var user = await ResolveCurrentUserEntityAsync()
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId)
+                       ?? throw new BusinessException(message: "用户安全信息不存在");
+        var currentPassword = PasswordValueObject.FromHash(security.Password);
         if (!currentPassword.Verify(command.Password, _passwordHasher))
         {
             throw new BusinessException(message: "密码错误");
@@ -937,18 +943,20 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         }
 
         // 密码验证
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId)
+                       ?? throw new BusinessException(message: "用户安全信息不存在");
+        var currentPassword = PasswordValueObject.FromHash(security.Password);
         if (!currentPassword.Verify(command.Password, _passwordHasher))
         {
             throw new BusinessException(message: "密码错误");
         }
 
-        var security = await EnsureSecurityProfileAsync(user);
+        var securityProfile = await EnsureSecurityProfileAsync(user);
 
         // 90 天冷却期校验
-        if (security.LastUserNameChangeTime.HasValue)
+        if (securityProfile.LastUserNameChangeTime.HasValue)
         {
-            var nextAllowed = security.LastUserNameChangeTime.Value.AddDays(UserNameChangeCooldownDays);
+            var nextAllowed = securityProfile.LastUserNameChangeTime.Value.AddDays(UserNameChangeCooldownDays);
             if (nextAllowed > DateTimeOffset.UtcNow)
             {
                 var remaining = (int)Math.Ceiling((nextAllowed - DateTimeOffset.UtcNow).TotalDays);
@@ -975,8 +983,8 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         user.UserName = newUserName;
         await _userRepository.UpdateAsync(user);
 
-        security.LastUserNameChangeTime = DateTimeOffset.UtcNow;
-        await _userRepository.SaveSecurityAsync(security);
+        securityProfile.LastUserNameChangeTime = DateTimeOffset.UtcNow;
+        await _userRepository.SaveSecurityAsync(securityProfile);
         await uow.CompleteAsync();
     }
 
@@ -1012,7 +1020,8 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
 
         // 确保解绑后用户仍有可用登录方式（有密码或至少保留一个绑定）
         var allLogins = await _externalLoginRepository.GetByUserIdAsync(user.BasicId, user.TenantId);
-        var hasPassword = !string.IsNullOrWhiteSpace(user.Password);
+        var securityForCheck = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId);
+        var hasPassword = !string.IsNullOrWhiteSpace(securityForCheck?.Password);
         if (!hasPassword && allLogins.Count <= 1)
         {
             throw new BusinessException(message: "至少需要保留一种登录方式（密码或第三方账号）");
@@ -1063,7 +1072,9 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         var user = await ResolveCurrentUserEntityAsync()
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId)
+                       ?? throw new BusinessException(message: "用户安全信息不存在");
+        var currentPassword = PasswordValueObject.FromHash(security.Password);
         if (!currentPassword.Verify(command.Password, _passwordHasher))
         {
             throw new BusinessException(message: "密码错误");
@@ -1089,7 +1100,9 @@ public class ProfileAppService : ApplicationServiceBase, IProfileAppService
         var user = await ResolveCurrentUserEntityAsync()
                    ?? throw new UnauthorizedAccessException("未登录或登录已过期");
 
-        var currentPassword = PasswordValueObject.FromHash(user.Password);
+        var security = await _userRepository.GetSecurityByUserIdAsync(user.BasicId, user.TenantId)
+                       ?? throw new BusinessException(message: "用户安全信息不存在");
+        var currentPassword = PasswordValueObject.FromHash(security.Password);
         if (!currentPassword.Verify(command.Password, _passwordHasher))
         {
             throw new BusinessException(message: "密码错误");

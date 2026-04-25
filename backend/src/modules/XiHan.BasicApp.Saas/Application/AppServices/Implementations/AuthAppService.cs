@@ -202,7 +202,7 @@ public class AuthAppService : ApplicationServiceBase, IAuthAppService
             throw new BusinessException(message: $"账号已锁定，请 {security.LockoutEndTime:HH:mm} 后重试");
         }
 
-        var password = PasswordValueObject.FromHash(user.Password);
+        var password = PasswordValueObject.FromHash(security.Password);
         if (!password.Verify(command.Password, _passwordHasher))
         {
             await HandlePasswordFailureAsync(security);

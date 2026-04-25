@@ -130,7 +130,12 @@ public class RbacUserStore : IUserStore
         }
 
         existingUser.UserName = string.IsNullOrWhiteSpace(user.Username) ? existingUser.UserName : user.Username.Trim();
-        existingUser.Password = string.IsNullOrWhiteSpace(user.PasswordHash) ? existingUser.Password : user.PasswordHash;
+        if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+        {
+            var pwSecurity = await EnsureSecurityAsync(existingUser.BasicId, existingUser.TenantId, cancellationToken);
+            pwSecurity.Password = user.PasswordHash;
+            await DbClient.Updateable(pwSecurity).ExecuteCommandAsync(cancellationToken);
+        }
         existingUser.Email = NormalizeNullable(user.Email);
         existingUser.Phone = NormalizeNullable(user.PhoneNumber);
         existingUser.Status = user.IsActive ? YesOrNo.Yes : YesOrNo.No;
@@ -171,10 +176,8 @@ public class RbacUserStore : IUserStore
             throw new BusinessException(message: $"用户 {userId} 不在当前租户上下文中");
         }
 
-        user.Password = passwordHash;
-        await DbClient.Updateable(user).ExecuteCommandAsync(cancellationToken);
-
         var security = await EnsureSecurityAsync(user.BasicId, user.TenantId, cancellationToken);
+        security.Password = passwordHash;
         security.LastPasswordChangeTime = DateTimeOffset.UtcNow;
         await _userRepository.SaveSecurityAsync(security, cancellationToken);
     }
@@ -341,7 +344,7 @@ public class RbacUserStore : IUserStore
         {
             UserId = user.BasicId.ToString(CultureInfo.InvariantCulture),
             Username = user.UserName,
-            PasswordHash = user.Password,
+            PasswordHash = security?.Password ?? string.Empty,
             Email = user.Email,
             PhoneNumber = user.Phone,
             TwoFactorEnabled = security?.TwoFactorEnabled ?? false,
