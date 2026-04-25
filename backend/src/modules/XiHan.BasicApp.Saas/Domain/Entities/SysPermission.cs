@@ -56,23 +56,30 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_PeCo", nameof(TenantId), OrderByType.Asc, nameof(PermissionCode), OrderByType.Asc, true)]
-[SugarIndex("UX_{table}_TeId_ReId_OpId", nameof(TenantId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_TeId_ReId_OpId", nameof(TenantId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ReId", nameof(ResourceId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_PeTy", nameof(TenantId), OrderByType.Asc, nameof(PermissionType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysPermission : BasicAppAggregateRoot
 {
     /// <summary>
-    /// 资源ID（关联 SysResource 表，必填）
+    /// 权限类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源ID", IsNullable = false)]
-    public virtual long ResourceId { get; set; }
+    [SugarColumn(ColumnDescription = "权限类型")]
+    public virtual PermissionType PermissionType { get; set; } = PermissionType.ResourceBased;
 
     /// <summary>
-    /// 操作ID（关联 SysOperation 表，必填）
+    /// 资源ID（关联 SysResource 表，ResourceBased 类型必填）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作ID", IsNullable = false)]
-    public virtual long OperationId { get; set; }
+    [SugarColumn(ColumnDescription = "资源ID", IsNullable = true)]
+    public virtual long? ResourceId { get; set; }
+
+    /// <summary>
+    /// 操作ID（关联 SysOperation 表，ResourceBased 类型必填）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "操作ID", IsNullable = true)]
+    public virtual long? OperationId { get; set; }
 
     /// <summary>
     /// 所属模块编码（支持三段式权限码 module:resource:action，如 saas/crm/billing）
