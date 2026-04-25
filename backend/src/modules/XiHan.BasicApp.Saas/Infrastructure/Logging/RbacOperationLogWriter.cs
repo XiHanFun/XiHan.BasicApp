@@ -100,8 +100,6 @@ public class RbacOperationLogWriter : IOperationLogWriter
             Description = RbacLogMappingHelper.TrimOrNull(description, 500),
             Method = RbacLogMappingHelper.TrimOrNull(record.Method, 10),
             RequestUrl = RbacLogMappingHelper.TrimOrNull(record.Path, 500),
-            RequestParams = RbacLogMappingHelper.TrimOrNull(record.RequestParams, 16000),
-            ResponseResult = RbacLogMappingHelper.TrimOrNull(record.ResponseResult, 16000),
             ExecutionTime = elapsedMilliseconds,
             OperationIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
             OperationLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),

@@ -77,16 +77,16 @@ public partial class SysLoginLog : BasicAppCreationEntity, ISplitTableEntity, IT
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 链路追踪ID，用于串联整个请求生命周期
-    /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
-    public virtual string? TraceId { get; set; }
-
-    /// <summary>
     /// 会话ID
     /// </summary>
     [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
     public virtual string? SessionId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 登录IP
@@ -152,7 +152,7 @@ public partial class SysLoginLog : BasicAppCreationEntity, ISplitTableEntity, IT
     /// 登录时间
     /// </summary>
     [SugarColumn(ColumnDescription = "登录时间")]
-    public virtual DateTimeOffset LoginTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset LoginTime { get; set; }
 
     /// <summary>
     /// 创建时间

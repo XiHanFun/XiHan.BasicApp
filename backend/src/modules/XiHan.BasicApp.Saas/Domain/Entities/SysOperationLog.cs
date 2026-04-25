@@ -77,16 +77,16 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 链路追踪ID，用于串联整个请求生命周期
-    /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
-    public virtual string? TraceId { get; set; }
-
-    /// <summary>
     /// 会话ID
     /// </summary>
     [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
     public virtual string? SessionId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 操作类型
@@ -129,18 +129,6 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "请求URL", Length = 500, IsNullable = true)]
     public virtual string? RequestUrl { get; set; }
-
-    /// <summary>
-    /// 请求参数
-    /// </summary>
-    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? RequestParams { get; set; }
-
-    /// <summary>
-    /// 响应结果
-    /// </summary>
-    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? ResponseResult { get; set; }
 
     /// <summary>
     /// 执行时间（毫秒）
@@ -194,7 +182,7 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     /// 操作时间
     /// </summary>
     [SugarColumn(ColumnDescription = "操作时间")]
-    public virtual DateTimeOffset OperationTime { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset OperationTime { get; set; }
 
     /// <summary>
     /// 创建时间

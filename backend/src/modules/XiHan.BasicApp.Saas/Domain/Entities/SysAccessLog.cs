@@ -72,16 +72,16 @@ public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, I
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 链路追踪ID，用于串联整个请求生命周期
-    /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
-    public virtual string? TraceId { get; set; }
-
-    /// <summary>
     /// 会话ID
     /// </summary>
     [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
     public virtual string? SessionId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 访问资源路径
@@ -162,34 +162,16 @@ public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, I
     public virtual string? Referer { get; set; }
 
     /// <summary>
-    /// 响应耗时（毫秒），勿与 SysApiLog.ResponseTime（响应时刻）混淆
+    /// 执行耗时（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应耗时（毫秒）")]
-    public virtual long ResponseDuration { get; set; } = 0;
-
-    /// <summary>
-    /// 响应大小（字节）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "响应大小（字节）")]
-    public virtual long ResponseSize { get; set; } = 0;
+    [SugarColumn(ColumnDescription = "执行耗时（毫秒）")]
+    public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 访问时间
     /// </summary>
     [SugarColumn(ColumnDescription = "访问时间")]
-    public virtual DateTimeOffset AccessTime { get; set; } = DateTimeOffset.UtcNow;
-
-    /// <summary>
-    /// 离开时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "离开时间", IsNullable = true)]
-    public virtual DateTimeOffset? LeaveTime { get; set; }
-
-    /// <summary>
-    /// 停留时长（秒）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "停留时长（秒）")]
-    public virtual long StayTime { get; set; } = 0;
+    public virtual DateTimeOffset AccessTime { get; set; }
 
     /// <summary>
     /// 错误信息

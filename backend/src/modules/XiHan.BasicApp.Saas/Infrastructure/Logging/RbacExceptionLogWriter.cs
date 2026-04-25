@@ -115,8 +115,6 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
             ExceptionTime = now,
             IsHandled = true,
             HandledTime = now,
-            BusinessModule = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 100),
-            BusinessType = RbacLogMappingHelper.TrimOrNull(operationType.ToString(), 50),
             ErrorCode = RbacLogMappingHelper.TrimOrNull(record.StatusCode.ToString(), 50)
         };
 

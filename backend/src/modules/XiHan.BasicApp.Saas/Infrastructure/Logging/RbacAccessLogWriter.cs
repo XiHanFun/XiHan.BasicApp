@@ -88,11 +88,8 @@ public class RbacAccessLogWriter : IAccessLogWriter
             Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
             Device = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
             Referer = RbacLogMappingHelper.TrimOrNull(record.Referer, 500),
-            ResponseDuration = elapsedMilliseconds,
-            ResponseSize = record.ResponseSize < 0 ? 0 : record.ResponseSize,
+            ExecutionTime = elapsedMilliseconds,
             AccessTime = accessTime,
-            LeaveTime = now,
-            StayTime = (long)Math.Ceiling(elapsedMilliseconds / 1000D),
             ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
             ExtendData = BuildExtendData(record)
         };
