@@ -150,7 +150,7 @@ public partial class SysTenantUser : BasicAppFullAuditedEntity
     /// 状态（Yes=有效 / No=暂停，暂停后不再生效但保留关系）
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注

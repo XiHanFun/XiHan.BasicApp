@@ -170,7 +170,7 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     /// 操作状态
     /// </summary>
     [SugarColumn(ColumnDescription = "操作状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 错误消息

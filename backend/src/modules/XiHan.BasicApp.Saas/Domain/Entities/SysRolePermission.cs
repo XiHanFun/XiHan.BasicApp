@@ -83,7 +83,7 @@ public partial class SysRolePermission : BasicAppCreationEntity
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注

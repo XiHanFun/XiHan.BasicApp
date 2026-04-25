@@ -127,7 +127,7 @@ public partial class SysPermission : BasicAppAggregateRoot
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
