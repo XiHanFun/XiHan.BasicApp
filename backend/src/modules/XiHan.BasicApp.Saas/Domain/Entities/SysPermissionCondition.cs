@@ -110,7 +110,7 @@ public partial class SysPermissionCondition : BasicAppFullAuditedEntity
     /// - 集合值：["east","west"]
     /// - 范围值：{"min":9,"max":18}
     /// </remarks>
-    [SugarColumn(ColumnDescription = "条件值", Length = 1000, IsNullable = false)]
+    [SugarColumn(ColumnDescription = "条件值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
     public virtual string ConditionValue { get; set; } = string.Empty;
 
     /// <summary>

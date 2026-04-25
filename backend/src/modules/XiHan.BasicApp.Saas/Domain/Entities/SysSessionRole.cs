@@ -52,7 +52,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarTable("SysSessionRole", "系统会话角色映射表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
-[SugarIndex("UX_{table}_SeId_RoId", nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_SeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_SeId", nameof(SessionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
@@ -75,7 +75,7 @@ public partial class SysSessionRole : BasicAppCreationEntity
     /// 激活时间
     /// </summary>
     [SugarColumn(ColumnDescription = "激活时间")]
-    public virtual DateTimeOffset ActivatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public virtual DateTimeOffset ActivatedAt { get; set; }
 
     /// <summary>
     /// 停用时间

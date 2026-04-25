@@ -48,5 +48,10 @@ public partial class SysResource : IValidatableObject
         {
             yield return new ValidationResult("全局资源必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
         }
+
+        if (TenantId == 0 && !IsGlobal)
+        {
+            yield return new ValidationResult("平台租户（TenantId=0）的资源必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
+        }
     }
 }

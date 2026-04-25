@@ -141,8 +141,8 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态", IsNullable = true)]
-    public virtual YesOrNo? State { get; set; }
+    [SugarColumn(ColumnDescription = "状态")]
+    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
     /// 访问令牌过期时间

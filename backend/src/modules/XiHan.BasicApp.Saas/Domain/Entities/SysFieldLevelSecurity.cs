@@ -28,7 +28,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 2. 冲突合并规则（deny-overrides + 优先级覆盖）：
 ///    - 默认：任一命中规则 IsReadable=false → 最终不可读；任一 IsEditable=false → 最终不可编辑
 ///    - 当 Priority 不同时，高优先级规则覆盖低优先级（便于"用户级放行某字段"的白名单场景）
-/// 3. 不可读时按 MaskStrategy 返回脱敏结果；可读但不可编辑时字段只读
+/// 3. 字段可见性三段语义：
+///    - IsReadable=true, MaskStrategy=None → 可读原文
+///    - IsReadable=true, MaskStrategy!=None → 可读脱敏值（如客服看手机号 138****1234）
+///    - IsReadable=false, MaskStrategy!=None → 不可读，按策略返回脱敏/隐藏结果
+///    不可编辑时字段只读
 ///
 /// 使用建议：
 /// - 绝大多数场景推荐绑定到 Role（TargetType=Role），便于批量管理
@@ -37,7 +41,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 示例：
 /// - HR 场景：角色"普通员工"对 SysUser.Salary 字段 → IsReadable=false, MaskStrategy=Hidden
-/// - 客服场景：角色"客服"对 SysUser.Phone 字段 → IsReadable=true（经由脱敏）, MaskStrategy=PartialMask, MaskPattern="keep:3,4"
+/// - 客服场景：角色"客服"对 SysUser.Phone 字段 → IsReadable=true, MaskStrategy=PartialMask, MaskPattern="keep:3,4"（可读脱敏值 138****1234）
 /// - 财务场景：用户 U100 对 SysOrder.Amount → Priority=100 覆盖角色级限制允许可编辑
 /// </remarks>
 [SugarTable("SysFieldLevelSecurity", "系统字段级安全表")]
@@ -87,7 +91,7 @@ public partial class SysFieldLevelSecurity : BasicAppFullAuditedEntity
     public virtual bool IsEditable { get; set; } = true;
 
     /// <summary>
-    /// 脱敏策略（当 IsReadable=false 时生效）
+    /// 脱敏策略（IsReadable=true 时对可读值脱敏；IsReadable=false 时对不可读值脱敏/隐藏）
     /// </summary>
     [SugarColumn(ColumnDescription = "脱敏策略")]
     public virtual FieldMaskStrategy MaskStrategy { get; set; } = FieldMaskStrategy.None;

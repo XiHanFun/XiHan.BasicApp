@@ -55,10 +55,10 @@ public partial class SysFieldLevelSecurity : IValidatableObject
             yield return new ValidationResult("字段级安全策略的 Priority 不能为负数。", [nameof(Priority)]);
         }
 
-        if (IsReadable && MaskStrategy != FieldMaskStrategy.None)
+        if (!IsReadable && MaskStrategy == FieldMaskStrategy.None)
         {
             yield return new ValidationResult(
-                "可读字段不应配置脱敏策略；如需脱敏请将 IsReadable 设为 false。",
+                "不可读字段应配置脱敏策略（MaskStrategy 不应为 None）。",
                 [nameof(IsReadable), nameof(MaskStrategy)]);
         }
     }
