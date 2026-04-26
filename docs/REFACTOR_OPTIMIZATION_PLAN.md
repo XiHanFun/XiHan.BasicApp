@@ -730,3 +730,34 @@ pnpm lint
 
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态；`XiHan.Framework` 无改动。
 - 本阶段只提交 BasicApp 的 Domain 仓储契约修正和本文档，不推送远端。
+
+### 2026-04-26 D3 Domain 规约结构拆分
+
+本阶段继续 B4 领域层重构，将 `Domain/Specifications` 从单个聚合文件拆为按领域物理分组的单规约文件。只调整文件组织，不修改规约表达式行为。
+
+执行结果：
+
+- 删除 `Domain/Specifications/SaasSpecifications.cs` 聚合文件。
+- 新建 `Domain/Specifications/Identity/ActiveUserSpecification.cs`。
+- 新建 `Domain/Specifications/Tenancy/AvailableTenantSpecification.cs`、`ActiveTenantUserSpecification.cs`。
+- 新建 `Domain/Specifications/Authorization/EnabledRoleSpecification.cs`、`EnabledPermissionSpecification.cs`、`ValidUserRoleSpecification.cs`、`ValidRolePermissionSpecification.cs`、`ValidUserPermissionSpecification.cs`。
+- 保持二级物理目录的父级命名空间策略：所有规约仍使用 `XiHan.BasicApp.Saas.Domain.Specifications`，不引入 `Specifications.Identity`、`Specifications.Authorization` 等细分命名空间。
+
+设计约束：
+
+- 规约只表达可复用领域条件，不夹带页面筛选、租户入参或读模型投影。
+- 普通租户过滤仍由当前会话上下文和底层仓储/SqlSugar 过滤器处理，规约不显式接收 `tenantId`。
+
+验证结果：
+
+- `git diff --check`：通过。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Domain\.Specifications\." backend/src/modules/XiHan.BasicApp.Saas/Domain/Specifications -g "*.cs"`：0 个匹配。
+- `rg -n "FileName:SaasSpecifications|public sealed class .*Specification" backend/src/modules/XiHan.BasicApp.Saas/Domain/Specifications -g "*.cs"`：只剩拆分后的 8 个规约类。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`49` 个 `NU5104` 预发布依赖警告，`0` 个错误。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的 Domain 规约拆分和本文档，不推送远端。
