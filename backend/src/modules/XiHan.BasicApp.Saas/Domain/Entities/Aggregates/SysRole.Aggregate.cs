@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Saas.Domain.Entities.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
