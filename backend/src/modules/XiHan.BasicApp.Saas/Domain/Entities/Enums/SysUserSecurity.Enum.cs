@@ -31,7 +31,7 @@ public enum TwoFactorMethod
     /// <summary>
     /// TOTP（时间型一次性密码，Authenticator App）
     /// </summary>
-    [Description("TOTP（时间型一次性密码，Authenticator App）")]
+    [Description("TOTP")]
     Totp = 1,
 
     /// <summary>
@@ -43,6 +43,6 @@ public enum TwoFactorMethod
     /// <summary>
     /// 手机短信验证码
     /// </summary>
-    [Description("手机短信验证码")]
+    [Description("短信验证码")]
     Phone = 4
 }

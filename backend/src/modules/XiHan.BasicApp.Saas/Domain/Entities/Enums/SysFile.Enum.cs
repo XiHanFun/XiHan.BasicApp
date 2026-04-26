@@ -42,7 +42,7 @@ public enum FileStatus
     /// <summary>
     /// 处理中（转码、压缩等）
     /// </summary>
-    [Description("处理中（转码、压缩等）")]
+    [Description("处理中")]
     Processing = 3,
 
     /// <summary>
@@ -72,7 +72,7 @@ public enum FileStatus
     /// <summary>
     /// 违规（审核不通过）
     /// </summary>
-    [Description("违规（审核不通过）")]
+    [Description("违规")]
     Violation = 8
 }
 

@@ -24,13 +24,13 @@ public enum DepartmentType
     /// <summary>
     /// 集团（最高级别的组织单位）
     /// </summary>
-    [Description("集团（最高级别的组织单位）")]
+    [Description("集团")]
     Corporation = 0,
 
     /// <summary>
     /// 总公司/总部
     /// </summary>
-    [Description("总公司/总部")]
+    [Description("总部")]
     Headquarters = 1,
 
     /// <summary>
@@ -96,7 +96,7 @@ public enum DepartmentType
     /// <summary>
     /// 虚拟组织（跨部门协作组织）
     /// </summary>
-    [Description("虚拟组织（跨部门协作组织）")]
+    [Description("虚拟组织")]
     Virtual = 12,
 
     /// <summary>

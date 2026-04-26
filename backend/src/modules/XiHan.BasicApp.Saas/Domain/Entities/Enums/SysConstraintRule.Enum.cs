@@ -49,55 +49,55 @@ public enum ConstraintType
     /// 静态职责分离（Static Separation of Duty）
     /// 用户不能同时拥有互斥的角色
     /// </summary>
-    [Description("用户不能同时拥有互斥的角色")]
+    [Description("静态职责分离")]
     SSD = 0,
 
     /// <summary>
     /// 动态职责分离（Dynamic Separation of Duty）
     /// 同一会话不能同时激活互斥的角色
     /// </summary>
-    [Description("同一会话不能同时激活互斥的角色")]
+    [Description("动态职责分离")]
     DSD = 1,
 
     /// <summary>
     /// 互斥约束
     /// 某些权限不能同时授予
     /// </summary>
-    [Description("某些权限不能同时授予")]
+    [Description("互斥约束")]
     MutualExclusion = 2,
 
     /// <summary>
     /// 基数约束
     /// 限制角色或权限的数量
     /// </summary>
-    [Description("限制角色或权限的数量")]
+    [Description("基数约束")]
     Cardinality = 3,
 
     /// <summary>
     /// 先决条件约束
     /// 获得某角色/权限前必须先拥有其他角色/权限
     /// </summary>
-    [Description("获得某角色/权限前必须先拥有其他角色/权限")]
+    [Description("先决条件")]
     Prerequisite = 4,
 
     /// <summary>
     /// 时间约束
     /// 基于时间的访问控制
     /// </summary>
-    [Description("基于时间的访问控制")]
+    [Description("时间约束")]
     Temporal = 5,
 
     /// <summary>
     /// 位置约束
     /// 基于位置的访问控制
     /// </summary>
-    [Description("基于位置的访问控制")]
+    [Description("位置约束")]
     Location = 6,
 
     /// <summary>
     /// 自定义约束
     /// </summary>
-    [Description("自定义约束")]
+    [Description("自定义")]
     Custom = 99
 }
 
@@ -109,24 +109,24 @@ public enum ViolationAction
     /// <summary>
     /// 拒绝操作
     /// </summary>
-    [Description("拒绝操作")]
+    [Description("拒绝")]
     Deny = 0,
 
     /// <summary>
     /// 警告但允许
     /// </summary>
-    [Description("警告但允许")]
+    [Description("警告")]
     Warning = 1,
 
     /// <summary>
     /// 仅记录日志
     /// </summary>
-    [Description("仅记录日志")]
+    [Description("记录日志")]
     Log = 2,
 
     /// <summary>
     /// 需要审批
     /// </summary>
-    [Description("需要审批")]
+    [Description("审批")]
     RequireApproval = 3
 }

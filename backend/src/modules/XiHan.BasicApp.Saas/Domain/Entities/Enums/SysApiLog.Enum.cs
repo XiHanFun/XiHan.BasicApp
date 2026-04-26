@@ -54,13 +54,13 @@ public enum SignatureType
     /// <summary>
     /// SM2 国密签名
     /// </summary>
-    [Description("SM2 国密签名")]
+    [Description("SM2")]
     Sm2 = 5,
 
     /// <summary>
     /// SM3 国密摘要
     /// </summary>
-    [Description("SM3 国密摘要")]
+    [Description("SM3")]
     Sm3 = 6,
 
     /// <summary>
@@ -72,6 +72,6 @@ public enum SignatureType
     /// <summary>
     /// MD5（不推荐，仅兼容旧系统）
     /// </summary>
-    [Description("MD5（不推荐，仅兼容旧系统）")]
+    [Description("MD5")]
     Md5 = 99
 }

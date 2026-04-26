@@ -96,19 +96,19 @@ public enum TenantIsolationMode
     /// <summary>
     /// 字段隔离 - 通过TenantId字段区分租户数据
     /// </summary>
-    [Description("字段隔离 - 通过TenantId字段区分租户数据")]
+    [Description("字段隔离")]
     Field = 0,
 
     /// <summary>
     /// 数据库隔离 - 每个租户使用独立数据库
     /// </summary>
-    [Description("数据库隔离 - 每个租户使用独立数据库")]
+    [Description("数据库隔离")]
     Database = 1,
 
     /// <summary>
     /// Schema隔离 - 在同一数据库中使用不同Schema
     /// </summary>
-    [Description("Schema隔离 - 在同一数据库中使用不同Schema")]
+    [Description("Schema隔离")]
     Schema = 2
 }
 

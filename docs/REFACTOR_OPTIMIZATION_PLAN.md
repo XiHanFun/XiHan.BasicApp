@@ -609,3 +609,26 @@ pnpm lint
 - 本阶段未修改后端和前端业务代码。
 - 构建生成的 `backend/nupkgs/`、`frontend/dist/` 为 ignored，不纳入提交。
 - 后续 B1/B2 进入代码修改前，必须再次检查两个仓库 git 状态，只提交本任务修改的文件。
+
+### 2026-04-26 B1 SaaS 枚举 Description 精简
+
+本阶段仅优化 `XiHan.BasicApp.Saas/Domain/Entities/Enums/*.cs` 的 `[Description]` 显示标签，不修改枚举名称、枚举值和业务流程。
+
+执行结果：
+
+- 将带解释、示例、冒号说明、括号补充的 Description 收敛为短显示标签，例如字段脱敏策略、租户成员状态、数据权限范围、资源访问级别、操作分类、职责分离约束、审计风险等级、登录结果等。
+- 修正 `SysFieldLevelSecurity.Enum.cs` 中部门目标 Description 内嵌未转义双引号的问题，统一简化为 `部门`。
+- 保留 `HMAC-SHA256`、`HMAC-SHA512`、`SQL Server`、`MinIO` 等技术专有短标签。
+- 未新增迁移脚本；枚举底层值未变化，数据库存量数据不受影响。
+
+验证结果：
+
+- `git diff --check -- backend/src/modules/XiHan.BasicApp.Saas/Domain/Entities/Enums/*.cs`：通过。
+- Description 扫描：长句、括号解释、冒号说明基本清理完成；剩余 `HMAC-SHA256`、`HMAC-SHA512` 为预期保留的算法名。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --no-restore`：失败，MSBuild 摘要为 `0 个警告 / 0 个错误`；诊断日志出现本机 SDK workload resolver 的 `MSB4276` 路径解析提示，未定位到本次枚举文案变更引入的编译错误。后续全量质量门禁需继续复核本机 .NET SDK/workload 状态。
+
+协作状态：
+
+- 本阶段仅提交本任务修改的枚举文件和本文档。
+- BasicApp 中既有未跟踪的 `Domain/Events/`、`Domain/Repositories/`、`Domain/ValueObjects/` 目录未纳入本阶段。
+- Framework 仓库无改动。

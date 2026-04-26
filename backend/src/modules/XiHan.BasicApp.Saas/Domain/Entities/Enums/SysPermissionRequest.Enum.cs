@@ -30,7 +30,7 @@ public enum PermissionRequestStatus
     /// <summary>
     /// 已批准（自动授权完成）
     /// </summary>
-    [Description("已批准（自动授权完成）")]
+    [Description("已批准")]
     Approved = 1,
 
     /// <summary>
