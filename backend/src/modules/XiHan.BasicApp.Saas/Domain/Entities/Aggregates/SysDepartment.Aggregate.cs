@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysDepartment.Aggregate.cs
+// FileName:SysDepartment.Aggregate
 // Guid:a3c7e1f4-8b2d-4a6e-9f01-d5c8b7a2e4f6
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com

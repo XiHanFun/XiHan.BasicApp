@@ -1,9 +1,10 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysTenantUser.Enum
+// Guid:ef1e10f5-d450-4ac2-9bff-869da43cec59
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/04/26 00:00:00
