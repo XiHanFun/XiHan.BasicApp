@@ -1,7 +1,7 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysUserSecurity.Enum
 // Author:zhaifanhua
@@ -24,21 +24,24 @@ public enum TwoFactorMethod
     /// <summary>
     /// 未启用
     /// </summary>
+    [Description("未启用")]
     None = 0,
 
     /// <summary>
     /// TOTP（时间型一次性密码，Authenticator App）
     /// </summary>
+    [Description("TOTP（时间型一次性密码，Authenticator App）")]
     Totp = 1,
 
     /// <summary>
     /// 邮箱验证码
     /// </summary>
+    [Description("邮箱验证码")]
     Email = 2,
 
     /// <summary>
     /// 手机短信验证码
     /// </summary>
+    [Description("手机短信验证码")]
     Phone = 4
 }
-

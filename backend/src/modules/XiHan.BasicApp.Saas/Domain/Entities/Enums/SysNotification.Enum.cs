@@ -1,7 +1,7 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysNotification.Enum
 // Author:zhaifanhua
@@ -23,26 +23,30 @@ public enum NotificationType
     /// <summary>
     /// 系统通知
     /// </summary>
+    [Description("系统通知")]
     System = 0,
 
     /// <summary>
     /// 用户通知
     /// </summary>
+    [Description("用户通知")]
     User = 1,
 
     /// <summary>
     /// 公告
     /// </summary>
+    [Description("公告")]
     Announcement = 2,
 
     /// <summary>
     /// 警告
     /// </summary>
+    [Description("警告")]
     Warning = 3,
 
     /// <summary>
     /// 错误
     /// </summary>
+    [Description("错误")]
     Error = 4
 }
-

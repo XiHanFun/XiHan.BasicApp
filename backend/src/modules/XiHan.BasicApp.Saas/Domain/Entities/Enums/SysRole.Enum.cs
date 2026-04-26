@@ -1,39 +1,20 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysRole.Enum
-// Guid:9d28152c-d6e9-4396-addb-b479254bad29
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/08/14 04:20:00
+// CreateTime:2026/04/26 00:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
+using System.ComponentModel;
+
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
-/// <summary>
-/// 角色类型枚举
-/// </summary>
-public enum RoleType
-{
-    /// <summary>
-    /// 系统角色
-    /// </summary>
-    System = 0,
-
-    /// <summary>
-    /// 业务角色
-    /// </summary>
-    Business = 1,
-
-    /// <summary>
-    /// 自定义角色
-    /// </summary>
-    Custom = 2
-}
 /// <summary>
 /// 数据权限范围
 /// </summary>
@@ -52,30 +33,58 @@ public enum DataPermissionScope
     /// 仅本人数据权限
     /// 只能看到自己创建的数据
     /// </summary>
+    [Description("只能看到自己创建的数据")]
     SelfOnly = 0,
 
     /// <summary>
     /// 仅本部门数据权限
     /// 以用户当前租户上下文下的全部有效部门归属为基准，仅限这些部门
     /// </summary>
+    [Description("以用户当前租户上下文下的全部有效部门归属为基准，仅限这些部门")]
     DepartmentOnly = 1,
 
     /// <summary>
     /// 本部门及子部门数据权限
     /// 以用户当前租户上下文下的全部有效部门归属为基准，包含这些部门的所有下级部门
     /// </summary>
+    [Description("以用户当前租户上下文下的全部有效部门归属为基准，包含这些部门的所有下级部门")]
     DepartmentAndChildren = 2,
 
     /// <summary>
     /// 全部数据权限
     /// 可以看到所有数据
     /// </summary>
+    [Description("可以看到所有数据")]
     All = 3,
 
     /// <summary>
     /// 自定义数据权限
     /// 通过 SysRoleDataScope 指定可访问的部门列表（支持 IncludeChildren 自动包含子部门）
     /// </summary>
+    [Description("通过 SysRoleDataScope 指定可访问的部门列表（支持 IncludeChildren 自动包含子部门）")]
     Custom = 99
 }
 
+/// <summary>
+/// 角色类型枚举
+/// </summary>
+public enum RoleType
+{
+    /// <summary>
+    /// 系统角色
+    /// </summary>
+    [Description("系统角色")]
+    System = 0,
+
+    /// <summary>
+    /// 业务角色
+    /// </summary>
+    [Description("业务角色")]
+    Business = 1,
+
+    /// <summary>
+    /// 自定义角色
+    /// </summary>
+    [Description("自定义角色")]
+    Custom = 2
+}

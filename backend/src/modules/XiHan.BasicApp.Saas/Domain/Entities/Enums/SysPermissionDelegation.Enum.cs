@@ -1,7 +1,7 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysPermissionDelegation.Enum
 // Author:zhaifanhua
@@ -23,21 +23,24 @@ public enum DelegationStatus
     /// <summary>
     /// 待生效
     /// </summary>
+    [Description("待生效")]
     Pending = 0,
 
     /// <summary>
     /// 生效中
     /// </summary>
+    [Description("生效中")]
     Active = 1,
 
     /// <summary>
     /// 已过期
     /// </summary>
+    [Description("已过期")]
     Expired = 2,
 
     /// <summary>
     /// 已撤销
     /// </summary>
+    [Description("已撤销")]
     Revoked = 3
 }
-
