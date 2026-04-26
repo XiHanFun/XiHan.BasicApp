@@ -16,7 +16,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.ValueObjects;
 
-namespace XiHan.BasicApp.Saas.Domain.DomainServices.Implementations;
+namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
 /// <summary>
 /// 权限裁决领域服务

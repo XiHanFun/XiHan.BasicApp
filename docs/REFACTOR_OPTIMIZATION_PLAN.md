@@ -699,3 +699,34 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的 Domain 非实体层重建文件和本文档，不推送远端。
+
+### 2026-04-26 D2 Domain 仓储租户上下文修正
+
+本阶段修正 D1 仓储契约中的租户参数设计。普通租户数据查询不得在仓储方法中显式传入 `tenantId`，应由登录/切换租户后的会话上下文决定当前租户，并由底层仓储和 SqlSugar 全局过滤器自动注入租户查询条件。
+
+执行结果：
+
+- 移除 `IUserRepository`、`IRoleRepository`、`IPermissionRepository`、`IResourceRepository`、`IOperationRepository` 等普通租户域仓储方法中的 `tenantId` 参数。
+- 移除用户角色、用户直授权限、角色权限、ABAC 条件、约束规则、部门、部门闭包、用户部门、角色闭包、角色数据范围等仓储方法中的显式 `tenantId` 参数。
+- 保留实体、事件、快照中的 `TenantId` 数据字段语义；这些字段用于审计、事件上下文和数据本身，不作为普通仓储查询入参。
+- 明确跨租户/平台查询后续必须走独立平台服务或显式逃逸接口，例如 `CreateNoTenantQueryable()`，并记录审计，不混入普通仓储契约。
+- 重组 `Domain/Repositories` 文件结构，按领域功能拆分目录和单接口文件：
+  - `Abstractions/`：`ISaasRepository`、`ISaasAggregateRepository`。
+  - `Identity/`：`IUserRepository`。
+  - `Tenancy/`：`ITenantRepository`、`ITenantUserRepository`。
+  - `Organization/`：`IDepartmentRepository`、`IDepartmentHierarchyRepository`、`IUserDepartmentRepository`。
+  - `Authorization/`：角色、权限、资源、操作、授权关系、ABAC 条件、约束规则、角色闭包、角色数据范围等仓储契约。
+- 统一 Domain 子目录的命名空间策略：子目录下的二级目录可用于物理分组，但命名空间保持在父级，例如 `Repositories/Authorization/*` 仍使用 `XiHan.BasicApp.Saas.Domain.Repositories`，`DomainServices/Implementations/*` 仍使用 `XiHan.BasicApp.Saas.Domain.DomainServices`，避免调用方引入一组细碎 `using`。
+
+验证结果：
+
+- `rg -n "tenantId" backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Domain\.Repositories\." backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Domain\.DomainServices\." backend/src/modules/XiHan.BasicApp.Saas/Domain/DomainServices -g "*.cs"`：0 个匹配。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态；`XiHan.Framework` 无改动。
+- 本阶段只提交 BasicApp 的 Domain 仓储契约修正和本文档，不推送远端。
