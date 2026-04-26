@@ -632,3 +632,27 @@ pnpm lint
 - 本阶段仅提交本任务修改的枚举文件和本文档。
 - BasicApp 中既有未跟踪的 `Domain/Events/`、`Domain/Repositories/`、`Domain/ValueObjects/` 目录未纳入本阶段。
 - Framework 仓库无改动。
+
+### 2026-04-26 B2 SaaS Entities 编译恢复
+
+本阶段围绕 `XiHan.BasicApp.Saas/Domain/Entities` 重构后的编译阻塞做最小恢复，不扩展业务行为。
+
+执行结果：
+
+- 恢复 `PermissionType` 枚举，补齐 `SysPermission` 对资源操作、功能、数据范围三类权限的类型引用。
+- 重建 `XiHanBasicAppRbacModule` 模块入口，恢复 WebHost 与 CodeGeneration 对 SaaS/RBAC 模块的依赖解析。
+- 重建 `BasicAppNotificationHub`、`BasicAppChatHub` 最小 Hub 类，恢复 WebHost 的 SignalR 映射引用。
+- 修正 `SysOAuthCode`、`SysTask` XML 注释中的比较符描述，消除 XML 文档解析警告。
+- 对齐 CodeGeneration 实体与 Seeder：补充 SaaS 实体命名空间引用，并将 SaaS 实体 `Status` 写入值改为 `EnableStatus.Enabled`。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`49` 个警告，`0` 个错误。
+- 全量构建剩余警告均为 `NU5104`：当前稳定包依赖 `XiHan.Framework.* 2.5.0-preview.2` 预发布包，非本阶段实体代码错误。
+- 常规源码输出目录构建曾因并行任务占用 `obj` 文件出现 `Access denied`，本阶段使用隔离 `--artifacts-path` 完成验证，避免影响其他同步重构任务。
+
+协作状态：
+
+- 阶段前后检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态；`XiHan.Framework` 无改动。
+- 本阶段只提交 BasicApp 中本任务涉及的编译修复和本文档更新，不推送远端。
