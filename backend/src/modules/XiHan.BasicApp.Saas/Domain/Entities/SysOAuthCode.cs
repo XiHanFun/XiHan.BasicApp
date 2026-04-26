@@ -34,7 +34,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 查询：
 /// - 换 Token 入口：按 Code 精确定位 + 有效期校验
 /// - 按客户端/用户审计：IX_ClId / IX_UsId
-/// - 清理过期：IX_ExTi + WHERE ExpiresTime < now
+/// - 清理过期：IX_ExTi，筛选早于当前时间的 ExpiresTime
 ///
 /// 删除：
 /// - 使用后立即硬删（或标记已使用）防止重放

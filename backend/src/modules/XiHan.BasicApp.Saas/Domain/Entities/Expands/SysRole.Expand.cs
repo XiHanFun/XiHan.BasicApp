@@ -117,18 +117,18 @@ public partial class SysRole : IValidatableObject
             yield return new ValidationResult("平台租户（TenantId=0）的角色必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
         }
 
-        if (RoleType == XiHan.BasicApp.Saas.Domain.Enums.RoleType.System && !IsGlobal)
+        if (RoleType == RoleType.System && !IsGlobal)
         {
             yield return new ValidationResult("系统内置角色必须为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
         }
 
-        if (RoleType == XiHan.BasicApp.Saas.Domain.Enums.RoleType.Custom && IsGlobal)
+        if (RoleType == RoleType.Custom && IsGlobal)
         {
             yield return new ValidationResult("租户自定义角色不能标记为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
         }
 
-        if (DataScope == XiHan.BasicApp.Saas.Domain.Enums.DataPermissionScope.All
-            && !(IsGlobal && RoleType == XiHan.BasicApp.Saas.Domain.Enums.RoleType.System))
+        if (DataScope == DataPermissionScope.All
+            && !(IsGlobal && RoleType == RoleType.System))
         {
             yield return new ValidationResult("全部数据权限范围（DataScope=All）仅限平台超管角色（IsGlobal=true 且 RoleType=System）。",
                 [nameof(DataScope), nameof(IsGlobal), nameof(RoleType)]);
