@@ -35,7 +35,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - NextRunTime 由调度器根据 Trigger 计算并更新，不应由用户直接修改
 ///
 /// 查询：
-/// - 调度器拉取待执行队列：IX_NeRuTi + WHERE NextRunTime <= now
+/// - 调度器拉取待执行队列：IX_NeRuTi，筛选已到执行时间的 NextRunTime
 /// - 运行状态概览：IX_RuTaSt
 /// - 按触发类型统计：IX_TrTy
 ///
