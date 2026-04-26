@@ -847,3 +847,46 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的 Domain 领域服务和值对象调整以及本文档，不推送远端。
+
+### 2026-04-26 D6 Domain 剩余实体仓储契约补齐
+
+本阶段继续 B4 领域层重构，补齐 `Domain/Entities` 中剩余实体对应的 Domain 仓储契约。范围限定为接口契约与物理结构，不接入 Infrastructure 实现，不新增查询实现，不修改实体行为。
+
+执行结果：
+
+- 按实体领域补齐仓储接口目录：
+  - `Audit/`：访问、API、审计、异常、登录、操作、权限变更日志。
+  - `Authorization/`：约束规则项、字段级安全、权限委托、权限申请、用户数据范围。
+  - `Configuration/`：配置、字典、字典项、迁移历史、版本。
+  - `Files/`：文件元数据、文件存储配置。
+  - `Identity/`：外部登录、密码历史、会话角色、用户安全、用户会话、用户统计。
+  - `Messaging/`：邮件、通知、短信、用户通知。
+  - `Navigation/`：菜单。
+  - `OAuth/`：OAuth 应用、授权码、令牌。
+  - `Tenancy/`：租户版本、租户版本权限。
+  - `Workflow/`：审批、审批日志、任务、任务日志。
+- 所有新增实体仓储均继承统一 SaaS 仓储基线：
+  - 普通实体使用 `ISaasRepository<TEntity>`。
+  - 聚合根实体使用 `ISaasAggregateRepository<TAggregateRoot>`。
+- 继续保持二级物理目录的父级命名空间策略：所有仓储接口仍使用 `XiHan.BasicApp.Saas.Domain.Repositories`，不引入 `Repositories.Audit`、`Repositories.Identity` 等细分命名空间。
+- 普通仓储契约不出现 `tenantId` 查询参数；租户条件仍由当前会话/租户上下文和底层仓储、SqlSugar 全局过滤器自动注入。
+
+设计约束：
+
+- 仓储接口只表达领域持久化入口，不做页面查询拼装、缓存策略或跨租户逃逸。
+- 跨租户平台操作后续必须走明确的平台服务或基础设施逃逸接口，并记录审计，不混入普通实体仓储契约。
+- 本阶段仅补齐契约覆盖面，Infrastructure 仓储实现留到下一层重建。
+
+验证结果：
+
+- 实体到仓储覆盖扫描：`Domain/Entities` 根目录实体均已有匹配的 `I<EntityWithoutSys>Repository`，无缺口。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Domain\.Repositories\." backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories -g "*.cs"`：0 个匹配。
+- `rg -n "tenantId" backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`49` 个 `NU5104` 预发布依赖警告，`0` 个错误。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态；`XiHan.Framework` 无改动。
+- 本阶段只提交 BasicApp 的剩余实体仓储契约和本文档，不推送远端。
