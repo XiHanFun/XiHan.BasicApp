@@ -12,7 +12,7 @@
 
 #endregion <<版权版本注释>>
 
-namespace XiHan.BasicApp.Saas.Domain.Entities.Enums;
+namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 是或否枚举

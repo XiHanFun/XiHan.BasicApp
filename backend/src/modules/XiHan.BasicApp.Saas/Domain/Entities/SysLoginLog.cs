@@ -14,7 +14,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Entities.Enums;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
