@@ -1,7 +1,7 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysUser.Enum
 // Author:zhaifanhua
@@ -23,16 +23,18 @@ public enum UserGender
     /// <summary>
     /// 未知
     /// </summary>
+    [Description("未知")]
     Unknown = 0,
 
     /// <summary>
     /// 男
     /// </summary>
+    [Description("男")]
     Male = 1,
 
     /// <summary>
     /// 女
     /// </summary>
+    [Description("女")]
     Female = 2
 }
-

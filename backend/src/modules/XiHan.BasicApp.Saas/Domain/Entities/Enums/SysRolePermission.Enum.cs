@@ -1,16 +1,17 @@
 #region <<版权版本注释>>
 
 // ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c)2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysRolePermission.Enum
-// Guid:ad28152c-d6e9-4396-addb-b479254bad30
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2025/08/14 04:25:00
+// CreateTime:2026/04/26 00:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
+
+using System.ComponentModel;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -27,10 +28,12 @@ public enum PermissionAction
     /// <summary>
     /// 授予权限
     /// </summary>
+    [Description("授予权限")]
     Grant = 0,
 
     /// <summary>
     /// 拒绝权限
     /// </summary>
+    [Description("拒绝权限")]
     Deny = 1
 }
