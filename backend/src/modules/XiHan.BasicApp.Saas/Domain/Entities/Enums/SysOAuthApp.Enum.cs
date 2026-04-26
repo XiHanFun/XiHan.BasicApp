@@ -24,24 +24,24 @@ public enum OAuthAppType
     /// <summary>
     /// Web应用
     /// </summary>
-    [Description("Web应用")]
+    [Description("Web")]
     Web = 0,
 
     /// <summary>
     /// 移动应用
     /// </summary>
-    [Description("移动应用")]
+    [Description("移动")]
     Mobile = 1,
 
     /// <summary>
     /// 桌面应用
     /// </summary>
-    [Description("桌面应用")]
+    [Description("桌面")]
     Desktop = 2,
 
     /// <summary>
     /// 服务应用
     /// </summary>
-    [Description("服务应用")]
+    [Description("服务")]
     Service = 3
 }

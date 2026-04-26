@@ -34,35 +34,35 @@ public enum DataPermissionScope
     /// 仅本人数据权限
     /// 只能看到自己创建的数据
     /// </summary>
-    [Description("只能看到自己创建的数据")]
+    [Description("本人数据")]
     SelfOnly = 0,
 
     /// <summary>
     /// 仅本部门数据权限
     /// 以用户当前租户上下文下的全部有效部门归属为基准，仅限这些部门
     /// </summary>
-    [Description("以用户当前租户上下文下的全部有效部门归属为基准，仅限这些部门")]
+    [Description("本部门")]
     DepartmentOnly = 1,
 
     /// <summary>
     /// 本部门及子部门数据权限
     /// 以用户当前租户上下文下的全部有效部门归属为基准，包含这些部门的所有下级部门
     /// </summary>
-    [Description("以用户当前租户上下文下的全部有效部门归属为基准，包含这些部门的所有下级部门")]
+    [Description("本部门及下级")]
     DepartmentAndChildren = 2,
 
     /// <summary>
     /// 全部数据权限
     /// 可以看到所有数据
     /// </summary>
-    [Description("可以看到所有数据")]
+    [Description("全部数据")]
     All = 3,
 
     /// <summary>
     /// 自定义数据权限
     /// 通过 SysRoleDataScope 指定可访问的部门列表（支持 IncludeChildren 自动包含子部门）
     /// </summary>
-    [Description("通过 SysRoleDataScope 指定可访问的部门列表（支持 IncludeChildren 自动包含子部门）")]
+    [Description("自定义")]
     Custom = 99
 }
 
@@ -74,18 +74,18 @@ public enum RoleType
     /// <summary>
     /// 系统角色
     /// </summary>
-    [Description("系统角色")]
+    [Description("系统")]
     System = 0,
 
     /// <summary>
     /// 业务角色
     /// </summary>
-    [Description("业务角色")]
+    [Description("业务")]
     Business = 1,
 
     /// <summary>
     /// 自定义角色
     /// </summary>
-    [Description("自定义角色")]
+    [Description("自定义")]
     Custom = 2
 }

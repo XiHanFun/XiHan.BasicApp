@@ -25,19 +25,19 @@ public enum ResourceAccessLevel
     /// <summary>
     /// 匿名可访问（无需登录，无需授权，如健康检查、公开文档）
     /// </summary>
-    [Description("匿名可访问（无需登录，无需授权，如健康检查、公开文档）")]
+    [Description("匿名访问")]
     Public = 0,
 
     /// <summary>
     /// 仅需认证（登录即可访问，无需具体权限，如个人信息、通知列表）
     /// </summary>
-    [Description("仅需认证（登录即可访问，无需具体权限，如个人信息、通知列表）")]
+    [Description("仅需认证")]
     Authenticated = 1,
 
     /// <summary>
     /// 需要授权（必须登录且持有对应权限才可访问，默认级别）
     /// </summary>
-    [Description("需要授权（必须登录且持有对应权限才可访问，默认级别）")]
+    [Description("需要授权")]
     Authorized = 2
 }
 
@@ -50,30 +50,30 @@ public enum ResourceType
     /// <summary>
     /// API接口资源
     /// </summary>
-    [Description("API接口资源")]
+    [Description("API")]
     Api = 0,
 
     /// <summary>
     /// 文件资源
     /// </summary>
-    [Description("文件资源")]
+    [Description("文件")]
     File = 1,
 
     /// <summary>
     /// 数据表资源
     /// </summary>
-    [Description("数据表资源")]
+    [Description("数据表")]
     DataTable = 2,
 
     /// <summary>
     /// 业务对象资源
     /// </summary>
-    [Description("业务对象资源")]
+    [Description("业务对象")]
     BusinessObject = 3,
 
     /// <summary>
     /// 其他资源
     /// </summary>
-    [Description("其他资源")]
+    [Description("其他")]
     Other = 99
 }

@@ -25,31 +25,31 @@ public enum TenantMemberInviteStatus
     /// <summary>
     /// 待接受：邀请已发出但用户尚未响应（未生效，不能访问租户数据）
     /// </summary>
-    [Description("待接受：邀请已发出但用户尚未响应（未生效，不能访问租户数据）")]
+    [Description("待接受")]
     Pending = 0,
 
     /// <summary>
     /// 已接受：成员身份已生效，鉴权通过后可访问租户数据
     /// </summary>
-    [Description("已接受：成员身份已生效，鉴权通过后可访问租户数据")]
+    [Description("已接受")]
     Accepted = 1,
 
     /// <summary>
     /// 已拒绝：用户拒绝邀请，关系不生效
     /// </summary>
-    [Description("已拒绝：用户拒绝邀请，关系不生效")]
+    [Description("已拒绝")]
     Rejected = 2,
 
     /// <summary>
     /// 已撤销：管理员吊销成员身份，或用户主动退出租户
     /// </summary>
-    [Description("已撤销：管理员吊销成员身份，或用户主动退出租户")]
+    [Description("已撤销")]
     Revoked = 3,
 
     /// <summary>
     /// 已过期：邀请在 EffectiveTo 前未被接受，或成员身份有效期已过
     /// </summary>
-    [Description("已过期：邀请在 EffectiveTo 前未被接受，或成员身份有效期已过")]
+    [Description("已过期")]
     Expired = 4
 }
 
@@ -62,42 +62,42 @@ public enum TenantMemberType
     /// <summary>
     /// 租户所有者：通常是租户创建者/购买订阅的法人代表，拥有最高权限
     /// </summary>
-    [Description("租户所有者：通常是租户创建者/购买订阅的法人代表，拥有最高权限")]
+    [Description("租户所有者")]
     Owner = 0,
 
     /// <summary>
     /// 租户管理员：次级管理权限，负责用户/角色/部门等日常管理
     /// </summary>
-    [Description("租户管理员：次级管理权限，负责用户/角色/部门等日常管理")]
+    [Description("租户管理员")]
     Admin = 1,
 
     /// <summary>
     /// 普通成员：租户内正式员工，按分配的角色拥有权限
     /// </summary>
-    [Description("普通成员：租户内正式员工，按分配的角色拥有权限")]
+    [Description("普通成员")]
     Member = 2,
 
     /// <summary>
     /// 外部协作者：供应商/客户等外部组织成员，被邀请访问特定资源
     /// </summary>
-    [Description("外部协作者：供应商/客户等外部组织成员，被邀请访问特定资源")]
+    [Description("外部协作者")]
     External = 3,
 
     /// <summary>
     /// 访客：短期临时访问（如演示/试用），通常受限于只读权限与时效
     /// </summary>
-    [Description("访客：短期临时访问（如演示/试用），通常受限于只读权限与时效")]
+    [Description("访客")]
     Guest = 4,
 
     /// <summary>
     /// 顾问/审计师：跨租户只读访问，用于咨询/审计/合规检查
     /// </summary>
-    [Description("顾问/审计师：跨租户只读访问，用于咨询/审计/合规检查")]
+    [Description("顾问")]
     Consultant = 5,
 
     /// <summary>
     /// 平台管理员：平台运营方，可跨租户访问以进行运维/客服/风控
     /// </summary>
-    [Description("平台管理员：平台运营方，可跨租户访问以进行运维/客服/风控")]
+    [Description("平台管理员")]
     PlatformAdmin = 99
 }

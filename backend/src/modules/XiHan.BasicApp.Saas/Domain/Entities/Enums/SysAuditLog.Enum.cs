@@ -24,31 +24,31 @@ public enum AuditRiskLevel
     /// <summary>
     /// 低风险（常规查询、列表浏览等）
     /// </summary>
-    [Description("低风险（常规查询、列表浏览等）")]
+    [Description("低风险")]
     Low = 1,
 
     /// <summary>
     /// 中风险（数据修改、配置变更等）
     /// </summary>
-    [Description("中风险（数据修改、配置变更等）")]
+    [Description("中风险")]
     Medium = 2,
 
     /// <summary>
     /// 高风险（权限变更、角色分配等）
     /// </summary>
-    [Description("高风险（权限变更、角色分配等）")]
+    [Description("高风险")]
     High = 3,
 
     /// <summary>
     /// 极高风险（批量删除、数据导出等）
     /// </summary>
-    [Description("极高风险（批量删除、数据导出等）")]
+    [Description("极高风险")]
     VeryHigh = 4,
 
     /// <summary>
     /// 严重风险（超管操作、租户配置变更、安全策略修改等）
     /// </summary>
-    [Description("严重风险（超管操作、租户配置变更、安全策略修改等）")]
+    [Description("严重风险")]
     Critical = 5
 }
 
