@@ -804,3 +804,46 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的 Domain 事件契约和本文档，不推送远端。
+
+### 2026-04-26 D5 Domain 领域服务结构与数据范围裁决
+
+本阶段继续 B4 领域层重构，规范 `Domain/DomainServices` 物理结构，并补齐数据范围合并的纯领域规则。范围限定为领域服务和值对象，不接入 Infrastructure，不生成查询表达式，不修改实体行为。
+
+执行结果：
+
+- 重组 `Domain/DomainServices` 物理目录：
+  - `Authorization/`：权限裁决、数据范围裁决服务接口。
+  - `Authorization/Implementations/`：权限裁决、数据范围裁决服务实现。
+  - `Tenancy/`：租户访问服务接口。
+  - `Tenancy/Implementations/`：租户访问服务实现。
+- 保留已有 `IPermissionDecisionDomainService` / `PermissionDecisionDomainService` 和 `ITenantAccessDomainService` / `TenantAccessDomainService` 行为，仅移动文件位置。
+- 新增 `DataScopeGrantSnapshot` 和 `DataScopeDecision`：
+  - `DataScopeGrantSnapshot` 承载角色/用户等来源的数据范围事实、部门列表、生效周期和启用状态。
+  - `DataScopeDecision` 表达全部数据、本人数据、直接部门、需包含子部门的部门集合。
+- 新增 `IDataScopeDecisionDomainService` / `DataScopeDecisionDomainService`：
+  - `All` 显式优先，不依赖 `DataPermissionScope` 枚举数值大小。
+  - `DepartmentOnly` 使用调用方传入的当前用户有效部门集合。
+  - `DepartmentAndChildren` 只标记需要展开的部门，子部门展开留给后续仓储/QueryService。
+  - `Custom` 支持直接部门和包含子部门两种语义。
+  - 无有效授权或没有可用部门时回落为 `SelfOnly`。
+- 保持二级物理目录的父级命名空间策略：所有领域服务仍使用 `XiHan.BasicApp.Saas.Domain.DomainServices`。
+
+设计约束：
+
+- 数据范围裁决服务只处理内存快照，不依赖数据库、缓存、当前用户上下文或 HTTP 上下文。
+- 普通租户隔离仍由会话上下文和底层仓储/SqlSugar 过滤器处理，领域服务不接收 `tenantId` 查询参数。
+- 本阶段只定义合并规则，后续 Infrastructure/Application 阶段再把 `DataScopeDecision` 转换为具体查询条件和缓存失效逻辑。
+
+验证结果：
+
+- `git diff --check`：通过。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Domain\.DomainServices\." backend/src/modules/XiHan.BasicApp.Saas/Domain/DomainServices -g "*.cs"`：0 个匹配。
+- `rg -n "tenantId" backend/src/modules/XiHan.BasicApp.Saas/Domain/DomainServices -g "*.cs"`：0 个匹配。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`49` 个 `NU5104` 预发布依赖警告，`0` 个错误。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的 Domain 领域服务和值对象调整以及本文档，不推送远端。
