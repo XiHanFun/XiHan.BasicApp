@@ -91,7 +91,7 @@ public class SysPermissionSeeder : DataSeederBase
                     PermissionDescription = $"对{resource.ResourceName}执行{operation.OperationName}操作",
                     IsRequireAudit = operation.IsRequireAudit,
                     Tags = "codegen",
-                    Status = YesOrNo.Yes,
+                    Status = EnableStatus.Enabled,
                     Sort = 900 + addList.Count
                 });
             }

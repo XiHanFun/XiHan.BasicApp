@@ -55,7 +55,7 @@ public class SysResourceSeeder : DataSeederBase
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysResource { ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = YesOrNo.Yes, Sort = 401 });
+            addList.Add(new SysResource { ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 401 });
         }
 
         if (addList.Count == 0)

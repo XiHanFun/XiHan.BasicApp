@@ -52,12 +52,12 @@ public class SysMenuSeeder : DataSeederBase
 
         if (!existsCodes.Contains("develop"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "tool", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 400 });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "tool", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 400 });
         }
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "code", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = YesOrNo.Yes, Sort = 401 });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "code", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 401 });
         }
 
         if (addList.Count == 0)
