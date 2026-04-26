@@ -761,3 +761,46 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的 Domain 规约拆分和本文档，不推送远端。
+
+### 2026-04-26 D4 Domain 领域事件契约补齐
+
+本阶段继续 B4 领域层重构，补齐安全敏感变更和会话撤销所需的领域事件契约。范围限定为事件定义与物理结构，不接入 Infrastructure 事件处理器，不修改实体行为。
+
+执行结果：
+
+- 重组 `Domain/Events` 物理目录：
+  - `Abstractions/`：`SaasDomainEventBase`。
+  - `Authorization/`：授权、数据范围、字段级安全相关事件。
+  - `Identity/`：用户会话撤销事件。
+  - `Organization/`：组织/角色层级关系变更事件。
+  - `Tenancy/`：租户成员和租户状态变更事件。
+- 保留已有事件语义并移动到领域目录：
+  - `AuthorizationChangedDomainEvent`
+  - `TenantMembershipChangedDomainEvent`
+  - `HierarchyChangedDomainEvent`
+- 新增事件契约：
+  - `DataScopeChangedDomainEvent`：角色/用户等目标的数据权限范围变化，用于后续数据权限缓存失效与审计。
+  - `FieldLevelSecurityChangedDomainEvent`：FLS 策略变化，用于后续字段脱敏缓存失效与审计。
+  - `UserSessionRevokedDomainEvent`：会话撤销入口，用于后续 Token 级联撤销。
+  - `TenantStatusChangedDomainEvent`：租户状态变化，用于后续租户访问缓存失效与通知。
+- 保持二级物理目录的父级命名空间策略：所有事件仍使用 `XiHan.BasicApp.Saas.Domain.Events`，不引入 `Events.Authorization` 等细分命名空间。
+
+设计约束：
+
+- 事件只携带领域事实和审计上下文，不依赖数据库、缓存、HTTP、当前用户上下文或基础设施处理器。
+- 普通租户隔离仍由会话上下文和底层仓储/SqlSugar 过滤器承担，事件中的 `TenantId` 是领域事实和事件上下文，不作为仓储查询入参。
+- Token 级联撤销、缓存失效、审计落库留到 Application/EventHandlers 和 Infrastructure 阶段实现。
+
+验证结果：
+
+- `git diff --check`：通过。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Domain\.Events\." backend/src/modules/XiHan.BasicApp.Saas/Domain/Events -g "*.cs"`：0 个匹配。
+- `rg -n "public sealed class .*DomainEvent|public abstract class SaasDomainEventBase|^namespace " backend/src/modules/XiHan.BasicApp.Saas/Domain/Events -g "*.cs"`：确认 1 个事件基类和 7 个事件类均使用父级命名空间。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`49` 个 `NU5104` 预发布依赖警告，`0` 个错误。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的 Domain 事件契约和本文档，不推送远端。
