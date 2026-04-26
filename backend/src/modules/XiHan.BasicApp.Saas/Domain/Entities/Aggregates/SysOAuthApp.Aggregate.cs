@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysOAuthApp.Aggregate.cs
+// FileName:SysOAuthApp.Aggregate
 // Guid:b4d8f2a5-9c3e-4b7f-a012-e6d9c8b3f5a7
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
