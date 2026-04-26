@@ -656,3 +656,46 @@ pnpm lint
 
 - 阶段前后检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态；`XiHan.Framework` 无改动。
 - 本阶段只提交 BasicApp 中本任务涉及的编译修复和本文档更新，不推送远端。
+
+### 2026-04-26 D1 Domain 非实体层契约基线
+
+本阶段开始重建 `XiHan.BasicApp.Saas/Domain` 非实体层。范围限定为领域契约与纯领域规则，不接入 Infrastructure，不修改 `Entities`。
+
+执行结果：
+
+- 重建 `Domain/ValueObjects`：
+  - `EffectivePeriod`：统一生效/失效时间判断。
+  - `BusinessReference`、`ClientInfo`、`DeviceInfo`：为日志、审计、会话、授权事件提供可复用值对象。
+  - `PermissionGrantSnapshot`、`AuthorizationDecision`、`TenantMemberSnapshot`：为权限裁决和租户访问判断提供快照模型。
+- 重建 `Domain/Events`：
+  - `SaasDomainEventBase`：统一租户、操作人、原因上下文。
+  - `AuthorizationChangedDomainEvent`、`TenantMembershipChangedDomainEvent`、`HierarchyChangedDomainEvent`：覆盖授权变更、租户成员变更、组织/角色层级变更三类后续缓存失效与审计入口。
+- 重建 `Domain/Repositories` 契约：
+  - `ISaasRepository<TEntity>`、`ISaasAggregateRepository<TAggregateRoot>` 统一 SaaS 仓储基线。
+  - 覆盖用户、租户成员、用户角色、用户直授权限、角色、权限、资源、操作、角色权限、ABAC 条件、约束规则、租户、部门、部门闭包、用户部门、角色闭包、角色数据范围等核心 RBAC/ABAC/组织链路。
+- 重建 `Domain/Specifications`：
+  - `ActiveUserSpecification`、`AvailableTenantSpecification`、`ActiveTenantUserSpecification`。
+  - `EnabledRoleSpecification`、`EnabledPermissionSpecification`。
+  - `ValidUserRoleSpecification`、`ValidRolePermissionSpecification`、`ValidUserPermissionSpecification`。
+- 重建 `Domain/DomainServices`：
+  - `IPermissionDecisionDomainService` / `PermissionDecisionDomainService`：实现用户直授 Deny、用户直授 Grant、角色 Grant、角色 Deny 的裁决顺序。
+  - `ITenantAccessDomainService` / `TenantAccessDomainService`：集中判断租户成员是否可进入租户、是否平台管理员身份。
+
+设计约束：
+
+- 本阶段不恢复旧 DomainServices / Repositories 的实现类，不从历史提交直接回滚。
+- 仓储接口只表达领域查询与持久化契约，具体 SqlSugar 实现留到 Infrastructure 阶段。
+- 纯规则服务只处理内存快照，不直接依赖数据库、缓存、当前用户上下文或 HTTP 上下文。
+
+验证结果：
+
+- `git diff --check`：通过。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配，未新增 Controller。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`0` 个警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的 Domain 非实体层重建文件和本文档，不推送远端。
