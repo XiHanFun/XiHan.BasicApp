@@ -979,3 +979,48 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无源码改动；构建期间生成的本地 `nupkgs` 输出未进入 git 状态。
 - 本阶段只提交 BasicApp 的仓储实现、分表仓储抽象、租户排除参数命名清理和本文档，不推送远端。
+
+### 2026-04-29 A1 Application 基线与租户查询入口
+
+本阶段进入第 6 层应用服务重构，先建立 SaaS 模块 `Application` 基线，并落地一个当前用户租户查询入口。范围限定为应用服务基类、查询服务契约、租户切换 DTO 和租户查询服务，不新增 Controller，不接入前端，不做写操作 AppService。
+
+执行结果：
+
+- 新建 `Application/` 物理结构：
+  - `Abstractions/`：SaaS 应用服务基类。
+  - `Contracts/Tenancy/`：租户查询服务契约。
+  - `Dtos/Tenancy/`：租户切换读模型 DTO。
+  - `QueryServices/Tenancy/`：租户查询服务实现。
+- 新增 `SaasApplicationService`：
+  - 继承 Framework `ApplicationServiceBase`。
+  - 默认标记 `[Authorize]`。
+  - 默认标记 `[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务")]`。
+- 新增 `ITenantQueryService` / `TenantQueryService`：
+  - 暴露 `GetMyAvailableTenantsAsync()`，用于获取当前登录用户可进入的租户列表。
+  - 从 `ICurrentUser.UserId` 获取当前用户，不接收 `tenantId` / `userId` 查询入参。
+  - 使用 `ITenantUserRepository.GetActiveByUserIdAsync()` 获取有效成员关系；该仓储方法内部通过明确基础设施边界查询登录后可进入租户。
+  - 使用 `ITenantRepository.GetByIdsAsync()` 读取租户元数据，过滤 `TenantStatus.Normal`，并按租户排序和名称输出。
+- 新增 `TenantSwitcherDto`：
+  - 仅返回租户切换所需字段、成员类型和成员有效期。
+  - 不暴露连接字符串、联系人电话、邮箱等租户敏感配置字段。
+
+设计约束：
+
+- 本阶段的租户标识只作为响应数据返回，不作为鉴权或查询入参；前端后续切换租户时仍必须由后端校验成员身份。
+- QueryService 只做读模型组装，不承担写操作、事务编排、权限授予或缓存失效。
+- 后续写操作 AppService 必须逐方法补充 `[PermissionAuthorize("saas:resource:action")]`，权限码同步进入 Seeder。
+
+验证结果：
+
+- `rg -n "tenantId|TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "\[Authorize\]|\[AllowAnonymous\]|public sealed class .*Service|DynamicApi" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：`TenantQueryService` 和 `SaasApplicationService` 均有授权与 DynamicApi 标记。
+- `git diff --check`：通过。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 NuGet 源/预发布依赖警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的 Application 基线、租户查询入口和本文档，不推送远端。
