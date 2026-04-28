@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 审批日志仓储接口
 /// </summary>
-public interface IReviewLogRepository : ISaasRepository<SysReviewLog>
+public interface IReviewLogRepository : ISaasSplitRepository<SysReviewLog>
 {
 }

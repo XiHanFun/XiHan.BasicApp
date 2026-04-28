@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 权限变更日志仓储接口
 /// </summary>
-public interface IPermissionChangeLogRepository : ISaasRepository<SysPermissionChangeLog>
+public interface IPermissionChangeLogRepository : ISaasSplitRepository<SysPermissionChangeLog>
 {
 }

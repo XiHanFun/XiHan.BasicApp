@@ -34,5 +34,5 @@ public interface ITenantRepository : ISaasAggregateRepository<SysTenant>
     /// <summary>
     /// 检查租户编码是否存在
     /// </summary>
-    Task<bool> ExistsTenantCodeAsync(string tenantCode, long? excludeTenantId = null, CancellationToken cancellationToken = default);
+    Task<bool> ExistsTenantCodeAsync(string tenantCode, long? excludeId = null, CancellationToken cancellationToken = default);
 }

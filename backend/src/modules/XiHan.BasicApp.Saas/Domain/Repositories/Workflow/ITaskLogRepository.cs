@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 任务日志仓储接口
 /// </summary>
-public interface ITaskLogRepository : ISaasRepository<SysTaskLog>
+public interface ITaskLogRepository : ISaasSplitRepository<SysTaskLog>
 {
 }

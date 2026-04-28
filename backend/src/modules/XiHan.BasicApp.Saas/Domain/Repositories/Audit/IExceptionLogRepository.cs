@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 异常日志仓储接口
 /// </summary>
-public interface IExceptionLogRepository : ISaasRepository<SysExceptionLog>
+public interface IExceptionLogRepository : ISaasSplitRepository<SysExceptionLog>
 {
 }
