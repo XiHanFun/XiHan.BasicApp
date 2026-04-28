@@ -931,3 +931,51 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的核心 Infrastructure 仓储实现和本文档，不推送远端。
+
+### 2026-04-29 I2 Infrastructure 剩余仓储实现补齐
+
+本阶段继续第 5 层基础设施重构，将 D6 已补齐的剩余 Domain 仓储契约落到 `Infrastructure/Repositories` 实现，并同步 Framework F1 分表仓储边界。范围限定为仓储实现、分表仓储抽象和租户参数命名清理，不接入应用服务，不新增 Controller。
+
+执行结果：
+
+- 新增 SaaS 分表仓储基线：
+  - `ISaasSplitRepository<TEntity>`：继承 Framework `ISplitRepositoryBase<TEntity>`，仅用于 `ISplitTableEntity` 分表实体。
+  - `SaasSplitRepository<TEntity>`：继承 Framework `SqlSugarSplitRepository<TEntity>`，实现 SaaS 分表仓储接口并参与作用域注入。
+- 将分表日志实体仓储接口从普通 `ISaasRepository<TEntity>` 切换为 `ISaasSplitRepository<TEntity>`：
+  - `SysAccessLog`、`SysApiLog`、`SysAuditLog`、`SysExceptionLog`、`SysLoginLog`、`SysOperationLog`、`SysPermissionChangeLog`。
+  - `SysReviewLog`、`SysTaskLog`。
+- 补齐剩余仓储实现：
+  - `Audit/`：访问、API、审计、异常、登录、操作、权限变更日志分表仓储。
+  - `Authorization/`：约束规则项、字段级安全、权限委托、权限申请、用户数据范围仓储。
+  - `Configuration/`：配置、字典、字典项、迁移历史、版本仓储。
+  - `Files/`：文件、文件存储仓储。
+  - `Identity/`：外部登录、密码历史、会话角色、用户安全、用户会话、用户统计仓储。
+  - `Messaging/`：邮件、通知、短信、用户通知仓储。
+  - `Navigation/`：菜单仓储。
+  - `OAuth/`：OAuth 应用、授权码、令牌仓储。
+  - `Tenancy/`：租户版本、租户版本权限仓储。
+  - `Workflow/`：审批、审批日志、任务、任务日志仓储。
+- 清理 `TenantRepository.ExistsTenantCodeAsync` 的排除参数命名：`excludeTenantId` 改为 `excludeId`，避免把实体主键排除语义误读为当前租户上下文入参。
+- 所有新增 Infrastructure 实现继续保持父级命名空间策略：物理目录按领域分组，命名空间统一为 `XiHan.BasicApp.Saas.Infrastructure.Repositories`。
+
+设计约束：
+
+- 分表实体禁止再通过普通 SaaS 仓储实现承载，避免绕过 Framework `SqlSugarReadOnlyRepository` 的分表实体防呆和分表路由规则。
+- 普通租户业务仓储仍不接收 `tenantId` 查询入参；租户过滤、软删除过滤、审计字段和主键注入继续由 Framework SqlSugar AOP、全局过滤器和当前租户上下文处理。
+- 本阶段只补齐持久化入口，不做页面查询拼装、缓存失效、事件处理或跨租户平台管理逻辑。
+
+验证结果：
+
+- Domain 仓储接口到 Infrastructure 实现覆盖扫描：所有非抽象 `I*Repository` 均已有对应 `*Repository` 实现。
+- `rg -n "tenantId|excludeTenantId" backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Repositories -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.(Domain|Infrastructure)\.Repositories\." backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Repositories -g "*.cs"`：0 个匹配。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "ISaasRepository<Sys(AccessLog|ApiLog|AuditLog|ExceptionLog|LoginLog|OperationLog|PermissionChangeLog|ReviewLog|TaskLog)>|SaasRepository<Sys(AccessLog|ApiLog|AuditLog|ExceptionLog|LoginLog|OperationLog|PermissionChangeLog|ReviewLog|TaskLog)>" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 NuGet 源/预发布依赖警告，`0` 个错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无源码改动；构建期间生成的本地 `nupkgs` 输出未进入 git 状态。
+- 本阶段只提交 BasicApp 的仓储实现、分表仓储抽象、租户排除参数命名清理和本文档，不推送远端。

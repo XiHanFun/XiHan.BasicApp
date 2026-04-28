@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 登录日志仓储接口
 /// </summary>
-public interface ILoginLogRepository : ISaasRepository<SysLoginLog>
+public interface ILoginLogRepository : ISaasSplitRepository<SysLoginLog>
 {
 }

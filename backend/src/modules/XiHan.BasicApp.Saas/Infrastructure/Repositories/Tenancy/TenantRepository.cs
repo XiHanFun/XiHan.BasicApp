@@ -56,16 +56,22 @@ public sealed class TenantRepository(
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
-    public async Task<bool> ExistsTenantCodeAsync(string tenantCode, long? excludeTenantId = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// 判断租户编码是否已存在
+    /// </summary>
+    /// <param name="tenantCode">租户编码</param>
+    /// <param name="excludeId">需要排除的租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户编码是否已存在</returns>
+    public async Task<bool> ExistsTenantCodeAsync(string tenantCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantCode);
         cancellationToken.ThrowIfCancellationRequested();
 
         var query = CreateQueryable().Where(tenant => tenant.TenantCode == tenantCode);
-        if (excludeTenantId.HasValue)
+        if (excludeId.HasValue)
         {
-            query = query.Where(tenant => tenant.BasicId != excludeTenantId.Value);
+            query = query.Where(tenant => tenant.BasicId != excludeId.Value);
         }
 
         return await query.AnyAsync(cancellationToken);

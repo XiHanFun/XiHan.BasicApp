@@ -3,22 +3,23 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IExceptionLogRepository
-// Guid:947eb2bc-db0e-43b5-8da1-cfdce031466d
+// FileName:FileRepository
+// Guid:4c249ba4-811e-4b87-a2a9-04f85f66777f
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2026/04/26 00:00:00
+// CreateTime:2026/04/29 00:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Data.SqlSugar.Clients;
 
-namespace XiHan.BasicApp.Saas.Domain.Repositories;
+namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
 /// <summary>
-/// 异常日志仓储接口
+/// 文件仓储实现
 /// </summary>
-public interface IExceptionLogRepository : ISaasSplitRepository<SysExceptionLog>
-{
-}
+public sealed class FileRepository(ISqlSugarClientResolver clientResolver)
+    : SaasRepository<SysFile>(clientResolver), IFileRepository;

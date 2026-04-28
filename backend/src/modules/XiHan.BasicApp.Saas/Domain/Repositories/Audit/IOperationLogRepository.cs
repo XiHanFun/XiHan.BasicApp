@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 操作日志仓储接口
 /// </summary>
-public interface IOperationLogRepository : ISaasRepository<SysOperationLog>
+public interface IOperationLogRepository : ISaasSplitRepository<SysOperationLog>
 {
 }
