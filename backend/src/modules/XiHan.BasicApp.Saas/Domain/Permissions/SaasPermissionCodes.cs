@@ -49,7 +49,8 @@ public static class SaasPermissionCodes
         TenantEditionPermission.Revoke,
         Permission.Read,
         Resource.Read,
-        Operation.Read
+        Operation.Read,
+        Role.Read
     ];
 
     /// <summary>
@@ -197,5 +198,16 @@ public static class SaasPermissionCodes
         /// 查看操作定义
         /// </summary>
         public const string Read = "saas:operation:read";
+    }
+
+    /// <summary>
+    /// 角色定义权限码
+    /// </summary>
+    public static class Role
+    {
+        /// <summary>
+        /// 查看角色定义
+        /// </summary>
+        public const string Read = "saas:role:read";
     }
 }
