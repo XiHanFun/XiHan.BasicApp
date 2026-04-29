@@ -300,7 +300,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"role\"]",
                 false,
                 260,
-                260)
+                260),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.RolePermission.Read,
+                "角色权限查看",
+                "查看角色权限绑定列表和详情",
+                "[\"saas\",\"role-permission\"]",
+                false,
+                270,
+                270)
         ];
     }
 
