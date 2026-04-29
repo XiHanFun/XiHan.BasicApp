@@ -138,7 +138,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"tenant\"]",
                 true,
                 130,
-                130)
+                130),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantEdition.Read,
+                "租户版本查看",
+                "查看租户版本套餐列表和详情",
+                "[\"saas\",\"tenant-edition\"]",
+                false,
+                140,
+                140)
         ];
     }
 
