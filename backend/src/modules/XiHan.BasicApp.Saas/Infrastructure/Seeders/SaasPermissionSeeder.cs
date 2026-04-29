@@ -339,6 +339,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 268),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.RoleHierarchy.Read,
+                "角色继承查看",
+                "查看角色继承祖先链、后代链和详情",
+                "[\"saas\",\"role-hierarchy\"]",
+                false,
+                269,
+                269),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.RolePermission.Read,
                 "角色权限查看",
                 "查看角色权限绑定列表和详情",
