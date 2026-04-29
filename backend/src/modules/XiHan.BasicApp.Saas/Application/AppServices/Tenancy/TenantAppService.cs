@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -87,7 +88,7 @@ public sealed class TenantAppService(
         };
 
         var savedTenant = await _tenantRepository.AddAsync(tenant, cancellationToken);
-        return MapTenantDetailDto(savedTenant, DateTimeOffset.UtcNow);
+        return TenantApplicationMapper.ToDetailDto(savedTenant, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -122,7 +123,7 @@ public sealed class TenantAppService(
         tenant.Remark = NormalizeNullable(input.Remark);
 
         var savedTenant = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
-        return MapTenantDetailDto(savedTenant, DateTimeOffset.UtcNow);
+        return TenantApplicationMapper.ToDetailDto(savedTenant, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -149,7 +150,7 @@ public sealed class TenantAppService(
         tenant.ChangeStatus(input.TenantStatus, _currentUser.UserId, NormalizeNullable(input.Reason));
 
         var savedTenant = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
-        return MapTenantDetailDto(savedTenant, DateTimeOffset.UtcNow);
+        return TenantApplicationMapper.ToDetailDto(savedTenant, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -267,37 +268,4 @@ public sealed class TenantAppService(
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    /// <summary>
-    /// 映射租户详情
-    /// </summary>
-    /// <param name="tenant">租户</param>
-    /// <param name="now">当前时间</param>
-    /// <returns>租户详情 DTO</returns>
-    private static TenantDetailDto MapTenantDetailDto(SysTenant tenant, DateTimeOffset now)
-    {
-        return new TenantDetailDto
-        {
-            BasicId = tenant.BasicId,
-            TenantCode = tenant.TenantCode,
-            TenantName = tenant.TenantName,
-            TenantShortName = tenant.TenantShortName,
-            Logo = tenant.Logo,
-            Domain = tenant.Domain,
-            EditionId = tenant.EditionId,
-            IsolationMode = tenant.IsolationMode,
-            ConfigStatus = tenant.ConfigStatus,
-            TenantStatus = tenant.TenantStatus,
-            ExpireTime = tenant.ExpireTime,
-            IsExpired = tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= now,
-            UserLimit = tenant.UserLimit,
-            StorageLimit = tenant.StorageLimit,
-            Sort = tenant.Sort,
-            CreatedTime = tenant.CreatedTime,
-            CreatedId = tenant.CreatedId,
-            CreatedBy = tenant.CreatedBy,
-            ModifiedTime = tenant.ModifiedTime,
-            ModifiedId = tenant.ModifiedId,
-            ModifiedBy = tenant.ModifiedBy
-        };
-    }
 }
