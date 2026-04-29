@@ -1159,3 +1159,44 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的租户命令服务、命令 DTO、权限码/种子、租户聚合状态行为和本文档，不推送远端。
+
+### 2026-04-30 A5 Application 租户映射基线
+
+本阶段继续第 6 层应用服务重构，落实 `Application/Mappers` 映射集中化要求。范围限定为租户读写服务中重复 DTO 投影逻辑的抽取，不修改 DTO 字段、不修改权限、不修改 DynamicApi 路由、不修改仓储和 Framework。
+
+执行结果：
+
+- 新增 `Application/Mappers/Tenancy/TenantApplicationMapper`：
+  - `ToSwitcherDto()`：集中映射租户切换读模型。
+  - `ToListItemDto()`：集中映射租户列表读模型。
+  - `ToDetailDto()`：集中映射租户详情读模型。
+- 更新 `TenantQueryService`：
+  - 删除服务内 `MapTenantSwitcherDto()`、`MapTenantListItemDto()`、`MapTenantDetailDto()` 私有映射方法。
+  - 查询服务只保留读模型查询、分页条件构建和排序编排。
+- 更新 `TenantAppService`：
+  - 删除服务内重复的租户详情映射方法。
+  - 写服务只保留命令校验、事务边界、权限入口和聚合持久化编排。
+
+设计约束：
+
+- 本阶段先采用显式静态映射器，不引入新的第三方映射依赖；后续如果全模块统一接入 Mapster，可在 `Application/Mappers` 内集中替换，不影响 AppService/QueryService。
+- 映射器只做安全 DTO 投影，不放查询条件、权限判断、租户上下文切换或缓存失效。
+- 仍不暴露 `ConnectionString`、`IsConnectionStringEncrypted`、`DatabaseType`、`DatabaseSchema`、`ContactPhone`、`ContactEmail` 等敏感字段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 NuGet 漏洞源/预发布依赖警告，`0` 个错误。
+- `rg -n "private .*Map|MapTenant.*Dto|new Tenant(ListItem|Detail|Switcher)Dto" backend/src/modules/XiHan.BasicApp.Saas/Application/AppServices backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices -g "*.cs"`：0 个匹配。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的租户应用映射器、租户服务映射调用调整和本文档，不推送远端。

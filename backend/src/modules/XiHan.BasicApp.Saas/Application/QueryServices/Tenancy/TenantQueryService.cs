@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -70,7 +71,7 @@ public sealed class TenantQueryService(
         var tenants = await _tenantRepository.GetPagedAsync(request, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
-        return tenants.Map(tenant => MapTenantListItemDto(tenant, now));
+        return tenants.Map(tenant => TenantApplicationMapper.ToListItemDto(tenant, now));
     }
 
     /// <summary>
@@ -90,7 +91,7 @@ public sealed class TenantQueryService(
         cancellationToken.ThrowIfCancellationRequested();
 
         var tenant = await _tenantRepository.GetByIdAsync(id, cancellationToken);
-        return tenant is null ? null : MapTenantDetailDto(tenant, DateTimeOffset.UtcNow);
+        return tenant is null ? null : TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -127,34 +128,7 @@ public sealed class TenantQueryService(
             .Where(membership => tenantMap.ContainsKey(membership.TenantId))
             .OrderBy(membership => tenantMap[membership.TenantId].Sort)
             .ThenBy(membership => tenantMap[membership.TenantId].TenantName)
-            .Select(membership => MapTenantSwitcherDto(membership, tenantMap[membership.TenantId]))];
-    }
-
-    /// <summary>
-    /// 映射租户切换项
-    /// </summary>
-    /// <param name="membership">租户成员关系</param>
-    /// <param name="tenant">租户</param>
-    /// <returns>租户切换项 DTO</returns>
-    private TenantSwitcherDto MapTenantSwitcherDto(SysTenantUser membership, SysTenant tenant)
-    {
-        return new TenantSwitcherDto
-        {
-            TenantId = tenant.BasicId,
-            TenantCode = tenant.TenantCode,
-            TenantName = tenant.TenantName,
-            TenantShortName = tenant.TenantShortName,
-            Logo = tenant.Logo,
-            Domain = tenant.Domain,
-            TenantStatus = tenant.TenantStatus,
-            ConfigStatus = tenant.ConfigStatus,
-            ExpireTime = tenant.ExpireTime,
-            MembershipId = membership.BasicId,
-            MemberType = membership.MemberType,
-            InviteStatus = membership.InviteStatus,
-            MembershipExpirationTime = membership.ExpirationTime,
-            IsCurrent = _currentUser.TenantId == tenant.BasicId
-        };
+            .Select(membership => TenantApplicationMapper.ToSwitcherDto(membership, tenantMap[membership.TenantId], _currentUser.TenantId))];
     }
 
     /// <summary>
@@ -211,67 +185,4 @@ public sealed class TenantQueryService(
         return request;
     }
 
-    /// <summary>
-    /// 映射租户列表项
-    /// </summary>
-    /// <param name="tenant">租户</param>
-    /// <param name="now">当前时间</param>
-    /// <returns>租户列表项 DTO</returns>
-    private static TenantListItemDto MapTenantListItemDto(SysTenant tenant, DateTimeOffset now)
-    {
-        return new TenantListItemDto
-        {
-            BasicId = tenant.BasicId,
-            TenantCode = tenant.TenantCode,
-            TenantName = tenant.TenantName,
-            TenantShortName = tenant.TenantShortName,
-            Logo = tenant.Logo,
-            Domain = tenant.Domain,
-            EditionId = tenant.EditionId,
-            IsolationMode = tenant.IsolationMode,
-            ConfigStatus = tenant.ConfigStatus,
-            TenantStatus = tenant.TenantStatus,
-            ExpireTime = tenant.ExpireTime,
-            IsExpired = tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= now,
-            UserLimit = tenant.UserLimit,
-            StorageLimit = tenant.StorageLimit,
-            Sort = tenant.Sort,
-            CreatedTime = tenant.CreatedTime,
-            ModifiedTime = tenant.ModifiedTime
-        };
-    }
-
-    /// <summary>
-    /// 映射租户详情
-    /// </summary>
-    /// <param name="tenant">租户</param>
-    /// <param name="now">当前时间</param>
-    /// <returns>租户详情 DTO</returns>
-    private static TenantDetailDto MapTenantDetailDto(SysTenant tenant, DateTimeOffset now)
-    {
-        return new TenantDetailDto
-        {
-            BasicId = tenant.BasicId,
-            TenantCode = tenant.TenantCode,
-            TenantName = tenant.TenantName,
-            TenantShortName = tenant.TenantShortName,
-            Logo = tenant.Logo,
-            Domain = tenant.Domain,
-            EditionId = tenant.EditionId,
-            IsolationMode = tenant.IsolationMode,
-            ConfigStatus = tenant.ConfigStatus,
-            TenantStatus = tenant.TenantStatus,
-            ExpireTime = tenant.ExpireTime,
-            IsExpired = tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= now,
-            UserLimit = tenant.UserLimit,
-            StorageLimit = tenant.StorageLimit,
-            Sort = tenant.Sort,
-            CreatedTime = tenant.CreatedTime,
-            CreatedId = tenant.CreatedId,
-            CreatedBy = tenant.CreatedBy,
-            ModifiedTime = tenant.ModifiedTime,
-            ModifiedId = tenant.ModifiedId,
-            ModifiedBy = tenant.ModifiedBy
-        };
-    }
 }
