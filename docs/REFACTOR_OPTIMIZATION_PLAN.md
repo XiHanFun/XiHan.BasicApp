@@ -1245,3 +1245,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的租户版本读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A7 Application 租户版本命令服务基线
+
+本阶段继续第 6 层应用服务重构，补齐租户版本/套餐的写侧最小闭环。范围限定为租户版本创建、基础资料更新、上下架状态更新、设置默认版本、命令 DTO、权限码和权限种子，不处理版本权限绑定、不删除版本、不修改租户订阅引用，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增租户版本命令 DTO：
+  - `TenantEditionCreateDto`：创建版本编码、名称、价格、计费周期、配额、免费/默认标记、状态、排序和备注。
+  - `TenantEditionUpdateDto`：更新版本基础资料；版本编码保持不可变。
+  - `TenantEditionStatusUpdateDto`：更新启用/禁用状态。
+  - `TenantEditionDefaultUpdateDto`：设置默认版本。
+- 新增 `ITenantEditionAppService` / `TenantEditionAppService`：
+  - `CreateTenantEditionAsync()`：创建租户版本，校验版本编码唯一。
+  - `UpdateTenantEditionAsync()`：更新租户版本基础资料，不允许直接取消当前默认版本。
+  - `UpdateTenantEditionStatusAsync()`：更新版本上下架状态，不允许禁用默认版本。
+  - `UpdateDefaultTenantEditionAsync()`：在事务内清理其他默认版本，再设置目标版本为默认版本。
+  - 写方法均使用 `[UnitOfWork(true)]` 与方法级权限控制。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:tenant-edition:create`、`saas:tenant-edition:update`、`saas:tenant-edition:status`、`saas:tenant-edition:default`。
+  - 命令权限标记为需审计功能权限。
+
+设计约束：
+
+- 租户版本是平台级实体，命令 DTO 不接收 `tenantId`，不由前端决定平台/租户上下文。
+- 默认版本必须启用；禁用默认版本前必须先设置其他启用版本为默认。
+- 版本编码创建后不可变，避免租户订阅、权限绑定和审计日志引用语义漂移。
+- 本阶段不做删除：删除前必须校验无租户引用、非默认版本、权限绑定处理和审计记录，后续单独实现。
+- 本阶段不做版本权限绑定：`SysTenantEditionPermission` 涉及权限缓存失效和订阅功能门控，后续单独实现。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 NuGet 漏洞源/预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的租户版本命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
