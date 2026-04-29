@@ -1024,3 +1024,44 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的 Application 基线、租户查询入口和本文档，不推送远端。
+
+### 2026-04-29 A2 Application 权限码基线与租户查询授权
+
+本阶段继续第 6 层应用服务重构，补齐 SaaS 应用层权限码基线，并将 A1 的租户查询入口纳入后端方法级权限控制。范围限定为权限码常量、租户查询方法授权、SaaS 权限种子数据和模块注册，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增 `Domain/Permissions/SaasPermissionCodes`：
+  - 统一定义 SaaS 模块权限码，当前落地 `saas:tenant:read`。
+  - 应用层特性和种子数据共用同一常量，避免散落硬编码权限字符串。
+- 更新 `TenantQueryService.GetMyAvailableTenantsAsync()`：
+  - 保留 `[Authorize]` 登录态约束。
+  - 新增 `[PermissionAuthorize(SaasPermissionCodes.Tenant.Read)]` 方法级权限约束。
+  - 仍只从 `ICurrentUser` 获取当前用户上下文，不接收 `tenantId` 入参。
+- 新增 SaaS 权限种子数据：
+  - `SaasPermissionSeeder` 初始化功能权限 `saas:tenant:read`。
+  - 权限类型为 `Functional`，不绑定 `ResourceId` / `OperationId`。
+  - 插入时使用当前租户上下文切换到平台上下文，让实体保持平台租户默认标识，不在业务对象中手动赋值 `TenantId`。
+- 新增 `Infrastructure/Extensions/AddSaasDataSeeders()` 并在 `XiHanBasicAppRbacModule.ConfigureServices()` 注册。
+
+设计约束：
+
+- 权限码遵循 `{module}:{resource}:action`，后续 AppService / QueryService 必须继续复用 `SaasPermissionCodes`。
+- 权限种子只登记权限定义，不在本阶段自动授予角色；角色授权、菜单绑定、缓存失效和负权限测试留到授权应用服务阶段集中处理。
+- 本阶段未引入 `tenantId` 查询参数；租户隔离仍依赖当前会话、Framework 全局过滤器和仓储逃逸边界。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 NuGet 源/预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的权限码基线、租户查询授权、SaaS 权限种子注册和本文档，不推送远端。
