@@ -38,7 +38,10 @@ public static class SaasPermissionCodes
         TenantEdition.Update,
         TenantEdition.Status,
         TenantEdition.Default,
-        TenantEditionPermission.Read
+        TenantEditionPermission.Read,
+        TenantEditionPermission.Grant,
+        TenantEditionPermission.Update,
+        TenantEditionPermission.Revoke
     ];
 
     /// <summary>
@@ -107,5 +110,20 @@ public static class SaasPermissionCodes
         /// 查看租户版本权限
         /// </summary>
         public const string Read = "saas:tenant-edition-permission:read";
+
+        /// <summary>
+        /// 授予租户版本权限
+        /// </summary>
+        public const string Grant = "saas:tenant-edition-permission:grant";
+
+        /// <summary>
+        /// 更新租户版本权限
+        /// </summary>
+        public const string Update = "saas:tenant-edition-permission:update";
+
+        /// <summary>
+        /// 撤销租户版本权限
+        /// </summary>
+        public const string Revoke = "saas:tenant-edition-permission:revoke";
     }
 }
