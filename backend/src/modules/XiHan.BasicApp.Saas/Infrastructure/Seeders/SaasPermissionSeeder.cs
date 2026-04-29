@@ -141,6 +141,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 130),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantMember.Read,
+                "租户成员查看",
+                "查看当前租户成员列表和详情",
+                "[\"saas\",\"tenant-member\"]",
+                false,
+                135,
+                135),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.TenantEdition.Read,
                 "租户版本查看",
                 "查看租户版本套餐列表和详情",
