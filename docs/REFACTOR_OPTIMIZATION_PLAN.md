@@ -1575,3 +1575,50 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的资源定义读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A14 Application 操作定义读模型
+
+本阶段继续第 6 层应用服务重构，补齐授权操作定义的读侧入口。范围限定为操作分页、详情、全局操作选择器、读侧 DTO、查询契约、QueryService、显式映射器和查看权限，不做操作创建/更新/删除，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增操作读侧 DTO：
+  - `OperationPageQueryDto`：提供关键字、操作类型、操作分类、HTTP 方法、危险标记、审计标记、全局标记和状态等白名单查询条件。
+  - `OperationListItemDto`：操作列表安全读模型。
+  - `OperationDetailDto`：操作详情安全读模型，包含图标、颜色、备注和基础审计字段。
+  - `OperationSelectQueryDto` / `OperationSelectItemDto`：用于权限定义等场景的已启用全局操作选择项。
+- 新增 `IOperationQueryService` / `OperationQueryService`：
+  - `GetOperationPageAsync()`：操作分页列表。
+  - `GetOperationDetailAsync()`：操作详情。
+  - `GetAvailableGlobalOperationsAsync()`：返回已启用全局操作选择项，默认最多 100 条，最大 500 条。
+  - 查询条件由服务端构建为 `BasicAppPRDto`，不直接透传前端任意过滤字段。
+- 新增 `OperationApplicationMapper`：
+  - 集中映射操作定义字段。
+  - 不依赖 `SysOperation.Permissions` 导航集合，不把实体对象直接暴露到 DTO。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:operation:read`。
+  - 权限种子登记为功能权限，不绑定资源/操作。
+
+设计约束：
+
+- 操作读模型不接收 `tenantId`，全局操作和当前租户操作的合并仍由当前会话、Framework 全局过滤器和仓储边界处理。
+- 选择器只返回已启用全局操作，用于权限资源操作组合等平台模板场景，不暴露跨租户写入口。
+- DTO 不暴露权限导航集合、授权关系或任何连接/密钥类敏感字段。
+- 本阶段不实现操作模板生成、删除前引用校验、权限缓存失效和审计事件；这些留到操作命令服务和授权闭环阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的操作定义读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
