@@ -1862,3 +1862,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的角色继承读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A20 Application 角色继承命令服务基线
+
+本阶段继续第 6 层应用服务重构，补齐角色继承闭包表的写侧基线。范围限定为创建直接继承边、补齐自身与派生闭包记录、删除直接继承边并清理不再可达的派生闭包记录、命令 DTO、命令契约、AppService、权限码和权限种子，不新增 Controller，不修改 Framework，不处理 SSD/DSD 约束、权限缓存失效和审计事件落库。
+
+执行结果：
+
+- 新增 `RoleHierarchyCreateDto`：
+  - 接收祖先角色主键、后代角色主键和备注。
+  - 不接收 `tenantId`，不允许角色继承自己。
+- 新增 `IRoleHierarchyAppService` / `RoleHierarchyAppService`：
+  - `CreateRoleHierarchyAsync()`：创建直接继承关系，校验重复关系和环路，补齐自身闭包与祖先 × 后代派生闭包记录。
+  - `DeleteRoleHierarchyAsync()`：只允许删除 `Depth = 1` 的直接继承关系，按剩余直接边计算可达闭包，并删除不再可达的派生闭包记录。
+  - 写方法均使用 `[UnitOfWork(true)]` 与方法级权限控制。
+- 写入约束：
+  - 后代角色不能是平台全局角色或系统角色；这些角色必须走平台运维流程维护。
+  - 不允许创建已存在的祖先 → 后代闭包关系，避免把冗余直接边写进只有闭包表、没有边表的模型。
+  - 删除直接边时，如果剩余直接边仍能形成替代路径，则拒绝删除，避免在唯一闭包记录上丢失直接边和传递边的区别。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:role-hierarchy:create`。
+  - 新增 `saas:role-hierarchy:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 命令 DTO 不接收 `tenantId`，角色与闭包记录的读取、写入和删除依赖当前会话租户上下文与 Framework 全局过滤器。
+- 由于当前模型只有闭包表而没有独立直接边表，本阶段显式禁止冗余直接边，降低删除时无法区分替代路径的风险。
+- 全局角色可作为祖先被当前租户普通角色继承，但普通角色服务不维护全局角色作为后代的继承关系。
+- 本阶段只维护继承结构事实；继承后的权限合并、SSD/DSD 约束检查、缓存失效、审计日志和领域事件处理器留到后续授权闭环阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 包源警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的角色继承命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
