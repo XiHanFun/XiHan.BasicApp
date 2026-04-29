@@ -309,7 +309,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"role-permission\"]",
                 false,
                 270,
-                270)
+                270),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.RolePermission.Grant,
+                "角色权限授权",
+                "授予或拒绝角色权限",
+                "[\"saas\",\"role-permission\"]",
+                true,
+                280,
+                280),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.RolePermission.Update,
+                "角色权限更新",
+                "更新角色权限操作和有效期",
+                "[\"saas\",\"role-permission\"]",
+                true,
+                290,
+                290),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.RolePermission.Status,
+                "角色权限状态",
+                "更新角色权限绑定状态",
+                "[\"saas\",\"role-permission\"]",
+                true,
+                300,
+                300),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.RolePermission.Revoke,
+                "角色权限撤销",
+                "撤销角色权限绑定",
+                "[\"saas\",\"role-permission\"]",
+                true,
+                310,
+                310)
         ];
     }
 
