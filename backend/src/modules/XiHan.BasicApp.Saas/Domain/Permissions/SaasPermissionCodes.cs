@@ -33,7 +33,11 @@ public static class SaasPermissionCodes
         Tenant.Create,
         Tenant.Update,
         Tenant.Status,
-        TenantEdition.Read
+        TenantEdition.Read,
+        TenantEdition.Create,
+        TenantEdition.Update,
+        TenantEdition.Status,
+        TenantEdition.Default
     ];
 
     /// <summary>
@@ -71,5 +75,25 @@ public static class SaasPermissionCodes
         /// 查看租户版本
         /// </summary>
         public const string Read = "saas:tenant-edition:read";
+
+        /// <summary>
+        /// 创建租户版本
+        /// </summary>
+        public const string Create = "saas:tenant-edition:create";
+
+        /// <summary>
+        /// 更新租户版本
+        /// </summary>
+        public const string Update = "saas:tenant-edition:update";
+
+        /// <summary>
+        /// 更新租户版本状态
+        /// </summary>
+        public const string Status = "saas:tenant-edition:status";
+
+        /// <summary>
+        /// 设置默认租户版本
+        /// </summary>
+        public const string Default = "saas:tenant-edition:default";
     }
 }

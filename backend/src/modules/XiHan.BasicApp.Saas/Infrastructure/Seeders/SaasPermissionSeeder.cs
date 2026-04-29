@@ -147,7 +147,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"tenant-edition\"]",
                 false,
                 140,
-                140)
+                140),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantEdition.Create,
+                "租户版本创建",
+                "创建租户版本套餐",
+                "[\"saas\",\"tenant-edition\"]",
+                true,
+                150,
+                150),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantEdition.Update,
+                "租户版本更新",
+                "更新租户版本套餐",
+                "[\"saas\",\"tenant-edition\"]",
+                true,
+                160,
+                160),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantEdition.Status,
+                "租户版本状态",
+                "更新租户版本上下架状态",
+                "[\"saas\",\"tenant-edition\"]",
+                true,
+                170,
+                170),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantEdition.Default,
+                "租户版本默认",
+                "设置默认租户版本",
+                "[\"saas\",\"tenant-edition\"]",
+                true,
+                180,
+                180)
         ];
     }
 
