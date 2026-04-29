@@ -61,6 +61,7 @@ public sealed class SaasPermissionSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        using var platformScope = _currentTenant.Change(null);
         var client = DbClient;
         var definitions = BuildDefinitions();
         var permissionCodes = definitions.Select(definition => definition.PermissionCode).ToArray();
@@ -94,7 +95,6 @@ public sealed class SaasPermissionSeeder : DataSeederBase
             return;
         }
 
-        using var platformScope = _currentTenant.Change(null);
         await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
         Logger.LogInformation("成功初始化 {Count} 个 SaaS 权限", addList.Count);
     }
@@ -111,7 +111,34 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"tenant\"]",
                 false,
                 100,
-                100)
+                100),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.Tenant.Create,
+                "租户创建",
+                "创建租户基础资料",
+                "[\"saas\",\"tenant\"]",
+                true,
+                110,
+                110),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.Tenant.Update,
+                "租户更新",
+                "更新租户基础资料",
+                "[\"saas\",\"tenant\"]",
+                true,
+                120,
+                120),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.Tenant.Status,
+                "租户状态",
+                "更新租户生命周期状态",
+                "[\"saas\",\"tenant\"]",
+                true,
+                130,
+                130)
         ];
     }
 
