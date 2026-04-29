@@ -46,7 +46,8 @@ public static class SaasPermissionCodes
         TenantEditionPermission.Read,
         TenantEditionPermission.Grant,
         TenantEditionPermission.Update,
-        TenantEditionPermission.Revoke
+        TenantEditionPermission.Revoke,
+        Permission.Read
     ];
 
     /// <summary>
@@ -161,5 +162,16 @@ public static class SaasPermissionCodes
         /// 撤销租户版本权限
         /// </summary>
         public const string Revoke = "saas:tenant-edition-permission:revoke";
+    }
+
+    /// <summary>
+    /// 权限定义权限码
+    /// </summary>
+    public static class Permission
+    {
+        /// <summary>
+        /// 查看权限定义
+        /// </summary>
+        public const string Read = "saas:permission:read";
     }
 }
