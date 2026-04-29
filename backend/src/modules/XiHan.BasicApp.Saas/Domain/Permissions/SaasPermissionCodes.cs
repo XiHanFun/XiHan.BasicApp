@@ -33,6 +33,7 @@ public static class SaasPermissionCodes
         Tenant.Create,
         Tenant.Update,
         Tenant.Status,
+        TenantMember.Read,
         TenantEdition.Read,
         TenantEdition.Create,
         TenantEdition.Update,
@@ -68,6 +69,17 @@ public static class SaasPermissionCodes
         /// 更新租户状态
         /// </summary>
         public const string Status = "saas:tenant:status";
+    }
+
+    /// <summary>
+    /// 租户成员权限码
+    /// </summary>
+    public static class TenantMember
+    {
+        /// <summary>
+        /// 查看租户成员
+        /// </summary>
+        public const string Read = "saas:tenant-member:read";
     }
 
     /// <summary>

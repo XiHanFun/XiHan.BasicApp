@@ -1383,3 +1383,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的租户版本权限命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A10 Application 租户成员读模型
+
+本阶段继续第 6 层应用服务重构，补齐当前租户上下文内的租户成员读侧入口。范围限定为成员分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限，不做成员邀请/撤销/状态写操作，不跨租户联查用户主表资料，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增租户成员读侧 DTO：
+  - `TenantMemberPageQueryDto`：提供关键字、用户主键、成员类型、邀请状态、成员状态、失效时间范围等白名单查询条件。
+  - `TenantMemberListItemDto`：租户成员列表安全读模型。
+  - `TenantMemberDetailDto`：租户成员详情安全读模型。
+- 新增 `ITenantMemberQueryService` / `TenantMemberQueryService`：
+  - `GetTenantMemberPageAsync()`：当前租户成员分页列表。
+  - `GetTenantMemberDetailAsync()`：当前租户成员详情。
+  - 查询条件由服务端构建为 `BasicAppPRDto`，不直接透传前端任意过滤字段。
+- 新增 `TenantMemberApplicationMapper`：
+  - 集中映射成员关系字段。
+  - 不依赖 `SysTenantUser.User` 导航属性，不投影 `SysUser` 主表资料。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:tenant-member:read`。
+  - 权限种子登记为功能权限，不绑定资源/操作。
+
+设计约束：
+
+- 租户成员分页和详情不接收 `tenantId`，仅使用当前会话租户上下文与 Framework 全局过滤器。
+- 本阶段只返回成员关系安全字段：`UserId`、成员类型、邀请状态、生效/失效时间、租户内显示名、成员状态等。
+- 本阶段不返回用户主表的 `UserName`、`RealName`、`NickName`、`Email`、`Phone`，避免为了列表展示绕开用户主归属租户过滤；跨租户安全用户投影留到后续 FLS/审计阶段。
+- 成员邀请、接受/拒绝、撤销、暂停和会话/Token 级联撤销留到租户成员命令服务阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 漏洞源连接警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "UserName|RealName|NickName|Email|Phone" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Tenancy backend/src/modules/XiHan.BasicApp.Saas/Application/Mappers/Tenancy/TenantMemberApplicationMapper.cs -g "TenantMember*.cs"`：除文件头作者邮箱注释外，0 个成员 DTO/映射字段匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的租户成员读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
