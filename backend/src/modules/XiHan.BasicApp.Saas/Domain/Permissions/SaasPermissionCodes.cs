@@ -34,6 +34,10 @@ public static class SaasPermissionCodes
         Tenant.Update,
         Tenant.Status,
         TenantMember.Read,
+        TenantMember.Update,
+        TenantMember.Status,
+        TenantMember.InviteStatus,
+        TenantMember.Revoke,
         TenantEdition.Read,
         TenantEdition.Create,
         TenantEdition.Update,
@@ -80,6 +84,26 @@ public static class SaasPermissionCodes
         /// 查看租户成员
         /// </summary>
         public const string Read = "saas:tenant-member:read";
+
+        /// <summary>
+        /// 更新租户成员
+        /// </summary>
+        public const string Update = "saas:tenant-member:update";
+
+        /// <summary>
+        /// 更新租户成员状态
+        /// </summary>
+        public const string Status = "saas:tenant-member:status";
+
+        /// <summary>
+        /// 更新租户成员邀请状态
+        /// </summary>
+        public const string InviteStatus = "saas:tenant-member:invite-status";
+
+        /// <summary>
+        /// 撤销租户成员
+        /// </summary>
+        public const string Revoke = "saas:tenant-member:revoke";
     }
 
     /// <summary>
