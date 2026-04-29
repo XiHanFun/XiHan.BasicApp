@@ -1765,3 +1765,55 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的角色权限命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A18 Application 角色定义命令服务基线
+
+本阶段继续第 6 层应用服务重构，补齐角色定义写侧最小闭环。范围限定为当前租户角色创建、基础资料更新、启停状态更新、未引用角色删除、命令 DTO、命令契约、AppService、权限码和权限种子，不新增 Controller，不修改 Framework，不处理平台全局/系统角色运维、角色继承维护、角色数据范围绑定、权限缓存失效和审计事件落库。
+
+执行结果：
+
+- 新增角色命令 DTO：
+  - `RoleCreateDto`：接收角色编码、名称、描述、角色类型、数据权限范围、最大成员数、状态、排序和备注。
+  - `RoleUpdateDto`：更新角色名称、描述、类型、数据权限范围、最大成员数、排序和备注；不允许更新角色编码。
+  - `RoleStatusUpdateDto`：更新角色启停状态和备注。
+- 新增 `IRoleAppService` / `RoleAppService`：
+  - `CreateRoleAsync()`：创建当前租户角色定义，角色编码在当前会话可见范围内唯一。
+  - `UpdateRoleAsync()`：更新普通租户角色基础资料。
+  - `UpdateRoleStatusAsync()`：更新普通租户角色启停状态。
+  - `DeleteRoleAsync()`：删除未被用户角色、角色权限、角色继承和角色数据范围引用的普通租户角色。
+  - 写方法均使用 `[UnitOfWork(true)]` 与方法级权限控制。
+- 授权约束：
+  - 普通角色服务不维护 `IsGlobal = true` 的平台全局角色。
+  - 普通角色服务不创建或维护 `RoleType.System` 系统角色。
+  - 删除前检查角色未被用户、权限、继承关系和数据范围引用，避免产生孤立授权事实。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:role:create`。
+  - 新增 `saas:role:update`。
+  - 新增 `saas:role:status`。
+  - 新增 `saas:role:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 命令 DTO 不接收 `tenantId`，角色写入和查询依赖当前会话租户上下文与 Framework 全局过滤器。
+- 本阶段创建的角色固定为当前租户普通角色，不通过业务参数伪造平台全局角色。
+- 角色编码作为授权事实身份保持创建后不可变；需要换编码时应新建角色并迁移授权关系。
+- `DataScope = Custom` 的具体部门范围不在角色定义命令里内联维护，后续通过角色数据范围服务单独闭环。
+- 角色继承、数据范围、用户角色分配、权限缓存失效、审计日志和领域事件处理器留到后续授权闭环阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的角色命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
