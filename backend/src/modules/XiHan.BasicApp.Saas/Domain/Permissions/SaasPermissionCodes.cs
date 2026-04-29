@@ -27,7 +27,7 @@ public static class SaasPermissionCodes
     /// <summary>
     /// 全部权限码
     /// </summary>
-    public static IReadOnlyCollection<string> All => [Tenant.Read];
+    public static IReadOnlyCollection<string> All => [Tenant.Read, Tenant.Create, Tenant.Update, Tenant.Status];
 
     /// <summary>
     /// 租户权限码
@@ -38,5 +38,20 @@ public static class SaasPermissionCodes
         /// 查看租户
         /// </summary>
         public const string Read = "saas:tenant:read";
+
+        /// <summary>
+        /// 创建租户
+        /// </summary>
+        public const string Create = "saas:tenant:create";
+
+        /// <summary>
+        /// 更新租户
+        /// </summary>
+        public const string Update = "saas:tenant:update";
+
+        /// <summary>
+        /// 更新租户状态
+        /// </summary>
+        public const string Status = "saas:tenant:status";
     }
 }
