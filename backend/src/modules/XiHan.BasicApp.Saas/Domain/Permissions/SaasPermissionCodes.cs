@@ -37,7 +37,8 @@ public static class SaasPermissionCodes
         TenantEdition.Create,
         TenantEdition.Update,
         TenantEdition.Status,
-        TenantEdition.Default
+        TenantEdition.Default,
+        TenantEditionPermission.Read
     ];
 
     /// <summary>
@@ -95,5 +96,16 @@ public static class SaasPermissionCodes
         /// 设置默认租户版本
         /// </summary>
         public const string Default = "saas:tenant-edition:default";
+    }
+
+    /// <summary>
+    /// 租户版本权限码
+    /// </summary>
+    public static class TenantEditionPermission
+    {
+        /// <summary>
+        /// 查看租户版本权限
+        /// </summary>
+        public const string Read = "saas:tenant-edition-permission:read";
     }
 }

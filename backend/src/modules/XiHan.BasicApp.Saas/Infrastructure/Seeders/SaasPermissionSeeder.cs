@@ -183,7 +183,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"tenant-edition\"]",
                 true,
                 180,
-                180)
+                180),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.TenantEditionPermission.Read,
+                "租户版本权限查看",
+                "查看租户版本可用权限绑定",
+                "[\"saas\",\"tenant-edition-permission\"]",
+                false,
+                190,
+                190)
         ];
     }
 
