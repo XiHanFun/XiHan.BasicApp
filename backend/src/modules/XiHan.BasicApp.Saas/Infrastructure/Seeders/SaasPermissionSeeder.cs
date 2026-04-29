@@ -366,13 +366,22 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 271),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.RoleDataScope.Read,
+                "角色数据范围查看",
+                "查看角色自定义数据范围列表和详情",
+                "[\"saas\",\"role-data-scope\"]",
+                false,
+                272,
+                272),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.RolePermission.Read,
                 "角色权限查看",
                 "查看角色权限绑定列表和详情",
                 "[\"saas\",\"role-permission\"]",
                 false,
-                270,
-                270),
+                280,
+                280),
             new(
                 SaasPermissionCodes.Module,
                 SaasPermissionCodes.RolePermission.Grant,
@@ -380,8 +389,8 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "授予或拒绝角色权限",
                 "[\"saas\",\"role-permission\"]",
                 true,
-                280,
-                280),
+                290,
+                290),
             new(
                 SaasPermissionCodes.Module,
                 SaasPermissionCodes.RolePermission.Update,
@@ -389,8 +398,8 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "更新角色权限操作和有效期",
                 "[\"saas\",\"role-permission\"]",
                 true,
-                290,
-                290),
+                300,
+                300),
             new(
                 SaasPermissionCodes.Module,
                 SaasPermissionCodes.RolePermission.Status,
@@ -398,8 +407,8 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "更新角色权限绑定状态",
                 "[\"saas\",\"role-permission\"]",
                 true,
-                300,
-                300),
+                310,
+                310),
             new(
                 SaasPermissionCodes.Module,
                 SaasPermissionCodes.RolePermission.Revoke,
@@ -407,8 +416,8 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "撤销角色权限绑定",
                 "[\"saas\",\"role-permission\"]",
                 true,
-                310,
-                310)
+                320,
+                320)
         ];
     }
 

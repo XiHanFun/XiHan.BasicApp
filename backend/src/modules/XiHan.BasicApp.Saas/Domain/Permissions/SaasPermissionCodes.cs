@@ -58,6 +58,7 @@ public static class SaasPermissionCodes
         RoleHierarchy.Read,
         RoleHierarchy.Create,
         RoleHierarchy.Delete,
+        RoleDataScope.Read,
         RolePermission.Read,
         RolePermission.Grant,
         RolePermission.Update,
@@ -262,6 +263,17 @@ public static class SaasPermissionCodes
         /// 删除角色继承
         /// </summary>
         public const string Delete = "saas:role-hierarchy:delete";
+    }
+
+    /// <summary>
+    /// 角色数据范围权限码
+    /// </summary>
+    public static class RoleDataScope
+    {
+        /// <summary>
+        /// 查看角色数据范围
+        /// </summary>
+        public const string Read = "saas:role-data-scope:read";
     }
 
     /// <summary>
