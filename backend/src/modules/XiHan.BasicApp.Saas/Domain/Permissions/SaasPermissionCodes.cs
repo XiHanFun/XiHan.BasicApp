@@ -50,7 +50,8 @@ public static class SaasPermissionCodes
         Permission.Read,
         Resource.Read,
         Operation.Read,
-        Role.Read
+        Role.Read,
+        RolePermission.Read
     ];
 
     /// <summary>
@@ -209,5 +210,16 @@ public static class SaasPermissionCodes
         /// 查看角色定义
         /// </summary>
         public const string Read = "saas:role:read";
+    }
+
+    /// <summary>
+    /// 角色权限权限码
+    /// </summary>
+    public static class RolePermission
+    {
+        /// <summary>
+        /// 查看角色权限
+        /// </summary>
+        public const string Read = "saas:role-permission:read";
     }
 }
