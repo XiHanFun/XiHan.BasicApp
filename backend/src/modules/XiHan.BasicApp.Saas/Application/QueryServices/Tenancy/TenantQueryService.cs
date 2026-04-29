@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -20,6 +21,9 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Enums;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -49,6 +53,45 @@ public sealed class TenantQueryService(
     /// 当前用户
     /// </summary>
     private readonly ICurrentUser _currentUser = currentUser;
+
+    /// <summary>
+    /// 获取租户分页列表
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户分页列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.Read)]
+    public async Task<PageResultDtoBase<TenantListItemDto>> GetTenantPageAsync(TenantPageQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = BuildTenantPageRequest(input);
+        var tenants = await _tenantRepository.GetPagedAsync(request, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+
+        return tenants.Map(tenant => MapTenantListItemDto(tenant, now));
+    }
+
+    /// <summary>
+    /// 获取租户详情
+    /// </summary>
+    /// <param name="id">租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户详情</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.Read)]
+    public async Task<TenantDetailDto?> GetTenantDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "租户主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tenant = await _tenantRepository.GetByIdAsync(id, cancellationToken);
+        return tenant is null ? null : MapTenantDetailDto(tenant, DateTimeOffset.UtcNow);
+    }
 
     /// <summary>
     /// 获取当前用户可进入的租户列表
@@ -111,6 +154,124 @@ public sealed class TenantQueryService(
             InviteStatus = membership.InviteStatus,
             MembershipExpirationTime = membership.ExpirationTime,
             IsCurrent = _currentUser.TenantId == tenant.BasicId
+        };
+    }
+
+    /// <summary>
+    /// 构建租户分页请求
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <returns>租户分页请求</returns>
+    private static BasicAppPRDto BuildTenantPageRequest(TenantPageQueryDto input)
+    {
+        var request = new BasicAppPRDto
+        {
+            Page = input.Page,
+            Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            request.Conditions.SetKeyword(
+                input.Keyword.Trim(),
+                nameof(SysTenant.TenantCode),
+                nameof(SysTenant.TenantName),
+                nameof(SysTenant.TenantShortName),
+                nameof(SysTenant.Domain));
+        }
+
+        if (input.TenantStatus.HasValue)
+        {
+            request.Conditions.AddFilter(nameof(SysTenant.TenantStatus), input.TenantStatus.Value);
+        }
+
+        if (input.ConfigStatus.HasValue)
+        {
+            request.Conditions.AddFilter(nameof(SysTenant.ConfigStatus), input.ConfigStatus.Value);
+        }
+
+        if (input.EditionId.HasValue)
+        {
+            request.Conditions.AddFilter(nameof(SysTenant.EditionId), input.EditionId.Value);
+        }
+
+        if (input.ExpireTimeStart.HasValue)
+        {
+            request.Conditions.AddFilter(nameof(SysTenant.ExpireTime), input.ExpireTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+        }
+
+        if (input.ExpireTimeEnd.HasValue)
+        {
+            request.Conditions.AddFilter(nameof(SysTenant.ExpireTime), input.ExpireTimeEnd.Value, QueryOperator.LessThanOrEqual);
+        }
+
+        request.Conditions.AddSort(nameof(SysTenant.Sort), SortDirection.Ascending, 0);
+        request.Conditions.AddSort(nameof(SysTenant.CreatedTime), SortDirection.Descending, 1);
+        return request;
+    }
+
+    /// <summary>
+    /// 映射租户列表项
+    /// </summary>
+    /// <param name="tenant">租户</param>
+    /// <param name="now">当前时间</param>
+    /// <returns>租户列表项 DTO</returns>
+    private static TenantListItemDto MapTenantListItemDto(SysTenant tenant, DateTimeOffset now)
+    {
+        return new TenantListItemDto
+        {
+            BasicId = tenant.BasicId,
+            TenantCode = tenant.TenantCode,
+            TenantName = tenant.TenantName,
+            TenantShortName = tenant.TenantShortName,
+            Logo = tenant.Logo,
+            Domain = tenant.Domain,
+            EditionId = tenant.EditionId,
+            IsolationMode = tenant.IsolationMode,
+            ConfigStatus = tenant.ConfigStatus,
+            TenantStatus = tenant.TenantStatus,
+            ExpireTime = tenant.ExpireTime,
+            IsExpired = tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= now,
+            UserLimit = tenant.UserLimit,
+            StorageLimit = tenant.StorageLimit,
+            Sort = tenant.Sort,
+            CreatedTime = tenant.CreatedTime,
+            ModifiedTime = tenant.ModifiedTime
+        };
+    }
+
+    /// <summary>
+    /// 映射租户详情
+    /// </summary>
+    /// <param name="tenant">租户</param>
+    /// <param name="now">当前时间</param>
+    /// <returns>租户详情 DTO</returns>
+    private static TenantDetailDto MapTenantDetailDto(SysTenant tenant, DateTimeOffset now)
+    {
+        return new TenantDetailDto
+        {
+            BasicId = tenant.BasicId,
+            TenantCode = tenant.TenantCode,
+            TenantName = tenant.TenantName,
+            TenantShortName = tenant.TenantShortName,
+            Logo = tenant.Logo,
+            Domain = tenant.Domain,
+            EditionId = tenant.EditionId,
+            IsolationMode = tenant.IsolationMode,
+            ConfigStatus = tenant.ConfigStatus,
+            TenantStatus = tenant.TenantStatus,
+            ExpireTime = tenant.ExpireTime,
+            IsExpired = tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= now,
+            UserLimit = tenant.UserLimit,
+            StorageLimit = tenant.StorageLimit,
+            Sort = tenant.Sort,
+            CreatedTime = tenant.CreatedTime,
+            CreatedId = tenant.CreatedId,
+            CreatedBy = tenant.CreatedBy,
+            ModifiedTime = tenant.ModifiedTime,
+            ModifiedId = tenant.ModifiedId,
+            ModifiedBy = tenant.ModifiedBy
         };
     }
 }
