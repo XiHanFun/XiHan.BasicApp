@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Saas.Infrastructure.Extensions;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Modularity;
 
@@ -27,4 +28,15 @@ namespace XiHan.BasicApp.Saas;
 )]
 public class XiHanBasicAppRbacModule : XiHanModule
 {
+    /// <summary>
+    /// 服务配置
+    /// </summary>
+    /// <param name="context">服务配置上下文</param>
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        var services = context.Services;
+
+        // 注册 SaaS 模块种子数据
+        services.AddSaasDataSeeders();
+    }
 }

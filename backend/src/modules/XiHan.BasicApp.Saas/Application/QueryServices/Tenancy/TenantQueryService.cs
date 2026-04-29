@@ -16,8 +16,10 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -53,6 +55,7 @@ public sealed class TenantQueryService(
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>当前用户可进入的租户列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.Read)]
     public async Task<IReadOnlyList<TenantSwitcherDto>> GetMyAvailableTenantsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUser.UserId
