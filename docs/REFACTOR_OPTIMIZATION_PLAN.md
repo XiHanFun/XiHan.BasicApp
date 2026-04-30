@@ -2781,3 +2781,56 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A37 且工作区干净，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的权限 ABAC 条件命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A39 Application 资源定义命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 `SysResource` 的写侧基线。范围限定为资源定义创建、更新、启停、删除、命令 DTO、命令契约、AppService、权限码和权限种子，不处理资源运行时发现、权限树缓存失效、审计日志落库和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增资源定义命令 DTO：
+  - `ResourceCreateDto`：接收资源编码、名称、分类、父级资源、路径、排序、状态、说明、元数据和备注。
+  - `ResourceUpdateDto`：更新资源名称、分类、父级资源、路径、排序、状态、说明、元数据和备注，资源编码保持创建后不可变。
+  - `ResourceStatusUpdateDto`：启用或停用资源定义，并可追加备注。
+- 新增 `IResourceAppService` / `ResourceAppService`：
+  - `CreateResourceAsync()`：创建当前租户上下文内的非全局资源定义。
+  - `UpdateResourceAsync()`：更新非全局资源定义，并校验父级资源和元数据合法性。
+  - `UpdateResourceStatusAsync()`：更新资源启停状态，启用时重新校验资源结构。
+  - `DeleteResourceAsync()`：删除资源定义前校验权限和字段级安全配置引用。
+- 写入约束：
+  - DTO 不接收 `tenantId`，租户隔离依赖当前会话上下文与 Framework 仓储过滤器。
+  - 普通租户命令服务不允许创建或维护平台级全局资源，`IsGlobal` 在创建时固定为 `false`。
+  - 资源编码必填、去空格、不可包含空白字符、最长 `100`，并保持创建后不可变。
+  - 资源名称最长 `100`，路径、说明、备注最长 `500`。
+  - 资源元数据如果填写，必须是合法 JSON。
+  - 全局资源不允许通过普通租户命令服务编辑、启停或删除。
+  - 已被 `SysPermission.ResourceId` 或 `SysFieldLevelSecurity.ResourceId` 引用的资源禁止删除。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:resource:create`。
+  - 新增 `saas:resource:update`。
+  - 新增 `saas:resource:status`。
+  - 新增 `saas:resource:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 资源定义写入服务只维护资源事实，不在应用层手写租户条件，也不通过 URL 或 DTO 传入租户主键。
+- 资源编码作为权限模型稳定引用键，创建后不可变，避免下游权限、菜单、FLS 绑定失效。
+- 删除采用引用保护，不做级联删除权限和字段级安全配置，避免授权事实被普通资源维护操作隐式破坏。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A38 且工作区干净，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的资源定义命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
