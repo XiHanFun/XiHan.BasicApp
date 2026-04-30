@@ -3181,3 +3181,55 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A45，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户部门归属读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A47 Application 用户部门归属命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 `SysUserDepartment` 的写侧基线。范围限定为用户部门分配、主部门更新、状态更新、撤销、命令 DTO、命令契约、AppService、权限码和权限种子；不处理用户入离职流程、租户成员清退级联、数据范围运行时缓存失效、审计日志和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增用户部门归属命令 DTO：
+  - `UserDepartmentAssignDto`：接收用户主键、部门主键、主部门标记和备注。
+  - `UserDepartmentUpdateDto`：更新主部门标记和备注，不修改用户与部门绑定键。
+  - `UserDepartmentStatusUpdateDto`：启用或停用用户部门归属，并可追加备注。
+- 新增 `IUserDepartmentAppService` / `UserDepartmentAppService`：
+  - `CreateUserDepartmentAsync()`：为当前租户有效成员分配已启用部门；用户首次分配部门时自动设为主部门。
+  - `UpdateUserDepartmentAsync()`：更新有效归属的主部门标记和备注。
+  - `UpdateUserDepartmentStatusAsync()`：更新归属状态；恢复有效时校验租户成员和部门可用性。
+  - `DeleteUserDepartmentAsync()`：撤销用户部门归属，将状态置为无效。
+- 写入约束：
+  - DTO 不接收 `tenantId`，租户隔离依赖当前会话上下文与 Framework 仓储过滤器。
+  - 用户必须是当前租户已接受、有效、已生效且未过期的成员。
+  - 平台管理员成员的部门归属必须通过平台运维流程维护。
+  - 部门必须存在且已启用才能分配或恢复归属。
+  - 同一用户最多只有一个主部门；设置新主部门时自动清理其它主部门标记。
+  - 撤销主部门后，如果用户仍有其它有效部门归属，自动选择最早创建的有效归属作为主部门。
+  - 已存在但无效的同一用户-部门归属可通过分配操作恢复，避免唯一索引冲突。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:user-department:grant`。
+  - 新增 `saas:user-department:update`。
+  - 新增 `saas:user-department:status`。
+  - 新增 `saas:user-department:revoke`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 用户部门归属是组织关系事实，不直接派生角色或权限；角色授权、直授权、用户数据范围由各自服务维护。
+- 撤销采用状态失效而非硬删，保留组织归属审计事实，并避免唯一绑定恢复时发生重复插入。
+- 主部门互斥在应用服务内维护，不依赖前端隐藏或数据库触发器。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A46，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的用户部门归属命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
