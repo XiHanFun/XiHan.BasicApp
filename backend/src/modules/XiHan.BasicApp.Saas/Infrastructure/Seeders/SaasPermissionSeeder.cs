@@ -663,6 +663,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 538),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.ApiLog.Read,
+                "API日志查看",
+                "查看当前租户 API 调用日志摘要",
+                "[\"saas\",\"api-log\"]",
+                true,
+                539,
+                539),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
