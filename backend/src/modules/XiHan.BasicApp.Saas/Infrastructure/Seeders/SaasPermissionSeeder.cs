@@ -600,6 +600,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 531),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.PasswordHistory.Read,
+                "密码历史查看",
+                "查看当前租户用户密码修改历史",
+                "[\"saas\",\"password-history\"]",
+                true,
+                532,
+                532),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
