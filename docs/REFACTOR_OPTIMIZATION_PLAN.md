@@ -3326,3 +3326,48 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A48，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A50 Application 用户安全读模型
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysUserSecurity` 的只读管理入口。范围限定为用户安全状态分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理密码重置、锁定/解锁写操作、MFA 密钥管理、会话/Token 级联吊销、FLS 脱敏策略和前端页面，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增用户安全读侧 DTO：
+  - `UserSecurityPageQueryDto`：支持按用户主键、锁定状态、双因素状态、双因素方式、邮箱/手机号验证状态、多端登录状态筛选。
+  - `UserSecurityListItemDto`：展示用户摘要、安全状态、密码时间状态、锁定状态、MFA 状态、验证状态、多端设备配置和审计时间。
+  - `UserSecurityDetailDto`：在列表字段基础上补充失败登录时间、锁定时间、用户名修改时间、备注和审计字段。
+- 新增 `IUserSecurityQueryService` / `UserSecurityQueryService`：
+  - `GetUserSecurityPageAsync()`：分页读取当前租户上下文内用户安全状态。
+  - `GetUserSecurityDetailAsync()`：按用户主键读取当前租户用户安全详情。
+- 新增 `UserSecurityApplicationMapper`：
+  - 集中映射用户安全列表和详情。
+  - 只映射安全状态事实，不投影密码哈希、双因素密钥、安全戳、Token 或 Cookie。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:user-security:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 用户安全查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- 详情按 `userId` 查询，并先校验当前租户用户主档存在，避免绕过用户主档租户边界读取安全扩展。
+- 用户安全 DTO 不返回 `Password`、`TwoFactorSecret`、`SecurityStamp`、访问令牌、刷新令牌、Authorization 或 Cookie。
+- 密码是否过期仅以 `PasswordExpiryTime` 派生布尔值，用于管理展示；具体登录拦截仍由认证流程闭环。
+- 锁定/解锁、密码重置、MFA 密钥重置和会话吊销留到用户安全命令服务与领域事件处理器阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "\b(Password|TwoFactorSecret|SecurityStamp|AccessToken|RefreshToken|Authorization|Cookie)\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity backend/src/modules/XiHan.BasicApp.Saas/Application/Mappers/Identity/UserSecurityApplicationMapper.cs -g "UserSecurity*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A49，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的用户安全读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
