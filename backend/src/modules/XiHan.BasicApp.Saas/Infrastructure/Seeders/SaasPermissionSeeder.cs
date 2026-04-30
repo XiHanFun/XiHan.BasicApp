@@ -507,7 +507,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"user-permission\"]",
                 false,
                 380,
-                380)
+                380),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserPermission.Grant,
+                "用户直授权限授权",
+                "授予或拒绝当前租户成员直授权限",
+                "[\"saas\",\"user-permission\"]",
+                true,
+                390,
+                390),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserPermission.Update,
+                "用户直授权限更新",
+                "更新用户直授权限操作、授权原因和有效期",
+                "[\"saas\",\"user-permission\"]",
+                true,
+                400,
+                400),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserPermission.Status,
+                "用户直授权限状态",
+                "更新用户直授权限绑定状态",
+                "[\"saas\",\"user-permission\"]",
+                true,
+                410,
+                410),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserPermission.Revoke,
+                "用户直授权限撤销",
+                "撤销用户直授权限绑定",
+                "[\"saas\",\"user-permission\"]",
+                true,
+                420,
+                420)
         ];
     }
 
