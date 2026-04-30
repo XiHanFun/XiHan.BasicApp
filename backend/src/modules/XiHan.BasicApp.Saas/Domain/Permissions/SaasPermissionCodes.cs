@@ -67,6 +67,7 @@ public static class SaasPermissionCodes
         Menu.Update,
         Menu.Status,
         Menu.Delete,
+        Department.Read,
         Role.Read,
         Role.Create,
         Role.Update,
@@ -363,6 +364,17 @@ public static class SaasPermissionCodes
         /// 删除菜单
         /// </summary>
         public const string Delete = "saas:menu:delete";
+    }
+
+    /// <summary>
+    /// 部门权限码
+    /// </summary>
+    public static class Department
+    {
+        /// <summary>
+        /// 查看部门
+        /// </summary>
+        public const string Read = "saas:department:read";
     }
 
     /// <summary>
