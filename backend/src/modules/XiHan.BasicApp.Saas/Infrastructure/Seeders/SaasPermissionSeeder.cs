@@ -768,7 +768,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"constraint-rule\"]",
                 true,
                 670,
-                670)
+                670),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionCondition.Read,
+                "权限ABAC条件查看",
+                "查看角色或用户授权绑定的ABAC条件",
+                "[\"saas\",\"permission-condition\"]",
+                false,
+                680,
+                680)
         ];
     }
 
