@@ -62,6 +62,7 @@ public static class SaasPermissionCodes
         Operation.Update,
         Operation.Status,
         Operation.Delete,
+        Menu.Read,
         Role.Read,
         Role.Create,
         Role.Update,
@@ -327,6 +328,17 @@ public static class SaasPermissionCodes
         /// 删除操作定义
         /// </summary>
         public const string Delete = "saas:operation:delete";
+    }
+
+    /// <summary>
+    /// 菜单权限码
+    /// </summary>
+    public static class Menu
+    {
+        /// <summary>
+        /// 查看菜单
+        /// </summary>
+        public const string Read = "saas:menu:read";
     }
 
     /// <summary>

@@ -402,6 +402,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 254),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.Menu.Read,
+                "菜单查看",
+                "查看菜单列表、详情和树形结构",
+                "[\"saas\",\"menu\"]",
+                false,
+                255,
+                255),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.Role.Read,
                 "角色定义查看",
                 "查看角色定义列表、详情和已启用角色选择项",
