@@ -78,6 +78,7 @@ public static class SaasPermissionCodes
         UserPermission.Update,
         UserPermission.Status,
         UserPermission.Revoke,
+        PermissionCondition.Read,
         UserDataScope.Read,
         UserDataScope.Grant,
         UserDataScope.Update,
@@ -550,6 +551,17 @@ public static class SaasPermissionCodes
         /// 撤回权限申请
         /// </summary>
         public const string Withdraw = "saas:permission-request:withdraw";
+    }
+
+    /// <summary>
+    /// 权限 ABAC 条件权限码
+    /// </summary>
+    public static class PermissionCondition
+    {
+        /// <summary>
+        /// 查看权限 ABAC 条件
+        /// </summary>
+        public const string Read = "saas:permission-condition:read";
     }
 
     /// <summary>

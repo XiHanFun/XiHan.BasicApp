@@ -2685,3 +2685,45 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的约束规则命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A37 Application 权限 ABAC 条件读模型
+
+本阶段继续第 6 层应用服务重构，补齐 `SysPermissionCondition` 的读侧入口。范围限定为角色权限绑定和用户直授权限绑定下的 ABAC 条件列表、条件详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限，不处理 ABAC 条件写入、条件表达式解释、运行时 evaluator、缓存失效、审计日志和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增权限 ABAC 条件读侧 DTO：
+  - `PermissionConditionListItemDto`：展示条件归属、角色/用户摘要、权限摘要、条件分组、属性名、操作符、取反标记、值类型、条件值、状态和创建时间。
+  - `PermissionConditionDetailDto`：在列表字段基础上补充创建/修改审计字段。
+- 新增 `IPermissionConditionQueryService` / `PermissionConditionQueryService`：
+  - `GetRolePermissionConditionsAsync()`：按角色权限绑定主键读取 ABAC 条件，可选择仅返回有效条件。
+  - `GetUserPermissionConditionsAsync()`：按用户直授权限绑定主键读取 ABAC 条件，可选择仅返回有效条件。
+  - `GetPermissionConditionDetailAsync()`：按条件主键读取详情，并展开绑定事实、权限摘要、角色或租户成员摘要。
+- 新增 `PermissionConditionApplicationMapper`：
+  - 集中映射 ABAC 条件列表和详情。
+  - 用户授权条件摘要只读取当前租户成员 `SysTenantUser`，不读取 `SysUser` 主表资料。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:permission-condition:read`。
+  - 权限种子登记为功能权限，不标记审计。
+
+设计约束：
+
+- ABAC 条件读模型不接收 `tenantId`，条件、角色权限、用户权限、角色、权限和租户成员读取依赖当前会话租户上下文与 Framework 全局过滤器。
+- 本阶段只展示条件配置事实；条件写入约束、属性命名空间校验、同属性值类型一致性、组数量限制、运行时 evaluator 接入、缓存失效和审计事件处理器留到后续授权闭环阶段。
+- 用户授权条件详情仍以 `SysTenantUser.UserId` 定位当前租户成员，避免把 `SysUser.TenantId` 当成当前租户身份依据。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A36 且工作区干净，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的权限 ABAC 条件读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
