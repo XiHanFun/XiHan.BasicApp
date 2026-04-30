@@ -3547,3 +3547,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A53，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户统计读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A55 Application 密码历史读模型
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysPasswordHistory` 的只读管理入口。范围限定为密码历史分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理密码复用校验、密码历史写入/清理策略、认证流程联动、敏感 Hash 出口、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增密码历史读侧 DTO：
+  - `PasswordHistoryPageQueryDto`：支持用户主键和密码修改时间范围筛选。
+  - `PasswordHistoryListItemDto`：展示用户摘要、密码修改时间和创建时间。
+  - `PasswordHistoryDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `IPasswordHistoryQueryService` / `PasswordHistoryQueryService`：
+  - `GetPasswordHistoryPageAsync()`：分页读取当前租户上下文内密码修改历史。
+  - `GetPasswordHistoryDetailAsync()`：按密码历史主键读取详情。
+- 新增 `PasswordHistoryApplicationMapper`：
+  - 集中映射密码历史列表和详情。
+  - 不投影 `PasswordHash`，响应只暴露修改时间、用户摘要和必要审计元数据。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:password-history:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 密码历史查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 和 Mapper 不返回 `PasswordHash`，也不返回原始密码、Token、Secret 或连接串。
+- 密码复用校验仍属于认证/密码策略写侧流程，本阶段只提供审计读模型。
+- 查询排序固定为 `ChangedTime DESC`、`CreatedTime DESC`，避免前端传入任意字段排序误触敏感列。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "\bPasswordHash\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity backend/src/modules/XiHan.BasicApp.Saas/Application/Mappers/Identity/PasswordHistoryApplicationMapper.cs --glob "PasswordHistory*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A54，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的密码历史读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
