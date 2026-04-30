@@ -723,7 +723,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"permission-request\"]",
                 true,
                 620,
-                620)
+                620),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.ConstraintRule.Read,
+                "约束规则查看",
+                "查看当前租户约束规则列表和详情",
+                "[\"saas\",\"constraint-rule\"]",
+                false,
+                630,
+                630)
         ];
     }
 
