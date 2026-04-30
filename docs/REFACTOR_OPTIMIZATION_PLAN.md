@@ -2834,3 +2834,56 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A38 且工作区干净，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的资源定义命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A40 Application 操作定义命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 `SysOperation` 的写侧基线。范围限定为操作定义创建、更新、启停、删除、命令 DTO、命令契约、AppService、权限码和权限种子，不处理权限矩阵生成、权限树缓存失效、审计日志落库和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增操作定义命令 DTO：
+  - `OperationCreateDto`：接收操作编码、名称、类型、分类、HTTP 方法、描述、图标、颜色、危险操作标记、审计标记、状态、排序和备注。
+  - `OperationUpdateDto`：更新操作名称、类型、分类、HTTP 方法、描述、图标、颜色、危险操作标记、审计标记、排序和备注，操作编码保持创建后不可变。
+  - `OperationStatusUpdateDto`：启用或停用操作定义，并可追加备注。
+- 新增 `IOperationAppService` / `OperationAppService`：
+  - `CreateOperationAsync()`：创建当前租户上下文内的非全局操作定义。
+  - `UpdateOperationAsync()`：更新非全局操作定义基础资料。
+  - `UpdateOperationStatusAsync()`：更新操作启停状态。
+  - `DeleteOperationAsync()`：删除操作定义前校验权限定义引用。
+- 写入约束：
+  - DTO 不接收 `tenantId`，租户隔离依赖当前会话上下文与 Framework 仓储过滤器。
+  - 普通租户命令服务不允许创建或维护平台级全局操作，`IsGlobal` 在创建时固定为 `false`。
+  - 操作编码必填、去空格、创建后不可变、最长 `50`，且只能包含小写英文、数字、连字符或下划线。
+  - 操作名称最长 `100`，描述和备注最长 `500`，图标最长 `100`，颜色最长 `20`。
+  - 操作类型、分类、HTTP 方法和状态必须是合法枚举值。
+  - 全局操作不允许通过普通租户命令服务编辑、启停或删除。
+  - 已被 `SysPermission.OperationId` 引用的操作禁止删除。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:operation:create`。
+  - 新增 `saas:operation:update`。
+  - 新增 `saas:operation:status`。
+  - 新增 `saas:operation:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 操作定义作为资源权限组合的稳定动作字典，编码创建后不可变，避免下游 `SysPermission` 绑定失效。
+- 删除采用引用保护，只校验 `SysPermission.OperationId`，不隐式级联删除权限定义和授权事实。
+- 操作危险标记与审计标记只维护配置事实；实际二次确认、审计落库和缓存失效留到授权闭环阶段。
+
+验证结果：
+
+- 首次普通沙箱构建被 `backend\nupkgs\XiHan.BasicApp.Core.2.2.0.nupkg` 写入权限阻塞；提升权限后重跑同一构建通过。
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A39，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的操作定义命令服务、命令 DTO、权限码/种子和本文档，不推送远端。

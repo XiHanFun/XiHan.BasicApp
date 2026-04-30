@@ -54,6 +54,10 @@ public static class SaasPermissionCodes
         Resource.Status,
         Resource.Delete,
         Operation.Read,
+        Operation.Create,
+        Operation.Update,
+        Operation.Status,
+        Operation.Delete,
         Role.Read,
         Role.Create,
         Role.Update,
@@ -279,6 +283,26 @@ public static class SaasPermissionCodes
         /// 查看操作定义
         /// </summary>
         public const string Read = "saas:operation:read";
+
+        /// <summary>
+        /// 创建操作定义
+        /// </summary>
+        public const string Create = "saas:operation:create";
+
+        /// <summary>
+        /// 更新操作定义
+        /// </summary>
+        public const string Update = "saas:operation:update";
+
+        /// <summary>
+        /// 更新操作定义状态
+        /// </summary>
+        public const string Status = "saas:operation:status";
+
+        /// <summary>
+        /// 删除操作定义
+        /// </summary>
+        public const string Delete = "saas:operation:delete";
     }
 
     /// <summary>
