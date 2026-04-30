@@ -82,7 +82,8 @@ public static class SaasPermissionCodes
         UserDataScope.Grant,
         UserDataScope.Update,
         UserDataScope.Status,
-        UserDataScope.Revoke
+        UserDataScope.Revoke,
+        FieldLevelSecurity.Read
     ];
 
     /// <summary>
@@ -437,5 +438,16 @@ public static class SaasPermissionCodes
         /// 撤销用户数据范围
         /// </summary>
         public const string Revoke = "saas:user-data-scope:revoke";
+    }
+
+    /// <summary>
+    /// 字段级安全权限码
+    /// </summary>
+    public static class FieldLevelSecurity
+    {
+        /// <summary>
+        /// 查看字段级安全
+        /// </summary>
+        public const string Read = "saas:field-level-security:read";
     }
 }
