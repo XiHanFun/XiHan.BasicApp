@@ -777,7 +777,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"permission-condition\"]",
                 false,
                 680,
-                680)
+                680),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionCondition.Create,
+                "权限ABAC条件创建",
+                "创建角色或用户授权绑定的ABAC条件",
+                "[\"saas\",\"permission-condition\"]",
+                true,
+                690,
+                690),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionCondition.Update,
+                "权限ABAC条件更新",
+                "更新角色或用户授权绑定的ABAC条件",
+                "[\"saas\",\"permission-condition\"]",
+                true,
+                700,
+                700),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionCondition.Status,
+                "权限ABAC条件状态",
+                "更新权限ABAC条件状态",
+                "[\"saas\",\"permission-condition\"]",
+                true,
+                710,
+                710),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionCondition.Delete,
+                "权限ABAC条件删除",
+                "删除权限ABAC条件",
+                "[\"saas\",\"permission-condition\"]",
+                true,
+                720,
+                720)
         ];
     }
 
