@@ -3233,3 +3233,48 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A46，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户部门归属命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A48 Application 用户读模型
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysUser` 的读侧入口。范围限定为用户分页、详情、启用用户选择项、DTO、查询契约、QueryService、显式映射器和查看权限；不处理用户创建、资料编辑、密码重置、登录认证、租户成员切换、用户安全扩展、审计日志和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增用户读侧 DTO：
+  - `UserPageQueryDto`：支持关键字、性别、状态、系统账号标记、语言和国家/地区筛选。
+  - `UserSelectQueryDto`：支持关键字、性别、系统账号标记和数量上限筛选。
+  - `UserListItemDto`：展示用户名、姓名摘要、头像、性别、状态、时区、语言、国家/地区、系统账号标记、最后登录时间和创建/修改时间。
+  - `UserDetailDto`：在列表字段基础上补充备注和审计字段。
+  - `UserSelectItemDto`：返回角色、部门、权限分配场景可消费的启用用户选择项。
+- 新增 `IUserQueryService` / `UserQueryService`：
+  - `GetUserPageAsync()`：分页读取当前租户上下文内用户主档。
+  - `GetUserDetailAsync()`：按用户主键读取详情。
+  - `GetEnabledUsersAsync()`：读取已启用用户选择项。
+- 新增 `UserApplicationMapper`：
+  - 集中映射用户列表、详情和选择项。
+  - 响应不投影手机号、邮箱、生日、最后登录 IP、密码、安全扩展、Token 或会话信息。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:user:read`。
+  - 权限种子登记为功能权限，不标记审计。
+
+设计约束：
+
+- 用户主档读模型只呈现身份管理必要摘要，个人联系方式和安全资料留给后续 FLS/敏感读审计闭环后再按策略开放。
+- 查询不接收 `tenantId`，用户读取依赖当前会话租户上下文与 Framework 全局过滤器。
+- 用户租户成员关系、角色、权限、部门和数据范围不在用户主档 DTO 中内联，继续由各自读模型按需查询。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A47，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的用户读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
