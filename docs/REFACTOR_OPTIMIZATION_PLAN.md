@@ -3855,3 +3855,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A60；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的访问日志读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A62 Application API 日志读模型
+
+本阶段继续第 6 层应用服务重构，从审计日志域补齐 `SysApiLog` 的只读审计入口。范围限定为 API 日志分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理 API 日志写入中间件、调用量计费聚合、APM 指标聚合、敏感原文读取、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增 API 日志读侧 DTO：
+  - `ApiLogPageQueryDto`：支持关键字、用户主键、用户名、会话标识、请求标识、TraceId、客户端/应用标识、API 路径、请求方法、状态码、成功状态、签名状态、签名类型、API 版本、执行耗时和请求时间范围筛选。
+  - `ApiLogListItemDto`：展示调用方摘要、API 摘要、签名状态、状态码、成功状态、请求/响应时间、耗时、请求/响应大小和敏感内容存在标记。
+  - `ApiLogDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `IApiLogQueryService` / `ApiLogQueryService`：
+  - `GetApiLogPageAsync()`：按必填请求时间范围分页读取当前租户上下文内 API 日志，走分表仓储 `GetPagedByTimeRangeAsync()`，不触发全分片扫描。
+  - `GetApiLogDetailAsync()`：按 API 日志主键读取详情，依赖分表仓储通过雪花 ID 定位分片。
+- 新增 `ApiLogApplicationMapper`：
+  - 集中映射 API 日志列表和详情。
+  - 只返回请求/响应载荷、头部、客户端上下文、错误信息、异常堆栈和扩展数据是否存在，不返回原始值。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:api-log:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- API 日志查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- API 日志分页必须传入 `RequestTimeStart` 和 `RequestTimeEnd`，避免分表日志误触发全量扫描。
+- DTO 不返回 `RequestParams`、`RequestBody`、`ResponseBody`、`RequestHeaders`、`ResponseHeaders`、`RequestIp`、`RequestLocation`、`UserAgent`、`Referer`、`ErrorMessage`、`ExceptionStackTrace`、`ExtendData`、Authorization、Cookie 或连接串。
+- 原始请求/响应载荷、头部、客户端上下文和错误堆栈后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*RequestParams\b|public .*RequestBody\b|public .*ResponseBody\b|public .*RequestHeaders\b|public .*ResponseHeaders\b|public .*RequestIp\b|public .*RequestLocation\b|public .*UserAgent\b|public .*Referer\b|public .*ErrorMessage\b|public .*ExceptionStackTrace\b|public .*ExtendData\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Audit -g "ApiLog*.cs"`：0 个匹配。
+- `rg -n "ScanAllAsync" backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Audit/ApiLogQueryService.cs`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A61；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的 API 日志读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
