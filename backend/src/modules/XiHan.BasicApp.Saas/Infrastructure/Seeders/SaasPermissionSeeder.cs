@@ -687,7 +687,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"permission-request\"]",
                 false,
                 580,
-                580)
+                580),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionRequest.Create,
+                "权限申请创建",
+                "提交当前租户权限申请",
+                "[\"saas\",\"permission-request\"]",
+                true,
+                590,
+                590),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionRequest.Update,
+                "权限申请更新",
+                "更新当前租户权限申请",
+                "[\"saas\",\"permission-request\"]",
+                true,
+                600,
+                600),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionRequest.Status,
+                "权限申请状态",
+                "更新当前租户权限申请状态",
+                "[\"saas\",\"permission-request\"]",
+                true,
+                610,
+                610),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionRequest.Withdraw,
+                "权限申请撤回",
+                "撤回当前租户权限申请",
+                "[\"saas\",\"permission-request\"]",
+                true,
+                620,
+                620)
         ];
     }
 
