@@ -92,7 +92,8 @@ public static class SaasPermissionCodes
         PermissionDelegation.Create,
         PermissionDelegation.Update,
         PermissionDelegation.Status,
-        PermissionDelegation.Revoke
+        PermissionDelegation.Revoke,
+        PermissionRequest.Read
     ];
 
     /// <summary>
@@ -509,5 +510,16 @@ public static class SaasPermissionCodes
         /// 撤销权限委托
         /// </summary>
         public const string Revoke = "saas:permission-delegation:revoke";
+    }
+
+    /// <summary>
+    /// 权限申请权限码
+    /// </summary>
+    public static class PermissionRequest
+    {
+        /// <summary>
+        /// 查看权限申请
+        /// </summary>
+        public const string Read = "saas:permission-request:read";
     }
 }
