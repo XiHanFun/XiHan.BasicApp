@@ -2987,3 +2987,57 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A41，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的菜单读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A43 Application 菜单命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 `SysMenu` 的写侧基线。范围限定为菜单创建、更新、启停、删除、命令 DTO、命令契约、AppService、权限码和权限种子，不处理用户级菜单可见性计算、动态路由缓存、前端路由适配、审计日志和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增菜单命令 DTO：
+  - `MenuCreateDto`：接收父级、权限、菜单编码、名称、类型、路由、组件、外链、标签、元数据、状态、排序和备注。
+  - `MenuUpdateDto`：更新父级、权限、名称、类型、路由、组件、外链、标签、元数据、排序和备注，菜单编码保持创建后不可变。
+  - `MenuStatusUpdateDto`：启用或停用菜单，并可追加备注。
+- 新增 `IMenuAppService` / `MenuAppService`：
+  - `CreateMenuAsync()`：创建当前租户上下文内的非全局菜单。
+  - `UpdateMenuAsync()`：更新非全局菜单基础资料，并校验父级、权限和路由结构。
+  - `UpdateMenuStatusAsync()`：更新菜单启停状态，启用时重新校验父级和权限可用性。
+  - `DeleteMenuAsync()`：删除菜单前校验无子节点。
+- 写入约束：
+  - DTO 不接收 `tenantId`，租户隔离依赖当前会话上下文与 Framework 仓储过滤器。
+  - 普通租户命令服务不允许创建或维护平台级全局菜单，`IsGlobal` 在创建时固定为 `false`。
+  - 菜单编码必填、去空格、创建后不可变、最长 `100`，且只能包含小写英文、数字、冒号、连字符、下划线或点。
+  - 父级菜单必须存在，且按钮不能作为父级；更新父级时校验不能形成树环路。
+  - 按钮菜单必须绑定已启用权限；绑定权限时目标权限必须存在且启用。
+  - 外链菜单必须填写外链地址；非外链菜单类型为 `Menu` 时必须填写组件路径。
+  - 菜单元数据如果填写，必须是合法 JSON。
+  - 全局菜单不允许通过普通租户命令服务编辑、启停或删除。
+  - 存在子节点的菜单禁止直接删除。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:menu:create`。
+  - 新增 `saas:menu:update`。
+  - 新增 `saas:menu:status`。
+  - 新增 `saas:menu:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 菜单写入只维护 UI 导航结构和单一可见性权限绑定，不承载后端授权决策。
+- 菜单编码作为前端路由与运维识别键，创建后不可变，避免动态路由和菜单缓存引用失效。
+- 删除采用子节点保护，不做级联软删，避免普通菜单维护操作隐式破坏整棵导航树。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A42，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的菜单命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
