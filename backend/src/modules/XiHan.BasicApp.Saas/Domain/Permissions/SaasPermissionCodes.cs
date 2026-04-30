@@ -72,6 +72,7 @@ public static class SaasPermissionCodes
         Department.Update,
         Department.Status,
         Department.Delete,
+        User.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -404,6 +405,17 @@ public static class SaasPermissionCodes
         /// 删除部门
         /// </summary>
         public const string Delete = "saas:department:delete";
+    }
+
+    /// <summary>
+    /// 用户权限码
+    /// </summary>
+    public static class User
+    {
+        /// <summary>
+        /// 查看用户
+        /// </summary>
+        public const string Read = "saas:user:read";
     }
 
     /// <summary>
