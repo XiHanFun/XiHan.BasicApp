@@ -87,6 +87,7 @@ public static class SaasPermissionCodes
         UserStatistics.Read,
         PasswordHistory.Read,
         ExternalLogin.Read,
+        OAuthApp.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -536,6 +537,17 @@ public static class SaasPermissionCodes
         /// 查看第三方登录绑定
         /// </summary>
         public const string Read = "saas:external-login:read";
+    }
+
+    /// <summary>
+    /// OAuth 应用权限码
+    /// </summary>
+    public static class OAuthApp
+    {
+        /// <summary>
+        /// 查看 OAuth 应用
+        /// </summary>
+        public const string Read = "saas:oauth-app:read";
     }
 
     /// <summary>
