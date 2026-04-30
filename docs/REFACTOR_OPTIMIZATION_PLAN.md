@@ -2630,3 +2630,58 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的约束规则读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A36 Application 约束规则命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 RBAC 约束规则的写侧基线。范围限定为约束规则创建、更新、启停、删除、规则项整体维护、目标存在性校验、命令 DTO、命令契约和写权限，不处理 SSD/DSD 运行时判定、角色继承展开、缓存失效、审计日志落库和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增约束规则命令 DTO：
+  - `ConstraintRuleItemInputDto`：表达规则项的目标类型、目标主键、约束分组和备注。
+  - `ConstraintRuleCreateDto`：创建规则基础资料、约束参数、有效期、状态和规则项集合。
+  - `ConstraintRuleUpdateDto`：更新规则名称、类型、目标类型、参数、有效期、说明和规则项集合，规则编码保持创建后不可变。
+  - `ConstraintRuleStatusUpdateDto`：启用或停用约束规则，并可追加备注。
+- 新增 `IConstraintRuleAppService` / `ConstraintRuleAppService`：
+  - `CreateConstraintRuleAsync()`：创建当前租户上下文内的非全局约束规则，并写入规则项事实。
+  - `UpdateConstraintRuleAsync()`：更新非全局约束规则，按提交的规则项集合整体替换 `SysConstraintRuleItem`。
+  - `UpdateConstraintRuleStatusAsync()`：启用时重新校验规则项结构和目标可用性，停用时只更新生命周期状态。
+  - `DeleteConstraintRuleAsync()`：先清理规则项，再删除规则事实。
+- 写入约束：
+  - DTO 不接收 `tenantId`，不允许通过普通租户命令服务维护平台级全局规则。
+  - 规则编码必填、租户内唯一、创建后不可变。
+  - 规则名称、枚举、JSON 参数、优先级和有效期在应用层先校验。
+  - 非 `Prerequisite` 约束要求规则项 `TargetType` 与规则 `TargetType` 一致。
+  - `Prerequisite` 约束允许混合目标类型，但必须同时包含必备项分组 `0` 和目标项分组 `1`。
+  - SSD、DSD、互斥约束至少需要两个目标项。
+  - 角色目标必须存在且启用，平台全局角色或系统角色不能通过普通租户命令服务维护。
+  - 权限目标必须存在且启用。
+  - 用户目标只通过当前租户 `SysTenantUser` 成员关系校验，不读取 `SysUser` 主表租户归属。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:constraint-rule:create`。
+  - 新增 `saas:constraint-rule:update`。
+  - 新增 `saas:constraint-rule:status`。
+  - 新增 `saas:constraint-rule:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 规则和规则项写入依赖当前会话租户上下文与 Framework 仓储过滤器，不在应用层手写租户条件。
+- 规则项作为授权约束事实维护；运行期 SSD/DSD 判定、角色继承链展开和权限缓存失效留到后续授权决策闭环阶段。
+- 约束参数只做合法 JSON 校验，不在本阶段绑定具体策略 Schema，避免把运行时策略解释提前塞进配置写入服务。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的约束规则命令服务、命令 DTO、权限码/种子和本文档，不推送远端。

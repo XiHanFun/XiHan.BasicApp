@@ -98,7 +98,11 @@ public static class SaasPermissionCodes
         PermissionRequest.Update,
         PermissionRequest.Status,
         PermissionRequest.Withdraw,
-        ConstraintRule.Read
+        ConstraintRule.Read,
+        ConstraintRule.Create,
+        ConstraintRule.Update,
+        ConstraintRule.Status,
+        ConstraintRule.Delete
     ];
 
     /// <summary>
@@ -557,5 +561,25 @@ public static class SaasPermissionCodes
         /// 查看约束规则
         /// </summary>
         public const string Read = "saas:constraint-rule:read";
+
+        /// <summary>
+        /// 创建约束规则
+        /// </summary>
+        public const string Create = "saas:constraint-rule:create";
+
+        /// <summary>
+        /// 更新约束规则
+        /// </summary>
+        public const string Update = "saas:constraint-rule:update";
+
+        /// <summary>
+        /// 更新约束规则状态
+        /// </summary>
+        public const string Status = "saas:constraint-rule:status";
+
+        /// <summary>
+        /// 删除约束规则
+        /// </summary>
+        public const string Delete = "saas:constraint-rule:delete";
     }
 }
