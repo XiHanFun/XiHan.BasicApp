@@ -83,6 +83,7 @@ public static class SaasPermissionCodes
         UserSecurity.LoginPolicy,
         UserSession.Read,
         UserSession.Revoke,
+        UserStatistics.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -488,6 +489,17 @@ public static class SaasPermissionCodes
         /// 撤销用户会话
         /// </summary>
         public const string Revoke = "saas:user-session:revoke";
+    }
+
+    /// <summary>
+    /// 用户统计权限码
+    /// </summary>
+    public static class UserStatistics
+    {
+        /// <summary>
+        /// 查看用户统计
+        /// </summary>
+        public const string Read = "saas:user-statistics:read";
     }
 
     /// <summary>
