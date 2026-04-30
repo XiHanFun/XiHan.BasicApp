@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
@@ -22,4 +23,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 用户数据范围仓储实现
 /// </summary>
 public sealed class UserDataScopeRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysUserDataScope>(clientResolver), IUserDataScopeRepository;
+    : SaasRepository<SysUserDataScope>(clientResolver), IUserDataScopeRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysUserDataScope>> GetValidByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(scope => scope.UserId == userId)
+            .Where(scope => scope.Status == ValidityStatus.Valid)
+            .ToListAsync(cancellationToken);
+    }
+}
