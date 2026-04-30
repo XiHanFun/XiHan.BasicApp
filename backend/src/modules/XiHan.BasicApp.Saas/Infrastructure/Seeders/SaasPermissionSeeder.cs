@@ -552,7 +552,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"user-data-scope\"]",
                 false,
                 430,
-                430)
+                430),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserDataScope.Grant,
+                "用户数据范围授权",
+                "授予当前租户成员数据范围覆盖",
+                "[\"saas\",\"user-data-scope\"]",
+                true,
+                440,
+                440),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserDataScope.Update,
+                "用户数据范围更新",
+                "更新用户数据范围覆盖模式和部门设置",
+                "[\"saas\",\"user-data-scope\"]",
+                true,
+                450,
+                450),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserDataScope.Status,
+                "用户数据范围状态",
+                "更新用户数据范围绑定状态",
+                "[\"saas\",\"user-data-scope\"]",
+                true,
+                460,
+                460),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserDataScope.Revoke,
+                "用户数据范围撤销",
+                "撤销用户数据范围绑定",
+                "[\"saas\",\"user-data-scope\"]",
+                true,
+                470,
+                470)
         ];
     }
 
