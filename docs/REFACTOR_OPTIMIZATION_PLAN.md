@@ -2942,3 +2942,48 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A40，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的权限定义命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A42 Application 菜单读模型
+
+本阶段继续第 6 层应用服务重构，从导航域补齐 `SysMenu` 的读侧入口。范围限定为菜单分页、详情、树形读模型、DTO、查询契约、QueryService、显式映射器和查看权限，不处理菜单写入、菜单可见性运行时过滤、动态路由下发、缓存失效、审计日志和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增菜单读侧 DTO：
+  - `MenuPageQueryDto`：支持关键字、父级菜单、权限、菜单类型、外链、可见性、全局标记和状态筛选。
+  - `MenuTreeQueryDto`：支持关键字、仅启用、仅可见、是否包含按钮节点和数量上限。
+  - `MenuListItemDto`：展示菜单基础路由、权限摘要、状态、排序和创建/修改时间。
+  - `MenuDetailDto`：在列表字段基础上补充重定向、外链、标签、元数据、备注和审计字段。
+  - `MenuTreeNodeDto`：返回前端导航可直接消费的树形节点。
+- 新增 `IMenuQueryService` / `MenuQueryService`：
+  - `GetMenuPageAsync()`：分页读取菜单列表，并展开单一 `SysPermission` 可见性绑定摘要。
+  - `GetMenuDetailAsync()`：按菜单主键读取详情，并展开权限摘要。
+  - `GetMenuTreeAsync()`：按当前租户上下文读取菜单集合，构建父子层级树。
+- 新增 `MenuApplicationMapper`：
+  - 集中映射菜单列表、详情和树节点。
+  - 菜单只投影权限编码/名称摘要，不把权限决策逻辑塞入菜单读模型。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:menu:read`。
+  - 权限种子登记为功能权限，不标记审计。
+
+设计约束：
+
+- 菜单是 UI 导航结构，不参与后端鉴权决策；后端鉴权仍以 `SysPermission` 为事实源。
+- 查询不接收 `tenantId`，菜单、权限读取依赖当前会话租户上下文与 Framework 全局过滤器。
+- 树形构建只处理读模型层级投影；用户级可见性过滤、权限集合过滤、动态路由缓存和前端路由适配留到后续授权闭环与前端重建阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A41，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的菜单读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
