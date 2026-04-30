@@ -83,6 +83,7 @@ public static class SaasPermissionCodes
         UserSecurity.LoginPolicy,
         UserSession.Read,
         UserSession.Revoke,
+        SessionRole.Read,
         UserStatistics.Read,
         PasswordHistory.Read,
         ExternalLogin.Read,
@@ -491,6 +492,17 @@ public static class SaasPermissionCodes
         /// 撤销用户会话
         /// </summary>
         public const string Revoke = "saas:user-session:revoke";
+    }
+
+    /// <summary>
+    /// 会话角色权限码
+    /// </summary>
+    public static class SessionRole
+    {
+        /// <summary>
+        /// 查看会话角色
+        /// </summary>
+        public const string Read = "saas:session-role:read";
     }
 
     /// <summary>

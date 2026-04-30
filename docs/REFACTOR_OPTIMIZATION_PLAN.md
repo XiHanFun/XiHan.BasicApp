@@ -3635,3 +3635,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A55；`XiHan.Framework` 在提交前状态存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的第三方登录绑定读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A57 Application 会话角色读模型
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysSessionRole` 的只读管理入口。范围限定为会话激活角色分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理角色激活/停用命令、DSD 约束执行、会话撤销级联、Token 黑名单、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增会话角色读侧 DTO：
+  - `SessionRolePageQueryDto`：支持会话主键、角色主键、状态、激活时间范围和过期时间范围筛选。
+  - `SessionRoleListItemDto`：展示会话主键、会话业务标识、用户摘要、角色摘要、激活/停用/过期时间、派生过期状态和创建时间。
+  - `SessionRoleDetailDto`：在列表字段基础上补充激活原因与创建审计字段。
+- 新增 `ISessionRoleQueryService` / `SessionRoleQueryService`：
+  - `GetSessionRolePageAsync()`：分页读取当前租户上下文内会话激活角色。
+  - `GetSessionRoleDetailAsync()`：按会话角色主键读取详情。
+- 新增 `SessionRoleApplicationMapper`：
+  - 集中映射会话角色列表和详情。
+  - 通过 `SysUserSession`、`SysRole`、`SysUser` 补齐展示摘要，不返回设备、IP、位置或 Token 信息。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:session-role:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 会话角色查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `CurrentAccessTokenJti`、AccessToken、RefreshToken、Authorization、Cookie、设备 ID、IP 地址或位置。
+- `IsExpired` 仅由 `ExpiresAt <= UtcNow` 派生；状态修正、过期清理和 DSD 约束执行留给后续写侧/任务阶段。
+- 会话角色读模型只返回当前记录的生命周期事实，不在读侧自动变更 `Status`。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "CurrentAccessTokenJti|AccessToken|RefreshToken|Authorization|Cookie|DeviceId|IpAddress|Location|OperatingSystem|Browser" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity --glob "SessionRole*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A56；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的会话角色读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
