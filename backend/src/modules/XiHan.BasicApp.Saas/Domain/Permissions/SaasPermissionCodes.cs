@@ -88,7 +88,11 @@ public static class SaasPermissionCodes
         FieldLevelSecurity.Update,
         FieldLevelSecurity.Status,
         FieldLevelSecurity.Delete,
-        PermissionDelegation.Read
+        PermissionDelegation.Read,
+        PermissionDelegation.Create,
+        PermissionDelegation.Update,
+        PermissionDelegation.Status,
+        PermissionDelegation.Revoke
     ];
 
     /// <summary>
@@ -485,5 +489,25 @@ public static class SaasPermissionCodes
         /// 查看权限委托
         /// </summary>
         public const string Read = "saas:permission-delegation:read";
+
+        /// <summary>
+        /// 创建权限委托
+        /// </summary>
+        public const string Create = "saas:permission-delegation:create";
+
+        /// <summary>
+        /// 更新权限委托
+        /// </summary>
+        public const string Update = "saas:permission-delegation:update";
+
+        /// <summary>
+        /// 更新权限委托状态
+        /// </summary>
+        public const string Status = "saas:permission-delegation:status";
+
+        /// <summary>
+        /// 撤销权限委托
+        /// </summary>
+        public const string Revoke = "saas:permission-delegation:revoke";
     }
 }

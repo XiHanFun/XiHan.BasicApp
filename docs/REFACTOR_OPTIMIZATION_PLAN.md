@@ -2433,3 +2433,56 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 存在本阶段未提交改动，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的权限委托读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A32 Application 权限委托命令服务基线
+
+本阶段继续第 6 层应用服务重构，补齐权限委托的写侧入口。范围限定为委托创建、委托更新、委托状态更新、撤销、命令 DTO、命令契约、AppService、权限码和权限种子，不处理授权合并、缓存失效、审计日志和领域事件落库，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增权限委托命令 DTO：
+  - `PermissionDelegationCreateDto`：接收委托人、被委托人、可选权限、可选角色、生效时间、失效时间、委托原因和备注。
+  - `PermissionDelegationUpdateDto`：更新已有权限委托的主体、授权范围、有效期、原因和备注。
+  - `PermissionDelegationStatusUpdateDto`：更新委托状态和备注。
+- 新增 `IPermissionDelegationAppService` / `PermissionDelegationAppService`：
+  - `CreatePermissionDelegationAsync()`：创建当前租户上下文内的权限委托，按生效时间自动写入 `Pending` 或 `Active`。
+  - `UpdatePermissionDelegationAsync()`：更新未撤销的权限委托，重新校验主体、授权对象、有效期和唯一约束。
+  - `UpdatePermissionDelegationStatusAsync()`：更新状态，恢复到待生效/生效中时重新校验租户成员、权限和角色可用性。
+  - `DeletePermissionDelegationAsync()`：按动态 API 删除语义暴露撤销入口，但只将委托状态更新为 `Revoked`，不硬删事实。
+- 写入约束：
+  - 委托人和被委托人必须是当前租户成员，邀请状态已接受、成员状态有效、成员有效期当前可用。
+  - 委托人和被委托人不能相同。
+  - 可选权限必须存在且启用。
+  - 可选角色必须存在且启用，平台全局角色或系统角色不能通过普通租户权限委托服务维护。
+  - 失效时间必填，且必须晚于当前时间和生效时间。
+  - 同一委托人、被委托人和权限主键不能重复配置。
+  - 已撤销委托不能更新或重新生效。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:permission-delegation:create`。
+  - 新增 `saas:permission-delegation:update`。
+  - 新增 `saas:permission-delegation:status`。
+  - 新增 `saas:permission-delegation:revoke`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 命令 DTO 不接收 `tenantId`，权限委托、租户成员、权限和角色读取与写入依赖当前会话租户上下文与 Framework 全局过滤器。
+- 用户相关校验继续通过 `SysTenantUser` 当前租户成员关系完成，不读取 `SysUser` 主表资料作为当前租户身份依据。
+- 本阶段只维护 `SysPermissionDelegation` 委托事实；委托权限运行时合并、过期扫描、撤销事件、缓存失效、审计日志和领域事件处理器留到后续授权闭环阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的权限委托命令服务、命令 DTO、权限码/种子和本文档，不推送远端。

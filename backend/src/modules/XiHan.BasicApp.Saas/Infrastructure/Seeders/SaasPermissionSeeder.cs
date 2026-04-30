@@ -642,7 +642,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"permission-delegation\"]",
                 false,
                 530,
-                530)
+                530),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionDelegation.Create,
+                "权限委托创建",
+                "创建当前租户权限委托",
+                "[\"saas\",\"permission-delegation\"]",
+                true,
+                540,
+                540),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionDelegation.Update,
+                "权限委托更新",
+                "更新当前租户权限委托",
+                "[\"saas\",\"permission-delegation\"]",
+                true,
+                550,
+                550),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionDelegation.Status,
+                "权限委托状态",
+                "更新当前租户权限委托状态",
+                "[\"saas\",\"permission-delegation\"]",
+                true,
+                560,
+                560),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionDelegation.Revoke,
+                "权限委托撤销",
+                "撤销当前租户权限委托",
+                "[\"saas\",\"permission-delegation\"]",
+                true,
+                570,
+                570)
         ];
     }
 
