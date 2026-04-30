@@ -582,6 +582,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 529),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserSession.Revoke,
+                "用户会话撤销",
+                "撤销当前租户用户会话",
+                "[\"saas\",\"user-session\"]",
+                true,
+                530,
+                530),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
