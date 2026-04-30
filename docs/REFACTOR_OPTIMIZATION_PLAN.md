@@ -3503,3 +3503,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A52，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户会话命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A54 Application 用户统计读模型
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysUserStatistics` 的只读管理入口。范围限定为用户统计分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理统计生成任务、实时指标聚合、异常行为告警、任意扩展 JSON 暴露、前端报表页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增用户统计读侧 DTO：
+  - `UserStatisticsPageQueryDto`：支持用户主键、统计周期、统计日期范围筛选；允许 `UserId=0` 表达全体用户汇总统计。
+  - `UserStatisticsListItemDto`：展示用户摘要、统计日期、周期、登录/访问/在线/操作/API/错误次数和最后行为时间。
+  - `UserStatisticsDetailDto`：在列表字段基础上补充文件、邮件、短信、通知计数、备注和审计字段。
+- 新增 `IUserStatisticsQueryService` / `UserStatisticsQueryService`：
+  - `GetUserStatisticsPageAsync()`：分页读取当前租户上下文内用户行为统计。
+  - `GetUserStatisticsDetailAsync()`：按统计主键读取详情。
+- 新增 `UserStatisticsApplicationMapper`：
+  - 集中映射用户统计列表和详情。
+  - 不映射 `ExtendData`，避免任意 JSON 中的敏感扩展字段绕过 FLS/审计闭环。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:user-statistics:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 用户统计查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- `UserId=0` 是实体约定的当前租户全体用户汇总统计，不表示平台跨租户查询。
+- DTO 只返回结构化统计字段，不返回 `ExtendData`、用户联系方式、安全状态、Token 或会话信息。
+- 当前阶段只做读侧投影；统计生成、刷新、归档和异常行为检测留给后续任务/报表阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "\bExtendData\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity backend/src/modules/XiHan.BasicApp.Saas/Application/Mappers/Identity/UserStatisticsApplicationMapper.cs --glob "UserStatistics*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A53，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的用户统计读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
