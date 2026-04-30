@@ -609,6 +609,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 532),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.ExternalLogin.Read,
+                "第三方登录绑定查看",
+                "查看当前租户用户第三方登录绑定摘要",
+                "[\"saas\",\"external-login\"]",
+                true,
+                533,
+                533),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
