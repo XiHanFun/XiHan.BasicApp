@@ -543,7 +543,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"user-permission\"]",
                 true,
                 420,
-                420)
+                420),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserDataScope.Read,
+                "用户数据范围查看",
+                "查看当前租户用户数据范围覆盖列表和详情",
+                "[\"saas\",\"user-data-scope\"]",
+                false,
+                430,
+                430)
         ];
     }
 

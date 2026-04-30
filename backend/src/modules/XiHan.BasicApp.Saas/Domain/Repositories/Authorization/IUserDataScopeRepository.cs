@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IUserDataScopeRepository : ISaasRepository<SysUserDataScope>
 {
+    /// <summary>
+    /// 获取用户有效数据范围覆盖
+    /// </summary>
+    Task<IReadOnlyList<SysUserDataScope>> GetValidByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 }
