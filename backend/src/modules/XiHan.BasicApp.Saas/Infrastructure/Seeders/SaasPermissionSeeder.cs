@@ -732,7 +732,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"constraint-rule\"]",
                 false,
                 630,
-                630)
+                630),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.ConstraintRule.Create,
+                "约束规则创建",
+                "创建当前租户约束规则",
+                "[\"saas\",\"constraint-rule\"]",
+                true,
+                640,
+                640),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.ConstraintRule.Update,
+                "约束规则更新",
+                "更新当前租户约束规则",
+                "[\"saas\",\"constraint-rule\"]",
+                true,
+                650,
+                650),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.ConstraintRule.Status,
+                "约束规则状态",
+                "更新当前租户约束规则状态",
+                "[\"saas\",\"constraint-rule\"]",
+                true,
+                660,
+                660),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.ConstraintRule.Delete,
+                "约束规则删除",
+                "删除当前租户约束规则",
+                "[\"saas\",\"constraint-rule\"]",
+                true,
+                670,
+                670)
         ];
     }
 
