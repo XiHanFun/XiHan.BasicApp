@@ -72,7 +72,8 @@ public static class SaasPermissionCodes
         UserRole.Grant,
         UserRole.Update,
         UserRole.Status,
-        UserRole.Revoke
+        UserRole.Revoke,
+        UserPermission.Read
     ];
 
     /// <summary>
@@ -365,5 +366,16 @@ public static class SaasPermissionCodes
         /// 撤销用户角色
         /// </summary>
         public const string Revoke = "saas:user-role:revoke";
+    }
+
+    /// <summary>
+    /// 用户直授权限权限码
+    /// </summary>
+    public static class UserPermission
+    {
+        /// <summary>
+        /// 查看用户直授权限
+        /// </summary>
+        public const string Read = "saas:user-permission:read";
     }
 }
