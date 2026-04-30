@@ -97,7 +97,8 @@ public static class SaasPermissionCodes
         PermissionRequest.Create,
         PermissionRequest.Update,
         PermissionRequest.Status,
-        PermissionRequest.Withdraw
+        PermissionRequest.Withdraw,
+        ConstraintRule.Read
     ];
 
     /// <summary>
@@ -545,5 +546,16 @@ public static class SaasPermissionCodes
         /// 撤回权限申请
         /// </summary>
         public const string Withdraw = "saas:permission-request:withdraw";
+    }
+
+    /// <summary>
+    /// 约束规则权限码
+    /// </summary>
+    public static class ConstraintRule
+    {
+        /// <summary>
+        /// 查看约束规则
+        /// </summary>
+        public const string Read = "saas:constraint-rule:read";
     }
 }
