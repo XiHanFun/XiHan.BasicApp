@@ -78,6 +78,9 @@ public static class SaasPermissionCodes
         User.Status,
         User.Delete,
         UserSecurity.Read,
+        UserSecurity.ResetPassword,
+        UserSecurity.Lock,
+        UserSecurity.LoginPolicy,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -452,6 +455,21 @@ public static class SaasPermissionCodes
         /// 查看用户安全状态
         /// </summary>
         public const string Read = "saas:user-security:read";
+
+        /// <summary>
+        /// 重置用户密码
+        /// </summary>
+        public const string ResetPassword = "saas:user-security:reset-password";
+
+        /// <summary>
+        /// 更新用户锁定状态
+        /// </summary>
+        public const string Lock = "saas:user-security:lock";
+
+        /// <summary>
+        /// 更新用户登录策略
+        /// </summary>
+        public const string LoginPolicy = "saas:user-security:login-policy";
     }
 
     /// <summary>

@@ -3371,3 +3371,48 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A49，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户安全读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A51 Application 用户安全命令服务
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysUserSecurity` 的写侧管理入口。范围限定为密码重置、锁定/解锁、登录设备策略、命令 DTO、命令契约、AppService、权限码和权限种子；不处理 MFA 密钥重置、在线会话/Token 级联吊销事件处理器、密码历史归档、FLS 敏感读出口和前端页面，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增用户安全命令 DTO：
+  - `UserPasswordResetDto`：接收用户主键、新密码、可选密码过期时间和备注。
+  - `UserLockUpdateDto`：接收用户主键、锁定状态、可选锁定结束时间和备注。
+  - `UserLoginPolicyUpdateDto`：接收用户主键、多端登录开关、最大登录设备数和备注。
+- 新增 `IUserSecurityAppService` / `UserSecurityAppService`：
+  - `ResetUserPasswordAsync()`：校验当前租户用户主档与安全扩展存在，复用认证服务密码强度校验，写入密码哈希，刷新最后改密时间、安全戳并清理失败登录计数。
+  - `UpdateUserLockAsync()`：更新锁定/解锁状态；加锁时禁止处理系统账号和租户所有者，解锁时清理失败登录计数与锁定时间。
+  - `UpdateUserLoginPolicyAsync()`：更新多端登录和最大登录设备数策略，禁用多端登录时要求设备数大于 0。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:user-security:reset-password`。
+  - 新增 `saas:user-security:lock`。
+  - 新增 `saas:user-security:login-policy`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 用户安全命令 DTO、契约和仓储调用不接收 `tenantId`；用户主档与安全扩展查询依赖当前会话上下文与 Framework 全局过滤器。
+- `UserPasswordResetDto.NewPassword` 只作为命令入参进入应用服务；响应 DTO 仍不返回密码哈希、双因素密钥、安全戳、Token、Authorization 或 Cookie。
+- 密码重置统一使用 `IPasswordHasher` 写入哈希，并通过 `IAuthenticationService.ValidatePasswordStrengthAsync()` 复用认证密码策略。
+- 密码重置、锁定状态和登录策略变更都会刷新 `SecurityStamp`，供后续会话/Token 级联吊销事件处理器消费。
+- 当前阶段不新增会话吊销和密码历史写入；这些闭环留给后续事件处理器与会话服务阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 包漏洞源连接警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "\b(Password|TwoFactorSecret|SecurityStamp|AccessToken|RefreshToken|Authorization|Cookie)\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity backend/src/modules/XiHan.BasicApp.Saas/Application/Mappers/Identity/UserSecurityApplicationMapper.cs --glob "UserSecurity*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A50，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的用户安全命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
