@@ -573,6 +573,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 528),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.UserSession.Read,
+                "用户会话查看",
+                "查看当前租户用户会话摘要",
+                "[\"saas\",\"user-session\"]",
+                true,
+                529,
+                529),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",

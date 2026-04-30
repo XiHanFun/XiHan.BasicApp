@@ -81,6 +81,7 @@ public static class SaasPermissionCodes
         UserSecurity.ResetPassword,
         UserSecurity.Lock,
         UserSecurity.LoginPolicy,
+        UserSession.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -470,6 +471,17 @@ public static class SaasPermissionCodes
         /// 更新用户登录策略
         /// </summary>
         public const string LoginPolicy = "saas:user-security:login-policy";
+    }
+
+    /// <summary>
+    /// 用户会话权限码
+    /// </summary>
+    public static class UserSession
+    {
+        /// <summary>
+        /// 查看用户会话
+        /// </summary>
+        public const string Read = "saas:user-session:read";
     }
 
     /// <summary>
