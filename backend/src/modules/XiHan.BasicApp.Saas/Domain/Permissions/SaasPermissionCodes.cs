@@ -93,7 +93,11 @@ public static class SaasPermissionCodes
         PermissionDelegation.Update,
         PermissionDelegation.Status,
         PermissionDelegation.Revoke,
-        PermissionRequest.Read
+        PermissionRequest.Read,
+        PermissionRequest.Create,
+        PermissionRequest.Update,
+        PermissionRequest.Status,
+        PermissionRequest.Withdraw
     ];
 
     /// <summary>
@@ -521,5 +525,25 @@ public static class SaasPermissionCodes
         /// 查看权限申请
         /// </summary>
         public const string Read = "saas:permission-request:read";
+
+        /// <summary>
+        /// 创建权限申请
+        /// </summary>
+        public const string Create = "saas:permission-request:create";
+
+        /// <summary>
+        /// 更新权限申请
+        /// </summary>
+        public const string Update = "saas:permission-request:update";
+
+        /// <summary>
+        /// 更新权限申请状态
+        /// </summary>
+        public const string Status = "saas:permission-request:status";
+
+        /// <summary>
+        /// 撤回权限申请
+        /// </summary>
+        public const string Withdraw = "saas:permission-request:withdraw";
     }
 }
