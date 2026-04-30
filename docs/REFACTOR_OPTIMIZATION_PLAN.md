@@ -3723,3 +3723,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A57；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的 OAuth 应用读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A59 Application OAuth 授权码读模型
+
+本阶段继续第 6 层应用服务重构，从 OAuth 域补齐 `SysOAuthCode` 的只读审计入口。范围限定为 OAuth 授权码分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理授权码签发/兑换/清理、PKCE 校验、CSRF 校验、Token 签发、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增 OAuth 授权码读侧 DTO：
+  - `OAuthCodePageQueryDto`：支持客户端 ID、用户主键、已使用、已过期、过期时间范围和创建时间范围筛选。
+  - `OAuthCodeListItemDto`：展示客户端摘要、用户摘要、重定向 URI、权限范围、PKCE 启用标记、质询方法、过期/使用状态和创建时间。
+  - `OAuthCodeDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `IOAuthCodeQueryService` / `OAuthCodeQueryService`：
+  - `GetOAuthCodePageAsync()`：分页读取当前租户上下文内 OAuth 授权码审计状态。
+  - `GetOAuthCodeDetailAsync()`：按授权码记录主键读取详情。
+- 新增 `OAuthCodeApplicationMapper`：
+  - 集中映射 OAuth 授权码列表和详情。
+  - 只返回 `HasPkce` 与 `CodeChallengeMethod`，不返回授权码、PKCE challenge 或 CSRF state 原文。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:oauth-code:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- OAuth 授权码查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `Code`、`CodeChallenge`、`CsrfState`、ClientSecret、AccessToken、RefreshToken、Authorization、Cookie 或连接串。
+- `IsExpired` 仅由 `ExpiresTime <= UtcNow` 派生；过期清理和已使用状态变更留给授权流程/后台任务。
+- 授权码读模型仅用于审计，不承担授权码兑换或 PKCE 校验职责。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*\bCode\b|public .*CodeChallenge\b|public .*CsrfState\b|ClientSecret|\bAccessToken\b|\bRefreshToken\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/OAuth backend/src/modules/XiHan.BasicApp.Saas/Application/Mappers/OAuth backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/OAuth -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A58；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的 OAuth 授权码读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
