@@ -85,6 +85,7 @@ public static class SaasPermissionCodes
         UserSession.Revoke,
         UserStatistics.Read,
         PasswordHistory.Read,
+        ExternalLogin.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -512,6 +513,17 @@ public static class SaasPermissionCodes
         /// 查看密码历史
         /// </summary>
         public const string Read = "saas:password-history:read";
+    }
+
+    /// <summary>
+    /// 第三方登录绑定权限码
+    /// </summary>
+    public static class ExternalLogin
+    {
+        /// <summary>
+        /// 查看第三方登录绑定
+        /// </summary>
+        public const string Read = "saas:external-login:read";
     }
 
     /// <summary>

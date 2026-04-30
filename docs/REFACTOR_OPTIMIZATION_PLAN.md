@@ -3591,3 +3591,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A54，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的密码历史读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A56 Application 第三方登录绑定读模型
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysExternalLogin` 的只读管理入口。范围限定为第三方登录绑定分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理绑定/解绑命令、第三方 Token 加解密与吊销、回调登录流程、原始外部账号标识出口、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增第三方登录绑定读侧 DTO：
+  - `ExternalLoginPageQueryDto`：支持关键字、用户主键、提供商和最后登录时间范围筛选。
+  - `ExternalLoginListItemDto`：展示用户摘要、提供商、脱敏外部账号标识、脱敏三方邮箱、头像存在标记和登录/审计时间。
+  - `ExternalLoginDetailDto`：在列表字段基础上补充创建与修改审计字段。
+- 新增 `IExternalLoginQueryService` / `ExternalLoginQueryService`：
+  - `GetExternalLoginPageAsync()`：分页读取当前租户上下文内第三方登录绑定摘要。
+  - `GetExternalLoginDetailAsync()`：按绑定主键读取第三方登录绑定详情。
+- 新增 `ExternalLoginApplicationMapper`：
+  - 集中映射第三方登录绑定列表和详情。
+  - 对 `ProviderKey` 和三方邮箱做脱敏，只返回 `HasAvatar`，不返回原始头像 URL。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:external-login:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 第三方登录绑定查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `ProviderKey`、原始三方邮箱、`AvatarUrl`、AccessToken、RefreshToken、Secret 或连接串。
+- 关键字只搜索 `Provider` 与 `ProviderDisplayName`，不允许通过读模型搜索原始外部账号标识。
+- 绑定、解绑、第三方 Token 吊销和登录回调仍属于后续写侧/认证流程阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ProviderKey|AvatarUrl|public .*Email\b|public .*ExternalEmail\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity --glob "ExternalLogin*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A55；`XiHan.Framework` 在提交前状态存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的第三方登录绑定读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
