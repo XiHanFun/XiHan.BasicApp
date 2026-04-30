@@ -87,7 +87,8 @@ public static class SaasPermissionCodes
         FieldLevelSecurity.Create,
         FieldLevelSecurity.Update,
         FieldLevelSecurity.Status,
-        FieldLevelSecurity.Delete
+        FieldLevelSecurity.Delete,
+        PermissionDelegation.Read
     ];
 
     /// <summary>
@@ -473,5 +474,16 @@ public static class SaasPermissionCodes
         /// 删除字段级安全
         /// </summary>
         public const string Delete = "saas:field-level-security:delete";
+    }
+
+    /// <summary>
+    /// 权限委托权限码
+    /// </summary>
+    public static class PermissionDelegation
+    {
+        /// <summary>
+        /// 查看权限委托
+        /// </summary>
+        public const string Read = "saas:permission-delegation:read";
     }
 }

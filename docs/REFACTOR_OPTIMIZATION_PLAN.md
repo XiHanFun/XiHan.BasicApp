@@ -2389,3 +2389,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的字段级安全命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A31 Application 权限委托读模型
+
+本阶段继续第 6 层应用服务重构，补齐权限委托的读侧入口。范围限定为权限委托分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限，不处理委托创建、更新、撤销、缓存失效、审计日志和领域事件落库，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增权限委托读侧 DTO：
+  - `PermissionDelegationPageQueryDto`：支持关键字、委托人、被委托人、权限、角色和委托状态筛选。
+  - `PermissionDelegationListItemDto`：展示委托人/被委托人租户成员摘要、权限摘要、角色摘要、状态、生效失效时间、过期标记和审计时间。
+  - `PermissionDelegationDetailDto`：在列表字段基础上补充权限/角色描述、备注和创建/修改审计字段。
+- 新增 `IPermissionDelegationQueryService` / `PermissionDelegationQueryService`：
+  - `GetPermissionDelegationPageAsync()`：分页读取当前租户上下文内的权限委托事实，并批量汇总租户成员、权限和角色摘要。
+  - `GetPermissionDelegationDetailAsync()`：按委托主键读取详情。
+  - 委托人和被委托人摘要统一通过 `SysTenantUser` 当前租户成员关系读取，不读取 `SysUser` 主表资料作为当前租户身份依据。
+- 新增 `PermissionDelegationApplicationMapper`：
+  - 集中映射权限委托列表项和详情。
+  - 只返回委托事实和授权对象摘要，不返回租户连接串、联系人等敏感租户配置。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:permission-delegation:read`。
+  - 权限种子登记为功能权限，不标记审计。
+
+设计约束：
+
+- 权限委托读模型不接收 `tenantId`，委托、租户成员、权限和角色读取依赖当前会话租户上下文与 Framework 全局过滤器。
+- 本阶段只展示权限委托事实；委托创建、更新、状态变更、撤销、有效期冲突处理、授权合并、缓存失效、审计日志和领域事件处理器留到后续授权闭环阶段。
+- 用户相关摘要继续通过 `SysTenantUser` 当前租户成员关系完成，避免把 `SysUser.TenantId` 误当作当前租户身份依据。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 包漏洞数据源连接警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 存在本阶段未提交改动，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的权限委托读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
