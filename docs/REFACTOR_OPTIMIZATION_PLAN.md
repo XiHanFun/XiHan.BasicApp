@@ -2337,3 +2337,55 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的字段级安全读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A30 Application 字段级安全命令服务基线
+
+本阶段继续第 6 层应用服务重构，补齐 FLS 字段级安全策略的写侧入口。范围限定为策略创建、策略更新、状态更新、删除、命令 DTO、命令契约、AppService、权限码和权限种子，不执行真实字段脱敏、不接入缓存失效和审计事件落库，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增字段级安全命令 DTO：
+  - `FieldLevelSecurityCreateDto`：接收目标类型、目标主键、资源主键、字段名、读写能力、脱敏策略、脱敏模式、优先级、策略描述、状态和备注。
+  - `FieldLevelSecurityUpdateDto`：更新已有策略的目标、资源、字段、读写能力、脱敏策略、优先级、描述和备注。
+  - `FieldLevelSecurityStatusUpdateDto`：更新策略启停状态和备注。
+- 新增 `IFieldLevelSecurityAppService` / `FieldLevelSecurityAppService`：
+  - `CreateFieldLevelSecurityAsync()`：创建当前租户上下文内的 FLS 策略，校验资源、目标主体、字段名、读写能力、脱敏策略和唯一约束。
+  - `UpdateFieldLevelSecurityAsync()`：更新 FLS 策略定义，支持调整目标、资源和字段。
+  - `UpdateFieldLevelSecurityStatusAsync()`：更新策略状态，恢复启用时重新校验资源和目标主体可用性。
+  - `DeleteFieldLevelSecurityAsync()`：删除策略，依赖实体软删除能力保留审计字段。
+- 写入约束：
+  - 资源必须存在且启用。
+  - 角色目标必须是当前租户可维护角色，停用、平台全局或系统角色不能通过普通租户 FLS 服务维护。
+  - 用户目标必须是当前租户成员，且邀请状态已接受、成员状态有效、成员有效期当前可用。
+  - 权限和部门目标必须存在且启用。
+  - 不可读字段不能设置为可编辑；不可读字段必须指定非 `None` 的脱敏策略。
+  - 同一目标类型、目标主键、资源主键和字段名不能重复配置。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:field-level-security:create`。
+  - 新增 `saas:field-level-security:update`。
+  - 新增 `saas:field-level-security:status`。
+  - 新增 `saas:field-level-security:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 命令 DTO 不接收 `tenantId`，FLS 策略、资源、角色、权限、部门和租户成员读取与写入依赖当前会话租户上下文与 Framework 全局过滤器。
+- 用户目标继续通过 `SysTenantUser` 当前租户成员关系校验，不读取 `SysUser` 主表资料作为当前租户身份依据。
+- 本阶段只维护 `SysFieldLevelSecurity` 策略定义；真实字段脱敏、不可编辑字段写入拒绝、冲突合并、缓存失效、审计日志和领域事件处理器留到后续 FLS 闭环阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `git diff --check`：通过。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 与 `XiHan.Framework` git 状态均干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的字段级安全命令服务、命令 DTO、权限码/种子和本文档，不推送远端。

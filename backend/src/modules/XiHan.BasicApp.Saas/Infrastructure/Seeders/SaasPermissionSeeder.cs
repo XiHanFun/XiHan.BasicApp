@@ -597,7 +597,43 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"field-level-security\"]",
                 false,
                 480,
-                480)
+                480),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.FieldLevelSecurity.Create,
+                "字段级安全创建",
+                "创建字段级安全策略",
+                "[\"saas\",\"field-level-security\"]",
+                true,
+                490,
+                490),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.FieldLevelSecurity.Update,
+                "字段级安全更新",
+                "更新字段级安全策略",
+                "[\"saas\",\"field-level-security\"]",
+                true,
+                500,
+                500),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.FieldLevelSecurity.Status,
+                "字段级安全状态",
+                "更新字段级安全策略状态",
+                "[\"saas\",\"field-level-security\"]",
+                true,
+                510,
+                510),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.FieldLevelSecurity.Delete,
+                "字段级安全删除",
+                "删除字段级安全策略",
+                "[\"saas\",\"field-level-security\"]",
+                true,
+                520,
+                520)
         ];
     }
 
