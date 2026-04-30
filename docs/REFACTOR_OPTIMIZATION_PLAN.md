@@ -3461,3 +3461,45 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A51，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的用户会话读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A53 Application 用户会话命令服务
+
+本阶段继续第 6 层应用服务重构，从身份域补齐 `SysUserSession` 的写侧撤销入口。范围限定为单会话撤销、某用户全部会话撤销、命令 DTO、命令契约、AppService、权限码、权限种子和本地事件发布；不处理 OAuth Token 黑名单落库、SignalR 在线连接踢出、会话角色失效级联、审计日志处理器和前端页面，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增用户会话命令 DTO：
+  - `UserSessionRevokeDto`：接收会话主键和撤销原因。
+  - `UserSessionsRevokeDto`：接收用户主键和撤销原因。
+- 新增 `IUserSessionAppService` / `UserSessionAppService`：
+  - `RevokeUserSessionAsync()`：撤销当前租户上下文内单条用户会话，设置 `IsRevoked`、`RevokedAt`、`RevokedReason`、`IsOnline=false` 和 `LogoutTime`。
+  - `RevokeUserSessionsAsync()`：撤销当前租户上下文内某用户全部未撤销会话，并返回实际撤销数量。
+  - 撤销成功后发布 `UserSessionRevokedDomainEvent`，供后续 Token 黑名单、实时下线和缓存清理处理器消费。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:user-session:revoke`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 用户会话命令 DTO、契约和普通仓储调用不接收 `tenantId`；租户边界依赖当前会话上下文与 Framework 全局过滤器。
+- 撤销原因必填且不超过 `SysUserSession.RevokedReason` 字段长度 200，避免无审计语义的强制下线。
+- 单会话撤销事件携带会话主键、业务会话标识和访问令牌 JTI；这些只进入内部事件，不进入响应 DTO。
+- 用户全部会话撤销只发布一条 `revokeAllUserSessions=true` 事件，具体 Token 黑名单查询和会话角色清理留给后续事件处理器。
+- 已撤销会话保持幂等，不重复更新时间和事件。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 包漏洞源连接警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "\b(CurrentAccessTokenJti|AccessToken|RefreshToken|Authorization|Cookie|IpAddress|DeviceId|Location)\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Identity --glob "UserSession*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A52，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的用户会话命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
