@@ -48,6 +48,10 @@ public static class SaasPermissionCodes
         TenantEditionPermission.Update,
         TenantEditionPermission.Revoke,
         Permission.Read,
+        Permission.Create,
+        Permission.Update,
+        Permission.Status,
+        Permission.Delete,
         Resource.Read,
         Resource.Create,
         Resource.Update,
@@ -241,6 +245,26 @@ public static class SaasPermissionCodes
         /// 查看权限定义
         /// </summary>
         public const string Read = "saas:permission:read";
+
+        /// <summary>
+        /// 创建权限定义
+        /// </summary>
+        public const string Create = "saas:permission:create";
+
+        /// <summary>
+        /// 更新权限定义
+        /// </summary>
+        public const string Update = "saas:permission:update";
+
+        /// <summary>
+        /// 更新权限定义状态
+        /// </summary>
+        public const string Status = "saas:permission:status";
+
+        /// <summary>
+        /// 删除权限定义
+        /// </summary>
+        public const string Delete = "saas:permission:delete";
     }
 
     /// <summary>

@@ -2887,3 +2887,58 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A39，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的操作定义命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A41 Application 权限定义命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 `SysPermission` 的写侧基线。范围限定为权限定义创建、基础资料更新、启停、删除、命令 DTO、命令契约、AppService、权限码和权限种子，不处理权限矩阵批量生成、授权缓存失效、审计日志落库和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增权限定义命令 DTO：
+  - `PermissionCreateDto`：接收权限类型、资源/操作绑定、模块编码、权限编码、权限名称、描述、标签、审计标记、优先级、状态、排序和备注。
+  - `PermissionUpdateDto`：只更新权限名称、描述、标签、审计标记、优先级、排序和备注。
+  - `PermissionStatusUpdateDto`：启用或停用权限定义，并可追加备注。
+- 新增 `IPermissionAppService` / `PermissionAppService`：
+  - `CreatePermissionAsync()`：创建当前租户上下文内的非全局权限定义。
+  - `UpdatePermissionAsync()`：更新非全局权限定义基础资料，不修改权限编码、模块编码、权限类型和资源/操作绑定。
+  - `UpdatePermissionStatusAsync()`：更新权限启停状态，启用资源操作权限时重新校验资源和操作可用性。
+  - `DeletePermissionAsync()`：删除权限定义前校验授权事实、菜单、租户版本、委托、申请和 FLS 引用。
+- 写入约束：
+  - DTO 不接收 `tenantId`，租户隔离依赖当前会话上下文与 Framework 仓储过滤器。
+  - 普通租户命令服务不允许创建或维护平台级全局权限，`IsGlobal` 在创建时固定为 `false`。
+  - 权限编码必填、去空格、创建后不可变、最长 `200`，并要求 `module:resource:action` 格式。
+  - 模块编码为空时从权限编码第一段派生；显式填写时必须与权限编码第一段一致。
+  - 模块编码和权限编码片段只能包含小写英文、数字、连字符、下划线或点。
+  - 资源操作权限必须绑定已启用资源和已启用操作；功能权限和数据范围权限不能绑定资源或操作。
+  - `PermissionCode` 租户上下文内唯一；资源操作权限的 `ResourceId + OperationId` 组合不能重复。
+  - 权限标签如果填写，必须是合法 JSON 数组。
+  - 全局权限不允许通过普通租户命令服务编辑、启停或删除。
+  - 已被角色授权、用户直授权、租户版本、菜单、权限委托、权限申请或权限目标型 FLS 引用的权限禁止删除。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:permission:create`。
+  - 新增 `saas:permission:update`。
+  - 新增 `saas:permission:status`。
+  - 新增 `saas:permission:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 权限定义是授权决策的最小事实单元；权限编码、模块编码、权限类型和资源/操作绑定创建后保持不可变，避免已授权权限被静默改义。
+- 删除采用引用保护，不级联删除角色授权、用户授权、菜单绑定、版本门控、委托、申请或字段级安全策略。
+- 本阶段只维护权限定义配置事实；批量生成、运行时权限决策、缓存失效、审计日志和领域事件处理器留到后续授权闭环阶段。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A40，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的权限定义命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
