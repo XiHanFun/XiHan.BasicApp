@@ -645,6 +645,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 536),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.OAuthToken.Read,
+                "OAuth Token查看",
+                "查看当前租户 OAuth Token 生命周期状态",
+                "[\"saas\",\"oauth-token\"]",
+                true,
+                537,
+                537),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
