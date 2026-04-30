@@ -3086,3 +3086,55 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A43，`XiHan.Framework` git 状态干净。
 - `XiHan.Framework` 本阶段无改动。
 - 本阶段只提交 BasicApp 的部门读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-04-30 A45 Application 部门命令服务
+
+本阶段继续第 6 层应用服务重构，补齐 `SysDepartment` 的写侧基线。范围限定为部门创建、更新、启停、删除、命令 DTO、命令契约、AppService、权限码和权限种子，并在部门结构变化后重建 `SysDepartmentHierarchy` 闭包表；不处理用户部门分配、运行时数据范围计算、组织缓存失效、审计日志和领域事件处理器，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增部门命令 DTO：
+  - `DepartmentCreateDto`：接收父级、部门名称、编码、类型、负责人、联系方式、地址、状态、排序和备注。
+  - `DepartmentUpdateDto`：更新父级、名称、类型、负责人、联系方式、地址、排序和备注，部门编码保持创建后不可变。
+  - `DepartmentStatusUpdateDto`：启用或停用部门，并可追加备注。
+- 新增 `IDepartmentAppService` / `DepartmentAppService`：
+  - `CreateDepartmentAsync()`：创建当前租户上下文内的部门，并重建部门闭包表。
+  - `UpdateDepartmentAsync()`：更新部门基础资料和组织位置，父级变更时重建闭包表。
+  - `UpdateDepartmentStatusAsync()`：更新部门启停状态，启用时校验父级和负责人，停用时阻止已启用子部门残留。
+  - `DeleteDepartmentAsync()`：删除部门前校验子部门、用户归属、角色/用户数据范围和部门型 FLS 引用，并重建闭包表。
+- 写入约束：
+  - DTO 不接收 `tenantId`，租户隔离依赖当前会话上下文与 Framework 仓储过滤器。
+  - 部门编码必填、去空格、创建后不可变、最长 `100`，且只能包含英文、数字、连字符、下划线或点。
+  - 部门名称最长 `100`，联系电话最长 `20`，邮箱最长 `100`，地址和备注最长 `500`。
+  - 部门类型和状态必须是合法枚举值。
+  - 启用部门不能挂载到停用父级部门下，部门父子关系必须通过环路检测。
+  - 负责人必须是当前租户已接受、有效、已生效且未过期的成员。
+  - 删除采用引用保护，不级联删除用户部门、角色数据范围、用户数据范围或字段级安全策略。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:department:create`。
+  - 新增 `saas:department:update`。
+  - 新增 `saas:department:status`。
+  - 新增 `saas:department:delete`。
+  - 写权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 部门编码作为组织运维识别键，创建后不可变，避免用户归属、数据范围和外部同步引用失效。
+- `SysDepartmentHierarchy` 是部门树的查询镜像，不允许独立维护；本阶段在部门结构变更后按当前租户部门全量重建，保证闭包表与实体树一致。
+- 部门写侧只维护组织结构事实；用户归属、角色/用户数据范围、FLS 策略和 ABAC 决策由各自服务维护。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "ConnectionString|ContactPhone|ContactEmail|DatabaseSchema|DatabaseType|IsConnectionStringEncrypted" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A44，`XiHan.Framework` git 状态干净。
+- `XiHan.Framework` 本阶段无改动。
+- 本阶段只提交 BasicApp 的部门命令服务、命令 DTO、权限码/种子和本文档，不推送远端。
