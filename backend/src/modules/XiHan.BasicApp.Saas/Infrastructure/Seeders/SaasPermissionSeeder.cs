@@ -588,7 +588,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"user-data-scope\"]",
                 true,
                 470,
-                470)
+                470),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.FieldLevelSecurity.Read,
+                "字段级安全查看",
+                "查看字段级安全策略列表和详情",
+                "[\"saas\",\"field-level-security\"]",
+                false,
+                480,
+                480)
         ];
     }
 
