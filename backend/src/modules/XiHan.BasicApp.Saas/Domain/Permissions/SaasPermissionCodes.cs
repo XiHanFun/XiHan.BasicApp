@@ -83,7 +83,11 @@ public static class SaasPermissionCodes
         UserDataScope.Update,
         UserDataScope.Status,
         UserDataScope.Revoke,
-        FieldLevelSecurity.Read
+        FieldLevelSecurity.Read,
+        FieldLevelSecurity.Create,
+        FieldLevelSecurity.Update,
+        FieldLevelSecurity.Status,
+        FieldLevelSecurity.Delete
     ];
 
     /// <summary>
@@ -449,5 +453,25 @@ public static class SaasPermissionCodes
         /// 查看字段级安全
         /// </summary>
         public const string Read = "saas:field-level-security:read";
+
+        /// <summary>
+        /// 创建字段级安全
+        /// </summary>
+        public const string Create = "saas:field-level-security:create";
+
+        /// <summary>
+        /// 更新字段级安全
+        /// </summary>
+        public const string Update = "saas:field-level-security:update";
+
+        /// <summary>
+        /// 更新字段级安全状态
+        /// </summary>
+        public const string Status = "saas:field-level-security:status";
+
+        /// <summary>
+        /// 删除字段级安全
+        /// </summary>
+        public const string Delete = "saas:field-level-security:delete";
     }
 }
