@@ -678,7 +678,16 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 "[\"saas\",\"permission-delegation\"]",
                 true,
                 570,
-                570)
+                570),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionRequest.Read,
+                "权限申请查看",
+                "查看当前租户权限申请列表和详情",
+                "[\"saas\",\"permission-request\"]",
+                false,
+                580,
+                580)
         ];
     }
 
