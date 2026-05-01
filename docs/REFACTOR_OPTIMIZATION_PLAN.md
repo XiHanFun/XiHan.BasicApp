@@ -4533,3 +4533,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A75；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的工作流核心读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A77 Frontend API 基线
+
+本阶段进入第 7 层前端 API 重构，先建立应用层 `frontend/src/api` 基线。范围限定为请求实例、动态 API 路由工厂、分页/查询公共类型、查询构造辅助函数和 Vite define 全局类型声明；不接入页面、不改 packages 基础框架、不新增业务页面、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/api/request.ts`：
+  - 基于 `~/request` 的 `createRequestClient()` 创建应用层 `requestClient`。
+  - 统一读取 `VITE_API_BASE_URL` 与 `VITE_API_PREFIX`。
+- 新增 `frontend/src/api/types.ts`：
+  - 对齐 Framework 分页结构：`PageRequest`、`PageResult<T>`、`PageRequestMetadata`、`PageResultMetadata`。
+  - 对齐查询结构：`QueryConditions`、`QueryFilter`、`QuerySort`、`QueryKeyword`、`QueryBehavior`。
+  - 对齐枚举值：`QueryOperator`、`SortDirection`。
+  - 定义 `BasicDto`、`BasicCreateDto`、`BasicUpdateDto` 等 API 基础类型。
+- 新增 `frontend/src/api/base.ts`：
+  - `createDynamicApiClient()`：按 DynamicApi 的 Controller/Action 约定生成基础 GET/POST/PUT/DELETE 调用。
+  - `createReadApi()`：按 `{Resource}Page` / `{Resource}Detail` 约定封装读模型调用。
+  - `createCommandApi()`：按命令服务资源名封装基础创建/更新调用。
+- 新增 `frontend/src/api/helpers.ts`：
+  - 提供默认分页请求、查询行为、查询条件、关键字、过滤和排序构造函数。
+  - `compactRecord()` 用于调用前清理空参数。
+- 新增 `frontend/src/api/index.ts`：
+  - 集中导出 API 基础层。
+- 新增 `frontend/src/types/globals.d.ts`：
+  - 声明 Vite define 注入的 `__APP_VERSION__`、`__APP_BUILD_TIME__`、`__APP_HOMEPAGE__`、`__APP_NAME__`、`__APP_AUTHOR_NAME__`、`__APP_AUTHOR_URL__`。
+  - 修复前端 type-check 对全局常量缺失的基线错误。
+
+设计约束：
+
+- `frontend/src/api` 不出现 `tenantId` / `TenantId` 入参；租户上下文仍由后端会话和框架过滤器处理。
+- `frontend/src/api` 不使用 `any`，必要的动态结构统一使用 `unknown` 或显式联合类型。
+- API 基线只依赖 `~/request` 基础请求包，不反向修改 packages。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A76；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- `frontend/src/types/auto-imports.d.ts` 与 `frontend/src/types/components.d.ts` 已存在于未跟踪 `frontend/src/` 下，不是本阶段改动，本阶段不暂存。
+- 本阶段只提交 BasicApp 的前端 API 基线、全局类型声明和本文档，不推送远端。
