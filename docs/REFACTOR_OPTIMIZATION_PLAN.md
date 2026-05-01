@@ -5242,3 +5242,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的资源定义页面和本文档，不推送远端。
+
+### 2026-05-02 A95 Frontend 操作定义页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建操作定义管理入口。后端已有 `OperationQueryService` / `OperationAppService`，前端已有操作 API 合同，因此本阶段只新增页面和更新本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的 authorization API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/operation/index.vue`：
+  - 使用现有 `operationApi` 对齐 `OperationQueryService` / `OperationAppService` 动态 API。
+  - 使用 VxeGrid 展示操作定义列表，支持关键字、操作类型、分类、HTTP 方法、高危标识、审计标识、全局标识和状态筛选。
+  - 提供新增、编辑、启用/停用、删除入口。
+  - 编辑时仅允许维护后端 `OperationUpdateDto` 支持的名称、类型、分类、HTTP 方法、图标、颜色、高危标识、审计标识、排序、描述和备注；操作编码不在更新 DTO 中变更。
+  - 对平台全局操作禁用编辑、状态切换和删除按钮，避免前端引导调用后端禁止的维护流程。
+
+设计约束：
+
+- 操作定义 API 不接收租户标识；租户隔离由当前会话、后端授权和仓储过滤器控制。
+- 平台全局操作在当前页面只读，普通租户操作由后端 `OperationAppService` 执行最终维护约束。
+- 操作类型、分类和 HTTP 方法均使用后端枚举值，不引入旧字符串枚举或兼容映射。
+- 高危操作和需要审计作为不同布尔语义独立维护，前端不合并为单一状态。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/operation/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/operation`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A94，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的操作定义页面和本文档，不推送远端。
