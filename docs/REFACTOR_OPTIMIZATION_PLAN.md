@@ -4656,3 +4656,42 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A78；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端租户套餐 API、基础分页参数工具复用和本文档，不推送远端。
+
+### 2026-05-01 A80 Frontend 租户成员 API 模块
+
+本阶段继续第 7 层前端 API 重构，在 Tenancy 域内补齐租户成员（TenantMember）接口。范围限定为租户成员 DTO/枚举类型、Query/App 动态 API 调用封装、模块导出，以及 DELETE 路由主键格式化工具复用；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/tenant/types.ts`：
+  - 新增通用有效性状态 `ValidityStatus`，对齐后端 `XiHan.BasicApp.Saas.Domain.Enums.ValidityStatus`。
+  - 新增 `TenantMemberPageQueryDto`、`TenantMemberListItemDto`、`TenantMemberDetailDto`、`TenantMemberUpdateDto`、`TenantMemberStatusUpdateDto`、`TenantMemberInviteStatusUpdateDto`。
+- 新增 `frontend/src/api/modules/tenant/tenant-member.ts`：
+  - `tenantMemberApi.page()` 调用 `TenantMemberQuery/TenantMemberPage`。
+  - `tenantMemberApi.detail()` 调用 `TenantMemberQuery/TenantMemberDetail/{id}`。
+  - `tenantMemberApi.update()` 调用 `TenantMember/TenantMember`。
+  - `tenantMemberApi.updateStatus()` 调用 `TenantMember/TenantMemberStatus`。
+  - `tenantMemberApi.updateInviteStatus()` 调用 `TenantMember/TenantMemberInviteStatus`。
+  - `tenantMemberApi.revoke()` 调用 `TenantMember/TenantMember/{id}`。
+- 更新 `frontend/src/api/modules/tenant/index.ts` 导出租户成员模块。
+- 优化 `frontend/src/api/base.ts`：
+  - 将路由主键格式化开放为 `formatDynamicApiRouteValue()`，供 DELETE 等自定义路由复用。
+
+设计约束：
+
+- 租户成员分页不接收租户标识；筛选项限定为当前上下文内成员关系的 `userId`、成员类型、邀请状态、成员状态和有效期。
+- `userId` 表示被管理用户主键，不作为租户隔离条件。
+- 成员撤销使用后端命令服务的软生命周期更新，不在前端构造删除条件。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段成员 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A79；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端租户成员 API、路由主键格式化工具复用和本文档，不推送远端。
