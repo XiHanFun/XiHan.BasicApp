@@ -4167,3 +4167,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A67；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的任务日志读模型、QueryService、Mapper、权限码/种子、`SysTaskLog` 状态枚举修正和本文档，不推送远端。
+
+### 2026-05-01 A69 Application 审查日志读模型
+
+本阶段继续第 6 层应用服务重构，从工作流/审批域补齐 `SysReviewLog` 的只读入口。范围限定为审查日志分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理审批流转写入、审批节点编排、明文审批意见/附件/IP 读取、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增审查日志读侧 DTO：
+  - `ReviewLogPageQueryDto`：支持关键字、审查主键、审查级别、审查人、原状态、新状态、审查结果、审查动作和审查时间范围筛选。
+  - `ReviewLogListItemDto`：展示审查链路、审查人、状态流转、结果、动作、审查时间和决策说明/附件/操作上下文/扩展/备注存在标记。
+  - `ReviewLogDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `IReviewLogQueryService` / `ReviewLogQueryService`：
+  - `GetReviewLogPageAsync()`：按必填审查时间范围分页读取当前租户上下文内审查日志，走分表仓储 `GetPagedByTimeRangeAsync()`，不触发全分片扫描。
+  - `GetReviewLogDetailAsync()`：按审查日志主键读取详情，依赖分表仓储通过雪花 ID 定位分片。
+- 新增 `ReviewLogApplicationMapper`：
+  - 集中映射审查日志列表和详情。
+  - 只返回审批意见、附件、操作上下文、扩展数据和备注是否存在，不返回原始值。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:review-log:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 审查日志查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- 审查日志分页必须传入 `ReviewTimeStart` 和 `ReviewTimeEnd`，避免分表日志误触发全量扫描。
+- DTO 不返回 `ReviewComment`、`Attachments`、`ReviewIp`、`ExtendData`、`Remark`、Authorization 或 Cookie。
+- 审批意见、附件、审查 IP、扩展数据和备注后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*ReviewComment\b|public .*Attachments\b|public .*ReviewIp\b|public .*ExtendData\b|public .*Remark\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Workflow -g "ReviewLog*.cs"`：0 个匹配。
+- `rg -n "ScanAllAsync" backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Workflow/ReviewLogQueryService.cs`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A68；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的审查日志读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
