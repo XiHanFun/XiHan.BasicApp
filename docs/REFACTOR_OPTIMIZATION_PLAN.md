@@ -5390,3 +5390,42 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的租户版本权限页面和本文档，不推送远端。
+
+### 2026-05-02 A99 Frontend 系统消息 API 与页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建 `system/message` 入口。后端当前已有 `MessageQueryService`，仅提供系统邮件和系统短信查询能力，因此本阶段补齐前端 Messaging API 模块与只读页面，不新增写操作，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他 API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/messaging/`：
+  - `types.ts` 对齐 `EmailPageQueryDto`、`EmailListItemDto`、`EmailDetailDto`、`SmsPageQueryDto`、`SmsListItemDto`、`SmsDetailDto` 与邮件/短信枚举。
+  - `message.ts` 使用 `MessageQuery` 动态 API，暴露 `emailPage`、`emailDetail`、`smsPage`、`smsDetail`。
+  - `index.ts` 聚合导出，并在 `frontend/src/api/index.ts` 增加 messaging 模块导出。
+- 新增 `frontend/src/views/system/message/index.vue`：
+  - 使用 VxeGrid 分别展示系统邮件和系统短信，只读查询，不提供新增、编辑、删除按钮。
+  - 支持邮件/短信切换，按关键字、类型、状态、业务类型、模板和用户主键筛选。
+  - 详情抽屉只展示后端 DTO 已公开的标记字段、业务引用、发送时间、重试和审计时间，不还原正文、地址、手机号等敏感内容。
+
+设计约束：
+
+- 系统消息查询 API 不接收租户标识；租户隔离仍由当前会话、后端授权和仓储过滤器控制。
+- 邮件正文、收件地址、手机号、失败明细等敏感内容当前 DTO 只返回布尔标记，前端不尝试推导或兼容旧明文展示。
+- 后端没有消息命令服务，本阶段保持页面只读，不补不存在的发送、重试、取消接口。
+- 邮件/短信枚举值严格对齐后端 `SysEmail.Enum.cs` / `SysSms.Enum.cs`。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/message/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/message`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A98，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的系统消息 API、系统消息页面和本文档，不推送远端。
