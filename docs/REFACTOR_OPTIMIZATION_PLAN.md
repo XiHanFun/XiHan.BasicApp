@@ -4484,3 +4484,52 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A74；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的站内通知读模型、QueryService、Mapper 和本文档，不推送远端。
+
+### 2026-05-01 A76 Application 工作流核心读模型
+
+本阶段继续第 6 层应用服务重构，从工作流域补齐 `SysTask` 与 `SysReview` 的核心只读入口。范围限定为任务分页、详情、审查单分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理任务调度写入、审批流转写入、日志读取扩展、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增系统任务读侧 DTO：
+  - `TaskPageQueryDto`：支持关键字、任务编码、任务分组、触发类型、运行状态、并发标记、启用状态、下次/上次执行时间范围筛选。
+  - `TaskListItemDto`：展示任务编码、名称、描述、分组、触发规则、运行窗口、执行计数、超时、优先级、并发、重试、状态和执行目标/运行参数/备注存在标记。
+  - `TaskDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增系统审查读侧 DTO：
+  - `ReviewPageQueryDto`：支持关键字、审查编码、审查类型、业务实体引用、提交人、当前审查人、审查状态、审查结果、启用状态和提交/审查时间范围筛选。
+  - `ReviewListItemDto`：展示审查编码、标题、类型、业务实体引用、状态、结果、优先级、提交/当前审查人、级别、审查时间和摘要/载荷/业务快照/审查人集合/附件/扩展/备注存在标记。
+  - `ReviewDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增 `ITaskQueryService` / `TaskQueryService`：
+  - `GetTaskPageAsync()` / `GetTaskDetailAsync()`：读取当前租户上下文内系统任务配置摘要。
+- 新增 `IReviewQueryService` / `ReviewQueryService`：
+  - `GetReviewPageAsync()` / `GetReviewDetailAsync()`：读取当前租户上下文内系统审查单摘要。
+- 新增 `TaskApplicationMapper` 与 `ReviewApplicationMapper`：
+  - 集中映射任务和审查列表/详情。
+  - 任务不返回执行类、执行方法、任务参数和备注原文。
+  - 审查不返回审查内容、审查描述、业务数据、审查人集合、附件、扩展数据和备注原文。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:task:read`。
+  - 新增 `saas:review:read`。
+  - 权限种子覆盖任务配置摘要和审查单摘要只读入口。
+
+设计约束：
+
+- 系统任务和系统审查查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `TaskClass`、`TaskMethod`、`TaskParams`、`ReviewContent`、`ReviewDescription`、`BusinessData`、`ReviewUserIds`、`Attachments`、`ExtendData`、`Remark`、Authorization 或 Cookie。
+- 任务执行目标/参数、审批载荷、业务快照、附件和扩展数据后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*TaskParams\b|public .*TaskClass\b|public .*TaskMethod\b|public .*ReviewContent\b|public .*ReviewDescription\b|public .*BusinessData\b|public .*ReviewUserIds\b|public .*Attachments\b|public .*ExtendData\b|public .*Remark\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Workflow -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A75；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的工作流核心读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
