@@ -4301,3 +4301,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A70；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的系统字典读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A72 Application 系统版本治理读模型
+
+本阶段继续第 6 层应用服务重构，从配置域补齐 `SysVersion` 与 `SysMigrationHistory` 的只读入口。范围限定为版本分页、详情、迁移历史分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理版本写入、迁移执行、启动自检、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增系统版本读侧 DTO：
+  - `VersionPageQueryDto`：支持关键字、应用版本、数据库版本、最小支持版本、升级状态、升级节点和升级开始时间范围筛选。
+  - `VersionListItemDto`：展示应用版本、数据库版本、最小支持版本、升级状态、升级节点、升级开始时间和创建时间。
+  - `VersionDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增系统迁移历史读侧 DTO：
+  - `MigrationHistoryPageQueryDto`：支持关键字、版本、脚本名称、成功标记、节点名称和执行时间范围筛选。
+  - `MigrationHistoryListItemDto`：展示版本、脚本名称、执行时间、成功标记、节点名称和失败明细存在标记。
+  - `MigrationHistoryDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `IVersionQueryService` / `VersionQueryService`：
+  - `GetVersionPageAsync()` / `GetVersionDetailAsync()`：读取当前租户上下文内系统版本。
+  - `GetMigrationHistoryPageAsync()` / `GetMigrationHistoryDetailAsync()`：读取当前租户上下文内系统迁移历史。
+- 新增 `VersionApplicationMapper`：
+  - 集中映射版本和迁移历史列表/详情。
+  - 迁移历史只返回失败明细是否存在，不返回失败错误原文。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:version:read`。
+  - 权限种子覆盖系统版本和迁移历史只读入口，并标记为审计敏感查看权限。
+
+设计约束：
+
+- 系统版本和迁移历史查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `ErrorMessage`、`ConnectionString`、Secret、Password、Authorization 或 Cookie。
+- 迁移失败原文可能包含脚本片段、连接信息或节点上下文，后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*ErrorMessage\b|public .*ConnectionString\b|public .*Secret\b|public .*Password\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Configuration -g "*Version*.cs" -g "*Migration*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A71；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的系统版本治理读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
