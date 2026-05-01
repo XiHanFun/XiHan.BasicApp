@@ -5002,3 +5002,48 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的缓存管理 API、缓存管理页面和本文档，不推送远端。
+
+### 2026-05-02 A89 Frontend 用户会话页面与 Identity API
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建用户会话前端 API 与页面。范围限定为 `frontend/src` 和本文档，不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/identity/types.ts`：
+  - 按后端 `UserSessionPageQueryDto`、`UserSessionListItemDto`、`UserSessionDetailDto`、`UserSessionRevokeDto`、`UserSessionsRevokeDto` 定义前端类型。
+  - 新增 `DeviceType` 枚举，值与后端 `SysUserSession.Enum.cs` 对齐。
+- 新增 `frontend/src/api/modules/identity/user-session.ts`：
+  - `userSessionApi.page()` 调用 `UserSessionQuery/UserSessionPage`。
+  - `userSessionApi.detail()` 调用 `UserSessionQuery/UserSessionDetail/{id}`。
+  - `userSessionApi.revokeSession()` 调用 `UserSession/UserSession`。
+  - `userSessionApi.revokeUserSessions()` 调用 `UserSession/UserSessions`。
+- 新增 `frontend/src/api/modules/identity/index.ts` 并从 `frontend/src/api/index.ts` 导出 Identity 模块。
+- 新增 `frontend/src/views/system/user-session/index.vue`：
+  - 补齐动态路由 `system/user-session/index` 对应页面。
+  - 使用 VxeGrid 展示用户会话列表，支持关键字、设备类型、在线状态、撤销状态筛选。
+  - 提供单会话下线和用户全部会话下线入口。
+  - 删除旧页面中的删除会话记录入口，因为当前后端 `UserSessionAppService` 不暴露删除用例。
+
+设计约束：
+
+- 用户会话 API 不接收租户标识；租户隔离由当前会话、后端授权和仓储过滤器控制。
+- 前端只触发撤销用例，不负责真实会话/Token 裁决；后端通过领域事件联动撤销。
+- 页面查询失败时返回空表格并提示，避免后端暂不可用导致前端路由白屏。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/user-session/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/user-session`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A88，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的 Identity 用户会话 API、用户会话页面和本文档，不推送远端。
