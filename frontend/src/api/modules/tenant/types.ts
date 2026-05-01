@@ -1,14 +1,6 @@
 import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
-
-export enum EnableStatus {
-  Disabled = 0,
-  Enabled = 1,
-}
-
-export enum ValidityStatus {
-  Invalid = 0,
-  Valid = 1,
-}
+import type { EnableStatus, PermissionType, ValidityStatus } from '../shared'
+export { EnableStatus, PermissionType, ValidityStatus } from '../shared'
 
 export enum TenantConfigStatus {
   Pending = 0,
@@ -47,12 +39,6 @@ export enum TenantMemberType {
   Guest = 4,
   Consultant = 5,
   PlatformAdmin = 99,
-}
-
-export enum PermissionType {
-  ResourceBased = 0,
-  Functional = 1,
-  DataScope = 2,
 }
 
 export interface TenantPageQueryDto extends PageRequest {
