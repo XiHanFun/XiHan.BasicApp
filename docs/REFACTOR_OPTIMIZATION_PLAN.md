@@ -4439,3 +4439,48 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A73；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的邮件短信发送读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A75 Application 站内通知读模型
+
+本阶段继续第 6 层应用服务重构，从消息域补齐 `SysNotification` 与 `SysUserNotification` 的站内通知只读入口。范围限定为通知分页、详情、用户通知分页、详情、读侧 DTO、查询契约、QueryService 和显式映射器；不处理通知发布、读取确认写入、实时推送、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增系统通知读侧 DTO：
+  - `NotificationPageQueryDto`：支持关键字、发送用户、通知类型、业务关联、广播标记、确认标记、发布标记和发送时间范围筛选。
+  - `NotificationListItemDto`：展示发送用户、通知类型、标题、业务关联、发送/过期时间、广播/确认/发布状态和正文/视觉标识/跳转动作/备注存在标记。
+  - `NotificationDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增用户通知读侧 DTO：
+  - `UserNotificationPageQueryDto`：支持关键字、通知主键、用户主键、通知状态、已读时间范围和确认时间范围筛选。
+  - `UserNotificationListItemDto`：展示通知主键、用户主键、通知状态、读取时间、确认时间和创建时间。
+  - `UserNotificationDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `INotificationQueryService` / `NotificationQueryService`：
+  - `GetNotificationPageAsync()` / `GetNotificationDetailAsync()`：读取当前租户上下文内站内通知摘要。
+  - `GetUserNotificationPageAsync()` / `GetUserNotificationDetailAsync()`：读取当前租户上下文内用户通知状态摘要。
+- 新增 `NotificationApplicationMapper`：
+  - 集中映射通知和用户通知列表/详情。
+  - 通知只返回标题、业务关联、状态和存在标记，不返回正文、图标、跳转链接或备注原文。
+- 复用 `SaasPermissionCodes.Message.Read`：
+  - 本阶段归入消息域查看权限，不新增重复权限码。
+
+设计约束：
+
+- 站内通知查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `Content`、`Icon`、`Link`、`Remark`、Authorization 或 Cookie。
+- 通知正文、视觉标识、跳转链接和备注后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 包源警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*Content\b|public .*Icon\b|public .*Link\b|public .*Remark\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Messaging -g "*Notification*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A74；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的站内通知读模型、QueryService、Mapper 和本文档，不推送远端。
