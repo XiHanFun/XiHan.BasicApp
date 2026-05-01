@@ -3987,3 +3987,47 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A63；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的异常日志读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A65 Application 登录日志读模型
+
+本阶段继续第 6 层应用服务重构，从审计日志域补齐 `SysLoginLog` 的只读审计入口。范围限定为登录日志分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理登录采集管线、风控策略计算、明文客户端上下文读取、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增登录日志读侧 DTO：
+  - `LoginLogPageQueryDto`：支持关键字、用户主键、用户名、会话标识、TraceId、登录结果、风险登录状态和登录时间范围筛选。
+  - `LoginLogListItemDto`：展示用户摘要、会话链路、登录结果、风险标记、登录时间和客户端/设备/结果说明存在标记。
+  - `LoginLogDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `ILoginLogQueryService` / `LoginLogQueryService`：
+  - `GetLoginLogPageAsync()`：按必填登录时间范围分页读取当前租户上下文内登录日志，走分表仓储 `GetPagedByTimeRangeAsync()`，不触发全分片扫描。
+  - `GetLoginLogDetailAsync()`：按登录日志主键读取详情，依赖分表仓储通过雪花 ID 定位分片。
+- 新增 `LoginLogApplicationMapper`：
+  - 集中映射登录日志列表和详情。
+  - 只返回客户端上下文、设备上下文和结果说明是否存在，不返回原始值。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:login-log:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 登录日志查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- 登录日志分页必须传入 `LoginTimeStart` 和 `LoginTimeEnd`，避免分表日志误触发全量扫描。
+- DTO 不返回 `LoginIp`、`LoginLocation`、`Browser`、`Os`、`UserAgent`、`Device`、`DeviceId`、`Message`、Authorization 或 Cookie。
+- 登录 IP、地址、User-Agent、设备指纹和原始登录结果说明后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*LoginIp\b|public .*LoginLocation\b|public .*Browser\b|public .*Os\b|public .*UserAgent\b|public .*Device\b|public .*DeviceId\b|public .*Message\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Audit -g "LoginLog*.cs"`：0 个匹配。
+- `rg -n "ScanAllAsync" backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Audit/LoginLogQueryService.cs`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A64；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的登录日志读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
