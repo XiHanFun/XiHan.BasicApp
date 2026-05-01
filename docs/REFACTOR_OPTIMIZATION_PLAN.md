@@ -4913,3 +4913,52 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端角色权限 API 和本文档，不推送远端。
+
+### 2026-05-02 A87 Frontend src 应用壳与系统监控页恢复
+
+本阶段切换为“前端能打开”优先，补齐 `frontend/src` 应用入口架构，并按要求恢复 `3d3e01a03f3372ef6bd79c51756c57072949d9ec` 删除前的系统监控页面。范围限定为 `frontend/src`，不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/main.ts`：
+  - 初始化 Vue、Pinia、i18n、VxeTable、Iconify 离线图标、Router Guard。
+  - 绑定 request router，并注册应用上下文。
+- 新增 `frontend/src/App.vue` 与 `frontend/src/styles/index.css`：
+  - 接入 Naive UI Provider、全局主题、快捷键、HTML 样式同步和锁屏组件。
+  - 统一引入 packages 设计样式。
+- 新增 `frontend/src/router/index.ts` 与 `frontend/src/router/routes.ts`：
+  - 补齐认证页、基础布局、仪表盘、关于、个人中心和错误页静态路由。
+  - 保持后续动态菜单仍通过 packages `mapMenuToRoutes` 加载。
+- 新增 `frontend/src/app/context.ts`：
+  - 注册 packages 所需的 API、Router、静态路由和 `src/views` glob。
+  - 对仪表盘、通知、枚举、关于页依赖的非关键接口提供空数据降级，避免后端未就绪时白屏。
+- 恢复 `frontend/src/views/system/server/index.vue`：
+  - 来源为 `3d3e01a03f3372ef6bd79c51756c57072949d9ec^` 中被删除的系统监控页面。
+  - 继续配合 packages 动态菜单别名 `system/monitor/index -> system/server/index`。
+- 新增 `frontend/src/api/modules/server.ts` 并从 `frontend/src/api/index.ts` 导出：
+  - 补齐 `SysRuntimeInfo`、`SysCpuInfo`、`SysMemoryInfo`、`SysDiskInfo`、`SysNetworkInfo`、`SysBoardInfo`、`SysGpuInfo`、`SysServerInfo`、`SysNuGetPackage`。
+  - 使用当前动态 API 封装调用 `Server/RuntimeInfo`、`Server/CpuInfo`、`Server/MemoryInfo`、`Server/DiskInfo`、`Server/NetworkInfo`、`Server/BoardInfo`、`Server/GpuInfo`、`Server/NuGetPackages`。
+
+设计约束：
+
+- 本阶段不新增 Controller；前端仍按 DynamicApi 路由封装请求。
+- 系统监控接口不传租户标识；监控数据属于平台/运维读模型，权限控制交给后端服务。
+- 应用上下文只做启动必需的依赖注入和非关键数据降级，不在前端实现授权裁决。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/main.ts`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/server/index.vue`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A86，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的 `frontend/src` 应用壳、系统监控页恢复、Server API 和本文档，不推送远端。
