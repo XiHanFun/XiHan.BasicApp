@@ -102,6 +102,7 @@ public static class SaasPermissionCodes
         Config.Read,
         Dict.Read,
         Version.Read,
+        File.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -716,6 +717,17 @@ public static class SaasPermissionCodes
         /// 查看系统版本
         /// </summary>
         public const string Read = "saas:version:read";
+    }
+
+    /// <summary>
+    /// 系统文件权限码
+    /// </summary>
+    public static class File
+    {
+        /// <summary>
+        /// 查看系统文件
+        /// </summary>
+        public const string Read = "saas:file:read";
     }
 
     /// <summary>
