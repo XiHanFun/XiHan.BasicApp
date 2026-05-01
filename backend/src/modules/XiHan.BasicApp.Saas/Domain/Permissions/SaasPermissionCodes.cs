@@ -92,6 +92,7 @@ public static class SaasPermissionCodes
         OAuthToken.Read,
         AccessLog.Read,
         ApiLog.Read,
+        AuditLog.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -596,6 +597,17 @@ public static class SaasPermissionCodes
         /// 查看 API 日志
         /// </summary>
         public const string Read = "saas:api-log:read";
+    }
+
+    /// <summary>
+    /// 审计日志权限码
+    /// </summary>
+    public static class AuditLog
+    {
+        /// <summary>
+        /// 查看审计日志
+        /// </summary>
+        public const string Read = "saas:audit-log:read";
     }
 
     /// <summary>
