@@ -99,6 +99,7 @@ public static class SaasPermissionCodes
         PermissionChangeLog.Read,
         TaskLog.Read,
         ReviewLog.Read,
+        Config.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -680,6 +681,17 @@ public static class SaasPermissionCodes
         /// 查看审查日志
         /// </summary>
         public const string Read = "saas:review-log:read";
+    }
+
+    /// <summary>
+    /// 系统配置权限码
+    /// </summary>
+    public static class Config
+    {
+        /// <summary>
+        /// 查看系统配置
+        /// </summary>
+        public const string Read = "saas:config:read";
     }
 
     /// <summary>

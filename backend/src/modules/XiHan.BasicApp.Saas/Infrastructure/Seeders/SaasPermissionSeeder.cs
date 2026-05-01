@@ -735,6 +735,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 860),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.Config.Read,
+                "系统配置查看",
+                "查看当前租户系统配置元数据",
+                "[\"saas\",\"config\"]",
+                true,
+                870,
+                870),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
