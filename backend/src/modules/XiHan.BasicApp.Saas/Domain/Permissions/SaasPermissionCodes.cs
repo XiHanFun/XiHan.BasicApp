@@ -96,6 +96,7 @@ public static class SaasPermissionCodes
         ExceptionLog.Read,
         LoginLog.Read,
         OperationLog.Read,
+        PermissionChangeLog.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -644,6 +645,17 @@ public static class SaasPermissionCodes
         /// 查看操作日志
         /// </summary>
         public const string Read = "saas:operation-log:read";
+    }
+
+    /// <summary>
+    /// 权限变更日志权限码
+    /// </summary>
+    public static class PermissionChangeLog
+    {
+        /// <summary>
+        /// 查看权限变更日志
+        /// </summary>
+        public const string Read = "saas:permission-change-log:read";
     }
 
     /// <summary>
