@@ -1,4 +1,5 @@
 export * from './operation'
 export * from './permission'
 export * from './resource'
+export * from './role'
 export * from './types'
