@@ -1,8 +1,9 @@
 import type { AxiosRequestConfig } from 'axios'
-import type { ApiId, PageRequest, PageResult } from './types'
+import type { ApiId, ApiPrimitive, PageRequest, PageResult } from './types'
 import { requestClient } from './request'
 
-export type DynamicApiParams = Record<string, boolean | number | string | undefined>
+export type DynamicApiParamValue = boolean | number | string | undefined
+export type DynamicApiParams = Record<string, DynamicApiParamValue>
 
 export interface DynamicApiClient {
   delete<TResult = void>(action: string, config?: AxiosRequestConfig): Promise<TResult>
@@ -52,10 +53,10 @@ export function createReadApi<TListItem, TDetail, TQuery extends PageRequest = P
 
   return {
     page(input: TQuery) {
-      return api.get<PageResult<TListItem>>(`${normalizedResourceName}Page`, undefined, { params: input })
+      return api.get<PageResult<TListItem>>(`${normalizedResourceName}Page`, toPageRequestParams(input))
     },
     detail(id: ApiId) {
-      return api.get<TDetail | null>(`${normalizedResourceName}Detail`, { id })
+      return api.get<TDetail | null>(`${normalizedResourceName}Detail/${formatRouteValue(id)}`)
     },
   }
 }
@@ -79,6 +80,63 @@ export function createCommandApi<TCreate, TUpdate, TDetail>(
 
 function buildActionUrl(controllerName: string, action: string) {
   return `/${controllerName}/${normalizeSegment(action)}`
+}
+
+function toPageRequestParams(input: PageRequest): DynamicApiParams {
+  const params: DynamicApiParams = {
+    'Behavior.DisableDefaultSort': input.behavior.disableDefaultSort,
+    'Behavior.DisablePaging': input.behavior.disablePaging,
+    'Behavior.EnableSplitQuery': input.behavior.enableSplitQuery,
+    'Behavior.IgnoreSoftDelete': input.behavior.ignoreSoftDelete,
+    'Behavior.IgnoreTenant': input.behavior.ignoreTenant,
+    'Page.PageIndex': input.page.pageIndex,
+    'Page.PageSize': input.page.pageSize,
+  }
+
+  appendParam(params, 'Behavior.QueryTimeout', input.behavior.queryTimeout)
+  appendKeywordParams(params, input)
+  appendFilterParams(params, input)
+  appendSortParams(params, input)
+
+  return params
+}
+
+function appendKeywordParams(params: DynamicApiParams, input: PageRequest) {
+  appendParam(params, 'Conditions.Keyword.Value', input.conditions.keyword?.value)
+  input.conditions.keyword?.fields.forEach((field, index) => {
+    appendParam(params, `Conditions.Keyword.Fields[${index}]`, field)
+  })
+}
+
+function appendFilterParams(params: DynamicApiParams, input: PageRequest) {
+  input.conditions.filters.forEach((filter, index) => {
+    appendParam(params, `Conditions.Filters[${index}].Field`, filter.field)
+    appendParam(params, `Conditions.Filters[${index}].Operator`, filter.operator)
+    appendParam(params, `Conditions.Filters[${index}].Value`, filter.value)
+    filter.values?.forEach((value, valueIndex) => {
+      appendParam(params, `Conditions.Filters[${index}].Values[${valueIndex}]`, value)
+    })
+  })
+}
+
+function appendSortParams(params: DynamicApiParams, input: PageRequest) {
+  input.conditions.sorts.forEach((sort, index) => {
+    appendParam(params, `Conditions.Sorts[${index}].Direction`, sort.direction)
+    appendParam(params, `Conditions.Sorts[${index}].Field`, sort.field)
+    appendParam(params, `Conditions.Sorts[${index}].Priority`, sort.priority)
+  })
+}
+
+function appendParam(params: DynamicApiParams, key: string, value: ApiPrimitive | undefined) {
+  if (value === undefined || value === null || value === '') {
+    return
+  }
+
+  params[key] = value
+}
+
+function formatRouteValue(value: ApiId) {
+  return encodeURIComponent(String(value))
 }
 
 function normalizeSegment(value: string) {

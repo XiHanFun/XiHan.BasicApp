@@ -4579,3 +4579,41 @@ pnpm lint
 - `XiHan.Framework` 本阶段无我方代码改动。
 - `frontend/src/types/auto-imports.d.ts` 与 `frontend/src/types/components.d.ts` 已存在于未跟踪 `frontend/src/` 下，不是本阶段改动，本阶段不暂存。
 - 本阶段只提交 BasicApp 的前端 API 基线、全局类型声明和本文档，不推送远端。
+
+### 2026-05-01 A78 Frontend 租户 API 模块
+
+本阶段继续第 7 层前端 API 重构，补齐 `frontend/src/api/modules/tenant` 租户管理接口。范围限定为租户 DTO/枚举类型、租户 Query/App 动态 API 调用封装、租户模块导出，以及基础读 API 的 DynamicApi 路由参数修正；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/tenant/types.ts`：
+  - 对齐后端租户 DTO：`TenantPageQueryDto`、`TenantListItemDto`、`TenantDetailDto`、`TenantCreateDto`、`TenantUpdateDto`、`TenantStatusUpdateDto`、`TenantSwitcherDto`。
+  - 对齐租户枚举：`TenantConfigStatus`、`TenantIsolationMode`、`TenantStatus`、`TenantMemberInviteStatus`、`TenantMemberType`。
+- 新增 `frontend/src/api/modules/tenant/tenant.ts`：
+  - `tenantApi.page()` 调用 `TenantQuery/TenantPage`，查询参数只包含分页、查询行为和租户业务筛选。
+  - `tenantApi.detail()` 调用 `TenantQuery/TenantDetail/{id}`。
+  - `tenantApi.myAvailableTenants()` 调用 `TenantQuery/MyAvailableTenants`。
+  - `tenantApi.create()` / `tenantApi.update()` / `tenantApi.updateStatus()` 对齐 `TenantAppService` 命令入口。
+- 新增 `frontend/src/api/modules/tenant/index.ts` 并从 `frontend/src/api/index.ts` 导出租户模块。
+- 修正 `frontend/src/api/base.ts`：
+  - `createReadApi().detail(id)` 改为路由段传参，符合 DynamicApi 对 GET 主键参数自动绑定到 Route 的规则。
+  - `createReadApi().page(input)` 将分页、行为、条件序列化为 MVC 可绑定的点号/索引查询参数，避免嵌套对象被 Axios 序列化成不可控格式。
+
+设计约束：
+
+- 租户分页、详情、创建、更新、状态更新 API 不接收租户标识作为 URL/Query/Body 的鉴权租户；租户隔离仍依赖后端会话上下文和 Framework 全局过滤器。
+- `TenantSwitcherDto.tenantId` 仅为后端返回的当前用户可进入租户项标识，不作为本阶段租户数据查询条件。
+- 前端 API 模块不使用 `any`，动态查询参数统一使用显式联合类型。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：1 个响应字段匹配，位于 `TenantSwitcherDto.tenantId`；请求入参、查询参数和命令 DTO 未新增租户标识筛选。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A77；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端租户 API 模块、基础读 API 动态路由修正和本文档，不推送远端。
