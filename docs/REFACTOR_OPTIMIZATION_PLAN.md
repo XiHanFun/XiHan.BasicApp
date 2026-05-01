@@ -5316,3 +5316,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的租户管理页面和本文档，不推送远端。
+
+### 2026-05-02 A97 Frontend 租户版本页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建租户版本管理入口。后端已有 `TenantEditionQueryService` / `TenantEditionAppService`，前端已有租户版本 API 合同，因此本阶段只新增页面和更新本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的 tenant API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/tenant-edition/index.vue`：
+  - 使用现有 `tenantEditionApi` 对齐 `TenantEditionQueryService` / `TenantEditionAppService` 动态 API。
+  - 使用 VxeGrid 展示租户版本列表，支持关键字、免费标识、默认标识和状态筛选。
+  - 提供新增、编辑、启用/停用、设为默认入口；后端当前未暴露删除租户版本命令，因此页面不提供删除按钮。
+  - 编辑时维护后端 `TenantEditionUpdateDto` 支持的版本名称、描述、用户上限、存储上限、价格、计费周期、免费标识、默认标识、排序和备注；版本编码不在更新 DTO 中变更。
+  - 默认版本停用、免费版本价格、默认版本状态等约束在前端做基础校验，最终仍以后端服务为准。
+
+设计约束：
+
+- 租户版本页维护套餐/版本元数据，不接收或传递当前租户上下文标识。
+- 默认版本必须启用；停用默认版本按钮在前端禁用，后端继续执行最终约束。
+- 设置默认版本使用独立 `DefaultTenantEdition` 动态 API，不通过前端批量改写多个版本状态。
+- 本阶段不混入租户版本权限绑定页，保留给后续 `tenant-edition-permission` 小项。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/tenant-edition/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/tenant-edition`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A96，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的租户版本页面和本文档，不推送远端。
