@@ -5279,3 +5279,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的操作定义页面和本文档，不推送远端。
+
+### 2026-05-02 A96 Frontend 租户管理页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建租户管理入口。后端已有 `TenantQueryService` / `TenantAppService`，前端已有租户 API 合同，因此本阶段只新增页面和更新本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的 tenant API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/tenant/index.vue`：
+  - 使用现有 `tenantApi` 对齐 `TenantQueryService` / `TenantAppService` 动态 API。
+  - 使用 VxeGrid 展示租户列表，支持关键字、租户状态、配置状态、版本 ID 和到期时间范围筛选。
+  - 提供新增与编辑入口；后端当前未暴露删除租户命令，因此页面不提供删除按钮。
+  - 编辑时维护后端 `TenantUpdateDto` 支持的租户名称、简称、Logo、域名、版本、隔离模式、到期时间、用户上限、存储上限、排序和备注；租户编码不在更新 DTO 中变更。
+  - 编辑时若租户状态发生变化，额外调用 `TenantStatus` 动态 API 并带变更原因。
+
+设计约束：
+
+- 租户管理页维护的是租户实体本身，不把当前会话租户标识作为查询或写入条件传给后端。
+- 租户上下文、平台权限和数据过滤仍以后端 `TenantQueryService` / `TenantAppService` 为准，前端不承担跨租户授权判断。
+- 租户隔离模式、租户状态和配置状态均使用后端枚举值，不引入旧字符串兼容字段。
+- 版本选择本阶段先使用版本主键输入，避免混入租户版本选择器和版本管理页的小项。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/tenant/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/tenant`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A95，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的租户管理页面和本文档，不推送远端。
