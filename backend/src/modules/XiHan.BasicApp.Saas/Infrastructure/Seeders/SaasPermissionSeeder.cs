@@ -717,6 +717,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 840),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.Task.Read,
+                "系统任务查看",
+                "查看当前租户系统任务配置摘要",
+                "[\"saas\",\"task\"]",
+                true,
+                845,
+                845),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.TaskLog.Read,
                 "任务日志查看",
                 "查看当前租户任务执行日志摘要",
@@ -724,6 +733,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 true,
                 850,
                 850),
+            new(
+                SaasPermissionCodes.Module,
+                SaasPermissionCodes.Review.Read,
+                "系统审查查看",
+                "查看当前租户系统审查单摘要",
+                "[\"saas\",\"review\"]",
+                true,
+                855,
+                855),
             new(
                 SaasPermissionCodes.Module,
                 SaasPermissionCodes.ReviewLog.Read,

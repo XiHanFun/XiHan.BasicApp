@@ -97,7 +97,9 @@ public static class SaasPermissionCodes
         LoginLog.Read,
         OperationLog.Read,
         PermissionChangeLog.Read,
+        Task.Read,
         TaskLog.Read,
+        Review.Read,
         ReviewLog.Read,
         Config.Read,
         Dict.Read,
@@ -666,6 +668,17 @@ public static class SaasPermissionCodes
     }
 
     /// <summary>
+    /// 系统任务权限码
+    /// </summary>
+    public static class Task
+    {
+        /// <summary>
+        /// 查看系统任务
+        /// </summary>
+        public const string Read = "saas:task:read";
+    }
+
+    /// <summary>
     /// 任务日志权限码
     /// </summary>
     public static class TaskLog
@@ -674,6 +687,17 @@ public static class SaasPermissionCodes
         /// 查看任务日志
         /// </summary>
         public const string Read = "saas:task-log:read";
+    }
+
+    /// <summary>
+    /// 系统审查权限码
+    /// </summary>
+    public static class Review
+    {
+        /// <summary>
+        /// 查看系统审查
+        /// </summary>
+        public const string Read = "saas:review:read";
     }
 
     /// <summary>
