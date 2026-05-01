@@ -56,7 +56,7 @@ export function createReadApi<TListItem, TDetail, TQuery extends PageRequest = P
       return api.get<PageResult<TListItem>>(`${normalizedResourceName}Page`, createPageRequestParams(input))
     },
     detail(id: ApiId) {
-      return api.get<TDetail | null>(`${normalizedResourceName}Detail/${formatRouteValue(id)}`)
+      return api.get<TDetail | null>(`${normalizedResourceName}Detail/${formatDynamicApiRouteValue(id)}`)
     },
   }
 }
@@ -135,7 +135,7 @@ function appendSortParams(params: DynamicApiParams, input: PageRequest) {
   })
 }
 
-function formatRouteValue(value: ApiId) {
+export function formatDynamicApiRouteValue(value: ApiId) {
   return encodeURIComponent(String(value))
 }
 
