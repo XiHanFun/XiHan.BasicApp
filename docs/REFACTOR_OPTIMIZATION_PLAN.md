@@ -4805,3 +4805,39 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A82；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端资源定义 API 和本文档，不推送远端。
+
+### 2026-05-01 A84 Frontend 操作定义 API 模块
+
+本阶段继续 Authorization 域前端 API 重构，补齐操作定义（Operation）接口。范围限定为操作 DTO/枚举类型、Query/App 动态 API 调用封装和模块导出；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `HttpMethodType`、`OperationCategory`、`OperationTypeCode`。
+  - 新增 `OperationPageQueryDto`、`OperationListItemDto`、`OperationDetailDto`、`OperationCreateDto`、`OperationUpdateDto`、`OperationStatusUpdateDto`、`OperationSelectQueryDto`、`OperationSelectItemDto`。
+- 新增 `frontend/src/api/modules/authorization/operation.ts`：
+  - `operationApi.page()` 调用 `OperationQuery/OperationPage`。
+  - `operationApi.detail()` 调用 `OperationQuery/OperationDetail/{id}`。
+  - `operationApi.availableGlobal()` 调用 `OperationQuery/AvailableGlobalOperations`。
+  - `operationApi.create()` / `operationApi.update()` / `operationApi.updateStatus()` 对齐 `OperationAppService`。
+  - `operationApi.delete()` 调用 `Operation/Operation/{id}`。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出操作定义模块。
+
+设计约束：
+
+- 操作定义 API 不接收租户标识；操作可见性、全局操作维护限制和引用约束由后端服务校验。
+- 创建/更新 DTO 不暴露 `isGlobal`，避免前端构造平台级全局操作维护入口。
+- 操作选择器只传关键字、操作类型、操作分类和数量上限，用于后续权限定义选择操作。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段操作定义 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A83；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端操作定义 API 和本文档，不推送远端。
