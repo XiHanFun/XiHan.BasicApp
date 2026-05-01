@@ -4962,3 +4962,43 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的 `frontend/src` 应用壳、系统监控页恢复、Server API 和本文档，不推送远端。
+
+### 2026-05-02 A88 Frontend 缓存管理页面与 API
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，优先恢复依赖最少的缓存管理入口。范围限定为 `frontend/src` 和本文档，不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/cache.ts`：
+  - 通过 `createDynamicApiClient('Cache')` 封装缓存动态 API。
+  - 补齐 `cacheApi.getString()`、`cacheApi.setString()`、`cacheApi.exists()`、`cacheApi.remove()`、`cacheApi.getKeys()`、`cacheApi.removeByPattern()`。
+  - 新增 `CacheStringSetInput`、`CacheExistsResult`、`CacheRemoveByPatternResult` 类型。
+- 更新 `frontend/src/api/index.ts` 导出缓存 API 模块。
+- 新增 `frontend/src/views/system/cache/index.vue`：
+  - 补齐动态路由 `system/cache/index` 对应页面。
+  - 页面加载时不主动请求后端，避免缓存服务暂不可用时影响前端打开。
+  - 提供读取、写入、存在检查、删除键、查询键列表、按模式删除等操作，并用 `XJsonViewer` 展示执行结果。
+
+设计约束：
+
+- 缓存管理 API 不接收租户标识；缓存命名空间、权限控制和跨租户风险由后端服务负责。
+- 页面只做运维操作入口，不在前端实现授权裁决。
+- 本阶段继续保持 `frontend/packages` 不变，避免覆盖并行任务的基础框架改动。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/cache/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/cache`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A87，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的缓存管理 API、缓存管理页面和本文档，不推送远端。
