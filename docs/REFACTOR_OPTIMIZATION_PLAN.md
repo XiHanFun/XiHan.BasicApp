@@ -4695,3 +4695,39 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A79；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端租户成员 API、路由主键格式化工具复用和本文档，不推送远端。
+
+### 2026-05-01 A81 Frontend 租户套餐权限 API 模块
+
+本阶段继续第 7 层前端 API 重构，补齐租户套餐权限（TenantEditionPermission）接口。范围限定为套餐权限 DTO/枚举类型、Query/App 动态 API 调用封装和模块导出；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/tenant/types.ts`：
+  - 新增 `PermissionType`，对齐后端权限类型枚举。
+  - 新增 `TenantEditionPermissionListItemDto`、`TenantEditionPermissionDetailDto`、`TenantEditionPermissionGrantDto`、`TenantEditionPermissionStatusUpdateDto`。
+- 新增 `frontend/src/api/modules/tenant/tenant-edition-permission.ts`：
+  - `tenantEditionPermissionApi.list()` 调用 `TenantEditionPermissionQuery/TenantEditionPermissions/{editionId}`，支持 `onlyValid` 查询参数。
+  - `tenantEditionPermissionApi.detail()` 调用 `TenantEditionPermissionQuery/TenantEditionPermissionDetail/{id}`。
+  - `tenantEditionPermissionApi.grant()` 调用 `TenantEditionPermission/TenantEditionPermission`。
+  - `tenantEditionPermissionApi.updateStatus()` 调用 `TenantEditionPermission/TenantEditionPermissionStatus`。
+  - `tenantEditionPermissionApi.revoke()` 调用 `TenantEditionPermission/TenantEditionPermission/{id}`。
+- 更新 `frontend/src/api/modules/tenant/index.ts` 导出租户套餐权限模块。
+
+设计约束：
+
+- `editionId` 表示租户套餐资源主键，不是租户上下文；套餐权限列表不接收租户标识。
+- 权限授权只传套餐主键、权限主键和备注，实际可授权性由后端校验平台级全局权限、启用状态和重复绑定。
+- 前端不实现授权规则裁剪，不承担后端权限校验职责。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段套餐权限 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A80；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端租户套餐权限 API 和本文档，不推送远端。

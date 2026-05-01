@@ -1,3 +1,4 @@
+export * from './tenant-edition-permission'
 export * from './tenant-edition'
 export * from './tenant-member'
 export * from './tenant'
