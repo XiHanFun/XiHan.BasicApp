@@ -771,6 +771,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 900),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.Message.Read,
+                "系统消息查看",
+                "查看当前租户邮件和短信发送摘要",
+                "[\"saas\",\"message\"]",
+                true,
+                910,
+                910),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",

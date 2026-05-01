@@ -103,6 +103,7 @@ public static class SaasPermissionCodes
         Dict.Read,
         Version.Read,
         File.Read,
+        Message.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -728,6 +729,17 @@ public static class SaasPermissionCodes
         /// 查看系统文件
         /// </summary>
         public const string Read = "saas:file:read";
+    }
+
+    /// <summary>
+    /// 系统消息权限码
+    /// </summary>
+    public static class Message
+    {
+        /// <summary>
+        /// 查看系统消息
+        /// </summary>
+        public const string Read = "saas:message:read";
     }
 
     /// <summary>

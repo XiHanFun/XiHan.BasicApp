@@ -4393,3 +4393,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A72；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的系统文件读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A74 Application 邮件短信发送读模型
+
+本阶段继续第 6 层应用服务重构，从消息域补齐 `SysEmail` 与 `SysSms` 的发送记录只读入口。范围限定为邮件分页、详情、短信分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理发送调度、重试执行、模板渲染、正文读取、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增系统邮件读侧 DTO：
+  - `EmailPageQueryDto`：支持关键字、发送用户、接收用户、邮件类型、状态、模板、业务关联和发送时间范围筛选。
+  - `EmailListItemDto`：展示用户主键、邮件类型、主题、HTML 标记、模板、状态、计划/实际发送时间、重试、业务关联和地址/正文/附件/模板数据/失败/备注存在标记。
+  - `EmailDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增系统短信读侧 DTO：
+  - `SmsPageQueryDto`：支持关键字、发送用户、接收用户、短信类型、状态、模板、服务商、业务关联和发送时间范围筛选。
+  - `SmsListItemDto`：展示用户主键、短信类型、模板、服务商、状态、计划/实际发送时间、重试、费用、业务关联和号码/正文/模板数据/服务商回执/失败/备注存在标记。
+  - `SmsDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增 `IMessageQueryService` / `MessageQueryService`：
+  - `GetEmailPageAsync()` / `GetEmailDetailAsync()`：读取当前租户上下文内邮件发送摘要。
+  - `GetSmsPageAsync()` / `GetSmsDetailAsync()`：读取当前租户上下文内短信发送摘要。
+- 新增 `MessageApplicationMapper`：
+  - 集中映射邮件和短信列表/详情。
+  - 邮件/短信只返回发送状态和存在标记，不返回收件地址、手机号、正文、模板参数、附件路径、服务商回执或失败原文。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:message:read`。
+  - 权限种子覆盖邮件和短信发送记录只读入口，并标记为审计敏感查看权限。
+
+设计约束：
+
+- 邮件和短信查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `FromEmail`、`FromName`、`ToEmail`、`CcEmail`、`BccEmail`、`ToPhone`、`Content`、`Attachments`、`TemplateParams`、`ProviderMessageId`、`ErrorMessage`、`Remark`、Authorization 或 Cookie。
+- 地址、手机号、正文、模板参数、附件路径、服务商回执和失败原因后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*FromEmail\b|public .*FromName\b|public .*ToEmail\b|public .*CcEmail\b|public .*BccEmail\b|public .*ToPhone\b|public .*Content\b|public .*Attachments\b|public .*TemplateParams\b|public .*ProviderMessageId\b|public .*ErrorMessage\b|public .*Remark\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Messaging -g "*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A73；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的邮件短信发送读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
