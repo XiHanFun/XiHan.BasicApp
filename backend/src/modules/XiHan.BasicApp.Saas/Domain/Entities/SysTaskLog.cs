@@ -86,7 +86,7 @@ public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity
     /// 任务状态
     /// </summary>
     [SugarColumn(ColumnDescription = "任务状态")]
-    public virtual TaskStatus TaskStatus { get; set; } = TaskStatus.Running;
+    public virtual RunTaskStatus TaskStatus { get; set; } = RunTaskStatus.Running;
 
     /// <summary>
     /// 开始时间

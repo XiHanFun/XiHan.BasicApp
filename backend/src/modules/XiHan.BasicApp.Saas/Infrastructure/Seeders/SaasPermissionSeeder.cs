@@ -717,6 +717,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 840),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.TaskLog.Read,
+                "任务日志查看",
+                "查看当前租户任务执行日志摘要",
+                "[\"saas\",\"task-log\"]",
+                true,
+                850,
+                850),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",

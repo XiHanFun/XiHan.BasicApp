@@ -4119,3 +4119,51 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A66；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的权限变更日志读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A68 Application 任务日志读模型
+
+本阶段继续第 6 层应用服务重构，从工作流/任务域补齐 `SysTaskLog` 的只读入口。范围限定为任务日志状态语义修正、分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理任务调度器、任务执行器、失败重试策略、明文结果/堆栈/输出读取、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 修正 `SysTaskLog.TaskStatus`：
+  - 从误用的 .NET `System.Threading.Tasks.TaskStatus` 调整为业务枚举 `RunTaskStatus`。
+  - 默认值保持业务语义 `RunTaskStatus.Running`。
+- 新增任务日志读侧 DTO：
+  - `TaskLogPageQueryDto`：支持关键字、任务主键、任务编码、任务名称、批次号、任务状态、触发方式、执行耗时、重试次数和开始时间范围筛选。
+  - `TaskLogListItemDto`：展示任务摘要、批次、状态、开始/结束时间、耗时、重试次数、触发方式和运行结果/异常/堆栈/输出/扩展/备注存在标记。
+  - `TaskLogDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `ITaskLogQueryService` / `TaskLogQueryService`：
+  - `GetTaskLogPageAsync()`：按必填开始时间范围分页读取当前租户上下文内任务日志，走分表仓储 `GetPagedByTimeRangeAsync()`，不触发全分片扫描。
+  - `GetTaskLogDetailAsync()`：按任务日志主键读取详情，依赖分表仓储通过雪花 ID 定位分片。
+- 新增 `TaskLogApplicationMapper`：
+  - 集中映射任务日志列表和详情。
+  - 只返回运行结果、异常文本、堆栈、输出轨迹、扩展数据和备注是否存在，不返回原始值。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:task-log:read`。
+  - 权限种子标记为需审计功能权限。
+
+设计约束：
+
+- 任务日志查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- 任务日志分页必须传入 `StartTimeStart` 和 `StartTimeEnd`，避免分表日志误触发全量扫描。
+- DTO 不返回 `ExecutionResult`、`ExceptionMessage`、`ExceptionStackTrace`、`OutputLog`、`ExtendData`、`Remark`、Authorization 或 Cookie。
+- 任务执行结果、异常原文、堆栈、输出日志、扩展数据和备注后续只能通过敏感审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 `NU1900`/`NU5104` 包源和预发布依赖警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*ExecutionResult\b|public .*ExceptionMessage\b|public .*ExceptionStackTrace\b|public .*OutputLog\b|public .*ExtendData\b|public .*Remark\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Workflow -g "TaskLog*.cs"`：0 个匹配。
+- `rg -n "ScanAllAsync" backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Workflow/TaskLogQueryService.cs`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public virtual TaskStatus TaskStatus|System\.Threading\.Tasks\.TaskStatus" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A67；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的任务日志读模型、QueryService、Mapper、权限码/种子、`SysTaskLog` 状态枚举修正和本文档，不推送远端。
