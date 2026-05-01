@@ -4617,3 +4617,42 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A77；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端租户 API 模块、基础读 API 动态路由修正和本文档，不推送远端。
+
+### 2026-05-01 A79 Frontend 租户套餐 API 模块
+
+本阶段继续第 7 层前端 API 重构，在 Tenancy 域内补齐租户套餐（TenantEdition）接口。范围限定为租户套餐 DTO/枚举类型、Query/App 动态 API 调用封装、模块导出，以及分页查询参数工具复用；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/tenant/types.ts`：
+  - 新增通用启用状态 `EnableStatus`，对齐后端 `XiHan.BasicApp.Saas.Domain.Enums.EnableStatus`。
+  - 新增 `TenantEditionPageQueryDto`、`TenantEditionListItemDto`、`TenantEditionDetailDto`、`TenantEditionCreateDto`、`TenantEditionUpdateDto`、`TenantEditionStatusUpdateDto`、`TenantEditionDefaultUpdateDto`。
+- 新增 `frontend/src/api/modules/tenant/tenant-edition.ts`：
+  - `tenantEditionApi.page()` 调用 `TenantEditionQuery/TenantEditionPage`。
+  - `tenantEditionApi.detail()` 调用 `TenantEditionQuery/TenantEditionDetail/{id}`。
+  - `tenantEditionApi.enabledList()` 调用 `TenantEditionQuery/EnabledTenantEditions`。
+  - `tenantEditionApi.create()` / `tenantEditionApi.update()` / `tenantEditionApi.updateStatus()` / `tenantEditionApi.updateDefault()` 对齐 `TenantEditionAppService` 命令入口。
+- 更新 `frontend/src/api/modules/tenant/index.ts` 导出租户套餐模块。
+- 优化 `frontend/src/api/base.ts`：
+  - 将分页查询参数构造开放为 `createPageRequestParams()`。
+  - 将空值剔除工具开放为 `appendDynamicApiParam()`。
+  - `tenantApi.page()` 改用公共分页参数构造，减少业务模块重复。
+
+设计约束：
+
+- 租户套餐 API 不接收租户标识；套餐分页、详情、启用列表和命令入口均按后端权限与框架过滤器执行。
+- 套餐启用列表用于前端选择器，不暴露额外敏感字段。
+- 保持 DynamicApi Controller/Action 命名和后端服务一致，不新增 Controller。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段套餐 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A78；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端租户套餐 API、基础分页参数工具复用和本文档，不推送远端。
