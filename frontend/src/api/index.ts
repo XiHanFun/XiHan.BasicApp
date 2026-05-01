@@ -1,5 +1,6 @@
 export * from './base'
 export * from './helpers'
+export * from './modules/authorization'
 export * from './modules/tenant'
 export * from './request'
 export * from './types'

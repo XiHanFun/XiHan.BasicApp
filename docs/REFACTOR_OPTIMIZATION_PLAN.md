@@ -4731,3 +4731,41 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A80；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端租户套餐权限 API 和本文档，不推送远端。
+
+### 2026-05-01 A82 Frontend 权限定义 API 模块
+
+本阶段进入 Authorization 域前端 API 重构，先补齐核心权限定义（Permission）接口。范围限定为权限定义 DTO/枚举类型、Query/App 动态 API 调用封装、Authorization 模块导出，以及跨域通用枚举抽取；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/shared/types.ts` 与 `shared/index.ts`：
+  - 抽取跨域枚举 `EnableStatus`、`ValidityStatus`、`PermissionType`。
+  - `tenant/types.ts` 改为从 shared 导入并转发，保持租户模块现有枚举导入路径可用。
+- 新增 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `PermissionPageQueryDto`、`PermissionListItemDto`、`PermissionDetailDto`、`PermissionCreateDto`、`PermissionUpdateDto`、`PermissionStatusUpdateDto`、`PermissionSelectQueryDto`、`PermissionSelectItemDto`。
+- 新增 `frontend/src/api/modules/authorization/permission.ts`：
+  - `permissionApi.page()` 调用 `PermissionQuery/PermissionPage`。
+  - `permissionApi.detail()` 调用 `PermissionQuery/PermissionDetail/{id}`。
+  - `permissionApi.availableGlobal()` 调用 `PermissionQuery/AvailableGlobalPermissions`。
+  - `permissionApi.create()` / `permissionApi.update()` / `permissionApi.updateStatus()` 对齐 `PermissionAppService`。
+  - `permissionApi.delete()` 调用 `Permission/Permission/{id}`。
+- 新增 `frontend/src/api/modules/authorization/index.ts` 并从 `frontend/src/api/index.ts` 导出 Authorization 模块。
+
+设计约束：
+
+- 权限定义 API 不接收租户标识；权限可见性和平台级全局权限维护限制由后端服务校验。
+- 权限选择器只传关键字、模块编码、权限类型和数量上限，不在前端裁剪授权规则。
+- `PermissionType` 等通用枚举集中到 shared，后续角色权限、用户直授权、ABAC/FLS API 复用同一枚举来源。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段权限定义 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A81；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端权限定义 API、shared 枚举抽取和本文档，不推送远端。
