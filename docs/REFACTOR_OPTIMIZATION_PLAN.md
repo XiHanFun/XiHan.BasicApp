@@ -4347,3 +4347,49 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A71；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的系统版本治理读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
+
+### 2026-05-01 A73 Application 系统文件读模型
+
+本阶段继续第 6 层应用服务重构，从文件域补齐 `SysFile` 与 `SysFileStorage` 的只读入口。范围限定为文件元数据分页、详情、文件存储副本分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理文件上传、下载、预签名 URL、物理删除、清理任务、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- 新增系统文件读侧 DTO：
+  - `FilePageQueryDto`：支持关键字、文件类型、扩展名、MIME 类型、访问级别、加密标记、临时文件标记、文件状态和过期时间范围筛选。
+  - `FileListItemDto`：展示文件名、原始文件名、扩展名、类型、MIME 类型、大小、媒体尺寸/时长、缩略图、下载/访问统计、访问级别、生命周期、状态和敏感元数据存在标记。
+  - `FileDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增系统文件存储读侧 DTO：
+  - `FileStoragePageQueryDto`：支持关键字、文件主键、存储类型、存储状态、主/备份/CDN/验证/同步标记和上传时间范围筛选。
+  - `FileStorageListItemDto`：展示存储类型、提供商、区域、主备/CDN/压缩/同步/验证状态、上传摘要、访问控制、存储类别、缓存控制、排序号和位置/链接/失败/备注/扩展存在标记。
+  - `FileStorageDetailDto`：在列表字段基础上补充创建、修改审计字段。
+- 新增 `IFileQueryService` / `FileQueryService`：
+  - `GetFilePageAsync()` / `GetFileDetailAsync()`：读取当前租户上下文内文件元数据。
+  - `GetFileStoragePageAsync()` / `GetFileStorageDetailAsync()`：读取当前租户上下文内文件存储副本摘要。
+- 新增 `FileApplicationMapper`：
+  - 集中映射文件和文件存储列表/详情。
+  - 文件只返回元数据和安全标记，不返回物理内容、路径、URL、签名链接或失败原因原文。
+- 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
+  - 新增 `saas:file:read`。
+  - 权限种子覆盖文件元数据和存储副本只读入口，并标记为审计敏感查看权限。
+
+设计约束：
+
+- 系统文件和文件存储查询不接收 `tenantId`，依赖当前会话上下文与 Framework 全局过滤器。
+- DTO 不返回 `UploadIp`、`FileHash`、`HashAlgorithm`、`AccessPermissions`、`EncryptionKeyId`、`Tags`、`Remark`、`ExtendData`、`BucketName`、`StoragePath`、`FullPath`、`StorageDirectory`、`InternalUrl`、`ExternalUrl`、`CdnUrl`、`SignedUrl`、`Endpoint`、`CustomDomain`、`UploadFailureReason`、Authorization 或 Cookie。
+- 文件路径、访问链接、签名链接、哈希、访问规则、密钥标识、上传 IP 和失败原因后续只能通过专用下载/审计/FLS 闭环按策略开放。
+
+验证结果：
+
+- `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`102` 个既有 `NU1900` 包源警告，`0` 个错误。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "public .*UploadIp\b|public .*FileHash\b|public .*HashAlgorithm\b|public .*AccessPermissions\b|public .*EncryptionKeyId\b|public .*Tags\b|public .*Remark\b|public .*ExtendData\b|public .*BucketName\b|public .*StoragePath\b|public .*FullPath\b|public .*StorageDirectory\b|public .*InternalUrl\b|public .*ExternalUrl\b|public .*CdnUrl\b|public .*SignedUrl\b|public .*Endpoint\b|public .*CustomDomain\b|public .*UploadFailureReason\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Files -g "File*.cs"`：0 个匹配。
+- `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+- `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A72；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的系统文件读模型、QueryService、Mapper、权限码/种子和本文档，不推送远端。
