@@ -4877,3 +4877,39 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A84；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端角色定义 API 和本文档，不推送远端。
+
+### 2026-05-02 A86 Frontend 角色权限 API 模块
+
+本阶段继续 Authorization 域前端 API 重构，补齐角色权限（RolePermission）接口。范围限定为角色权限 DTO/枚举类型、Query/App 动态 API 调用封装和模块导出；不新增页面、不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `PermissionAction`。
+  - 新增 `RolePermissionListItemDto`、`RolePermissionDetailDto`、`RolePermissionGrantDto`、`RolePermissionUpdateDto`、`RolePermissionStatusUpdateDto`。
+- 新增 `frontend/src/api/modules/authorization/role-permission.ts`：
+  - `rolePermissionApi.list()` 调用 `RolePermissionQuery/RolePermissions/{roleId}`，支持 `onlyValid` 查询参数。
+  - `rolePermissionApi.detail()` 调用 `RolePermissionQuery/RolePermissionDetail/{id}`。
+  - `rolePermissionApi.grant()` / `rolePermissionApi.update()` / `rolePermissionApi.updateStatus()` 对齐 `RolePermissionAppService`。
+  - `rolePermissionApi.revoke()` 调用 `RolePermission/RolePermission/{id}`。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出角色权限模块。
+
+设计约束：
+
+- 角色权限 API 不接收租户标识；租户隔离由后端当前会话、仓储过滤器和授权服务共同控制。
+- `roleId` 是角色资源主键，不是租户上下文；前端不得通过 URL 或 Query 传递 `tenantId` 参与授权。
+- `PermissionAction.Deny` / `Grant` 只按后端 DTO 原样传递，前端不实现最终授权裁决。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段角色权限 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A85，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端角色权限 API 和本文档，不推送远端。
