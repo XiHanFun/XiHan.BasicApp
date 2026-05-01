@@ -5047,3 +5047,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的 Identity 用户会话 API、用户会话页面和本文档，不推送远端。
+
+### 2026-05-02 A90 Frontend 角色管理页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建角色管理入口。范围限定为新增 `frontend/src/views/system/role/index.vue` 和本文档，不修改 packages、不修改后端，不覆盖并行改动中的 authorization API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/role/index.vue`：
+  - 使用现有 `roleApi` 对齐 `RoleQueryService` / `RoleAppService` 动态 API。
+  - 使用 VxeGrid 展示角色列表，支持关键字、角色类型、数据范围、全局标识和状态筛选。
+  - 提供新增、编辑、启用/停用、删除入口。
+  - 对平台全局角色和系统角色禁用编辑、状态切换和删除按钮，避免前端引导调用后端禁止的维护流程。
+  - 创建/更新 DTO 不暴露 `isGlobal`，保持后端强制 `IsGlobal = false` 的设计。
+
+设计约束：
+
+- 角色管理 API 不接收租户标识；租户隔离由当前会话、后端授权和仓储过滤器控制。
+- 前端只做管理交互，不承担最终授权裁决；角色维护约束仍以后端 `RoleAppService` 为准。
+- 本阶段不实现角色权限、数据范围部门绑定和角色继承页签，避免混入后续 `RolePermission` / `RoleDataScope` / `RoleHierarchy` 小项。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/role/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/role`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A89，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的角色管理页面和本文档，不推送远端。
