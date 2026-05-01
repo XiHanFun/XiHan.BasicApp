@@ -5126,3 +5126,44 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的 OAuth 应用只读 API、OAuth 应用页面和本文档，不推送远端。
+
+### 2026-05-02 A92 Frontend 约束规则页面与 API
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建约束规则管理入口。范围限定为 `frontend/src` 和本文档，不修改 packages、不修改后端和 Framework。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/constraint-rule.ts`：
+  - 按后端 `ConstraintRulePageQueryDto`、`ConstraintRuleListItemDto`、`ConstraintRuleDetailDto`、`ConstraintRuleCreateDto`、`ConstraintRuleUpdateDto`、`ConstraintRuleStatusUpdateDto` 定义前端类型。
+  - 对齐 `ConstraintTargetType`、`ConstraintType`、`ViolationAction` 枚举。
+  - 调用 `ConstraintRuleQuery/ConstraintRulePage`、`ConstraintRuleQuery/ConstraintRuleDetail/{id}`、`ConstraintRule/ConstraintRule`、`ConstraintRule/ConstraintRuleStatus`、`ConstraintRule/ConstraintRule/{id}` 动态 API。
+- 从 `frontend/src/api/index.ts` 导出约束规则 API。
+- 新增 `frontend/src/views/system/constraint-rule/index.vue`：
+  - 使用 VxeGrid 展示约束规则列表，支持关键字、约束类型、目标类型、违规动作、全局标识和状态筛选。
+  - 提供新增、编辑、启用/停用、删除入口。
+  - 使用结构化 JSON 文本录入规则项，并解析为 `ConstraintRuleItemInputDto[]`。
+  - 对平台全局规则禁用编辑、状态切换和删除按钮，避免前端引导调用后端禁止的维护流程。
+
+设计约束：
+
+- 约束规则 API 不接收租户标识；租户隔离由当前会话、后端授权和仓储过滤器控制。
+- 平台全局规则在当前页面只读，普通租户规则由后端 `ConstraintRuleAppService` 执行最终维护约束。
+- 规则项必须以结构化 JSON 进入请求 DTO，不做字符串兼容字段。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/constraint-rule/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/constraint-rule`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A91，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的约束规则 API、约束规则页面和本文档，不推送远端。
