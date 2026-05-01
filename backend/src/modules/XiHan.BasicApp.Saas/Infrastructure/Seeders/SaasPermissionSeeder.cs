@@ -708,6 +708,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 830),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.PermissionChangeLog.Read,
+                "权限变更日志查看",
+                "查看当前租户权限变更审计摘要",
+                "[\"saas\",\"permission-change-log\"]",
+                true,
+                840,
+                840),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
