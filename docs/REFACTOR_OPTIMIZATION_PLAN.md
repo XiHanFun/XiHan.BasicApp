@@ -4841,3 +4841,39 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 已提交至 A83；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的前端操作定义 API 和本文档，不推送远端。
+
+### 2026-05-01 A85 Frontend 角色定义 API 模块
+
+本阶段继续 Authorization 域前端 API 重构，补齐角色定义（Role）接口。范围限定为角色 DTO/枚举类型、Query/App 动态 API 调用封装和模块导出；角色权限、角色层级、角色数据范围和用户角色授权后续分小项处理。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `DataPermissionScope`、`RoleType`。
+  - 新增 `RolePageQueryDto`、`RoleListItemDto`、`RoleDetailDto`、`RoleCreateDto`、`RoleUpdateDto`、`RoleStatusUpdateDto`、`RoleSelectQueryDto`、`RoleSelectItemDto`。
+- 新增 `frontend/src/api/modules/authorization/role.ts`：
+  - `roleApi.page()` 调用 `RoleQuery/RolePage`。
+  - `roleApi.detail()` 调用 `RoleQuery/RoleDetail/{id}`。
+  - `roleApi.enabledList()` 调用 `RoleQuery/EnabledRoles`。
+  - `roleApi.create()` / `roleApi.update()` / `roleApi.updateStatus()` 对齐 `RoleAppService`。
+  - `roleApi.delete()` 调用 `Role/Role/{id}`。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出角色定义模块。
+
+设计约束：
+
+- 角色定义 API 不接收租户标识；角色可见性和租户隔离由后端当前会话与仓储过滤控制。
+- 创建/更新 DTO 不暴露 `isGlobal`，系统角色与平台全局角色维护由后端拒绝常规入口。
+- 数据权限范围仅作为角色属性传递，具体部门范围绑定后续通过角色数据范围 API 处理。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `rg -n "\bany\b" frontend/src/api -g "*.ts"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src/api -g "*.ts"`：仍只有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段角色定义 API 未新增租户标识。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A84；`XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的前端角色定义 API 和本文档，不推送远端。
