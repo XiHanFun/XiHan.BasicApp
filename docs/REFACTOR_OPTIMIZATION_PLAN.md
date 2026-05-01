@@ -5205,3 +5205,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的权限定义页面和本文档，不推送远端。
+
+### 2026-05-02 A94 Frontend 资源定义页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建资源定义管理入口。后端已有 `ResourceQueryService` / `ResourceAppService`，前端已有资源 API 合同，因此本阶段只新增页面和更新本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的 authorization API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/resource/index.vue`：
+  - 使用现有 `resourceApi` 对齐 `ResourceQueryService` / `ResourceAppService` 动态 API。
+  - 使用 VxeGrid 展示资源定义列表，支持关键字、资源类型、访问级别、全局标识和状态筛选。
+  - 提供新增、编辑、启用/停用、删除入口。
+  - 编辑时仅允许维护后端 `ResourceUpdateDto` 支持的名称、类型、路径、访问级别、排序、元数据、描述和备注；资源编码不在更新 DTO 中变更。
+  - 对平台全局资源禁用编辑、状态切换和删除按钮，避免前端引导调用后端禁止的维护流程。
+
+设计约束：
+
+- 资源定义 API 不接收租户标识；租户隔离由当前会话、后端授权和仓储过滤器控制。
+- 平台全局资源在当前页面只读，普通租户资源由后端 `ResourceAppService` 执行最终维护约束。
+- 资源元数据保持 JSON 字符串输入，并在前端提交前做合法 JSON 校验，后端继续执行最终校验。
+- 资源访问级别使用 `ResourceAccessLevel`，避免旧式 `IsRequireAuth` / `IsPublic` 布尔组合语义。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/resource/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/resource`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A93，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的资源定义页面和本文档，不推送远端。
