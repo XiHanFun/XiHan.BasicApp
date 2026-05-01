@@ -744,6 +744,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 870),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.Dict.Read,
+                "系统字典查看",
+                "查看当前租户系统字典和字典项",
+                "[\"saas\",\"dict\"]",
+                false,
+                880,
+                880),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
