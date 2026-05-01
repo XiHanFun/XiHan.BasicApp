@@ -753,6 +753,15 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 880),
             new(
                 SaasPermissionCodes.Module,
+                SaasPermissionCodes.Version.Read,
+                "系统版本查看",
+                "查看当前租户系统版本和迁移历史",
+                "[\"saas\",\"version\"]",
+                true,
+                890,
+                890),
+            new(
+                SaasPermissionCodes.Module,
                 SaasPermissionCodes.UserDepartment.Read,
                 "用户部门归属查看",
                 "查看用户部门归属和部门成员归属",
