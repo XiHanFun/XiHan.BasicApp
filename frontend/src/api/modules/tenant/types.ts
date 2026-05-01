@@ -49,6 +49,12 @@ export enum TenantMemberType {
   PlatformAdmin = 99,
 }
 
+export enum PermissionType {
+  ResourceBased = 0,
+  Functional = 1,
+  DataScope = 2,
+}
+
 export interface TenantPageQueryDto extends PageRequest {
   configStatus?: TenantConfigStatus | null
   editionId?: ApiId | null
@@ -253,4 +259,38 @@ export interface TenantMemberStatusUpdateDto extends BasicDto {
 export interface TenantMemberInviteStatusUpdateDto extends BasicDto {
   inviteRemark?: string | null
   inviteStatus: TenantMemberInviteStatus
+}
+
+export interface TenantEditionPermissionListItemDto extends BasicDto {
+  createdTime: DateTimeString
+  editionId: ApiId
+  isGlobalPermission?: boolean | null
+  isRequireAudit?: boolean | null
+  moduleCode?: string | null
+  permissionCode?: string | null
+  permissionId: ApiId
+  permissionName?: string | null
+  permissionStatus?: EnableStatus | null
+  permissionType?: PermissionType | null
+  remark?: string | null
+  status: ValidityStatus
+}
+
+export interface TenantEditionPermissionDetailDto extends TenantEditionPermissionListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+  permissionDescription?: string | null
+  permissionPriority?: number | null
+  tags?: string | null
+}
+
+export interface TenantEditionPermissionGrantDto {
+  editionId: ApiId
+  permissionId: ApiId
+  remark?: string | null
+}
+
+export interface TenantEditionPermissionStatusUpdateDto extends BasicDto {
+  remark?: string | null
+  status: ValidityStatus
 }
