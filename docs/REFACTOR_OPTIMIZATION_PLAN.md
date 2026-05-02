@@ -5775,3 +5775,49 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的角色继承 API、角色继承页面和本文档，不推送远端。
+
+### 2026-05-02 A108 Frontend 字段级安全 API 与页面
+
+本阶段继续补齐后端已重建但前端缺失的授权安全入口，重建 `FieldLevelSecurity` 前端 API 和 `system/field-level-security` 页面。范围限定在 `frontend/src` 和本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他文件。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `FieldMaskStrategy`、`FieldSecurityTargetType` 前端枚举。
+  - 新增 `FieldLevelSecurityPageQueryDto`、`FieldLevelSecurityListItemDto`、`FieldLevelSecurityDetailDto`、`FieldLevelSecurityCreateDto`、`FieldLevelSecurityUpdateDto`、`FieldLevelSecurityStatusUpdateDto`。
+  - 列表和详情类型对齐后端 DTO，保留目标摘要、资源摘要、字段名、可读/可编辑、脱敏策略、优先级、状态和审计时间。
+- 新增 `frontend/src/api/modules/authorization/field-level-security.ts`：
+  - `fieldLevelSecurityApi.page()` 调用 `FieldLevelSecurityQuery/FieldLevelSecurityPage`，支持关键字、目标类型、目标主键、资源、脱敏策略和状态查询参数。
+  - `fieldLevelSecurityApi.detail()` 调用 `FieldLevelSecurityQuery/FieldLevelSecurityDetail/{id}`。
+  - `fieldLevelSecurityApi.create()` / `update()` / `updateStatus()` 对齐 `FieldLevelSecurityAppService`。
+  - `fieldLevelSecurityApi.delete()` 调用 `FieldLevelSecurity/FieldLevelSecurity/{id}`。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出字段级安全模块。
+- 新增 `frontend/src/views/system/field-level-security/index.vue`：
+  - 使用资源分页接口选择启用资源。
+  - 按目标类型分别复用启用角色、启用权限、启用部门树和当前租户有效成员作为绑定目标。
+  - 支持字段级安全策略分页查询、新增、编辑、启用/停用和删除。
+  - 前端校验不可读字段不能可编辑、不可读字段必须指定脱敏策略、优先级非负，避免提交明显无效的策略输入。
+
+设计约束：
+
+- 字段级安全 API 和页面不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- `targetId` 是策略绑定主体主键，可能是角色、用户、权限或部门主键，不是租户上下文。
+- 页面只做入口过滤和交互校验；全局/系统角色、平台管理员成员、停用资源/权限/部门等最终仍以后端 `FieldLevelSecurityAppService` 校验为准。
+- 前端只维护 FLS 策略配置，不在页面侧执行字段裁剪或脱敏，避免把安全出口职责下沉到 UI。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/field-level-security/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/field-level-security`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A107，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的字段级安全 API、字段级安全页面和本文档，不推送远端。
