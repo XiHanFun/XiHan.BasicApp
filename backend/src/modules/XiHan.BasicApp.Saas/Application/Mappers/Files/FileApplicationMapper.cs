@@ -147,14 +147,10 @@ public static class FileApplicationMapper
             SortOrder = storage.SortOrder,
             HasLocation = !string.IsNullOrWhiteSpace(storage.BucketName)
                 || !string.IsNullOrWhiteSpace(storage.StoragePath)
-                || !string.IsNullOrWhiteSpace(storage.FullPath)
-                || !string.IsNullOrWhiteSpace(storage.StorageDirectory),
+                || !string.IsNullOrWhiteSpace(storage.FullPath),
             HasPrivateLink = !string.IsNullOrWhiteSpace(storage.InternalUrl),
-            HasPublicLink = !string.IsNullOrWhiteSpace(storage.ExternalUrl)
-                || !string.IsNullOrWhiteSpace(storage.Endpoint)
-                || !string.IsNullOrWhiteSpace(storage.CustomDomain),
+            HasPublicLink = !string.IsNullOrWhiteSpace(storage.ExternalUrl),
             HasCdnLink = !string.IsNullOrWhiteSpace(storage.CdnUrl),
-            HasTemporaryLink = !string.IsNullOrWhiteSpace(storage.SignedUrl),
             HasFailureDetail = !string.IsNullOrWhiteSpace(storage.UploadFailureReason),
             HasNote = !string.IsNullOrWhiteSpace(storage.Remark),
             HasExtension = !string.IsNullOrWhiteSpace(storage.ExtendData),
@@ -202,7 +198,6 @@ public static class FileApplicationMapper
             HasPrivateLink = item.HasPrivateLink,
             HasPublicLink = item.HasPublicLink,
             HasCdnLink = item.HasCdnLink,
-            HasTemporaryLink = item.HasTemporaryLink,
             HasFailureDetail = item.HasFailureDetail,
             HasNote = item.HasNote,
             HasExtension = item.HasExtension,

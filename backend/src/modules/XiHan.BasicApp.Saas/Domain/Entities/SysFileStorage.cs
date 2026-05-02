@@ -104,11 +104,8 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     public virtual string? BucketName { get; set; }
 
     /// <summary>
-    /// 存储路径（相对路径）
+    /// 存储路径（相对路径，如 uploads/2025/01/10/xxx.jpg）
     /// </summary>
-    /// <remarks>
-    /// 如：uploads/2025/01/10/xxx.jpg
-    /// </remarks>
     [SugarColumn(ColumnDescription = "存储路径", Length = 500, IsNullable = false)]
     public virtual string StoragePath { get; set; } = string.Empty;
 
@@ -117,12 +114,6 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "完整路径", Length = 1000, IsNullable = true)]
     public virtual string? FullPath { get; set; }
-
-    /// <summary>
-    /// 存储目录
-    /// </summary>
-    [SugarColumn(ColumnDescription = "存储目录", Length = 500, IsNullable = true)]
-    public virtual string? StorageDirectory { get; set; }
 
     #endregion
 
@@ -145,30 +136,6 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "CDN访问URL", Length = 1000, IsNullable = true)]
     public virtual string? CdnUrl { get; set; }
-
-    /// <summary>
-    /// 签名访问URL（临时访问链接）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "签名访问URL", Length = 2000, IsNullable = true)]
-    public virtual string? SignedUrl { get; set; }
-
-    /// <summary>
-    /// 签名URL过期时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "签名URL过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? SignedUrlExpiresAt { get; set; }
-
-    /// <summary>
-    /// 访问端点（Endpoint）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "访问端点", Length = 200, IsNullable = true)]
-    public virtual string? Endpoint { get; set; }
-
-    /// <summary>
-    /// 自定义域名
-    /// </summary>
-    [SugarColumn(ColumnDescription = "自定义域名", Length = 200, IsNullable = true)]
-    public virtual string? CustomDomain { get; set; }
 
     #endregion
 
