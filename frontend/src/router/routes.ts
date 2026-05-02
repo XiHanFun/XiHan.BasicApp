@@ -132,6 +132,7 @@ export const staticRoutes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFoundCatchAll',
-    redirect: NOT_FOUND_PATH,
+    component: NotFoundPage,
+    meta: { title: 'error.404', hidden: true },
   },
 ]

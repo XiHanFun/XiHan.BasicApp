@@ -1,6 +1,6 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
-import { AUTH_PATH, HOME_PATH, LOGIN_PATH } from '~/constants'
+import { AUTH_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
@@ -131,12 +131,14 @@ export function setupRouterGuard(router: Router) {
     if (to.path === '/') {
       return next({ path: resolvedHomePath, replace: true })
     }
-    if (
-      to.path === HOME_PATH
-      && resolvedHomePath !== HOME_PATH
-      && (to.name === 'NotFound' || to.matched.length === 0)
-    ) {
+    const isNotFoundRoute = to.name === 'NotFound'
+      || to.name === 'NotFoundCatchAll'
+      || to.matched.length === 0
+    if (to.path === HOME_PATH && resolvedHomePath !== HOME_PATH && isNotFoundRoute) {
       return next({ path: resolvedHomePath, replace: true })
+    }
+    if (isNotFoundRoute && to.path !== NOT_FOUND_PATH) {
+      return next({ path: NOT_FOUND_PATH, replace: true })
     }
 
     // 权限检查

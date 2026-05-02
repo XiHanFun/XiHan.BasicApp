@@ -59,7 +59,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (redirect) {
       const target = decodeURIComponent(redirect)
       const resolved = router.resolve(target)
-      const isValid = resolved.matched.length > 0 && resolved.name !== 'NotFound'
+      const isValid = resolved.matched.length > 0
+        && resolved.name !== 'NotFound'
+        && resolved.name !== 'NotFoundCatchAll'
       await router.replace(isValid ? target : homePath)
     }
     else {
@@ -132,6 +134,7 @@ export const useAuthStore = defineStore('auth', () => {
     'Forbidden',
     'ServerError',
     'NotFound',
+    'NotFoundCatchAll',
   ])
 
   async function logout() {
