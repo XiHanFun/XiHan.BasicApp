@@ -1,5 +1,5 @@
-import type { ApiId, PageResult } from '../../types'
 import type { DynamicApiParams } from '../../base'
+import type { ApiId, PageResult } from '../../types'
 import type {
   RoleCreateDto,
   RoleDetailDto,

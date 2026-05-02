@@ -21,7 +21,8 @@ export interface NotificationItem {
  * 未读 或 需要确认但尚未确认
  */
 function needsAttention(n: NotificationItem): boolean {
-  if (n.notificationStatus === 0) return true
+  if (n.notificationStatus === 0)
+    return true
   return Boolean(n.needConfirm) && !n.confirmTime
 }
 

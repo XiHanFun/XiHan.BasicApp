@@ -6068,27 +6068,29 @@ pnpm lint
 
 ### 2026-05-03 A116 Frontend VxeTable 高度链路修复
 
-本阶段处理系统页面中 VxeTable 只显示工具栏、表头和分页，表格主体区域没有铺满剩余高度的问题。当前各业务页统一采用 `h-full flex-col` 页面根、`vxe-card.flex-1` 表格容器和 `useVxeTable(height: '100%')`，根因在基础布局和 VxeCard 内部 flex 层级没有完整传递确定高度。
+本阶段处理系统页面中 VxeTable 只显示工具栏、表头和分页，表格主体区域没有铺满剩余高度的问题。回溯重构前提交 `e052db5f` 后确认旧版 `frontend/packages/app.vue` 的 `NConfigProvider` 带有 `class="h-full"`，重建到 `frontend/src/App.vue` 后该高度入口丢失，导致 BasicLayout、页面根和 `vxe-card.flex-1` 都按内容高度计算，VxeGrid 只能得到很小的父级高度。
 
 执行结果：
 
+- 更新 `frontend/src/App.vue`：
+  - 恢复重构前 `NConfigProvider class="h-full"`，重新建立从 `#app` 到 BasicLayout 的完整高度链。
 - 更新 `frontend/packages/layouts/basic/index.vue`：
-  - 基础布局根容器由 `min-h-full` 调整为确定的 `h-full min-h-0`。
-  - 主内容区、页面滚动区和内容承载层补齐 `min-h-0`，避免 flex 子项在高度计算时被内容最小高度撑开或折叠。
+  - 回退上一版错误的 `h-full min-h-0` 调整，恢复重构前 `min-h-full`、`flex-1 overflow-auto`、内容层 `h-full` 写法。
+  - 避免外层 provider 高度未稳定时把 BasicLayout 强行压缩到内容高度。
 - 更新 `frontend/packages/design/global.css`：
   - `vxe-card` 补齐 `min-width: 0`，避免表格列和工具栏横向溢出影响布局。
-  - 针对 `vxe-card.flex-1` 表格容器补齐 `min-height: 0`、`overflow: hidden`、内部 body/content/grid 的 `height: 100%` 与 `min-height: 0`。
+  - 针对 `vxe-card.flex-1` 表格容器覆盖页面历史内联 `height: 0` 对百分比高度计算的影响，并补齐 body/content/grid 的 flex 与高度传递。
   - 保持查询面板的普通 `vxe-card` 自适应内容高度，不把表格高度规则扩大到所有卡片。
 
 验证结果：
 
 - `pnpm type-check`：通过。
 - `pnpm build:dev`：通过。
-- 构建产物确认已包含 `.vxe-card.flex-1` 高度传递规则。
+- Playwright + Edge 本地验证 `#/system/permission`：`NConfigProvider`、BasicLayout、内容区恢复到 630px 视口高度，`vxe-card.flex-1` 从 162px 提升到 401px，表格主体恢复显示。
 - 构建仍保留 SignalR 依赖 PURE 注释警告，属于第三方包注释位置问题，本阶段不处理。
 
 协作状态：
 
-- 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端、配置和后端改动，本阶段只暂存 `frontend/packages/layouts/basic/index.vue`、`frontend/packages/design/global.css` 和本文档。
+- 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端、配置和后端改动，本阶段只暂存 `frontend/src/App.vue`、`frontend/packages/layouts/basic/index.vue`、`frontend/packages/design/global.css` 和本文档。
 - `XiHan.Framework` 本阶段无新增改动，当前仍存在授权相关未提交修改和未跟踪 `framework/src/analysis.md`，未暂存未提交。
 - 本阶段只提交 VxeTable 高度链路修复，不推送远端。

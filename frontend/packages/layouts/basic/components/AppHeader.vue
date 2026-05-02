@@ -300,7 +300,8 @@ let signalRThrottleTimer: ReturnType<typeof setTimeout> | null = null
 
 async function loadNotifications() {
   const userId = userStore.userInfo?.basicId
-  if (!userId) return
+  if (!userId)
+    return
   notificationStore.loading = true
   try {
     const list = await appContext.apis.userInboxApi.list(String(userId), true, userStore.userInfo?.tenantId)
@@ -327,7 +328,8 @@ async function loadNotifications() {
 
 async function handleNotificationMarkRead(id: string) {
   const userId = userStore.userInfo?.basicId
-  if (!userId) return
+  if (!userId)
+    return
   const prev = notificationStore.items.find(n => n.basicId === id)
   const prevStatus = prev?.notificationStatus
   const prevReadTime = prev?.readTime
@@ -345,7 +347,8 @@ async function handleNotificationMarkRead(id: string) {
 
 async function handleNotificationConfirm(id: string) {
   const userId = userStore.userInfo?.basicId
-  if (!userId) return
+  if (!userId)
+    return
   notificationStore.markItemConfirmed(id)
   try {
     await appContext.apis.userInboxApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
@@ -357,7 +360,8 @@ async function handleNotificationConfirm(id: string) {
 
 async function handleNotificationMarkAllRead() {
   const userId = userStore.userInfo?.basicId
-  if (!userId) return
+  if (!userId)
+    return
   const snapshot = notificationStore.items
     .filter(n => n.notificationStatus === 0)
     .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
@@ -382,7 +386,8 @@ function handleNotificationViewAll() {
 
 // SignalR 推送节流：2 秒内多次推送只触发一次全量刷新
 function handleSignalRNotification() {
-  if (signalRThrottleTimer) return
+  if (signalRThrottleTimer)
+    return
   signalRThrottleTimer = setTimeout(() => {
     signalRThrottleTimer = null
     loadNotifications()

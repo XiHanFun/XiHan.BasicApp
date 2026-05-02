@@ -77,17 +77,21 @@ function resolveView(component?: string) {
 
   // 优先匹配 packages 自身的 _core 视图
   for (const candidate of candidates) {
-    if (!candidate) continue
+    if (!candidate)
+      continue
     const core = coreComponentMap[candidate]
-    if (core) return core
+    if (core)
+      return core
   }
 
   // 然后查 src 注册的显式映射（优先级高于 glob）
   const ctx = useAppContext()
   for (const candidate of candidates) {
-    if (!candidate) continue
+    if (!candidate)
+      continue
     const explicit = ctx.explicitComponentMap[candidate]
-    if (explicit) return explicit
+    if (explicit)
+      return explicit
   }
 
   // 最后查 src 注册的 viewModules glob
@@ -98,7 +102,8 @@ function resolveView(component?: string) {
 
   for (const key of keys) {
     const matched = ctx.viewModules[key]
-    if (matched) return matched
+    if (matched)
+      return matched
   }
 
   return null

@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
-import { useAppContext } from '~/stores/app-context'
 import { useAppStore } from '~/stores'
+import { useAppContext } from '~/stores/app-context'
 
 export interface EnumOption {
   name: string

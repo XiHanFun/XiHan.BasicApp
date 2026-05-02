@@ -54,10 +54,7 @@
   box-shadow: none !important;
 }
 
-.xihan-top-menu
-  .n-menu--horizontal
-  .n-menu-item-content.n-menu-item-content--selected
-  .n-menu-item-content-header,
+.xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header,
 .xihan-top-menu
   .n-menu--horizontal
   .n-submenu

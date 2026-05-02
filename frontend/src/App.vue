@@ -25,6 +25,7 @@ onMounted(() => {
     :locale="zhCN"
     :theme="naiveTheme"
     :theme-overrides="themeOverrides"
+    class="h-full"
   >
     <NLoadingBarProvider>
       <NDialogProvider>

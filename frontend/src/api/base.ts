@@ -6,20 +6,20 @@ export type DynamicApiParamValue = boolean | number | string | undefined
 export type DynamicApiParams = Record<string, DynamicApiParamValue>
 
 export interface DynamicApiClient {
-  delete<TResult = void>(action: string, config?: AxiosRequestConfig): Promise<TResult>
-  get<TResult>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig): Promise<TResult>
-  post<TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig): Promise<TResult>
-  put<TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig): Promise<TResult>
+  delete: <TResult = void>(action: string, config?: AxiosRequestConfig) => Promise<TResult>
+  get: <TResult>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig) => Promise<TResult>
+  post: <TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig) => Promise<TResult>
+  put: <TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig) => Promise<TResult>
 }
 
 export interface ReadApi<TListItem, TDetail, TQuery extends PageRequest = PageRequest> {
-  detail(id: ApiId): Promise<TDetail | null>
-  page(input: TQuery): Promise<PageResult<TListItem>>
+  detail: (id: ApiId) => Promise<TDetail | null>
+  page: (input: TQuery) => Promise<PageResult<TListItem>>
 }
 
 export interface CommandApi<TCreate, TUpdate, TDetail> {
-  create(input: TCreate): Promise<TDetail>
-  update(input: TUpdate): Promise<TDetail>
+  create: (input: TCreate) => Promise<TDetail>
+  update: (input: TUpdate) => Promise<TDetail>
 }
 
 export function createDynamicApiClient(controllerName: string): DynamicApiClient {

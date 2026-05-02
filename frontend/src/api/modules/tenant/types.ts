@@ -1,5 +1,6 @@
 import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus, PermissionType, ValidityStatus } from '../shared'
+
 export { EnableStatus, PermissionType, ValidityStatus } from '../shared'
 
 export enum TenantConfigStatus {

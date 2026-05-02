@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 const props = withDefaults(defineProps<{
   padding?: string
 }>(), {
