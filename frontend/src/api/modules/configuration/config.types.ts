@@ -1,9 +1,8 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
-import { ConfigDataType } from '../authorization'
+import type { ConfigDataType } from '../authorization'
 
 export { EnableStatus } from '../shared'
-export { ConfigDataType } from '../authorization'
 
 export enum ConfigType {
   System = 0,
