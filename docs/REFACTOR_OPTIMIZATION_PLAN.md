@@ -5926,3 +5926,25 @@ pnpm lint
 - 阶段前后检查 `XiHan.BasicApp` 工作区仍存在多项并行前端改动，不属于本阶段，未暂存未提交。
 - `XiHan.Framework` 本阶段存在我方 DynamicApi 修复，同时仍有未跟踪 `framework/src/analysis.md`，后者不是本阶段改动，未暂存未提交。
 - 本阶段只提交 BasicApp 的 Auth DTO/契约/服务、SaaS 身份种子、前端刷新请求和本文档；Framework 修复单独在 Framework 仓库提交，不推送远端。
+
+### 2026-05-03 A111 WebHost 启停链路 EventBus 验证
+
+本阶段处理登录链路联调后启动项目时暴露的 EventBus 后台服务取消异常。根因位于 Framework `XiHan.Framework.EventBus`：Outbox/Inbox 后台服务在轮询等待 `Task.Delay` 期间收到 Host 停止令牌时，取消异常未在循环内转换为正常退出。
+
+执行结果：
+
+- BasicApp 本阶段不修改业务代码，底层修复在 `XiHan.Framework.EventBus` 完成。
+- WebHost 启停验证使用隔离 artifacts 输出目录，避免被已有本地 `.NET Host` 进程锁定默认验证目录。
+- `GeneratePackageOnBuild=false` 仅用于本地验证，避免 Framework 包项目在 `framework/nupkgs` 写包时被本机权限/锁定问题阻塞编译判断。
+
+验证结果：
+
+- `dotnet build backend/XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppEventBusArtifacts -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false --no-restore`：通过，0 警告，0 错误。
+- 启动 artifacts 中的 `XiHan.BasicApp.WebHost.dll`，访问 `GET /api/Auth/LoginConfig`：HTTP 200。
+- 停止本次验证进程后检查启动日志：未出现 `TaskCanceledException`、EventBox Outbox/Inbox 后台服务未处理异常或 `Unhandled exception`。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 本阶段提交 EventBus Outbox/Inbox 取消语义修复和 Framework 文档；BasicApp 本阶段只记录启停验证，不改业务代码。
+- 本阶段只提交 BasicApp 本文档，不推送远端。
