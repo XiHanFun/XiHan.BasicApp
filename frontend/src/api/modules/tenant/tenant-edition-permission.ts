@@ -1,5 +1,5 @@
-import type { ApiId } from '../../types'
 import type { DynamicApiParams } from '../../base'
+import type { ApiId } from '../../types'
 import type {
   TenantEditionPermissionDetailDto,
   TenantEditionPermissionGrantDto,

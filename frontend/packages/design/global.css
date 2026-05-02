@@ -191,18 +191,26 @@ html.theme-switching *::after {
 
 /* 表格页面的 vxe-card 作为 flex 剩余区时，必须允许内部 grid 在 0 基准上撑满剩余高度 */
 .vxe-card.flex-1 {
+  flex: 1 1 0%;
+  height: auto !important;
   min-height: 0;
   overflow: hidden;
 }
 
-.vxe-card.flex-1 > .vxe-card--body,
+.vxe-card.flex-1 > .vxe-card--body {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
 .vxe-card.flex-1 > .vxe-card--body > .vxe-card--body-content {
+  flex: 1 1 0;
   height: 100%;
   min-height: 0;
 }
 
 .vxe-card.flex-1 > .vxe-card--body > .vxe-card--body-content > .vxe-grid {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   height: 100%;
   min-height: 0;
 }

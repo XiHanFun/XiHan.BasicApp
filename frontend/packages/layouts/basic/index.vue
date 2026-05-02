@@ -48,7 +48,7 @@ const sidebarEnableState = computed(
 </script>
 
 <template>
-  <div class="relative flex h-full min-h-0 w-full">
+  <div class="relative flex min-h-full w-full">
     <!-- ==================== Sidebar ==================== -->
     <NConfigProvider
       v-if="sidebarEnableState"
@@ -86,7 +86,7 @@ const sidebarEnableState = computed(
     </NConfigProvider>
 
     <!-- ==================== Main Content ==================== -->
-    <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
+    <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
       <!-- Header + Tabbar wrapper -->
       <div
         :style="shell.headerWrapperStyle.value"
@@ -145,9 +145,9 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="min-h-0 flex-1 overflow-auto transition-[margin-top] duration-200" :style="shell.contentStyle.value">
+      <div class="flex-1 overflow-auto transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <div
-          class="h-full min-h-0"
+          class="h-full"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact

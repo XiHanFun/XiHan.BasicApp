@@ -30,7 +30,8 @@ const triggerRef = ref<HTMLButtonElement>()
 const dropdownPos = reactive({ top: '0px', right: '0px' })
 
 function updateDropdownPosition() {
-  if (!triggerRef.value) return
+  if (!triggerRef.value)
+    return
   const rect = triggerRef.value.getBoundingClientRect()
   dropdownPos.top = `${rect.bottom + 8}px`
   dropdownPos.right = `${Math.max(document.documentElement.clientWidth - rect.right - 40, 8)}px`
@@ -77,24 +78,31 @@ const mentionTabLabel = computed(() => {
 })
 
 function formatTime(time: string) {
-  if (!time) return ''
+  if (!time)
+    return ''
   const date = new Date(time)
-  if (Number.isNaN(date.getTime())) return ''
+  if (Number.isNaN(date.getTime()))
+    return ''
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return '刚刚'
-  if (minutes < 60) return `${minutes} 分钟前`
+  if (minutes < 1)
+    return '刚刚'
+  if (minutes < 60)
+    return `${minutes} 分钟前`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} 小时前`
+  if (hours < 24)
+    return `${hours} 小时前`
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days} 天前`
+  if (days < 7)
+    return `${days} 天前`
   return `${date.getMonth() + 1}/${date.getDate()}`
 }
 
 /** 判断是否需要关注：未读 或 需确认但未确认 */
 function itemNeedsAttention(item: NotificationItem) {
-  if (item.notificationStatus === 0) return true
+  if (item.notificationStatus === 0)
+    return true
   return Boolean(item.needConfirm) && !item.confirmTime
 }
 
@@ -143,119 +151,119 @@ function handleClickOutside() {
           :style="{ top: dropdownPos.top, right: dropdownPos.right }"
           @click.stop
         >
-        <div class="notification-dropdown-header">
-          <span class="notification-dropdown-title">通知中心</span>
-          <div class="notification-dropdown-actions">
-            <NTooltip>
-              <template #trigger>
-                <button type="button" class="notification-header-btn" @click="emit('refresh')">
-                  <Icon icon="lucide:refresh-cw" width="14" height="14" />
-                </button>
-              </template>
-              刷新
-            </NTooltip>
-            <NButton
-              v-if="unreadCount > 0"
-              text
-              size="small"
-              type="primary"
-              @click="emit('markAllRead')"
-            >
-              全部已读
+          <div class="notification-dropdown-header">
+            <span class="notification-dropdown-title">通知中心</span>
+            <div class="notification-dropdown-actions">
+              <NTooltip>
+                <template #trigger>
+                  <button type="button" class="notification-header-btn" @click="emit('refresh')">
+                    <Icon icon="lucide:refresh-cw" width="14" height="14" />
+                  </button>
+                </template>
+                刷新
+              </NTooltip>
+              <NButton
+                v-if="unreadCount > 0"
+                text
+                size="small"
+                type="primary"
+                @click="emit('markAllRead')"
+              >
+                全部已读
+              </NButton>
+            </div>
+          </div>
+
+          <NSpin :show="props.loading">
+            <NTabs v-model:value="activeTab" type="line" size="small" class="notification-tabs">
+              <NTabPane name="inbox" :tab="inboxTabLabel">
+                <NScrollbar style="max-height: 360px">
+                  <div v-if="allItems.length === 0" class="notification-empty">
+                    <NEmpty description="暂无站内信" size="small" />
+                  </div>
+                  <div
+                    v-for="item in allItems"
+                    :key="item.basicId"
+                    class="notification-item"
+                    :class="{ 'notification-item--unread': itemNeedsAttention(item) }"
+                    @click="handleItemClick(item)"
+                  >
+                    <div class="notification-item-dot" :class="{ 'notification-item-dot--active': itemNeedsAttention(item) }" />
+                    <div class="notification-item-body">
+                      <div class="notification-item-header">
+                        <span class="notification-item-title">{{ item.title }}</span>
+                        <NTag :type="getTypeInfo(item.notificationType).type" size="small" :bordered="false" round>
+                          {{ getTypeInfo(item.notificationType).label }}
+                        </NTag>
+                      </div>
+                      <div v-if="item.content" class="notification-item-content">
+                        {{ item.content }}
+                      </div>
+                      <div class="notification-item-footer">
+                        <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
+                        <NButton
+                          v-if="item.needConfirm && !item.confirmTime"
+                          size="tiny"
+                          type="warning"
+                          secondary
+                          @click.stop="emit('confirm', item.basicId)"
+                        >
+                          确认
+                        </NButton>
+                      </div>
+                    </div>
+                  </div>
+                </NScrollbar>
+              </NTabPane>
+
+              <NTabPane name="mention" :tab="mentionTabLabel">
+                <NScrollbar style="max-height: 360px">
+                  <div v-if="mentionedItems.length === 0" class="notification-empty">
+                    <NEmpty description="暂无提及" size="small" />
+                  </div>
+                  <div
+                    v-for="item in mentionedItems"
+                    :key="item.basicId"
+                    class="notification-item"
+                    :class="{ 'notification-item--unread': itemNeedsAttention(item) }"
+                    @click="handleItemClick(item)"
+                  >
+                    <div class="notification-item-dot" :class="{ 'notification-item-dot--active': itemNeedsAttention(item) }" />
+                    <div class="notification-item-body">
+                      <div class="notification-item-header">
+                        <span class="notification-item-title">{{ item.title }}</span>
+                        <NTag :type="getTypeInfo(item.notificationType).type" size="small" :bordered="false" round>
+                          {{ getTypeInfo(item.notificationType).label }}
+                        </NTag>
+                      </div>
+                      <div v-if="item.content" class="notification-item-content">
+                        {{ item.content }}
+                      </div>
+                      <div class="notification-item-footer">
+                        <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
+                        <NButton
+                          v-if="item.needConfirm && !item.confirmTime"
+                          size="tiny"
+                          type="warning"
+                          secondary
+                          @click.stop="emit('confirm', item.basicId)"
+                        >
+                          确认
+                        </NButton>
+                      </div>
+                    </div>
+                  </div>
+                </NScrollbar>
+              </NTabPane>
+            </NTabs>
+          </NSpin>
+
+          <div class="notification-dropdown-footer">
+            <NButton text type="primary" size="small" @click="emit('viewAll'); showPopover = false">
+              前往通知中心
             </NButton>
           </div>
         </div>
-
-        <NSpin :show="props.loading">
-          <NTabs v-model:value="activeTab" type="line" size="small" class="notification-tabs">
-            <NTabPane name="inbox" :tab="inboxTabLabel">
-              <NScrollbar style="max-height: 360px">
-                <div v-if="allItems.length === 0" class="notification-empty">
-                  <NEmpty description="暂无站内信" size="small" />
-                </div>
-                <div
-                  v-for="item in allItems"
-                  :key="item.basicId"
-                  class="notification-item"
-                  :class="{ 'notification-item--unread': itemNeedsAttention(item) }"
-                  @click="handleItemClick(item)"
-                >
-                  <div class="notification-item-dot" :class="{ 'notification-item-dot--active': itemNeedsAttention(item) }" />
-                  <div class="notification-item-body">
-                    <div class="notification-item-header">
-                      <span class="notification-item-title">{{ item.title }}</span>
-                      <NTag :type="getTypeInfo(item.notificationType).type" size="small" :bordered="false" round>
-                        {{ getTypeInfo(item.notificationType).label }}
-                      </NTag>
-                    </div>
-                    <div v-if="item.content" class="notification-item-content">
-                      {{ item.content }}
-                    </div>
-                    <div class="notification-item-footer">
-                      <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
-                      <NButton
-                        v-if="item.needConfirm && !item.confirmTime"
-                        size="tiny"
-                        type="warning"
-                        secondary
-                        @click.stop="emit('confirm', item.basicId)"
-                      >
-                        确认
-                      </NButton>
-                    </div>
-                  </div>
-                </div>
-              </NScrollbar>
-            </NTabPane>
-
-            <NTabPane name="mention" :tab="mentionTabLabel">
-              <NScrollbar style="max-height: 360px">
-                <div v-if="mentionedItems.length === 0" class="notification-empty">
-                  <NEmpty description="暂无提及" size="small" />
-                </div>
-                <div
-                  v-for="item in mentionedItems"
-                  :key="item.basicId"
-                  class="notification-item"
-                  :class="{ 'notification-item--unread': itemNeedsAttention(item) }"
-                  @click="handleItemClick(item)"
-                >
-                  <div class="notification-item-dot" :class="{ 'notification-item-dot--active': itemNeedsAttention(item) }" />
-                  <div class="notification-item-body">
-                    <div class="notification-item-header">
-                      <span class="notification-item-title">{{ item.title }}</span>
-                      <NTag :type="getTypeInfo(item.notificationType).type" size="small" :bordered="false" round>
-                        {{ getTypeInfo(item.notificationType).label }}
-                      </NTag>
-                    </div>
-                    <div v-if="item.content" class="notification-item-content">
-                      {{ item.content }}
-                    </div>
-                    <div class="notification-item-footer">
-                      <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
-                      <NButton
-                        v-if="item.needConfirm && !item.confirmTime"
-                        size="tiny"
-                        type="warning"
-                        secondary
-                        @click.stop="emit('confirm', item.basicId)"
-                      >
-                        确认
-                      </NButton>
-                    </div>
-                  </div>
-                </div>
-              </NScrollbar>
-            </NTabPane>
-          </NTabs>
-        </NSpin>
-
-        <div class="notification-dropdown-footer">
-          <NButton text type="primary" size="small" @click="emit('viewAll'); showPopover = false">
-            前往通知中心
-          </NButton>
-        </div>
-      </div>
       </Transition>
     </Teleport>
   </div>
