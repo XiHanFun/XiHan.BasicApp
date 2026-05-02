@@ -2,8 +2,8 @@
   "resource": "Enums",
   "culture": "zh-CN",
   "texts": {
-    "YesOrNo.No": "否",
-    "YesOrNo.Yes": "是",
+    "EnableStatus.Disabled": "禁用",
+    "EnableStatus.Enabled": "启用",
     "UserGender.Unknown": "未知",
     "UserGender.Male": "男",
     "UserGender.Female": "女",
