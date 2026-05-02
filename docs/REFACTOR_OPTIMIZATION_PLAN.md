@@ -5731,3 +5731,47 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的角色数据范围 API、角色数据范围页面和本文档，不推送远端。
+
+### 2026-05-02 A107 Frontend 角色继承 API 与页面
+
+本阶段继续补齐后端已重建但前端缺失的授权关系入口，重建 `RoleHierarchy` 前端 API 和 `system/role-hierarchy` 页面。范围限定在 `frontend/src` 和本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他文件。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `RoleHierarchyListItemDto`、`RoleHierarchyDetailDto`、`RoleHierarchyCreateDto`。
+  - 角色继承列表保留祖先/后代角色编码、名称、类型、状态、全局标识、深度、路径、备注和创建时间。
+- 新增 `frontend/src/api/modules/authorization/role-hierarchy.ts`：
+  - `roleHierarchyApi.ancestors()` 调用 `RoleHierarchyQuery/RoleAncestors/{roleId}`，支持 `includeSelf`。
+  - `roleHierarchyApi.descendants()` 调用 `RoleHierarchyQuery/RoleDescendants/{roleId}`，支持 `includeSelf`。
+  - `roleHierarchyApi.detail()` 调用 `RoleHierarchyQuery/RoleHierarchyDetail/{id}`。
+  - `roleHierarchyApi.create()` / `delete()` 对齐 `RoleHierarchyAppService` 的直接继承维护入口。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出角色继承模块。
+- 新增 `frontend/src/views/system/role-hierarchy/index.vue`：
+  - 使用 `roleApi.enabledList()` 选择当前上下文可见的启用角色。
+  - 支持按祖先链/后代链切换、是否包含自身、关键字过滤和前端分页展示。
+  - 支持新增直接继承关系，并在保存后切换到后代角色的祖先链视图。
+  - 删除入口仅对直接继承边开放，且过滤平台全局角色与系统角色的后代维护场景。
+
+设计约束：
+
+- 角色继承 API 和页面不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- `roleId` 是角色资源主键，不是租户上下文；页面只用于选择当前上下文可见角色和展示继承链。
+- 前端只做交互约束和入口过滤，继承环、全局角色、系统角色、跨租户可见性和删除直接边等规则最终以后端 `RoleHierarchyAppService` 校验为准。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/role-hierarchy/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/role-hierarchy`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A106，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的角色继承 API、角色继承页面和本文档，不推送远端。
