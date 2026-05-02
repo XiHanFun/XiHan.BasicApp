@@ -5635,3 +5635,53 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的用户直授权限 API、用户直授权限页面和本文档，不推送远端。
+
+### 2026-05-02 A105 Frontend 用户数据范围 API 与页面
+
+本阶段继续补齐后端已重建但前端缺失的授权绑定入口，重建 `UserDataScope` 前端 API 和 `system/user-data-scope` 页面。由于自定义数据范围必须选择启用部门，本阶段同时补一个最小 `organization/department` 只读树 API 供选择器使用；范围仍限定在 `frontend/src` 和本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他文件。
+
+执行结果：
+
+- 新增 `frontend/src/api/modules/organization/`：
+  - `types.ts` 定义 `DepartmentType`、`DepartmentTreeQueryDto`、`DepartmentTreeNodeDto`。
+  - `department.ts` 封装 `DepartmentQuery/DepartmentTree`，支持关键字、仅启用和数量上限。
+  - `index.ts` 聚合导出，并在 `frontend/src/api/index.ts` 导出 organization 模块。
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `UserDataScopeListItemDto`、`UserDataScopeDetailDto`、`UserDataScopeGrantDto`、`UserDataScopeUpdateDto`、`UserDataScopeStatusUpdateDto`。
+  - 复用 `DataPermissionScope`、`DepartmentType`、`EnableStatus`、`ValidityStatus` 既有枚举，并通过类型引用复用租户成员类型/邀请状态。
+- 新增 `frontend/src/api/modules/authorization/user-data-scope.ts`：
+  - `userDataScopeApi.list()` 调用 `UserDataScopeQuery/UserDataScopes/{userId}`，支持 `onlyValid` 查询参数。
+  - `userDataScopeApi.detail()` 调用 `UserDataScopeQuery/UserDataScopeDetail/{id}`。
+  - `userDataScopeApi.grant()` / `update()` / `updateStatus()` 对齐 `UserDataScopeAppService`。
+  - `userDataScopeApi.revoke()` 调用 `UserDataScope/UserDataScope/{id}`，沿用后端撤销即写入无效状态的语义。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出用户数据范围模块。
+- 新增 `frontend/src/views/system/user-data-scope/index.vue`：
+  - 使用 `tenantMemberApi.page()` 选择当前租户内已接受、有效且非平台管理员的成员。
+  - 使用 `departmentApi.tree()` 选择启用部门，自定义数据范围才允许提交部门和包含子部门。
+  - 使用 VxeGrid 展示指定用户的数据范围覆盖，支持关键字、数据范围、绑定状态和仅有效绑定筛选。
+  - 提供授予范围、编辑范围/部门/包含子部门/备注、启用/停用绑定、撤销绑定入口。
+
+设计约束：
+
+- 用户数据范围 API、部门树 API 和页面均不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- `userId` 是当前租户成员身份下的用户资源主键，不是租户上下文；页面先通过租户成员查询入口选择用户。
+- 非自定义数据范围不提交部门主键，避免前端制造与后端 `UserDataScopeAppService` 冲突的覆盖模式。
+- 部门树仅作为选择器读模型，不在前端实现组织权限裁决；停用部门恢复有效绑定时前端只做提示，最终以后端校验为准。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/user-data-scope/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/user-data-scope`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/api/modules/organization/department.ts`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A104，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的组织部门只读 API、用户数据范围 API、用户数据范围页面和本文档，不推送远端。
