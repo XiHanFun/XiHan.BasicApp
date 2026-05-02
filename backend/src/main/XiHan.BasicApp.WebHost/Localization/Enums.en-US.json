@@ -2,8 +2,8 @@
   "resource": "Enums",
   "culture": "en-US",
   "texts": {
-    "YesOrNo.No": "No",
-    "YesOrNo.Yes": "Yes",
+    "EnableStatus.Disabled": "Disabled",
+    "EnableStatus.Enabled": "Enabled",
     "UserGender.Unknown": "Unknown",
     "UserGender.Male": "Male",
     "UserGender.Female": "Female",
