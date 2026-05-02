@@ -5948,3 +5948,31 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
 - `XiHan.Framework` 本阶段提交 EventBus Outbox/Inbox 取消语义修复和 Framework 文档；BasicApp 本阶段只记录启停验证，不改业务代码。
 - 本阶段只提交 BasicApp 本文档，不推送远端。
+
+### 2026-05-03 A112 Frontend 登录后进入系统链路验证
+
+本阶段继续围绕“能登录系统”复测前端开发环境、Vite 代理、认证 API 和 SignalR 入口。当前工作区存在多项并行前端改动，本阶段不覆盖这些改动，只做链路验证和文档记录。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm build:dev`：通过；仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- 现有前端 dev server `http://127.0.0.1:7777/login`：HTTP 200。
+- 通过前端代理访问 `GET http://127.0.0.1:7777/api/Auth/LoginConfig`：HTTP 200。
+- 通过前端代理执行认证链路：
+  - `POST /api/Auth/Login`，账号 `superadmin`，密码 `SuperAdmin@123`，`tenantId=1`：成功返回访问令牌和刷新令牌。
+  - `GET /api/Auth/UserInfo`：返回 `userName=superadmin`、`tenantId=1`。
+  - `GET /api/Auth/Permissions`：返回 `roles=super_admin`、包含 `*` 权限，菜单数量为 1。
+  - `POST /api/Auth/RefreshToken`：成功返回新访问令牌。
+- 通过前端代理执行 `POST /hubs/notification/negotiate?negotiateVersion=1`：HTTP 200。
+
+注意事项：
+
+- 后端 `LoginRequestDto` 字段为 `Username`，前端 `LoginParams` 已使用 `username`，链路一致；手工接口测试不要误用 `userName`。
+- 本次自动启动额外 dev server 时发现 7777 已被既有服务占用，Vite 会自动切换到 7778；验证后已清理本次额外启动的 7778 进程，保留原有 7777 服务。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 工作区仍存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
+- 本阶段只提交 BasicApp 本文档，不推送远端。
