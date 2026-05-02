@@ -12,20 +12,22 @@ import { registerApplicationContext } from './app/context'
 import { router } from './router'
 import './styles/index.css'
 
-await setupIconifyOffline()
-invalidateCacheIfBuildTimeChanged()
+(async () => {
+  await setupIconifyOffline()
+  invalidateCacheIfBuildTimeChanged()
 
-const app = createApp(App)
-const pinia = createPinia()
-pinia.use(resetSetupStorePlugin())
+  const app = createApp(App)
+  const pinia = createPinia()
+  pinia.use(resetSetupStorePlugin())
 
-app.use(pinia)
-setupI18n(app)
-setupVxeTable(app)
+  app.use(pinia)
+  setupI18n(app)
+  setupVxeTable(app)
 
-bindRouter(router)
-registerApplicationContext(router)
-setupRouterGuard(router)
+  bindRouter(router)
+  registerApplicationContext(router)
+  setupRouterGuard(router)
 
-app.use(router)
-app.mount('#app')
+  app.use(router)
+  app.mount('#app')
+})()

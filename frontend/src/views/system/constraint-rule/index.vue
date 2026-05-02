@@ -266,7 +266,7 @@ const tableOptions = useVxeTable<ConstraintRuleListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 190,
+        width: 120,
       },
     ],
     id: 'sys_constraint_rule',
@@ -504,28 +504,29 @@ async function handleToggleStatus(row: ConstraintRuleListItemDto) {
 
         <template #col_actions="{ row }">
           <NSpace size="small">
+            <!-- 操作列仅图标 -->
             <NButton
               :disabled="!canMaintainRule(row)"
+              aria-label="编辑"
+              circle
+              quaternary
               size="small"
-              text
               type="primary"
               @click="handleEdit(row)"
             >
               <template #icon>
                 <NIcon><Icon icon="lucide:pencil" /></NIcon>
               </template>
-              编辑
             </NButton>
 
             <NPopconfirm :disabled="!canMaintainRule(row)" @positive-click="handleToggleStatus(row)">
               <template #trigger>
-                <NButton :disabled="!canMaintainRule(row)" size="small" text type="warning">
+                <NButton :disabled="!canMaintainRule(row)" aria-label="停用或启用" circle quaternary size="small" type="warning">
                   <template #icon>
                     <NIcon>
                       <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check'" />
                     </NIcon>
                   </template>
-                  {{ row.status === EnableStatus.Enabled ? '停用' : '启用' }}
                 </NButton>
               </template>
               确认更新约束规则状态？
@@ -533,11 +534,10 @@ async function handleToggleStatus(row: ConstraintRuleListItemDto) {
 
             <NPopconfirm :disabled="!canMaintainRule(row)" @positive-click="handleDelete(row)">
               <template #trigger>
-                <NButton :disabled="!canMaintainRule(row)" size="small" text type="error">
+                <NButton :disabled="!canMaintainRule(row)" aria-label="删除" circle quaternary size="small" type="error">
                   <template #icon>
                     <NIcon><Icon icon="lucide:trash-2" /></NIcon>
                   </template>
-                  删除
                 </NButton>
               </template>
               确认删除该约束规则？

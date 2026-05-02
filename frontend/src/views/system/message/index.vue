@@ -508,11 +508,11 @@ async function handleSmsDetail(row: SmsListItemDto) {
         </template>
 
         <template #col_email_actions="{ row }">
-          <NButton size="small" text type="primary" @click="handleEmailDetail(row)">
+          <!-- 操作列仅图标 -->
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleEmailDetail(row)">
             <template #icon>
               <NIcon><Icon icon="lucide:eye" /></NIcon>
             </template>
-            详情
           </NButton>
         </template>
       </vxe-grid>
@@ -529,11 +529,11 @@ async function handleSmsDetail(row: SmsListItemDto) {
         </template>
 
         <template #col_sms_actions="{ row }">
-          <NButton size="small" text type="primary" @click="handleSmsDetail(row)">
+          <!-- 操作列仅图标 -->
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleSmsDetail(row)">
             <template #icon>
               <NIcon><Icon icon="lucide:eye" /></NIcon>
             </template>
-            详情
           </NButton>
         </template>
       </vxe-grid>

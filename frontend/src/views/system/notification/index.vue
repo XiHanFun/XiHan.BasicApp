@@ -515,11 +515,11 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
         </template>
 
         <template #col_notification_actions="{ row }">
-          <NButton size="small" text type="primary" @click="handleNotificationDetail(row)">
+          <!-- 操作列仅图标 -->
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleNotificationDetail(row)">
             <template #icon>
               <NIcon><Icon icon="lucide:eye" /></NIcon>
             </template>
-            详情
           </NButton>
         </template>
       </vxe-grid>
@@ -536,11 +536,11 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
         </template>
 
         <template #col_user_notification_actions="{ row }">
-          <NButton size="small" text type="primary" @click="handleUserNotificationDetail(row)">
+          <!-- 操作列仅图标 -->
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleUserNotificationDetail(row)">
             <template #icon>
               <NIcon><Icon icon="lucide:eye" /></NIcon>
             </template>
-            详情
           </NButton>
         </template>
       </vxe-grid>

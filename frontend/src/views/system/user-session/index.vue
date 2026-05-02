@@ -145,7 +145,7 @@ const tableOptions = useVxeTable<UserSessionListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 180,
+        width: 88,
       },
     ],
     id: 'sys_user_session',
@@ -255,16 +255,16 @@ async function handleRevokeUserSessions(row: UserSessionListItemDto) {
 
         <template #col_actions="{ row }">
           <NSpace size="small">
+            <!-- 操作列仅图标 -->
             <NPopconfirm
               v-if="row.isOnline && !row.isRevoked"
               @positive-click="handleRevokeSession(row)"
             >
               <template #trigger>
-                <NButton size="small" text type="warning">
+                <NButton aria-label="会话下线" circle quaternary size="small" type="warning">
                   <template #icon>
                     <NIcon><Icon icon="lucide:log-out" /></NIcon>
                   </template>
-                  下线
                 </NButton>
               </template>
               确认强制该会话下线？
@@ -272,11 +272,10 @@ async function handleRevokeUserSessions(row: UserSessionListItemDto) {
 
             <NPopconfirm @positive-click="handleRevokeUserSessions(row)">
               <template #trigger>
-                <NButton size="small" text type="error">
+                <NButton aria-label="用户全部会话下线" circle quaternary size="small" type="error">
                   <template #icon>
                     <NIcon><Icon icon="lucide:user-x" /></NIcon>
                   </template>
-                  全部下线
                 </NButton>
               </template>
               确认强制该用户全部会话下线？

@@ -249,11 +249,11 @@ async function handleDetail(row: OAuthAppListItemDto) {
         </template>
 
         <template #col_actions="{ row }">
-          <NButton size="small" text type="primary" @click="handleDetail(row)">
+          <!-- 操作列仅图标 -->
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
             <template #icon>
               <NIcon><Icon icon="lucide:eye" /></NIcon>
             </template>
-            详情
           </NButton>
         </template>
       </vxe-grid>

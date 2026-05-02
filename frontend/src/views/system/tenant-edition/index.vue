@@ -154,7 +154,7 @@ const tableOptions = useVxeTable<TenantEditionListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 220,
+        width: 148,
       },
     ],
     id: 'sys_tenant_edition',
@@ -401,22 +401,21 @@ async function handleSetDefault(row: TenantEditionListItemDto) {
 
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" text type="primary" @click="handleEdit(row)">
+            <!-- 操作列仅图标 -->
+            <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
               <template #icon>
                 <NIcon><Icon icon="lucide:pencil" /></NIcon>
               </template>
-              编辑
             </NButton>
 
             <NPopconfirm :disabled="!canDisableEdition(row)" @positive-click="handleToggleStatus(row)">
               <template #trigger>
-                <NButton :disabled="!canDisableEdition(row)" size="small" text type="warning">
+                <NButton :disabled="!canDisableEdition(row)" aria-label="停用或启用" circle quaternary size="small" type="warning">
                   <template #icon>
                     <NIcon>
                       <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check'" />
                     </NIcon>
                   </template>
-                  {{ row.status === EnableStatus.Enabled ? '停用' : '启用' }}
                 </NButton>
               </template>
               确认更新版本状态？
@@ -429,14 +428,15 @@ async function handleSetDefault(row: TenantEditionListItemDto) {
               <template #trigger>
                 <NButton
                   :disabled="row.isDefault || row.status !== EnableStatus.Enabled"
+                  aria-label="设为默认版本"
+                  circle
+                  quaternary
                   size="small"
-                  text
                   type="info"
                 >
                   <template #icon>
                     <NIcon><Icon icon="lucide:star" /></NIcon>
                   </template>
-                  默认
                 </NButton>
               </template>
               确认设置为默认版本？

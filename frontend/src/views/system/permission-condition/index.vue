@@ -432,7 +432,7 @@ const tableOptions = useVxeTable<PermissionConditionListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 190,
+        width: 120,
       },
     ],
     id: 'sys_permission_condition',
@@ -742,22 +742,21 @@ void loadRoleOptions()
 
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" text type="primary" @click="handleEdit(row)">
+            <!-- 操作列仅图标 -->
+            <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
               <template #icon>
                 <NIcon><Icon icon="lucide:pencil" /></NIcon>
               </template>
-              编辑
             </NButton>
 
             <NPopconfirm @positive-click="handleToggleStatus(row)">
               <template #trigger>
-                <NButton size="small" text type="warning">
+                <NButton aria-label="停用或启用" circle quaternary size="small" type="warning">
                   <template #icon>
                     <NIcon>
                       <Icon :icon="row.status === ValidityStatus.Valid ? 'lucide:ban' : 'lucide:circle-check'" />
                     </NIcon>
                   </template>
-                  {{ row.status === ValidityStatus.Valid ? '停用' : '启用' }}
                 </NButton>
               </template>
               确认更新 ABAC 条件状态？
@@ -765,11 +764,10 @@ void loadRoleOptions()
 
             <NPopconfirm @positive-click="handleDelete(row)">
               <template #trigger>
-                <NButton size="small" text type="error">
+                <NButton aria-label="删除" circle quaternary size="small" type="error">
                   <template #icon>
                     <NIcon><Icon icon="lucide:trash-2" /></NIcon>
                   </template>
-                  删除
                 </NButton>
               </template>
               确认删除该 ABAC 条件？
