@@ -178,6 +178,7 @@ html.theme-switching *::after {
 /* vxe-card 默认 inline-flex，改为 flex 让其铺满宽度 */
 .vxe-card {
   display: flex;
+  min-width: 0;
   width: 100%;
 }
 
@@ -186,6 +187,24 @@ html.theme-switching *::after {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* 表格页面的 vxe-card 作为 flex 剩余区时，必须允许内部 grid 在 0 基准上撑满剩余高度 */
+.vxe-card.flex-1 {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.vxe-card.flex-1 > .vxe-card--body,
+.vxe-card.flex-1 > .vxe-card--body > .vxe-card--body-content {
+  height: 100%;
+  min-height: 0;
+}
+
+.vxe-card.flex-1 > .vxe-card--body > .vxe-card--body-content > .vxe-grid {
+  flex: 1 1 0;
+  height: 100%;
+  min-height: 0;
 }
 
 /* 磨砂纹理效果 */
