@@ -5685,3 +5685,49 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的组织部门只读 API、用户数据范围 API、用户数据范围页面和本文档，不推送远端。
+
+### 2026-05-02 A106 Frontend 角色数据范围 API 与页面
+
+本阶段继续补齐后端已重建但前端缺失的授权绑定入口，重建 `RoleDataScope` 前端 API 和 `system/role-data-scope` 页面。A105 已补齐 `organization/department` 只读树 API，本阶段直接复用部门选择器；范围限定在 `frontend/src` 和本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他文件。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `RoleDataScopeListItemDto`、`RoleDataScopeDetailDto`、`RoleDataScopeGrantDto`、`RoleDataScopeUpdateDto`、`RoleDataScopeStatusUpdateDto`。
+  - 复用 `DepartmentType`、`EnableStatus`、`ValidityStatus` 既有枚举，并保留角色数据范围的有效期字段。
+- 新增 `frontend/src/api/modules/authorization/role-data-scope.ts`：
+  - `roleDataScopeApi.list()` 调用 `RoleDataScopeQuery/RoleDataScopes/{roleId}`，支持 `onlyValid` 查询参数。
+  - `roleDataScopeApi.detail()` 调用 `RoleDataScopeQuery/RoleDataScopeDetail/{id}`。
+  - `roleDataScopeApi.grant()` / `update()` / `updateStatus()` 对齐 `RoleDataScopeAppService`。
+  - `roleDataScopeApi.revoke()` 调用 `RoleDataScope/RoleDataScope/{id}`，沿用后端撤销即写入无效状态的语义。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出角色数据范围模块。
+- 新增 `frontend/src/views/system/role-data-scope/index.vue`：
+  - 使用 `roleApi.page()` 按 `DataPermissionScope.Custom` 和启用状态选择可维护角色，并过滤平台全局角色与系统角色。
+  - 使用 `departmentApi.tree()` 选择启用部门。
+  - 使用 VxeGrid 展示指定角色的数据范围部门绑定，支持关键字、绑定状态和仅有效绑定筛选。
+  - 提供授予范围、编辑包含子部门/有效期/备注、启用/停用绑定、撤销绑定入口。
+
+设计约束：
+
+- 角色数据范围 API 和页面不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- `roleId` 是角色资源主键，不是租户上下文；页面只允许选择当前上下文可见且数据范围为自定义的启用角色。
+- 部门树仅作为选择器读模型，不在前端实现组织权限裁决；停用部门恢复有效绑定时前端只做提示，最终以后端校验为准。
+- 角色数据范围绑定不提交 `DataPermissionScope`，角色是否为自定义范围由后端角色实体最终校验。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/role-data-scope/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/role-data-scope`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A105，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的角色数据范围 API、角色数据范围页面和本文档，不推送远端。
