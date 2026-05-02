@@ -5976,3 +5976,26 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 工作区仍存在多项并行前端改动，不属于本阶段，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
 - 本阶段只提交 BasicApp 本文档，不推送远端。
+
+### 2026-05-03 A113 Tailwind content 扫描范围优化
+
+本阶段处理前端开发构建中的 Tailwind broad content pattern 警告。原配置已经限定扫描 `src` 和 `packages`，但 Windows 环境下 Tailwind 在处理依赖文件时仍可能把 `node_modules` 命中为潜在广域扫描风险。
+
+执行结果：
+
+- 更新 `frontend/tailwind.config.mjs`：
+  - 在 `content` 中显式排除 `./node_modules/**/*`。
+  - 在 `content` 中显式排除 `./dist/**/*`。
+  - 保留 `./src/**/*.{vue,js,ts,jsx,tsx}` 与 `./packages/**/*.{vue,js,ts,jsx,tsx}` 作为实际业务扫描范围。
+
+验证结果：
+
+- `pnpm build:dev`：通过；Tailwind broad content pattern 警告已消失。
+- `pnpm type-check`：通过。
+- 构建仍保留 SignalR 依赖 PURE 注释警告和大 chunk 既有警告，本阶段不处理打包拆分。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端改动，本阶段只暂存 `frontend/tailwind.config.mjs` 和本文档。
+- `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
+- 本阶段只提交 Tailwind content 扫描范围优化和本文档，不推送远端。
