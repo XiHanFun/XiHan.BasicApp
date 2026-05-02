@@ -1,9 +1,8 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
-import { TenantMemberType } from '../tenant'
+import type { TenantMemberType } from '../tenant'
 
 export { EnableStatus } from '../shared'
-export { TenantMemberType } from '../tenant'
 
 export enum UserGender {
   Unknown = 0,
