@@ -12,7 +12,7 @@ import { registerApplicationContext } from './app/context'
 import { router } from './router'
 import './styles/index.css'
 
-setupIconifyOffline()
+await setupIconifyOffline()
 invalidateCacheIfBuildTimeChanged()
 
 const app = createApp(App)

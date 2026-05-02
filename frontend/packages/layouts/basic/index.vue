@@ -122,7 +122,7 @@ const sidebarEnableState = computed(
             class="my-0 mr-1"
             @click="shell.handleHeaderToggle"
           >
-            <Icon :icon="shell.showSider.value ? 'ep:fold' : 'ep:expand'" width="18" height="18" />
+            <Icon :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" width="18" height="18" />
           </XihanIconButton>
 
           <!-- Header content (flex-1 fills remaining header space) -->

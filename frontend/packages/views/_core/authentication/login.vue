@@ -93,9 +93,9 @@ const redirect = computed(() => {
 })
 
 const oauthProviderIcons: Record<string, string> = {
-  github: 'mdi:github',
-  google: 'logos:google-icon',
-  qq: 'ri:qq-fill',
+  github: 'lucide:github',
+  google: 'lucide:globe',
+  qq: 'lucide:message-circle',
 }
 
 const oauthProviders = computed(() => loginConfig.value.oauthProviders ?? [])
