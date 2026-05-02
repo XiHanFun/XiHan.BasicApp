@@ -133,7 +133,7 @@ public sealed class AuthAppService(
         var client = ResolveClientInfo();
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
-        var claims = BuildClaims(user, effectiveTenantId, sessionBusinessId, accessTokenJti, authSnapshot.Roles, input.DeviceId);
+        var claims = BuildClaims(user, effectiveTenantId, sessionBusinessId, accessTokenJti, authSnapshot.Roles, authSnapshot.Permissions, input.DeviceId);
         var tokenResult = _jwtTokenService.GenerateAccessToken(claims);
 
         user.LastLoginTime = now;
@@ -550,6 +550,7 @@ public sealed class AuthAppService(
         string sessionBusinessId,
         string accessTokenJti,
         IReadOnlyCollection<string> roles,
+        IReadOnlyCollection<string> permissions,
         string? deviceId)
     {
         var claims = new List<Claim>
@@ -590,6 +591,22 @@ public sealed class AuthAppService(
         foreach (var role in roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase))
         {
             claims.Add(new Claim(XiHanClaimTypes.Role, role));
+        }
+
+        var permissionClaims = permissions
+            .Where(permission => !string.IsNullOrWhiteSpace(permission))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (permissionClaims.Contains("*", StringComparer.OrdinalIgnoreCase))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Permission, "*"));
+        }
+        else
+        {
+            foreach (var permission in permissionClaims)
+            {
+                claims.Add(new Claim(XiHanClaimTypes.Permission, permission));
+            }
         }
 
         return claims;
