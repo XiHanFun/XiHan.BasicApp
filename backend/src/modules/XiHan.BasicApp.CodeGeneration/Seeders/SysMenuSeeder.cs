@@ -52,27 +52,42 @@ public class SysMenuSeeder : DataSeederBase
 
         if (!existsCodes.Contains("develop"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "tool", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 400 });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "lucide:hammer", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = false, IsAffix = false, Status = EnableStatus.Disabled, Sort = 400, Remark = "代码生成前端和应用服务重建前暂不显示" });
         }
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "code", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 401 });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "lucide:code-xml", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = false, IsAffix = false, Status = EnableStatus.Disabled, Sort = 401, Remark = "代码生成前端和应用服务重建前暂不显示" });
         }
 
-        if (addList.Count == 0)
+        if (addList.Count > 0)
         {
-            Logger.LogInformation("系统菜单数据已存在，跳过种子数据");
-            return;
+            await BulkInsertAsync(addList);
         }
 
-        await BulkInsertAsync(addList);
         var parentMenu = await client.Queryable<SysMenu>().FirstAsync(m => m.MenuCode == "develop");
         if (parentMenu != null)
         {
-            await client.Updateable<SysMenu>().SetColumns(m => m.ParentId == parentMenu.BasicId).Where(m => m.MenuCode == "code_gen").ExecuteCommandAsync();
+            await client.Updateable<SysMenu>()
+                .SetColumns(m => m.ParentId == parentMenu.BasicId)
+                .Where(m => m.MenuCode == "code_gen")
+                .ExecuteCommandAsync();
         }
 
-        Logger.LogInformation("成功初始化 {Count} 个系统菜单", addList.Count);
+        var hideCount = await client.Updateable<SysMenu>()
+            .SetColumns(m => m.IsVisible == false)
+            .SetColumns(m => m.Status == EnableStatus.Disabled)
+            .SetColumns(m => m.Remark == "代码生成前端和应用服务重建前暂不显示")
+            .Where(m => m.MenuCode == "develop" || m.MenuCode == "code_gen")
+            .Where(m => m.IsVisible || m.Status != EnableStatus.Disabled)
+            .ExecuteCommandAsync();
+
+        if (addList.Count == 0 && hideCount == 0)
+        {
+            Logger.LogInformation("系统菜单数据已存在且保持隐藏，跳过种子数据");
+            return;
+        }
+
+        Logger.LogInformation("成功初始化 {AddCount} 个系统菜单，隐藏 {HideCount} 个未完成菜单", addList.Count, hideCount);
     }
 }
