@@ -5821,3 +5821,50 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的字段级安全 API、字段级安全页面和本文档，不推送远端。
+
+### 2026-05-02 A109 Frontend 权限 ABAC 条件 API 与页面
+
+本阶段继续补齐后端已重建但前端缺失的授权安全入口，重建 `PermissionCondition` 前端 API 和 `system/permission-condition` 页面。后端查询契约按角色权限绑定或用户直授权限绑定读取条件，本阶段前端也按绑定维度维护，不伪造全量分页查询。范围限定在 `frontend/src` 和本文档，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他文件。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `ConditionOperator`、`ConfigDataType` 前端枚举。
+  - 新增 `PermissionConditionListItemDto`、`PermissionConditionDetailDto`、`PermissionConditionCreateDto`、`PermissionConditionUpdateDto`、`PermissionConditionStatusUpdateDto`。
+  - 条件 DTO 对齐后端绑定主键、角色/用户/权限摘要、条件分组、属性名、操作符、取反、值类型、条件值、状态和审计字段。
+- 新增 `frontend/src/api/modules/authorization/permission-condition.ts`：
+  - `permissionConditionApi.rolePermissionConditions()` 调用 `PermissionConditionQuery/RolePermissionConditions/{rolePermissionId}`。
+  - `permissionConditionApi.userPermissionConditions()` 调用 `PermissionConditionQuery/UserPermissionConditions/{userPermissionId}`。
+  - `permissionConditionApi.detail()` 调用 `PermissionConditionQuery/PermissionConditionDetail/{id}`。
+  - `permissionConditionApi.create()` / `update()` / `updateStatus()` / `delete()` 对齐 `PermissionConditionAppService`。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出权限条件模块。
+- 新增 `frontend/src/views/system/permission-condition/index.vue`：
+  - 支持角色权限绑定和用户直授权限绑定两种维护模式。
+  - 角色模式先选角色，再选择该角色下当前有效且权限启用的角色权限绑定。
+  - 用户模式先选当前租户有效成员，再选择该用户下当前有效且权限启用的用户直授权限绑定。
+  - 支持按绑定查询条件、仅有效条件过滤、关键字过滤、新增、编辑、启用/停用和删除。
+  - 前端校验绑定互斥、条件分组非负、属性名前缀必须为 `subject.` / `resource.` / `environment.`、条件值非空。
+
+设计约束：
+
+- 权限 ABAC 条件 API 和页面不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- `rolePermissionId`、`userPermissionId` 是授权绑定主键，不是租户上下文；页面保证二者只能二选一。
+- 页面只做交互校验和入口过滤；授权绑定是否有效、角色/权限/租户成员是否可维护、条件组数量和值类型一致性最终仍以后端 `PermissionConditionAppService` 校验为准。
+- ABAC 条件以结构化 DTO 字段提交，不把条件表达式拼成字符串兼容字段。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/permission-condition/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/permission-condition`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A108，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的权限 ABAC 条件 API、权限 ABAC 条件页面和本文档，不推送远端。
