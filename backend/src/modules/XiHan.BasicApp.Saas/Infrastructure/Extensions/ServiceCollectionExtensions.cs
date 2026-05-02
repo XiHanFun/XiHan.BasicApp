@@ -30,7 +30,9 @@ public static class ServiceCollectionExtensions
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasDataSeeders(this IServiceCollection services)
     {
+        services.AddDataSeeder<SaasIdentitySeeder>();
         services.AddDataSeeder<SaasPermissionSeeder>();
+        services.AddDataSeeder<SaasIdentityPermissionSeeder>();
         return services;
     }
 }

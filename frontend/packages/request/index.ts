@@ -227,7 +227,8 @@ export class RequestClient {
 
   private async refreshAccessToken(): Promise<string | null> {
     const refreshToken = LocalStorage.get<string>(REFRESH_TOKEN_KEY)
-    if (!refreshToken)
+    const accessToken = LocalStorage.get<string>(TOKEN_KEY)
+    if (!refreshToken || !accessToken)
       return null
 
     if (this.isRefreshing) {
@@ -239,8 +240,8 @@ export class RequestClient {
     this.isRefreshing = true
     try {
       const { data } = await this.instance.post(
-        this.resolveUrl('/auth/refreshtoken'),
-        { refreshToken },
+        this.resolveUrl('/Auth/RefreshToken'),
+        { accessToken, refreshToken },
         { _isRefresh: true } as Record<string, unknown>,
       )
       const payload = (data?.data ?? data) as {
