@@ -33,6 +33,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasIdentitySeeder>();
         services.AddDataSeeder<SaasPermissionSeeder>();
         services.AddDataSeeder<SaasIdentityPermissionSeeder>();
+        services.AddDataSeeder<SaasMenuSeeder>();
         return services;
     }
 }

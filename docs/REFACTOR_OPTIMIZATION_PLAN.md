@@ -6033,3 +6033,35 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端改动，本阶段只暂存 `frontend/vite.config.ts`、`frontend/packages/iconify/offline.ts`、`frontend/src/main.ts`、`frontend/packages/layouts/basic/index.vue`、`frontend/packages/views/_core/authentication/login.vue` 和本文档。
 - `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
 - 本阶段只提交前端分包与 Iconify 离线图标优化和本文档，不推送远端。
+
+### 2026-05-03 A115 超管菜单种子补齐
+
+本阶段处理超管登录后只有开发工具菜单的问题。权限接口返回 `super_admin`、`*` 和完整权限码，说明授权快照正常；根因是 SaaS 模块只初始化了权限和身份数据，没有初始化可见 `SysMenu` 数据，当前可见菜单主要来自 CodeGeneration 模块的历史 `/develop` 菜单。
+
+执行结果：
+
+- 新增 `Infrastructure/Seeders/SaasMenuSeeder.cs`：
+  - 以平台级全局菜单模板补齐 `TenantId=0`、`IsGlobal=true` 的系统菜单。
+  - 初始化 `/workbench`、`/workbench/dashboard`、`/system` 以及当前已存在前端页面对应的系统菜单。
+  - 叶子菜单绑定对应 `SaasPermissionCodes.*.Read` 权限；仪表盘和目录菜单不绑定权限。
+  - 菜单种子按 `MenuCode` 幂等新增或修正系统菜单基础字段，避免重复插入。
+  - 菜单图标统一使用 `lucide:*`，与前端离线图标预加载策略一致。
+- 更新 `Infrastructure/Extensions/ServiceCollectionExtensions.cs`：
+  - 注册 `SaasMenuSeeder`，执行顺序在 SaaS 权限和超级管理员权限绑定之后。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --artifacts-path %TEMP%\XiHanBasicAppMenuSeederArtifacts -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+- `dotnet build backend/src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj --artifacts-path %TEMP%\XiHanBasicAppMenuWebHostArtifacts -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+- 启动验证实例时数据库初始化和 SaaS 菜单种子执行成功；最终端口绑定因本机已有 `127.0.0.1:3300` 后端占用而退出，未影响种子执行验证。
+- 通过现有 `http://127.0.0.1:3300/api` 登录 `superadmin / SuperAdmin@123 / tenantId=1` 后重新读取 `GET /api/Auth/Permissions`：
+  - `roles=super_admin`。
+  - 权限码数量 141，包含 `*`。
+  - 根菜单数量 3：`/workbench`、`/system`、`/develop`。
+  - 总菜单节点数量 28，首个可见子菜单为 `/workbench/dashboard`。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端和配置改动，本阶段只暂存 SaaS 菜单种子、种子注册和本文档。
+- `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
+- 本阶段只提交超管菜单种子补齐，不推送远端。
