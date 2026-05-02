@@ -9,7 +9,7 @@ import type {
   ResourceSelectQueryDto,
   ResourceStatusUpdateDto,
   ResourceUpdateDto,
-} from './types'
+} from './resource.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

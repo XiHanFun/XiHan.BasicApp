@@ -5,7 +5,7 @@ import type {
   TenantEditionPermissionGrantDto,
   TenantEditionPermissionListItemDto,
   TenantEditionPermissionStatusUpdateDto,
-} from './types'
+} from './tenant-edition-permission.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const tenantEditionPermissionQueryApi = createDynamicApiClient('TenantEditionPermissionQuery')

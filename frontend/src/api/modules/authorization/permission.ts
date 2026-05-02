@@ -9,7 +9,7 @@ import type {
   PermissionSelectQueryDto,
   PermissionStatusUpdateDto,
   PermissionUpdateDto,
-} from './types'
+} from './permission.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

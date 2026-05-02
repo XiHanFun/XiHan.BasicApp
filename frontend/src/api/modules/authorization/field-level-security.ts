@@ -6,7 +6,7 @@ import type {
   FieldLevelSecurityPageQueryDto,
   FieldLevelSecurityStatusUpdateDto,
   FieldLevelSecurityUpdateDto,
-} from './types'
+} from './field-level-security.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

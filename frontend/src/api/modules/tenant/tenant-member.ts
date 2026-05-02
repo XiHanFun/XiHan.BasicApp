@@ -6,7 +6,7 @@ import type {
   TenantMemberPageQueryDto,
   TenantMemberStatusUpdateDto,
   TenantMemberUpdateDto,
-} from './types'
+} from './tenant-member.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
