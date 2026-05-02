@@ -5868,3 +5868,61 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的权限 ABAC 条件 API、权限 ABAC 条件页面和本文档，不推送远端。
+
+### 2026-05-02 A110 Auth 登录链路打通
+
+本阶段优先打通前后端登录主链路，补齐 SaaS 模块认证 DynamicApi、默认身份种子和前端刷新令牌请求。登录接口允许接收 `tenantId` 仅作为首次登录时选择租户上下文；登录成功后租户上下文来自 JWT/会话与底层仓储过滤器，普通业务 API 不通过入参传递租户上下文。
+
+执行结果：
+
+- 新增 `Application/Dtos/Auth/AuthDtos.cs`：
+  - 定义 `LoginConfigDto`、`LoginRequestDto`、`LoginResponseDto`、`LoginTokenDto`、`RefreshTokenRequestDto`、`UserInfoDto`、`PermissionInfoDto`、`MenuRouteDto`、`MenuMetaDto`。
+  - 响应结构对齐前端登录 store：`requiresTwoFactor`、`token.accessToken`、`refreshToken`、`expiresIn`、`userInfo.basicId`、`roles`、`permissions`、`menus`。
+- 新增 `Application/Contracts/Auth/IAuthAppService.cs` 和 `Application/AppServices/Auth/AuthAppService.cs`：
+  - 通过 `[DynamicApi(RouteTemplate = "api/Auth", Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "认证")]` 暴露认证接口，不新增 Controller。
+  - 暴露 `LoginConfig`、`Login`、`RefreshToken`、`UserInfo`、`Permissions`、`Logout`。
+  - `LoginConfig`、`Login`、`RefreshToken` 标记 `[AllowAnonymous]`，其余接口依赖全局认证要求。
+  - 登录时校验租户状态、租户配置状态、用户状态、租户成员关系、账号锁定、密码和双因子状态。
+  - JWT Claims 写入用户、租户、会话、角色、设备等上下文；刷新令牌走框架 `IJwtTokenService`。
+  - 权限快照按角色授权、角色拒绝、用户授权、用户拒绝合并；`super_admin` 返回全部启用权限和 `*`。
+  - 菜单从启用可见非按钮菜单构建，若当前库暂无菜单则返回 `/workbench/dashboard` 保底路由，确保登录后前端有可进入页面。
+- 新增 `Infrastructure/Seeders/SaasIdentitySeeder.cs`：
+  - 幂等创建默认租户 `BasicId=1`、全局 `super_admin` 角色、默认账号 `superadmin`、用户安全记录、租户成员关系和用户角色绑定。
+  - 默认密码为 `SuperAdmin@123`，使用框架密码哈希服务写入，不保存明文。
+- 新增 `Infrastructure/Seeders/SaasIdentityPermissionSeeder.cs`：
+  - 在权限种子之后将所有启用权限幂等授予 `super_admin`。
+- 更新 `Infrastructure/Extensions/ServiceCollectionExtensions.cs`：
+  - 注册基础身份种子和超级管理员权限种子，顺序为身份数据先于权限绑定。
+- 更新 `frontend/packages/request/index.ts`：
+  - 刷新令牌请求从旧路径调整为 `/Auth/RefreshToken`，请求体携带 `{ accessToken, refreshToken }`，与后端新契约一致。
+  - 本次修改位于 `packages/request`，原因是令牌刷新是基础请求客户端内置链路，属于 packages 修改例外。
+
+关联 Framework 修复：
+
+- 登录运行时验证暴露出 DynamicApi 对公开方法 `CancellationToken` 参数错误添加 `[FromServices]` 的底层问题，已在 `XiHan.Framework.Web.Api` 修复为保留参数但不添加绑定特性，让 ASP.NET Core 使用请求中止令牌。
+
+设计约束：
+
+- 本阶段没有新增 Controller，认证端点完全通过 DynamicApi 暴露。
+- `tenantId` 只用于登录前选择租户并临时切换 `ICurrentTenant` 完成账号查找和租户成员校验，不作为普通业务接口的租户鉴权参数。
+- 权限和菜单计算以后端为准；前端只消费返回的角色、权限码和菜单路由，不承担真实授权。
+- 默认种子可重复执行，不依赖数据库自增，固定默认租户主键仅用于对齐当前前端默认登录租户选择。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过；仅保留 `NU1900` 漏洞源连接 `127.0.0.1:9` 警告。
+- `dotnet build backend/XiHan.BasicApp.slnx --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过；仅保留 `NU1900` 和既有 `NU5104` 预发布依赖警告。
+- `pnpm type-check`：通过。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- 启动 artifacts 中的 `XiHan.BasicApp.WebHost.dll` 后实测：
+  - `GET /api/Auth/LoginConfig`：HTTP 200。
+  - `POST /api/Auth/Login`，账号 `superadmin`，密码 `SuperAdmin@123`，`tenantId=1`：HTTP 200，返回 Bearer token。
+  - `GET /api/Auth/UserInfo`：HTTP 200，返回 `userName=superadmin`、`tenantId=1`。
+  - `GET /api/Auth/Permissions`：HTTP 200，返回 `roles=super_admin`、包含 `*` 权限、菜单数量为 1。
+  - `POST /api/Auth/RefreshToken`：HTTP 200，返回新的 Bearer token。
+
+协作状态：
+
+- 阶段前后检查 `XiHan.BasicApp` 工作区仍存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 本阶段存在我方 DynamicApi 修复，同时仍有未跟踪 `framework/src/analysis.md`，后者不是本阶段改动，未暂存未提交。
+- 本阶段只提交 BasicApp 的 Auth DTO/契约/服务、SaaS 身份种子、前端刷新请求和本文档；Framework 修复单独在 Framework 仓库提交，不推送远端。
