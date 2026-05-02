@@ -5999,3 +5999,37 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端改动，本阶段只暂存 `frontend/tailwind.config.mjs` 和本文档。
 - `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
 - 本阶段只提交 Tailwind content 扫描范围优化和本文档，不推送远端。
+
+### 2026-05-03 A114 前端分包与 Iconify 离线图标优化
+
+本阶段处理前端开发构建中的大 chunk 风险和离线图标全量预加载问题。原 `manualChunks` 仅按少量固定 vendor 分组，Iconify 启动时一次性加载 `carbon`、`ep`、`heroicons`、`logos`、`lucide`、`mdi`、`tabler` 等完整图标集，导致首屏和构建产物被不必要的大图标包拖累。
+
+执行结果：
+
+- 更新 `frontend/vite.config.ts`：
+  - 将固定对象式 `manualChunks` 调整为 `createManualChunks(id)` 函数。
+  - 将 Vue/Pinia/Naive、工具库、日期库、表格、编辑器、Markdown、CodeMirror、JSON Editor、SignalR、Iconify 等依赖按用途拆包。
+  - Iconify JSON 图标集按 collection 独立拆分为 `vendor-icon-*`，避免合并进主 vendor。
+- 更新 `frontend/packages/iconify/offline.ts`：
+  - 移除启动期全量静态导入。
+  - 默认只预加载运行期高频 `lucide` 图标集。
+  - `IconPicker` 需要展示图标名称时再按 prefix 懒加载对应图标集，并注册到 Iconify offline collection。
+  - 先保留轻量常用离线选择集 `carbon`、`ep`、`heroicons`、`lucide`，移除 `logos`、`mdi`、`tabler` 这类大体积选择集。
+- 更新 `frontend/src/main.ts`：
+  - 启动前等待高频离线图标集注册，避免首屏按钮图标短暂缺失。
+- 更新基础布局和登录页少量图标：
+  - 侧边栏折叠按钮改用 `lucide:panel-left-close/open`。
+  - 登录页第三方入口图标改用 `lucide:github`、`lucide:globe`、`lucide:message-circle`。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm build:dev`：通过；未再出现 Tailwind broad content pattern 警告，也未再出现 2000 kB chunk size 警告。
+- 旧大图标前缀扫描：`rg -n "(ep|logos|mdi|tabler|ri):[A-Za-z0-9_-]+" frontend/src frontend/packages -g "*.ts" -g "*.vue"` 无业务命中。
+- 构建仍保留 SignalR 依赖 PURE 注释警告，属于第三方包注释位置问题，本阶段不处理。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端改动，本阶段只暂存 `frontend/vite.config.ts`、`frontend/packages/iconify/offline.ts`、`frontend/src/main.ts`、`frontend/packages/layouts/basic/index.vue`、`frontend/packages/views/_core/authentication/login.vue` 和本文档。
+- `XiHan.Framework` 本阶段无我方代码改动，仍存在未跟踪 `framework/src/analysis.md`，未暂存未提交。
+- 本阶段只提交前端分包与 Iconify 离线图标优化和本文档，不推送远端。
