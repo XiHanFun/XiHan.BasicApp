@@ -5506,3 +5506,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的租户成员页面和本文档，不推送远端。
+
+### 2026-05-02 A102 Frontend 角色权限页面
+
+本阶段继续补齐已有前端 API 但缺失页面的系统入口，重建 `system/role-permission` 页面。后端已有 `RolePermissionQueryService` / `RolePermissionAppService`，前端已有角色权限 API 合同，因此本阶段只新增页面和更新本文档，不修改 API 合同、不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的 authorization API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/role-permission/index.vue`：
+  - 使用现有 `rolePermissionApi` 对齐角色权限列表、授权、更新、状态更新和撤销动态 API。
+  - 使用 `roleApi.enabledList()` 加载启用角色，作为角色权限绑定的角色上下文。
+  - 使用 `permissionApi.page()` 远程选择已启用权限，支持按关键字、模块编码和权限类型收窄候选项；不强制只选全局权限，避免错误限制当前租户上下文内权限。
+  - 使用 VxeGrid 展示当前角色权限绑定，支持关键字、模块编码、权限类型、授权动作、授权状态和仅有效绑定筛选。
+  - 提供授权权限、编辑授权、启用/停用绑定、撤销绑定入口；启用绑定时对已禁用权限做前端提示，最终仍以后端服务校验为准。
+
+设计约束：
+
+- 角色权限页不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- 后端角色权限列表接口按角色主键返回集合，关键字、模块、类型、动作和状态筛选在前端对列表展示做收窄，不引入新的后端查询契约。
+- 授权入口只提交 `roleId`、`permissionId`、授权动作、有效期、授权原因和备注，不提交 `tenantId`。
+- 撤销沿用后端当前语义写入 `Status = Invalid`，前端不做硬删除兼容。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/role-permission/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/role-permission`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A101，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的角色权限页面和本文档，不推送远端。

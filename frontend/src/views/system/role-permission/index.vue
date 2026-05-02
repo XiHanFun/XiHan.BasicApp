@@ -1,0 +1,774 @@
+<script setup lang="ts">
+import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type {
+  ApiId,
+  PermissionListItemDto,
+  RolePermissionGrantDto,
+  RolePermissionListItemDto,
+  RolePermissionUpdateDto,
+  RoleSelectItemDto,
+} from '@/api'
+import {
+  NButton,
+  NDatePicker,
+  NForm,
+  NFormItem,
+  NIcon,
+  NInput,
+  NModal,
+  NPopconfirm,
+  NSelect,
+  NSpace,
+  NTag,
+  useMessage,
+} from 'naive-ui'
+import { computed, reactive, ref } from 'vue'
+import {
+  createPageRequest,
+  EnableStatus,
+  PermissionAction,
+  permissionApi,
+  PermissionType,
+  roleApi,
+  rolePermissionApi,
+  ValidityStatus,
+} from '@/api'
+import { Icon, XSystemQueryPanel } from '~/components'
+import { useVxeTable } from '~/hooks'
+import { formatDate, getOptionLabel } from '~/utils'
+
+defineOptions({ name: 'SystemRolePermissionPage' })
+
+interface RolePermissionGridResult {
+  items: RolePermissionListItemDto[]
+  total: number
+}
+
+interface NumericSelectOption {
+  label: string
+  value: ApiId
+}
+
+interface RolePermissionFormModel {
+  basicId?: ApiId
+  effectiveTime: string | null
+  expirationTime: string | null
+  grantReason: string | null
+  permissionAction: PermissionAction
+  permissionId: ApiId | null
+  remark: string | null
+  roleId: ApiId | null
+  status: ValidityStatus
+}
+
+const message = useMessage()
+const xGrid = ref<VxeGridInstance<RolePermissionListItemDto>>()
+const selectedRoleId = ref<ApiId | null>(null)
+const roleOptions = ref<NumericSelectOption[]>([])
+const permissionOptions = ref<NumericSelectOption[]>([])
+const roleLoading = ref(false)
+const permissionLoading = ref(false)
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const editingStatus = ref<ValidityStatus | null>(null)
+const permissionForm = ref<RolePermissionFormModel>(createDefaultForm())
+
+const queryParams = reactive({
+  keyword: '',
+  moduleCode: '',
+  onlyValid: 0,
+  permissionAction: null as PermissionAction | null,
+  permissionType: null as PermissionType | null,
+  status: null as ValidityStatus | null,
+})
+
+const roleFilter = reactive({
+  keyword: '',
+})
+
+const permissionFilter = reactive({
+  keyword: '',
+  moduleCode: '',
+  permissionType: null as PermissionType | null,
+})
+
+const onlyValidOptions = [
+  { label: '全部授权', value: 0 },
+  { label: '仅有效', value: 1 },
+]
+
+const permissionActionOptions = [
+  { label: '允许', value: PermissionAction.Grant },
+  { label: '拒绝', value: PermissionAction.Deny },
+]
+
+const permissionTypeOptions = [
+  { label: '资源操作', value: PermissionType.ResourceBased },
+  { label: '功能', value: PermissionType.Functional },
+  { label: '数据范围', value: PermissionType.DataScope },
+]
+
+const validityStatusOptions = [
+  { label: '有效', value: ValidityStatus.Valid },
+  { label: '无效', value: ValidityStatus.Invalid },
+]
+
+const modalTitle = computed(() => (permissionForm.value.basicId ? '编辑角色权限' : '授权角色权限'))
+
+function createDefaultForm(): RolePermissionFormModel {
+  return {
+    effectiveTime: null,
+    expirationTime: null,
+    grantReason: null,
+    permissionAction: PermissionAction.Grant,
+    permissionId: null,
+    remark: null,
+    roleId: selectedRoleId.value,
+    status: ValidityStatus.Valid,
+  }
+}
+
+function normalizeNullable(value?: string | null) {
+  const normalized = value?.trim()
+  return normalized || null
+}
+
+function toDateInputValue(value?: string | null) {
+  return value ? value.slice(0, 10) : null
+}
+
+function toRoleOption(item: RoleSelectItemDto): NumericSelectOption {
+  const scopeName = item.isGlobal ? '全局' : '租户'
+
+  return {
+    label: `[${scopeName}] ${item.roleName} (${item.roleCode})`,
+    value: item.basicId,
+  }
+}
+
+function toPermissionOption(item: PermissionListItemDto): NumericSelectOption {
+  const moduleName = item.moduleCode ? `[${item.moduleCode}] ` : ''
+
+  return {
+    label: `${moduleName}${item.permissionName} (${item.permissionCode})`,
+    value: item.basicId,
+  }
+}
+
+function mergeOptions(current: NumericSelectOption[], next: NumericSelectOption[]) {
+  const optionMap = new Map<ApiId, NumericSelectOption>()
+
+  for (const option of current) {
+    optionMap.set(option.value, option)
+  }
+
+  for (const option of next) {
+    optionMap.set(option.value, option)
+  }
+
+  return [...optionMap.values()]
+}
+
+async function loadRoleOptions(keyword = roleFilter.keyword) {
+  roleLoading.value = true
+  roleFilter.keyword = keyword
+  try {
+    const items = await roleApi.enabledList({
+      keyword: normalizeNullable(keyword),
+      limit: 50,
+    })
+    roleOptions.value = mergeOptions(roleOptions.value, items.map(toRoleOption))
+
+    const firstRole = items[0]
+    if (selectedRoleId.value === null && firstRole) {
+      selectedRoleId.value = firstRole.basicId
+      xGrid.value?.commitProxy('reload')
+    }
+  }
+  catch {
+    message.error('加载角色选项失败')
+  }
+  finally {
+    roleLoading.value = false
+  }
+}
+
+async function loadPermissionOptions(keyword = permissionFilter.keyword) {
+  permissionLoading.value = true
+  permissionFilter.keyword = keyword
+  try {
+    const result = await permissionApi.page({
+      ...createPageRequest({
+        page: {
+          pageIndex: 1,
+          pageSize: 50,
+        },
+      }),
+      keyword: normalizeNullable(keyword),
+      moduleCode: normalizeNullable(permissionFilter.moduleCode),
+      permissionType: permissionFilter.permissionType,
+      status: EnableStatus.Enabled,
+    })
+    permissionOptions.value = mergeOptions(permissionOptions.value, result.items.map(toPermissionOption))
+  }
+  catch {
+    message.error('加载权限选项失败')
+  }
+  finally {
+    permissionLoading.value = false
+  }
+}
+
+function includesKeyword(row: RolePermissionListItemDto, keyword: string) {
+  const text = [
+    row.permissionName,
+    row.permissionCode,
+    row.moduleCode,
+    row.grantReason,
+    row.remark,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  return text.includes(keyword)
+}
+
+function filterRows(rows: RolePermissionListItemDto[]) {
+  const keyword = normalizeNullable(queryParams.keyword)?.toLowerCase()
+  const moduleCode = normalizeNullable(queryParams.moduleCode)?.toLowerCase()
+
+  return rows.filter((row) => {
+    if (keyword && !includesKeyword(row, keyword)) {
+      return false
+    }
+
+    if (moduleCode && !row.moduleCode?.toLowerCase().includes(moduleCode)) {
+      return false
+    }
+
+    if (queryParams.permissionType !== null && row.permissionType !== queryParams.permissionType) {
+      return false
+    }
+
+    if (queryParams.permissionAction !== null && row.permissionAction !== queryParams.permissionAction) {
+      return false
+    }
+
+    if (queryParams.status !== null && row.status !== queryParams.status) {
+      return false
+    }
+
+    return true
+  })
+}
+
+function pageRows(rows: RolePermissionListItemDto[], page: VxeGridPropTypes.ProxyAjaxQueryPageParams) {
+  const start = (page.currentPage - 1) * page.pageSize
+  return rows.slice(start, start + page.pageSize)
+}
+
+async function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<RolePermissionGridResult> {
+  if (selectedRoleId.value === null) {
+    return {
+      items: [],
+      total: 0,
+    }
+  }
+
+  try {
+    const rows = await rolePermissionApi.list(selectedRoleId.value, queryParams.onlyValid === 1)
+    const filteredRows = filterRows(rows)
+
+    return {
+      items: pageRows(filteredRows, page),
+      total: filteredRows.length,
+    }
+  }
+  catch {
+    message.error('查询角色权限失败')
+    return {
+      items: [],
+      total: 0,
+    }
+  }
+}
+
+const tableOptions = useVxeTable<RolePermissionListItemDto>(
+  {
+    columns: [
+      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
+      { field: 'permissionName', minWidth: 160, showOverflow: 'tooltip', title: '权限名称' },
+      { field: 'permissionCode', minWidth: 220, showOverflow: 'tooltip', title: '权限编码' },
+      { field: 'moduleCode', minWidth: 120, showOverflow: 'tooltip', title: '模块' },
+      {
+        field: 'permissionType',
+        formatter: ({ cellValue }) => getOptionLabel(permissionTypeOptions, cellValue),
+        minWidth: 110,
+        title: '权限类型',
+      },
+      {
+        field: 'permissionAction',
+        slots: { default: 'col_action' },
+        title: '授权动作',
+        width: 100,
+      },
+      {
+        field: 'status',
+        slots: { default: 'col_status' },
+        title: '授权状态',
+        width: 100,
+      },
+      {
+        field: 'permissionStatus',
+        slots: { default: 'col_permission_status' },
+        title: '权限状态',
+        width: 100,
+      },
+      {
+        field: 'effectiveTime',
+        formatter: ({ cellValue }) => (cellValue ? formatDate(cellValue) : '-'),
+        minWidth: 170,
+        title: '生效时间',
+      },
+      {
+        field: 'expirationTime',
+        formatter: ({ cellValue }) => (cellValue ? formatDate(cellValue) : '-'),
+        minWidth: 170,
+        title: '失效时间',
+      },
+      { field: 'grantReason', minWidth: 180, showOverflow: 'tooltip', title: '授权原因' },
+      {
+        field: 'actions',
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+        title: '操作',
+        width: 220,
+      },
+    ],
+    id: 'sys_role_permission',
+    name: '角色权限',
+  },
+  {
+    proxyConfig: {
+      autoLoad: true,
+      ajax: {
+        query: ({ page }) => handleQueryApi(page),
+      },
+    },
+  },
+)
+
+function handleRoleChanged() {
+  xGrid.value?.commitProxy('reload')
+}
+
+function handleSearch() {
+  xGrid.value?.commitProxy('reload')
+}
+
+function handleReset() {
+  queryParams.keyword = ''
+  queryParams.moduleCode = ''
+  queryParams.onlyValid = 0
+  queryParams.permissionAction = null
+  queryParams.permissionType = null
+  queryParams.status = null
+  xGrid.value?.commitProxy('reload')
+}
+
+function handleAdd() {
+  if (selectedRoleId.value === null) {
+    message.warning('请先选择角色')
+    return
+  }
+
+  permissionForm.value = createDefaultForm()
+  editingStatus.value = null
+  modalVisible.value = true
+  void loadPermissionOptions()
+}
+
+function handleEdit(row: RolePermissionListItemDto) {
+  permissionForm.value = {
+    basicId: row.basicId,
+    effectiveTime: toDateInputValue(row.effectiveTime),
+    expirationTime: toDateInputValue(row.expirationTime),
+    grantReason: row.grantReason ?? null,
+    permissionAction: row.permissionAction,
+    permissionId: row.permissionId,
+    remark: row.remark ?? null,
+    roleId: row.roleId,
+    status: row.status,
+  }
+  editingStatus.value = row.status
+  permissionOptions.value = mergeOptions(permissionOptions.value, [
+    {
+      label: row.permissionCode
+        ? `${row.permissionName || row.permissionCode} (${row.permissionCode})`
+        : String(row.permissionId),
+      value: row.permissionId,
+    },
+  ])
+  modalVisible.value = true
+}
+
+function handlePermissionSearch(keyword: string) {
+  void loadPermissionOptions(keyword)
+}
+
+function handleRefreshPermissionOptions() {
+  permissionOptions.value = []
+  void loadPermissionOptions()
+}
+
+function validateForm() {
+  if (permissionForm.value.roleId === null) {
+    message.warning('请选择角色')
+    return false
+  }
+
+  if (permissionForm.value.permissionId === null) {
+    message.warning('请选择权限')
+    return false
+  }
+
+  if (permissionForm.value.expirationTime && permissionForm.value.effectiveTime
+    && permissionForm.value.expirationTime <= permissionForm.value.effectiveTime) {
+    message.warning('失效时间必须晚于生效时间')
+    return false
+  }
+
+  return true
+}
+
+async function handleSubmit() {
+  if (!validateForm() || permissionForm.value.roleId === null || permissionForm.value.permissionId === null) {
+    return
+  }
+
+  submitLoading.value = true
+  try {
+    if (permissionForm.value.basicId) {
+      const updateInput: RolePermissionUpdateDto = {
+        basicId: permissionForm.value.basicId,
+        effectiveTime: permissionForm.value.effectiveTime,
+        expirationTime: permissionForm.value.expirationTime,
+        grantReason: normalizeNullable(permissionForm.value.grantReason),
+        permissionAction: permissionForm.value.permissionAction,
+        remark: normalizeNullable(permissionForm.value.remark),
+      }
+
+      await rolePermissionApi.update(updateInput)
+
+      if (editingStatus.value !== permissionForm.value.status) {
+        await rolePermissionApi.updateStatus({
+          basicId: permissionForm.value.basicId,
+          remark: normalizeNullable(permissionForm.value.remark),
+          status: permissionForm.value.status,
+        })
+      }
+    }
+    else {
+      const grantInput: RolePermissionGrantDto = {
+        effectiveTime: permissionForm.value.effectiveTime,
+        expirationTime: permissionForm.value.expirationTime,
+        grantReason: normalizeNullable(permissionForm.value.grantReason),
+        permissionAction: permissionForm.value.permissionAction,
+        permissionId: permissionForm.value.permissionId,
+        remark: normalizeNullable(permissionForm.value.remark),
+        roleId: permissionForm.value.roleId,
+      }
+
+      await rolePermissionApi.grant(grantInput)
+      selectedRoleId.value = grantInput.roleId
+    }
+
+    message.success('保存成功')
+    modalVisible.value = false
+    xGrid.value?.commitProxy('reload')
+  }
+  catch {
+    message.error('保存失败')
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
+
+async function handleToggleStatus(row: RolePermissionListItemDto) {
+  if (row.status !== ValidityStatus.Valid && row.permissionStatus === EnableStatus.Disabled) {
+    message.warning('已禁用的权限不能设为有效授权')
+    return
+  }
+
+  await rolePermissionApi.updateStatus({
+    basicId: row.basicId,
+    remark: row.status === ValidityStatus.Valid ? '前端停用角色权限' : '前端启用角色权限',
+    status: row.status === ValidityStatus.Valid ? ValidityStatus.Invalid : ValidityStatus.Valid,
+  })
+  message.success('授权状态已更新')
+  xGrid.value?.commitProxy('reload')
+}
+
+async function handleRevoke(row: RolePermissionListItemDto) {
+  await rolePermissionApi.revoke(row.basicId)
+  message.success('角色权限已撤销')
+  xGrid.value?.commitProxy('reload')
+}
+
+void loadRoleOptions()
+</script>
+
+<template>
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
+    <XSystemQueryPanel>
+      <div class="xh-query-panel__content">
+        <NSelect
+          v-model:value="selectedRoleId"
+          :loading="roleLoading"
+          :options="roleOptions"
+          filterable
+          placeholder="选择角色"
+          remote
+          style="width: 260px"
+          @search="loadRoleOptions"
+          @update:value="handleRoleChanged"
+        />
+        <vxe-input
+          v-model="queryParams.keyword"
+          clearable
+          placeholder="搜索权限名称/编码"
+          style="width: 220px"
+          @keyup.enter="handleSearch"
+        />
+        <vxe-input
+          v-model="queryParams.moduleCode"
+          clearable
+          placeholder="模块编码"
+          style="width: 130px"
+          @keyup.enter="handleSearch"
+        />
+        <NSelect
+          v-model:value="queryParams.permissionType"
+          :options="permissionTypeOptions"
+          clearable
+          placeholder="权限类型"
+          style="width: 130px"
+        />
+        <NSelect
+          v-model:value="queryParams.permissionAction"
+          :options="permissionActionOptions"
+          clearable
+          placeholder="授权动作"
+          style="width: 110px"
+        />
+        <NSelect
+          v-model:value="queryParams.status"
+          :options="validityStatusOptions"
+          clearable
+          placeholder="授权状态"
+          style="width: 110px"
+        />
+        <NSelect
+          v-model:value="queryParams.onlyValid"
+          :options="onlyValidOptions"
+          placeholder="有效过滤"
+          style="width: 110px"
+        />
+        <NButton size="small" type="primary" @click="handleSearch">
+          <template #icon>
+            <NIcon><Icon icon="lucide:search" /></NIcon>
+          </template>
+          查询
+        </NButton>
+        <NButton size="small" @click="handleReset">
+          <template #icon>
+            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+          </template>
+          重置
+        </NButton>
+      </div>
+    </XSystemQueryPanel>
+
+    <vxe-card class="flex-1" style="height: 0">
+      <vxe-grid ref="xGrid" v-bind="tableOptions">
+        <template #toolbar_buttons>
+          <NButton size="small" type="primary" @click="handleAdd">
+            <template #icon>
+              <NIcon><Icon icon="lucide:key-round" /></NIcon>
+            </template>
+            授权权限
+          </NButton>
+        </template>
+
+        <template #col_action="{ row }">
+          <NTag :type="row.permissionAction === PermissionAction.Grant ? 'success' : 'error'" round size="small">
+            {{ getOptionLabel(permissionActionOptions, row.permissionAction) }}
+          </NTag>
+        </template>
+
+        <template #col_status="{ row }">
+          <NTag :type="row.status === ValidityStatus.Valid ? 'success' : 'error'" round size="small">
+            {{ getOptionLabel(validityStatusOptions, row.status) }}
+          </NTag>
+        </template>
+
+        <template #col_permission_status="{ row }">
+          <NTag
+            :type="
+              row.permissionStatus === EnableStatus.Enabled
+                ? 'success'
+                : row.permissionStatus === EnableStatus.Disabled
+                  ? 'error'
+                  : 'default'
+            "
+            round
+            size="small"
+          >
+            {{
+              row.permissionStatus === EnableStatus.Enabled
+                ? '启用'
+                : row.permissionStatus === EnableStatus.Disabled
+                  ? '禁用'
+                  : '-'
+            }}
+          </NTag>
+        </template>
+
+        <template #col_actions="{ row }">
+          <NSpace size="small">
+            <NButton size="small" text type="primary" @click="handleEdit(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:pencil" /></NIcon>
+              </template>
+              编辑
+            </NButton>
+
+            <NPopconfirm @positive-click="handleToggleStatus(row)">
+              <template #trigger>
+                <NButton size="small" text type="warning">
+                  <template #icon>
+                    <NIcon>
+                      <Icon :icon="row.status === ValidityStatus.Valid ? 'lucide:ban' : 'lucide:circle-check'" />
+                    </NIcon>
+                  </template>
+                  {{ row.status === ValidityStatus.Valid ? '停用' : '启用' }}
+                </NButton>
+              </template>
+              确认更新角色权限状态？
+            </NPopconfirm>
+
+            <NPopconfirm @positive-click="handleRevoke(row)">
+              <template #trigger>
+                <NButton size="small" text type="error">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                  撤销
+                </NButton>
+              </template>
+              确认撤销该角色权限？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </vxe-grid>
+    </vxe-card>
+
+    <NModal
+      v-model:show="modalVisible"
+      :auto-focus="false"
+      :bordered="false"
+      :title="modalTitle"
+      preset="card"
+      style="width: 760px; max-width: 92vw"
+    >
+      <NForm :model="permissionForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem label="角色" path="roleId">
+          <NSelect
+            v-model:value="permissionForm.roleId"
+            :disabled="Boolean(permissionForm.basicId)"
+            :loading="roleLoading"
+            :options="roleOptions"
+            filterable
+            placeholder="选择角色"
+            remote
+            @search="loadRoleOptions"
+          />
+        </NFormItem>
+        <NFormItem label="模块过滤" path="moduleCode">
+          <NInput
+            v-model:value="permissionFilter.moduleCode"
+            clearable
+            placeholder="可输入模块编码"
+            @keyup.enter="handleRefreshPermissionOptions"
+          />
+        </NFormItem>
+        <NFormItem label="权限类型" path="permissionType">
+          <NSelect
+            v-model:value="permissionFilter.permissionType"
+            :options="permissionTypeOptions"
+            clearable
+            placeholder="不限类型"
+            @update:value="handleRefreshPermissionOptions"
+          />
+        </NFormItem>
+        <NFormItem label="权限" path="permissionId">
+          <NSelect
+            v-model:value="permissionForm.permissionId"
+            :disabled="Boolean(permissionForm.basicId)"
+            :loading="permissionLoading"
+            :options="permissionOptions"
+            clearable
+            filterable
+            placeholder="搜索并选择权限"
+            remote
+            @focus="loadPermissionOptions()"
+            @search="handlePermissionSearch"
+          />
+        </NFormItem>
+        <NFormItem label="授权动作" path="permissionAction">
+          <NSelect v-model:value="permissionForm.permissionAction" :options="permissionActionOptions" />
+        </NFormItem>
+        <NFormItem label="授权状态" path="status">
+          <NSelect v-model:value="permissionForm.status" :options="validityStatusOptions" />
+        </NFormItem>
+        <NFormItem label="生效时间" path="effectiveTime">
+          <NDatePicker
+            v-model:formatted-value="permissionForm.effectiveTime"
+            clearable
+            style="width: 100%"
+            type="date"
+            value-format="yyyy-MM-dd"
+          />
+        </NFormItem>
+        <NFormItem label="失效时间" path="expirationTime">
+          <NDatePicker
+            v-model:formatted-value="permissionForm.expirationTime"
+            clearable
+            style="width: 100%"
+            type="date"
+            value-format="yyyy-MM-dd"
+          />
+        </NFormItem>
+        <NFormItem label="授权原因" path="grantReason">
+          <NInput v-model:value="permissionForm.grantReason" clearable placeholder="请输入授权原因" />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput v-model:value="permissionForm.remark" clearable placeholder="请输入备注" />
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+            保存
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
