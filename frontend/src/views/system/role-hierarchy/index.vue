@@ -259,7 +259,7 @@ const tableOptions = useVxeTable<RoleHierarchyListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 120,
+        width: 56,
       },
     ],
     id: 'sys_role_hierarchy',
@@ -455,11 +455,11 @@ void loadRoleOptions()
         <template #col_actions="{ row }">
           <NPopconfirm :disabled="!canDelete(row)" @positive-click="handleDelete(row)">
             <template #trigger>
-              <NButton :disabled="!canDelete(row)" size="small" text type="error">
+              <!-- 操作列仅图标 -->
+              <NButton :disabled="!canDelete(row)" aria-label="删除" circle quaternary size="small" type="error">
                 <template #icon>
                   <NIcon><Icon icon="lucide:trash-2" /></NIcon>
                 </template>
-                删除
               </NButton>
             </template>
             确认删除该直接继承关系？

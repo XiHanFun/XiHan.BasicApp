@@ -353,7 +353,7 @@ const tableOptions = useVxeTable<RoleDataScopeListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 220,
+        width: 120,
       },
     ],
     id: 'sys_role_data_scope',
@@ -631,22 +631,21 @@ void loadRoleOptions()
 
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <NButton size="small" text type="primary" @click="handleEdit(row)">
+            <!-- 操作列仅图标 -->
+            <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
               <template #icon>
                 <NIcon><Icon icon="lucide:pencil" /></NIcon>
               </template>
-              编辑
             </NButton>
 
             <NPopconfirm @positive-click="handleToggleStatus(row)">
               <template #trigger>
-                <NButton size="small" text type="warning">
+                <NButton aria-label="停用或启用" circle quaternary size="small" type="warning">
                   <template #icon>
                     <NIcon>
                       <Icon :icon="row.status === ValidityStatus.Valid ? 'lucide:ban' : 'lucide:circle-check'" />
                     </NIcon>
                   </template>
-                  {{ row.status === ValidityStatus.Valid ? '停用' : '启用' }}
                 </NButton>
               </template>
               确认更新角色数据范围状态？
@@ -654,11 +653,10 @@ void loadRoleOptions()
 
             <NPopconfirm @positive-click="handleRevoke(row)">
               <template #trigger>
-                <NButton size="small" text type="error">
+                <NButton aria-label="撤销" circle quaternary size="small" type="error">
                   <template #icon>
                     <NIcon><Icon icon="lucide:trash-2" /></NIcon>
                   </template>
-                  撤销
                 </NButton>
               </template>
               确认撤销该角色数据范围？

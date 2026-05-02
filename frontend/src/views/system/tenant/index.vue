@@ -184,7 +184,7 @@ const tableOptions = useVxeTable<TenantListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 92,
+        width: 56,
       },
     ],
     id: 'sys_tenant',
@@ -418,11 +418,11 @@ async function handleSubmit() {
         </template>
 
         <template #col_actions="{ row }">
-          <NButton size="small" text type="primary" @click="handleEdit(row)">
+          <!-- 操作列仅图标 -->
+          <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
             <template #icon>
               <NIcon><Icon icon="lucide:pencil" /></NIcon>
             </template>
-            编辑
           </NButton>
         </template>
       </vxe-grid>
