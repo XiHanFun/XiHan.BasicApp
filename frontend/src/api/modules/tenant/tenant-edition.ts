@@ -7,7 +7,7 @@ import type {
   TenantEditionPageQueryDto,
   TenantEditionStatusUpdateDto,
   TenantEditionUpdateDto,
-} from './types'
+} from './tenant-edition.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

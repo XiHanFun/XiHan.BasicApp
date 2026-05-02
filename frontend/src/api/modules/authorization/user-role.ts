@@ -6,7 +6,7 @@ import type {
   UserRoleListItemDto,
   UserRoleStatusUpdateDto,
   UserRoleUpdateDto,
-} from './types'
+} from './user-role.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userRoleQueryApi = createDynamicApiClient('UserRoleQuery')

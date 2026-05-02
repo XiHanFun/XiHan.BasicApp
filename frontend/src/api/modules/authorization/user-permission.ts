@@ -6,7 +6,7 @@ import type {
   UserPermissionListItemDto,
   UserPermissionStatusUpdateDto,
   UserPermissionUpdateDto,
-} from './types'
+} from './user-permission.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userPermissionQueryApi = createDynamicApiClient('UserPermissionQuery')

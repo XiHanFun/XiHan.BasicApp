@@ -6,7 +6,7 @@ import type {
   SmsDetailDto,
   SmsListItemDto,
   SmsPageQueryDto,
-} from './types'
+} from './message.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,

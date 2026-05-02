@@ -4,7 +4,7 @@ import type {
   RoleHierarchyCreateDto,
   RoleHierarchyDetailDto,
   RoleHierarchyListItemDto,
-} from './types'
+} from './role-hierarchy.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const roleHierarchyQueryApi = createDynamicApiClient('RoleHierarchyQuery')

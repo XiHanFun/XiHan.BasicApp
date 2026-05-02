@@ -3,7 +3,7 @@ import type {
   OAuthAppDetailDto,
   OAuthAppListItemDto,
   OAuthAppPageQueryDto,
-} from './types'
+} from './oauth-app.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,

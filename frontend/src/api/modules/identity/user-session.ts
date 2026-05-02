@@ -6,7 +6,7 @@ import type {
   UserSessionPageQueryDto,
   UserSessionRevokeDto,
   UserSessionsRevokeDto,
-} from './types'
+} from './user-session.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,

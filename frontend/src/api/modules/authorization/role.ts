@@ -9,7 +9,7 @@ import type {
   RoleSelectQueryDto,
   RoleStatusUpdateDto,
   RoleUpdateDto,
-} from './types'
+} from './role.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

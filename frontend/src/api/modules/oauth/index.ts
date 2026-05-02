@@ -1,2 +1,2 @@
 export * from './oauth-app'
-export * from './types'
+export * from './oauth-app.types'

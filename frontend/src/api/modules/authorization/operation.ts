@@ -9,7 +9,7 @@ import type {
   OperationSelectQueryDto,
   OperationStatusUpdateDto,
   OperationUpdateDto,
-} from './types'
+} from './operation.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

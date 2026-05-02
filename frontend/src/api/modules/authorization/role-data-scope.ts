@@ -6,7 +6,7 @@ import type {
   RoleDataScopeListItemDto,
   RoleDataScopeStatusUpdateDto,
   RoleDataScopeUpdateDto,
-} from './types'
+} from './role-data-scope.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const roleDataScopeQueryApi = createDynamicApiClient('RoleDataScopeQuery')

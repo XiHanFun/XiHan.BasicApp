@@ -7,7 +7,7 @@ import type {
   TenantStatusUpdateDto,
   TenantSwitcherDto,
   TenantUpdateDto,
-} from './types'
+} from './tenant.types'
 import {
   appendDynamicApiParam,
   createCommandApi,

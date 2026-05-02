@@ -1,2 +1,2 @@
 export * from './department'
-export * from './types'
+export * from './department.types'

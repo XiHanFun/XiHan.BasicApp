@@ -6,7 +6,7 @@ import type {
   UserDataScopeListItemDto,
   UserDataScopeStatusUpdateDto,
   UserDataScopeUpdateDto,
-} from './types'
+} from './user-data-scope.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userDataScopeQueryApi = createDynamicApiClient('UserDataScopeQuery')

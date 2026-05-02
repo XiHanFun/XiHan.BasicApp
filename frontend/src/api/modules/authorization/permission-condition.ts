@@ -6,7 +6,7 @@ import type {
   PermissionConditionListItemDto,
   PermissionConditionStatusUpdateDto,
   PermissionConditionUpdateDto,
-} from './types'
+} from './permission-condition.types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const permissionConditionQueryApi = createDynamicApiClient('PermissionConditionQuery')

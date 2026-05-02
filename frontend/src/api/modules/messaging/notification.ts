@@ -6,7 +6,7 @@ import type {
   UserNotificationDetailDto,
   UserNotificationListItemDto,
   UserNotificationPageQueryDto,
-} from './types'
+} from './notification.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
