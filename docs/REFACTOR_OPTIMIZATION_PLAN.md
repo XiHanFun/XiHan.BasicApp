@@ -6161,3 +6161,40 @@ pnpm lint
 
 - 本阶段涉及前端 `src/api/modules/` 全部模块的类型重构、7 个新页面、3 个新 API 模块、后端菜单种子重写。
 - 后端仅修改 `SaasMenuSeeder.cs`，未改动其他后端文件。
+
+### 2026-05-03 A118 后端实体精简与导航优化
+
+本阶段执行 RefactoringPlan B-3.5（SysFileStorage 精简）和 B-3.6（SysTenant 导航优化），并清理废弃 YesOrNo 枚举定义文件。
+
+执行结果：
+
+- 删除 `Domain/Entities/Enums/YesOrNo.cs`：
+  - 该枚举已无任何代码引用（B-3.2 替换完成），属于死代码。
+- 精简 `Domain/Entities/SysFileStorage.cs`：
+  - 移除运行时生成字段：`SignedUrl`、`SignedUrlExpiresAt`（签名 URL 应由服务层按需生成，不持久化）。
+  - 移除可推导字段：`StorageDirectory`（由 `StoragePath` 可推导目录部分）。
+  - 移除配置关联字段：`Endpoint`、`CustomDomain`（应从存储配置服务获取）。
+- 更新 `Domain/Entities/Expands/SysFileStorage.Expand.cs`：
+  - 移除 `IsSignedUrlValid()`、`GenerateSignedUrl()`、`ClearSignedUrl()` 方法。
+  - 简化 `GetBestAccessUrl()` 逻辑（移除 CustomDomain 分支）。
+- 更新 `Application/Mappers/Files/FileApplicationMapper.cs`：
+  - `HasLocation` 移除 StorageDirectory 检查。
+  - `HasPublicLink` 移除 Endpoint/CustomDomain 检查。
+  - 移除 `HasTemporaryLink` 赋值。
+- 更新 `Application/Dtos/Files/FileStorageListItemDto.cs`：
+  - 移除 `HasTemporaryLink` 属性。
+- 精简 `Domain/Entities/Expands/SysTenant.Expand.cs`：
+  - 保留核心导航：`Edition`（ManyToOne）、`TenantUsers`（OneToMany → SysTenantUser，新增）、`Configs`（OneToMany）。
+  - 移除 14 个冗余导航（Users、Files、Notifications、OperationLogs、Emails、SmsMessages、UserStatistics、Reviews、ReviewLogs、AuditLogs、AccessLogs、Tasks、ApiLogs）。
+  - 这些数据改为通过各自领域仓储按需查询，避免租户聚合加载过重。
+
+验证结果：
+
+- `dotnet build XiHan.BasicApp.Saas.csproj`：通过，0 警告，0 错误。
+- 无其他代码引用被移除的 SysTenant 导航属性。
+- RefactoringPlan.md 已更新进度跟踪。
+
+协作状态：
+
+- 本阶段改动集中在后端 SaaS 模块的实体层和应用层，未涉及前端。
+- SysEmail/SysSms 经评估保持 `BasicAppFullAuditedEntity`（原计划降为 CreationEntity 但实体有可变状态）。

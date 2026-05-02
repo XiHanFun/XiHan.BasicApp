@@ -31,7 +31,7 @@ public partial class SysFileStorage
     public virtual SysFile? File { get; set; }
 
     /// <summary>
-    /// 获取最优访问URL
+    /// 获取最优访问URL（优先级：CDN > 公网 > 内网）
     /// </summary>
     /// <param name="preferCdn">是否优先使用CDN</param>
     /// <returns></returns>
@@ -52,24 +52,7 @@ public partial class SysFileStorage
             return InternalUrl;
         }
 
-        // 如果有自定义域名，构建URL
-        if (!string.IsNullOrEmpty(CustomDomain))
-        {
-            return $"{CustomDomain.TrimEnd('/')}/{StoragePath.TrimStart('/')}";
-        }
-
         return null;
-    }
-
-    /// <summary>
-    /// 检查签名URL是否有效
-    /// </summary>
-    /// <returns></returns>
-    public bool IsSignedUrlValid()
-    {
-        return !string.IsNullOrEmpty(SignedUrl) &&
-               SignedUrlExpiresAt.HasValue &&
-               SignedUrlExpiresAt.Value > DateTimeOffset.UtcNow;
     }
 
     /// <summary>
@@ -162,25 +145,6 @@ public partial class SysFileStorage
         return DateTimeOffset.UtcNow - LastVerifiedAt.Value > TimeSpan.FromHours(verifyIntervalHours);
     }
 
-    /// <summary>
-    /// 生成签名URL
-    /// </summary>
-    /// <param name="signedUrl">签名URL</param>
-    /// <param name="expiresInMinutes">过期时间（分钟）</param>
-    public void GenerateSignedUrl(string signedUrl, int expiresInMinutes = 60)
-    {
-        SignedUrl = signedUrl;
-        SignedUrlExpiresAt = DateTimeOffset.UtcNow.AddMinutes(expiresInMinutes);
-    }
-
-    /// <summary>
-    /// 清除签名URL
-    /// </summary>
-    public void ClearSignedUrl()
-    {
-        SignedUrl = null;
-        SignedUrlExpiresAt = null;
-    }
 
     /// <summary>
     /// 设置为主存储

@@ -153,11 +153,6 @@ public class FileStorageListItemDto : BasicAppDto
     public bool HasCdnLink { get; set; }
 
     /// <summary>
-    /// 是否包含临时链接
-    /// </summary>
-    public bool HasTemporaryLink { get; set; }
-
-    /// <summary>
     /// 是否包含失败明细
     /// </summary>
     public bool HasFailureDetail { get; set; }
