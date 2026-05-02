@@ -5429,3 +5429,43 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的系统消息 API、系统消息页面和本文档，不推送远端。
+
+### 2026-05-02 A100 Frontend 系统通知 API 与页面
+
+本阶段继续补齐动态菜单已引用但 `frontend/src/views` 缺失的系统页面，重建 `system/notification` 入口。后端当前已有 `NotificationQueryService`，提供系统通知和用户通知查询能力，因此本阶段扩展前端 Messaging API 模块并新增只读页面，不新增写操作，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他文件。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/messaging/`：
+  - 在 `types.ts` 增加 `NotificationType`、`NotificationStatus`、系统通知 DTO 和用户通知 DTO。
+  - 新增 `notification.ts`，使用 `NotificationQuery` 动态 API 暴露 `page`、`detail`、`userPage`、`userDetail`。
+  - 更新 `index.ts` 聚合导出通知 API。
+- 新增 `frontend/src/views/system/notification/index.vue`：
+  - 使用 VxeGrid 分别展示系统通知和用户通知，只读查询，不提供发布、确认、已读、删除等命令按钮。
+  - 系统通知支持关键字、通知类型、发布、全员、确认、业务类型和发送用户筛选。
+  - 用户通知支持通知主键、用户主键和通知状态筛选。
+  - 详情抽屉只展示后端 DTO 已公开的标记字段、业务引用、发送/过期/阅读/确认时间和审计时间，不还原正文、视觉标识或动作地址等敏感内容。
+
+设计约束：
+
+- 系统通知和用户通知查询 API 不接收租户标识；租户隔离仍由当前会话、后端授权和仓储过滤器控制。
+- 通知正文、视觉标识、跳转动作、备注等内容当前 DTO 只返回布尔标记，前端不尝试推导或兼容旧明文展示。
+- 后端没有通知命令服务，本阶段保持页面只读，不补不存在的发布、撤回、标记已读或确认接口。
+- 通知类型和用户通知状态枚举值严格对齐后端 `SysNotification.Enum.cs` / `SysUserNotification.Enum.cs`。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/notification/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/notification`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A99，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的系统通知 API、系统通知页面和本文档，不推送远端。
