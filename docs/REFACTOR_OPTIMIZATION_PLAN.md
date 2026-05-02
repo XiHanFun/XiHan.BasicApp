@@ -5469,3 +5469,40 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的系统通知 API、系统通知页面和本文档，不推送远端。
+
+### 2026-05-02 A101 Frontend 租户成员页面
+
+本阶段继续补齐已有前端 API 但缺失页面的系统入口，重建 `system/tenant-member` 页面。后端已有 `TenantMemberQueryService` / `TenantMemberAppService`，前端已有租户成员 API 合同，因此本阶段只新增页面和更新本文档，不修改 API 合同、不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的 tenant API 文件。
+
+执行结果：
+
+- 新增 `frontend/src/views/system/tenant-member/index.vue`：
+  - 使用现有 `tenantMemberApi` 对齐租户成员分页、更新、状态更新、邀请状态更新和撤销动态 API。
+  - 使用 VxeGrid 展示租户成员列表，支持关键字、用户主键、成员类型、邀请状态和成员状态筛选。
+  - 提供编辑、启用/停用、撤销入口；后端没有新增成员命令，因此页面不提供新增按钮。
+  - 编辑时维护显示名称、成员类型、生效/失效日期、成员状态、邀请状态、邀请备注和备注。
+  - 对平台管理员身份分配、所有者直接停用/撤销等后端禁止流程做基础前端禁用或提示，最终仍以后端服务为准。
+
+设计约束：
+
+- 租户成员页不接收或传递当前租户上下文标识；当前租户由会话上下文与后端仓储过滤器控制。
+- 查询使用 `TenantMemberPageQueryDto` 的业务字段，不把 `TenantSwitcherDto.tenantId` 这类响应字段反向作为请求条件。
+- 成员新增/邀请不在当前后端命令服务中，本阶段不补兼容入口。
+- 生效/失效时间以日期粒度提交给后端，避免页面层制造额外时区逻辑；后端继续校验有效期顺序。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/tenant-member/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/tenant-member`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A100，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的租户成员页面和本文档，不推送远端。
