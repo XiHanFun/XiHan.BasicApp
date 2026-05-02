@@ -5543,3 +5543,49 @@ pnpm lint
 - `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
 - `XiHan.Framework` 本阶段无我方代码改动。
 - 本阶段只提交 BasicApp 的角色权限页面和本文档，不推送远端。
+
+### 2026-05-02 A103 Frontend 用户角色 API 与页面
+
+本阶段继续补齐后端已重建但前端缺失的授权绑定入口，重建 `UserRole` 前端 API 和 `system/user-role` 页面。后端已有 `UserRoleQueryService` / `UserRoleAppService`，因此本阶段只在 `frontend/src` 增加 API 合同与页面，不修改 packages、不修改后端、不修改 Framework，也不暂存并行改动中的其他 authorization API 文件。
+
+执行结果：
+
+- 扩展 `frontend/src/api/modules/authorization/types.ts`：
+  - 新增 `UserRoleListItemDto`、`UserRoleDetailDto`、`UserRoleGrantDto`、`UserRoleUpdateDto`、`UserRoleStatusUpdateDto`。
+  - 复用 `RoleType`、`DataPermissionScope`、`ValidityStatus` 既有枚举，并通过类型引用复用租户成员类型/邀请状态。
+- 新增 `frontend/src/api/modules/authorization/user-role.ts`：
+  - `userRoleApi.list()` 调用 `UserRoleQuery/UserRoles/{userId}`，支持 `onlyValid` 查询参数。
+  - `userRoleApi.detail()` 调用 `UserRoleQuery/UserRoleDetail/{id}`。
+  - `userRoleApi.grant()` / `update()` / `updateStatus()` 对齐 `UserRoleAppService`。
+  - `userRoleApi.revoke()` 调用 `UserRole/UserRole/{id}`，沿用后端撤销即写入无效状态的语义。
+- 更新 `frontend/src/api/modules/authorization/index.ts` 导出用户角色模块。
+- 新增 `frontend/src/views/system/user-role/index.vue`：
+  - 使用 `tenantMemberApi.page()` 选择当前租户内已接受、有效且非平台管理员的成员。
+  - 使用 `roleApi.enabledList()` 选择可分配角色，并排除系统角色分配入口。
+  - 使用 VxeGrid 展示指定用户的角色绑定，支持关键字、角色类型、数据范围、绑定状态和仅有效绑定筛选。
+  - 提供授权角色、编辑有效期/原因/备注、启用/停用绑定、撤销绑定入口。
+
+设计约束：
+
+- 用户角色 API 和页面不接收或传递当前租户上下文标识；当前租户由会话上下文、后端授权和仓储过滤器控制。
+- `userId` 是当前租户成员身份下的用户资源主键，不是租户上下文；页面先通过租户成员查询入口选择用户。
+- 平台管理员成员和系统角色分配在前端做入口过滤与提示，最终仍以后端 `UserRoleAppService` 校验为准。
+- 后端用户角色列表接口按用户主键返回集合，角色类型、数据范围、状态和关键字筛选在前端对列表展示做收窄，不引入新的后端查询契约。
+
+验证结果：
+
+- `pnpm type-check`：通过。
+- `pnpm lint`：通过，仍保留 packages 既有 24 个 `ts/no-explicit-any` 警告；本阶段新增 `src` 文件无 lint error。
+- `pnpm build`：通过；构建仅保留 Tailwind content pattern、SignalR PURE 注释和大 chunk 既有警告。
+- `Invoke-WebRequest http://127.0.0.1:7777/src/views/system/user-role/index.vue`：HTTP 200。
+- `Invoke-WebRequest http://127.0.0.1:7777/system/user-role`：HTTP 200。
+- `rg -n "\bany\b" frontend/src -g "*.ts" -g "*.vue"`：0 个匹配。
+- `rg -n "\btenantId\b|TenantId" frontend/src -g "*.ts" -g "*.vue"`：仍只有既有 `TenantSwitcherDto.tenantId` 响应字段匹配；本阶段未新增租户请求字段。
+- `git diff --check`：通过，仅提示既有工作区换行符规范警告。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 已提交至 A102，工作区存在多项并行前端改动，不属于本阶段，未暂存未提交。
+- `XiHan.Framework` 在提交前状态仍存在未跟踪 `framework/src/analysis.md`，不是本阶段改动，未暂存未提交。
+- `XiHan.Framework` 本阶段无我方代码改动。
+- 本阶段只提交 BasicApp 的用户角色 API、用户角色页面和本文档，不推送远端。
