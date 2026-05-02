@@ -122,6 +122,32 @@ export enum FieldSecurityTargetType {
   Department = 3,
 }
 
+export enum ConditionOperator {
+  Equals = 0,
+  NotEquals = 1,
+  GreaterThan = 2,
+  GreaterThanOrEquals = 3,
+  LessThan = 4,
+  LessThanOrEquals = 5,
+  Contains = 6,
+  NotContains = 7,
+  In = 8,
+  NotIn = 9,
+  Between = 10,
+  StartsWith = 11,
+  EndsWith = 12,
+  IsNull = 13,
+  IsNotNull = 14,
+}
+
+export enum ConfigDataType {
+  String = 0,
+  Number = 1,
+  Boolean = 2,
+  Json = 3,
+  Array = 4,
+}
+
 export interface ResourcePageQueryDto extends PageRequest {
   accessLevel?: ResourceAccessLevel | null
   isGlobal?: boolean | null
@@ -757,4 +783,67 @@ export interface FieldLevelSecurityUpdateDto extends BasicUpdateDto {
 export interface FieldLevelSecurityStatusUpdateDto extends BasicUpdateDto {
   remark?: string | null
   status: EnableStatus
+}
+
+export interface PermissionConditionListItemDto extends BasicDto {
+  attributeName: string
+  conditionGroup: number
+  conditionValue: string
+  createdTime: DateTimeString
+  description?: string | null
+  isNegated: boolean
+  operator: ConditionOperator
+  permissionCode?: string | null
+  permissionId?: ApiId | null
+  permissionName?: string | null
+  remark?: string | null
+  roleCode?: string | null
+  roleId?: ApiId | null
+  roleName?: string | null
+  rolePermissionId?: ApiId | null
+  status: ValidityStatus
+  userDisplayName?: string | null
+  userId?: ApiId | null
+  userPermissionId?: ApiId | null
+  valueType: ConfigDataType
+}
+
+export interface PermissionConditionDetailDto extends PermissionConditionListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+  modifiedBy?: string | null
+  modifiedId?: ApiId | null
+  modifiedTime?: DateTimeString | null
+}
+
+export interface PermissionConditionCreateDto {
+  attributeName: string
+  conditionGroup: number
+  conditionValue: string
+  description?: string | null
+  isNegated: boolean
+  operator: ConditionOperator
+  remark?: string | null
+  rolePermissionId?: ApiId | null
+  status: ValidityStatus
+  userPermissionId?: ApiId | null
+  valueType: ConfigDataType
+}
+
+export interface PermissionConditionUpdateDto extends BasicUpdateDto {
+  attributeName: string
+  conditionGroup: number
+  conditionValue: string
+  description?: string | null
+  isNegated: boolean
+  operator: ConditionOperator
+  remark?: string | null
+  rolePermissionId?: ApiId | null
+  userPermissionId?: ApiId | null
+  valueType: ConfigDataType
+}
+
+export interface PermissionConditionStatusUpdateDto extends BasicUpdateDto {
+  remark?: string | null
+  status: ValidityStatus
 }

@@ -1,6 +1,7 @@
 export * from './field-level-security'
 export * from './operation'
 export * from './permission'
+export * from './permission-condition'
 export * from './resource'
 export * from './role'
 export * from './role-data-scope'
