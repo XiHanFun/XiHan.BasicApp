@@ -6094,3 +6094,70 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 工作区存在多项并行前端、配置和后端改动，本阶段只暂存 `frontend/src/App.vue`、`frontend/packages/layouts/basic/index.vue`、`frontend/packages/design/global.css` 和本文档。
 - `XiHan.Framework` 本阶段无新增改动，当前仍存在授权相关未提交修改和未跟踪 `framework/src/analysis.md`，未暂存未提交。
 - 本阶段只提交 VxeTable 高度链路修复，不推送远端。
+
+### 2026-05-03 A117 前端 API DTO 拆分与核心管理页面补齐
+
+本阶段完成前端 API 模块 DTO 类型拆分（每个子域独立文件）、补齐核心管理页面和后端菜单种子数据层级优化。
+
+执行结果：
+
+**一、前端 API 模块 DTO 拆分**
+
+将所有模块的合并 `types.ts` 拆分为每个子域独立的 `.types.ts` 文件：
+
+| 模块 | 原文件 | 拆分结果 |
+|------|--------|----------|
+| `authorization` | `types.ts` (850行) | 12 个独立文件：permission, resource, operation, role, role-permission, user-role, user-permission, user-data-scope, role-data-scope, role-hierarchy, field-level-security, permission-condition |
+| `tenant` | `types.ts` (284行) | 5 个文件：tenant-enums, tenant, tenant-edition, tenant-member, tenant-edition-permission |
+| `messaging` | `types.ts` (208行) | 2 个文件：message, notification |
+| `oauth` | `types.ts` (44行) | 重命名为 `oauth-app.types.ts` |
+| `identity` | `types.ts` (196行) | 2 个文件：user, user-session |
+| `organization` | `types.ts` (103行) | 重命名为 `department.types.ts` |
+
+**二、新增 API 模块**
+
+| 模块 | 文件 | 说明 |
+|------|------|------|
+| `navigation` | `menu.types.ts` + `menu.ts` + `index.ts` | 菜单管理 CRUD |
+| `configuration` | `dict.types.ts` + `dict.ts` + `config.types.ts` + `config.ts` + `index.ts` | 字典/配置只读查询 |
+| `audit` | `operation-log.types.ts` + `operation-log.ts` + `access-log.types.ts` + `access-log.ts` + `index.ts` | 审计日志只读查询 |
+
+**三、新增前端页面**
+
+| 路径 | 页面 | 功能 |
+|------|------|------|
+| `system/user/index.vue` | 用户管理 | 分页列表 + 新增/编辑/状态切换 |
+| `system/department/index.vue` | 部门管理 | 分页列表 + 树形级联选择 + CRUD |
+| `system/menu/index.vue` | 菜单管理 | 分页列表 + 树形级联 + 多类型表单 |
+| `system/dict/index.vue` | 字典管理 | 字典分页 + 字典项抽屉 |
+| `system/config/index.vue` | 系统配置 | 多维筛选分页列表 |
+| `system/operation-log/index.vue` | 操作日志 | 操作类型/状态筛选 |
+| `system/access-log/index.vue` | 访问日志 | 访问结果/方法筛选 |
+
+**四、后端菜单种子数据层级优化**
+
+重构 `SaasMenuSeeder.BuildDefinitions()`，将原来平铺的菜单引入二级目录分组：
+
+```
+系统管理
+├── 组织管理（用户管理、部门管理、用户会话）
+├── 租户管理（租户列表、租户版本、版本权限、租户成员）
+├── 权限管理（角色、角色继承、角色权限、角色数据范围、用户角色、用户权限、用户数据范围、权限定义、资源定义、操作定义、权限条件、约束规则、字段级安全）
+├── 导航管理（菜单管理）
+├── 配置管理（字典管理、系统配置）
+├── 安全认证（OAuth 应用）
+├── 消息管理（系统消息、系统通知）
+├── 审计日志（操作日志、访问日志）
+└── 系统运维（缓存管理、系统监控）
+```
+
+验证结果：
+
+- `pnpm type-check`：通过，0 错误。
+- 所有新页面路由路径与菜单种子 Component 字段对应，动态路由 glob 可自动解析。
+- 跨模块枚举冲突（ConfigDataType、TenantMemberType）通过移除重复 re-export 解决，源头模块保持唯一导出。
+
+协作状态：
+
+- 本阶段涉及前端 `src/api/modules/` 全部模块的类型重构、7 个新页面、3 个新 API 模块、后端菜单种子重写。
+- 后端仅修改 `SaasMenuSeeder.cs`，未改动其他后端文件。
