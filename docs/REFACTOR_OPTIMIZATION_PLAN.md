@@ -6229,3 +6229,34 @@ pnpm lint
 - 本阶段为审查和文档收口，不修改领域服务代码。
 - 阶段前检查 `XiHan.BasicApp` 仍存在端口配置和操作日志查询校验的并行改动，本阶段未暂存未提交。
 - `XiHan.Framework` 仍存在授权相关并行改动和未跟踪 `framework/src/analysis.md`，本阶段未暂存未提交。
+
+### 2026-05-04 A120 Domain 领域事件处理器闭环
+
+本阶段执行 RefactoringPlan B-4.3。初版计划记录 `Domain/Events` 有 20 个事件，但当前代码事实已收敛为 7 个具体 SaaS 领域事件；本阶段以当前代码事实为准，补齐所有具体事件的本地处理器，并对已经发布的事件落地实际联动。
+
+执行结果：
+
+- 新增 `Application/EventHandlers/SaasDomainEventHandler.cs`：
+  - 实现 `ILocalEventHandler<T>` 覆盖 `AuthorizationChangedDomainEvent`、`DataScopeChangedDomainEvent`、`FieldLevelSecurityChangedDomainEvent`、`HierarchyChangedDomainEvent`、`TenantMembershipChangedDomainEvent`、`TenantStatusChangedDomainEvent`、`UserSessionRevokedDomainEvent`。
+  - `UserSessionRevokedDomainEvent`：撤销会话关联 OAuth Token，并停用会话激活角色；`revokeAllUserSessions=true` 时按用户撤销当前租户内全部 Token 和会话角色。
+  - `TenantStatusChangedDomainEvent`：租户进入 `Suspended` / `Expired` / `Disabled` 时切换到受影响租户上下文，撤销该租户全部未撤销会话、OAuth Token 和激活会话角色。
+  - 授权、数据范围、FLS、层级、租户成员和会话/租户状态事件统一写入 `SysAuditLog`；授权变更事件额外写入 `SysPermissionChangeLog`。
+- 本阶段不新增 Controller，不修改 DynamicApi 约定，不修改 Framework。
+- 当前发布点仍只有：
+  - `SysTenant.ChangeStatus()` 发布 `TenantStatusChangedDomainEvent`。
+  - `UserSessionAppService` 发布 `UserSessionRevokedDomainEvent`。
+  其他 5 个事件已有处理器，后续授权写服务接入事件发布时可直接复用。
+
+验证结果：
+
+- `rg -n "ILocalEventHandler<.*DomainEvent|HandleEventAsync\\(.*DomainEvent" Application/EventHandlers Domain/Events -g "*.cs"`：确认 7 个具体事件均有处理器。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "new (...DomainEvent)|AddLocalEvent\\(" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：确认当前发布点为租户状态变更和用户会话撤销。
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --artifacts-path %TEMP%\XiHanBasicAppA120Artifacts -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+- `dotnet build backend/src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj --artifacts-path %TEMP%\XiHanBasicAppA120WebHostArtifacts -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+
+协作状态：
+
+- 阶段前检查 `XiHan.BasicApp` 工作区存在本地配置和前端并行改动，本阶段未覆盖这些文件。
+- `XiHan.Framework` 存在授权/日志相关并行改动和未跟踪 `framework/src/analysis.md`，本阶段无我方 Framework 代码改动。
+- 本阶段只修改 BasicApp 的 SaaS 事件处理器和本文档，不推送远端。

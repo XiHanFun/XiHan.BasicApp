@@ -488,6 +488,7 @@
 | B-3.6 SysTenant 导航精简 | 2026-05-03 | 保留 Edition + TenantUsers + Configs；移除 14 个冗余日志/文件/通知导航 |
 | B-4.1 仓储接口调整 | 2026-05-03 | 已正确对齐（10 个 ISaasAggregateRepository + 其余 ISaasRepository） |
 | B-4.2 领域服务审查 | 2026-05-03 | 重建后收敛为 3 个纯领域裁决服务；无基础设施依赖，无简单 CRUD 委托 |
+| B-4.3 领域事件审查 | 2026-05-04 | 当前 7 个具体 SaaS 领域事件全部接入本地处理器；会话撤销/租户停用联动 Token、会话角色和审计日志 |
 | B-5.1 仓储实现调整 | 2026-05-03 | 已正确对齐（10 个 SaasAggregateRepository + 其余 SaasRepository） |
 | B-6.1 AppService 标注验证 | 2026-05-03 | 26 个 AppService 全部有 [DynamicApi]；25 个有 [Authorize]（AuthAppService 匿名正确）；0 Controller |
 | B-6.2 DTO 安全性验证 | 2026-05-03 | 确认无 ConnectionString/PasswordHash 等敏感字段泄露到响应 DTO |
@@ -507,7 +508,6 @@
 
 | 优先级 | 任务 | 前置条件 | 说明 |
 |--------|------|----------|------|
-| P2 | B-4.3 领域事件审查 | 已满足 | 确认 20 个事件有对应处理器 |
 | P3 | B-2.2 公共值对象定义 | Framework F-1.4 | ClientInfo/EffectivePeriod/BusinessReference/DeviceInfo |
 | P3 | B-3.7 日志实体公共字段提取 | B-2.2 | 替换重复客户端信息字段 |
 | P3 | B-5.2 认证授权基础设施审查 | B-3.4 | 适配 PermissionType 三类型 |
