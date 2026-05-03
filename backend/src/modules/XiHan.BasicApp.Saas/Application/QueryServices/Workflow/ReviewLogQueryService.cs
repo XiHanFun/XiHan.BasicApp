@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "审查日志")]
-public sealed class ReviewLogQueryService(IReviewLogRepository reviewLogRepository)
+public sealed class ReviewLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IReviewLogQueryService
 {
-    /// <summary>
-    /// 审查日志仓储
-    /// </summary>
-    private readonly IReviewLogRepository _reviewLogRepository = reviewLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取审查日志分页列表
@@ -53,28 +52,23 @@ public sealed class ReviewLogQueryService(IReviewLogRepository reviewLogReposito
 
         ValidatePageInput(input);
 
-        var beginTime = input.ReviewTimeStart!.Value;
-        var endTime = input.ReviewTimeEnd!.Value;
-        var predicate = BuildReviewLogPredicate(input, beginTime, endTime);
-        var reviewLogPage = await _reviewLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            reviewLog => reviewLog.ReviewTime,
-            false,
-            cancellationToken);
+        var predicate = BuildReviewLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysReviewLog>()
+            .Where(predicate)
+            .OrderByDescending(x => x.ReviewTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (reviewLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<ReviewLogListItemDto>([], reviewLogPage.Page);
+            return new PageResultDtoBase<ReviewLogListItemDto>([], page);
         }
 
-        var items = reviewLogPage.Items
+        var items = entities
             .Select(ReviewLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<ReviewLogListItemDto>(items, reviewLogPage.Page);
+        return new PageResultDtoBase<ReviewLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +87,30 @@ public sealed class ReviewLogQueryService(IReviewLogRepository reviewLogReposito
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var reviewLog = await _reviewLogRepository.GetByIdAsync(id, cancellationToken);
+        var reviewLog = await DbClient.Queryable<SysReviewLog>()
+            .Where(x => x.BasicId == id)
+            .FirstAsync(cancellationToken);
         return reviewLog is null ? null : ReviewLogApplicationMapper.ToDetailDto(reviewLog);
     }
 
     /// <summary>
     /// 构建审查日志查询表达式
     /// </summary>
-    private static Expression<Func<SysReviewLog, bool>> BuildReviewLogPredicate(ReviewLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysReviewLog, bool>> BuildReviewLogPredicate(ReviewLogPageQueryDto input)
     {
-        Expression<Func<SysReviewLog, bool>> predicate = reviewLog => reviewLog.ReviewTime >= beginTime && reviewLog.ReviewTime <= endTime;
+        Expression<Func<SysReviewLog, bool>> predicate = reviewLog => true;
+
+        if (input.ReviewTimeStart.HasValue)
+        {
+            var beginTime = input.ReviewTimeStart.Value;
+            predicate = And(predicate, reviewLog => reviewLog.ReviewTime >= beginTime);
+        }
+
+        if (input.ReviewTimeEnd.HasValue)
+        {
+            var endTime = input.ReviewTimeEnd.Value;
+            predicate = And(predicate, reviewLog => reviewLog.ReviewTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -172,12 +180,8 @@ public sealed class ReviewLogQueryService(IReviewLogRepository reviewLogReposito
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(ReviewLogPageQueryDto input)
     {
-        if (!input.ReviewTimeStart.HasValue || !input.ReviewTimeEnd.HasValue)
-        {
-            throw new ArgumentException("审查日志分表查询必须提供审查开始时间和审查结束时间。", nameof(input));
-        }
-
-        if (input.ReviewTimeStart.Value > input.ReviewTimeEnd.Value)
+        if (input.ReviewTimeStart.HasValue && input.ReviewTimeEnd.HasValue &&
+            input.ReviewTimeStart.Value > input.ReviewTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.ReviewTimeStart), "审查开始时间不能晚于结束时间。");
         }

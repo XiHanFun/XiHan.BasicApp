@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "任务日志")]
-public sealed class TaskLogQueryService(ITaskLogRepository taskLogRepository)
+public sealed class TaskLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, ITaskLogQueryService
 {
-    /// <summary>
-    /// 任务日志仓储
-    /// </summary>
-    private readonly ITaskLogRepository _taskLogRepository = taskLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取任务日志分页列表
@@ -53,28 +52,23 @@ public sealed class TaskLogQueryService(ITaskLogRepository taskLogRepository)
 
         ValidatePageInput(input);
 
-        var beginTime = input.StartTimeStart!.Value;
-        var endTime = input.StartTimeEnd!.Value;
-        var predicate = BuildTaskLogPredicate(input, beginTime, endTime);
-        var taskLogPage = await _taskLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            taskLog => taskLog.StartTime,
-            false,
-            cancellationToken);
+        var predicate = BuildTaskLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysTaskLog>()
+            .Where(predicate)
+            .OrderByDescending(x => x.StartTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (taskLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<TaskLogListItemDto>([], taskLogPage.Page);
+            return new PageResultDtoBase<TaskLogListItemDto>([], page);
         }
 
-        var items = taskLogPage.Items
+        var items = entities
             .Select(TaskLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<TaskLogListItemDto>(items, taskLogPage.Page);
+        return new PageResultDtoBase<TaskLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +87,30 @@ public sealed class TaskLogQueryService(ITaskLogRepository taskLogRepository)
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var taskLog = await _taskLogRepository.GetByIdAsync(id, cancellationToken);
+        var taskLog = await DbClient.Queryable<SysTaskLog>()
+            .Where(x => x.BasicId == id)
+            .FirstAsync(cancellationToken);
         return taskLog is null ? null : TaskLogApplicationMapper.ToDetailDto(taskLog);
     }
 
     /// <summary>
     /// 构建任务日志查询表达式
     /// </summary>
-    private static Expression<Func<SysTaskLog, bool>> BuildTaskLogPredicate(TaskLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysTaskLog, bool>> BuildTaskLogPredicate(TaskLogPageQueryDto input)
     {
-        Expression<Func<SysTaskLog, bool>> predicate = taskLog => taskLog.StartTime >= beginTime && taskLog.StartTime <= endTime;
+        Expression<Func<SysTaskLog, bool>> predicate = taskLog => true;
+
+        if (input.StartTimeStart.HasValue)
+        {
+            var beginTime = input.StartTimeStart.Value;
+            predicate = And(predicate, taskLog => taskLog.StartTime >= beginTime);
+        }
+
+        if (input.StartTimeEnd.HasValue)
+        {
+            var endTime = input.StartTimeEnd.Value;
+            predicate = And(predicate, taskLog => taskLog.StartTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -194,12 +202,8 @@ public sealed class TaskLogQueryService(ITaskLogRepository taskLogRepository)
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(TaskLogPageQueryDto input)
     {
-        if (!input.StartTimeStart.HasValue || !input.StartTimeEnd.HasValue)
-        {
-            throw new ArgumentException("任务日志分表查询必须提供开始时间起点和开始时间终点。", nameof(input));
-        }
-
-        if (input.StartTimeStart.Value > input.StartTimeEnd.Value)
+        if (input.StartTimeStart.HasValue && input.StartTimeEnd.HasValue &&
+            input.StartTimeStart.Value > input.StartTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.StartTimeStart), "开始时间起点不能晚于终点。");
         }

@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "异常日志")]
-public sealed class ExceptionLogQueryService(IExceptionLogRepository exceptionLogRepository)
+public sealed class ExceptionLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IExceptionLogQueryService
 {
-    /// <summary>
-    /// 异常日志仓储
-    /// </summary>
-    private readonly IExceptionLogRepository _exceptionLogRepository = exceptionLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取异常日志分页列表
@@ -53,28 +52,24 @@ public sealed class ExceptionLogQueryService(IExceptionLogRepository exceptionLo
 
         ValidatePageInput(input);
 
-        var beginTime = input.ExceptionTimeStart!.Value;
-        var endTime = input.ExceptionTimeEnd!.Value;
-        var predicate = BuildExceptionLogPredicate(input, beginTime, endTime);
-        var exceptionLogPage = await _exceptionLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            exceptionLog => exceptionLog.ExceptionTime,
-            false,
-            cancellationToken);
+        var predicate = BuildExceptionLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysExceptionLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.ExceptionTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (exceptionLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<ExceptionLogListItemDto>([], exceptionLogPage.Page);
+            return new PageResultDtoBase<ExceptionLogListItemDto>([], page);
         }
 
-        var items = exceptionLogPage.Items
+        var items = entities
             .Select(ExceptionLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<ExceptionLogListItemDto>(items, exceptionLogPage.Page);
+        return new PageResultDtoBase<ExceptionLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +88,31 @@ public sealed class ExceptionLogQueryService(IExceptionLogRepository exceptionLo
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var exceptionLog = await _exceptionLogRepository.GetByIdAsync(id, cancellationToken);
+        var exceptionLog = await DbClient.Queryable<SysExceptionLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return exceptionLog is null ? null : ExceptionLogApplicationMapper.ToDetailDto(exceptionLog);
     }
 
     /// <summary>
     /// 构建异常日志查询表达式
     /// </summary>
-    private static Expression<Func<SysExceptionLog, bool>> BuildExceptionLogPredicate(ExceptionLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysExceptionLog, bool>> BuildExceptionLogPredicate(ExceptionLogPageQueryDto input)
     {
-        Expression<Func<SysExceptionLog, bool>> predicate = exceptionLog => exceptionLog.ExceptionTime >= beginTime && exceptionLog.ExceptionTime <= endTime;
+        Expression<Func<SysExceptionLog, bool>> predicate = exceptionLog => true;
+
+        if (input.ExceptionTimeStart.HasValue)
+        {
+            var beginTime = input.ExceptionTimeStart.Value;
+            predicate = And(predicate, exceptionLog => exceptionLog.ExceptionTime >= beginTime);
+        }
+
+        if (input.ExceptionTimeEnd.HasValue)
+        {
+            var endTime = input.ExceptionTimeEnd.Value;
+            predicate = And(predicate, exceptionLog => exceptionLog.ExceptionTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -256,12 +266,8 @@ public sealed class ExceptionLogQueryService(IExceptionLogRepository exceptionLo
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(ExceptionLogPageQueryDto input)
     {
-        if (!input.ExceptionTimeStart.HasValue || !input.ExceptionTimeEnd.HasValue)
-        {
-            throw new ArgumentException("异常日志分表查询必须提供异常开始时间和异常结束时间。", nameof(input));
-        }
-
-        if (input.ExceptionTimeStart.Value > input.ExceptionTimeEnd.Value)
+        if (input.ExceptionTimeStart.HasValue && input.ExceptionTimeEnd.HasValue &&
+            input.ExceptionTimeStart.Value > input.ExceptionTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.ExceptionTimeStart), "异常开始时间不能晚于结束时间。");
         }

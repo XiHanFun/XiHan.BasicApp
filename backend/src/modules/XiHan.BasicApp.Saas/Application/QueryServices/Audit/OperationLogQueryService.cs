@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "操作日志")]
-public sealed class OperationLogQueryService(IOperationLogRepository operationLogRepository)
+public sealed class OperationLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IOperationLogQueryService
 {
-    /// <summary>
-    /// 操作日志仓储
-    /// </summary>
-    private readonly IOperationLogRepository _operationLogRepository = operationLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取操作日志分页列表
@@ -53,28 +52,24 @@ public sealed class OperationLogQueryService(IOperationLogRepository operationLo
 
         ValidatePageInput(input);
 
-        var beginTime = input.OperationTimeStart!.Value;
-        var endTime = input.OperationTimeEnd!.Value;
-        var predicate = BuildOperationLogPredicate(input, beginTime, endTime);
-        var operationLogPage = await _operationLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            operationLog => operationLog.OperationTime,
-            false,
-            cancellationToken);
+        var predicate = BuildOperationLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysOperationLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.OperationTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (operationLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<OperationLogListItemDto>([], operationLogPage.Page);
+            return new PageResultDtoBase<OperationLogListItemDto>([], page);
         }
 
-        var items = operationLogPage.Items
+        var items = entities
             .Select(OperationLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<OperationLogListItemDto>(items, operationLogPage.Page);
+        return new PageResultDtoBase<OperationLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +88,31 @@ public sealed class OperationLogQueryService(IOperationLogRepository operationLo
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var operationLog = await _operationLogRepository.GetByIdAsync(id, cancellationToken);
+        var operationLog = await DbClient.Queryable<SysOperationLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return operationLog is null ? null : OperationLogApplicationMapper.ToDetailDto(operationLog);
     }
 
     /// <summary>
     /// 构建操作日志查询表达式
     /// </summary>
-    private static Expression<Func<SysOperationLog, bool>> BuildOperationLogPredicate(OperationLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysOperationLog, bool>> BuildOperationLogPredicate(OperationLogPageQueryDto input)
     {
-        Expression<Func<SysOperationLog, bool>> predicate = operationLog => operationLog.OperationTime >= beginTime && operationLog.OperationTime <= endTime;
+        Expression<Func<SysOperationLog, bool>> predicate = operationLog => true;
+
+        if (input.OperationTimeStart.HasValue)
+        {
+            var beginTime = input.OperationTimeStart.Value;
+            predicate = And(predicate, operationLog => operationLog.OperationTime >= beginTime);
+        }
+
+        if (input.OperationTimeEnd.HasValue)
+        {
+            var endTime = input.OperationTimeEnd.Value;
+            predicate = And(predicate, operationLog => operationLog.OperationTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -209,15 +219,11 @@ public sealed class OperationLogQueryService(IOperationLogRepository operationLo
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(OperationLogPageQueryDto input)
     {
-        //if (!input.OperationTimeStart.HasValue || !input.OperationTimeEnd.HasValue)
-        //{
-        //    throw new ArgumentException("操作日志分表查询必须提供操作开始时间和操作结束时间。", nameof(input));
-        //}
-
-        //if (input.OperationTimeStart.Value > input.OperationTimeEnd.Value)
-        //{
-        //    throw new ArgumentOutOfRangeException(nameof(input.OperationTimeStart), "操作开始时间不能晚于结束时间。");
-        //}
+        if (input.OperationTimeStart.HasValue && input.OperationTimeEnd.HasValue &&
+            input.OperationTimeStart.Value > input.OperationTimeEnd.Value)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input.OperationTimeStart), "操作开始时间不能晚于结束时间。");
+        }
 
         ValidateOptionalId(input.UserId, nameof(input.UserId), "用户主键必须大于 0。");
         ValidateMaxLength(input.Keyword, 200, nameof(input.Keyword), "关键字长度不能超过 200。");
