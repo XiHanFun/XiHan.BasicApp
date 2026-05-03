@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 职责边界：
-/// - 与 SysAuditLog（数据库实体变更审计）职责分离：SysAuditLog 记录通用实体字段变更，本表专注权限授予/撤销的业务语义
+/// - 与 SysDiffLog（数据库实体变更审计）职责分离：SysDiffLog 记录通用实体字段变更，本表专注权限授予/撤销的业务语义
 /// - 与 SysOperationLog（用户操作日志）职责分离：本表只记录权限变更事实，不记录操作上下文
 ///
 /// 分表策略：

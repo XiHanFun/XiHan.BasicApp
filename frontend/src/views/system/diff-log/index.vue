@@ -1,28 +1,22 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { AuditLogListItemDto } from '@/api'
-import {
-  NButton,
-  NIcon,
-  NSelect,
-  NTag,
-  useMessage,
-} from 'naive-ui'
+import type { DiffLogListItemDto } from '@/api'
+import { NButton, NIcon, NSelect, NTag, useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { auditLogApi, AuditOperationType, AuditRiskLevel, createPageRequest } from '@/api'
+import { diffLogApi, AuditOperationType, AuditRiskLevel, createPageRequest } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemAuditLogPage' })
+defineOptions({ name: 'SystemDiffLogPage' })
 
 interface LogGridResult {
-  items: AuditLogListItemDto[]
+  items: DiffLogListItemDto[]
   total: number
 }
 
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<AuditLogListItemDto>>()
+const xGrid = ref<VxeGridInstance<DiffLogListItemDto>>()
 
 const queryParams = reactive({
   isSuccess: undefined as number | undefined,
@@ -57,17 +51,21 @@ const riskLevelOptions = [
 
 function riskLevelType(level: AuditRiskLevel) {
   switch (level) {
-    case AuditRiskLevel.Low: return 'info'
-    case AuditRiskLevel.Medium: return 'warning'
+    case AuditRiskLevel.Low:
+      return 'info'
+    case AuditRiskLevel.Medium:
+      return 'warning'
     case AuditRiskLevel.High:
     case AuditRiskLevel.VeryHigh:
-    case AuditRiskLevel.Critical: return 'error'
-    default: return 'default'
+    case AuditRiskLevel.Critical:
+      return 'error'
+    default:
+      return 'default'
   }
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return auditLogApi
+  return diffLogApi
     .page({
       ...createPageRequest({
         page: {
@@ -79,7 +77,7 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       keyword: queryParams.keyword?.trim() || undefined,
       operationType: queryParams.operationType,
     })
-    .then(result => ({
+    .then((result) => ({
       items: result.items,
       total: result.page.totalCount,
     }))
@@ -89,7 +87,7 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
     })
 }
 
-const tableOptions = useVxeTable<AuditLogListItemDto>(
+const tableOptions = useVxeTable<DiffLogListItemDto>(
   {
     columns: [
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },

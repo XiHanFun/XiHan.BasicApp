@@ -20,7 +20,7 @@ export enum AuditOperationType {
   Other = 99,
 }
 
-export interface AuditLogPageQueryDto extends PageRequest {
+export interface DiffLogPageQueryDto extends PageRequest {
   auditTimeEnd?: DateTimeString | null
   auditTimeStart?: DateTimeString | null
   auditType?: string | null
@@ -41,7 +41,7 @@ export interface AuditLogPageQueryDto extends PageRequest {
   userName?: string | null
 }
 
-export interface AuditLogListItemDto extends BasicDto {
+export interface DiffLogListItemDto extends BasicDto {
   auditTime: DateTimeString
   auditType: string
   createdTime: DateTimeString

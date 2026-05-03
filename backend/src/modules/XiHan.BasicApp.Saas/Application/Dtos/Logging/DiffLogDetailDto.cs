@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:AuditLogDetailDto
+// FileName:DiffLogDetailDto
 // Guid:3a12343f-9209-420e-9de1-91e2157a1912
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -15,9 +15,9 @@
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
-/// 审计日志详情 DTO
+/// 差异日志详情 DTO
 /// </summary>
-public sealed class AuditLogDetailDto : AuditLogListItemDto
+public sealed class DiffLogDetailDto : DiffLogListItemDto
 {
     /// <summary>
     /// 创建者主键

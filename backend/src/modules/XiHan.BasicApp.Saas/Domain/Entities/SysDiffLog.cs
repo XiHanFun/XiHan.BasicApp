@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysAuditLog
+// FileName:SysDiffLog
 // Guid:c528152c-d6e9-4396-addb-b479254bad62
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -19,7 +19,7 @@ using XiHan.Framework.Domain.Entities.Abstracts;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统审计日志实体
+/// 系统差异日志实体
 /// 数据库实体变更审计：自动记录实体的增删改操作及字段级变更快照，用于数据溯源和合规审计
 /// </summary>
 /// <remarks>
@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 删除：
 /// - 合规要求下禁止删除；仅允许按保留期归档（通常 ≥ 6 个月）
 /// </remarks>
-[SugarTable("SysAuditLog_{year}{month}{day}", "系统审计日志表"), SplitTable(SplitType.Month)]
+[SugarTable("SysDiffLog_{year}{month}{day}", "系统差异日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -56,7 +56,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_RiLe", nameof(RiskLevel), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_EnId", nameof(EntityId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
-public partial class SysAuditLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
+public partial class SysDiffLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
@@ -83,7 +83,7 @@ public partial class SysAuditLog : BasicAppCreationEntity, ISplitTableEntity, IT
     public virtual string? RequestId { get; set; }
 
     /// <summary>
-    /// 链路追踪ID（串联 SysAccessLog/SysApiLog/SysAuditLog 的完整请求生命周期）
+    /// 链路追踪ID（串联 SysAccessLog/SysApiLog/SysDiffLog 的完整请求生命周期）
     /// </summary>
     [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }

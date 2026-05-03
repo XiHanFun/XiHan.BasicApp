@@ -92,7 +92,7 @@ public static class SaasPermissionCodes
         OAuthToken.Read,
         AccessLog.Read,
         ApiLog.Read,
-        AuditLog.Read,
+        DiffLog.Read,
         ExceptionLog.Read,
         LoginLog.Read,
         OperationLog.Read,
@@ -613,14 +613,14 @@ public static class SaasPermissionCodes
     }
 
     /// <summary>
-    /// 审计日志权限码
+    /// 差异日志权限码
     /// </summary>
-    public static class AuditLog
+    public static class DiffLog
     {
         /// <summary>
-        /// 查看审计日志
+        /// 查看差异日志
         /// </summary>
-        public const string Read = "saas:audit-log:read";
+        public const string Read = "saas:diff-log:read";
     }
 
     /// <summary>

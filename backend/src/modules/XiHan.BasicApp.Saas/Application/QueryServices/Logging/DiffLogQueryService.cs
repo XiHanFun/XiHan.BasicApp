@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:AuditLogQueryService
+// FileName:DiffLogQueryService
 // Guid:7d29f61d-9e56-40d9-9690-79619c4f52c1
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -29,32 +29,32 @@ using XiHan.Framework.Domain.Shared.Paging.Models;
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
 /// <summary>
-/// 审计日志查询应用服务
+/// 差异日志查询应用服务
 /// </summary>
 [Authorize]
-[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "审计日志")]
-public sealed class AuditLogQueryService(ISqlSugarClientResolver clientResolver)
-    : SaasApplicationService, IAuditLogQueryService
+[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "差异日志")]
+public sealed class DiffLogQueryService(ISqlSugarClientResolver clientResolver)
+    : SaasApplicationService, IDiffLogQueryService
 {
     private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
-    /// 获取审计日志分页列表
+    /// 获取差异日志分页列表
     /// </summary>
     /// <param name="input">查询条件</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>审计日志分页列表</returns>
-    [PermissionAuthorize(SaasPermissionCodes.AuditLog.Read)]
-    public async Task<PageResultDtoBase<AuditLogListItemDto>> GetAuditLogPageAsync(AuditLogPageQueryDto input, CancellationToken cancellationToken = default)
+    /// <returns>差异日志分页列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.DiffLog.Read)]
+    public async Task<PageResultDtoBase<DiffLogListItemDto>> GetDiffLogPageAsync(DiffLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidatePageInput(input);
 
-        var predicate = BuildAuditLogPredicate(input);
+        var predicate = BuildDiffLogPredicate(input);
         RefAsync<int> totalCount = 0;
-        var entities = await DbClient.Queryable<SysAuditLog>()
+        var entities = await DbClient.Queryable<SysDiffLog>()
             .Where(predicate)
             .SplitTable()
             .OrderByDescending(x => x.AuditTime)
@@ -63,160 +63,160 @@ public sealed class AuditLogQueryService(ISqlSugarClientResolver clientResolver)
         var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
         if (entities.Count == 0)
         {
-            return new PageResultDtoBase<AuditLogListItemDto>([], page);
+            return new PageResultDtoBase<DiffLogListItemDto>([], page);
         }
 
         var items = entities
-            .Select(AuditLogApplicationMapper.ToListItemDto)
+            .Select(DiffLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<AuditLogListItemDto>(items, page);
+        return new PageResultDtoBase<DiffLogListItemDto>(items, page);
     }
 
     /// <summary>
-    /// 获取审计日志详情
+    /// 获取差异日志详情
     /// </summary>
-    /// <param name="id">审计日志主键</param>
+    /// <param name="id">差异日志主键</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>审计日志详情</returns>
-    [PermissionAuthorize(SaasPermissionCodes.AuditLog.Read)]
-    public async Task<AuditLogDetailDto?> GetAuditLogDetailAsync(long id, CancellationToken cancellationToken = default)
+    /// <returns>差异日志详情</returns>
+    [PermissionAuthorize(SaasPermissionCodes.DiffLog.Read)]
+    public async Task<DiffLogDetailDto?> GetDiffLogDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "审计日志主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(id), "差异日志主键必须大于 0。");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var auditLog = await DbClient.Queryable<SysAuditLog>()
+        var diffLog = await DbClient.Queryable<SysDiffLog>()
             .Where(x => x.BasicId == id)
             .SplitTable()
             .FirstAsync(cancellationToken);
-        return auditLog is null ? null : AuditLogApplicationMapper.ToDetailDto(auditLog);
+        return diffLog is null ? null : DiffLogApplicationMapper.ToDetailDto(diffLog);
     }
 
     /// <summary>
-    /// 构建审计日志查询表达式
+    /// 构建差异日志查询表达式
     /// </summary>
-    private static Expression<Func<SysAuditLog, bool>> BuildAuditLogPredicate(AuditLogPageQueryDto input)
+    private static Expression<Func<SysDiffLog, bool>> BuildDiffLogPredicate(DiffLogPageQueryDto input)
     {
-        Expression<Func<SysAuditLog, bool>> predicate = auditLog => true;
+        Expression<Func<SysDiffLog, bool>> predicate = diffLog => true;
 
         if (input.AuditTimeStart.HasValue)
         {
             var beginTime = input.AuditTimeStart.Value;
-            predicate = And(predicate, auditLog => auditLog.AuditTime >= beginTime);
+            predicate = And(predicate, diffLog => diffLog.AuditTime >= beginTime);
         }
 
         if (input.AuditTimeEnd.HasValue)
         {
             var endTime = input.AuditTimeEnd.Value;
-            predicate = And(predicate, auditLog => auditLog.AuditTime <= endTime);
+            predicate = And(predicate, diffLog => diffLog.AuditTime <= endTime);
         }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
             var keyword = input.Keyword.Trim();
-            predicate = And(predicate, auditLog =>
-                (auditLog.UserName != null && auditLog.UserName.Contains(keyword)) ||
-                (auditLog.SessionId != null && auditLog.SessionId.Contains(keyword)) ||
-                (auditLog.RequestId != null && auditLog.RequestId.Contains(keyword)) ||
-                (auditLog.TraceId != null && auditLog.TraceId.Contains(keyword)) ||
-                auditLog.AuditType.Contains(keyword) ||
-                (auditLog.EntityType != null && auditLog.EntityType.Contains(keyword)) ||
-                (auditLog.EntityId != null && auditLog.EntityId.Contains(keyword)) ||
-                (auditLog.EntityName != null && auditLog.EntityName.Contains(keyword)) ||
-                (auditLog.TableName != null && auditLog.TableName.Contains(keyword)));
+            predicate = And(predicate, diffLog =>
+                (diffLog.UserName != null && diffLog.UserName.Contains(keyword)) ||
+                (diffLog.SessionId != null && diffLog.SessionId.Contains(keyword)) ||
+                (diffLog.RequestId != null && diffLog.RequestId.Contains(keyword)) ||
+                (diffLog.TraceId != null && diffLog.TraceId.Contains(keyword)) ||
+                diffLog.AuditType.Contains(keyword) ||
+                (diffLog.EntityType != null && diffLog.EntityType.Contains(keyword)) ||
+                (diffLog.EntityId != null && diffLog.EntityId.Contains(keyword)) ||
+                (diffLog.EntityName != null && diffLog.EntityName.Contains(keyword)) ||
+                (diffLog.TableName != null && diffLog.TableName.Contains(keyword)));
         }
 
         if (input.UserId.HasValue)
         {
             var userId = input.UserId.Value;
-            predicate = And(predicate, auditLog => auditLog.UserId == userId);
+            predicate = And(predicate, diffLog => diffLog.UserId == userId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.UserName))
         {
             var userName = input.UserName.Trim();
-            predicate = And(predicate, auditLog => auditLog.UserName != null && auditLog.UserName.Contains(userName));
+            predicate = And(predicate, diffLog => diffLog.UserName != null && diffLog.UserName.Contains(userName));
         }
 
         if (!string.IsNullOrWhiteSpace(input.SessionId))
         {
             var sessionId = input.SessionId.Trim();
-            predicate = And(predicate, auditLog => auditLog.SessionId == sessionId);
+            predicate = And(predicate, diffLog => diffLog.SessionId == sessionId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.RequestId))
         {
             var requestId = input.RequestId.Trim();
-            predicate = And(predicate, auditLog => auditLog.RequestId == requestId);
+            predicate = And(predicate, diffLog => diffLog.RequestId == requestId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.TraceId))
         {
             var traceId = input.TraceId.Trim();
-            predicate = And(predicate, auditLog => auditLog.TraceId == traceId);
+            predicate = And(predicate, diffLog => diffLog.TraceId == traceId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.AuditType))
         {
-            var auditType = input.AuditType.Trim();
-            predicate = And(predicate, auditLog => auditLog.AuditType == auditType);
+            var diffLogType = input.AuditType.Trim();
+            predicate = And(predicate, diffLog => diffLog.AuditType == diffLogType);
         }
 
         if (input.OperationType.HasValue)
         {
             var operationType = input.OperationType.Value;
-            predicate = And(predicate, auditLog => auditLog.OperationType == operationType);
+            predicate = And(predicate, diffLog => diffLog.OperationType == operationType);
         }
 
         if (!string.IsNullOrWhiteSpace(input.EntityType))
         {
             var entityType = input.EntityType.Trim();
-            predicate = And(predicate, auditLog => auditLog.EntityType == entityType);
+            predicate = And(predicate, diffLog => diffLog.EntityType == entityType);
         }
 
         if (!string.IsNullOrWhiteSpace(input.EntityId))
         {
             var entityId = input.EntityId.Trim();
-            predicate = And(predicate, auditLog => auditLog.EntityId == entityId);
+            predicate = And(predicate, diffLog => diffLog.EntityId == entityId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.EntityName))
         {
             var entityName = input.EntityName.Trim();
-            predicate = And(predicate, auditLog => auditLog.EntityName != null && auditLog.EntityName.Contains(entityName));
+            predicate = And(predicate, diffLog => diffLog.EntityName != null && diffLog.EntityName.Contains(entityName));
         }
 
         if (!string.IsNullOrWhiteSpace(input.TableName))
         {
             var tableName = input.TableName.Trim();
-            predicate = And(predicate, auditLog => auditLog.TableName == tableName);
+            predicate = And(predicate, diffLog => diffLog.TableName == tableName);
         }
 
         if (input.IsSuccess.HasValue)
         {
             var isSuccess = input.IsSuccess.Value;
-            predicate = And(predicate, auditLog => auditLog.IsSuccess == isSuccess);
+            predicate = And(predicate, diffLog => diffLog.IsSuccess == isSuccess);
         }
 
         if (input.RiskLevel.HasValue)
         {
             var riskLevel = input.RiskLevel.Value;
-            predicate = And(predicate, auditLog => auditLog.RiskLevel == riskLevel);
+            predicate = And(predicate, diffLog => diffLog.RiskLevel == riskLevel);
         }
 
         if (input.MinExecutionTime.HasValue)
         {
             var minExecutionTime = input.MinExecutionTime.Value;
-            predicate = And(predicate, auditLog => auditLog.ExecutionTime >= minExecutionTime);
+            predicate = And(predicate, diffLog => diffLog.ExecutionTime >= minExecutionTime);
         }
 
         if (input.MaxExecutionTime.HasValue)
         {
             var maxExecutionTime = input.MaxExecutionTime.Value;
-            predicate = And(predicate, auditLog => auditLog.ExecutionTime <= maxExecutionTime);
+            predicate = And(predicate, diffLog => diffLog.ExecutionTime <= maxExecutionTime);
         }
 
         return predicate;
@@ -237,7 +237,7 @@ public sealed class AuditLogQueryService(ISqlSugarClientResolver clientResolver)
     /// 校验分页参数
     /// </summary>
     /// <param name="input">查询参数</param>
-    private static void ValidatePageInput(AuditLogPageQueryDto input)
+    private static void ValidatePageInput(DiffLogPageQueryDto input)
     {
         if (input.AuditTimeStart.HasValue && input.AuditTimeEnd.HasValue &&
             input.AuditTimeStart.Value > input.AuditTimeEnd.Value)

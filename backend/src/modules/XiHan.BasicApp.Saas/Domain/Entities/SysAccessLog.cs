@@ -33,7 +33,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - 只追加，永不更新；由鉴权中间件在请求结束时异步批量写入
 /// - AccessResult 包含 Allowed/Denied/Error；Denied 必须记录原因供"为什么没权限"排查
-/// - TraceId 必填：贯穿 SysApiLog/SysOperationLog/SysAuditLog 便于跨日志查询
+/// - TraceId 必填：贯穿 SysApiLog/SysOperationLog/SysDiffLog 便于跨日志查询
 ///
 /// 查询：
 /// - 用户行为追溯：IX_UsId + 时间范围

@@ -25,13 +25,13 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 /// <summary>
 /// RBAC 实体审计上下文提供器
 /// </summary>
-public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
+public class RbacEntityDiffContextProvider : IEntityAuditContextProvider
 {
     private static readonly HashSet<string> ExcludedEntityNames = new(StringComparer.Ordinal)
     {
         nameof(SysAccessLog),
         nameof(SysApiLog),
-        nameof(SysAuditLog),
+        nameof(SysDiffLog),
         nameof(SysExceptionLog),
         nameof(SysLoginLog),
         nameof(SysOperationLog),
@@ -47,7 +47,7 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacEntityAuditContextProvider(
+    public RbacEntityDiffContextProvider(
         IHttpContextAccessor httpContextAccessor,
         IRequestContextAccessor requestContextAccessor,
         ICurrentUser currentUser,
@@ -62,14 +62,14 @@ public class RbacEntityAuditContextProvider : IEntityAuditContextProvider
     /// <summary>
     /// 创建基础审计记录
     /// </summary>
-    public EntityAuditLogRecord CreateBaseRecord()
+    public EntityDiffLogRecord CreateBaseRecord()
     {
         var httpContext = _httpContextAccessor.HttpContext;
         var requestContext = _requestContextAccessor.Current;
         var requestId = ResolveRequestId(requestContext, httpContext);
         var tenantId = requestContext?.TenantId ?? _currentTenant.Id ?? _currentUser.TenantId ?? 0;
 
-        return new EntityAuditLogRecord
+        return new EntityDiffLogRecord
         {
             AuditType = "EntityChange",
             RequestPath = RbacLogMappingHelper.TrimOrNull(requestContext?.Path ?? httpContext?.Request.Path.ToString(), 500),
