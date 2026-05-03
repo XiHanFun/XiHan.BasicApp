@@ -46,9 +46,6 @@ public static class AccessLogApplicationMapper
             StatusCode = accessLog.StatusCode,
             ExecutionTime = accessLog.ExecutionTime,
             AccessTime = accessLog.AccessTime,
-            HasClientContext = HasClientContext(accessLog),
-            HasError = !string.IsNullOrWhiteSpace(accessLog.ErrorMessage),
-            HasExtension = !string.IsNullOrWhiteSpace(accessLog.ExtendData),
             CreatedTime = accessLog.CreatedTime
         };
     }
@@ -78,28 +75,10 @@ public static class AccessLogApplicationMapper
             StatusCode = item.StatusCode,
             ExecutionTime = item.ExecutionTime,
             AccessTime = item.AccessTime,
-            HasClientContext = item.HasClientContext,
-            HasError = item.HasError,
-            HasExtension = item.HasExtension,
             CreatedTime = item.CreatedTime,
             CreatedId = accessLog.CreatedId,
             CreatedBy = accessLog.CreatedBy
         };
     }
 
-    /// <summary>
-    /// 判断是否存在客户端上下文
-    /// </summary>
-    /// <param name="accessLog">访问日志实体</param>
-    /// <returns>是否存在客户端上下文</returns>
-    private static bool HasClientContext(SysAccessLog accessLog)
-    {
-        return !string.IsNullOrWhiteSpace(accessLog.AccessIp) ||
-               !string.IsNullOrWhiteSpace(accessLog.AccessLocation) ||
-               !string.IsNullOrWhiteSpace(accessLog.UserAgent) ||
-               !string.IsNullOrWhiteSpace(accessLog.Browser) ||
-               !string.IsNullOrWhiteSpace(accessLog.Os) ||
-               !string.IsNullOrWhiteSpace(accessLog.Device) ||
-               !string.IsNullOrWhiteSpace(accessLog.Referer);
-    }
 }

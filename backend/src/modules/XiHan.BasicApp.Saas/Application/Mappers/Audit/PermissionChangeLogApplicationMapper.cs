@@ -41,9 +41,6 @@ public static class PermissionChangeLogApplicationMapper
             ChangeType = permissionChangeLog.ChangeType,
             TraceId = permissionChangeLog.TraceId,
             ChangeTime = permissionChangeLog.ChangeTime,
-            HasReasonNote = !string.IsNullOrWhiteSpace(permissionChangeLog.ChangeReason),
-            HasChangeSummary = !string.IsNullOrWhiteSpace(permissionChangeLog.Description),
-            HasOperationContext = !string.IsNullOrWhiteSpace(permissionChangeLog.OperationIp),
             CreatedTime = permissionChangeLog.CreatedTime
         };
     }
@@ -68,9 +65,6 @@ public static class PermissionChangeLogApplicationMapper
             ChangeType = item.ChangeType,
             TraceId = item.TraceId,
             ChangeTime = item.ChangeTime,
-            HasReasonNote = item.HasReasonNote,
-            HasChangeSummary = item.HasChangeSummary,
-            HasOperationContext = item.HasOperationContext,
             CreatedTime = item.CreatedTime,
             CreatedId = permissionChangeLog.CreatedId,
             CreatedBy = permissionChangeLog.CreatedBy

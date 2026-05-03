@@ -128,51 +128,6 @@ public class ExceptionLogListItemDto : BasicAppDto
     public string? ErrorCode { get; set; }
 
     /// <summary>
-    /// 是否包含异常文本
-    /// </summary>
-    public bool HasExceptionText { get; set; }
-
-    /// <summary>
-    /// 是否包含堆栈
-    /// </summary>
-    public bool HasStack { get; set; }
-
-    /// <summary>
-    /// 是否包含请求载荷
-    /// </summary>
-    public bool HasRequestPayload { get; set; }
-
-    /// <summary>
-    /// 是否包含头部内容
-    /// </summary>
-    public bool HasHeaders { get; set; }
-
-    /// <summary>
-    /// 是否包含操作上下文
-    /// </summary>
-    public bool HasOperationContext { get; set; }
-
-    /// <summary>
-    /// 是否包含设备上下文
-    /// </summary>
-    public bool HasDeviceContext { get; set; }
-
-    /// <summary>
-    /// 是否包含运行时上下文
-    /// </summary>
-    public bool HasRuntimeContext { get; set; }
-
-    /// <summary>
-    /// 是否包含处理备注
-    /// </summary>
-    public bool HasHandlingNote { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展数据
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

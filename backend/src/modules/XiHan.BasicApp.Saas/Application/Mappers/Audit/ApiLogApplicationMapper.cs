@@ -54,12 +54,6 @@ public static class ApiLogApplicationMapper
             RequestSize = apiLog.RequestSize,
             ResponseSize = apiLog.ResponseSize,
             ApiVersion = apiLog.ApiVersion,
-            HasPayload = HasPayload(apiLog),
-            HasHeaders = HasHeaders(apiLog),
-            HasClientContext = HasClientContext(apiLog),
-            HasError = !string.IsNullOrWhiteSpace(apiLog.ErrorMessage),
-            HasException = !string.IsNullOrWhiteSpace(apiLog.ExceptionStackTrace),
-            HasExtension = !string.IsNullOrWhiteSpace(apiLog.ExtendData),
             CreatedTime = apiLog.CreatedTime
         };
     }
@@ -97,46 +91,10 @@ public static class ApiLogApplicationMapper
             RequestSize = item.RequestSize,
             ResponseSize = item.ResponseSize,
             ApiVersion = item.ApiVersion,
-            HasPayload = item.HasPayload,
-            HasHeaders = item.HasHeaders,
-            HasClientContext = item.HasClientContext,
-            HasError = item.HasError,
-            HasException = item.HasException,
-            HasExtension = item.HasExtension,
             CreatedTime = item.CreatedTime,
             CreatedId = apiLog.CreatedId,
             CreatedBy = apiLog.CreatedBy
         };
     }
 
-    /// <summary>
-    /// 判断是否存在请求或响应载荷
-    /// </summary>
-    private static bool HasPayload(SysApiLog apiLog)
-    {
-        return !string.IsNullOrWhiteSpace(apiLog.RequestParams) ||
-               !string.IsNullOrWhiteSpace(apiLog.RequestBody) ||
-               !string.IsNullOrWhiteSpace(apiLog.ResponseBody);
-    }
-
-    /// <summary>
-    /// 判断是否存在请求或响应头
-    /// </summary>
-    private static bool HasHeaders(SysApiLog apiLog)
-    {
-        return !string.IsNullOrWhiteSpace(apiLog.RequestHeaders) ||
-               !string.IsNullOrWhiteSpace(apiLog.ResponseHeaders);
-    }
-
-    /// <summary>
-    /// 判断是否存在客户端上下文
-    /// </summary>
-    private static bool HasClientContext(SysApiLog apiLog)
-    {
-        return !string.IsNullOrWhiteSpace(apiLog.RequestIp) ||
-               !string.IsNullOrWhiteSpace(apiLog.RequestLocation) ||
-               !string.IsNullOrWhiteSpace(apiLog.UserAgent) ||
-               !string.IsNullOrWhiteSpace(apiLog.Browser) ||
-               !string.IsNullOrWhiteSpace(apiLog.Referer);
-    }
 }

@@ -123,36 +123,6 @@ public class ApiLogListItemDto : BasicAppDto
     public string? ApiVersion { get; set; }
 
     /// <summary>
-    /// 是否包含载荷内容
-    /// </summary>
-    public bool HasPayload { get; set; }
-
-    /// <summary>
-    /// 是否包含头部内容
-    /// </summary>
-    public bool HasHeaders { get; set; }
-
-    /// <summary>
-    /// 是否包含客户端上下文
-    /// </summary>
-    public bool HasClientContext { get; set; }
-
-    /// <summary>
-    /// 是否包含错误信息
-    /// </summary>
-    public bool HasError { get; set; }
-
-    /// <summary>
-    /// 是否包含异常堆栈
-    /// </summary>
-    public bool HasException { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展数据
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

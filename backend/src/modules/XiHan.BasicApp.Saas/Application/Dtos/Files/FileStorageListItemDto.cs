@@ -133,41 +133,6 @@ public class FileStorageListItemDto : BasicAppDto
     public int SortOrder { get; set; }
 
     /// <summary>
-    /// 是否包含存储位置
-    /// </summary>
-    public bool HasLocation { get; set; }
-
-    /// <summary>
-    /// 是否包含内网链接
-    /// </summary>
-    public bool HasPrivateLink { get; set; }
-
-    /// <summary>
-    /// 是否包含公网链接
-    /// </summary>
-    public bool HasPublicLink { get; set; }
-
-    /// <summary>
-    /// 是否包含 CDN 链接
-    /// </summary>
-    public bool HasCdnLink { get; set; }
-
-    /// <summary>
-    /// 是否包含失败明细
-    /// </summary>
-    public bool HasFailureDetail { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展信息
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

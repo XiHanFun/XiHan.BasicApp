@@ -43,7 +43,6 @@ public static class ExternalLoginApplicationMapper
             ExternalAccountMasked = MaskExternalIdentifier(externalLogin.ProviderKey),
             ProviderDisplayName = externalLogin.ProviderDisplayName,
             ExternalEmailMasked = MaskEmail(externalLogin.Email),
-            HasAvatar = !string.IsNullOrWhiteSpace(externalLogin.AvatarUrl),
             LastLoginTime = externalLogin.LastLoginTime,
             CreatedTime = externalLogin.CreatedTime,
             ModifiedTime = externalLogin.ModifiedTime
@@ -72,7 +71,6 @@ public static class ExternalLoginApplicationMapper
             ExternalAccountMasked = item.ExternalAccountMasked,
             ProviderDisplayName = item.ProviderDisplayName,
             ExternalEmailMasked = item.ExternalEmailMasked,
-            HasAvatar = item.HasAvatar,
             LastLoginTime = item.LastLoginTime,
             CreatedTime = item.CreatedTime,
             CreatedId = externalLogin.CreatedId,

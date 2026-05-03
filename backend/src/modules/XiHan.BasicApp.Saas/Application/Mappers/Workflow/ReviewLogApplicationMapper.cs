@@ -42,11 +42,6 @@ public static class ReviewLogApplicationMapper
             ReviewResult = reviewLog.ReviewResult,
             ReviewAction = reviewLog.ReviewAction,
             ReviewTime = reviewLog.ReviewTime,
-            HasDecisionNote = !string.IsNullOrWhiteSpace(reviewLog.ReviewComment),
-            HasAttachment = !string.IsNullOrWhiteSpace(reviewLog.Attachments),
-            HasOperationContext = !string.IsNullOrWhiteSpace(reviewLog.ReviewIp),
-            HasExtension = !string.IsNullOrWhiteSpace(reviewLog.ExtendData),
-            HasNote = !string.IsNullOrWhiteSpace(reviewLog.Remark),
             CreatedTime = reviewLog.CreatedTime
         };
     }
@@ -72,11 +67,6 @@ public static class ReviewLogApplicationMapper
             ReviewResult = item.ReviewResult,
             ReviewAction = item.ReviewAction,
             ReviewTime = item.ReviewTime,
-            HasDecisionNote = item.HasDecisionNote,
-            HasAttachment = item.HasAttachment,
-            HasOperationContext = item.HasOperationContext,
-            HasExtension = item.HasExtension,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = reviewLog.CreatedId,
             CreatedBy = reviewLog.CreatedBy

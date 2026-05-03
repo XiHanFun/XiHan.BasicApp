@@ -114,11 +114,6 @@ public class OAuthTokenListItemDto : BasicAppDto
     public DateTimeOffset? RevokedTime { get; set; }
 
     /// <summary>
-    /// 是否存在父 Token
-    /// </summary>
-    public bool HasParentToken { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

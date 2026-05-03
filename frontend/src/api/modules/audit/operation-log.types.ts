@@ -37,9 +37,6 @@ export interface OperationLogListItemDto extends BasicDto {
   createdTime: DateTimeString
   executionTime: number
   function?: string | null
-  hasClientContext: boolean
-  hasFailureDetail: boolean
-  hasOperationNote: boolean
   method?: string | null
   module?: string | null
   operationTime: DateTimeString

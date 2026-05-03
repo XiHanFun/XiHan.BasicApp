@@ -44,10 +44,6 @@ public static class NotificationApplicationMapper
             IsBroadcast = notification.IsBroadcast,
             NeedConfirm = notification.NeedConfirm,
             IsPublished = notification.IsPublished,
-            HasBody = !string.IsNullOrWhiteSpace(notification.Content),
-            HasVisualMark = !string.IsNullOrWhiteSpace(notification.Icon),
-            HasAction = !string.IsNullOrWhiteSpace(notification.Link),
-            HasNote = !string.IsNullOrWhiteSpace(notification.Remark),
             CreatedTime = notification.CreatedTime,
             ModifiedTime = notification.ModifiedTime
         };
@@ -76,10 +72,6 @@ public static class NotificationApplicationMapper
             IsBroadcast = item.IsBroadcast,
             NeedConfirm = item.NeedConfirm,
             IsPublished = item.IsPublished,
-            HasBody = item.HasBody,
-            HasVisualMark = item.HasVisualMark,
-            HasAction = item.HasAction,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = notification.CreatedId,
             CreatedBy = notification.CreatedBy,

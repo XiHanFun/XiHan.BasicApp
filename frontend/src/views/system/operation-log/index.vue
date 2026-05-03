@@ -79,9 +79,13 @@ const tableOptions = useVxeTable<OperationLogListItemDto>(
   {
     columns: [
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户' },
+      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
+      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
+      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
+      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
       { field: 'title', minWidth: 160, showOverflow: 'tooltip', title: '操作标题' },
-      { field: 'module', minWidth: 120, showOverflow: 'tooltip', title: '模块' },
+      { field: 'module', minWidth: 120, showOverflow: 'tooltip', title: '操作模块' },
+      { field: 'function', minWidth: 120, showOverflow: 'tooltip', title: '操作功能' },
       {
         field: 'operationType',
         formatter: ({ cellValue }) => getOptionLabel(operationTypeOptions, cellValue),
@@ -93,14 +97,14 @@ const tableOptions = useVxeTable<OperationLogListItemDto>(
         field: 'executionTime',
         formatter: ({ cellValue }) => `${cellValue}ms`,
         sortable: true,
-        title: '耗时',
-        width: 90,
+        title: '执行耗时（毫秒）',
+        width: 130,
       },
       {
         field: 'status',
         slots: { default: 'col_status' },
-        title: '状态',
-        width: 80,
+        title: '操作状态',
+        width: 90,
       },
       {
         field: 'operationTime',
@@ -108,6 +112,12 @@ const tableOptions = useVxeTable<OperationLogListItemDto>(
         minWidth: 170,
         sortable: true,
         title: '操作时间',
+      },
+      {
+        field: 'createdTime',
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        minWidth: 170,
+        title: '创建时间',
       },
     ],
     id: 'sys_operation_log',

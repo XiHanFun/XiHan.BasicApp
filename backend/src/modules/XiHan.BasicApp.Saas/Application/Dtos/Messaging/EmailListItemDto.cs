@@ -88,51 +88,6 @@ public class EmailListItemDto : BasicAppDto
     public long? BusinessId { get; set; }
 
     /// <summary>
-    /// 是否包含发件地址
-    /// </summary>
-    public bool HasSenderAddress { get; set; }
-
-    /// <summary>
-    /// 是否包含收件地址
-    /// </summary>
-    public bool HasRecipientAddress { get; set; }
-
-    /// <summary>
-    /// 是否包含抄送地址
-    /// </summary>
-    public bool HasCopyRecipient { get; set; }
-
-    /// <summary>
-    /// 是否包含密送地址
-    /// </summary>
-    public bool HasBlindRecipient { get; set; }
-
-    /// <summary>
-    /// 是否包含正文
-    /// </summary>
-    public bool HasBody { get; set; }
-
-    /// <summary>
-    /// 是否包含附件
-    /// </summary>
-    public bool HasAttachment { get; set; }
-
-    /// <summary>
-    /// 是否包含模板数据
-    /// </summary>
-    public bool HasTemplateData { get; set; }
-
-    /// <summary>
-    /// 是否包含失败明细
-    /// </summary>
-    public bool HasFailureDetail { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

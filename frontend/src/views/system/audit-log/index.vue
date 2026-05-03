@@ -9,7 +9,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { auditLogApi, createPageRequest } from '@/api'
+import { auditLogApi, AuditOperationType, AuditRiskLevel, createPageRequest } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -25,37 +25,43 @@ const message = useMessage()
 const xGrid = ref<VxeGridInstance<AuditLogListItemDto>>()
 
 const queryParams = reactive({
-  isSuccess: undefined as boolean | undefined,
+  isSuccess: undefined as number | undefined,
   keyword: '',
-  operationType: undefined as number | undefined,
+  operationType: undefined as AuditOperationType | undefined,
 })
 
 const successOptions = [
-  { label: '成功', value: true },
-  { label: '失败', value: false },
+  { label: '成功', value: 1 },
+  { label: '失败', value: 0 },
 ]
 
 const operationTypeOptions = [
-  { label: '新增', value: 0 },
-  { label: '修改', value: 1 },
-  { label: '删除', value: 2 },
-  { label: '查询', value: 3 },
-  { label: '其他', value: 99 },
+  { label: '登录', value: AuditOperationType.Login },
+  { label: '登出', value: AuditOperationType.Logout },
+  { label: '查询', value: AuditOperationType.Query },
+  { label: '新增', value: AuditOperationType.Create },
+  { label: '修改', value: AuditOperationType.Update },
+  { label: '删除', value: AuditOperationType.Delete },
+  { label: '导入', value: AuditOperationType.Import },
+  { label: '导出', value: AuditOperationType.Export },
+  { label: '其他', value: AuditOperationType.Other },
 ]
 
 const riskLevelOptions = [
-  { label: '低', value: 0 },
-  { label: '中', value: 1 },
-  { label: '高', value: 2 },
-  { label: '严重', value: 3 },
+  { label: '低风险', value: AuditRiskLevel.Low },
+  { label: '中风险', value: AuditRiskLevel.Medium },
+  { label: '高风险', value: AuditRiskLevel.High },
+  { label: '极高风险', value: AuditRiskLevel.VeryHigh },
+  { label: '严重风险', value: AuditRiskLevel.Critical },
 ]
 
-function riskLevelType(level: number) {
+function riskLevelType(level: AuditRiskLevel) {
   switch (level) {
-    case 0: return 'info'
-    case 1: return 'warning'
-    case 2: return 'error'
-    case 3: return 'error'
+    case AuditRiskLevel.Low: return 'info'
+    case AuditRiskLevel.Medium: return 'warning'
+    case AuditRiskLevel.High:
+    case AuditRiskLevel.VeryHigh:
+    case AuditRiskLevel.Critical: return 'error'
     default: return 'default'
   }
 }
@@ -69,7 +75,7 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
           pageSize: page.pageSize,
         },
       }),
-      isSuccess: queryParams.isSuccess,
+      isSuccess: queryParams.isSuccess !== undefined ? queryParams.isSuccess === 1 : undefined,
       keyword: queryParams.keyword?.trim() || undefined,
       operationType: queryParams.operationType,
     })
@@ -87,7 +93,11 @@ const tableOptions = useVxeTable<AuditLogListItemDto>(
   {
     columns: [
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户' },
+      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
+      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
+      { field: 'requestId', minWidth: 160, showOverflow: 'tooltip', title: '请求标识' },
+      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
+      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
       { field: 'auditType', minWidth: 100, showOverflow: 'tooltip', title: '审计类型' },
       {
         field: 'operationType',
@@ -96,19 +106,29 @@ const tableOptions = useVxeTable<AuditLogListItemDto>(
         width: 90,
       },
       { field: 'entityType', minWidth: 120, showOverflow: 'tooltip', title: '实体类型' },
+      { field: 'entityId', minWidth: 100, showOverflow: 'tooltip', title: '实体 ID' },
       { field: 'entityName', minWidth: 120, showOverflow: 'tooltip', title: '实体名称' },
-      { field: 'description', minWidth: 200, showOverflow: 'tooltip', title: '描述' },
+      { field: 'tableName', minWidth: 120, showOverflow: 'tooltip', title: '表名称' },
+      { field: 'primaryKey', minWidth: 100, showOverflow: 'tooltip', title: '主键字段' },
+      { field: 'primaryKeyValue', minWidth: 100, showOverflow: 'tooltip', title: '主键值' },
       {
         field: 'isSuccess',
         slots: { default: 'col_success' },
-        title: '结果',
-        width: 80,
+        title: '是否成功',
+        width: 90,
       },
       {
         field: 'riskLevel',
         slots: { default: 'col_risk' },
         title: '风险等级',
-        width: 90,
+        width: 100,
+      },
+      {
+        field: 'executionTime',
+        formatter: ({ cellValue }) => `${cellValue}ms`,
+        sortable: true,
+        title: '执行耗时（毫秒）',
+        width: 130,
       },
       {
         field: 'auditTime',
@@ -116,6 +136,12 @@ const tableOptions = useVxeTable<AuditLogListItemDto>(
         minWidth: 170,
         sortable: true,
         title: '审计时间',
+      },
+      {
+        field: 'createdTime',
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        minWidth: 170,
+        title: '创建时间',
       },
     ],
     id: 'sys_audit_log',
@@ -150,7 +176,7 @@ function handleReset() {
         <vxe-input
           v-model="queryParams.keyword"
           clearable
-          placeholder="搜索实体/描述/用户"
+          placeholder="搜索实体/表名/用户"
           style="width: 220px"
           @keyup.enter="handleSearch"
         />

@@ -45,9 +45,6 @@ public static class ConfigApplicationMapper
             IsEncrypted = config.IsEncrypted,
             Status = config.Status,
             Sort = config.Sort,
-            HasCurrentValue = !string.IsNullOrWhiteSpace(config.ConfigValue),
-            HasFallbackValue = !string.IsNullOrWhiteSpace(config.DefaultValue),
-            HasNote = !string.IsNullOrWhiteSpace(config.Remark),
             CreatedTime = config.CreatedTime,
             ModifiedTime = config.ModifiedTime
         };
@@ -77,9 +74,6 @@ public static class ConfigApplicationMapper
             IsEncrypted = item.IsEncrypted,
             Status = item.Status,
             Sort = item.Sort,
-            HasCurrentValue = item.HasCurrentValue,
-            HasFallbackValue = item.HasFallbackValue,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = config.CreatedId,
             CreatedBy = config.CreatedBy,

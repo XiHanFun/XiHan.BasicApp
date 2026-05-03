@@ -58,21 +58,6 @@ public class PermissionChangeLogListItemDto : BasicAppDto
     public DateTimeOffset ChangeTime { get; set; }
 
     /// <summary>
-    /// 是否包含原因说明
-    /// </summary>
-    public bool HasReasonNote { get; set; }
-
-    /// <summary>
-    /// 是否包含变更摘要
-    /// </summary>
-    public bool HasChangeSummary { get; set; }
-
-    /// <summary>
-    /// 是否包含操作上下文
-    /// </summary>
-    public bool HasOperationContext { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

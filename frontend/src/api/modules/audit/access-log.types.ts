@@ -31,9 +31,6 @@ export interface AccessLogListItemDto extends BasicDto {
   accessTime: DateTimeString
   createdTime: DateTimeString
   executionTime: number
-  hasClientContext: boolean
-  hasError: boolean
-  hasExtension: boolean
   method?: string | null
   resourceName?: string | null
   resourcePath: string

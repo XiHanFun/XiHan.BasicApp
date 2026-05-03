@@ -46,9 +46,6 @@ public static class OperationLogApplicationMapper
             ExecutionTime = operationLog.ExecutionTime,
             Status = operationLog.Status,
             OperationTime = operationLog.OperationTime,
-            HasClientContext = HasClientContext(operationLog),
-            HasOperationNote = !string.IsNullOrWhiteSpace(operationLog.Description),
-            HasFailureDetail = !string.IsNullOrWhiteSpace(operationLog.ErrorMessage),
             CreatedTime = operationLog.CreatedTime
         };
     }
@@ -78,24 +75,10 @@ public static class OperationLogApplicationMapper
             ExecutionTime = item.ExecutionTime,
             Status = item.Status,
             OperationTime = item.OperationTime,
-            HasClientContext = item.HasClientContext,
-            HasOperationNote = item.HasOperationNote,
-            HasFailureDetail = item.HasFailureDetail,
             CreatedTime = item.CreatedTime,
             CreatedId = operationLog.CreatedId,
             CreatedBy = operationLog.CreatedBy
         };
     }
 
-    /// <summary>
-    /// 判断是否存在客户端上下文
-    /// </summary>
-    private static bool HasClientContext(SysOperationLog operationLog)
-    {
-        return !string.IsNullOrWhiteSpace(operationLog.OperationIp) ||
-               !string.IsNullOrWhiteSpace(operationLog.OperationLocation) ||
-               !string.IsNullOrWhiteSpace(operationLog.UserAgent) ||
-               !string.IsNullOrWhiteSpace(operationLog.Browser) ||
-               !string.IsNullOrWhiteSpace(operationLog.Os);
-    }
 }

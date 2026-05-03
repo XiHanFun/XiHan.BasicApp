@@ -62,11 +62,6 @@ public class OAuthCodeListItemDto : BasicAppDto
     public string? Scopes { get; set; }
 
     /// <summary>
-    /// 是否启用 PKCE
-    /// </summary>
-    public bool HasPkce { get; set; }
-
-    /// <summary>
     /// 质询方法
     /// </summary>
     public string? CodeChallengeMethod { get; set; }

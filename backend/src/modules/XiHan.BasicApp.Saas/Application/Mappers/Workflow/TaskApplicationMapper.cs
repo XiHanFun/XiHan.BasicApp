@@ -54,9 +54,6 @@ public static class TaskApplicationMapper
             RetryCount = task.RetryCount,
             MaxRetryCount = task.MaxRetryCount,
             Status = task.Status,
-            HasExecutionTarget = !string.IsNullOrWhiteSpace(task.TaskClass) || !string.IsNullOrWhiteSpace(task.TaskMethod),
-            HasRuntimeArgs = !string.IsNullOrWhiteSpace(task.TaskParams),
-            HasNote = !string.IsNullOrWhiteSpace(task.Remark),
             CreatedTime = task.CreatedTime,
             ModifiedTime = task.ModifiedTime
         };
@@ -95,9 +92,6 @@ public static class TaskApplicationMapper
             RetryCount = item.RetryCount,
             MaxRetryCount = item.MaxRetryCount,
             Status = item.Status,
-            HasExecutionTarget = item.HasExecutionTarget,
-            HasRuntimeArgs = item.HasRuntimeArgs,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = task.CreatedId,
             CreatedBy = task.CreatedBy,

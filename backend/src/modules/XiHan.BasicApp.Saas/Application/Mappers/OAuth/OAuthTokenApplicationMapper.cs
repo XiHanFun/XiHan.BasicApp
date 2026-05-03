@@ -62,7 +62,6 @@ public static class OAuthTokenApplicationMapper
             IsRefreshTokenExpired = token.RefreshTokenExpiresTime.HasValue && token.RefreshTokenExpiresTime.Value <= now,
             IsRevoked = token.IsRevoked,
             RevokedTime = token.RevokedTime,
-            HasParentToken = token.ParentTokenId.HasValue,
             CreatedTime = token.CreatedTime
         };
     }
@@ -107,7 +106,6 @@ public static class OAuthTokenApplicationMapper
             IsRefreshTokenExpired = item.IsRefreshTokenExpired,
             IsRevoked = item.IsRevoked,
             RevokedTime = item.RevokedTime,
-            HasParentToken = item.HasParentToken,
             CreatedTime = item.CreatedTime,
             CreatedId = token.CreatedId,
             CreatedBy = token.CreatedBy

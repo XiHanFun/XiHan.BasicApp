@@ -44,12 +44,6 @@ public static class TaskLogApplicationMapper
             ExecutionTime = taskLog.ExecutionTime,
             RetryCount = taskLog.RetryCount,
             TriggerMode = taskLog.TriggerMode,
-            HasRunResult = !string.IsNullOrWhiteSpace(taskLog.ExecutionResult),
-            HasExceptionText = !string.IsNullOrWhiteSpace(taskLog.ExceptionMessage),
-            HasStack = !string.IsNullOrWhiteSpace(taskLog.ExceptionStackTrace),
-            HasOutputTrace = !string.IsNullOrWhiteSpace(taskLog.OutputLog),
-            HasExtension = !string.IsNullOrWhiteSpace(taskLog.ExtendData),
-            HasNote = !string.IsNullOrWhiteSpace(taskLog.Remark),
             CreatedTime = taskLog.CreatedTime
         };
     }
@@ -77,12 +71,6 @@ public static class TaskLogApplicationMapper
             ExecutionTime = item.ExecutionTime,
             RetryCount = item.RetryCount,
             TriggerMode = item.TriggerMode,
-            HasRunResult = item.HasRunResult,
-            HasExceptionText = item.HasExceptionText,
-            HasStack = item.HasStack,
-            HasOutputTrace = item.HasOutputTrace,
-            HasExtension = item.HasExtension,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = taskLog.CreatedId,
             CreatedBy = taskLog.CreatedBy

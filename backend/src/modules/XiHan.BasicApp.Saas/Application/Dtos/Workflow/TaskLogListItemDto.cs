@@ -73,36 +73,6 @@ public class TaskLogListItemDto : BasicAppDto
     public string? TriggerMode { get; set; }
 
     /// <summary>
-    /// 是否包含运行结果
-    /// </summary>
-    public bool HasRunResult { get; set; }
-
-    /// <summary>
-    /// 是否包含异常文本
-    /// </summary>
-    public bool HasExceptionText { get; set; }
-
-    /// <summary>
-    /// 是否包含堆栈
-    /// </summary>
-    public bool HasStack { get; set; }
-
-    /// <summary>
-    /// 是否包含输出轨迹
-    /// </summary>
-    public bool HasOutputTrace { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展数据
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

@@ -124,21 +124,6 @@ public class TaskListItemDto : BasicAppDto
     public EnableStatus Status { get; set; }
 
     /// <summary>
-    /// 是否包含执行目标
-    /// </summary>
-    public bool HasExecutionTarget { get; set; }
-
-    /// <summary>
-    /// 是否包含运行参数
-    /// </summary>
-    public bool HasRuntimeArgs { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

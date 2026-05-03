@@ -88,36 +88,6 @@ public class SmsListItemDto : BasicAppDto
     public long? BusinessId { get; set; }
 
     /// <summary>
-    /// 是否包含接收号码
-    /// </summary>
-    public bool HasRecipientPhone { get; set; }
-
-    /// <summary>
-    /// 是否包含正文
-    /// </summary>
-    public bool HasBody { get; set; }
-
-    /// <summary>
-    /// 是否包含模板数据
-    /// </summary>
-    public bool HasTemplateData { get; set; }
-
-    /// <summary>
-    /// 是否包含服务商回执
-    /// </summary>
-    public bool HasProviderReceipt { get; set; }
-
-    /// <summary>
-    /// 是否包含失败明细
-    /// </summary>
-    public bool HasFailureDetail { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

@@ -108,46 +108,6 @@ public class AuditLogListItemDto : BasicAppDto
     public DateTimeOffset AuditTime { get; set; }
 
     /// <summary>
-    /// 是否包含操作上下文
-    /// </summary>
-    public bool HasOperationContext { get; set; }
-
-    /// <summary>
-    /// 是否包含操作描述
-    /// </summary>
-    public bool HasAuditText { get; set; }
-
-    /// <summary>
-    /// 是否包含变更摘要
-    /// </summary>
-    public bool HasChangeSummary { get; set; }
-
-    /// <summary>
-    /// 是否包含变更前快照
-    /// </summary>
-    public bool HasBeforeSnapshot { get; set; }
-
-    /// <summary>
-    /// 是否包含变更后快照
-    /// </summary>
-    public bool HasAfterSnapshot { get; set; }
-
-    /// <summary>
-    /// 是否包含变更字段
-    /// </summary>
-    public bool HasFieldChanges { get; set; }
-
-    /// <summary>
-    /// 是否包含异常信息
-    /// </summary>
-    public bool HasException { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展数据
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }
