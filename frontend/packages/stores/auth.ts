@@ -1,9 +1,16 @@
-import type { LoginParams, LoginResponse, LoginToken, OAuthProviderItem, PhoneLoginParams } from '~/types'
+import type {
+  LoginParams,
+  LoginResponse,
+  LoginToken,
+  OAuthProviderItem,
+  PhoneLoginParams,
+} from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useSignalR } from '~/composables'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { mapMenuToRoutes } from '~/router/dynamic'
+import { CORE_ROUTE_NAMES } from '~/router/routes/core'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { useAppContext } from './app-context'
 
@@ -29,8 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
         ctx.apis.getUserInfoApi(),
         ctx.apis.getPermissionsApi(),
       ])
-    }
-    catch (error) {
+    } catch (error) {
       accessStore.$reset()
       userStore.$reset()
       throw error
@@ -59,12 +65,12 @@ export const useAuthStore = defineStore('auth', () => {
     if (redirect) {
       const target = decodeURIComponent(redirect)
       const resolved = router.resolve(target)
-      const isValid = resolved.matched.length > 0
-        && resolved.name !== 'NotFound'
-        && resolved.name !== 'NotFoundCatchAll'
+      const isValid =
+        resolved.matched.length > 0 &&
+        resolved.name !== 'NotFound' &&
+        resolved.name !== 'NotFoundCatchAll'
       await router.replace(isValid ? target : homePath)
-    }
-    else {
+    } else {
       await router.replace(homePath)
     }
   }
@@ -81,8 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
         await afterLogin(response.token, redirect)
       }
       return null
-    }
-    finally {
+    } finally {
       loginLoading.value = false
     }
   }
@@ -93,8 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
       const ctx = useAppContext()
       const result = await ctx.apis.phoneLoginApi(params)
       await afterLogin(result, redirect)
-    }
-    finally {
+    } finally {
       loginLoading.value = false
     }
   }
@@ -113,28 +117,17 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading.value = true
     try {
       await afterLogin(token, redirect)
-    }
-    finally {
+    } finally {
       loginLoading.value = false
     }
   }
 
-  // Dashboard/About 等业务菜单由后端动态注入，不在此保留
+  // 从 coreRoutes 自动派生，新增认证/错误路由时无需手动维护
   const STATIC_ROUTE_NAMES = new Set([
     'RootLayout',
     'Profile',
     'EditorDemo',
-    'Authentication',
-    'Login',
-    'CodeLogin',
-    'QrCodeLogin',
-    'ForgetPassword',
-    'Register',
-    'OAuthCallback',
-    'Forbidden',
-    'ServerError',
-    'NotFound',
-    'NotFoundCatchAll',
+    ...CORE_ROUTE_NAMES,
   ])
 
   async function logout() {
@@ -143,15 +136,13 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const signalR = useSignalR()
       await signalR.destroy()
-    }
-    catch {
+    } catch {
       // ignore signalr destroy error
     }
 
     try {
       await ctx.apis.logoutApi()
-    }
-    catch {
+    } catch {
       // ignore logout api error
     }
 
@@ -161,14 +152,12 @@ export const useAuthStore = defineStore('auth', () => {
         if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
           try {
             router.removeRoute(route.name)
-          }
-          catch {
+          } catch {
             // ignore remove route error
           }
         }
       }
-    }
-    catch {
+    } catch {
       // ignore dynamic route clear error
     }
 
@@ -179,14 +168,12 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await router.replace(LOGIN_PATH)
-    }
-    catch {
+    } catch {
       const base = import.meta.env.VITE_BASE || '/'
       const normalizedBase = base.endsWith('/') ? base : `${base}/`
       if (import.meta.env.VITE_ROUTER_HISTORY === 'history') {
         window.location.href = LOGIN_PATH
-      }
-      else {
+      } else {
         window.location.href = `${normalizedBase}#${LOGIN_PATH}`
       }
     }

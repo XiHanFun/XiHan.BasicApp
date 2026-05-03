@@ -1,6 +1,6 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import { createDiscreteApi } from 'naive-ui'
-import { AUTH_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH } from '~/constants'
+import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
@@ -9,7 +9,7 @@ import { filterRoutesByPermission, isStaticRouteMode } from './static'
 
 const { loadingBar } = createDiscreteApi(['loadingBar'])
 
-const WHITE_LIST = ['/403', '/404', '/500']
+const WHITE_LIST = [FORBIDDEN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH]
 
 export function setupRouterGuard(router: Router) {
   const ctx = useAppContext()
@@ -152,7 +152,7 @@ export function setupRouterGuard(router: Router) {
         || permissions?.some(p => userStore.hasPermission(p))
 
       if (!hasAccess) {
-        return next({ path: '/403', replace: true })
+        return next({ path: FORBIDDEN_PATH, replace: true })
       }
     }
 
