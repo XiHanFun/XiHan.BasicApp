@@ -6198,3 +6198,34 @@ pnpm lint
 
 - 本阶段改动集中在后端 SaaS 模块的实体层和应用层，未涉及前端。
 - SysEmail/SysSms 经评估保持 `BasicAppFullAuditedEntity`（原计划降为 CreationEntity 但实体有可变状态）。
+
+### 2026-05-03 A119 Domain 领域服务职责审查
+
+本阶段执行 RefactoringPlan B-4.2，对 `Domain/DomainServices` 进行职责审查。重建后的领域服务层已经从初版计划中的 15 个服务收敛为 3 个纯领域裁决服务，本阶段不做无意义迁移或兼容保留。
+
+审查结果：
+
+- `IPermissionDecisionDomainService` / `PermissionDecisionDomainService`：
+  - 只处理授权快照集合的权限裁决优先级。
+  - 输入为 `PermissionGrantSnapshot` 值对象，不直接查询仓储或基础设施。
+  - 保留在 Domain 层，避免 AppService 分散实现用户直授、角色授权、拒绝优先级规则。
+- `IDataScopeDecisionDomainService` / `DataScopeDecisionDomainService`：
+  - 只处理数据范围授权快照的合并规则。
+  - 输入为 `DataScopeGrantSnapshot` 和当前用户有效部门集合，不读取数据库。
+  - 保留在 Domain 层，集中表达 `All`、`DepartmentOnly`、`DepartmentAndChildren`、`Custom` 的语义合并。
+- `ITenantAccessDomainService` / `TenantAccessDomainService`：
+  - 只处理租户成员快照是否可访问、是否平台管理员的身份规则。
+  - 输入为 `TenantMemberSnapshot`，不依赖租户解析中间件或当前会话。
+  - 保留在 Domain 层，避免认证链路重复判断邀请状态、有效状态和有效期。
+
+验证结果：
+
+- `rg -n "Infrastructure|SqlSugar|IServiceProvider|DbContext|IUnitOfWork" Domain/DomainServices -g "*.cs"`：0 个匹配。
+- `rg -n "\b(GetBy|FindBy|Insert|Update|Delete|Create|Remove)[A-Za-z0-9_]*(Async)?\s*\(" Domain/DomainServices -g "*.cs"`：0 个 CRUD 委托方法命中。
+- `rg -n "public (interface|sealed class).*DomainService" Domain/DomainServices -g "*.cs"`：3 个接口 + 3 个实现。
+
+协作状态：
+
+- 本阶段为审查和文档收口，不修改领域服务代码。
+- 阶段前检查 `XiHan.BasicApp` 仍存在端口配置和操作日志查询校验的并行改动，本阶段未暂存未提交。
+- `XiHan.Framework` 仍存在授权相关并行改动和未跟踪 `framework/src/analysis.md`，本阶段未暂存未提交。
