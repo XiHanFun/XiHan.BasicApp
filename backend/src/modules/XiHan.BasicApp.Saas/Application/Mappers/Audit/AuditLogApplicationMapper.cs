@@ -51,15 +51,6 @@ public static class AuditLogApplicationMapper
             RiskLevel = auditLog.RiskLevel,
             ExecutionTime = auditLog.ExecutionTime,
             AuditTime = auditLog.AuditTime,
-            HasOperationContext = !string.IsNullOrWhiteSpace(auditLog.OperationIp),
-            HasAuditText = !string.IsNullOrWhiteSpace(auditLog.Description),
-            HasChangeSummary = !string.IsNullOrWhiteSpace(auditLog.ChangeDescription),
-            HasBeforeSnapshot = !string.IsNullOrWhiteSpace(auditLog.BeforeData),
-            HasAfterSnapshot = !string.IsNullOrWhiteSpace(auditLog.AfterData),
-            HasFieldChanges = !string.IsNullOrWhiteSpace(auditLog.ChangedFields),
-            HasException = !string.IsNullOrWhiteSpace(auditLog.ExceptionMessage) ||
-                           !string.IsNullOrWhiteSpace(auditLog.ExceptionStackTrace),
-            HasExtension = !string.IsNullOrWhiteSpace(auditLog.ExtendData),
             CreatedTime = auditLog.CreatedTime
         };
     }
@@ -94,14 +85,6 @@ public static class AuditLogApplicationMapper
             RiskLevel = item.RiskLevel,
             ExecutionTime = item.ExecutionTime,
             AuditTime = item.AuditTime,
-            HasOperationContext = item.HasOperationContext,
-            HasAuditText = item.HasAuditText,
-            HasChangeSummary = item.HasChangeSummary,
-            HasBeforeSnapshot = item.HasBeforeSnapshot,
-            HasAfterSnapshot = item.HasAfterSnapshot,
-            HasFieldChanges = item.HasFieldChanges,
-            HasException = item.HasException,
-            HasExtension = item.HasExtension,
             CreatedTime = item.CreatedTime,
             CreatedId = auditLog.CreatedId,
             CreatedBy = auditLog.CreatedBy

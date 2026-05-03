@@ -123,31 +123,6 @@ public class FileListItemDto : BasicAppDto
     public FileStatus Status { get; set; }
 
     /// <summary>
-    /// 是否包含完整性指纹
-    /// </summary>
-    public bool HasIntegrityFingerprint { get; set; }
-
-    /// <summary>
-    /// 是否包含访问规则
-    /// </summary>
-    public bool HasAccessRule { get; set; }
-
-    /// <summary>
-    /// 是否包含标签
-    /// </summary>
-    public bool HasLabels { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展信息
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

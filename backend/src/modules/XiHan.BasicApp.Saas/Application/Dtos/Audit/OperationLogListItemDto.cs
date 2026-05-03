@@ -84,21 +84,6 @@ public class OperationLogListItemDto : BasicAppDto
     public DateTimeOffset OperationTime { get; set; }
 
     /// <summary>
-    /// 是否包含客户端上下文
-    /// </summary>
-    public bool HasClientContext { get; set; }
-
-    /// <summary>
-    /// 是否包含操作说明
-    /// </summary>
-    public bool HasOperationNote { get; set; }
-
-    /// <summary>
-    /// 是否包含失败明细
-    /// </summary>
-    public bool HasFailureDetail { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

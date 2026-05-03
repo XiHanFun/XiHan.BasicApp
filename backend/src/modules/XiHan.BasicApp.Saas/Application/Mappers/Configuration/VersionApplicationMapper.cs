@@ -86,7 +86,6 @@ public static class VersionApplicationMapper
             ExecutedTime = migrationHistory.ExecutedTime,
             Success = migrationHistory.Success,
             NodeName = migrationHistory.NodeName,
-            HasFailureDetail = !string.IsNullOrWhiteSpace(migrationHistory.ErrorMessage),
             CreatedTime = migrationHistory.CreatedTime
         };
     }
@@ -109,7 +108,6 @@ public static class VersionApplicationMapper
             ExecutedTime = item.ExecutedTime,
             Success = item.Success,
             NodeName = item.NodeName,
-            HasFailureDetail = item.HasFailureDetail,
             CreatedTime = item.CreatedTime,
             CreatedId = migrationHistory.CreatedId,
             CreatedBy = migrationHistory.CreatedBy

@@ -79,21 +79,6 @@ public class ConfigListItemDto : BasicAppDto
     public int Sort { get; set; }
 
     /// <summary>
-    /// 是否存在当前值
-    /// </summary>
-    public bool HasCurrentValue { get; set; }
-
-    /// <summary>
-    /// 是否存在默认值
-    /// </summary>
-    public bool HasFallbackValue { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

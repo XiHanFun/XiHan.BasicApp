@@ -41,7 +41,6 @@ public static class DictApplicationMapper
             IsBuiltIn = dict.IsBuiltIn,
             Status = dict.Status,
             Sort = dict.Sort,
-            HasNote = !string.IsNullOrWhiteSpace(dict.Remark),
             CreatedTime = dict.CreatedTime,
             ModifiedTime = dict.ModifiedTime
         };
@@ -67,7 +66,6 @@ public static class DictApplicationMapper
             IsBuiltIn = item.IsBuiltIn,
             Status = item.Status,
             Sort = item.Sort,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = dict.CreatedId,
             CreatedBy = dict.CreatedBy,
@@ -98,8 +96,6 @@ public static class DictApplicationMapper
             IsDefault = dictItem.IsDefault,
             Status = dictItem.Status,
             Sort = dictItem.Sort,
-            HasExtension = !string.IsNullOrWhiteSpace(dictItem.Metadata),
-            HasNote = !string.IsNullOrWhiteSpace(dictItem.Remark),
             CreatedTime = dictItem.CreatedTime,
             ModifiedTime = dictItem.ModifiedTime
         };
@@ -127,8 +123,6 @@ public static class DictApplicationMapper
             IsDefault = item.IsDefault,
             Status = item.Status,
             Sort = item.Sort,
-            HasExtension = item.HasExtension,
-            HasNote = item.HasNote,
             CreatedTime = item.CreatedTime,
             CreatedId = dictItem.CreatedId,
             CreatedBy = dictItem.CreatedBy,

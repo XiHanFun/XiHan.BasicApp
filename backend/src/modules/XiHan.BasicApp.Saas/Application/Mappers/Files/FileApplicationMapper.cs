@@ -54,11 +54,6 @@ public static class FileApplicationMapper
             IsTemporary = file.IsTemporary,
             RetentionDays = file.RetentionDays,
             Status = file.Status,
-            HasIntegrityFingerprint = !string.IsNullOrWhiteSpace(file.FileHash),
-            HasAccessRule = !string.IsNullOrWhiteSpace(file.AccessPermissions),
-            HasLabels = !string.IsNullOrWhiteSpace(file.Tags),
-            HasNote = !string.IsNullOrWhiteSpace(file.Remark),
-            HasExtension = !string.IsNullOrWhiteSpace(file.ExtendData),
             CreatedTime = file.CreatedTime,
             ModifiedTime = file.ModifiedTime
         };
@@ -97,11 +92,6 @@ public static class FileApplicationMapper
             IsTemporary = item.IsTemporary,
             RetentionDays = item.RetentionDays,
             Status = item.Status,
-            HasIntegrityFingerprint = item.HasIntegrityFingerprint,
-            HasAccessRule = item.HasAccessRule,
-            HasLabels = item.HasLabels,
-            HasNote = item.HasNote,
-            HasExtension = item.HasExtension,
             CreatedTime = item.CreatedTime,
             CreatedId = file.CreatedId,
             CreatedBy = file.CreatedBy,
@@ -145,15 +135,6 @@ public static class FileApplicationMapper
             StorageClass = storage.StorageClass,
             CacheControl = storage.CacheControl,
             SortOrder = storage.SortOrder,
-            HasLocation = !string.IsNullOrWhiteSpace(storage.BucketName)
-                || !string.IsNullOrWhiteSpace(storage.StoragePath)
-                || !string.IsNullOrWhiteSpace(storage.FullPath),
-            HasPrivateLink = !string.IsNullOrWhiteSpace(storage.InternalUrl),
-            HasPublicLink = !string.IsNullOrWhiteSpace(storage.ExternalUrl),
-            HasCdnLink = !string.IsNullOrWhiteSpace(storage.CdnUrl),
-            HasFailureDetail = !string.IsNullOrWhiteSpace(storage.UploadFailureReason),
-            HasNote = !string.IsNullOrWhiteSpace(storage.Remark),
-            HasExtension = !string.IsNullOrWhiteSpace(storage.ExtendData),
             CreatedTime = storage.CreatedTime,
             ModifiedTime = storage.ModifiedTime
         };
@@ -194,13 +175,6 @@ public static class FileApplicationMapper
             StorageClass = item.StorageClass,
             CacheControl = item.CacheControl,
             SortOrder = item.SortOrder,
-            HasLocation = item.HasLocation,
-            HasPrivateLink = item.HasPrivateLink,
-            HasPublicLink = item.HasPublicLink,
-            HasCdnLink = item.HasCdnLink,
-            HasFailureDetail = item.HasFailureDetail,
-            HasNote = item.HasNote,
-            HasExtension = item.HasExtension,
             CreatedTime = item.CreatedTime,
             CreatedId = storage.CreatedId,
             CreatedBy = storage.CreatedBy,

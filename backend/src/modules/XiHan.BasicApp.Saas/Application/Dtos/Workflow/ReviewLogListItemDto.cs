@@ -63,31 +63,6 @@ public class ReviewLogListItemDto : BasicAppDto
     public DateTimeOffset ReviewTime { get; set; }
 
     /// <summary>
-    /// 是否包含决策说明
-    /// </summary>
-    public bool HasDecisionNote { get; set; }
-
-    /// <summary>
-    /// 是否包含附件
-    /// </summary>
-    public bool HasAttachment { get; set; }
-
-    /// <summary>
-    /// 是否包含操作上下文
-    /// </summary>
-    public bool HasOperationContext { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展数据
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

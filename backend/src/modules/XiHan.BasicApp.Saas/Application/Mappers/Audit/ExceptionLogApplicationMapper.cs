@@ -55,15 +55,6 @@ public static class ExceptionLogApplicationMapper
             HandledTime = exceptionLog.HandledTime,
             HandledBy = exceptionLog.HandledBy,
             ErrorCode = exceptionLog.ErrorCode,
-            HasExceptionText = !string.IsNullOrWhiteSpace(exceptionLog.ExceptionMessage),
-            HasStack = !string.IsNullOrWhiteSpace(exceptionLog.ExceptionStackTrace),
-            HasRequestPayload = HasRequestPayload(exceptionLog),
-            HasHeaders = !string.IsNullOrWhiteSpace(exceptionLog.RequestHeaders),
-            HasOperationContext = HasOperationContext(exceptionLog),
-            HasDeviceContext = HasDeviceContext(exceptionLog),
-            HasRuntimeContext = HasRuntimeContext(exceptionLog),
-            HasHandlingNote = !string.IsNullOrWhiteSpace(exceptionLog.HandledRemark),
-            HasExtension = !string.IsNullOrWhiteSpace(exceptionLog.ExtendData),
             CreatedTime = exceptionLog.CreatedTime
         };
     }
@@ -102,58 +93,10 @@ public static class ExceptionLogApplicationMapper
             HandledTime = item.HandledTime,
             HandledBy = item.HandledBy,
             ErrorCode = item.ErrorCode,
-            HasExceptionText = item.HasExceptionText,
-            HasStack = item.HasStack,
-            HasRequestPayload = item.HasRequestPayload,
-            HasHeaders = item.HasHeaders,
-            HasOperationContext = item.HasOperationContext,
-            HasDeviceContext = item.HasDeviceContext,
-            HasRuntimeContext = item.HasRuntimeContext,
-            HasHandlingNote = item.HasHandlingNote,
-            HasExtension = item.HasExtension,
             CreatedTime = item.CreatedTime,
             CreatedId = exceptionLog.CreatedId,
             CreatedBy = exceptionLog.CreatedBy
         };
     }
 
-    /// <summary>
-    /// 判断是否存在请求载荷
-    /// </summary>
-    private static bool HasRequestPayload(SysExceptionLog exceptionLog)
-    {
-        return !string.IsNullOrWhiteSpace(exceptionLog.RequestParams) ||
-               !string.IsNullOrWhiteSpace(exceptionLog.RequestBody);
-    }
-
-    /// <summary>
-    /// 判断是否存在操作上下文
-    /// </summary>
-    private static bool HasOperationContext(SysExceptionLog exceptionLog)
-    {
-        return !string.IsNullOrWhiteSpace(exceptionLog.OperationIp) ||
-               !string.IsNullOrWhiteSpace(exceptionLog.OperationLocation) ||
-               !string.IsNullOrWhiteSpace(exceptionLog.UserAgent) ||
-               !string.IsNullOrWhiteSpace(exceptionLog.Browser) ||
-               !string.IsNullOrWhiteSpace(exceptionLog.Os);
-    }
-
-    /// <summary>
-    /// 判断是否存在设备上下文
-    /// </summary>
-    private static bool HasDeviceContext(SysExceptionLog exceptionLog)
-    {
-        return exceptionLog.DeviceType != DeviceType.Unknown ||
-               !string.IsNullOrWhiteSpace(exceptionLog.DeviceInfo);
-    }
-
-    /// <summary>
-    /// 判断是否存在运行时上下文
-    /// </summary>
-    private static bool HasRuntimeContext(SysExceptionLog exceptionLog)
-    {
-        return !string.IsNullOrWhiteSpace(exceptionLog.ServerHostName) ||
-               exceptionLog.ThreadId > 0 ||
-               exceptionLog.ProcessId > 0;
-    }
 }

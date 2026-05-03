@@ -58,11 +58,6 @@ public class DictListItemDto : BasicAppDto
     public int Sort { get; set; }
 
     /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

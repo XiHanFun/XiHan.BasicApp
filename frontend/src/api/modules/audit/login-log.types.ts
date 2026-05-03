@@ -1,29 +1,34 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+export enum LoginResult {
+  Success = 0,
+  InvalidCredentials = 1,
+  AccountLocked = 2,
+  AccountDisabled = 3,
+  RequiresTwoFactor = 4,
+  TwoFactorFailed = 5,
+  Failed = 99,
+}
+
 export interface LoginLogPageQueryDto extends PageRequest {
+  isRiskLogin?: boolean | null
   keyword?: string | null
-  loginResult?: string | null
+  loginResult?: LoginResult | null
   loginTimeEnd?: DateTimeString | null
   loginTimeStart?: DateTimeString | null
-  loginType?: string | null
+  sessionId?: string | null
+  traceId?: string | null
   userId?: ApiId | null
   userName?: string | null
 }
 
 export interface LoginLogListItemDto extends BasicDto {
-  browser?: string | null
   createdTime: DateTimeString
-  device?: string | null
-  failReason?: string | null
-  loginIp?: string | null
-  loginLocation?: string | null
-  loginResult: string
+  isRiskLogin: boolean
+  loginResult: LoginResult
   loginTime: DateTimeString
-  loginType: string
-  logoutTime?: DateTimeString | null
-  os?: string | null
-  sessionDuration?: number | null
-  tenantId?: ApiId | null
+  sessionId?: string | null
+  traceId?: string | null
   userId?: ApiId | null
   userName?: string | null
 }

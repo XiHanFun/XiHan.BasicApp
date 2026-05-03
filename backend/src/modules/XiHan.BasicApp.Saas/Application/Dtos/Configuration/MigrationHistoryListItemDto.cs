@@ -47,11 +47,6 @@ public class MigrationHistoryListItemDto : BasicAppDto
     public string? NodeName { get; set; }
 
     /// <summary>
-    /// 是否包含失败明细
-    /// </summary>
-    public bool HasFailureDetail { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

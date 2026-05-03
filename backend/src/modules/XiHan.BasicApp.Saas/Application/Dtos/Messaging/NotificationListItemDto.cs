@@ -73,26 +73,6 @@ public class NotificationListItemDto : BasicAppDto
     public bool IsPublished { get; set; }
 
     /// <summary>
-    /// 是否包含正文
-    /// </summary>
-    public bool HasBody { get; set; }
-
-    /// <summary>
-    /// 是否包含视觉标识
-    /// </summary>
-    public bool HasVisualMark { get; set; }
-
-    /// <summary>
-    /// 是否包含跳转动作
-    /// </summary>
-    public bool HasAction { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

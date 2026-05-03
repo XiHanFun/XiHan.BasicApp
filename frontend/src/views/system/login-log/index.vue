@@ -9,10 +9,10 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, loginLogApi } from '@/api'
+import { createPageRequest, LoginResult, loginLogApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
-import { formatDate } from '~/utils'
+import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemLoginLogPage' })
 
@@ -26,29 +26,28 @@ const xGrid = ref<VxeGridInstance<LoginLogListItemDto>>()
 
 const queryParams = reactive({
   keyword: '',
-  loginResult: undefined as string | undefined,
-  loginType: undefined as string | undefined,
+  loginResult: undefined as LoginResult | undefined,
 })
 
-const loginTypeOptions = [
-  { label: '账号密码', value: 'Password' },
-  { label: '手机验证码', value: 'PhoneCode' },
-  { label: '邮箱验证码', value: 'EmailCode' },
-  { label: '第三方登录', value: 'ThirdParty' },
-  { label: '令牌刷新', value: 'TokenRefresh' },
-]
-
 const loginResultOptions = [
-  { label: '成功', value: 'Success' },
-  { label: '失败', value: 'Failed' },
-  { label: '账户锁定', value: 'Locked' },
+  { label: '成功', value: LoginResult.Success },
+  { label: '密码错误', value: LoginResult.InvalidCredentials },
+  { label: '账号锁定', value: LoginResult.AccountLocked },
+  { label: '账号禁用', value: LoginResult.AccountDisabled },
+  { label: '需二次验证', value: LoginResult.RequiresTwoFactor },
+  { label: '二次验证失败', value: LoginResult.TwoFactorFailed },
+  { label: '其他失败', value: LoginResult.Failed },
 ]
 
-function loginResultType(result: string) {
+function loginResultType(result: LoginResult) {
   switch (result) {
-    case 'Success': return 'success'
-    case 'Failed': return 'error'
-    case 'Locked': return 'warning'
+    case LoginResult.Success: return 'success'
+    case LoginResult.InvalidCredentials:
+    case LoginResult.TwoFactorFailed:
+    case LoginResult.Failed: return 'error'
+    case LoginResult.AccountLocked:
+    case LoginResult.AccountDisabled:
+    case LoginResult.RequiresTwoFactor: return 'warning'
     default: return 'default'
   }
 }
@@ -64,7 +63,6 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       }),
       keyword: queryParams.keyword?.trim() || undefined,
       loginResult: queryParams.loginResult,
-      loginType: queryParams.loginType,
     })
     .then(result => ({
       items: result.items,
@@ -80,25 +78,34 @@ const tableOptions = useVxeTable<LoginLogListItemDto>(
   {
     columns: [
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户' },
-      { field: 'loginType', minWidth: 100, showOverflow: 'tooltip', title: '登录方式' },
+      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
+      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
+      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
+      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
       {
         field: 'loginResult',
         slots: { default: 'col_result' },
         title: '登录结果',
-        width: 100,
+        width: 120,
       },
-      { field: 'loginIp', minWidth: 130, showOverflow: 'tooltip', title: '登录IP' },
-      { field: 'loginLocation', minWidth: 120, showOverflow: 'tooltip', title: '登录地点' },
-      { field: 'browser', minWidth: 100, showOverflow: 'tooltip', title: '浏览器' },
-      { field: 'os', minWidth: 100, showOverflow: 'tooltip', title: '操作系统' },
-      { field: 'failReason', minWidth: 160, showOverflow: 'tooltip', title: '失败原因' },
+      {
+        field: 'isRiskLogin',
+        slots: { default: 'col_risk' },
+        title: '是否风险登录',
+        width: 110,
+      },
       {
         field: 'loginTime',
         formatter: ({ cellValue }) => formatDate(cellValue),
         minWidth: 170,
         sortable: true,
         title: '登录时间',
+      },
+      {
+        field: 'createdTime',
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        minWidth: 170,
+        title: '创建时间',
       },
     ],
     id: 'sys_login_log',
@@ -121,7 +128,6 @@ function handleSearch() {
 function handleReset() {
   queryParams.keyword = ''
   queryParams.loginResult = undefined
-  queryParams.loginType = undefined
   xGrid.value?.commitProxy('reload')
 }
 </script>
@@ -133,23 +139,16 @@ function handleReset() {
         <vxe-input
           v-model="queryParams.keyword"
           clearable
-          placeholder="搜索用户/IP/地点"
+          placeholder="搜索用户/会话/链路"
           style="width: 220px"
           @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.loginType"
-          :options="loginTypeOptions"
-          clearable
-          placeholder="登录方式"
-          style="width: 120px"
         />
         <NSelect
           v-model:value="queryParams.loginResult"
           :options="loginResultOptions"
           clearable
           placeholder="登录结果"
-          style="width: 110px"
+          style="width: 130px"
         />
         <NButton size="small" type="primary" @click="handleSearch">
           <template #icon>
@@ -170,7 +169,12 @@ function handleReset() {
       <vxe-grid ref="xGrid" v-bind="tableOptions">
         <template #col_result="{ row }">
           <NTag :type="loginResultType(row.loginResult)" round size="small">
-            {{ row.loginResult }}
+            {{ getOptionLabel(loginResultOptions, row.loginResult) }}
+          </NTag>
+        </template>
+        <template #col_risk="{ row }">
+          <NTag :type="row.isRiskLogin ? 'error' : 'info'" round size="small">
+            {{ row.isRiskLogin ? '是' : '否' }}
           </NTag>
         </template>
       </vxe-grid>

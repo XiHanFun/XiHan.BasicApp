@@ -41,9 +41,6 @@ public static class LoginLogApplicationMapper
             LoginResult = loginLog.LoginResult,
             IsRiskLogin = loginLog.IsRiskLogin,
             LoginTime = loginLog.LoginTime,
-            HasClientContext = HasClientContext(loginLog),
-            HasDeviceContext = HasDeviceContext(loginLog),
-            HasResultNote = !string.IsNullOrWhiteSpace(loginLog.Message),
             CreatedTime = loginLog.CreatedTime
         };
     }
@@ -68,33 +65,10 @@ public static class LoginLogApplicationMapper
             LoginResult = item.LoginResult,
             IsRiskLogin = item.IsRiskLogin,
             LoginTime = item.LoginTime,
-            HasClientContext = item.HasClientContext,
-            HasDeviceContext = item.HasDeviceContext,
-            HasResultNote = item.HasResultNote,
             CreatedTime = item.CreatedTime,
             CreatedId = loginLog.CreatedId,
             CreatedBy = loginLog.CreatedBy
         };
     }
 
-    /// <summary>
-    /// 判断是否存在客户端上下文
-    /// </summary>
-    private static bool HasClientContext(SysLoginLog loginLog)
-    {
-        return !string.IsNullOrWhiteSpace(loginLog.LoginIp) ||
-               !string.IsNullOrWhiteSpace(loginLog.LoginLocation) ||
-               !string.IsNullOrWhiteSpace(loginLog.UserAgent) ||
-               !string.IsNullOrWhiteSpace(loginLog.Browser) ||
-               !string.IsNullOrWhiteSpace(loginLog.Os);
-    }
-
-    /// <summary>
-    /// 判断是否存在设备上下文
-    /// </summary>
-    private static bool HasDeviceContext(SysLoginLog loginLog)
-    {
-        return !string.IsNullOrWhiteSpace(loginLog.Device) ||
-               !string.IsNullOrWhiteSpace(loginLog.DeviceId);
-    }
 }

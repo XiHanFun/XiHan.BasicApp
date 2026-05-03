@@ -62,11 +62,6 @@ public class ExternalLoginListItemDto : BasicAppDto
     public string? ExternalEmailMasked { get; set; }
 
     /// <summary>
-    /// 是否存在三方头像
-    /// </summary>
-    public bool HasAvatar { get; set; }
-
-    /// <summary>
     /// 最后登录时间
     /// </summary>
     public DateTimeOffset? LastLoginTime { get; set; }

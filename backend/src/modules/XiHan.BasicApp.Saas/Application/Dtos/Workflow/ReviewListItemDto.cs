@@ -104,41 +104,6 @@ public class ReviewListItemDto : BasicAppDto
     public EnableStatus Status { get; set; }
 
     /// <summary>
-    /// 是否包含摘要文本
-    /// </summary>
-    public bool HasSummaryText { get; set; }
-
-    /// <summary>
-    /// 是否包含审查载荷
-    /// </summary>
-    public bool HasReviewPayload { get; set; }
-
-    /// <summary>
-    /// 是否包含业务快照
-    /// </summary>
-    public bool HasBusinessSnapshot { get; set; }
-
-    /// <summary>
-    /// 是否包含审查人集合
-    /// </summary>
-    public bool HasReviewerSet { get; set; }
-
-    /// <summary>
-    /// 是否包含附件
-    /// </summary>
-    public bool HasAttachment { get; set; }
-
-    /// <summary>
-    /// 是否包含扩展数据
-    /// </summary>
-    public bool HasExtension { get; set; }
-
-    /// <summary>
-    /// 是否包含备注
-    /// </summary>
-    public bool HasNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

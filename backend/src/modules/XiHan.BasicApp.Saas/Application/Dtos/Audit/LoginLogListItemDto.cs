@@ -58,21 +58,6 @@ public class LoginLogListItemDto : BasicAppDto
     public DateTimeOffset LoginTime { get; set; }
 
     /// <summary>
-    /// 是否包含客户端上下文
-    /// </summary>
-    public bool HasClientContext { get; set; }
-
-    /// <summary>
-    /// 是否包含设备上下文
-    /// </summary>
-    public bool HasDeviceContext { get; set; }
-
-    /// <summary>
-    /// 是否包含结果说明
-    /// </summary>
-    public bool HasResultNote { get; set; }
-
-    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

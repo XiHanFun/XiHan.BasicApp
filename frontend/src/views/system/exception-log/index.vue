@@ -9,10 +9,10 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, exceptionLogApi } from '@/api'
+import { createPageRequest, DeviceType, exceptionLogApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
-import { formatDate } from '~/utils'
+import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemExceptionLogPage' })
 
@@ -25,14 +25,14 @@ const message = useMessage()
 const xGrid = ref<VxeGridInstance<ExceptionLogListItemDto>>()
 
 const queryParams = reactive({
-  isHandled: undefined as boolean | undefined,
+  isHandled: undefined as number | undefined,
   keyword: '',
   severityLevel: undefined as number | undefined,
 })
 
 const handledOptions = [
-  { label: '已处理', value: true },
-  { label: '未处理', value: false },
+  { label: '已处理', value: 1 },
+  { label: '未处理', value: 0 },
 ]
 
 const severityOptions = [
@@ -40,6 +40,19 @@ const severityOptions = [
   { label: '中', value: 1 },
   { label: '高', value: 2 },
   { label: '严重', value: 3 },
+]
+
+const deviceTypeOptions = [
+  { label: '未知', value: DeviceType.Unknown },
+  { label: 'Web浏览器', value: DeviceType.Web },
+  { label: 'iOS', value: DeviceType.IOS },
+  { label: 'Android', value: DeviceType.Android },
+  { label: 'Windows', value: DeviceType.Windows },
+  { label: 'macOS', value: DeviceType.MacOS },
+  { label: 'Linux', value: DeviceType.Linux },
+  { label: '平板', value: DeviceType.Tablet },
+  { label: '小程序', value: DeviceType.MiniProgram },
+  { label: 'API', value: DeviceType.Api },
 ]
 
 function severityType(level: number) {
@@ -65,7 +78,7 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
           pageSize: page.pageSize,
         },
       }),
-      isHandled: queryParams.isHandled,
+      isHandled: queryParams.isHandled !== undefined ? queryParams.isHandled === 1 : undefined,
       keyword: queryParams.keyword?.trim() || undefined,
       severityLevel: queryParams.severityLevel,
     })
@@ -83,29 +96,58 @@ const tableOptions = useVxeTable<ExceptionLogListItemDto>(
   {
     columns: [
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户' },
+      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
+      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
+      { field: 'requestId', minWidth: 160, showOverflow: 'tooltip', title: '请求标识' },
+      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
+      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
       { field: 'exceptionType', minWidth: 160, showOverflow: 'tooltip', title: '异常类型' },
-      { field: 'exceptionMessage', minWidth: 240, showOverflow: 'tooltip', title: '异常信息' },
-      { field: 'requestPath', minWidth: 200, showOverflow: 'tooltip', title: '请求路径' },
-      { field: 'requestMethod', title: '请求方法', width: 90 },
+      { field: 'exceptionSource', minWidth: 140, showOverflow: 'tooltip', title: '异常源' },
+      { field: 'exceptionLocation', minWidth: 200, showOverflow: 'tooltip', title: '异常发生位置' },
       {
         field: 'severityLevel',
         slots: { default: 'col_severity' },
-        title: '严重等级',
+        title: '严重级别',
         width: 90,
       },
+      { field: 'requestPath', minWidth: 200, showOverflow: 'tooltip', title: '请求路径' },
+      { field: 'requestMethod', title: '请求方法', width: 90 },
+      { field: 'statusCode', title: '响应状态码', width: 100 },
+      {
+        field: 'deviceType',
+        formatter: ({ cellValue }) => getOptionLabel(deviceTypeOptions, cellValue),
+        title: '设备类型',
+        width: 100,
+      },
+      { field: 'applicationName', minWidth: 130, showOverflow: 'tooltip', title: '应用程序名称' },
+      { field: 'applicationVersion', minWidth: 120, showOverflow: 'tooltip', title: '应用程序版本' },
+      { field: 'environmentName', minWidth: 100, showOverflow: 'tooltip', title: '环境名称' },
+      { field: 'errorCode', minWidth: 100, showOverflow: 'tooltip', title: '错误代码' },
       {
         field: 'isHandled',
         slots: { default: 'col_handled' },
-        title: '处理状态',
-        width: 90,
+        title: '是否已处理',
+        width: 100,
       },
+      {
+        field: 'handledTime',
+        formatter: ({ cellValue }) => cellValue ? formatDate(cellValue) : '-',
+        minWidth: 170,
+        title: '处理时间',
+      },
+      { field: 'handledBy', minWidth: 90, showOverflow: 'tooltip', title: '处理人主键' },
       {
         field: 'exceptionTime',
         formatter: ({ cellValue }) => formatDate(cellValue),
         minWidth: 170,
         sortable: true,
         title: '异常时间',
+      },
+      {
+        field: 'createdTime',
+        formatter: ({ cellValue }) => formatDate(cellValue),
+        minWidth: 170,
+        title: '创建时间',
       },
     ],
     id: 'sys_exception_log',
@@ -140,7 +182,7 @@ function handleReset() {
         <vxe-input
           v-model="queryParams.keyword"
           clearable
-          placeholder="搜索异常类型/信息/用户"
+          placeholder="搜索异常类型/位置/用户"
           style="width: 220px"
           @keyup.enter="handleSearch"
         />
