@@ -3,6 +3,7 @@ import { NButton, NIcon } from 'naive-ui'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 
@@ -118,7 +119,7 @@ watch(isDark, () => {
       </p>
     </div>
 
-    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push('/auth/login')">
+    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push(LOGIN_PATH)">
       {{ t('page.auth.back_to_login') }}
     </NButton>
   </div>

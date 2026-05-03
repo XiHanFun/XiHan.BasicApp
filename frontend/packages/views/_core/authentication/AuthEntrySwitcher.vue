@@ -3,6 +3,7 @@ import { NTabPane, NTabs } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { CODE_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
 
 defineOptions({ name: 'AuthEntrySwitcher' })
 
@@ -11,14 +12,14 @@ const router = useRouter()
 const { t } = useI18n()
 
 const entryList = computed(() => [
-  { path: '/auth/login', label: t('page.login.title') },
-  { path: '/auth/code-login', label: t('page.auth.mobile_login') },
-  { path: '/auth/qrcode-login', label: t('page.auth.qrcode_login') },
+  { path: LOGIN_PATH, label: t('page.login.title') },
+  { path: CODE_LOGIN_PATH, label: t('page.auth.mobile_login') },
+  { path: QRCODE_LOGIN_PATH, label: t('page.auth.qrcode_login') },
 ])
 
 const activePath = computed(() => {
   const path = route.path
-  return entryList.value.some(item => item.path === path) ? path : '/auth/login'
+  return entryList.value.some(item => item.path === path) ? path : LOGIN_PATH
 })
 
 function goTo(path: string) {

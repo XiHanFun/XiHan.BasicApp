@@ -4,6 +4,7 @@ import { NIcon, NSpin, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAuthStore } from '~/stores'
@@ -27,7 +28,7 @@ onMounted(async () => {
     loading.value = false
     message.error(errorMsg.value)
     setTimeout(() => {
-      window.location.href = '/auth/login'
+      window.location.href = LOGIN_PATH
     }, 3000)
     return
   }
@@ -40,7 +41,7 @@ onMounted(async () => {
     loading.value = false
     message.error(errorMsg.value)
     setTimeout(() => {
-      window.location.href = '/auth/login'
+      window.location.href = LOGIN_PATH
     }, 3000)
     return
   }
@@ -62,7 +63,7 @@ onMounted(async () => {
     errorMsg.value = e?.message || t('page.auth.oauth_callback_failed')
     message.error(errorMsg.value!)
     setTimeout(() => {
-      window.location.href = '/auth/login'
+      window.location.href = LOGIN_PATH
     }, 3000)
   }
   finally {

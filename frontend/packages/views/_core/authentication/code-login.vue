@@ -4,6 +4,7 @@ import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naiv
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
 
@@ -163,7 +164,7 @@ onBeforeUnmount(() => {
       </NButton>
     </NForm>
 
-    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push('/auth/login')">
+    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push(LOGIN_PATH)">
       {{ t('page.auth.back_to_login') }}
     </NButton>
   </div>

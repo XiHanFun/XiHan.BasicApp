@@ -26,6 +26,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
@@ -541,7 +542,7 @@ function handleDeactivateAccount() {
         await apis.deactivateAccountApi(accountPassword.value)
         message.success('账号已停用，即将退出登录')
         setTimeout(() => {
-          window.location.href = '/auth/login'
+          window.location.href = LOGIN_PATH
         }, 1500)
       }
       catch (e: unknown) {
@@ -583,7 +584,7 @@ function handleDeleteAccount() {
         await apis.deleteAccountApi(accountPassword.value)
         message.success('账号已注销，即将退出')
         setTimeout(() => {
-          window.location.href = '/auth/login'
+          window.location.href = LOGIN_PATH
         }, 1500)
       }
       catch (e: unknown) {

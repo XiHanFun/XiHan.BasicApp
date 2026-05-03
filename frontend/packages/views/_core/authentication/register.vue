@@ -4,6 +4,7 @@ import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -96,7 +97,7 @@ async function handleRegister() {
       nickName: formData.value.username,
     })
     message.success(t('page.auth.register_success'))
-    router.push('/auth/login')
+    router.push(LOGIN_PATH)
   }
   catch (err: unknown) {
     const error = err as { message?: string }
@@ -234,7 +235,7 @@ function handleKeydown(e: KeyboardEvent) {
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.already_have_account') }}
-      <span class="cursor-pointer link-primary" @click="router.push('/auth/login')">
+      <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
         {{ t('page.auth.go_to_login') }}
       </span>
     </p>
