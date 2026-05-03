@@ -14,7 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Caching.Distributed.Abstracts;
@@ -29,15 +29,13 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Monitoring;
 public class CacheAppService : ApplicationServiceBase
 {
     private readonly IDistributedCache _distributedCache;
-    private readonly ILogger<CacheAppService> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CacheAppService(IDistributedCache distributedCache, ILogger<CacheAppService> logger)
+    public CacheAppService(IDistributedCache distributedCache)
     {
         _distributedCache = distributedCache;
-        _logger = logger;
     }
 
     /// <summary>
@@ -46,15 +44,7 @@ public class CacheAppService : ApplicationServiceBase
     public string? GetString(string key)
     {
         ValidateKey(key);
-        try
-        {
-            return _distributedCache.GetString(key);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "获取缓存键 {Key} 失败，缓存服务可能不可用", key);
-            return null;
-        }
+        return _distributedCache.GetString(key);
     }
 
     /// <summary>
@@ -63,15 +53,7 @@ public class CacheAppService : ApplicationServiceBase
     public bool Exists(string key)
     {
         ValidateKey(key);
-        try
-        {
-            return _distributedCache.Get(key) is not null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "检查缓存键 {Key} 存在性失败，缓存服务可能不可用", key);
-            return false;
-        }
+        return _distributedCache.Get(key) is not null;
     }
 
     /// <summary>
@@ -80,16 +62,9 @@ public class CacheAppService : ApplicationServiceBase
     public IReadOnlyCollection<string> GetKeys(string pattern = "*")
     {
         var normalizedPattern = NormalizePattern(pattern);
-        try
+        if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
         {
-            if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
-            {
-                return keyPatternCache.GetKeys(normalizedPattern);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "按模式 {Pattern} 获取缓存键失败，缓存服务可能不可用", normalizedPattern);
+            return keyPatternCache.GetKeys(normalizedPattern);
         }
 
         return [];
@@ -101,14 +76,7 @@ public class CacheAppService : ApplicationServiceBase
     public void Remove(string key)
     {
         ValidateKey(key);
-        try
-        {
-            _distributedCache.Remove(key);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "删除缓存键 {Key} 失败，缓存服务可能不可用", key);
-        }
+        _distributedCache.Remove(key);
     }
 
     /// <summary>
@@ -117,31 +85,24 @@ public class CacheAppService : ApplicationServiceBase
     public long RemoveByPattern(string pattern = "*")
     {
         var normalizedPattern = NormalizePattern(pattern);
-        try
+        if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
         {
-            if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
-            {
-                return keyPatternCache.RemoveByPattern(normalizedPattern);
-            }
-
-            var matchedKeys = GetKeys(normalizedPattern);
-            if (matchedKeys.Count == 0)
-            {
-                return 0;
-            }
-
-            foreach (var key in matchedKeys)
-            {
-                _distributedCache.Remove(key);
-            }
-
-            return matchedKeys.Count;
+            return keyPatternCache.RemoveByPattern(normalizedPattern);
         }
-        catch (Exception ex)
+
+        // 不支持 pattern 查询时回退
+        var matchedKeys = GetKeys(normalizedPattern);
+        if (matchedKeys.Count == 0)
         {
-            _logger.LogWarning(ex, "按模式 {Pattern} 删除缓存键失败，缓存服务可能不可用", normalizedPattern);
             return 0;
         }
+
+        foreach (var key in matchedKeys)
+        {
+            _distributedCache.Remove(key);
+        }
+
+        return matchedKeys.Count;
     }
 
     private static void ValidateKey(string key)
