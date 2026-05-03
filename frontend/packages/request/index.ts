@@ -48,6 +48,12 @@ export function bindRouter(router: Router) {
   _router = router
 }
 
+/** 强制登出时的清理回调，由应用层注入以重置 Pinia stores */
+let _logoutHook: (() => void) | null = null
+export function bindLogoutHook(hook: () => void) {
+  _logoutHook = hook
+}
+
 export class RequestClient {
   private instance: AxiosInstance
   private apiPrefix: string
@@ -217,6 +223,7 @@ export class RequestClient {
     this.pendingRequests.forEach(cb => cb(null))
     this.pendingRequests = []
     this.isRefreshing = false
+    _logoutHook?.()
     if (_router) {
       _router.replace(LOGIN_PATH)
     }

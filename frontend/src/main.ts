@@ -3,9 +3,9 @@ import { createApp } from 'vue'
 import { setupVxeTable } from '~/hooks'
 import { setupIconifyOffline } from '~/iconify'
 import { setupI18n } from '~/locales'
-import { bindRouter } from '~/request'
+import { bindLogoutHook, bindRouter } from '~/request'
 import { setupRouterGuard } from '~/router/guard'
-import { invalidateCacheIfBuildTimeChanged } from '~/stores'
+import { invalidateCacheIfBuildTimeChanged, useAccessStore, useUserStore } from '~/stores'
 import { resetSetupStorePlugin } from '~/stores/plugins'
 import App from './App.vue'
 import { registerApplicationContext } from './app/context'
@@ -25,6 +25,10 @@ import './styles/index.css'
   setupVxeTable(app)
 
   bindRouter(router)
+  bindLogoutHook(() => {
+    useAccessStore().$reset()
+    useUserStore().$reset()
+  })
   registerApplicationContext(router)
   setupRouterGuard(router)
 
