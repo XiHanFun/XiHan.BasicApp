@@ -2,12 +2,6 @@ import { createDynamicApiClient } from '../base'
 
 const cacheApiClient = createDynamicApiClient('Cache')
 
-export interface CacheStringSetInput {
-  expireSeconds?: number
-  key: string
-  value: string
-}
-
 export interface CacheExistsResult {
   exists: boolean
   key: string
@@ -38,15 +32,6 @@ export const cacheApi = {
   removeByPattern(pattern = '*') {
     return cacheApiClient.delete<number>('ByPattern', {
       params: { Pattern: pattern },
-    })
-  },
-  setString(input: CacheStringSetInput) {
-    return cacheApiClient.post<void>('SetString', undefined, {
-      params: {
-        ExpireSeconds: input.expireSeconds,
-        Key: input.key,
-        Value: input.value,
-      },
     })
   },
 }
