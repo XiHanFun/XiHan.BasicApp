@@ -54,7 +54,10 @@
   box-shadow: none !important;
 }
 
-.xihan-top-menu .n-menu--horizontal .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header,
+.xihan-top-menu
+  .n-menu--horizontal
+  .n-menu-item-content.n-menu-item-content--selected
+  .n-menu-item-content-header,
 .xihan-top-menu
   .n-menu--horizontal
   .n-submenu
@@ -123,4 +126,30 @@
 .xihan-compact-layout .n-pagination {
   --n-item-size: 26px;
   --n-item-size-small: 22px;
+}
+
+/* 偏好设置分段选项卡底座与滑块对比度增强 */
+.preference-tabs .n-tabs-rail {
+  background-color: hsl(var(--heavy)) !important;
+}
+
+.dark .preference-tabs .n-tabs-rail {
+  background-color: hsl(var(--background-deep)) !important;
+}
+
+.dark .preference-tabs .n-tabs-capsule {
+  background-color: hsl(var(--heavy)) !important;
+}
+
+/* NSlider 轨道对比度增强 */
+.pref-row .n-slider .n-slider-rail {
+  background-color: hsl(var(--heavy)) !important;
+}
+
+.dark .pref-row .n-slider .n-slider-rail {
+  background-color: hsl(var(--background-deep)) !important;
+}
+
+.dark .pref-row .n-slider .n-slider-rail__fill {
+  background-color: hsl(var(--primary)) !important;
 }
