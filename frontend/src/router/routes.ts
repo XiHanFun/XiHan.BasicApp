@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH } from '~/constants'
-import AuthLayout from '~/layouts/auth/index.vue'
+import AuthLayout from '~/views/_core/authentication/AuthLayout.vue'
 import BasicLayout from '~/layouts/basic/index.vue'
 
 const DashboardPage = () => import('~/views/_core/dashboard/index.vue')
