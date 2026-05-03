@@ -28,6 +28,8 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.Framework.Web.Api.Logging;
+using XiHan.Framework.Web.Api.Logging.Pipelines;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -48,6 +50,7 @@ public sealed class AuthAppService(
     IMenuRepository menuRepository,
     IUserSessionRepository userSessionRepository,
     IOAuthTokenRepository oauthTokenRepository,
+    ILoginLogPipeline loginLogPipeline,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtTokenService,
     ICurrentTenant currentTenant,
@@ -71,6 +74,7 @@ public sealed class AuthAppService(
     private readonly IMenuRepository _menuRepository = menuRepository;
     private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
     private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
+    private readonly ILoginLogPipeline _loginLogPipeline = loginLogPipeline;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
     private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
     private readonly ICurrentTenant _currentTenant = currentTenant;
@@ -116,6 +120,7 @@ public sealed class AuthAppService(
         if (!_passwordHasher.VerifyPassword(security.Password, password))
         {
             await RecordFailedLoginAsync(security, now, cancellationToken);
+            await PublishLoginLogAsync(user.BasicId, userName, null, LoginResult.InvalidCredentials, "用户名或密码错误", now);
             throw new InvalidOperationException("用户名或密码错误。");
         }
 
@@ -150,6 +155,7 @@ public sealed class AuthAppService(
         _ = await _userRepository.UpdateAsync(user, cancellationToken);
         _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
         await TouchTenantMembershipAsync(user.BasicId, effectiveTenantId, now, cancellationToken);
+        await PublishLoginLogAsync(user.BasicId, userName, sessionBusinessId, LoginResult.Success, "登录成功", now);
 
         return new LoginResponseDto
         {
@@ -262,6 +268,9 @@ public sealed class AuthAppService(
         {
             _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
         }
+
+        var userName = _currentUser.FindClaim(XiHanClaimTypes.UserName)?.Value;
+        await PublishLoginLogAsync(userId.Value, userName, sessionBusinessId, LoginResult.Logout, "用户主动退出", now);
     }
 
     private async Task<SysTenant?> GetLoginTenantOrThrowAsync(long? tenantId, CancellationToken cancellationToken)
@@ -767,6 +776,35 @@ public sealed class AuthAppService(
 
         var normalized = value.Trim();
         return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
+    }
+
+    private async Task PublishLoginLogAsync(long? userId, string? userName, string? sessionId, LoginResult loginResult, string? message, DateTimeOffset loginTime)
+    {
+        try
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            var ipAddress = httpContext?.Connection.RemoteIpAddress?.ToString();
+            var userAgent = httpContext?.Request.Headers.UserAgent.ToString();
+
+            var record = new LoginLogRecord
+            {
+                TraceId = httpContext?.TraceIdentifier,
+                UserId = userId,
+                UserName = userName,
+                SessionId = sessionId,
+                LoginResult = (int)loginResult,
+                Message = message,
+                LoginIp = ipAddress,
+                UserAgent = userAgent,
+                LoginTime = loginTime
+            };
+
+            await _loginLogPipeline.WriteAsync(record);
+        }
+        catch
+        {
+            // 日志事件发布失败不应影响业务流程
+        }
     }
 
     private sealed record AuthorizationSnapshot(
