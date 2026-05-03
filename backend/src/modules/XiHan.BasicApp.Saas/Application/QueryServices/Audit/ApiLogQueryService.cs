@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "API日志")]
-public sealed class ApiLogQueryService(IApiLogRepository apiLogRepository)
+public sealed class ApiLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IApiLogQueryService
 {
-    /// <summary>
-    /// API 日志仓储
-    /// </summary>
-    private readonly IApiLogRepository _apiLogRepository = apiLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取 API 日志分页列表
@@ -53,28 +52,24 @@ public sealed class ApiLogQueryService(IApiLogRepository apiLogRepository)
 
         ValidatePageInput(input);
 
-        var beginTime = input.RequestTimeStart!.Value;
-        var endTime = input.RequestTimeEnd!.Value;
-        var predicate = BuildApiLogPredicate(input, beginTime, endTime);
-        var apiLogPage = await _apiLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            apiLog => apiLog.RequestTime,
-            false,
-            cancellationToken);
+        var predicate = BuildApiLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysApiLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.RequestTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (apiLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<ApiLogListItemDto>([], apiLogPage.Page);
+            return new PageResultDtoBase<ApiLogListItemDto>([], page);
         }
 
-        var items = apiLogPage.Items
+        var items = entities
             .Select(ApiLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<ApiLogListItemDto>(items, apiLogPage.Page);
+        return new PageResultDtoBase<ApiLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +88,31 @@ public sealed class ApiLogQueryService(IApiLogRepository apiLogRepository)
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var apiLog = await _apiLogRepository.GetByIdAsync(id, cancellationToken);
+        var apiLog = await DbClient.Queryable<SysApiLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return apiLog is null ? null : ApiLogApplicationMapper.ToDetailDto(apiLog);
     }
 
     /// <summary>
     /// 构建 API 日志查询表达式
     /// </summary>
-    private static Expression<Func<SysApiLog, bool>> BuildApiLogPredicate(ApiLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysApiLog, bool>> BuildApiLogPredicate(ApiLogPageQueryDto input)
     {
-        Expression<Func<SysApiLog, bool>> predicate = apiLog => apiLog.RequestTime >= beginTime && apiLog.RequestTime <= endTime;
+        Expression<Func<SysApiLog, bool>> predicate = apiLog => true;
+
+        if (input.RequestTimeStart.HasValue)
+        {
+            var beginTime = input.RequestTimeStart.Value;
+            predicate = And(predicate, apiLog => apiLog.RequestTime >= beginTime);
+        }
+
+        if (input.RequestTimeEnd.HasValue)
+        {
+            var endTime = input.RequestTimeEnd.Value;
+            predicate = And(predicate, apiLog => apiLog.RequestTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -236,12 +246,8 @@ public sealed class ApiLogQueryService(IApiLogRepository apiLogRepository)
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(ApiLogPageQueryDto input)
     {
-        if (!input.RequestTimeStart.HasValue || !input.RequestTimeEnd.HasValue)
-        {
-            throw new ArgumentException("API 日志分表查询必须提供请求开始时间和请求结束时间。", nameof(input));
-        }
-
-        if (input.RequestTimeStart.Value > input.RequestTimeEnd.Value)
+        if (input.RequestTimeStart.HasValue && input.RequestTimeEnd.HasValue &&
+            input.RequestTimeStart.Value > input.RequestTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.RequestTimeStart), "请求开始时间不能晚于结束时间。");
         }

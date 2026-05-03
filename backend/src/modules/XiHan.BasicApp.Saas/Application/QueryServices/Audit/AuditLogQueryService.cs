@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "审计日志")]
-public sealed class AuditLogQueryService(IAuditLogRepository auditLogRepository)
+public sealed class AuditLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IAuditLogQueryService
 {
-    /// <summary>
-    /// 审计日志仓储
-    /// </summary>
-    private readonly IAuditLogRepository _auditLogRepository = auditLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取审计日志分页列表
@@ -53,28 +52,24 @@ public sealed class AuditLogQueryService(IAuditLogRepository auditLogRepository)
 
         ValidatePageInput(input);
 
-        var beginTime = input.AuditTimeStart!.Value;
-        var endTime = input.AuditTimeEnd!.Value;
-        var predicate = BuildAuditLogPredicate(input, beginTime, endTime);
-        var auditLogPage = await _auditLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            auditLog => auditLog.AuditTime,
-            false,
-            cancellationToken);
+        var predicate = BuildAuditLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysAuditLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.AuditTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (auditLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<AuditLogListItemDto>([], auditLogPage.Page);
+            return new PageResultDtoBase<AuditLogListItemDto>([], page);
         }
 
-        var items = auditLogPage.Items
+        var items = entities
             .Select(AuditLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<AuditLogListItemDto>(items, auditLogPage.Page);
+        return new PageResultDtoBase<AuditLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +88,31 @@ public sealed class AuditLogQueryService(IAuditLogRepository auditLogRepository)
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var auditLog = await _auditLogRepository.GetByIdAsync(id, cancellationToken);
+        var auditLog = await DbClient.Queryable<SysAuditLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return auditLog is null ? null : AuditLogApplicationMapper.ToDetailDto(auditLog);
     }
 
     /// <summary>
     /// 构建审计日志查询表达式
     /// </summary>
-    private static Expression<Func<SysAuditLog, bool>> BuildAuditLogPredicate(AuditLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysAuditLog, bool>> BuildAuditLogPredicate(AuditLogPageQueryDto input)
     {
-        Expression<Func<SysAuditLog, bool>> predicate = auditLog => auditLog.AuditTime >= beginTime && auditLog.AuditTime <= endTime;
+        Expression<Func<SysAuditLog, bool>> predicate = auditLog => true;
+
+        if (input.AuditTimeStart.HasValue)
+        {
+            var beginTime = input.AuditTimeStart.Value;
+            predicate = And(predicate, auditLog => auditLog.AuditTime >= beginTime);
+        }
+
+        if (input.AuditTimeEnd.HasValue)
+        {
+            var endTime = input.AuditTimeEnd.Value;
+            predicate = And(predicate, auditLog => auditLog.AuditTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -229,12 +239,8 @@ public sealed class AuditLogQueryService(IAuditLogRepository auditLogRepository)
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(AuditLogPageQueryDto input)
     {
-        if (!input.AuditTimeStart.HasValue || !input.AuditTimeEnd.HasValue)
-        {
-            throw new ArgumentException("审计日志分表查询必须提供审计开始时间和审计结束时间。", nameof(input));
-        }
-
-        if (input.AuditTimeStart.Value > input.AuditTimeEnd.Value)
+        if (input.AuditTimeStart.HasValue && input.AuditTimeEnd.HasValue &&
+            input.AuditTimeStart.Value > input.AuditTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.AuditTimeStart), "审计开始时间不能晚于结束时间。");
         }

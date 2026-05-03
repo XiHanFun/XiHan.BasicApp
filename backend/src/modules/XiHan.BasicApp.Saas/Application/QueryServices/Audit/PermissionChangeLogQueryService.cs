@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限变更日志")]
-public sealed class PermissionChangeLogQueryService(IPermissionChangeLogRepository permissionChangeLogRepository)
+public sealed class PermissionChangeLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IPermissionChangeLogQueryService
 {
-    /// <summary>
-    /// 权限变更日志仓储
-    /// </summary>
-    private readonly IPermissionChangeLogRepository _permissionChangeLogRepository = permissionChangeLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取权限变更日志分页列表
@@ -53,28 +52,24 @@ public sealed class PermissionChangeLogQueryService(IPermissionChangeLogReposito
 
         ValidatePageInput(input);
 
-        var beginTime = input.ChangeTimeStart!.Value;
-        var endTime = input.ChangeTimeEnd!.Value;
-        var predicate = BuildPermissionChangeLogPredicate(input, beginTime, endTime);
-        var permissionChangeLogPage = await _permissionChangeLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            permissionChangeLog => permissionChangeLog.ChangeTime,
-            false,
-            cancellationToken);
+        var predicate = BuildPermissionChangeLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysPermissionChangeLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.ChangeTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (permissionChangeLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<PermissionChangeLogListItemDto>([], permissionChangeLogPage.Page);
+            return new PageResultDtoBase<PermissionChangeLogListItemDto>([], page);
         }
 
-        var items = permissionChangeLogPage.Items
+        var items = entities
             .Select(PermissionChangeLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<PermissionChangeLogListItemDto>(items, permissionChangeLogPage.Page);
+        return new PageResultDtoBase<PermissionChangeLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +88,31 @@ public sealed class PermissionChangeLogQueryService(IPermissionChangeLogReposito
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var permissionChangeLog = await _permissionChangeLogRepository.GetByIdAsync(id, cancellationToken);
+        var permissionChangeLog = await DbClient.Queryable<SysPermissionChangeLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return permissionChangeLog is null ? null : PermissionChangeLogApplicationMapper.ToDetailDto(permissionChangeLog);
     }
 
     /// <summary>
     /// 构建权限变更日志查询表达式
     /// </summary>
-    private static Expression<Func<SysPermissionChangeLog, bool>> BuildPermissionChangeLogPredicate(PermissionChangeLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysPermissionChangeLog, bool>> BuildPermissionChangeLogPredicate(PermissionChangeLogPageQueryDto input)
     {
-        Expression<Func<SysPermissionChangeLog, bool>> predicate = permissionChangeLog => permissionChangeLog.ChangeTime >= beginTime && permissionChangeLog.ChangeTime <= endTime;
+        Expression<Func<SysPermissionChangeLog, bool>> predicate = permissionChangeLog => true;
+
+        if (input.ChangeTimeStart.HasValue)
+        {
+            var beginTime = input.ChangeTimeStart.Value;
+            predicate = And(predicate, permissionChangeLog => permissionChangeLog.ChangeTime >= beginTime);
+        }
+
+        if (input.ChangeTimeEnd.HasValue)
+        {
+            var endTime = input.ChangeTimeEnd.Value;
+            predicate = And(predicate, permissionChangeLog => permissionChangeLog.ChangeTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -166,12 +176,8 @@ public sealed class PermissionChangeLogQueryService(IPermissionChangeLogReposito
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(PermissionChangeLogPageQueryDto input)
     {
-        if (!input.ChangeTimeStart.HasValue || !input.ChangeTimeEnd.HasValue)
-        {
-            throw new ArgumentException("权限变更日志分表查询必须提供变更开始时间和变更结束时间。", nameof(input));
-        }
-
-        if (input.ChangeTimeStart.Value > input.ChangeTimeEnd.Value)
+        if (input.ChangeTimeStart.HasValue && input.ChangeTimeEnd.HasValue &&
+            input.ChangeTimeStart.Value > input.ChangeTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.ChangeTimeStart), "变更开始时间不能晚于结束时间。");
         }

@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "访问日志")]
-public sealed class AccessLogQueryService(IAccessLogRepository accessLogRepository)
+public sealed class AccessLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, IAccessLogQueryService
 {
-    /// <summary>
-    /// 访问日志仓储
-    /// </summary>
-    private readonly IAccessLogRepository _accessLogRepository = accessLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取访问日志分页列表
@@ -53,28 +52,24 @@ public sealed class AccessLogQueryService(IAccessLogRepository accessLogReposito
 
         ValidatePageInput(input);
 
-        var beginTime = input.AccessTimeStart!.Value;
-        var endTime = input.AccessTimeEnd!.Value;
-        var predicate = BuildAccessLogPredicate(input, beginTime, endTime);
-        var accessLogPage = await _accessLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            accessLog => accessLog.AccessTime,
-            false,
-            cancellationToken);
+        var predicate = BuildAccessLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysAccessLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.AccessTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (accessLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<AccessLogListItemDto>([], accessLogPage.Page);
+            return new PageResultDtoBase<AccessLogListItemDto>([], page);
         }
 
-        var items = accessLogPage.Items
+        var items = entities
             .Select(AccessLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<AccessLogListItemDto>(items, accessLogPage.Page);
+        return new PageResultDtoBase<AccessLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,7 +88,10 @@ public sealed class AccessLogQueryService(IAccessLogRepository accessLogReposito
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var accessLog = await _accessLogRepository.GetByIdAsync(id, cancellationToken);
+        var accessLog = await DbClient.Queryable<SysAccessLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return accessLog is null ? null : AccessLogApplicationMapper.ToDetailDto(accessLog);
     }
 
@@ -101,12 +99,22 @@ public sealed class AccessLogQueryService(IAccessLogRepository accessLogReposito
     /// 构建访问日志查询表达式
     /// </summary>
     /// <param name="input">查询条件</param>
-    /// <param name="beginTime">起始时间</param>
-    /// <param name="endTime">结束时间</param>
     /// <returns>访问日志查询表达式</returns>
-    private static Expression<Func<SysAccessLog, bool>> BuildAccessLogPredicate(AccessLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysAccessLog, bool>> BuildAccessLogPredicate(AccessLogPageQueryDto input)
     {
-        Expression<Func<SysAccessLog, bool>> predicate = accessLog => accessLog.AccessTime >= beginTime && accessLog.AccessTime <= endTime;
+        Expression<Func<SysAccessLog, bool>> predicate = accessLog => true;
+
+        if (input.AccessTimeStart.HasValue)
+        {
+            var beginTime = input.AccessTimeStart.Value;
+            predicate = And(predicate, accessLog => accessLog.AccessTime >= beginTime);
+        }
+
+        if (input.AccessTimeEnd.HasValue)
+        {
+            var endTime = input.AccessTimeEnd.Value;
+            predicate = And(predicate, accessLog => accessLog.AccessTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -207,12 +215,8 @@ public sealed class AccessLogQueryService(IAccessLogRepository accessLogReposito
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(AccessLogPageQueryDto input)
     {
-        if (!input.AccessTimeStart.HasValue || !input.AccessTimeEnd.HasValue)
-        {
-            throw new ArgumentException("访问日志分表查询必须提供访问开始时间和访问结束时间。", nameof(input));
-        }
-
-        if (input.AccessTimeStart.Value > input.AccessTimeEnd.Value)
+        if (input.AccessTimeStart.HasValue && input.AccessTimeEnd.HasValue &&
+            input.AccessTimeStart.Value > input.AccessTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.AccessTimeStart), "访问开始时间不能晚于结束时间。");
         }

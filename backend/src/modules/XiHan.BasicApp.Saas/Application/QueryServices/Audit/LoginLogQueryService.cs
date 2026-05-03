@@ -19,10 +19,12 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
+using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -31,13 +33,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "登录日志")]
-public sealed class LoginLogQueryService(ILoginLogRepository loginLogRepository)
+public sealed class LoginLogQueryService(ISqlSugarClientResolver clientResolver)
     : SaasApplicationService, ILoginLogQueryService
 {
-    /// <summary>
-    /// 登录日志仓储
-    /// </summary>
-    private readonly ILoginLogRepository _loginLogRepository = loginLogRepository;
+    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取登录日志分页列表
@@ -53,28 +52,24 @@ public sealed class LoginLogQueryService(ILoginLogRepository loginLogRepository)
 
         ValidatePageInput(input);
 
-        var beginTime = input.LoginTimeStart!.Value;
-        var endTime = input.LoginTimeEnd!.Value;
-        var predicate = BuildLoginLogPredicate(input, beginTime, endTime);
-        var loginLogPage = await _loginLogRepository.GetPagedByTimeRangeAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
-            beginTime,
-            endTime,
-            predicate,
-            loginLog => loginLog.LoginTime,
-            false,
-            cancellationToken);
+        var predicate = BuildLoginLogPredicate(input);
+        RefAsync<int> totalCount = 0;
+        var entities = await DbClient.Queryable<SysLoginLog>()
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.LoginTime)
+            .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
-        if (loginLogPage.Items.Count == 0)
+        var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
+        if (entities.Count == 0)
         {
-            return new PageResultDtoBase<LoginLogListItemDto>([], loginLogPage.Page);
+            return new PageResultDtoBase<LoginLogListItemDto>([], page);
         }
 
-        var items = loginLogPage.Items
+        var items = entities
             .Select(LoginLogApplicationMapper.ToListItemDto)
             .ToList();
-        return new PageResultDtoBase<LoginLogListItemDto>(items, loginLogPage.Page);
+        return new PageResultDtoBase<LoginLogListItemDto>(items, page);
     }
 
     /// <summary>
@@ -93,16 +88,31 @@ public sealed class LoginLogQueryService(ILoginLogRepository loginLogRepository)
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var loginLog = await _loginLogRepository.GetByIdAsync(id, cancellationToken);
+        var loginLog = await DbClient.Queryable<SysLoginLog>()
+            .Where(x => x.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
         return loginLog is null ? null : LoginLogApplicationMapper.ToDetailDto(loginLog);
     }
 
     /// <summary>
     /// 构建登录日志查询表达式
     /// </summary>
-    private static Expression<Func<SysLoginLog, bool>> BuildLoginLogPredicate(LoginLogPageQueryDto input, DateTimeOffset beginTime, DateTimeOffset endTime)
+    private static Expression<Func<SysLoginLog, bool>> BuildLoginLogPredicate(LoginLogPageQueryDto input)
     {
-        Expression<Func<SysLoginLog, bool>> predicate = loginLog => loginLog.LoginTime >= beginTime && loginLog.LoginTime <= endTime;
+        Expression<Func<SysLoginLog, bool>> predicate = loginLog => true;
+
+        if (input.LoginTimeStart.HasValue)
+        {
+            var beginTime = input.LoginTimeStart.Value;
+            predicate = And(predicate, loginLog => loginLog.LoginTime >= beginTime);
+        }
+
+        if (input.LoginTimeEnd.HasValue)
+        {
+            var endTime = input.LoginTimeEnd.Value;
+            predicate = And(predicate, loginLog => loginLog.LoginTime <= endTime);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
@@ -169,12 +179,8 @@ public sealed class LoginLogQueryService(ILoginLogRepository loginLogRepository)
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(LoginLogPageQueryDto input)
     {
-        if (!input.LoginTimeStart.HasValue || !input.LoginTimeEnd.HasValue)
-        {
-            throw new ArgumentException("登录日志分表查询必须提供登录开始时间和登录结束时间。", nameof(input));
-        }
-
-        if (input.LoginTimeStart.Value > input.LoginTimeEnd.Value)
+        if (input.LoginTimeStart.HasValue && input.LoginTimeEnd.HasValue &&
+            input.LoginTimeStart.Value > input.LoginTimeEnd.Value)
         {
             throw new ArgumentOutOfRangeException(nameof(input.LoginTimeStart), "登录开始时间不能晚于结束时间。");
         }
