@@ -209,15 +209,15 @@ public sealed class OperationLogQueryService(IOperationLogRepository operationLo
     /// <param name="input">查询参数</param>
     private static void ValidatePageInput(OperationLogPageQueryDto input)
     {
-        if (!input.OperationTimeStart.HasValue || !input.OperationTimeEnd.HasValue)
-        {
-            throw new ArgumentException("操作日志分表查询必须提供操作开始时间和操作结束时间。", nameof(input));
-        }
+        //if (!input.OperationTimeStart.HasValue || !input.OperationTimeEnd.HasValue)
+        //{
+        //    throw new ArgumentException("操作日志分表查询必须提供操作开始时间和操作结束时间。", nameof(input));
+        //}
 
-        if (input.OperationTimeStart.Value > input.OperationTimeEnd.Value)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input.OperationTimeStart), "操作开始时间不能晚于结束时间。");
-        }
+        //if (input.OperationTimeStart.Value > input.OperationTimeEnd.Value)
+        //{
+        //    throw new ArgumentOutOfRangeException(nameof(input.OperationTimeStart), "操作开始时间不能晚于结束时间。");
+        //}
 
         ValidateOptionalId(input.UserId, nameof(input.UserId), "用户主键必须大于 0。");
         ValidateMaxLength(input.Keyword, 200, nameof(input.Keyword), "关键字长度不能超过 200。");

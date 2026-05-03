@@ -13,8 +13,11 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.Framework.Web.Api.Logging.Writers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Extensions;
 
@@ -34,6 +37,22 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasPermissionSeeder>();
         services.AddDataSeeder<SaasIdentityPermissionSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 SaaS 日志写入器
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasLogWriters(this IServiceCollection services)
+    {
+        services.AddScoped<IAccessLogWriter, RbacAccessLogWriter>();
+        services.AddScoped<IApiLogWriter, RbacApiLogWriter>();
+        services.AddScoped<IOperationLogWriter, RbacOperationLogWriter>();
+        services.AddScoped<IExceptionLogWriter, RbacExceptionLogWriter>();
+        services.AddScoped<IEntityAuditLogWriter, RbacEntityAuditLogWriter>();
+        services.AddScoped<IEntityAuditContextProvider, RbacEntityAuditContextProvider>();
         return services;
     }
 }
