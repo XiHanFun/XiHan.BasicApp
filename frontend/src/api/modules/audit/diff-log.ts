@@ -1,23 +1,19 @@
 import type { PageResult } from '../../types'
-import type { AuditLogListItemDto, AuditLogPageQueryDto } from './audit-log.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-} from '../../base'
+import type { DiffLogListItemDto, DiffLogPageQueryDto } from './diff-log.types'
+import { appendDynamicApiParam, createDynamicApiClient, createPageRequestParams } from '../../base'
 
-const auditLogQueryApi = createDynamicApiClient('AuditLogQuery')
+const diffLogQueryApi = createDynamicApiClient('DiffLogQuery')
 
-export const auditLogApi = {
-  page(input: AuditLogPageQueryDto) {
-    return auditLogQueryApi.get<PageResult<AuditLogListItemDto>>(
-      'AuditLogPage',
-      toAuditLogPageParams(input),
+export const diffLogApi = {
+  page(input: DiffLogPageQueryDto) {
+    return diffLogQueryApi.get<PageResult<DiffLogListItemDto>>(
+      'DiffLogPage',
+      toDiffLogPageParams(input),
     )
   },
 }
 
-function toAuditLogPageParams(input: AuditLogPageQueryDto) {
+function toDiffLogPageParams(input: DiffLogPageQueryDto) {
   const params = createPageRequestParams(input)
   appendDynamicApiParam(params, 'AuditTimeEnd', input.auditTimeEnd)
   appendDynamicApiParam(params, 'AuditTimeStart', input.auditTimeStart)

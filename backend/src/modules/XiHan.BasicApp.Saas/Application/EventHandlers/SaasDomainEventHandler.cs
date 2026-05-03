@@ -57,7 +57,7 @@ public sealed class SaasDomainEventHandler(
         ArgumentNullException.ThrowIfNull(eventData);
 
         await WritePermissionChangeLogAsync(eventData);
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(AuthorizationChangedDomainEvent),
             eventData.TargetId.ToString(),
@@ -78,7 +78,7 @@ public sealed class SaasDomainEventHandler(
     {
         ArgumentNullException.ThrowIfNull(eventData);
 
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(DataScopeChangedDomainEvent),
             eventData.TargetId.ToString(),
@@ -98,7 +98,7 @@ public sealed class SaasDomainEventHandler(
     {
         ArgumentNullException.ThrowIfNull(eventData);
 
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(FieldLevelSecurityChangedDomainEvent),
             eventData.FieldSecurityId.ToString(),
@@ -123,7 +123,7 @@ public sealed class SaasDomainEventHandler(
     {
         ArgumentNullException.ThrowIfNull(eventData);
 
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(HierarchyChangedDomainEvent),
             eventData.NodeId.ToString(),
@@ -143,7 +143,7 @@ public sealed class SaasDomainEventHandler(
     {
         ArgumentNullException.ThrowIfNull(eventData);
 
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(TenantMembershipChangedDomainEvent),
             eventData.UserId.ToString(),
@@ -167,7 +167,7 @@ public sealed class SaasDomainEventHandler(
             await RevokeTenantSessionsAsync(eventData);
         }
 
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(TenantStatusChangedDomainEvent),
             eventData.AffectedTenantId.ToString(),
@@ -188,7 +188,7 @@ public sealed class SaasDomainEventHandler(
         ArgumentNullException.ThrowIfNull(eventData);
 
         await RevokeUserSessionRelatedStateAsync(eventData);
-        await WriteAuditLogAsync(
+        await WriteDiffLogAsync(
             eventData,
             nameof(UserSessionRevokedDomainEvent),
             eventData.SessionId?.ToString() ?? eventData.UserId.ToString(),
@@ -447,9 +447,9 @@ public sealed class SaasDomainEventHandler(
     }
 
     /// <summary>
-    /// 写入通用领域事件审计日志。
+    /// 写入通用领域事件差异日志。
     /// </summary>
-    private async Task WriteAuditLogAsync(
+    private async Task WriteDiffLogAsync(
         SaasDomainEventBase eventData,
         string entityType,
         string entityId,
@@ -459,7 +459,7 @@ public sealed class SaasDomainEventHandler(
         object extendData)
     {
         var now = DateTimeOffset.UtcNow;
-        var entity = new SysAuditLog
+        var entity = new SysDiffLog
         {
             TenantId = eventData.TenantId,
             UserId = eventData.OperatorUserId,

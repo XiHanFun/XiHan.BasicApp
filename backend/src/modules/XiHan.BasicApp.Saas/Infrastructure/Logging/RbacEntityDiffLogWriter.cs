@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacEntityAuditLogWriter
+// FileName:RbacEntityDiffLogWriter
 // Guid:676be31f-c4ed-4f8d-b4f8-8f79d76b9764
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -24,9 +24,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 实体审计日志写入器
+/// RBAC 实体差异日志写入器
 /// </summary>
-public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
+public class RbacEntityDiffLogWriter : IEntityDiffLogWriter
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly IClientInfoProvider _clientInfoProvider;
@@ -35,7 +35,7 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacEntityAuditLogWriter(
+    public RbacEntityDiffLogWriter(
         ISqlSugarClientResolver clientResolver,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
@@ -48,9 +48,9 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
-    /// 写入实体审计日志
+    /// 写入实体差异日志
     /// </summary>
-    public async Task WriteAsync(EntityAuditLogRecord record, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(EntityDiffLogRecord record, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(record);
 
@@ -61,7 +61,7 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
         var entityId = RbacLogMappingHelper.TrimOrNull(record.EntityId, 100);
         var sessionId = _httpContextAccessor.HttpContext?.Features.Get<ISessionFeature>()?.Session?.Id;
 
-        var entity = new SysAuditLog
+        var entity = new SysDiffLog
         {
             TenantId = record.TenantId ?? 0,
             UserId = record.UserId,
@@ -91,14 +91,14 @@ public class RbacEntityAuditLogWriter : IEntityAuditLogWriter
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
-    private static string BuildDescription(EntityAuditLogRecord record, string entityTypeName, string? entityId)
+    private static string BuildDescription(EntityDiffLogRecord record, string entityTypeName, string? entityId)
     {
         return entityId is null
             ? $"{record.OperationType}:{entityTypeName}"
             : $"{record.OperationType}:{entityTypeName}#{entityId}";
     }
 
-    private static string BuildChangeDescription(EntityAuditLogRecord record)
+    private static string BuildChangeDescription(EntityDiffLogRecord record)
     {
         if (!string.IsNullOrWhiteSpace(record.ChangedFields))
         {

@@ -43,19 +43,19 @@
 
 ## 3. 执行顺序总览
 
-| 阶段 | 主题 | 主要路径 | 依赖 |
-|---|---|---|---|
-| B0 | 基线扫描与分支保护 | 全仓 | 无 |
-| B1 | Framework 依赖确认 | Framework + BasicApp.Core | Framework F1/F2 |
-| B2 | 应用内核重构 | `backend/src/framework/XiHan.BasicApp.Core` | B1 |
-| B3 | SaaS 实体重构 | `Domain/Entities` | B2 |
-| B4 | 领域层重构 | `Domain/Repositories`, `DomainServices`, `Events`, `Specifications` | B3 |
-| B5 | 基础设施重构 | `Infrastructure` | B4 |
-| B6 | 应用服务重构 | `Application` | B4/B5 |
-| B7 | 前端 API 重构 | `frontend/src/api` | B6 |
-| B8 | 前端页面重构 | `frontend/src/views`, `router`, `stores` | B7 |
-| B9 | 数据迁移、种子、回滚 | `Seeders`, migrations/scripts | B3-B8 |
-| B10 | 全量验证与文档收口 | backend, frontend, docs | 全阶段 |
+| 阶段 | 主题                 | 主要路径                                                            | 依赖            |
+| ---- | -------------------- | ------------------------------------------------------------------- | --------------- |
+| B0   | 基线扫描与分支保护   | 全仓                                                                | 无              |
+| B1   | Framework 依赖确认   | Framework + BasicApp.Core                                           | Framework F1/F2 |
+| B2   | 应用内核重构         | `backend/src/framework/XiHan.BasicApp.Core`                         | B1              |
+| B3   | SaaS 实体重构        | `Domain/Entities`                                                   | B2              |
+| B4   | 领域层重构           | `Domain/Repositories`, `DomainServices`, `Events`, `Specifications` | B3              |
+| B5   | 基础设施重构         | `Infrastructure`                                                    | B4              |
+| B6   | 应用服务重构         | `Application`                                                       | B4/B5           |
+| B7   | 前端 API 重构        | `frontend/src/api`                                                  | B6              |
+| B8   | 前端页面重构         | `frontend/src/views`, `router`, `stores`                            | B7              |
+| B9   | 数据迁移、种子、回滚 | `Seeders`, migrations/scripts                                       | B3-B8           |
+| B10  | 全量验证与文档收口   | backend, frontend, docs                                             | 全阶段          |
 
 ## 4. B0：基线扫描与保护
 
@@ -166,17 +166,17 @@ Domain/ValueObjects/
 
 降级为 `BasicAppFullAuditedEntity`：
 
-| 实体 | 原因 |
-|---|---|
-| `SysFieldLevelSecurity` | 配置型策略，无独立事务不变量 |
-| `SysConstraintRule` | RBAC/ABAC 策略子实体 |
-| `SysNotification` | 简单消息实体 |
-| `SysEmail` | 简单消息实体 |
-| `SysSms` | 简单消息实体 |
-| `SysFile` | 文件元数据无复杂不变量 |
-| `SysDict` | 简单 CRUD |
-| `SysConfig` | 简单 CRUD |
-| `SysUserSession` | 会话记录本身不是聚合根，撤销通过服务和事件编排 |
+| 实体                    | 原因                                           |
+| ----------------------- | ---------------------------------------------- |
+| `SysFieldLevelSecurity` | 配置型策略，无独立事务不变量                   |
+| `SysConstraintRule`     | RBAC/ABAC 策略子实体                           |
+| `SysNotification`       | 简单消息实体                                   |
+| `SysEmail`              | 简单消息实体                                   |
+| `SysSms`                | 简单消息实体                                   |
+| `SysFile`               | 文件元数据无复杂不变量                         |
+| `SysDict`               | 简单 CRUD                                      |
+| `SysConfig`             | 简单 CRUD                                      |
+| `SysUserSession`        | 会话记录本身不是聚合根，撤销通过服务和事件编排 |
 
 保留为聚合根：
 
@@ -942,7 +942,7 @@ pnpm lint
   - `ISaasSplitRepository<TEntity>`：继承 Framework `ISplitRepositoryBase<TEntity>`，仅用于 `ISplitTableEntity` 分表实体。
   - `SaasSplitRepository<TEntity>`：继承 Framework `SqlSugarSplitRepository<TEntity>`，实现 SaaS 分表仓储接口并参与作用域注入。
 - 将分表日志实体仓储接口从普通 `ISaasRepository<TEntity>` 切换为 `ISaasSplitRepository<TEntity>`：
-  - `SysAccessLog`、`SysApiLog`、`SysAuditLog`、`SysExceptionLog`、`SysLoginLog`、`SysOperationLog`、`SysPermissionChangeLog`。
+  - `SysAccessLog`、`SysApiLog`、`SysDiffLog、`SysExceptionLog`、`SysLoginLog`、`SysOperationLog`、`SysPermissionChangeLog`。
   - `SysReviewLog`、`SysTaskLog`。
 - 补齐剩余仓储实现：
   - `Audit/`：访问、API、审计、异常、登录、操作、权限变更日志分表仓储。
@@ -970,7 +970,7 @@ pnpm lint
 - `rg -n "tenantId|excludeTenantId" backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Repositories -g "*.cs"`：0 个匹配。
 - `rg -n "namespace XiHan\.BasicApp\.Saas\.(Domain|Infrastructure)\.Repositories\." backend/src/modules/XiHan.BasicApp.Saas/Domain/Repositories backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Repositories -g "*.cs"`：0 个匹配。
 - `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
-- `rg -n "ISaasRepository<Sys(AccessLog|ApiLog|AuditLog|ExceptionLog|LoginLog|OperationLog|PermissionChangeLog|ReviewLog|TaskLog)>|SaasRepository<Sys(AccessLog|ApiLog|AuditLog|ExceptionLog|LoginLog|OperationLog|PermissionChangeLog|ReviewLog|TaskLog)>" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "ISaasRepository<Sys(AccessLog|ApiLog|DiffLog|ExceptionLog|LoginLog|OperationLog|PermissionChangeLog|ReviewLog|TaskLog)>|SaasRepository<Sys(AccessLog|ApiLog|DiffLog|ExceptionLog|LoginLog|OperationLog|PermissionChangeLog|ReviewLog|TaskLog)>" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
 - `git diff --check`：通过。
 - `dotnet build E:\Repository\XiHanFun\XiHan.BasicApp\backend\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj --artifacts-path C:\Users\zhaifanhua\AppData\Local\Temp\XiHanBasicAppCodexArtifacts -m:1 -p:UseSharedCompilation=false --no-restore`：通过，`151` 个既有 NuGet 源/预发布依赖警告，`0` 个错误。
 
@@ -3902,22 +3902,22 @@ pnpm lint
 
 ### 2026-05-01 A63 Application 审计日志读模型
 
-本阶段继续第 6 层应用服务重构，从审计日志域补齐 `SysAuditLog` 的只读审计入口。范围限定为审计日志分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理 ORM 审计写入、变更快照明文读取、审计归档、跨日志链路聚合、前端页面和缓存策略，不新增 Controller，不修改 Framework。
+本阶段继续第 6 层应用服务重构，从审计日志域补齐 `SysDiffLog` 的只读审计入口。范围限定为审计日志分页、详情、读侧 DTO、查询契约、QueryService、显式映射器和查看权限；不处理 ORM 审计写入、变更快照明文读取、审计归档、跨日志链路聚合、前端页面和缓存策略，不新增 Controller，不修改 Framework。
 
 执行结果：
 
 - 新增审计日志读侧 DTO：
-  - `AuditLogPageQueryDto`：支持关键字、用户主键、用户名、会话标识、请求标识、TraceId、审计类型、操作类型、实体类型/ID/名称、表名、成功状态、风险等级、执行耗时和审计时间范围筛选。
-  - `AuditLogListItemDto`：展示操作者摘要、链路定位、实体变更定位、操作类型、成功状态、风险等级、耗时、审计时间和敏感明细存在标记。
-  - `AuditLogDetailDto`：在列表字段基础上补充创建审计字段。
-- 新增 `IAuditLogQueryService` / `AuditLogQueryService`：
-  - `GetAuditLogPageAsync()`：按必填审计时间范围分页读取当前租户上下文内审计日志，走分表仓储 `GetPagedByTimeRangeAsync()`，不触发全分片扫描。
-  - `GetAuditLogDetailAsync()`：按审计日志主键读取详情，依赖分表仓储通过雪花 ID 定位分片。
-- 新增 `AuditLogApplicationMapper`：
+  - `DiffLogPageQueryDto`：支持关键字、用户主键、用户名、会话标识、请求标识、TraceId、审计类型、操作类型、实体类型/ID/名称、表名、成功状态、风险等级、执行耗时和审计时间范围筛选。
+  - `DiffLogListItemDto`：展示操作者摘要、链路定位、实体变更定位、操作类型、成功状态、风险等级、耗时、审计时间和敏感明细存在标记。
+  - `DiffLogDetailDto`：在列表字段基础上补充创建审计字段。
+- 新增 `IDiffLogQueryService` / `DiffLogQueryService`：
+  - `GetDiffLogPageAsync()`：按必填审计时间范围分页读取当前租户上下文内审计日志，走分表仓储 `GetPagedByTimeRangeAsync()`，不触发全分片扫描。
+  - `GetDiffLogDetailAsync()`：按审计日志主键读取详情，依赖分表仓储通过雪花 ID 定位分片。
+- 新增 `DiffLogApplicationMapper`：
   - 集中映射审计日志列表和详情。
   - 只返回操作上下文、操作文本、变更摘要、前后快照、字段变更、异常和扩展数据是否存在，不返回原始值。
 - 扩展 `SaasPermissionCodes` 与 `SaasPermissionSeeder`：
-  - 新增 `saas:audit-log:read`。
+  - 新增 `saas:diff-log:read`。
   - 权限种子标记为需审计功能权限。
 
 设计约束：
@@ -3933,8 +3933,8 @@ pnpm lint
 - `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
 - `rg -n "TenantId\s*==\s*null|TenantId\s+IS\s+NULL|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
 - `rg -n "\btenantId\b" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
-- `rg -n "public .*OperationIp\b|public .*Description\b|public .*BeforeData\b|public .*AfterData\b|public .*ChangedFields\b|public .*ChangeDescription\b|public .*ExceptionMessage\b|public .*ExceptionStackTrace\b|public .*ExtendData\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Audit -g "AuditLog*.cs"`：0 个匹配。
-- `rg -n "ScanAllAsync" backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Audit/AuditLogQueryService.cs`：0 个匹配。
+- `rg -n "public .*OperationIp\b|public .*Description\b|public .*BeforeData\b|public .*AfterData\b|public .*ChangedFields\b|public .*ChangeDescription\b|public .*ExceptionMessage\b|public .*ExceptionStackTrace\b|public .*ExtendData\b|public .*Authorization\b|public .*Cookie\b" backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Audit -g "DiffLog*.cs"`：0 个匹配。
+- `rg -n "ScanAllAsync" backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Audit/DiffLogQueryService.cs`：0 个匹配。
 - `rg -n "namespace XiHan\.BasicApp\.Saas\.Application\.(Dtos|Contracts|QueryServices|AppServices|Mappers)\." backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
 - `rg -n "PermissionAuthorize\(\"" backend/src/modules/XiHan.BasicApp.Saas/Application -g "*.cs"`：0 个匹配。
 
@@ -6105,34 +6105,34 @@ pnpm lint
 
 将所有模块的合并 `types.ts` 拆分为每个子域独立的 `.types.ts` 文件：
 
-| 模块 | 原文件 | 拆分结果 |
-|------|--------|----------|
+| 模块            | 原文件             | 拆分结果                                                                                                                                                                                        |
+| --------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `authorization` | `types.ts` (850行) | 12 个独立文件：permission, resource, operation, role, role-permission, user-role, user-permission, user-data-scope, role-data-scope, role-hierarchy, field-level-security, permission-condition |
-| `tenant` | `types.ts` (284行) | 5 个文件：tenant-enums, tenant, tenant-edition, tenant-member, tenant-edition-permission |
-| `messaging` | `types.ts` (208行) | 2 个文件：message, notification |
-| `oauth` | `types.ts` (44行) | 重命名为 `oauth-app.types.ts` |
-| `identity` | `types.ts` (196行) | 2 个文件：user, user-session |
-| `organization` | `types.ts` (103行) | 重命名为 `department.types.ts` |
+| `tenant`        | `types.ts` (284行) | 5 个文件：tenant-enums, tenant, tenant-edition, tenant-member, tenant-edition-permission                                                                                                        |
+| `messaging`     | `types.ts` (208行) | 2 个文件：message, notification                                                                                                                                                                 |
+| `oauth`         | `types.ts` (44行)  | 重命名为 `oauth-app.types.ts`                                                                                                                                                                   |
+| `identity`      | `types.ts` (196行) | 2 个文件：user, user-session                                                                                                                                                                    |
+| `organization`  | `types.ts` (103行) | 重命名为 `department.types.ts`                                                                                                                                                                  |
 
 **二、新增 API 模块**
 
-| 模块 | 文件 | 说明 |
-|------|------|------|
-| `navigation` | `menu.types.ts` + `menu.ts` + `index.ts` | 菜单管理 CRUD |
-| `configuration` | `dict.types.ts` + `dict.ts` + `config.types.ts` + `config.ts` + `index.ts` | 字典/配置只读查询 |
-| `audit` | `operation-log.types.ts` + `operation-log.ts` + `access-log.types.ts` + `access-log.ts` + `index.ts` | 审计日志只读查询 |
+| 模块            | 文件                                                                                                 | 说明              |
+| --------------- | ---------------------------------------------------------------------------------------------------- | ----------------- |
+| `navigation`    | `menu.types.ts` + `menu.ts` + `index.ts`                                                             | 菜单管理 CRUD     |
+| `configuration` | `dict.types.ts` + `dict.ts` + `config.types.ts` + `config.ts` + `index.ts`                           | 字典/配置只读查询 |
+| `audit`         | `operation-log.types.ts` + `operation-log.ts` + `access-log.types.ts` + `access-log.ts` + `index.ts` | 审计日志只读查询  |
 
 **三、新增前端页面**
 
-| 路径 | 页面 | 功能 |
-|------|------|------|
-| `system/user/index.vue` | 用户管理 | 分页列表 + 新增/编辑/状态切换 |
-| `system/department/index.vue` | 部门管理 | 分页列表 + 树形级联选择 + CRUD |
-| `system/menu/index.vue` | 菜单管理 | 分页列表 + 树形级联 + 多类型表单 |
-| `system/dict/index.vue` | 字典管理 | 字典分页 + 字典项抽屉 |
-| `system/config/index.vue` | 系统配置 | 多维筛选分页列表 |
-| `system/operation-log/index.vue` | 操作日志 | 操作类型/状态筛选 |
-| `system/access-log/index.vue` | 访问日志 | 访问结果/方法筛选 |
+| 路径                             | 页面     | 功能                             |
+| -------------------------------- | -------- | -------------------------------- |
+| `system/user/index.vue`          | 用户管理 | 分页列表 + 新增/编辑/状态切换    |
+| `system/department/index.vue`    | 部门管理 | 分页列表 + 树形级联选择 + CRUD   |
+| `system/menu/index.vue`          | 菜单管理 | 分页列表 + 树形级联 + 多类型表单 |
+| `system/dict/index.vue`          | 字典管理 | 字典分页 + 字典项抽屉            |
+| `system/config/index.vue`        | 系统配置 | 多维筛选分页列表                 |
+| `system/operation-log/index.vue` | 操作日志 | 操作类型/状态筛选                |
+| `system/access-log/index.vue`    | 访问日志 | 访问结果/方法筛选                |
 
 **四、后端菜单种子数据层级优化**
 
@@ -6185,7 +6185,7 @@ pnpm lint
   - 移除 `HasTemporaryLink` 属性。
 - 精简 `Domain/Entities/Expands/SysTenant.Expand.cs`：
   - 保留核心导航：`Edition`（ManyToOne）、`TenantUsers`（OneToMany → SysTenantUser，新增）、`Configs`（OneToMany）。
-  - 移除 14 个冗余导航（Users、Files、Notifications、OperationLogs、Emails、SmsMessages、UserStatistics、Reviews、ReviewLogs、AuditLogs、AccessLogs、Tasks、ApiLogs）。
+  - 移除 14 个冗余导航（Users、Files、Notifications、OperationLogs、Emails、SmsMessages、UserStatistics、Reviews、ReviewLogs、DiffLogs、AccessLogs、Tasks、ApiLogs）。
   - 这些数据改为通过各自领域仓储按需查询，避免租户聚合加载过重。
 
 验证结果：
@@ -6240,12 +6240,12 @@ pnpm lint
   - 实现 `ILocalEventHandler<T>` 覆盖 `AuthorizationChangedDomainEvent`、`DataScopeChangedDomainEvent`、`FieldLevelSecurityChangedDomainEvent`、`HierarchyChangedDomainEvent`、`TenantMembershipChangedDomainEvent`、`TenantStatusChangedDomainEvent`、`UserSessionRevokedDomainEvent`。
   - `UserSessionRevokedDomainEvent`：撤销会话关联 OAuth Token，并停用会话激活角色；`revokeAllUserSessions=true` 时按用户撤销当前租户内全部 Token 和会话角色。
   - `TenantStatusChangedDomainEvent`：租户进入 `Suspended` / `Expired` / `Disabled` 时切换到受影响租户上下文，撤销该租户全部未撤销会话、OAuth Token 和激活会话角色。
-  - 授权、数据范围、FLS、层级、租户成员和会话/租户状态事件统一写入 `SysAuditLog`；授权变更事件额外写入 `SysPermissionChangeLog`。
+  - 授权、数据范围、FLS、层级、租户成员和会话/租户状态事件统一写入 `SysDiffLog`；授权变更事件额外写入 `SysPermissionChangeLog`。
 - 本阶段不新增 Controller，不修改 DynamicApi 约定，不修改 Framework。
 - 当前发布点仍只有：
   - `SysTenant.ChangeStatus()` 发布 `TenantStatusChangedDomainEvent`。
   - `UserSessionAppService` 发布 `UserSessionRevokedDomainEvent`。
-  其他 5 个事件已有处理器，后续授权写服务接入事件发布时可直接复用。
+    其他 5 个事件已有处理器，后续授权写服务接入事件发布时可直接复用。
 
 验证结果：
 

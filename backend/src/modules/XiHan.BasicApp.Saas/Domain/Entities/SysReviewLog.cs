@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <remarks>
 /// 职责边界：
 /// - 本表记录"审批决策动作"（同意/拒绝/退回/加签/转办），是业务审批的合规证据
-/// - 与 SysAuditLog（数据库实体变更审计）职责分离：数据变更由 SysAuditLog 自动捕获，本表只记录审批人的决策行为
+/// - 与 SysDiffLog（数据库实体变更审计）职责分离：数据变更由 SysDiffLog 自动捕获，本表只记录审批人的决策行为
 /// - 设备/浏览器等请求上下文通过 TraceId 关联 SysAccessLog 查询，本表不冗余
 ///
 /// 分表策略：

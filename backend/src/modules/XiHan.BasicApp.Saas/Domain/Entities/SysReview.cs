@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <remarks>
 /// 职责边界：
 /// - 本表承载"业务审批决策过程"（谁提交了什么、谁审批了、结果如何）
-/// - 与 SysAuditLog（数据库实体变更审计）职责分离：SysAuditLog 记录数据变更事实，本表记录业务审批流程
+/// - 与 SysDiffLog（数据库实体变更审计）职责分离：SysDiffLog 记录数据变更事实，本表记录业务审批流程
 /// - 敏感操作（如权限变更、角色分配）可关联审查单，实现"先审批后执行"
 ///
 /// 关联：

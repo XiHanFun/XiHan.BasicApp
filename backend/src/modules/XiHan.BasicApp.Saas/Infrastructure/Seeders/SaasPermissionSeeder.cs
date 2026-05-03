@@ -672,10 +672,10 @@ public sealed class SaasPermissionSeeder : DataSeederBase
                 539),
             new(
                 SaasPermissionCodes.Module,
-                SaasPermissionCodes.AuditLog.Read,
-                "审计日志查看",
+                SaasPermissionCodes.DiffLog.Read,
+                "差异日志查看",
                 "查看当前租户数据变更审计摘要",
-                "[\"saas\",\"audit-log\"]",
+                "[\"saas\",\"diff-log\"]",
                 true,
                 800,
                 800),

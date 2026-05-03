@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - TenantId + OperationCode 租户内唯一（UX_TeId_OpCo）
 /// - OperationCode 规范：小写英文（create/read/update/delete/approve/export）
 /// - IsGlobal=true 时作为平台动作模板（CRUD/Approve/Export 等通用操作）
-/// - IsDangerous=true 的操作前端应弹二次确认；IsRequireAudit=true 的操作必须写 SysAuditLog
+/// - IsDangerous=true 的操作前端应弹二次确认；IsRequireAudit=true 的操作必须写 SysDiffLog
 ///
 /// 查询：
 /// - 按 Category/OperationTypeCode 过滤用于前端操作面板分组
@@ -114,7 +114,7 @@ public partial class SysOperation : BasicAppAggregateRoot
     public virtual bool IsDangerous { get; set; } = false;
 
     /// <summary>
-    /// 是否需要审计日志
+    /// 是否需要差异日志
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;

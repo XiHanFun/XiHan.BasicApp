@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysAuditLog.Expand
+// FileName:SysDiffLog.Expand
 // Guid:c628152c-d6e9-4396-addb-b479254bad72
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -17,9 +17,9 @@ using SqlSugar;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统审计日志实体扩展
+/// 系统差异日志实体扩展
 /// </summary>
-public partial class SysAuditLog
+public partial class SysDiffLog
 {
     /// <summary>
     /// 租户信息

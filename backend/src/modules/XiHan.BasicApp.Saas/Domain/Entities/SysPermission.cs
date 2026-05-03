@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - TenantId + PermissionCode 租户内唯一（UX_TeId_PeCo），建议格式 "{resource}:{operation}"
 /// - TenantId + ResourceId + OperationId 租户内唯一（UX_TeId_ReId_OpId），防止重复授权
 /// - IsGlobal=true 时 TenantId 必须为 0（平台租户占位），作为平台模板供订阅版本引用（SysTenantEditionPermission）
-/// - IsRequireAudit=true 时，该权限的操作应强制写 SysAuditLog
+/// - IsRequireAudit=true 时，该权限的操作应强制写 SysDiffLog
 ///
 /// 查询：
 /// - 全局权限 + 租户私有权限合并查询优先使用：WHERE TenantId IN (0, ?)
@@ -113,7 +113,7 @@ public partial class SysPermission : BasicAppAggregateRoot
     public virtual string? Tags { get; set; }
 
     /// <summary>
-    /// 是否需要审计（操作此权限是否需要记录审计日志）
+    /// 是否需要审计（操作此权限是否需要记录差异日志）
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;

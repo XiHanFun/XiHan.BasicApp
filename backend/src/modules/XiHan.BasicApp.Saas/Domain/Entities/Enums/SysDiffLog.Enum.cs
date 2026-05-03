@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysAuditLog.Enum
+// FileName:SysDiffLog.Enum
 // Guid:ed9f7f77-64a1-4f8d-b5f9-35fa37247dbb
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -53,7 +53,7 @@ public enum AuditRiskLevel
 }
 
 /// <summary>
-/// 操作类型枚举（审计日志专用，记录用户执行了什么类型的操作）
+/// 操作类型枚举（差异日志专用，记录用户执行了什么类型的操作）
 /// 注意：勿与 <see cref="OperationTypeCode"/> 混淆，后者用于 RBAC 权限模型中 SysOperation 的操作定义
 /// </summary>
 public enum OperationType

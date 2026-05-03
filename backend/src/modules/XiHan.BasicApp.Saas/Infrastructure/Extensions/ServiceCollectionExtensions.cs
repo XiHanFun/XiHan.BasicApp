@@ -52,8 +52,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOperationLogWriter, RbacOperationLogWriter>();
         services.AddScoped<IExceptionLogWriter, RbacExceptionLogWriter>();
         services.AddScoped<ILoginLogWriter, RbacLoginLogWriter>();
-        services.AddScoped<IEntityAuditLogWriter, RbacEntityAuditLogWriter>();
-        services.AddScoped<IEntityAuditContextProvider, RbacEntityAuditContextProvider>();
+        services.AddScoped<IEntityDiffLogWriter, RbacEntityDiffLogWriter>();
+        services.AddScoped<IEntityAuditContextProvider, RbacEntityDiffContextProvider>();
         return services;
     }
 }
