@@ -58,6 +58,12 @@ public enum LoginResult
     TwoFactorFailed = 5,
 
     /// <summary>
+    /// 正常登出
+    /// </summary>
+    [Description("正常登出")]
+    Logout = 10,
+
+    /// <summary>
     /// 失败 - 其他错误
     /// </summary>
     [Description("其他失败")]
