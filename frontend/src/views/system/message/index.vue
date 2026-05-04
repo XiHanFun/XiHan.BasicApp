@@ -8,7 +8,6 @@ import {
   NDrawer,
   NDrawerContent,
   NIcon,
-  NInputNumber,
   NSelect,
   NSpace,
   NTag,
@@ -80,7 +79,7 @@ function normalizeNullable(value?: string | null) {
 }
 
 function normalizeId(value: ApiId | null) {
-  return value && value > 0 ? value : null
+  return value || null
 }
 
 function getMessageStatusTagType(status: EmailStatus | SmsStatus): TagType {
@@ -425,10 +424,10 @@ async function handleSmsDetail(row: SmsListItemDto) {
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <NInputNumber v-model:value="emailQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
-          <NInputNumber v-model:value="emailQuery.sendUserId" clearable placeholder="发送用户" style="width: 120px" />
-          <NInputNumber
-            v-model:value="emailQuery.receiveUserId"
+          <vxe-input v-model="emailQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
+          <vxe-input v-model="emailQuery.sendUserId" clearable placeholder="发送用户" style="width: 120px" />
+          <vxe-input
+            v-model="emailQuery.receiveUserId"
             clearable
             placeholder="接收用户"
             style="width: 120px"
@@ -471,9 +470,9 @@ async function handleSmsDetail(row: SmsListItemDto) {
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <NInputNumber v-model:value="smsQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
-          <NInputNumber v-model:value="smsQuery.senderId" clearable placeholder="发送用户" style="width: 120px" />
-          <NInputNumber v-model:value="smsQuery.receiverId" clearable placeholder="接收用户" style="width: 120px" />
+          <vxe-input v-model="smsQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
+          <vxe-input v-model="smsQuery.senderId" clearable placeholder="发送用户" style="width: 120px" />
+          <vxe-input v-model="smsQuery.receiverId" clearable placeholder="接收用户" style="width: 120px" />
         </template>
 
         <NButton size="small" type="primary" @click="handleSearch">

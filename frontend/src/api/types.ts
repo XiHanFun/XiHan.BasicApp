@@ -1,4 +1,4 @@
-export type ApiId = number
+export type ApiId = string
 
 export type DateTimeString = string
 

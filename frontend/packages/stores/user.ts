@@ -4,23 +4,10 @@ import { computed, ref } from 'vue'
 import { USER_INFO_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 
-function normalizeUserInfo(info: null | UserInfo): null | UserInfo {
-  if (!info) {
-    return null
-  }
-
-  const resolvedId = Number(info.basicId ?? 0)
-
-  return {
-    ...info,
-    basicId: resolvedId > 0 ? resolvedId : 0,
-  }
-}
-
 export const useUserStore = defineStore('user', () => {
-  const userInfo = ref<UserInfo | null>(normalizeUserInfo(LocalStorage.get<UserInfo>(USER_INFO_KEY)))
+  const userInfo = ref<UserInfo | null>(LocalStorage.get<UserInfo>(USER_INFO_KEY))
 
-  const isLoggedIn = computed(() => Number(userInfo.value?.basicId ?? 0) > 0)
+  const isLoggedIn = computed(() => Boolean(userInfo.value?.basicId))
   const username = computed(() => userInfo.value?.userName ?? '')
   const nickname = computed(() => userInfo.value?.nickName ?? '')
   const avatar = computed(() => userInfo.value?.avatar ?? '')
@@ -28,10 +15,9 @@ export const useUserStore = defineStore('user', () => {
   const permissions = computed(() => userInfo.value?.permissions ?? [])
 
   function setUserInfo(info: UserInfo | null) {
-    const normalized = normalizeUserInfo(info)
-    userInfo.value = normalized
-    if (normalized) {
-      LocalStorage.set(USER_INFO_KEY, normalized)
+    userInfo.value = info
+    if (info) {
+      LocalStorage.set(USER_INFO_KEY, info)
     }
     else {
       LocalStorage.remove(USER_INFO_KEY)

@@ -37,7 +37,7 @@ const revokedOptions = [
 ]
 
 function getDisplayName(row: UserSessionListItemDto) {
-  return row.realName || row.nickName || row.userName || String(row.userId)
+  return row.realName || row.nickName || row.userName || row.userId
 }
 
 function getSessionState(row: UserSessionListItemDto) {

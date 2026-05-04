@@ -304,7 +304,7 @@ async function loadNotifications() {
     return
   notificationStore.loading = true
   try {
-    const list = await appContext.apis.userInboxApi.list(String(userId), true, userStore.userInfo?.tenantId)
+    const list = await appContext.apis.userInboxApi.list(userId, true, userStore.userInfo?.tenantId)
     notificationStore.setItems(list.map((n: Record<string, any>) => ({
       basicId: n.basicId,
       title: n.title,
@@ -335,7 +335,7 @@ async function handleNotificationMarkRead(id: string) {
   const prevReadTime = prev?.readTime
   notificationStore.markItemRead(id)
   try {
-    await appContext.apis.userInboxApi.markRead(id, String(userId), userStore.userInfo?.tenantId)
+    await appContext.apis.userInboxApi.markRead(id, userId, userStore.userInfo?.tenantId)
   }
   catch {
     if (prev && prevStatus !== undefined) {
@@ -351,7 +351,7 @@ async function handleNotificationConfirm(id: string) {
     return
   notificationStore.markItemConfirmed(id)
   try {
-    await appContext.apis.userInboxApi.confirm(id, String(userId), userStore.userInfo?.tenantId)
+    await appContext.apis.userInboxApi.confirm(id, userId, userStore.userInfo?.tenantId)
   }
   catch {
     await loadNotifications()
@@ -367,7 +367,7 @@ async function handleNotificationMarkAllRead() {
     .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
   notificationStore.markAllRead()
   try {
-    await appContext.apis.userInboxApi.markAllRead(String(userId), userStore.userInfo?.tenantId)
+    await appContext.apis.userInboxApi.markAllRead(userId, userStore.userInfo?.tenantId)
   }
   catch {
     for (const s of snapshot) {

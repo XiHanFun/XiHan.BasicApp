@@ -32,7 +32,7 @@ export interface EnumBatchQuery {
   includeHidden?: boolean
   includeDict?: boolean
   dictCodes?: string[]
-  tenantId?: number
+  tenantId?: string
 }
 
 export interface UseEnumOptions {
@@ -41,7 +41,7 @@ export interface UseEnumOptions {
   includeDict?: boolean
   dictCode?: string
   dictCodes?: string[]
-  tenantId?: number
+  tenantId?: string
 }
 
 export interface EnumSelectOption {

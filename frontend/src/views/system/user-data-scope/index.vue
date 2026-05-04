@@ -425,7 +425,7 @@ function handleEdit(row: UserDataScopeListItemDto) {
   dataScopeForm.value = {
     basicId: row.basicId,
     dataScope: row.dataScope,
-    departmentId: row.departmentId > 0 ? row.departmentId : null,
+    departmentId: row.departmentId || null,
     includeChildren: row.includeChildren,
     remark: row.remark ?? null,
     status: row.status,
@@ -444,12 +444,12 @@ function handleEdit(row: UserDataScopeListItemDto) {
     },
   ])
 
-  if (row.departmentId > 0) {
+  if (row.departmentId) {
     departmentOptions.value = mergeOptions(departmentOptions.value, [
       {
         label: row.departmentCode
           ? `${row.departmentName || row.departmentCode} (${row.departmentCode})`
-          : String(row.departmentId),
+          : row.departmentId,
         value: row.departmentId,
       },
     ])

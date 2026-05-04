@@ -13,7 +13,6 @@ import {
   NFormItem,
   NIcon,
   NInput,
-  NInputNumber,
   NModal,
   NPopconfirm,
   NSelect,
@@ -90,7 +89,7 @@ const modalTitle = computed(() => `编辑租户成员 #${memberForm.value.basicI
 
 function createDefaultForm(): TenantMemberFormModel {
   return {
-    basicId: 0,
+    basicId: '',
     displayName: null,
     effectiveTime: null,
     expirationTime: null,
@@ -108,7 +107,7 @@ function normalizeNullable(value?: string | null) {
 }
 
 function normalizeId(value: ApiId | null) {
-  return value && value > 0 ? value : null
+  return value || null
 }
 
 function toDateInputValue(value?: DateTimeString | null) {
@@ -282,7 +281,7 @@ function handleEdit(row: TenantMemberListItemDto) {
 }
 
 function validateForm() {
-  if (memberForm.value.basicId <= 0) {
+  if (!memberForm.value.basicId) {
     message.warning('租户成员主键无效')
     return false
   }
@@ -385,7 +384,7 @@ async function handleRevoke(row: TenantMemberListItemDto) {
           style="width: 220px"
           @keyup.enter="handleSearch"
         />
-        <NInputNumber v-model:value="queryParams.userId" clearable placeholder="用户主键" style="width: 120px" />
+        <vxe-input v-model="queryParams.userId" clearable placeholder="用户主键" style="width: 120px" />
         <NSelect
           v-model:value="queryParams.memberType"
           :options="memberTypeOptions"

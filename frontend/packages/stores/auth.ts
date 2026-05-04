@@ -103,11 +103,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | number) {
+  function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | string) {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
     const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
     let url = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider.name)}`
-    if (tenantId && tenantId > 0) {
+    if (tenantId) {
       url += `&tenantId=${tenantId}`
     }
     window.location.href = url

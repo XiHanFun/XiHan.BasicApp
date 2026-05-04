@@ -14,7 +14,6 @@ import {
   NDrawer,
   NDrawerContent,
   NIcon,
-  NInputNumber,
   NSelect,
   NSpace,
   NTag,
@@ -85,7 +84,7 @@ function normalizeNullable(value?: string | null) {
 }
 
 function normalizeId(value: ApiId | null) {
-  return value && value > 0 ? value : null
+  return value || null
 }
 
 function toOptionalBoolean(value: number | undefined) {
@@ -441,8 +440,8 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <NInputNumber
-            v-model:value="notificationQuery.sendUserId"
+          <vxe-input
+            v-model="notificationQuery.sendUserId"
             clearable
             placeholder="发送用户"
             style="width: 120px"
@@ -450,14 +449,14 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
         </template>
 
         <template v-else>
-          <NInputNumber
-            v-model:value="userNotificationQuery.notificationId"
+          <vxe-input
+            v-model="userNotificationQuery.notificationId"
             clearable
             placeholder="通知主键"
             style="width: 130px"
           />
-          <NInputNumber
-            v-model:value="userNotificationQuery.userId"
+          <vxe-input
+            v-model="userNotificationQuery.userId"
             clearable
             placeholder="用户主键"
             style="width: 120px"

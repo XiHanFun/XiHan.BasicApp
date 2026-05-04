@@ -48,7 +48,7 @@ const tenantForm = ref<TenantFormModel>(createDefaultForm())
 
 const queryParams = reactive({
   configStatus: undefined as TenantConfigStatus | undefined,
-  editionId: undefined as number | null | undefined,
+  editionId: undefined as ApiId | null | undefined,
   expireTimeEnd: null as string | null,
   expireTimeStart: null as string | null,
   keyword: '',
@@ -357,7 +357,7 @@ async function handleSubmit() {
           placeholder="配置状态"
           style="width: 120px"
         />
-        <NInputNumber
+        <NInput
           v-model:value="queryParams.editionId"
           clearable
           placeholder="版本 ID"
@@ -458,7 +458,7 @@ async function handleSubmit() {
           <NSelect v-model:value="tenantForm.isolationMode" :options="isolationModeOptions" />
         </NFormItem>
         <NFormItem label="版本 ID" path="editionId">
-          <NInputNumber v-model:value="tenantForm.editionId" :min="1" clearable style="width: 100%" />
+          <NInput v-model:value="tenantForm.editionId" clearable style="width: 100%" />
         </NFormItem>
         <NFormItem label="用户上限" path="userLimit">
           <NInputNumber v-model:value="tenantForm.userLimit" :min="0" clearable style="width: 100%" />
