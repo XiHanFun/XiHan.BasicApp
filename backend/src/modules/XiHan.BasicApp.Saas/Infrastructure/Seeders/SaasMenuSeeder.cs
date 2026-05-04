@@ -37,7 +37,7 @@ public sealed class SaasMenuSeeder(
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 22;
+    public override int Order => 25;
 
     /// <summary>
     /// 种子数据名称
@@ -59,7 +59,11 @@ public sealed class SaasMenuSeeder(
             .ToArray();
 
         var permissions = await client.Queryable<SysPermission>()
-            .Where(permission => permissionCodes.Contains(permission.PermissionCode) && permission.Status == EnableStatus.Enabled)
+            .Where(permission =>
+                permission.TenantId == 0
+                && permission.IsGlobal
+                && permissionCodes.Contains(permission.PermissionCode)
+                && permission.Status == EnableStatus.Enabled)
             .ToListAsync();
         var permissionMap = permissions
             .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)

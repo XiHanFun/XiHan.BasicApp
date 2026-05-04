@@ -38,7 +38,7 @@ public sealed class SaasIdentityPermissionSeeder(
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 21;
+    public override int Order => 24;
 
     /// <summary>
     /// 种子数据名称
@@ -61,7 +61,7 @@ public sealed class SaasIdentityPermissionSeeder(
         }
 
         var permissions = await client.Queryable<SysPermission>()
-            .Where(permission => permission.Status == EnableStatus.Enabled)
+            .Where(permission => permission.TenantId == 0 && permission.IsGlobal && permission.Status == EnableStatus.Enabled)
             .ToListAsync();
         if (permissions.Count == 0)
         {

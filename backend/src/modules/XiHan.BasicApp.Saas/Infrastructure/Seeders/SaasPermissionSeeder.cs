@@ -65,38 +65,86 @@ public sealed class SaasPermissionSeeder : DataSeederBase
         var client = DbClient;
         var definitions = BuildDefinitions();
         var permissionCodes = definitions.Select(definition => definition.PermissionCode).ToArray();
-        var existingCodes = await client.Queryable<SysPermission>()
-            .Where(permission => permission.IsGlobal && permissionCodes.Contains(permission.PermissionCode))
-            .Select(permission => permission.PermissionCode)
+        var existingPermissions = await client.Queryable<SysPermission>()
+            .Where(permission => permission.TenantId == 0 && permissionCodes.Contains(permission.PermissionCode))
             .ToListAsync();
 
-        var existingSet = existingCodes.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var addList = definitions
-            .Where(definition => !existingSet.Contains(definition.PermissionCode))
-            .Select(definition => new SysPermission
-            {
-                PermissionType = PermissionType.Functional,
-                ModuleCode = definition.ModuleCode,
-                PermissionCode = definition.PermissionCode,
-                PermissionName = definition.PermissionName,
-                PermissionDescription = definition.PermissionDescription,
-                Tags = definition.Tags,
-                IsRequireAudit = definition.IsRequireAudit,
-                IsGlobal = true,
-                Priority = definition.Priority,
-                Status = EnableStatus.Enabled,
-                Sort = definition.Sort
-            })
-            .ToList();
+        var existingMap = existingPermissions
+            .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => group.First(),
+                StringComparer.OrdinalIgnoreCase);
 
-        if (addList.Count == 0)
+        var addList = new List<SysPermission>();
+        var updateCount = 0;
+        foreach (var definition in definitions)
+        {
+            if (existingMap.TryGetValue(definition.PermissionCode, out var existing))
+            {
+                if (ApplyDefinition(existing, definition))
+                {
+                    _ = await client.Updateable(existing).ExecuteCommandAsync();
+                    updateCount++;
+                }
+
+                continue;
+            }
+
+            addList.Add(CreatePermission(definition));
+        }
+
+        if (addList.Count > 0)
+        {
+            await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
+        }
+
+        if (addList.Count == 0 && updateCount == 0)
         {
             Logger.LogInformation("SaaS 权限数据已存在，跳过种子数据");
             return;
         }
 
-        await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
-        Logger.LogInformation("成功初始化 {Count} 个 SaaS 权限", addList.Count);
+        Logger.LogInformation("成功初始化 SaaS 权限，新增 {AddCount} 个，更新 {UpdateCount} 个", addList.Count, updateCount);
+    }
+
+    private static SysPermission CreatePermission(PermissionSeedDefinition definition)
+    {
+        var permission = new SysPermission();
+        _ = ApplyDefinition(permission, definition);
+        return permission;
+    }
+
+    private static bool ApplyDefinition(SysPermission permission, PermissionSeedDefinition definition)
+    {
+        var changed = false;
+        changed |= SetIfChanged(permission.TenantId, 0, value => permission.TenantId = value);
+        changed |= SetIfChanged(permission.PermissionType, PermissionType.Functional, value => permission.PermissionType = value);
+        changed |= SetIfChanged(permission.ResourceId, null, value => permission.ResourceId = value);
+        changed |= SetIfChanged(permission.OperationId, null, value => permission.OperationId = value);
+        changed |= SetIfChanged(permission.ModuleCode, definition.ModuleCode, value => permission.ModuleCode = value);
+        changed |= SetIfChanged(permission.PermissionCode, definition.PermissionCode, value => permission.PermissionCode = value);
+        changed |= SetIfChanged(permission.PermissionName, definition.PermissionName, value => permission.PermissionName = value);
+        changed |= SetIfChanged(permission.PermissionDescription, definition.PermissionDescription, value => permission.PermissionDescription = value);
+        changed |= SetIfChanged(permission.Tags, definition.Tags, value => permission.Tags = value);
+        changed |= SetIfChanged(permission.IsRequireAudit, definition.IsRequireAudit, value => permission.IsRequireAudit = value);
+        changed |= SetIfChanged(permission.IsGlobal, true, value => permission.IsGlobal = value);
+        changed |= SetIfChanged(permission.Priority, definition.Priority, value => permission.Priority = value);
+        changed |= SetIfChanged(permission.Status, EnableStatus.Enabled, value => permission.Status = value);
+        changed |= SetIfChanged(permission.Sort, definition.Sort, value => permission.Sort = value);
+        changed |= SetIfChanged(permission.Remark, "系统初始化全局权限", value => permission.Remark = value);
+        return changed;
+    }
+
+    private static bool SetIfChanged<T>(T current, T next, Action<T> setter)
+    {
+        if (EqualityComparer<T>.Default.Equals(current, next))
+        {
+            return false;
+        }
+
+        setter(next);
+        return true;
     }
 
     private static IReadOnlyList<PermissionSeedDefinition> BuildDefinitions()
