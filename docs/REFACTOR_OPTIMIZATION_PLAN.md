@@ -6297,3 +6297,61 @@ pnpm lint
 
 - 阶段前已有本地配置改动 `backend/src/main/XiHan.BasicApp.WebHost/appsettings.Development.json`、`frontend/.env.development`，本阶段未修改或回滚。
 - 本阶段没有 Framework 改动，没有新增 Controller，没有通过前端传租户标识实现授权。
+
+### 2026-05-04 A122 基础种子数据优化
+
+本阶段按用户要求优化 SaaS 基础种子数据。范围限定为 `Infrastructure/Seeders`，不新增 Controller，不修改 Framework，不调整前端契约。
+
+执行结果：
+
+- `SaasPermissionSeeder` 从“只插入缺失权限”改为按 `TenantId=0 + PermissionCode` 业务键 upsert：
+  - 新增缺失权限。
+  - 修正已有权限的模块编码、名称、描述、标签、审计标记、优先级、排序、状态和全局标记。
+  - 平台权限统一写为 `TenantId=0`、`IsGlobal=true`、`PermissionType=Functional`。
+- `SaasIdentitySeeder` 增加基础身份自修复：
+  - 默认租户按 `TenantCode=default` 或兼容初始 `BasicId=1` 定位后修正平台占位、配置状态和可登录状态。
+  - 超级管理员角色按 `TenantId=0 + RoleCode=super_admin` 修正系统角色、全局角色、全数据范围和启用状态。
+  - 超级管理员账号只补齐关键身份字段；已有资料不被强制重置。
+  - 超级管理员安全记录不会在每次启动重置密码；仅缺失密码时补默认密码。
+  - 默认租户成员关系和超级管理员角色绑定存在时也会恢复为有效状态。
+- `SaasIdentityPermissionSeeder` 限制超级管理员自动授权范围为平台全局启用权限，避免误绑定租户私有权限。
+- `SaasMenuSeeder` 解析菜单依赖权限时同样只使用平台全局启用权限，避免旧库残留同名租户权限导致菜单绑定错误。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --no-restore --disable-build-servers -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+
+协作状态：
+
+- 阶段前已有本地配置和前端并行改动，本阶段未修改或回滚。
+- 本阶段只修改 BasicApp SaaS 种子数据和本文档。
+
+### 2026-05-04 A123 租户版本与平台基础字典参数种子
+
+本阶段继续补齐基础种子数据，重点解决租户版本、版本权限、系统参数和系统字典页面空数据问题。范围限定为 SaaS 基础设施种子注册与种子实现，不新增 Controller，不修改 Framework，不调整前端 ID 契约。
+
+执行结果：
+
+- 新增 `SaasTenantEditionSeeder`：
+  - 初始化 `free`、`basic`、`pro`、`enterprise` 四个平台级租户版本，统一 `TenantId=0`。
+  - 空库默认 `free` 为默认版本；如果库里已有启用默认版本，则尊重现有默认版本，不在每次启动强制改回免费版。
+  - 按版本梯度补齐 `SysTenantEditionPermission`：免费版覆盖基础查看与协作，基础版增加组织和授权维护，专业版增加 ABAC/FLS/审计安全能力，企业版授予除平台运营写操作外的全局可用权限。
+  - 对已有版本权限绑定只补齐和恢复为有效，不删除人工新增的版本权限。
+  - 默认登录租户 `default` 未设置 `EditionId` 时补到企业版，避免系统内置租户未来被版本门控误限。
+- 新增 `SaasConfigurationSeeder`：
+  - 初始化应用名称、默认语言、默认租户版本、登录/登出通知开关、密码策略、会话策略、账号锁定和审计保留周期等平台全局内置参数。
+  - 已有参数只修正元数据和默认值；`ConfigValue` 仅在为空时补齐，避免启动时覆盖运维手工配置。
+- 新增 `SaasDictSeeder`：
+  - 初始化启用状态、有效性状态、租户状态、租户配置状态、隔离模式、成员类型、邀请状态、角色类型、数据权限范围、权限类型、用户性别、配置类型、配置数据类型等内置字典和字典项。
+  - 字典按 `TenantId=0 + DictCode` upsert，字典项按 `DictId + ItemCode` upsert，不清理用户扩展字典项。
+- 更新 SaaS seeder 注册顺序：
+  - `Identity(10)` → `Permission(20)` → `TenantEdition(21)` → `Configuration(22)` → `Dict(23)` → `IdentityPermission(24)` → `Menu(25)`。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --no-restore --disable-build-servers -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false -v:minimal`：通过，0 警告，0 错误。
+
+协作状态：
+
+- 阶段前已有本地配置和前端并行改动，本阶段未修改或回滚。
+- 本阶段只修改 BasicApp SaaS 种子数据注册、种子实现和本文档。
