@@ -34,17 +34,25 @@ export interface OperationLogPageQueryDto extends PageRequest {
 }
 
 export interface OperationLogListItemDto extends BasicDto {
+  browser?: string | null
   createdTime: DateTimeString
+  description?: string | null
+  errorMessage?: string | null
   executionTime: number
   function?: string | null
   method?: string | null
   module?: string | null
+  operationIp?: string | null
+  operationLocation?: string | null
   operationTime: DateTimeString
   operationType: OperationType
+  os?: string | null
+  requestUrl?: string | null
   sessionId?: string | null
   status: EnableStatus
   title?: string | null
   traceId?: string | null
+  userAgent?: string | null
   userId?: ApiId | null
   userName?: string | null
 }

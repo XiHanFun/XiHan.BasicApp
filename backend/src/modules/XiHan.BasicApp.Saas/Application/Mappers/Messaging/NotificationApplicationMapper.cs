@@ -37,6 +37,9 @@ public static class NotificationApplicationMapper
             SendUserId = notification.SendUserId,
             NotificationType = notification.NotificationType,
             Title = notification.Title,
+            Content = notification.Content,
+            Icon = notification.Icon,
+            Link = notification.Link,
             BusinessType = notification.BusinessType,
             BusinessId = notification.BusinessId,
             SendTime = notification.SendTime,
@@ -44,6 +47,7 @@ public static class NotificationApplicationMapper
             IsBroadcast = notification.IsBroadcast,
             NeedConfirm = notification.NeedConfirm,
             IsPublished = notification.IsPublished,
+            Remark = notification.Remark,
             CreatedTime = notification.CreatedTime,
             ModifiedTime = notification.ModifiedTime
         };
@@ -65,6 +69,9 @@ public static class NotificationApplicationMapper
             SendUserId = item.SendUserId,
             NotificationType = item.NotificationType,
             Title = item.Title,
+            Content = item.Content,
+            Icon = item.Icon,
+            Link = item.Link,
             BusinessType = item.BusinessType,
             BusinessId = item.BusinessId,
             SendTime = item.SendTime,
@@ -72,6 +79,7 @@ public static class NotificationApplicationMapper
             IsBroadcast = item.IsBroadcast,
             NeedConfirm = item.NeedConfirm,
             IsPublished = item.IsPublished,
+            Remark = item.Remark,
             CreatedTime = item.CreatedTime,
             CreatedId = notification.CreatedId,
             CreatedBy = notification.CreatedBy,
@@ -103,21 +111,53 @@ public static class NotificationApplicationMapper
     }
 
     /// <summary>
+    /// 映射用户通知列表项
+    /// </summary>
+    /// <param name="userNotification">用户通知实体</param>
+    /// <param name="notification">系统通知实体</param>
+    /// <returns>用户通知列表项 DTO</returns>
+    public static UserNotificationListItemDto ToUserListItemDto(SysUserNotification userNotification, SysNotification? notification)
+    {
+        var item = ToUserListItemDto(userNotification);
+        if (notification is null)
+        {
+            return item;
+        }
+
+        item.NotificationType = notification.NotificationType;
+        item.Title = notification.Title;
+        item.Content = notification.Content;
+        item.Icon = notification.Icon;
+        item.Link = notification.Link;
+        item.SendTime = notification.SendTime;
+        item.NeedConfirm = notification.NeedConfirm;
+        return item;
+    }
+
+    /// <summary>
     /// 映射用户通知详情
     /// </summary>
     /// <param name="userNotification">用户通知实体</param>
+    /// <param name="notification">系统通知实体</param>
     /// <returns>用户通知详情 DTO</returns>
-    public static UserNotificationDetailDto ToUserDetailDto(SysUserNotification userNotification)
+    public static UserNotificationDetailDto ToUserDetailDto(SysUserNotification userNotification, SysNotification? notification = null)
     {
         ArgumentNullException.ThrowIfNull(userNotification);
 
-        var item = ToUserListItemDto(userNotification);
+        var item = ToUserListItemDto(userNotification, notification);
         return new UserNotificationDetailDto
         {
             BasicId = item.BasicId,
             NotificationId = item.NotificationId,
             UserId = item.UserId,
             NotificationStatus = item.NotificationStatus,
+            NotificationType = item.NotificationType,
+            Title = item.Title,
+            Content = item.Content,
+            Icon = item.Icon,
+            Link = item.Link,
+            SendTime = item.SendTime,
+            NeedConfirm = item.NeedConfirm,
             ReadTime = item.ReadTime,
             ConfirmTime = item.ConfirmTime,
             CreatedTime = item.CreatedTime,

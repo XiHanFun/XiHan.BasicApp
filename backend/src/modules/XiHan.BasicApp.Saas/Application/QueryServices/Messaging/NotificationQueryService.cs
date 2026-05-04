@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using SqlSugar;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -99,7 +100,18 @@ public sealed class NotificationQueryService(
 
         var request = BuildUserNotificationPageRequest(input);
         var userNotifications = await _userNotificationRepository.GetPagedAsync(request, cancellationToken);
-        return userNotifications.Map(NotificationApplicationMapper.ToUserListItemDto);
+        if (userNotifications.Items.Count == 0)
+        {
+            return new PageResultDtoBase<UserNotificationListItemDto>([], userNotifications.Page);
+        }
+
+        var notificationMap = await LoadNotificationMapAsync(userNotifications.Items, cancellationToken);
+        var items = userNotifications.Items
+            .Select(item => NotificationApplicationMapper.ToUserListItemDto(
+                item,
+                notificationMap.GetValueOrDefault(item.NotificationId)))
+            .ToList();
+        return new PageResultDtoBase<UserNotificationListItemDto>(items, userNotifications.Page);
     }
 
     /// <summary>
@@ -119,7 +131,13 @@ public sealed class NotificationQueryService(
         cancellationToken.ThrowIfCancellationRequested();
 
         var userNotification = await _userNotificationRepository.GetByIdAsync(id, cancellationToken);
-        return userNotification is null ? null : NotificationApplicationMapper.ToUserDetailDto(userNotification);
+        if (userNotification is null)
+        {
+            return null;
+        }
+
+        var notification = await _notificationRepository.GetByIdAsync(userNotification.NotificationId, cancellationToken);
+        return NotificationApplicationMapper.ToUserDetailDto(userNotification, notification);
     }
 
     /// <summary>
@@ -236,5 +254,25 @@ public sealed class NotificationQueryService(
         {
             request.Conditions.AddFilter(fieldName, end.Value, QueryOperator.LessThanOrEqual);
         }
+    }
+
+    /// <summary>
+    /// 加载通知内容映射
+    /// </summary>
+    private async Task<Dictionary<long, SysNotification>> LoadNotificationMapAsync(IList<SysUserNotification> userNotifications, CancellationToken cancellationToken)
+    {
+        var notificationIds = userNotifications
+            .Select(item => item.NotificationId)
+            .Distinct()
+            .ToArray();
+        if (notificationIds.Length == 0)
+        {
+            return [];
+        }
+
+        var notifications = await _notificationRepository.GetListAsync(
+            item => SqlFunc.ContainsArray(notificationIds, item.BasicId),
+            cancellationToken);
+        return notifications.ToDictionary(item => item.BasicId);
     }
 }

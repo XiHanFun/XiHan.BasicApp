@@ -32,17 +32,17 @@ export interface NotificationPageQueryDto extends PageRequest {
 export interface NotificationListItemDto extends BasicDto {
   businessId?: ApiId | null
   businessType?: string | null
+  content?: string | null
   createdTime: DateTimeString
   expireTime?: DateTimeString | null
-  hasAction: boolean
-  hasBody: boolean
-  hasNote: boolean
-  hasVisualMark: boolean
+  icon?: string | null
   isBroadcast: boolean
   isPublished: boolean
+  link?: string | null
   modifiedTime?: DateTimeString | null
   needConfirm: boolean
   notificationType: NotificationType
+  remark?: string | null
   sendTime: DateTimeString
   sendUserId?: ApiId | null
   title: string
@@ -67,10 +67,17 @@ export interface UserNotificationPageQueryDto extends PageRequest {
 
 export interface UserNotificationListItemDto extends BasicDto {
   confirmTime?: DateTimeString | null
+  content?: string | null
   createdTime: DateTimeString
+  icon?: string | null
+  link?: string | null
+  needConfirm: boolean
   notificationId: ApiId
   notificationStatus: NotificationStatus
+  notificationType?: NotificationType | null
   readTime?: DateTimeString | null
+  sendTime?: DateTimeString | null
+  title?: string | null
   userId: ApiId
 }
 

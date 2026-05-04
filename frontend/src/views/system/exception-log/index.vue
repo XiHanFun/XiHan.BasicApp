@@ -36,10 +36,11 @@ const handledOptions = [
 ]
 
 const severityOptions = [
-  { label: '低', value: 0 },
-  { label: '中', value: 1 },
-  { label: '高', value: 2 },
-  { label: '严重', value: 3 },
+  { label: '低', value: 1 },
+  { label: '中', value: 2 },
+  { label: '高', value: 3 },
+  { label: '严重', value: 4 },
+  { label: '致命', value: 5 },
 ]
 
 const deviceTypeOptions = [
@@ -57,10 +58,11 @@ const deviceTypeOptions = [
 
 function severityType(level: number) {
   switch (level) {
-    case 0: return 'info'
-    case 1: return 'warning'
-    case 2: return 'error'
-    case 3: return 'error'
+    case 1: return 'info'
+    case 2: return 'warning'
+    case 3:
+    case 4:
+    case 5: return 'error'
     default: return 'default'
   }
 }
@@ -102,8 +104,11 @@ const tableOptions = useVxeTable<ExceptionLogListItemDto>(
       { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
       { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
       { field: 'exceptionType', minWidth: 160, showOverflow: 'tooltip', title: '异常类型' },
+      { field: 'exceptionMessage', minWidth: 260, showOverflow: 'tooltip', title: '异常消息' },
       { field: 'exceptionSource', minWidth: 140, showOverflow: 'tooltip', title: '异常源' },
       { field: 'exceptionLocation', minWidth: 200, showOverflow: 'tooltip', title: '异常发生位置' },
+      { field: 'controllerName', minWidth: 140, showOverflow: 'tooltip', title: '控制器' },
+      { field: 'actionName', minWidth: 140, showOverflow: 'tooltip', title: '动作' },
       {
         field: 'severityLevel',
         slots: { default: 'col_severity' },
@@ -113,6 +118,12 @@ const tableOptions = useVxeTable<ExceptionLogListItemDto>(
       { field: 'requestPath', minWidth: 200, showOverflow: 'tooltip', title: '请求路径' },
       { field: 'requestMethod', title: '请求方法', width: 90 },
       { field: 'statusCode', title: '响应状态码', width: 100 },
+      { field: 'operationIp', minWidth: 130, showOverflow: 'tooltip', title: '操作 IP' },
+      { field: 'operationLocation', minWidth: 160, showOverflow: 'tooltip', title: '操作位置' },
+      { field: 'browser', minWidth: 120, showOverflow: 'tooltip', title: '浏览器' },
+      { field: 'os', minWidth: 120, showOverflow: 'tooltip', title: '操作系统' },
+      { field: 'deviceInfo', minWidth: 140, showOverflow: 'tooltip', title: '设备信息' },
+      { field: 'userAgent', minWidth: 260, showOverflow: 'tooltip', title: 'User-Agent' },
       {
         field: 'deviceType',
         formatter: ({ cellValue }) => getOptionLabel(deviceTypeOptions, cellValue),
@@ -123,12 +134,21 @@ const tableOptions = useVxeTable<ExceptionLogListItemDto>(
       { field: 'applicationVersion', minWidth: 120, showOverflow: 'tooltip', title: '应用程序版本' },
       { field: 'environmentName', minWidth: 100, showOverflow: 'tooltip', title: '环境名称' },
       { field: 'errorCode', minWidth: 100, showOverflow: 'tooltip', title: '错误代码' },
+      { field: 'serverHostName', minWidth: 140, showOverflow: 'tooltip', title: '服务器主机' },
+      { field: 'threadId', minWidth: 90, title: '线程 ID' },
+      { field: 'processId', minWidth: 90, title: '进程 ID' },
       {
         field: 'isHandled',
         slots: { default: 'col_handled' },
         title: '是否已处理',
         width: 100,
       },
+      { field: 'handledRemark', minWidth: 220, showOverflow: 'tooltip', title: '处理备注' },
+      { field: 'exceptionStackTrace', minWidth: 260, showOverflow: 'tooltip', title: '异常堆栈' },
+      { field: 'requestParams', minWidth: 240, showOverflow: 'tooltip', title: '请求参数' },
+      { field: 'requestBody', minWidth: 240, showOverflow: 'tooltip', title: '请求体' },
+      { field: 'requestHeaders', minWidth: 240, showOverflow: 'tooltip', title: '请求头' },
+      { field: 'extendData', minWidth: 240, showOverflow: 'tooltip', title: '扩展数据' },
       {
         field: 'handledTime',
         formatter: ({ cellValue }) => cellValue ? formatDate(cellValue) : '-',
@@ -136,6 +156,7 @@ const tableOptions = useVxeTable<ExceptionLogListItemDto>(
         title: '处理时间',
       },
       { field: 'handledBy', minWidth: 90, showOverflow: 'tooltip', title: '处理人主键' },
+      { field: 'remark', minWidth: 180, showOverflow: 'tooltip', title: '备注' },
       {
         field: 'exceptionTime',
         formatter: ({ cellValue }) => formatDate(cellValue),

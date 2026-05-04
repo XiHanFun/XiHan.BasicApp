@@ -27,26 +27,45 @@ export interface ExceptionLogPageQueryDto extends PageRequest {
 }
 
 export interface ExceptionLogListItemDto extends BasicDto {
+  actionName?: string | null
   applicationName?: string | null
   applicationVersion?: string | null
+  browser?: string | null
+  controllerName?: string | null
   createdTime: DateTimeString
+  deviceInfo?: string | null
   deviceType: DeviceType
   environmentName?: string | null
   errorCode?: string | null
   exceptionLocation?: string | null
+  exceptionMessage: string
   exceptionSource?: string | null
+  exceptionStackTrace?: string | null
   exceptionTime: DateTimeString
   exceptionType: string
+  handledRemark?: string | null
   handledBy?: ApiId | null
   handledTime?: DateTimeString | null
+  extendData?: string | null
   isHandled: boolean
+  operationIp?: string | null
+  operationLocation?: string | null
+  os?: string | null
+  processId: number
+  remark?: string | null
+  requestBody?: string | null
+  requestHeaders?: string | null
   requestId?: string | null
   requestMethod?: string | null
+  requestParams?: string | null
   requestPath?: string | null
+  serverHostName?: string | null
   sessionId?: string | null
   severityLevel: number
   statusCode: number
+  threadId: number
   traceId?: string | null
+  userAgent?: string | null
   userId?: ApiId | null
   userName?: string | null
 }

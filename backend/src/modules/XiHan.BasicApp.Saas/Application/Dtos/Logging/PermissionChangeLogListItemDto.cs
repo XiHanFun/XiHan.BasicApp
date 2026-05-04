@@ -48,6 +48,21 @@ public class PermissionChangeLogListItemDto : BasicAppDto
     public PermissionChangeType ChangeType { get; set; }
 
     /// <summary>
+    /// 变更原因
+    /// </summary>
+    public string? ChangeReason { get; set; }
+
+    /// <summary>
+    /// 变更描述
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 操作 IP
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
     /// 链路追踪 ID
     /// </summary>
     public string? TraceId { get; set; }

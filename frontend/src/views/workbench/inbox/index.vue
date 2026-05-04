@@ -461,6 +461,7 @@ onMounted(loadNotifications)
   margin: 6px 0 0;
   color: var(--text-secondary);
   line-height: 1.55;
+  white-space: pre-wrap;
   word-break: break-word;
 }
 

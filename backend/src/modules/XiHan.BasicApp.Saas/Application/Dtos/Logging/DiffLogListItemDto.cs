@@ -88,9 +88,29 @@ public class DiffLogListItemDto : BasicAppDto
     public string? PrimaryKeyValue { get; set; }
 
     /// <summary>
+    /// 操作描述
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 变更摘要
+    /// </summary>
+    public string? ChangeDescription { get; set; }
+
+    /// <summary>
+    /// 操作 IP
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
     /// 是否成功
     /// </summary>
     public bool IsSuccess { get; set; }
+
+    /// <summary>
+    /// 异常信息
+    /// </summary>
+    public string? ExceptionMessage { get; set; }
 
     /// <summary>
     /// 风险等级
@@ -106,6 +126,36 @@ public class DiffLogListItemDto : BasicAppDto
     /// 审计时间
     /// </summary>
     public DateTimeOffset AuditTime { get; set; }
+
+    /// <summary>
+    /// 变更前数据
+    /// </summary>
+    public string? BeforeData { get; set; }
+
+    /// <summary>
+    /// 变更后数据
+    /// </summary>
+    public string? AfterData { get; set; }
+
+    /// <summary>
+    /// 变更字段
+    /// </summary>
+    public string? ChangedFields { get; set; }
+
+    /// <summary>
+    /// 异常堆栈
+    /// </summary>
+    public string? ExceptionStackTrace { get; set; }
+
+    /// <summary>
+    /// 扩展数据
+    /// </summary>
+    public string? ExtendData { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间

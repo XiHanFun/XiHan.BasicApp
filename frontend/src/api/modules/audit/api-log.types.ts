@@ -35,25 +35,41 @@ export interface ApiLogPageQueryDto extends PageRequest {
 }
 
 export interface ApiLogListItemDto extends BasicDto {
+  actionName?: string | null
   apiName?: string | null
   apiPath: string
   apiVersion?: string | null
   appId?: string | null
+  browser?: string | null
   clientId?: string | null
+  controllerName?: string | null
   createdTime: DateTimeString
+  errorMessage?: string | null
   executionTime: number
+  exceptionStackTrace?: string | null
+  extendData?: string | null
   isSignatureValid: boolean
   isSuccess: boolean
   method: string
+  referer?: string | null
   requestId?: string | null
+  requestBody?: string | null
+  requestHeaders?: string | null
+  requestIp?: string | null
+  requestLocation?: string | null
+  requestParams?: string | null
   requestSize: number
   requestTime: DateTimeString
+  remark?: string | null
+  responseBody?: string | null
+  responseHeaders?: string | null
   responseSize: number
   responseTime?: DateTimeString | null
   sessionId?: string | null
   signatureType: SignatureType
   statusCode: number
   traceId?: string | null
+  userAgent?: string | null
   userId?: ApiId | null
   userName?: string | null
 }

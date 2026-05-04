@@ -31,6 +31,7 @@ using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Pipelines;
+using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -57,6 +58,7 @@ public sealed class AuthAppService(
     IJwtTokenService jwtTokenService,
     ICurrentTenant currentTenant,
     ICurrentUser currentUser,
+    IClientInfoProvider clientInfoProvider,
     IHttpContextAccessor httpContextAccessor)
     : SaasApplicationService, IAuthAppService
 {
@@ -82,6 +84,7 @@ public sealed class AuthAppService(
     private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
     private readonly ICurrentTenant _currentTenant = currentTenant;
     private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IClientInfoProvider _clientInfoProvider = clientInfoProvider;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     /// <inheritdoc />
@@ -294,94 +297,6 @@ public sealed class AuthAppService(
             cancellationToken);
     }
 
-    private async Task<SysTenant?> GetLoginTenantOrThrowAsync(long? tenantId, CancellationToken cancellationToken)
-    {
-        if (!tenantId.HasValue || tenantId.Value <= 0)
-        {
-            return null;
-        }
-
-        var tenant = await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken)
-            ?? throw new InvalidOperationException("租户不存在。");
-        if (tenant.TenantStatus != TenantStatus.Normal)
-        {
-            throw new InvalidOperationException("租户当前不可登录。");
-        }
-
-        if (tenant.ConfigStatus is not TenantConfigStatus.Configured)
-        {
-            throw new InvalidOperationException("租户尚未完成初始化配置。");
-        }
-
-        if (tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= DateTimeOffset.UtcNow)
-        {
-            throw new InvalidOperationException("租户已过期。");
-        }
-
-        return tenant;
-    }
-
-    private async Task EnsureTenantMembershipValidAsync(long userId, long? tenantId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        if (!tenantId.HasValue)
-        {
-            return;
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("用户不是当前租户成员。");
-        if (membership.InviteStatus != TenantMemberInviteStatus.Accepted || membership.Status != ValidityStatus.Valid)
-        {
-            throw new InvalidOperationException("用户当前租户成员身份无效。");
-        }
-
-        if (membership.EffectiveTime.HasValue && membership.EffectiveTime.Value > now)
-        {
-            throw new InvalidOperationException("用户当前租户成员身份尚未生效。");
-        }
-
-        if (membership.ExpirationTime.HasValue && membership.ExpirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("用户当前租户成员身份已过期。");
-        }
-    }
-
-    private async Task EnsureSecurityCanLoginAsync(SysUserSecurity security, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        if (!security.IsLocked)
-        {
-            return;
-        }
-
-        if (security.LockoutEndTime.HasValue && security.LockoutEndTime.Value <= now)
-        {
-            security.IsLocked = false;
-            security.LockoutTime = null;
-            security.LockoutEndTime = null;
-            security.FailedLoginAttempts = 0;
-            security.LastFailedLoginTime = null;
-            _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-            return;
-        }
-
-        throw new InvalidOperationException("账号已被锁定，请稍后再试。");
-    }
-
-    private async Task RecordFailedLoginAsync(SysUserSecurity security, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        security.FailedLoginAttempts++;
-        security.LastFailedLoginTime = now;
-
-        if (security.FailedLoginAttempts >= MaxFailedLoginAttempts)
-        {
-            security.IsLocked = true;
-            security.LockoutTime = now;
-            security.LockoutEndTime = now.Add(LockoutDuration);
-        }
-
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-    }
-
     private static LoginResponseDto BuildTwoFactorChallenge(SysUserSecurity security)
     {
         var methods = ResolveTwoFactorMethods(security.TwoFactorMethod);
@@ -393,263 +308,6 @@ public sealed class AuthAppService(
             CodeSent = false,
             Token = null
         };
-    }
-
-    private async Task<AuthorizationSnapshot> BuildAuthorizationSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var userRoles = await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
-        var roles = await _roleRepository.GetEnabledByIdsAsync(userRoles.Select(item => item.RoleId), cancellationToken);
-        var roleCodes = roles
-            .Select(role => role.RoleCode)
-            .Where(code => !string.IsNullOrWhiteSpace(code))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var isSuperAdmin = roleCodes.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase);
-
-        if (isSuperAdmin)
-        {
-            var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
-            var permissionIds = allPermissions.Select(permission => permission.BasicId).ToHashSet();
-            var superAdminPermissionCodes = allPermissions
-                .Select(permission => permission.PermissionCode)
-                .Where(code => !string.IsNullOrWhiteSpace(code))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            superAdminPermissionCodes.Insert(0, "*");
-            return new AuthorizationSnapshot(roleCodes, superAdminPermissionCodes, permissionIds);
-        }
-
-        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
-        var roleGrantIds = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-        var roleDenyIds = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-
-        roleGrantIds.ExceptWith(roleDenyIds);
-
-        var userPermissions = await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
-        var userGrantIds = userPermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-        var userDenyIds = userPermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-
-        var finalPermissionIds = roleGrantIds;
-        finalPermissionIds.UnionWith(userGrantIds);
-        finalPermissionIds.ExceptWith(userDenyIds);
-
-        var permissions = await _permissionRepository.GetByIdsAsync(finalPermissionIds, cancellationToken);
-        var permissionCodes = permissions
-            .Where(permission => permission.Status == EnableStatus.Enabled)
-            .Select(permission => permission.PermissionCode)
-            .Where(code => !string.IsNullOrWhiteSpace(code))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        return new AuthorizationSnapshot(roleCodes, permissionCodes, finalPermissionIds);
-    }
-
-    private async Task<List<MenuRouteDto>> BuildMenuRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken)
-    {
-        var hasAllPermissions = snapshot.Permissions.Contains("*", StringComparer.OrdinalIgnoreCase);
-        var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
-        var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
-        var menus = await _menuRepository.GetListAsync(
-            menu => menu.Status == EnableStatus.Enabled && menu.MenuType != MenuType.Button,
-            cancellationToken);
-        var visibleMenus = menus
-            .Where(menu => menu.IsVisible)
-            .Where(menu => !menu.PermissionId.HasValue || hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value))
-            .OrderBy(menu => menu.Sort)
-            .ThenBy(menu => menu.BasicId)
-            .ToList();
-
-        if (visibleMenus.Count == 0)
-        {
-            return [BuildFallbackDashboardRoute()];
-        }
-
-        var routeMap = visibleMenus.ToDictionary(menu => menu.BasicId, menu => ToMenuRoute(menu, permissionCodeMap));
-        var roots = new List<MenuRouteDto>();
-        foreach (var menu in visibleMenus)
-        {
-            var route = routeMap[menu.BasicId];
-            if (menu.ParentId.HasValue && routeMap.TryGetValue(menu.ParentId.Value, out var parent))
-            {
-                parent.Children ??= [];
-                parent.Children.Add(route);
-            }
-            else
-            {
-                roots.Add(route);
-            }
-        }
-
-        return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
-    }
-
-    private async Task<SysUserSession> CreateLoginSessionAsync(
-        SysUser user,
-        string sessionBusinessId,
-        string accessTokenJti,
-        JwtTokenResult tokenResult,
-        string? deviceId,
-        ClientInfo client,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var session = new SysUserSession
-        {
-            UserId = user.BasicId,
-            CurrentAccessTokenJti = accessTokenJti,
-            UserSessionId = sessionBusinessId,
-            DeviceType = DeviceType.Web,
-            DeviceName = "Web",
-            DeviceId = NormalizeNullable(deviceId, 200),
-            Browser = client.UserAgent,
-            OperatingSystem = client.UserAgent,
-            IpAddress = client.IpAddress,
-            LoginTime = now,
-            LastActivityTime = now,
-            IsOnline = true,
-            IsRevoked = false,
-            ExpiresAt = ToDateTimeOffset(tokenResult.ExpiresAt)
-        };
-
-        return await _userSessionRepository.AddAsync(session, cancellationToken);
-    }
-
-    private async Task CreateOAuthTokenAsync(
-        SysUser user,
-        SysUserSession session,
-        string accessTokenJti,
-        JwtTokenResult tokenResult,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var oauthToken = new SysOAuthToken
-        {
-            SessionId = session.BasicId,
-            AccessTokenJti = accessTokenJti,
-            AccessToken = null,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ClientId = "basicapp-web",
-            UserId = user.BasicId,
-            GrantType = GrantType.Password,
-            Scopes = "basicapp",
-            Status = EnableStatus.Enabled,
-            AccessTokenExpiresTime = ToDateTimeOffset(tokenResult.ExpiresAt),
-            RefreshTokenExpiresTime = now.AddDays(7),
-            IsRevoked = false
-        };
-
-        _ = await _oauthTokenRepository.AddAsync(oauthToken, cancellationToken);
-    }
-
-    private async Task TouchTenantMembershipAsync(long userId, long? tenantId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        if (!tenantId.HasValue)
-        {
-            return;
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
-        if (membership is null)
-        {
-            return;
-        }
-
-        membership.LastActiveTime = now;
-        _ = await _tenantUserRepository.UpdateAsync(membership, cancellationToken);
-    }
-
-    private List<Claim> BuildClaims(
-        SysUser user,
-        long? tenantId,
-        string sessionBusinessId,
-        string accessTokenJti,
-        IReadOnlyCollection<string> roles,
-        IReadOnlyCollection<string> permissions,
-        string? deviceId)
-    {
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.BasicId.ToString()),
-            new(JwtRegisteredClaimNames.Jti, accessTokenJti),
-            new(XiHanClaimTypes.UserId, user.BasicId.ToString()),
-            new(XiHanClaimTypes.UserName, user.UserName),
-            new(XiHanClaimTypes.SessionId, sessionBusinessId)
-        };
-
-        if (tenantId.HasValue)
-        {
-            claims.Add(new Claim(XiHanClaimTypes.TenantId, tenantId.Value.ToString()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Email))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Email, user.Email));
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Phone))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.PhoneNumber, user.Phone));
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Avatar))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Picture, user.Avatar));
-        }
-
-        var normalizedDeviceId = NormalizeNullable(deviceId, 200);
-        if (!string.IsNullOrWhiteSpace(normalizedDeviceId))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.DeviceFingerprint, normalizedDeviceId));
-        }
-
-        foreach (var role in roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Role, role));
-        }
-
-        var permissionClaims = permissions
-            .Where(permission => !string.IsNullOrWhiteSpace(permission))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        if (permissionClaims.Contains("*", StringComparer.OrdinalIgnoreCase))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Permission, "*"));
-        }
-        else
-        {
-            foreach (var permission in permissionClaims)
-            {
-                claims.Add(new Claim(XiHanClaimTypes.Permission, permission));
-            }
-        }
-
-        return claims;
-    }
-
-    private ClientInfo ResolveClientInfo()
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        var ipAddress = httpContext?.Connection.RemoteIpAddress?.ToString();
-        var userAgent = httpContext?.Request.Headers.UserAgent.ToString();
-        return new ClientInfo(
-            NormalizeNullable(ipAddress, 50),
-            NormalizeNullable(userAgent, 100));
     }
 
     private static LoginTokenDto ToLoginTokenDto(JwtTokenResult tokenResult)
@@ -799,13 +457,381 @@ public sealed class AuthAppService(
         return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
     }
 
+    private static string BuildAuthNotificationContent(string prefix, ClientInfo client, DateTimeOffset time)
+    {
+        var parts = new List<string> { prefix, $"时间：{time:yyyy-MM-dd HH:mm:ss} UTC" };
+
+        var location = FirstNotEmpty(client.Location, client.IpAddress);
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            parts.Add($"位置：{location}");
+        }
+
+        var device = string.Join(
+            " / ",
+            new[] { client.Browser, client.OperatingSystem, client.DeviceName }
+                .Where(static item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(device))
+        {
+            parts.Add($"设备：{device}");
+        }
+
+        return string.Join(" ", parts);
+    }
+
+    private static string? FirstNotEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
+    }
+
+    private async Task<SysTenant?> GetLoginTenantOrThrowAsync(long? tenantId, CancellationToken cancellationToken)
+    {
+        if (!tenantId.HasValue || tenantId.Value <= 0)
+        {
+            return null;
+        }
+
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("租户不存在。");
+        if (tenant.TenantStatus != TenantStatus.Normal)
+        {
+            throw new InvalidOperationException("租户当前不可登录。");
+        }
+
+        if (tenant.ConfigStatus is not TenantConfigStatus.Configured)
+        {
+            throw new InvalidOperationException("租户尚未完成初始化配置。");
+        }
+
+        if (tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= DateTimeOffset.UtcNow)
+        {
+            throw new InvalidOperationException("租户已过期。");
+        }
+
+        return tenant;
+    }
+
+    private async Task EnsureTenantMembershipValidAsync(long userId, long? tenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (!tenantId.HasValue)
+        {
+            return;
+        }
+
+        var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("用户不是当前租户成员。");
+        if (membership.InviteStatus != TenantMemberInviteStatus.Accepted || membership.Status != ValidityStatus.Valid)
+        {
+            throw new InvalidOperationException("用户当前租户成员身份无效。");
+        }
+
+        if (membership.EffectiveTime.HasValue && membership.EffectiveTime.Value > now)
+        {
+            throw new InvalidOperationException("用户当前租户成员身份尚未生效。");
+        }
+
+        if (membership.ExpirationTime.HasValue && membership.ExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("用户当前租户成员身份已过期。");
+        }
+    }
+
+    private async Task EnsureSecurityCanLoginAsync(SysUserSecurity security, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (!security.IsLocked)
+        {
+            return;
+        }
+
+        if (security.LockoutEndTime.HasValue && security.LockoutEndTime.Value <= now)
+        {
+            security.IsLocked = false;
+            security.LockoutTime = null;
+            security.LockoutEndTime = null;
+            security.FailedLoginAttempts = 0;
+            security.LastFailedLoginTime = null;
+            _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+            return;
+        }
+
+        throw new InvalidOperationException("账号已被锁定，请稍后再试。");
+    }
+
+    private async Task RecordFailedLoginAsync(SysUserSecurity security, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        security.FailedLoginAttempts++;
+        security.LastFailedLoginTime = now;
+
+        if (security.FailedLoginAttempts >= MaxFailedLoginAttempts)
+        {
+            security.IsLocked = true;
+            security.LockoutTime = now;
+            security.LockoutEndTime = now.Add(LockoutDuration);
+        }
+
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+    }
+
+    private async Task<AuthorizationSnapshot> BuildAuthorizationSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var userRoles = await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
+        var roles = await _roleRepository.GetEnabledByIdsAsync(userRoles.Select(item => item.RoleId), cancellationToken);
+        var roleCodes = roles
+            .Select(role => role.RoleCode)
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var isSuperAdmin = roleCodes.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase);
+
+        if (isSuperAdmin)
+        {
+            var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
+            var permissionIds = allPermissions.Select(permission => permission.BasicId).ToHashSet();
+            var superAdminPermissionCodes = allPermissions
+                .Select(permission => permission.PermissionCode)
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            superAdminPermissionCodes.Insert(0, "*");
+            return new AuthorizationSnapshot(roleCodes, superAdminPermissionCodes, permissionIds);
+        }
+
+        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
+        var roleGrantIds = rolePermissions
+            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
+            .Select(permission => permission.PermissionId)
+            .ToHashSet();
+        var roleDenyIds = rolePermissions
+            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
+            .Select(permission => permission.PermissionId)
+            .ToHashSet();
+
+        roleGrantIds.ExceptWith(roleDenyIds);
+
+        var userPermissions = await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
+        var userGrantIds = userPermissions
+            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
+            .Select(permission => permission.PermissionId)
+            .ToHashSet();
+        var userDenyIds = userPermissions
+            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
+            .Select(permission => permission.PermissionId)
+            .ToHashSet();
+
+        var finalPermissionIds = roleGrantIds;
+        finalPermissionIds.UnionWith(userGrantIds);
+        finalPermissionIds.ExceptWith(userDenyIds);
+
+        var permissions = await _permissionRepository.GetByIdsAsync(finalPermissionIds, cancellationToken);
+        var permissionCodes = permissions
+            .Where(permission => permission.Status == EnableStatus.Enabled)
+            .Select(permission => permission.PermissionCode)
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return new AuthorizationSnapshot(roleCodes, permissionCodes, finalPermissionIds);
+    }
+
+    private async Task<List<MenuRouteDto>> BuildMenuRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken)
+    {
+        var hasAllPermissions = snapshot.Permissions.Contains("*", StringComparer.OrdinalIgnoreCase);
+        var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
+        var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
+        var menus = await _menuRepository.GetListAsync(
+            menu => menu.Status == EnableStatus.Enabled && menu.MenuType != MenuType.Button,
+            cancellationToken);
+        var visibleMenus = menus
+            .Where(menu => menu.IsVisible)
+            .Where(menu => !menu.PermissionId.HasValue || hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value))
+            .OrderBy(menu => menu.Sort)
+            .ThenBy(menu => menu.BasicId)
+            .ToList();
+
+        if (visibleMenus.Count == 0)
+        {
+            return [BuildFallbackDashboardRoute()];
+        }
+
+        var routeMap = visibleMenus.ToDictionary(menu => menu.BasicId, menu => ToMenuRoute(menu, permissionCodeMap));
+        var roots = new List<MenuRouteDto>();
+        foreach (var menu in visibleMenus)
+        {
+            var route = routeMap[menu.BasicId];
+            if (menu.ParentId.HasValue && routeMap.TryGetValue(menu.ParentId.Value, out var parent))
+            {
+                parent.Children ??= [];
+                parent.Children.Add(route);
+            }
+            else
+            {
+                roots.Add(route);
+            }
+        }
+
+        return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
+    }
+
+    private async Task<SysUserSession> CreateLoginSessionAsync(
+        SysUser user,
+        string sessionBusinessId,
+        string accessTokenJti,
+        JwtTokenResult tokenResult,
+        string? deviceId,
+        ClientInfo client,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var session = new SysUserSession
+        {
+            UserId = user.BasicId,
+            CurrentAccessTokenJti = accessTokenJti,
+            UserSessionId = sessionBusinessId,
+            DeviceType = DeviceType.Web,
+            DeviceName = NormalizeNullable(client.DeviceName, 200) ?? "Web",
+            DeviceId = NormalizeNullable(deviceId, 200),
+            Browser = NormalizeNullable(client.Browser, 100),
+            OperatingSystem = NormalizeNullable(client.OperatingSystem, 100),
+            IpAddress = NormalizeNullable(client.IpAddress, 50),
+            Location = NormalizeNullable(client.Location, 200),
+            LoginTime = now,
+            LastActivityTime = now,
+            IsOnline = true,
+            IsRevoked = false,
+            ExpiresAt = ToDateTimeOffset(tokenResult.ExpiresAt)
+        };
+
+        return await _userSessionRepository.AddAsync(session, cancellationToken);
+    }
+
+    private async Task CreateOAuthTokenAsync(
+        SysUser user,
+        SysUserSession session,
+        string accessTokenJti,
+        JwtTokenResult tokenResult,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var oauthToken = new SysOAuthToken
+        {
+            SessionId = session.BasicId,
+            AccessTokenJti = accessTokenJti,
+            AccessToken = null,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ClientId = "basicapp-web",
+            UserId = user.BasicId,
+            GrantType = GrantType.Password,
+            Scopes = "basicapp",
+            Status = EnableStatus.Enabled,
+            AccessTokenExpiresTime = ToDateTimeOffset(tokenResult.ExpiresAt),
+            RefreshTokenExpiresTime = now.AddDays(7),
+            IsRevoked = false
+        };
+
+        _ = await _oauthTokenRepository.AddAsync(oauthToken, cancellationToken);
+    }
+
+    private async Task TouchTenantMembershipAsync(long userId, long? tenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (!tenantId.HasValue)
+        {
+            return;
+        }
+
+        var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
+        if (membership is null)
+        {
+            return;
+        }
+
+        membership.LastActiveTime = now;
+        _ = await _tenantUserRepository.UpdateAsync(membership, cancellationToken);
+    }
+
+    private List<Claim> BuildClaims(
+        SysUser user,
+        long? tenantId,
+        string sessionBusinessId,
+        string accessTokenJti,
+        IReadOnlyCollection<string> roles,
+        IReadOnlyCollection<string> permissions,
+        string? deviceId)
+    {
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.BasicId.ToString()),
+            new(JwtRegisteredClaimNames.Jti, accessTokenJti),
+            new(XiHanClaimTypes.UserId, user.BasicId.ToString()),
+            new(XiHanClaimTypes.UserName, user.UserName),
+            new(XiHanClaimTypes.SessionId, sessionBusinessId)
+        };
+
+        if (tenantId.HasValue)
+        {
+            claims.Add(new Claim(XiHanClaimTypes.TenantId, tenantId.Value.ToString()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Email, user.Email));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Phone))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.PhoneNumber, user.Phone));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Avatar))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Picture, user.Avatar));
+        }
+
+        var normalizedDeviceId = NormalizeNullable(deviceId, 200);
+        if (!string.IsNullOrWhiteSpace(normalizedDeviceId))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.DeviceFingerprint, normalizedDeviceId));
+        }
+
+        foreach (var role in roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Role, role));
+        }
+
+        var permissionClaims = permissions
+            .Where(permission => !string.IsNullOrWhiteSpace(permission))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (permissionClaims.Contains("*", StringComparer.OrdinalIgnoreCase))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.Permission, "*"));
+        }
+        else
+        {
+            foreach (var permission in permissionClaims)
+            {
+                claims.Add(new Claim(XiHanClaimTypes.Permission, permission));
+            }
+        }
+
+        return claims;
+    }
+
+    private ClientInfo ResolveClientInfo()
+    {
+        return _clientInfoProvider.GetCurrent();
+    }
+
     private async Task PublishLoginLogAsync(long? userId, string? userName, string? sessionId, LoginResult loginResult, string? message, DateTimeOffset loginTime)
     {
         try
         {
             var httpContext = _httpContextAccessor.HttpContext;
-            var ipAddress = httpContext?.Connection.RemoteIpAddress?.ToString();
-            var userAgent = httpContext?.Request.Headers.UserAgent.ToString();
+            var client = ResolveClientInfo();
 
             var record = new LoginLogRecord
             {
@@ -815,8 +841,8 @@ public sealed class AuthAppService(
                 SessionId = sessionId,
                 LoginResult = (int)loginResult,
                 Message = message,
-                LoginIp = ipAddress,
-                UserAgent = userAgent,
+                LoginIp = client.IpAddress,
+                UserAgent = client.UserAgent,
                 LoginTime = loginTime
             };
 
@@ -857,26 +883,9 @@ public sealed class AuthAppService(
         }
     }
 
-    private static string BuildAuthNotificationContent(string prefix, ClientInfo client, DateTimeOffset time)
-    {
-        var parts = new List<string> { prefix, $"时间：{time:yyyy-MM-dd HH:mm:ss} UTC" };
-        if (!string.IsNullOrWhiteSpace(client.IpAddress))
-        {
-            parts.Add($"IP：{client.IpAddress}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(client.UserAgent))
-        {
-            parts.Add($"客户端：{client.UserAgent}");
-        }
-
-        return string.Join(" ", parts);
-    }
-
     private sealed record AuthorizationSnapshot(
         List<string> Roles,
         List<string> Permissions,
         HashSet<long> PermissionIds);
 
-    private sealed record ClientInfo(string? IpAddress, string? UserAgent);
 }

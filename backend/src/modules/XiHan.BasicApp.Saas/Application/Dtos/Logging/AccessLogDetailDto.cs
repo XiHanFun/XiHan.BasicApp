@@ -28,4 +28,5 @@ public sealed class AccessLogDetailDto : AccessLogListItemDto
     /// 创建者
     /// </summary>
     public string? CreatedBy { get; set; }
+
 }

@@ -53,6 +53,11 @@ public class ExceptionLogListItemDto : BasicAppDto
     public string ExceptionType { get; set; } = string.Empty;
 
     /// <summary>
+    /// 异常消息
+    /// </summary>
+    public string ExceptionMessage { get; set; } = string.Empty;
+
+    /// <summary>
     /// 异常源
     /// </summary>
     public string? ExceptionSource { get; set; }
@@ -78,14 +83,54 @@ public class ExceptionLogListItemDto : BasicAppDto
     public string? RequestMethod { get; set; }
 
     /// <summary>
+    /// 控制器名称
+    /// </summary>
+    public string? ControllerName { get; set; }
+
+    /// <summary>
+    /// 操作名称
+    /// </summary>
+    public string? ActionName { get; set; }
+
+    /// <summary>
     /// 响应状态码
     /// </summary>
     public int StatusCode { get; set; }
 
     /// <summary>
+    /// 操作 IP
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
+    /// 操作地址
+    /// </summary>
+    public string? OperationLocation { get; set; }
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统
+    /// </summary>
+    public string? Os { get; set; }
+
+    /// <summary>
     /// 设备类型
     /// </summary>
     public DeviceType DeviceType { get; set; }
+
+    /// <summary>
+    /// 设备信息
+    /// </summary>
+    public string? DeviceInfo { get; set; }
 
     /// <summary>
     /// 应用程序名称
@@ -101,6 +146,21 @@ public class ExceptionLogListItemDto : BasicAppDto
     /// 环境名称
     /// </summary>
     public string? EnvironmentName { get; set; }
+
+    /// <summary>
+    /// 服务器主机名
+    /// </summary>
+    public string? ServerHostName { get; set; }
+
+    /// <summary>
+    /// 线程 ID
+    /// </summary>
+    public int ThreadId { get; set; }
+
+    /// <summary>
+    /// 进程 ID
+    /// </summary>
+    public int ProcessId { get; set; }
 
     /// <summary>
     /// 异常时间
@@ -126,6 +186,41 @@ public class ExceptionLogListItemDto : BasicAppDto
     /// 错误代码
     /// </summary>
     public string? ErrorCode { get; set; }
+
+    /// <summary>
+    /// 处理备注
+    /// </summary>
+    public string? HandledRemark { get; set; }
+
+    /// <summary>
+    /// 异常堆栈
+    /// </summary>
+    public string? ExceptionStackTrace { get; set; }
+
+    /// <summary>
+    /// 请求参数
+    /// </summary>
+    public string? RequestParams { get; set; }
+
+    /// <summary>
+    /// 请求体
+    /// </summary>
+    public string? RequestBody { get; set; }
+
+    /// <summary>
+    /// 请求头
+    /// </summary>
+    public string? RequestHeaders { get; set; }
+
+    /// <summary>
+    /// 扩展数据
+    /// </summary>
+    public string? ExtendData { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间

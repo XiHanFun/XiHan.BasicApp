@@ -73,6 +73,16 @@ public class ApiLogListItemDto : BasicAppDto
     public string Method { get; set; } = string.Empty;
 
     /// <summary>
+    /// 控制器名称
+    /// </summary>
+    public string? ControllerName { get; set; }
+
+    /// <summary>
+    /// 操作名称
+    /// </summary>
+    public string? ActionName { get; set; }
+
+    /// <summary>
     /// 签名是否有效
     /// </summary>
     public bool IsSignatureValid { get; set; }
@@ -86,6 +96,31 @@ public class ApiLogListItemDto : BasicAppDto
     /// 响应状态码
     /// </summary>
     public int StatusCode { get; set; }
+
+    /// <summary>
+    /// 请求 IP
+    /// </summary>
+    public string? RequestIp { get; set; }
+
+    /// <summary>
+    /// 请求地址
+    /// </summary>
+    public string? RequestLocation { get; set; }
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 请求来源
+    /// </summary>
+    public string? Referer { get; set; }
 
     /// <summary>
     /// 是否成功
@@ -121,6 +156,51 @@ public class ApiLogListItemDto : BasicAppDto
     /// API 版本
     /// </summary>
     public string? ApiVersion { get; set; }
+
+    /// <summary>
+    /// 错误信息
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// 请求参数
+    /// </summary>
+    public string? RequestParams { get; set; }
+
+    /// <summary>
+    /// 请求体
+    /// </summary>
+    public string? RequestBody { get; set; }
+
+    /// <summary>
+    /// 响应体
+    /// </summary>
+    public string? ResponseBody { get; set; }
+
+    /// <summary>
+    /// 请求头
+    /// </summary>
+    public string? RequestHeaders { get; set; }
+
+    /// <summary>
+    /// 响应头
+    /// </summary>
+    public string? ResponseHeaders { get; set; }
+
+    /// <summary>
+    /// 异常堆栈
+    /// </summary>
+    public string? ExceptionStackTrace { get; set; }
+
+    /// <summary>
+    /// 扩展数据
+    /// </summary>
+    public string? ExtendData { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间

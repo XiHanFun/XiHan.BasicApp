@@ -309,7 +309,7 @@ function handleClickOutside() {
 .notification-dropdown {
   position: fixed;
   z-index: 2000;
-  width: 380px;
+  width: min(560px, calc(100vw - 24px));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
@@ -373,6 +373,7 @@ function handleClickOutside() {
 .notification-item {
   display: flex;
   gap: 10px;
+  align-items: flex-start;
   padding: 10px 16px;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -411,29 +412,33 @@ function handleClickOutside() {
 
 .notification-item-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
 
 .notification-item-title {
+  flex: 1;
+  min-width: 0;
   font-size: 13px;
   font-weight: 500;
   color: hsl(var(--foreground));
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
+  line-height: 1.45;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.notification-item-header :deep(.n-tag) {
+  flex-shrink: 0;
 }
 
 .notification-item-content {
   margin-top: 4px;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .notification-item-footer {
