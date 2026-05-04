@@ -21,6 +21,7 @@ import type {
   VerificationCodeResult,
 } from '~/types'
 import * as authorizationApi from '@/api/modules/authorization'
+import { userInboxApi as currentUserInboxApi } from '@/api/modules/messaging'
 import * as tenantApi from '@/api/modules/tenant'
 import { requestClient } from '@/api/request'
 import { router } from '@/router'
@@ -66,9 +67,9 @@ function emptyPage(input?: { page?: number, pageSize?: number }): PageSummary {
   }
 }
 
-async function getWithFallback<T>(url: string, fallback: T): Promise<T> {
+async function getWithFallback<T>(url: string, fallback: T, config?: Parameters<typeof requestClient.get>[1]): Promise<T> {
   try {
-    return await requestClient.get<T>(url)
+    return await requestClient.get<T>(url, config)
   }
   catch {
     return fallback
@@ -146,7 +147,7 @@ function createProfileApis() {
       return getWithFallback<ExternalLoginItem[]>('/Profile/LinkedAccounts', [])
     },
     getLoginLogsApi(page: number, pageSize: number) {
-      return getWithFallback<LoginLogPage>('/Profile/LoginLogs', { items: [], total: 0 })
+      return getWithFallback<LoginLogPage>('/Profile/LoginLogs', { items: [], total: 0 }, { params: { page, pageSize } })
         .then(result => ({ ...result, page, pageSize }))
     },
     getProfileApi() {
@@ -231,17 +232,17 @@ function createShellApis() {
       },
     },
     userInboxApi: {
-      confirm(_id: string, _userId: string) {
-        return Promise.resolve()
+      confirm(id: string, _userId?: string, _tenantId?: number) {
+        return currentUserInboxApi.confirm(id)
       },
-      list(_userId: string, _unreadOnly = false) {
-        return Promise.resolve([])
+      list(_userId?: string, unreadOnly = false, _tenantId?: number) {
+        return currentUserInboxApi.list(unreadOnly)
       },
-      markAllRead(_userId: string) {
-        return Promise.resolve()
+      markAllRead(_userId?: string, _tenantId?: number) {
+        return currentUserInboxApi.markAllRead()
       },
-      markRead(_id: string, _userId: string) {
-        return Promise.resolve()
+      markRead(id: string, _userId?: string, _tenantId?: number) {
+        return currentUserInboxApi.markRead(id)
       },
     },
     userSessionApi: {

@@ -29,7 +29,7 @@ onMounted(() => {
   >
     <NLoadingBarProvider>
       <NDialogProvider>
-        <NNotificationProvider>
+        <NNotificationProvider placement="bottom-right">
           <NMessageProvider>
             <RouterView />
             <LockScreen />
