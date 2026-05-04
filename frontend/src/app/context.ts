@@ -108,10 +108,10 @@ function createAuthApis() {
     registerApi(input: unknown) {
       return requestClient.post('/Auth/Register', input)
     },
-    requestPasswordResetApi(email: string, scopeId?: number) {
+    requestPasswordResetApi(email: string, scopeId?: string) {
       return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email, scopeId })
     },
-    sendPhoneLoginCodeApi(phone: string, scopeId?: number) {
+    sendPhoneLoginCodeApi(phone: string, scopeId?: string) {
       return requestClient.post<VerificationCodeResult>('/Auth/PhoneLoginCode', { phone, scopeId })
     },
   }
@@ -232,16 +232,16 @@ function createShellApis() {
       },
     },
     userInboxApi: {
-      confirm(id: string, _userId?: string, _tenantId?: number) {
+      confirm(id: string, _userId?: string, _tenantId?: string) {
         return currentUserInboxApi.confirm(id)
       },
-      list(_userId?: string, unreadOnly = false, _tenantId?: number) {
+      list(_userId?: string, unreadOnly = false, _tenantId?: string) {
         return currentUserInboxApi.list(unreadOnly)
       },
-      markAllRead(_userId?: string, _tenantId?: number) {
+      markAllRead(_userId?: string, _tenantId?: string) {
         return currentUserInboxApi.markAllRead()
       },
-      markRead(id: string, _userId?: string, _tenantId?: number) {
+      markRead(id: string, _userId?: string, _tenantId?: string) {
         return currentUserInboxApi.markRead(id)
       },
     },

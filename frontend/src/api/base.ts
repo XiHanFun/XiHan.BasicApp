@@ -136,7 +136,7 @@ function appendSortParams(params: DynamicApiParams, input: PageRequest) {
 }
 
 export function formatDynamicApiRouteValue(value: ApiId) {
-  return encodeURIComponent(String(value))
+  return encodeURIComponent(value)
 }
 
 function normalizeSegment(value: string) {

@@ -452,7 +452,7 @@ function handleEdit(row: UserRoleListItemDto) {
   ])
   roleOptions.value = mergeOptions(roleOptions.value, [
     {
-      label: row.roleCode ? `${row.roleName || row.roleCode} (${row.roleCode})` : String(row.roleId),
+      label: row.roleCode ? `${row.roleName || row.roleCode} (${row.roleCode})` : row.roleId,
       roleType: row.roleType ?? RoleType.Custom,
       value: row.roleId,
     },

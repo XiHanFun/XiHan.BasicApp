@@ -105,9 +105,7 @@ function getOauthProviderIcon(name: string) {
 }
 
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
-  const parsedTenantId = Number(formData.value.tenantId)
-  const tenantId = loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId) ? parsedTenantId : undefined
-  authStore.startOAuthLogin(provider, tenantId)
+  authStore.startOAuthLogin(provider, resolveTenantId())
 }
 
 async function loadLoginConfig() {
@@ -121,15 +119,15 @@ onMounted(async () => {
   cachedDeviceId.value = await generateDeviceFingerprint()
 })
 
+function resolveTenantId() {
+  return loginConfig.value.tenantEnabled ? formData.value.tenantId.trim() || undefined : undefined
+}
+
 function buildLoginParams() {
-  const parsedTenantId = Number(formData.value.tenantId)
   return {
     username: formData.value.username,
     password: formData.value.password,
-    tenantId:
-      loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId)
-        ? parsedTenantId
-        : undefined,
+    tenantId: resolveTenantId(),
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     deviceId: cachedDeviceId.value || undefined,

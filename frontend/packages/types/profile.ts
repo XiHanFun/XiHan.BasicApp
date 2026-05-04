@@ -1,7 +1,7 @@
 // ==================== 个人中心类型 ====================
 
 export interface UserProfile {
-  userId: number
+  userId: string
   userName: string
   realName?: string
   nickName?: string
@@ -14,7 +14,7 @@ export interface UserProfile {
   language?: string
   country?: string
   remark?: string
-  tenantId?: null | number
+  tenantId?: null | string
   lastLoginTime?: string
   lastLoginIp?: string
   isSystemAccount: boolean
@@ -41,7 +41,7 @@ export interface UpdateProfileParams {
 }
 
 export interface ChangePasswordParams {
-  userId: number
+  userId: string
   oldPassword: string
   newPassword: string
 }

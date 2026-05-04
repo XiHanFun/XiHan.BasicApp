@@ -62,7 +62,7 @@ export function setupRouterGuard(router: Router) {
     }
 
     // 已登录但用户上下文无效，重新拉取当前用户
-    if (!userStore.isLoggedIn || Number(userStore.userInfo?.basicId ?? 0) <= 0) {
+    if (!userStore.isLoggedIn || !userStore.userInfo?.basicId) {
       try {
         const [userInfo, authPermission] = await Promise.all([
           ctx.apis.getUserInfoApi(),

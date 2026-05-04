@@ -406,7 +406,7 @@ function handleEdit(row: RolePermissionListItemDto) {
     {
       label: row.permissionCode
         ? `${row.permissionName || row.permissionCode} (${row.permissionCode})`
-        : String(row.permissionId),
+        : row.permissionId,
       value: row.permissionId,
     },
   ])

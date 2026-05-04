@@ -129,7 +129,7 @@ function parseRuleItems(): ConstraintRuleItemInputDto[] | null {
     return parsed.map(item => ({
       constraintGroup: Number(item.constraintGroup ?? 0),
       remark: typeof item.remark === 'string' ? item.remark : null,
-      targetId: Number(item.targetId),
+      targetId: typeof item.targetId === 'string' ? item.targetId : '',
       targetType: Number(item.targetType ?? ruleForm.value.targetType),
     }))
   }
@@ -155,8 +155,8 @@ function validateForm(items: ConstraintRuleItemInputDto[] | null) {
     return false
   }
 
-  if (items.some(item => !Number.isFinite(item.targetId) || item.targetId <= 0)) {
-    message.warning('规则项目标主键必须大于 0')
+  if (items.some(item => !item.targetId)) {
+    message.warning('规则项目标主键不能为空')
     return false
   }
 

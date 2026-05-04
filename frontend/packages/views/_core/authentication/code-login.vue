@@ -20,7 +20,7 @@ const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
-const defaultTenantId = 1
+const defaultTenantId = '1'
 
 const formData = ref({
   phone: '',

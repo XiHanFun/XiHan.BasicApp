@@ -3,7 +3,7 @@ import type { MenuRoute } from './menu'
 // ==================== 认证 & 用户类型 ====================
 
 export interface UserInfo {
-  basicId: number
+  basicId: string
   userName: string
   nickName?: string
   appTitle?: string
@@ -11,7 +11,7 @@ export interface UserInfo {
   avatar?: string
   email?: string
   phone?: string
-  tenantId?: null | number
+  tenantId?: null | string
   roles: string[]
   permissions: string[]
 }
@@ -30,7 +30,7 @@ export interface LoginConfig {
 export interface LoginParams {
   username: string
   password: string
-  tenantId?: null | number
+  tenantId?: null | string
   /** 双因素验证码（开启 2FA 时必填） */
   twoFactorCode?: string
   /** 用户选择的双因素方式（totp/email/phone） */
@@ -45,13 +45,13 @@ export interface RegisterParams {
   nickName?: string
   email?: string
   phone?: string
-  tenantId?: null | number
+  tenantId?: null | string
 }
 
 export interface PhoneLoginParams {
   phone: string
   code: string
-  tenantId?: null | number
+  tenantId?: null | string
 }
 
 export interface VerificationCodeResult {

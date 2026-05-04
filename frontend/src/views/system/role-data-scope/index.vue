@@ -412,7 +412,7 @@ function handleEdit(row: RoleDataScopeListItemDto) {
     {
       label: row.departmentCode
         ? `${row.departmentName || row.departmentCode} (${row.departmentCode})`
-        : String(row.departmentId),
+        : row.departmentId,
       value: row.departmentId,
     },
   ])
