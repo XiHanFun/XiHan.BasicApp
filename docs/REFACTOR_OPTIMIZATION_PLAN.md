@@ -6260,3 +6260,40 @@ pnpm lint
 - 阶段前检查 `XiHan.BasicApp` 工作区存在本地配置和前端并行改动，本阶段未覆盖这些文件。
 - `XiHan.Framework` 存在授权/日志相关并行改动和未跟踪 `framework/src/analysis.md`，本阶段无我方 Framework 代码改动。
 - 本阶段只修改 BasicApp 的 SaaS 事件处理器和本文档，不推送远端。
+
+### 2026-05-04 A121 认证通知、个人中心与站内信页面恢复
+
+本阶段按用户要求恢复重构前登录/登出通知、个人中心和缺失工作台页面。范围限定为 BasicApp SaaS 应用服务、当前用户站内信、前端 `src` API/页面和 SaaS 菜单种子，不新增 Controller，不把 `TenantId` 作为普通业务入参。
+
+执行结果：
+
+- 补齐个人中心后端 DynamicApi：
+  - 新增 `ProfileAppService`、`IProfileAppService` 和 Profile DTO，覆盖资料读取/更新、改密、改用户名、邮箱/手机号验证与换绑、2FA、当前用户会话、登录日志、第三方绑定、停用/注销账号。
+  - 密码校验统一使用注入的 `IPasswordHasher`；自助停用/注销增加系统账号和租户所有者保护；撤销其他会话逐条发布 `UserSessionRevokedDomainEvent`。
+- 补齐当前用户站内信：
+  - 新增 `UserInboxAppService`、`IUserInboxAppService`、`UserInboxDtos`。
+  - 新增 `IUserNotificationDispatchService` / `UserNotificationDispatchService`，写入 `SysNotification` + `SysUserNotification` 并尝试通过 `BasicAppNotificationHub.ReceiveNotification` 推送，推送失败不影响落库。
+- 恢复登录/登出通知：
+  - `AuthAppService.LoginAsync()` 登录成功后写入并推送 `auth.login` 用户通知。
+  - `AuthAppService.LogoutAsync()` 主动退出后写入并推送 `auth.logout` 用户通知。
+  - 通知失败被隔离，不阻断认证主链路。
+- 补齐前端桥接和缺失页面：
+  - 新增 `frontend/src/api/modules/messaging/user-inbox.ts` 与类型文件。
+  - `frontend/src/app/context.ts` 将原 `userInboxApi` 空实现改为真实 `/UserInbox/*` 调用，并修正个人中心登录日志分页参数。
+  - 新增 `frontend/src/views/workbench/inbox/index.vue`，支持刷新、只看待处理、标记已读、全部已读、确认通知和跳转链接。
+  - 新增 `frontend/src/views/workbench/dashboard/index.vue`，让动态菜单 `workbench/dashboard/index` 能被 `src/views` glob 解析。
+  - `SaasMenuSeeder` 新增 `/workbench/inbox` 菜单项。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --artifacts-path %TEMP%\xihan-basicapp-artifacts-saas -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+- `dotnet build backend/src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj --artifacts-path %TEMP%\xihan-basicapp-artifacts-webhost -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false`：通过，0 警告，0 错误。
+- `pnpm type-check`：通过。
+- `pnpm build`：通过；仅出现 `@microsoft/signalr` 第三方 PURE 注释 Rollup 警告。
+- `rg -n "class .*Controller" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+- `rg -n "TenantId\s*IS\s*NULL|TenantId\s*==\s*null|PlatformTenantId\s*=\s*1" backend/src/modules/XiHan.BasicApp.Saas -g "*.cs"`：0 个匹配。
+
+协作状态：
+
+- 阶段前已有本地配置改动 `backend/src/main/XiHan.BasicApp.WebHost/appsettings.Development.json`、`frontend/.env.development`，本阶段未修改或回滚。
+- 本阶段没有 Framework 改动，没有新增 Controller，没有通过前端传租户标识实现授权。

@@ -242,6 +242,20 @@ public sealed class SaasMenuSeeder(
                 null,
                 false,
                 true),
+            new(
+                "workbench.inbox",
+                "站内信",
+                MenuType.Menu,
+                "/workbench/inbox",
+                "WorkbenchInbox",
+                "workbench/inbox/index",
+                "workbench",
+                null,
+                "lucide:inbox",
+                "站内信",
+                12,
+                null,
+                true),
 
             // ═══════════ 系统管理（一级目录）═══════════
             new(

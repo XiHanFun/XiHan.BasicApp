@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -51,6 +52,7 @@ public sealed class AuthAppService(
     IUserSessionRepository userSessionRepository,
     IOAuthTokenRepository oauthTokenRepository,
     ILoginLogPipeline loginLogPipeline,
+    IUserNotificationDispatchService notificationDispatchService,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtTokenService,
     ICurrentTenant currentTenant,
@@ -75,6 +77,7 @@ public sealed class AuthAppService(
     private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
     private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
     private readonly ILoginLogPipeline _loginLogPipeline = loginLogPipeline;
+    private readonly IUserNotificationDispatchService _notificationDispatchService = notificationDispatchService;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
     private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
     private readonly ICurrentTenant _currentTenant = currentTenant;
@@ -156,6 +159,15 @@ public sealed class AuthAppService(
         _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
         await TouchTenantMembershipAsync(user.BasicId, effectiveTenantId, now, cancellationToken);
         await PublishLoginLogAsync(user.BasicId, userName, sessionBusinessId, LoginResult.Success, "登录成功", now);
+        await TryDispatchAuthNotificationAsync(
+            user.BasicId,
+            "登录成功",
+            BuildAuthNotificationContent("您的账号已成功登录。", client, now),
+            NotificationType.User,
+            "auth.login",
+            session.BasicId,
+            "lucide:log-in",
+            cancellationToken);
 
         return new LoginResponseDto
         {
@@ -271,6 +283,15 @@ public sealed class AuthAppService(
 
         var userName = _currentUser.FindClaim(XiHanClaimTypes.UserName)?.Value;
         await PublishLoginLogAsync(userId.Value, userName, sessionBusinessId, LoginResult.Logout, "用户主动退出", now);
+        await TryDispatchAuthNotificationAsync(
+            userId.Value,
+            "退出登录",
+            "您已退出当前会话。",
+            NotificationType.User,
+            "auth.logout",
+            session.BasicId,
+            "lucide:log-out",
+            cancellationToken);
     }
 
     private async Task<SysTenant?> GetLoginTenantOrThrowAsync(long? tenantId, CancellationToken cancellationToken)
@@ -805,6 +826,51 @@ public sealed class AuthAppService(
         {
             // 日志事件发布失败不应影响业务流程
         }
+    }
+
+    private async Task TryDispatchAuthNotificationAsync(
+        long userId,
+        string title,
+        string content,
+        NotificationType notificationType,
+        string businessType,
+        long businessId,
+        string icon,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _notificationDispatchService.DispatchToUserAsync(
+                userId,
+                title,
+                content,
+                notificationType,
+                businessType,
+                businessId,
+                link: "/profile",
+                icon: icon,
+                cancellationToken: cancellationToken);
+        }
+        catch
+        {
+            // 登录/登出通知失败不应影响认证主流程。
+        }
+    }
+
+    private static string BuildAuthNotificationContent(string prefix, ClientInfo client, DateTimeOffset time)
+    {
+        var parts = new List<string> { prefix, $"时间：{time:yyyy-MM-dd HH:mm:ss} UTC" };
+        if (!string.IsNullOrWhiteSpace(client.IpAddress))
+        {
+            parts.Add($"IP：{client.IpAddress}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(client.UserAgent))
+        {
+            parts.Add($"客户端：{client.UserAgent}");
+        }
+
+        return string.Join(" ", parts);
     }
 
     private sealed record AuthorizationSnapshot(
