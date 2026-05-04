@@ -741,6 +741,20 @@ public sealed class SaasMenuSeeder(
                 706,
                 null,
                 true),
+            new(
+                "system.permission-change-log",
+                "权限变更日志",
+                MenuType.Menu,
+                "/system/permission-change-log",
+                "SystemPermissionChangeLog",
+                "system/permission-change-log/index",
+                "system.audit",
+                SaasPermissionCodes.PermissionChangeLog.Read,
+                "lucide:key-round",
+                "权限变更日志",
+                707,
+                null,
+                true),
 
             // ─── 系统运维（合并原运维 + 安全认证 + 消息管理）───
             new(

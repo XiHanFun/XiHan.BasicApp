@@ -7,6 +7,7 @@ export enum LoginResult {
   AccountDisabled = 3,
   RequiresTwoFactor = 4,
   TwoFactorFailed = 5,
+  Logout = 10,
   Failed = 99,
 }
 
@@ -23,12 +24,20 @@ export interface LoginLogPageQueryDto extends PageRequest {
 }
 
 export interface LoginLogListItemDto extends BasicDto {
+  browser?: string | null
   createdTime: DateTimeString
+  device?: string | null
+  deviceId?: string | null
   isRiskLogin: boolean
+  loginIp?: string | null
+  loginLocation?: string | null
   loginResult: LoginResult
   loginTime: DateTimeString
+  message?: string | null
+  os?: string | null
   sessionId?: string | null
   traceId?: string | null
+  userAgent?: string | null
   userId?: ApiId | null
   userName?: string | null
 }

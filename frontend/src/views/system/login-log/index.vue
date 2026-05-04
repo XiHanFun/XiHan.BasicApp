@@ -36,12 +36,14 @@ const loginResultOptions = [
   { label: '账号禁用', value: LoginResult.AccountDisabled },
   { label: '需二次验证', value: LoginResult.RequiresTwoFactor },
   { label: '二次验证失败', value: LoginResult.TwoFactorFailed },
+  { label: '登出', value: LoginResult.Logout },
   { label: '其他失败', value: LoginResult.Failed },
 ]
 
 function loginResultType(result: LoginResult) {
   switch (result) {
     case LoginResult.Success: return 'success'
+    case LoginResult.Logout: return 'info'
     case LoginResult.InvalidCredentials:
     case LoginResult.TwoFactorFailed:
     case LoginResult.Failed: return 'error'
@@ -82,12 +84,20 @@ const tableOptions = useVxeTable<LoginLogListItemDto>(
       { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
       { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
       { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
+      { field: 'loginIp', minWidth: 130, showOverflow: 'tooltip', title: '登录 IP' },
+      { field: 'loginLocation', minWidth: 160, showOverflow: 'tooltip', title: '登录位置' },
+      { field: 'browser', minWidth: 120, showOverflow: 'tooltip', title: '浏览器' },
+      { field: 'os', minWidth: 120, showOverflow: 'tooltip', title: '操作系统' },
+      { field: 'device', minWidth: 120, showOverflow: 'tooltip', title: '设备' },
+      { field: 'deviceId', minWidth: 160, showOverflow: 'tooltip', title: '设备标识' },
+      { field: 'userAgent', minWidth: 260, showOverflow: 'tooltip', title: 'User-Agent' },
       {
         field: 'loginResult',
         slots: { default: 'col_result' },
-        title: '登录结果',
+        title: '登录/登出结果',
         width: 120,
       },
+      { field: 'message', minWidth: 220, showOverflow: 'tooltip', title: '消息' },
       {
         field: 'isRiskLogin',
         slots: { default: 'col_risk' },
@@ -147,7 +157,7 @@ function handleReset() {
           v-model:value="queryParams.loginResult"
           :options="loginResultOptions"
           clearable
-          placeholder="登录结果"
+          placeholder="登录/登出结果"
           style="width: 130px"
         />
         <NButton size="small" type="primary" @click="handleSearch">

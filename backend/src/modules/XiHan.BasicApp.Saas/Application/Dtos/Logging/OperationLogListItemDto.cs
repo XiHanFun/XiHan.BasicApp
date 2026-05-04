@@ -64,9 +64,19 @@ public class OperationLogListItemDto : BasicAppDto
     public string? Title { get; set; }
 
     /// <summary>
+    /// 操作描述
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
     /// 请求方法
     /// </summary>
     public string? Method { get; set; }
+
+    /// <summary>
+    /// 请求 URL
+    /// </summary>
+    public string? RequestUrl { get; set; }
 
     /// <summary>
     /// 执行耗时（毫秒）
@@ -74,9 +84,39 @@ public class OperationLogListItemDto : BasicAppDto
     public long ExecutionTime { get; set; }
 
     /// <summary>
+    /// 操作 IP
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
+    /// 操作地址
+    /// </summary>
+    public string? OperationLocation { get; set; }
+
+    /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统
+    /// </summary>
+    public string? Os { get; set; }
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
     /// 操作状态
     /// </summary>
     public EnableStatus Status { get; set; }
+
+    /// <summary>
+    /// 错误消息
+    /// </summary>
+    public string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 操作时间

@@ -43,6 +43,41 @@ public class LoginLogListItemDto : BasicAppDto
     public string? TraceId { get; set; }
 
     /// <summary>
+    /// 登录 IP
+    /// </summary>
+    public string? LoginIp { get; set; }
+
+    /// <summary>
+    /// 登录地址
+    /// </summary>
+    public string? LoginLocation { get; set; }
+
+    /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统
+    /// </summary>
+    public string? Os { get; set; }
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
+    /// 设备
+    /// </summary>
+    public string? Device { get; set; }
+
+    /// <summary>
+    /// 设备标识
+    /// </summary>
+    public string? DeviceId { get; set; }
+
+    /// <summary>
     /// 登录结果
     /// </summary>
     public LoginResult LoginResult { get; set; }
@@ -56,6 +91,11 @@ public class LoginLogListItemDto : BasicAppDto
     /// 登录时间
     /// </summary>
     public DateTimeOffset LoginTime { get; set; }
+
+    /// <summary>
+    /// 登录消息
+    /// </summary>
+    public string? Message { get; set; }
 
     /// <summary>
     /// 创建时间

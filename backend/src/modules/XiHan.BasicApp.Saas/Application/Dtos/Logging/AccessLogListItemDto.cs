@@ -73,6 +73,41 @@ public class AccessLogListItemDto : BasicAppDto
     public int StatusCode { get; set; }
 
     /// <summary>
+    /// 访问 IP
+    /// </summary>
+    public string? AccessIp { get; set; }
+
+    /// <summary>
+    /// 访问地址
+    /// </summary>
+    public string? AccessLocation { get; set; }
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
+    /// 浏览器
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统
+    /// </summary>
+    public string? Os { get; set; }
+
+    /// <summary>
+    /// 设备
+    /// </summary>
+    public string? Device { get; set; }
+
+    /// <summary>
+    /// 访问来源
+    /// </summary>
+    public string? Referer { get; set; }
+
+    /// <summary>
     /// 执行耗时（毫秒）
     /// </summary>
     public long ExecutionTime { get; set; }
@@ -81,6 +116,21 @@ public class AccessLogListItemDto : BasicAppDto
     /// 访问时间
     /// </summary>
     public DateTimeOffset AccessTime { get; set; }
+
+    /// <summary>
+    /// 错误信息
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// 扩展数据
+    /// </summary>
+    public string? ExtendData { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间

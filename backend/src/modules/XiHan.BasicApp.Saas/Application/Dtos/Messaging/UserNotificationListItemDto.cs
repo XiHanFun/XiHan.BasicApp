@@ -38,6 +38,41 @@ public class UserNotificationListItemDto : BasicAppDto
     public NotificationStatus NotificationStatus { get; set; }
 
     /// <summary>
+    /// 通知类型
+    /// </summary>
+    public NotificationType? NotificationType { get; set; }
+
+    /// <summary>
+    /// 通知标题
+    /// </summary>
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// 通知内容
+    /// </summary>
+    public string? Content { get; set; }
+
+    /// <summary>
+    /// 通知图标
+    /// </summary>
+    public string? Icon { get; set; }
+
+    /// <summary>
+    /// 跳转链接
+    /// </summary>
+    public string? Link { get; set; }
+
+    /// <summary>
+    /// 发送时间
+    /// </summary>
+    public DateTimeOffset? SendTime { get; set; }
+
+    /// <summary>
+    /// 是否需要确认
+    /// </summary>
+    public bool NeedConfirm { get; set; }
+
+    /// <summary>
     /// 阅读时间
     /// </summary>
     public DateTimeOffset? ReadTime { get; set; }

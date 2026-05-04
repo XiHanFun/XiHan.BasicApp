@@ -6355,3 +6355,57 @@ pnpm lint
 
 - 阶段前已有本地配置和前端并行改动，本阶段未修改或回滚。
 - 本阶段只修改 BasicApp SaaS 种子数据注册、种子实现和本文档。
+
+### 2026-05-04 A124 日志页面字段补齐与登录通知上下文优化
+
+本阶段按用户反馈继续修复重构回归，重点补齐审计日志页面字段缺失，并将登录/登出通知上下文改为使用 Framework Web Core 的客户端信息解析结果。范围限定为 SaaS 应用层 DTO/Mapper、Auth 通知内容、前端审计日志 API/页面和菜单种子，不新增 Controller，不调整前端 ID 契约。
+
+执行结果：
+
+- 日志读模型 DTO/Mapper 补齐字段：
+  - `SysAccessLog`：补充访问 IP、位置、UA、浏览器、操作系统、设备、来源地址、错误消息、扩展数据和备注。
+  - `SysApiLog`：补充控制器/动作、请求 IP/位置、UA、浏览器、来源地址、错误消息、请求/响应体与头、异常堆栈、扩展数据和备注。
+  - `SysDiffLog`：补充操作描述、变更摘要、操作 IP、异常消息、变更前后数据、变更字段、异常堆栈、扩展数据和备注。
+  - `SysExceptionLog`：补充异常消息、控制器/动作、操作 IP/位置、UA、浏览器、操作系统、设备信息、服务器主机、线程/进程、处理备注、请求内容、异常堆栈、扩展数据和备注。
+  - `SysLoginLog`：补充登录 IP、位置、浏览器、操作系统、UA、设备、设备标识和消息，并补齐登出结果枚举。
+  - `SysOperationLog`：补充操作描述、请求地址、操作 IP/位置、浏览器、操作系统、UA 和错误消息。
+  - `SysPermissionChangeLog`：补充变更原因、描述和操作 IP。
+- 前端审计日志页面补齐对应列：
+  - `access-log`、`api-log`、`diff-log`、`exception-log`、`login-log`、`operation-log` 展示实体真实字段，不再使用 `Has*` 存在性派生字段。
+  - 新增 `permission-change-log` API 类型、API 模块和页面，并加入审计日志菜单种子。
+  - 前端 ID/外键 ID 继续使用 `ApiId`/`string`，未增加多余转换。
+- 登录/登出通知内容改用 `IClientInfoProvider.GetCurrent()`：
+  - 会话与登录日志继续保存解析后的 IP、位置、浏览器、操作系统和设备。
+  - 通知正文使用位置/IP fallback 和浏览器/系统/设备摘要，不再拼接 `ip + 完整 User-Agent`。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --no-restore --disable-build-servers -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false -v:minimal`：通过，0 警告，0 错误。
+- `pnpm type-check`：通过。
+- `git diff --check`：通过；仅保留 Git 行尾转换提示。
+
+协作状态：
+
+- 阶段前已有本地配置改动 `backend/src/main/XiHan.BasicApp.WebHost/appsettings.Development.json`、`frontend/.env.development`，本阶段未回滚。
+- 本阶段没有 Framework 代码改动，没有新增 Controller，没有改变后端 `long` / 前端 `string` 的 ID 契约。
+
+### 2026-05-04 A125 通知中心内容完整展示
+
+本阶段按用户反馈修复通知中心内容展示不完整问题。范围限定为系统通知/用户通知查询 DTO、映射器、查询服务和前端通知中心页面，不新增 Controller，不修改 Framework。
+
+执行结果：
+
+- `NotificationListItemDto` 补充 `Content`、`Icon`、`Link`、`Remark`，系统通知列表和详情均返回实体真实内容字段。
+- `UserNotificationListItemDto` 补充关联通知的类型、标题、内容、图标、链接、发送时间和确认要求；用户通知分页和详情通过 `NotificationId` 关联 `SysNotification` 后返回完整通知内容。
+- `frontend/src/views/system/notification/index.vue`：
+  - 系统通知和用户通知表格补充通知标题/内容等列。
+  - 详情抽屉直接展示完整通知内容、图标、跳转链接和备注，不再显示“正文/视觉标识/跳转动作是否存在”。
+  - 通知正文使用 `white-space: pre-wrap` 保留换行并完整换行显示。
+- `frontend/src/views/workbench/inbox/index.vue` 的站内信正文同样改为 `pre-wrap`，保证多行内容完整显示。
+- `frontend/packages/layouts/basic/components/header/NotificationPopover.vue` 顶部铃铛弹层去除正文单行省略，标题和正文均支持完整换行显示，并放宽弹层响应式宽度。
+
+验证结果：
+
+- `dotnet build backend/src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj --no-restore --disable-build-servers -m:1 -p:UseSharedCompilation=false -p:GeneratePackageOnBuild=false -v:minimal`：通过，0 警告，0 错误。
+- `pnpm type-check`：通过。
+- `git diff --check`：通过；仅保留 Git 行尾转换提示。

@@ -84,6 +84,7 @@ const tableOptions = useVxeTable<OperationLogListItemDto>(
       { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
       { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
       { field: 'title', minWidth: 160, showOverflow: 'tooltip', title: '操作标题' },
+      { field: 'description', minWidth: 220, showOverflow: 'tooltip', title: '操作描述' },
       { field: 'module', minWidth: 120, showOverflow: 'tooltip', title: '操作模块' },
       { field: 'function', minWidth: 120, showOverflow: 'tooltip', title: '操作功能' },
       {
@@ -93,6 +94,12 @@ const tableOptions = useVxeTable<OperationLogListItemDto>(
         width: 90,
       },
       { field: 'method', title: '请求方法', width: 90 },
+      { field: 'requestUrl', minWidth: 240, showOverflow: 'tooltip', title: '请求地址' },
+      { field: 'operationIp', minWidth: 130, showOverflow: 'tooltip', title: '操作 IP' },
+      { field: 'operationLocation', minWidth: 160, showOverflow: 'tooltip', title: '操作位置' },
+      { field: 'browser', minWidth: 120, showOverflow: 'tooltip', title: '浏览器' },
+      { field: 'os', minWidth: 120, showOverflow: 'tooltip', title: '操作系统' },
+      { field: 'userAgent', minWidth: 260, showOverflow: 'tooltip', title: 'User-Agent' },
       {
         field: 'executionTime',
         formatter: ({ cellValue }) => `${cellValue}ms`,
@@ -106,6 +113,7 @@ const tableOptions = useVxeTable<OperationLogListItemDto>(
         title: '操作状态',
         width: 90,
       },
+      { field: 'errorMessage', minWidth: 220, showOverflow: 'tooltip', title: '错误消息' },
       {
         field: 'operationTime',
         formatter: ({ cellValue }) => formatDate(cellValue),

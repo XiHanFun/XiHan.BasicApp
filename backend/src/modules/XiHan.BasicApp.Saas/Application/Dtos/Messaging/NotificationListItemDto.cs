@@ -38,6 +38,21 @@ public class NotificationListItemDto : BasicAppDto
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
+    /// 通知内容
+    /// </summary>
+    public string? Content { get; set; }
+
+    /// <summary>
+    /// 通知图标
+    /// </summary>
+    public string? Icon { get; set; }
+
+    /// <summary>
+    /// 跳转链接
+    /// </summary>
+    public string? Link { get; set; }
+
+    /// <summary>
     /// 业务类型
     /// </summary>
     public string? BusinessType { get; set; }
@@ -71,6 +86,11 @@ public class NotificationListItemDto : BasicAppDto
     /// 是否已发布
     /// </summary>
     public bool IsPublished { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间

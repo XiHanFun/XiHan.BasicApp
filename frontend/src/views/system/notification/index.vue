@@ -193,6 +193,7 @@ const notificationTableOptions = useVxeTable<NotificationListItemDto>(
     columns: [
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },
       { field: 'title', minWidth: 220, showOverflow: 'tooltip', title: '通知标题' },
+      { field: 'content', minWidth: 260, showOverflow: 'tooltip', title: '通知内容' },
       {
         field: 'notificationType',
         slots: { default: 'col_notification_type' },
@@ -218,6 +219,9 @@ const notificationTableOptions = useVxeTable<NotificationListItemDto>(
         width: 82,
       },
       { field: 'businessType', minWidth: 130, showOverflow: 'tooltip', title: '业务类型' },
+      { field: 'icon', minWidth: 110, showOverflow: 'tooltip', title: '图标' },
+      { field: 'link', minWidth: 200, showOverflow: 'tooltip', title: '跳转链接' },
+      { field: 'remark', minWidth: 180, showOverflow: 'tooltip', title: '备注' },
       { field: 'sendUserId', minWidth: 110, title: '发送用户' },
       {
         field: 'sendTime',
@@ -266,11 +270,31 @@ const userNotificationTableOptions = useVxeTable<UserNotificationListItemDto>(
       { fixed: 'left', title: '序号', type: 'seq', width: 60 },
       { field: 'notificationId', minWidth: 130, title: '通知主键' },
       { field: 'userId', minWidth: 120, title: '用户主键' },
+      { field: 'title', minWidth: 220, showOverflow: 'tooltip', title: '通知标题' },
+      { field: 'content', minWidth: 260, showOverflow: 'tooltip', title: '通知内容' },
+      {
+        field: 'notificationType',
+        formatter: ({ cellValue }) => cellValue === null || cellValue === undefined ? '-' : getOptionLabel(NOTIFICATION_TYPE_OPTIONS, cellValue),
+        minWidth: 110,
+        title: '通知类型',
+      },
       {
         field: 'notificationStatus',
         slots: { default: 'col_user_notification_status' },
         title: '通知状态',
         width: 110,
+      },
+      {
+        field: 'needConfirm',
+        slots: { default: 'col_user_confirm' },
+        title: '确认',
+        width: 82,
+      },
+      {
+        field: 'sendTime',
+        formatter: ({ cellValue }) => (cellValue ? formatDate(cellValue) : '-'),
+        minWidth: 170,
+        title: '发送时间',
       },
       {
         field: 'readTime',
@@ -534,6 +558,12 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
           </NTag>
         </template>
 
+        <template #col_user_confirm="{ row }">
+          <NTag :type="row.needConfirm ? 'warning' : 'default'" round size="small">
+            {{ row.needConfirm ? '是' : '否' }}
+          </NTag>
+        </template>
+
         <template #col_user_notification_actions="{ row }">
           <!-- 操作列仅图标 -->
           <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleUserNotificationDetail(row)">
@@ -560,8 +590,19 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
           <NDescriptionsItem label="通知标题">
             {{ currentNotificationDetail.title }}
           </NDescriptionsItem>
+          <NDescriptionsItem label="通知内容">
+            <div class="notification-detail-content">
+              {{ currentNotificationDetail.content || '-' }}
+            </div>
+          </NDescriptionsItem>
           <NDescriptionsItem label="通知类型">
             {{ getOptionLabel(NOTIFICATION_TYPE_OPTIONS, currentNotificationDetail.notificationType) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="图标">
+            {{ currentNotificationDetail.icon || '-' }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="跳转链接">
+            {{ currentNotificationDetail.link || '-' }}
           </NDescriptionsItem>
           <NDescriptionsItem label="业务引用">
             {{ currentNotificationDetail.businessType || '-' }} / {{ currentNotificationDetail.businessId || '-' }}
@@ -572,11 +613,10 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
           <NDescriptionsItem label="发布标记">
             已发布 {{ formatFlag(currentNotificationDetail.isPublished) }}，全员 {{ formatFlag(currentNotificationDetail.isBroadcast) }}，需确认 {{ formatFlag(currentNotificationDetail.needConfirm) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="内容标记">
-            正文 {{ formatFlag(currentNotificationDetail.hasBody) }}，视觉标识 {{ formatFlag(currentNotificationDetail.hasVisualMark) }}，跳转动作 {{ formatFlag(currentNotificationDetail.hasAction) }}
-          </NDescriptionsItem>
           <NDescriptionsItem label="备注">
-            {{ formatFlag(currentNotificationDetail.hasNote) }}
+            <div class="notification-detail-content">
+              {{ currentNotificationDetail.remark || '-' }}
+            </div>
           </NDescriptionsItem>
           <NDescriptionsItem label="发送时间">
             {{ formatDate(currentNotificationDetail.sendTime) }}
@@ -604,8 +644,31 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
           <NDescriptionsItem label="用户主键">
             {{ currentUserNotificationDetail.userId }}
           </NDescriptionsItem>
+          <NDescriptionsItem label="通知标题">
+            {{ currentUserNotificationDetail.title || '-' }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="通知内容">
+            <div class="notification-detail-content">
+              {{ currentUserNotificationDetail.content || '-' }}
+            </div>
+          </NDescriptionsItem>
+          <NDescriptionsItem label="通知类型">
+            {{ currentUserNotificationDetail.notificationType === null || currentUserNotificationDetail.notificationType === undefined ? '-' : getOptionLabel(NOTIFICATION_TYPE_OPTIONS, currentUserNotificationDetail.notificationType) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="图标">
+            {{ currentUserNotificationDetail.icon || '-' }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="跳转链接">
+            {{ currentUserNotificationDetail.link || '-' }}
+          </NDescriptionsItem>
           <NDescriptionsItem label="通知状态">
             {{ getOptionLabel(NOTIFICATION_STATUS_OPTIONS, currentUserNotificationDetail.notificationStatus) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="需确认">
+            {{ formatFlag(currentUserNotificationDetail.needConfirm) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="发送时间">
+            {{ currentUserNotificationDetail.sendTime ? formatDate(currentUserNotificationDetail.sendTime) : '-' }}
           </NDescriptionsItem>
           <NDescriptionsItem label="阅读时间">
             {{ currentUserNotificationDetail.readTime ? formatDate(currentUserNotificationDetail.readTime) : '-' }}
@@ -621,3 +684,10 @@ async function handleUserNotificationDetail(row: UserNotificationListItemDto) {
     </NDrawer>
   </div>
 </template>
+
+<style scoped>
+.notification-detail-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+</style>

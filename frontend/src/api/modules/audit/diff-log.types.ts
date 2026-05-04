@@ -44,15 +44,25 @@ export interface DiffLogPageQueryDto extends PageRequest {
 export interface DiffLogListItemDto extends BasicDto {
   auditTime: DateTimeString
   auditType: string
+  afterData?: string | null
+  beforeData?: string | null
+  changeDescription?: string | null
+  changedFields?: string | null
   createdTime: DateTimeString
+  description?: string | null
   entityId?: string | null
   entityName?: string | null
   entityType?: string | null
+  exceptionMessage?: string | null
+  exceptionStackTrace?: string | null
   executionTime: number
+  extendData?: string | null
   isSuccess: boolean
   operationType: AuditOperationType
+  operationIp?: string | null
   primaryKey?: string | null
   primaryKeyValue?: string | null
+  remark?: string | null
   requestId?: string | null
   riskLevel: AuditRiskLevel
   sessionId?: string | null
