@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface ITenantEditionRepository : ISaasRepository<SysTenantEdition>
 {
+    /// <summary>
+    /// 获取默认版本
+    /// </summary>
+    Task<SysTenantEdition?> GetDefaultEditionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 检查版本编码是否存在
+    /// </summary>
+    Task<bool> ExistsCodeAsync(string editionCode, long? excludeId = null, CancellationToken cancellationToken = default);
 }

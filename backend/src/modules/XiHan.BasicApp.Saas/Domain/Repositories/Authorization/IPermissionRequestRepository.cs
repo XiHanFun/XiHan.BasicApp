@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IPermissionRequestRepository : ISaasRepository<SysPermissionRequest>
 {
+    /// <summary>
+    /// 获取某权限的待处理申请
+    /// </summary>
+    Task<IReadOnlyList<SysPermissionRequest>> GetPendingByPermissionIdAsync(long permissionId, CancellationToken cancellationToken = default);
 }

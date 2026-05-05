@@ -25,4 +25,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class TaskRepository(
     ISqlSugarClientResolver clientResolver,
     IUnitOfWorkManager unitOfWorkManager)
-    : SaasAggregateRepository<SysTask>(clientResolver, unitOfWorkManager), ITaskRepository;
+    : SaasAggregateRepository<SysTask>(clientResolver, unitOfWorkManager), ITaskRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysTask>> GetPendingTasksAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(task => task.RunTaskStatus == RunTaskStatus.Pending)
+            .ToListAsync(cancellationToken);
+    }
+}

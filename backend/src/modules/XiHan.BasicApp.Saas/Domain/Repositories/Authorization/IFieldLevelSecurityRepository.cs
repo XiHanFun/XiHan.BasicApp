@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IFieldLevelSecurityRepository : ISaasRepository<SysFieldLevelSecurity>
 {
+    /// <summary>
+    /// 根据资源和角色获取字段级安全规则
+    /// </summary>
+    Task<IReadOnlyList<SysFieldLevelSecurity>> GetByResourceAndRoleAsync(long resourceId, long roleId, CancellationToken cancellationToken = default);
 }

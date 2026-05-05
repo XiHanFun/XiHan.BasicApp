@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IFileRepository : ISaasRepository<SysFile>
 {
+    /// <summary>
+    /// 根据文件哈希获取
+    /// </summary>
+    Task<SysFile?> GetByHashAsync(string fileHash, CancellationToken cancellationToken = default);
 }

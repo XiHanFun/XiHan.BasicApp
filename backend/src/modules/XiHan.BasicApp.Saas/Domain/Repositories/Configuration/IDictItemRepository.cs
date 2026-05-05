@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IDictItemRepository : ISaasRepository<SysDictItem>
 {
+    /// <summary>
+    /// 根据字典ID获取字典项列表
+    /// </summary>
+    Task<IReadOnlyList<SysDictItem>> GetByDictIdAsync(long dictId, CancellationToken cancellationToken = default);
 }

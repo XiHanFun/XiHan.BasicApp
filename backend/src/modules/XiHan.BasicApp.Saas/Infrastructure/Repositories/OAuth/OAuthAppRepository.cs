@@ -25,4 +25,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class OAuthAppRepository(
     ISqlSugarClientResolver clientResolver,
     IUnitOfWorkManager unitOfWorkManager)
-    : SaasAggregateRepository<SysOAuthApp>(clientResolver, unitOfWorkManager), IOAuthAppRepository;
+    : SaasAggregateRepository<SysOAuthApp>(clientResolver, unitOfWorkManager), IOAuthAppRepository
+{
+    /// <inheritdoc />
+    public async Task<SysOAuthApp?> GetByClientIdAsync(string clientId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(app => app.ClientId == clientId)
+            .FirstAsync(cancellationToken);
+    }
+}

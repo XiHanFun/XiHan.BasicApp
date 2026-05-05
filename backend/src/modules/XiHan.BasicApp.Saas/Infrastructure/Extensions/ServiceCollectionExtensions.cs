@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 using XiHan.Framework.Data.Auditing;
@@ -26,6 +27,29 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// 添加 SaaS 领域服务
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasDomainServices(this IServiceCollection services)
+    {
+        // 纯逻辑领域服务（无外部依赖，注册为单例）
+        services.AddSingleton<IPermissionDecisionDomainService, PermissionDecisionDomainService>();
+        services.AddSingleton<IDataScopeDecisionDomainService, DataScopeDecisionDomainService>();
+        services.AddSingleton<ITenantAccessDomainService, TenantAccessDomainService>();
+        services.AddSingleton<IPasswordPolicyDomainService, PasswordPolicyDomainService>();
+        services.AddSingleton<IUserSessionDomainService, UserSessionDomainService>();
+
+        // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
+        services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
+        services.AddScoped<IRoleHierarchyDomainService, RoleHierarchyDomainService>();
+        services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
+        services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
+
+        return services;
+    }
+
     /// <summary>
     /// 添加 SaaS 种子数据提供者
     /// </summary>

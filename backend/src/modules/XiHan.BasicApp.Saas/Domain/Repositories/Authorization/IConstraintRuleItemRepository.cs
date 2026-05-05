@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IConstraintRuleItemRepository : ISaasRepository<SysConstraintRuleItem>
 {
+    /// <summary>
+    /// 根据规则ID获取规则项列表
+    /// </summary>
+    Task<IReadOnlyList<SysConstraintRuleItem>> GetByRuleIdAsync(long ruleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 全量替换规则项（先删后插）
+    /// </summary>
+    Task ReplaceByRuleIdAsync(long ruleId, IEnumerable<SysConstraintRuleItem> items, CancellationToken cancellationToken = default);
 }

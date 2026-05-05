@@ -22,4 +22,17 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 第三方登录绑定仓储实现
 /// </summary>
 public sealed class ExternalLoginRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysExternalLogin>(clientResolver), IExternalLoginRepository;
+    : SaasRepository<SysExternalLogin>(clientResolver), IExternalLoginRepository
+{
+    /// <inheritdoc />
+    public async Task<SysExternalLogin?> GetByProviderAndKeyAsync(string provider, string providerKey, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(provider);
+        ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(login => login.Provider == provider && login.ProviderKey == providerKey)
+            .FirstAsync(cancellationToken);
+    }
+}

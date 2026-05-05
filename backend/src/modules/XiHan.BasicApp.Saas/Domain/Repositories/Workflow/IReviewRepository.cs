@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IReviewRepository : ISaasAggregateRepository<SysReview>
 {
+    /// <summary>
+    /// 获取某审批人的待审批记录
+    /// </summary>
+    Task<IReadOnlyList<SysReview>> GetPendingByReviewerIdAsync(long reviewerId, CancellationToken cancellationToken = default);
 }

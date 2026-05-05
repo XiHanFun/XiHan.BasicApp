@@ -22,4 +22,17 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 密码历史仓储实现
 /// </summary>
 public sealed class PasswordHistoryRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysPasswordHistory>(clientResolver), IPasswordHistoryRepository;
+    : SaasRepository<SysPasswordHistory>(clientResolver), IPasswordHistoryRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysPasswordHistory>> GetRecentByUserIdAsync(long userId, int count, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(history => history.UserId == userId)
+            .OrderByDescending(history => history.ChangedTime)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+    }
+}

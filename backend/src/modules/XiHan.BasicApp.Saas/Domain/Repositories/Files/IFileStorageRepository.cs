@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IFileStorageRepository : ISaasRepository<SysFileStorage>
 {
+    /// <summary>
+    /// 根据存储提供商获取列表
+    /// </summary>
+    Task<IReadOnlyList<SysFileStorage>> GetByProviderAsync(string provider, CancellationToken cancellationToken = default);
 }

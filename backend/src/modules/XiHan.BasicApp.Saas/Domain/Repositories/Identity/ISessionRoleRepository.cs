@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface ISessionRoleRepository : ISaasRepository<SysSessionRole>
 {
+    /// <summary>
+    /// 根据会话ID获取激活的角色列表
+    /// </summary>
+    Task<IReadOnlyList<SysSessionRole>> GetBySessionIdAsync(long sessionId, CancellationToken cancellationToken = default);
 }

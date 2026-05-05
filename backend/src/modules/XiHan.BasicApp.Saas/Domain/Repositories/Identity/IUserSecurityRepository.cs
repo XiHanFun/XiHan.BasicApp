@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IUserSecurityRepository : ISaasRepository<SysUserSecurity>
 {
+    /// <summary>
+    /// 根据用户ID获取安全信息
+    /// </summary>
+    Task<SysUserSecurity?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 }

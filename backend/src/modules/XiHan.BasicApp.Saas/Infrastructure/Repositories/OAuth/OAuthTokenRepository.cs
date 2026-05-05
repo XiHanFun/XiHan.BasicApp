@@ -22,4 +22,38 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// OAuth 令牌仓储实现
 /// </summary>
 public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysOAuthToken>(clientResolver), IOAuthTokenRepository;
+    : SaasRepository<SysOAuthToken>(clientResolver), IOAuthTokenRepository
+{
+    /// <inheritdoc />
+    public async Task<SysOAuthToken?> GetByAccessTokenAsync(string accessTokenJti, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accessTokenJti);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(t => t.AccessTokenJti == accessTokenJti)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<SysOAuthToken?> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(t => t.RefreshToken == refreshToken)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await DbClient.Updateable<SysOAuthToken>()
+            .SetColumns(t => t.IsRevoked == true)
+            .Where(t => t.UserId == userId && !t.IsRevoked)
+            .ExecuteCommandAsync(cancellationToken);
+    }
+}

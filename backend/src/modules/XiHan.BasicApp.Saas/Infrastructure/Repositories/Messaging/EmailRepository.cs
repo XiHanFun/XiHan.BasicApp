@@ -22,4 +22,17 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 邮件仓储实现
 /// </summary>
 public sealed class EmailRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysEmail>(clientResolver), IEmailRepository;
+    : SaasRepository<SysEmail>(clientResolver), IEmailRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysEmail>> GetPendingEmailsAsync(int maxCount, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(email => email.EmailStatus == EmailStatus.Pending)
+            .OrderBy(email => email.CreatedTime)
+            .Take(maxCount)
+            .ToListAsync(cancellationToken);
+    }
+}

@@ -22,4 +22,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 迁移历史仓储实现
 /// </summary>
 public sealed class MigrationHistoryRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysMigrationHistory>(clientResolver), IMigrationHistoryRepository;
+    : SaasRepository<SysMigrationHistory>(clientResolver), IMigrationHistoryRepository
+{
+    /// <inheritdoc />
+    public async Task<SysMigrationHistory?> GetByVersionAsync(string version, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(version);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(history => history.Version == version)
+            .FirstAsync(cancellationToken);
+    }
+}

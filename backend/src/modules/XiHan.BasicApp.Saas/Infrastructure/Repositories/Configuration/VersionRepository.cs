@@ -22,4 +22,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 版本仓储实现
 /// </summary>
 public sealed class VersionRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysVersion>(clientResolver), IVersionRepository;
+    : SaasRepository<SysVersion>(clientResolver), IVersionRepository
+{
+    /// <inheritdoc />
+    public async Task<SysVersion?> GetLatestAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .OrderByDescending(version => version.CreatedTime)
+            .FirstAsync(cancellationToken);
+    }
+}

@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface ITaskRepository : ISaasAggregateRepository<SysTask>
 {
+    /// <summary>
+    /// 获取待执行任务列表
+    /// </summary>
+    Task<IReadOnlyList<SysTask>> GetPendingTasksAsync(CancellationToken cancellationToken = default);
 }

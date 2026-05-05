@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IOAuthAppRepository : ISaasAggregateRepository<SysOAuthApp>
 {
+    /// <summary>
+    /// 根据客户端ID获取
+    /// </summary>
+    Task<SysOAuthApp?> GetByClientIdAsync(string clientId, CancellationToken cancellationToken = default);
 }

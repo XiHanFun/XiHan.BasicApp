@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IUserStatisticsRepository : ISaasRepository<SysUserStatistics>
 {
+    /// <summary>
+    /// 根据用户ID获取统计信息
+    /// </summary>
+    Task<SysUserStatistics?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 }

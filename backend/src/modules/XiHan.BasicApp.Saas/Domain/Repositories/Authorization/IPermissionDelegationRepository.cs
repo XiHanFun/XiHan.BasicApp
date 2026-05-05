@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IPermissionDelegationRepository : ISaasRepository<SysPermissionDelegation>
 {
+    /// <summary>
+    /// 获取被委托人当前有效的权限委派
+    /// </summary>
+    Task<IReadOnlyList<SysPermissionDelegation>> GetActiveByDelegateeIdAsync(long delegateeUserId, DateTimeOffset now, CancellationToken cancellationToken = default);
 }

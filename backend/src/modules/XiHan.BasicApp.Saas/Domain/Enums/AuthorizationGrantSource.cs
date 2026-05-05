@@ -37,5 +37,11 @@ public enum AuthorizationGrantSource
     /// 租户版本
     /// </summary>
     [Description("租户版本")]
-    TenantEdition = 2
+    TenantEdition = 2,
+
+    /// <summary>
+    /// 权限委派
+    /// </summary>
+    [Description("权限委派")]
+    Delegation = 3
 }

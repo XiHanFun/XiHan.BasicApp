@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IUserSessionRepository : ISaasRepository<SysUserSession>
 {
+    /// <summary>
+    /// 获取用户活跃会话列表
+    /// </summary>
+    Task<IReadOnlyList<SysUserSession>> GetActiveSessionsAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 吊销用户所有会话
+    /// </summary>
+    Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 }

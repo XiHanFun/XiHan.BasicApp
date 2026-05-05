@@ -22,4 +22,30 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 租户版本仓储实现
 /// </summary>
 public sealed class TenantEditionRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysTenantEdition>(clientResolver), ITenantEditionRepository;
+    : SaasRepository<SysTenantEdition>(clientResolver), ITenantEditionRepository
+{
+    /// <inheritdoc />
+    public async Task<SysTenantEdition?> GetDefaultEditionAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(edition => edition.IsDefault)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ExistsCodeAsync(string editionCode, long? excludeId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(editionCode);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var query = CreateQueryable().Where(edition => edition.EditionCode == editionCode);
+        if (excludeId.HasValue)
+        {
+            query = query.Where(edition => edition.BasicId != excludeId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
+}

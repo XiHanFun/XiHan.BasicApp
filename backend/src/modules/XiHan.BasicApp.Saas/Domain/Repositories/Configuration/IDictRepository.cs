@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IDictRepository : ISaasRepository<SysDict>
 {
+    /// <summary>
+    /// 根据字典编码获取
+    /// </summary>
+    Task<SysDict?> GetByCodeAsync(string dictCode, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 检查字典编码是否存在
+    /// </summary>
+    Task<bool> ExistsCodeAsync(string dictCode, long? excludeId = null, CancellationToken cancellationToken = default);
 }

@@ -22,4 +22,31 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 配置仓储实现
 /// </summary>
 public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysConfig>(clientResolver), IConfigRepository;
+    : SaasRepository<SysConfig>(clientResolver), IConfigRepository
+{
+    /// <inheritdoc />
+    public async Task<SysConfig?> GetByKeyAsync(string configKey, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(config => config.ConfigKey == configKey)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ExistsKeyAsync(string configKey, long? excludeId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var query = CreateQueryable().Where(config => config.ConfigKey == configKey);
+        if (excludeId.HasValue)
+        {
+            query = query.Where(config => config.BasicId != excludeId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
+}

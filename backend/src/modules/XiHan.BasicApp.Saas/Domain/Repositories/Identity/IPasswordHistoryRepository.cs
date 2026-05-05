@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IPasswordHistoryRepository : ISaasRepository<SysPasswordHistory>
 {
+    /// <summary>
+    /// 获取用户最近的密码历史记录
+    /// </summary>
+    Task<IReadOnlyList<SysPasswordHistory>> GetRecentByUserIdAsync(long userId, int count, CancellationToken cancellationToken = default);
 }
