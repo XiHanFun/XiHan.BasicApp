@@ -56,3 +56,8 @@ export interface OperationLogListItemDto extends BasicDto {
   userId?: ApiId | null
   userName?: string | null
 }
+
+export interface OperationLogDetailDto extends OperationLogListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+}

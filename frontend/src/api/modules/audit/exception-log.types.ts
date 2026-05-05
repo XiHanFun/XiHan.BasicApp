@@ -69,3 +69,8 @@ export interface ExceptionLogListItemDto extends BasicDto {
   userId?: ApiId | null
   userName?: string | null
 }
+
+export interface ExceptionLogDetailDto extends ExceptionLogListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+}

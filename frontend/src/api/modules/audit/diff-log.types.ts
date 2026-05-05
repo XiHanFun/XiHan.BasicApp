@@ -71,3 +71,8 @@ export interface DiffLogListItemDto extends BasicDto {
   userId?: ApiId | null
   userName?: string | null
 }
+
+export interface DiffLogDetailDto extends DiffLogListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+}

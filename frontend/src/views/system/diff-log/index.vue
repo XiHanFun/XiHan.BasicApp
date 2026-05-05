@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { DiffLogListItemDto } from '@/api'
+import type { DiffLogDetailDto, DiffLogListItemDto } from '@/api'
+import type { LogDetailField } from '../_components/log-detail.types'
 import { NButton, NIcon, NSelect, NTag, useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { diffLogApi, AuditOperationType, AuditRiskLevel, createPageRequest } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'SystemDiffLogPage' })
 
@@ -17,6 +19,9 @@ interface LogGridResult {
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<DiffLogListItemDto>>()
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<DiffLogDetailDto | null>(null)
 
 const queryParams = reactive({
   isSuccess: undefined as number | undefined,
@@ -47,6 +52,40 @@ const riskLevelOptions = [
   { label: '高风险', value: AuditRiskLevel.High },
   { label: '极高风险', value: AuditRiskLevel.VeryHigh },
   { label: '严重风险', value: AuditRiskLevel.Critical },
+]
+
+const detailFields: LogDetailField[] = [
+  { key: 'basicId', label: '日志主键' },
+  { key: 'sessionId', label: '会话标识' },
+  { key: 'requestId', label: '请求标识' },
+  { key: 'traceId', label: '链路追踪 ID' },
+  { key: 'userName', label: '用户名' },
+  { key: 'userId', label: '用户主键' },
+  { key: 'auditType', label: '审计类型' },
+  { key: 'operationType', label: '操作类型', options: operationTypeOptions, type: 'enum' },
+  { key: 'entityType', label: '实体类型' },
+  { key: 'entityId', label: '实体 ID' },
+  { key: 'entityName', label: '实体名称' },
+  { key: 'tableName', label: '表名称' },
+  { key: 'primaryKey', label: '主键字段' },
+  { key: 'primaryKeyValue', label: '主键值' },
+  { key: 'operationIp', label: '操作 IP' },
+  { key: 'isSuccess', falseText: '失败', label: '是否成功', trueText: '成功', type: 'boolean' },
+  { key: 'riskLevel', label: '风险等级', options: riskLevelOptions, type: 'enum' },
+  { key: 'executionTime', label: '执行耗时', type: 'duration' },
+  { key: 'auditTime', label: '审计时间', type: 'date' },
+  { key: 'createdTime', label: '创建时间', type: 'date' },
+  { key: 'createdId', label: '创建人主键' },
+  { key: 'createdBy', label: '创建人' },
+  { key: 'description', label: '操作描述', span: 2 },
+  { key: 'changeDescription', label: '变更摘要', span: 2 },
+  { key: 'remark', label: '备注', span: 2 },
+  { key: 'beforeData', label: '变更前数据', type: 'code' },
+  { key: 'afterData', label: '变更后数据', type: 'code' },
+  { key: 'changedFields', label: '变更字段', type: 'code' },
+  { key: 'exceptionMessage', label: '异常消息', type: 'code' },
+  { key: 'exceptionStackTrace', label: '异常堆栈', type: 'code' },
+  { key: 'extendData', label: '扩展数据', type: 'code' },
 ]
 
 function riskLevelType(level: AuditRiskLevel) {
@@ -151,6 +190,13 @@ const tableOptions = useVxeTable<DiffLogListItemDto>(
         minWidth: 170,
         title: '创建时间',
       },
+      {
+        field: 'actions',
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+        title: '操作',
+        width: 86,
+      },
     ],
     id: 'sys_diff_log',
     name: '审计日志',
@@ -174,6 +220,21 @@ function handleReset() {
   queryParams.isSuccess = undefined
   queryParams.operationType = undefined
   xGrid.value?.commitProxy('reload')
+}
+
+async function handleDetail(row: DiffLogListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  try {
+    detailData.value = await diffLogApi.detail(row.basicId) ?? row
+  }
+  catch {
+    detailData.value = row
+    message.error('加载审计日志详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 </script>
 
@@ -229,7 +290,22 @@ function handleReset() {
             {{ getOptionLabel(riskLevelOptions, row.riskLevel) }}
           </NTag>
         </template>
+        <template #col_actions="{ row }">
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:eye" /></NIcon>
+            </template>
+          </NButton>
+        </template>
       </vxe-grid>
     </vxe-card>
+
+    <LogDetailDrawer
+      v-model:show="detailVisible"
+      :fields="detailFields"
+      :loading="detailLoading"
+      :record="detailData"
+      title="审计日志详情"
+    />
   </div>
 </template>

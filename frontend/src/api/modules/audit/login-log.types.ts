@@ -41,3 +41,8 @@ export interface LoginLogListItemDto extends BasicDto {
   userId?: ApiId | null
   userName?: string | null
 }
+
+export interface LoginLogDetailDto extends LoginLogListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+}

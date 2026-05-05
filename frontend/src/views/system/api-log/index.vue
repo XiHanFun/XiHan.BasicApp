@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiLogListItemDto } from '@/api'
+import type { ApiLogDetailDto, ApiLogListItemDto } from '@/api'
+import type { LogDetailField } from '../_components/log-detail.types'
 import {
   NButton,
   NIcon,
@@ -13,6 +14,7 @@ import { apiLogApi, createPageRequest, SignatureType } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'SystemApiLogPage' })
 
@@ -23,6 +25,9 @@ interface LogGridResult {
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<ApiLogListItemDto>>()
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<ApiLogDetailDto | null>(null)
 
 const queryParams = reactive({
   isSuccess: undefined as number | undefined,
@@ -53,6 +58,49 @@ const signatureTypeOptions = [
   { label: 'SM3', value: SignatureType.Sm3 },
   { label: 'Ed25519', value: SignatureType.Ed25519 },
   { label: 'MD5', value: SignatureType.Md5 },
+]
+
+const detailFields: LogDetailField[] = [
+  { key: 'basicId', label: '日志主键' },
+  { key: 'sessionId', label: '会话标识' },
+  { key: 'requestId', label: '请求标识' },
+  { key: 'traceId', label: '链路追踪 ID' },
+  { key: 'userName', label: '用户名' },
+  { key: 'userId', label: '用户主键' },
+  { key: 'clientId', label: '客户端标识' },
+  { key: 'appId', label: '应用标识' },
+  { key: 'apiPath', label: 'API 路径', span: 2 },
+  { key: 'apiName', label: 'API 名称' },
+  { key: 'apiVersion', label: 'API 版本' },
+  { key: 'controllerName', label: '控制器' },
+  { key: 'actionName', label: '动作' },
+  { key: 'method', label: '请求方法' },
+  { key: 'statusCode', label: '响应状态码' },
+  { key: 'isSuccess', falseText: '失败', label: '是否成功', trueText: '成功', type: 'boolean' },
+  { key: 'isSignatureValid', falseText: '无效', label: '签名是否有效', trueText: '有效', type: 'boolean' },
+  { key: 'signatureType', label: '签名类型', options: signatureTypeOptions, type: 'enum' },
+  { key: 'executionTime', label: '执行耗时', type: 'duration' },
+  { key: 'requestSize', label: '请求大小', type: 'bytes' },
+  { key: 'responseSize', label: '响应大小', type: 'bytes' },
+  { key: 'requestIp', label: '请求 IP' },
+  { key: 'requestLocation', label: '请求位置' },
+  { key: 'browser', label: '浏览器' },
+  { key: 'referer', label: '来源地址', span: 2 },
+  { key: 'requestTime', label: '请求时间', type: 'date' },
+  { key: 'responseTime', label: '响应时间', type: 'date' },
+  { key: 'createdTime', label: '创建时间', type: 'date' },
+  { key: 'createdId', label: '创建人主键' },
+  { key: 'createdBy', label: '创建人' },
+  { key: 'remark', label: '备注', span: 2 },
+  { key: 'userAgent', label: 'User-Agent', type: 'code' },
+  { key: 'requestParams', label: '请求参数', type: 'code' },
+  { key: 'requestBody', label: '请求体', type: 'code' },
+  { key: 'responseBody', label: '响应结果', type: 'code' },
+  { key: 'requestHeaders', label: '请求头', type: 'code' },
+  { key: 'responseHeaders', label: '响应头', type: 'code' },
+  { key: 'errorMessage', label: '错误消息', type: 'code' },
+  { key: 'exceptionStackTrace', label: '异常堆栈', type: 'code' },
+  { key: 'extendData', label: '扩展数据', type: 'code' },
 ]
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
@@ -172,6 +220,13 @@ const tableOptions = useVxeTable<ApiLogListItemDto>(
         minWidth: 170,
         title: '创建时间',
       },
+      {
+        field: 'actions',
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+        title: '操作',
+        width: 86,
+      },
     ],
     id: 'sys_api_log',
     name: 'API日志',
@@ -195,6 +250,21 @@ function handleReset() {
   queryParams.isSuccess = undefined
   queryParams.method = undefined
   xGrid.value?.commitProxy('reload')
+}
+
+async function handleDetail(row: ApiLogListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  try {
+    detailData.value = await apiLogApi.detail(row.basicId) ?? row
+  }
+  catch {
+    detailData.value = row
+    message.error('加载 API 日志详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 </script>
 
@@ -250,7 +320,22 @@ function handleReset() {
             {{ row.isSignatureValid ? '有效' : '无效' }}
           </NTag>
         </template>
+        <template #col_actions="{ row }">
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:eye" /></NIcon>
+            </template>
+          </NButton>
+        </template>
       </vxe-grid>
     </vxe-card>
+
+    <LogDetailDrawer
+      v-model:show="detailVisible"
+      :fields="detailFields"
+      :loading="detailLoading"
+      :record="detailData"
+      title="API 日志详情"
+    />
   </div>
 </template>

@@ -36,3 +36,8 @@ export interface PermissionChangeLogListItemDto extends BasicDto {
   targetUserId?: ApiId | null
   traceId?: string | null
 }
+
+export interface PermissionChangeLogDetailDto extends PermissionChangeLogListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+}

@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiId, DepartmentCreateDto, DepartmentListItemDto, DepartmentTreeNodeDto, DepartmentUpdateDto } from '@/api'
+import type { VxeGridInstance } from 'vxe-table'
+import type {
+  ApiId,
+  DepartmentCreateDto,
+  DepartmentDetailDto,
+  DepartmentListItemDto,
+  DepartmentTreeNodeDto,
+  DepartmentUpdateDto,
+} from '@/api'
 import {
   NButton,
   NCascader,
@@ -17,6 +24,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
+  createDefaultQueryBehavior,
   createPageRequest,
   departmentApi,
   DepartmentType,
@@ -28,20 +36,17 @@ import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemDepartmentPage' })
 
-interface DeptGridResult {
-  items: DepartmentListItemDto[]
-  total: number
-}
-
 interface DeptFormModel extends DepartmentCreateDto {
   basicId?: ApiId
 }
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<DepartmentListItemDto>>()
+const loading = ref(false)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const deptForm = ref<DeptFormModel>(createDefaultForm())
+const tableData = ref<DepartmentListItemDto[]>([])
 const treeNodes = ref<DepartmentTreeNodeDto[]>([])
 
 const queryParams = reactive({
@@ -117,36 +122,43 @@ async function loadTree() {
   }
 }
 
-onMounted(loadTree)
-
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<DeptGridResult> {
-  return departmentApi
-    .page({
+async function loadTable() {
+  loading.value = true
+  try {
+    const result = await departmentApi.page({
       ...createPageRequest({
+        behavior: createDefaultQueryBehavior({
+          disablePaging: true,
+        }),
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: 1,
+          pageSize: 5000,
         },
       }),
       departmentType: queryParams.departmentType,
       keyword: normalizeNullable(queryParams.keyword),
       status: queryParams.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询部门失败')
-      return { items: [], total: 0 }
-    })
+    tableData.value = result.items
+  }
+  catch {
+    message.error('查询部门失败')
+    tableData.value = []
+  }
+  finally {
+    loading.value = false
+  }
 }
+
+onMounted(async () => {
+  await Promise.all([loadTree(), loadTable()])
+})
 
 const tableOptions = useVxeTable<DepartmentListItemDto>(
   {
+    data: [],
     columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'departmentName', minWidth: 160, showOverflow: 'tooltip', sortable: true, title: '部门名称' },
+      { field: 'departmentName', minWidth: 200, showOverflow: 'tooltip', title: '部门名称', treeNode: true },
       { field: 'departmentCode', minWidth: 130, showOverflow: 'tooltip', title: '部门编码' },
       {
         field: 'departmentType',
@@ -175,41 +187,45 @@ const tableOptions = useVxeTable<DepartmentListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 100,
+        width: 180,
       },
     ],
     id: 'sys_department',
     name: '部门管理',
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    pagerConfig: { enabled: false },
+    sortConfig: { remote: false },
+    treeConfig: {
+      expandAll: false,
+      parentField: 'parentId',
+      rowField: 'basicId',
+      transform: true,
     },
   },
 )
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  void loadTable()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.departmentType = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  void loadTable()
 }
 
-function handleAdd() {
+function handleAdd(parentId?: ApiId) {
   deptForm.value = createDefaultForm()
+  deptForm.value.parentId = parentId ?? null
   modalVisible.value = true
 }
 
-function handleEdit(row: DepartmentListItemDto) {
-  deptForm.value = {
+function buildFormModel(row: DepartmentDetailDto | DepartmentListItemDto): DeptFormModel {
+  return {
     ...createDefaultForm(),
+    address: 'address' in row ? row.address ?? null : null,
     basicId: row.basicId,
     departmentCode: row.departmentCode,
     departmentName: row.departmentName,
@@ -218,8 +234,20 @@ function handleEdit(row: DepartmentListItemDto) {
     leaderId: row.leaderId ?? null,
     parentId: row.parentId ?? null,
     phone: row.phone ?? null,
+    remark: 'remark' in row ? row.remark ?? null : null,
     sort: row.sort,
     status: row.status,
+  }
+}
+
+async function handleEdit(row: DepartmentListItemDto) {
+  try {
+    const detail = await departmentApi.detail(row.basicId)
+    deptForm.value = buildFormModel(detail ?? row)
+  }
+  catch {
+    message.error('加载部门详情失败')
+    deptForm.value = buildFormModel(row)
   }
   modalVisible.value = true
 }
@@ -229,7 +257,7 @@ async function handleToggleStatus(row: DepartmentListItemDto) {
   try {
     await departmentApi.updateStatus({ basicId: row.basicId, status: nextStatus })
     message.success('状态更新成功')
-    xGrid.value?.commitProxy('query')
+    await loadTable()
     await loadTree()
   }
   catch {
@@ -288,7 +316,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    xGrid.value?.commitProxy('query')
+    await loadTable()
     await loadTree()
   }
   catch {
@@ -341,13 +369,19 @@ async function handleSubmit() {
     </XSystemQueryPanel>
 
     <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
+      <vxe-grid ref="xGrid" v-bind="tableOptions" :data="tableData" :loading="loading">
         <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd">
+          <NButton size="small" type="primary" @click="handleAdd()">
             <template #icon>
               <NIcon><Icon icon="lucide:plus" /></NIcon>
             </template>
             新增部门
+          </NButton>
+          <NButton size="small" @click="loadTable">
+            <template #icon>
+              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+            </template>
+            刷新
           </NButton>
         </template>
 
@@ -358,25 +392,22 @@ async function handleSubmit() {
         </template>
 
         <template #col_actions="{ row }">
-          <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:pencil" /></NIcon>
-            </template>
-          </NButton>
-          <NButton
-            :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-            aria-label="切换状态"
-            circle
-            quaternary
-            size="small"
-            @click="handleToggleStatus(row)"
-          >
-            <template #icon>
-              <NIcon>
-                <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:check'" />
-              </NIcon>
-            </template>
-          </NButton>
+          <NSpace size="small">
+            <NButton size="small" text type="info" @click="handleAdd(row.basicId)">
+              新增子部门
+            </NButton>
+            <NButton size="small" text type="primary" @click="handleEdit(row)">
+              编辑
+            </NButton>
+            <NButton
+              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
+              size="small"
+              text
+              @click="handleToggleStatus(row)"
+            >
+              {{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}
+            </NButton>
+          </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>

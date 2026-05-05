@@ -1,14 +1,20 @@
-import type { PageResult } from '../../types'
-import type { AccessLogListItemDto, AccessLogPageQueryDto } from './access-log.types'
+import type { ApiId, PageResult } from '../../types'
+import type { AccessLogDetailDto, AccessLogListItemDto, AccessLogPageQueryDto } from './access-log.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
   createPageRequestParams,
+  formatDynamicApiRouteValue,
 } from '../../base'
 
 const accessLogQueryApi = createDynamicApiClient('AccessLogQuery')
 
 export const accessLogApi = {
+  detail(id: ApiId) {
+    return accessLogQueryApi.get<AccessLogDetailDto | null>(
+      `AccessLogDetail/${formatDynamicApiRouteValue(id)}`,
+    )
+  },
   page(input: AccessLogPageQueryDto) {
     return accessLogQueryApi.get<PageResult<AccessLogListItemDto>>(
       'AccessLogPage',
