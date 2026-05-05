@@ -56,6 +56,7 @@ public sealed class ReviewLogQueryService(ISqlSugarClientResolver clientResolver
         RefAsync<int> totalCount = 0;
         var entities = await DbClient.Queryable<SysReviewLog>()
             .Where(predicate)
+            .SplitTable()
             .OrderByDescending(x => x.ReviewTime)
             .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
@@ -89,6 +90,7 @@ public sealed class ReviewLogQueryService(ISqlSugarClientResolver clientResolver
 
         var reviewLog = await DbClient.Queryable<SysReviewLog>()
             .Where(x => x.BasicId == id)
+            .SplitTable()
             .FirstAsync(cancellationToken);
         return reviewLog is null ? null : ReviewLogApplicationMapper.ToDetailDto(reviewLog);
     }
