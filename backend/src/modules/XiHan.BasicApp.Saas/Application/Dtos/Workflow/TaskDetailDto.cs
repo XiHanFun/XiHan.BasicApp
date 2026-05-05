@@ -20,6 +20,21 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public sealed class TaskDetailDto : TaskListItemDto
 {
     /// <summary>
+    /// 任务类名
+    /// </summary>
+    public string TaskClass { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 任务方法
+    /// </summary>
+    public string? TaskMethod { get; set; }
+
+    /// <summary>
+    /// 任务参数
+    /// </summary>
+    public string? TaskParams { get; set; }
+
+    /// <summary>
     /// 创建者主键
     /// </summary>
     public long? CreatedId { get; set; }
@@ -38,4 +53,9 @@ public sealed class TaskDetailDto : TaskListItemDto
     /// 修改者
     /// </summary>
     public string? ModifiedBy { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 }

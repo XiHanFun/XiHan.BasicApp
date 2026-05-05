@@ -887,5 +887,4 @@ public sealed class AuthAppService(
         List<string> Roles,
         List<string> Permissions,
         HashSet<long> PermissionIds);
-
 }
