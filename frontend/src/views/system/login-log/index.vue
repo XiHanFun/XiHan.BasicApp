@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { LoginLogListItemDto } from '@/api'
+import type { LoginLogDetailDto, LoginLogListItemDto } from '@/api'
+import type { LogDetailField } from '../_components/log-detail.types'
 import {
   NButton,
   NIcon,
@@ -13,6 +14,7 @@ import { createPageRequest, LoginResult, loginLogApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'SystemLoginLogPage' })
 
@@ -23,6 +25,9 @@ interface LogGridResult {
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<LoginLogListItemDto>>()
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<LoginLogDetailDto | null>(null)
 
 const queryParams = reactive({
   keyword: '',
@@ -38,6 +43,28 @@ const loginResultOptions = [
   { label: '二次验证失败', value: LoginResult.TwoFactorFailed },
   { label: '登出', value: LoginResult.Logout },
   { label: '其他失败', value: LoginResult.Failed },
+]
+
+const detailFields: LogDetailField[] = [
+  { key: 'basicId', label: '日志主键' },
+  { key: 'sessionId', label: '会话标识' },
+  { key: 'traceId', label: '链路追踪 ID' },
+  { key: 'userName', label: '用户名' },
+  { key: 'userId', label: '用户主键' },
+  { key: 'loginIp', label: '登录 IP' },
+  { key: 'loginLocation', label: '登录位置' },
+  { key: 'browser', label: '浏览器' },
+  { key: 'os', label: '操作系统' },
+  { key: 'device', label: '设备' },
+  { key: 'deviceId', label: '设备标识' },
+  { key: 'loginResult', label: '登录/登出结果', options: loginResultOptions, type: 'enum' },
+  { key: 'isRiskLogin', falseText: '否', label: '是否风险登录', trueText: '是', type: 'boolean' },
+  { key: 'loginTime', label: '登录时间', type: 'date' },
+  { key: 'createdTime', label: '创建时间', type: 'date' },
+  { key: 'createdId', label: '创建人主键' },
+  { key: 'createdBy', label: '创建人' },
+  { key: 'message', label: '消息', type: 'code' },
+  { key: 'userAgent', label: 'User-Agent', type: 'code' },
 ]
 
 function loginResultType(result: LoginResult) {
@@ -117,6 +144,13 @@ const tableOptions = useVxeTable<LoginLogListItemDto>(
         minWidth: 170,
         title: '创建时间',
       },
+      {
+        field: 'actions',
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+        title: '操作',
+        width: 86,
+      },
     ],
     id: 'sys_login_log',
     name: '登录日志',
@@ -139,6 +173,21 @@ function handleReset() {
   queryParams.keyword = ''
   queryParams.loginResult = undefined
   xGrid.value?.commitProxy('reload')
+}
+
+async function handleDetail(row: LoginLogListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  try {
+    detailData.value = await loginLogApi.detail(row.basicId) ?? row
+  }
+  catch {
+    detailData.value = row
+    message.error('加载登录日志详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 </script>
 
@@ -187,7 +236,22 @@ function handleReset() {
             {{ row.isRiskLogin ? '是' : '否' }}
           </NTag>
         </template>
+        <template #col_actions="{ row }">
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:eye" /></NIcon>
+            </template>
+          </NButton>
+        </template>
       </vxe-grid>
     </vxe-card>
+
+    <LogDetailDrawer
+      v-model:show="detailVisible"
+      :fields="detailFields"
+      :loading="detailLoading"
+      :record="detailData"
+      title="登录日志详情"
+    />
   </div>
 </template>

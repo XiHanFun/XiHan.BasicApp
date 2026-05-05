@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { AccessLogListItemDto } from '@/api'
+import type { AccessLogDetailDto, AccessLogListItemDto } from '@/api'
+import type { LogDetailField } from '../_components/log-detail.types'
 import {
   NButton,
   NIcon,
@@ -13,6 +14,7 @@ import { accessLogApi, AccessResult, createPageRequest } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'SystemAccessLogPage' })
 
@@ -23,6 +25,9 @@ interface LogGridResult {
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<AccessLogListItemDto>>()
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<AccessLogDetailDto | null>(null)
 
 const queryParams = reactive({
   accessResult: undefined as AccessResult | undefined,
@@ -45,6 +50,35 @@ const methodOptions = [
   { label: 'PUT', value: 'PUT' },
   { label: 'DELETE', value: 'DELETE' },
   { label: 'PATCH', value: 'PATCH' },
+]
+
+const detailFields: LogDetailField[] = [
+  { key: 'basicId', label: '日志主键' },
+  { key: 'sessionId', label: '会话标识' },
+  { key: 'traceId', label: '链路追踪 ID' },
+  { key: 'userName', label: '用户名' },
+  { key: 'userId', label: '用户主键' },
+  { key: 'resourcePath', label: '资源路径', span: 2 },
+  { key: 'resourceName', label: '资源名称' },
+  { key: 'resourceType', label: '资源类型' },
+  { key: 'method', label: '请求方法' },
+  { key: 'statusCode', label: '响应状态码' },
+  { key: 'accessResult', label: '访问结果', options: accessResultOptions, type: 'enum' },
+  { key: 'executionTime', label: '执行耗时', type: 'duration' },
+  { key: 'accessIp', label: '访问 IP' },
+  { key: 'accessLocation', label: '访问位置' },
+  { key: 'browser', label: '浏览器' },
+  { key: 'os', label: '操作系统' },
+  { key: 'device', label: '设备' },
+  { key: 'referer', label: '来源地址', span: 2 },
+  { key: 'accessTime', label: '访问时间', type: 'date' },
+  { key: 'createdTime', label: '创建时间', type: 'date' },
+  { key: 'createdId', label: '创建人主键' },
+  { key: 'createdBy', label: '创建人' },
+  { key: 'remark', label: '备注', span: 2 },
+  { key: 'userAgent', label: 'User-Agent', type: 'code' },
+  { key: 'errorMessage', label: '错误消息', type: 'code' },
+  { key: 'extendData', label: '扩展数据', type: 'code' },
 ]
 
 function accessResultType(result: AccessResult) {
@@ -129,6 +163,13 @@ const tableOptions = useVxeTable<AccessLogListItemDto>(
         minWidth: 170,
         title: '创建时间',
       },
+      {
+        field: 'actions',
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+        title: '操作',
+        width: 86,
+      },
     ],
     id: 'sys_access_log',
     name: '访问日志',
@@ -152,6 +193,21 @@ function handleReset() {
   queryParams.accessResult = undefined
   queryParams.method = undefined
   xGrid.value?.commitProxy('reload')
+}
+
+async function handleDetail(row: AccessLogListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  try {
+    detailData.value = await accessLogApi.detail(row.basicId) ?? row
+  }
+  catch {
+    detailData.value = row
+    message.error('加载访问日志详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 </script>
 
@@ -202,7 +258,22 @@ function handleReset() {
             {{ getOptionLabel(accessResultOptions, row.accessResult) }}
           </NTag>
         </template>
+        <template #col_actions="{ row }">
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:eye" /></NIcon>
+            </template>
+          </NButton>
+        </template>
       </vxe-grid>
     </vxe-card>
+
+    <LogDetailDrawer
+      v-model:show="detailVisible"
+      :fields="detailFields"
+      :loading="detailLoading"
+      :record="detailData"
+      title="访问日志详情"
+    />
   </div>
 </template>

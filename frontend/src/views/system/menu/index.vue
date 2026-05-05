@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiId, MenuCreateDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
+import type { VxeGridInstance } from 'vxe-table'
+import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import {
   NButton,
   NCascader,
@@ -18,6 +18,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
+  createDefaultQueryBehavior,
   createPageRequest,
   EnableStatus,
   menuApi,
@@ -29,20 +30,17 @@ import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemMenuPage' })
 
-interface MenuGridResult {
-  items: MenuListItemDto[]
-  total: number
-}
-
 interface MenuFormModel extends MenuCreateDto {
   basicId?: ApiId
 }
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<MenuListItemDto>>()
+const loading = ref(false)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const menuForm = ref<MenuFormModel>(createDefaultForm())
+const tableData = ref<MenuListItemDto[]>([])
 const treeNodes = ref<MenuTreeNodeDto[]>([])
 
 const queryParams = reactive({
@@ -117,36 +115,43 @@ async function loadTree() {
   }
 }
 
-onMounted(loadTree)
-
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<MenuGridResult> {
-  return menuApi
-    .page({
+async function loadTable() {
+  loading.value = true
+  try {
+    const result = await menuApi.page({
       ...createPageRequest({
+        behavior: createDefaultQueryBehavior({
+          disablePaging: true,
+        }),
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: 1,
+          pageSize: 5000,
         },
       }),
       keyword: normalizeNullable(queryParams.keyword),
       menuType: queryParams.menuType,
       status: queryParams.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询菜单失败')
-      return { items: [], total: 0 }
-    })
+    tableData.value = result.items
+  }
+  catch {
+    message.error('查询菜单失败')
+    tableData.value = []
+  }
+  finally {
+    loading.value = false
+  }
 }
+
+onMounted(async () => {
+  await Promise.all([loadTree(), loadTable()])
+})
 
 const tableOptions = useVxeTable<MenuListItemDto>(
   {
+    data: [],
     columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'menuName', minWidth: 140, showOverflow: 'tooltip', sortable: true, title: '菜单名称' },
+      { field: 'menuName', minWidth: 180, showOverflow: 'tooltip', title: '菜单名称', treeNode: true },
       { field: 'menuCode', minWidth: 150, showOverflow: 'tooltip', title: '菜单编码' },
       {
         field: 'menuType',
@@ -181,43 +186,50 @@ const tableOptions = useVxeTable<MenuListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 100,
+        width: 180,
       },
     ],
     id: 'sys_menu',
     name: '菜单管理',
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    pagerConfig: { enabled: false },
+    sortConfig: { remote: false },
+    treeConfig: {
+      expandAll: false,
+      parentField: 'parentId',
+      rowField: 'basicId',
+      transform: true,
     },
   },
 )
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  void loadTable()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.menuType = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  void loadTable()
 }
 
-function handleAdd() {
+function handleAdd(parentId?: ApiId) {
   menuForm.value = createDefaultForm()
+  menuForm.value.parentId = parentId ?? null
   modalVisible.value = true
 }
 
-function handleEdit(row: MenuListItemDto) {
-  menuForm.value = {
+function buildFormModel(row: MenuDetailDto | MenuListItemDto): MenuFormModel {
+  return {
     ...createDefaultForm(),
+    badge: 'badge' in row ? row.badge ?? null : null,
+    badgeDot: 'badgeDot' in row ? row.badgeDot : false,
+    badgeType: 'badgeType' in row ? row.badgeType ?? null : null,
     basicId: row.basicId,
     component: row.component ?? null,
+    externalUrl: 'externalUrl' in row ? row.externalUrl ?? null : null,
     icon: row.icon ?? null,
     isAffix: row.isAffix,
     isCache: row.isCache,
@@ -226,14 +238,27 @@ function handleEdit(row: MenuListItemDto) {
     menuCode: row.menuCode,
     menuName: row.menuName,
     menuType: row.menuType,
+    metadata: 'metadata' in row ? row.metadata ?? null : null,
     parentId: row.parentId ?? null,
     path: row.path,
     permissionId: row.permissionId ?? null,
     redirect: row.redirect ?? null,
+    remark: 'remark' in row ? row.remark ?? null : null,
     routeName: row.routeName ?? null,
     sort: row.sort,
     status: row.status,
     title: row.title ?? null,
+  }
+}
+
+async function handleEdit(row: MenuListItemDto) {
+  try {
+    const detail = await menuApi.detail(row.basicId)
+    menuForm.value = buildFormModel(detail ?? row)
+  }
+  catch {
+    message.error('加载菜单详情失败')
+    menuForm.value = buildFormModel(row)
   }
   modalVisible.value = true
 }
@@ -243,7 +268,7 @@ async function handleToggleStatus(row: MenuListItemDto) {
   try {
     await menuApi.updateStatus({ basicId: row.basicId, status: nextStatus })
     message.success('状态更新成功')
-    xGrid.value?.commitProxy('query')
+    await loadTable()
     await loadTree()
   }
   catch {
@@ -330,7 +355,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    xGrid.value?.commitProxy('query')
+    await loadTable()
     await loadTree()
   }
   catch {
@@ -383,13 +408,19 @@ async function handleSubmit() {
     </XSystemQueryPanel>
 
     <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
+      <vxe-grid ref="xGrid" v-bind="tableOptions" :data="tableData" :loading="loading">
         <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd">
+          <NButton size="small" type="primary" @click="handleAdd()">
             <template #icon>
               <NIcon><Icon icon="lucide:plus" /></NIcon>
             </template>
             新增菜单
+          </NButton>
+          <NButton size="small" @click="loadTable">
+            <template #icon>
+              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+            </template>
+            刷新
           </NButton>
         </template>
 
@@ -406,25 +437,22 @@ async function handleSubmit() {
         </template>
 
         <template #col_actions="{ row }">
-          <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:pencil" /></NIcon>
-            </template>
-          </NButton>
-          <NButton
-            :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-            aria-label="切换状态"
-            circle
-            quaternary
-            size="small"
-            @click="handleToggleStatus(row)"
-          >
-            <template #icon>
-              <NIcon>
-                <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:check'" />
-              </NIcon>
-            </template>
-          </NButton>
+          <NSpace size="small">
+            <NButton v-if="row.menuType !== MenuType.Button" size="small" text type="info" @click="handleAdd(row.basicId)">
+              新增子项
+            </NButton>
+            <NButton size="small" text type="primary" @click="handleEdit(row)">
+              编辑
+            </NButton>
+            <NButton
+              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
+              size="small"
+              text
+              @click="handleToggleStatus(row)"
+            >
+              {{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}
+            </NButton>
+          </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>

@@ -73,3 +73,8 @@ export interface ApiLogListItemDto extends BasicDto {
   userId?: ApiId | null
   userName?: string | null
 }
+
+export interface ApiLogDetailDto extends ApiLogListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+}

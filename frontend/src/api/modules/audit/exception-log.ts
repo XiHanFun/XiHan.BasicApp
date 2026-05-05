@@ -1,14 +1,20 @@
-import type { PageResult } from '../../types'
-import type { ExceptionLogListItemDto, ExceptionLogPageQueryDto } from './exception-log.types'
+import type { ApiId, PageResult } from '../../types'
+import type { ExceptionLogDetailDto, ExceptionLogListItemDto, ExceptionLogPageQueryDto } from './exception-log.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
   createPageRequestParams,
+  formatDynamicApiRouteValue,
 } from '../../base'
 
 const exceptionLogQueryApi = createDynamicApiClient('ExceptionLogQuery')
 
 export const exceptionLogApi = {
+  detail(id: ApiId) {
+    return exceptionLogQueryApi.get<ExceptionLogDetailDto | null>(
+      `ExceptionLogDetail/${formatDynamicApiRouteValue(id)}`,
+    )
+  },
   page(input: ExceptionLogPageQueryDto) {
     return exceptionLogQueryApi.get<PageResult<ExceptionLogListItemDto>>(
       'ExceptionLogPage',

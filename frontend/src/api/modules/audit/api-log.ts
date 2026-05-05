@@ -1,14 +1,20 @@
-import type { PageResult } from '../../types'
-import type { ApiLogListItemDto, ApiLogPageQueryDto } from './api-log.types'
+import type { ApiId, PageResult } from '../../types'
+import type { ApiLogDetailDto, ApiLogListItemDto, ApiLogPageQueryDto } from './api-log.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
   createPageRequestParams,
+  formatDynamicApiRouteValue,
 } from '../../base'
 
 const apiLogQueryApi = createDynamicApiClient('ApiLogQuery')
 
 export const apiLogApi = {
+  detail(id: ApiId) {
+    return apiLogQueryApi.get<ApiLogDetailDto | null>(
+      `ApiLogDetail/${formatDynamicApiRouteValue(id)}`,
+    )
+  },
   page(input: ApiLogPageQueryDto) {
     return apiLogQueryApi.get<PageResult<ApiLogListItemDto>>(
       'ApiLogPage',

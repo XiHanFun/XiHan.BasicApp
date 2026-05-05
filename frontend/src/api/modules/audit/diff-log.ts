@@ -1,10 +1,20 @@
-import type { PageResult } from '../../types'
-import type { DiffLogListItemDto, DiffLogPageQueryDto } from './diff-log.types'
-import { appendDynamicApiParam, createDynamicApiClient, createPageRequestParams } from '../../base'
+import type { ApiId, PageResult } from '../../types'
+import type { DiffLogDetailDto, DiffLogListItemDto, DiffLogPageQueryDto } from './diff-log.types'
+import {
+  appendDynamicApiParam,
+  createDynamicApiClient,
+  createPageRequestParams,
+  formatDynamicApiRouteValue,
+} from '../../base'
 
 const diffLogQueryApi = createDynamicApiClient('DiffLogQuery')
 
 export const diffLogApi = {
+  detail(id: ApiId) {
+    return diffLogQueryApi.get<DiffLogDetailDto | null>(
+      `DiffLogDetail/${formatDynamicApiRouteValue(id)}`,
+    )
+  },
   page(input: DiffLogPageQueryDto) {
     return diffLogQueryApi.get<PageResult<DiffLogListItemDto>>(
       'DiffLogPage',

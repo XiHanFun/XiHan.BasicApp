@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ExceptionLogListItemDto } from '@/api'
+import type { ExceptionLogDetailDto, ExceptionLogListItemDto } from '@/api'
+import type { LogDetailField } from '../_components/log-detail.types'
 import {
   NButton,
   NIcon,
@@ -13,6 +14,7 @@ import { createPageRequest, DeviceType, exceptionLogApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'SystemExceptionLogPage' })
 
@@ -23,6 +25,9 @@ interface LogGridResult {
 
 const message = useMessage()
 const xGrid = ref<VxeGridInstance<ExceptionLogListItemDto>>()
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<ExceptionLogDetailDto | null>(null)
 
 const queryParams = reactive({
   isHandled: undefined as number | undefined,
@@ -54,6 +59,53 @@ const deviceTypeOptions = [
   { label: '平板', value: DeviceType.Tablet },
   { label: '小程序', value: DeviceType.MiniProgram },
   { label: 'API', value: DeviceType.Api },
+]
+
+const detailFields: LogDetailField[] = [
+  { key: 'basicId', label: '日志主键' },
+  { key: 'sessionId', label: '会话标识' },
+  { key: 'requestId', label: '请求标识' },
+  { key: 'traceId', label: '链路追踪 ID' },
+  { key: 'userName', label: '用户名' },
+  { key: 'userId', label: '用户主键' },
+  { key: 'exceptionType', label: '异常类型' },
+  { key: 'errorCode', label: '错误代码' },
+  { key: 'exceptionSource', label: '异常源' },
+  { key: 'exceptionLocation', label: '异常发生位置', span: 2 },
+  { key: 'severityLevel', label: '严重级别', options: severityOptions, type: 'enum' },
+  { key: 'statusCode', label: '响应状态码' },
+  { key: 'requestPath', label: '请求路径', span: 2 },
+  { key: 'requestMethod', label: '请求方法' },
+  { key: 'controllerName', label: '控制器' },
+  { key: 'actionName', label: '动作' },
+  { key: 'operationIp', label: '操作 IP' },
+  { key: 'operationLocation', label: '操作位置' },
+  { key: 'browser', label: '浏览器' },
+  { key: 'os', label: '操作系统' },
+  { key: 'deviceType', label: '设备类型', options: deviceTypeOptions, type: 'enum' },
+  { key: 'applicationName', label: '应用程序名称' },
+  { key: 'applicationVersion', label: '应用程序版本' },
+  { key: 'environmentName', label: '环境名称' },
+  { key: 'serverHostName', label: '服务器主机' },
+  { key: 'threadId', label: '线程 ID' },
+  { key: 'processId', label: '进程 ID' },
+  { key: 'isHandled', falseText: '未处理', label: '处理状态', trueText: '已处理', type: 'boolean' },
+  { key: 'handledBy', label: '处理人主键' },
+  { key: 'handledTime', label: '处理时间', type: 'date' },
+  { key: 'exceptionTime', label: '异常时间', type: 'date' },
+  { key: 'createdTime', label: '创建时间', type: 'date' },
+  { key: 'createdId', label: '创建人主键' },
+  { key: 'createdBy', label: '创建人' },
+  { key: 'handledRemark', label: '处理备注', span: 2 },
+  { key: 'remark', label: '备注', span: 2 },
+  { key: 'exceptionMessage', label: '异常消息', type: 'code' },
+  { key: 'exceptionStackTrace', label: '异常堆栈', type: 'code' },
+  { key: 'requestParams', label: '请求参数', type: 'code' },
+  { key: 'requestBody', label: '请求体', type: 'code' },
+  { key: 'requestHeaders', label: '请求头', type: 'code' },
+  { key: 'userAgent', label: 'User-Agent', type: 'code' },
+  { key: 'deviceInfo', label: '设备信息', type: 'code' },
+  { key: 'extendData', label: '扩展数据', type: 'code' },
 ]
 
 function severityType(level: number) {
@@ -170,6 +222,13 @@ const tableOptions = useVxeTable<ExceptionLogListItemDto>(
         minWidth: 170,
         title: '创建时间',
       },
+      {
+        field: 'actions',
+        fixed: 'right',
+        slots: { default: 'col_actions' },
+        title: '操作',
+        width: 86,
+      },
     ],
     id: 'sys_exception_log',
     name: '异常日志',
@@ -193,6 +252,21 @@ function handleReset() {
   queryParams.isHandled = undefined
   queryParams.severityLevel = undefined
   xGrid.value?.commitProxy('reload')
+}
+
+async function handleDetail(row: ExceptionLogListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  try {
+    detailData.value = await exceptionLogApi.detail(row.basicId) ?? row
+  }
+  catch {
+    detailData.value = row
+    message.error('加载异常日志详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 </script>
 
@@ -248,7 +322,22 @@ function handleReset() {
             {{ row.isHandled ? '已处理' : '未处理' }}
           </NTag>
         </template>
+        <template #col_actions="{ row }">
+          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:eye" /></NIcon>
+            </template>
+          </NButton>
+        </template>
       </vxe-grid>
     </vxe-card>
+
+    <LogDetailDrawer
+      v-model:show="detailVisible"
+      :fields="detailFields"
+      :loading="detailLoading"
+      :record="detailData"
+      title="异常日志详情"
+    />
   </div>
 </template>
