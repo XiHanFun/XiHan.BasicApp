@@ -56,6 +56,7 @@ public sealed class TaskLogQueryService(ISqlSugarClientResolver clientResolver)
         RefAsync<int> totalCount = 0;
         var entities = await DbClient.Queryable<SysTaskLog>()
             .Where(predicate)
+            .SplitTable()
             .OrderByDescending(x => x.StartTime)
             .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
@@ -89,6 +90,7 @@ public sealed class TaskLogQueryService(ISqlSugarClientResolver clientResolver)
 
         var taskLog = await DbClient.Queryable<SysTaskLog>()
             .Where(x => x.BasicId == id)
+            .SplitTable()
             .FirstAsync(cancellationToken);
         return taskLog is null ? null : TaskLogApplicationMapper.ToDetailDto(taskLog);
     }
