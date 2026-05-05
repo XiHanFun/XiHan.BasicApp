@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface ITenantEditionPermissionRepository : ISaasRepository<SysTenantEditionPermission>
 {
+    /// <summary>
+    /// 根据版本ID获取权限映射列表
+    /// </summary>
+    Task<IReadOnlyList<SysTenantEditionPermission>> GetByEditionIdAsync(long editionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 全量替换版本权限映射（先删后插）
+    /// </summary>
+    Task ReplaceByEditionIdAsync(long editionId, IEnumerable<SysTenantEditionPermission> items, CancellationToken cancellationToken = default);
 }

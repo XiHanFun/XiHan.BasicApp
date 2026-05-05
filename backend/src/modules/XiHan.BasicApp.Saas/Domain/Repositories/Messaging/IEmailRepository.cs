@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IEmailRepository : ISaasRepository<SysEmail>
 {
+    /// <summary>
+    /// 获取待发送邮件
+    /// </summary>
+    Task<IReadOnlyList<SysEmail>> GetPendingEmailsAsync(int maxCount, CancellationToken cancellationToken = default);
 }

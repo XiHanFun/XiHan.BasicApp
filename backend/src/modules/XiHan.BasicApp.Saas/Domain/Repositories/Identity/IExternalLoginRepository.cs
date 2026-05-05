@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IExternalLoginRepository : ISaasRepository<SysExternalLogin>
 {
+    /// <summary>
+    /// 根据提供商和提供商用户标识获取外部登录
+    /// </summary>
+    Task<SysExternalLogin?> GetByProviderAndKeyAsync(string provider, string providerKey, CancellationToken cancellationToken = default);
 }

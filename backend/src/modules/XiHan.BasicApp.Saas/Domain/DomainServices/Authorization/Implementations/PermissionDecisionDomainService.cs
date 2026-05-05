@@ -72,6 +72,14 @@ public sealed class PermissionDecisionDomainService : IPermissionDecisionDomainS
             return AuthorizationDecision.Deny(permissionCode, "角色授权拒绝。", roleDeny.PermissionId);
         }
 
+        // 委派授权优先级低于用户直授和角色授权
+        var delegationGrant = effectiveGrants.FirstOrDefault(grant =>
+            grant.Source == AuthorizationGrantSource.Delegation && grant.Action == PermissionAction.Grant);
+        if (delegationGrant is not null)
+        {
+            return AuthorizationDecision.Grant(permissionCode, "委派授权通过。", delegationGrant.PermissionId);
+        }
+
         return AuthorizationDecision.Deny(permissionCode, "授权来源未命中裁决规则。");
     }
 }

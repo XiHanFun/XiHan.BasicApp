@@ -22,4 +22,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 用户统计仓储实现
 /// </summary>
 public sealed class UserStatisticsRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysUserStatistics>(clientResolver), IUserStatisticsRepository;
+    : SaasRepository<SysUserStatistics>(clientResolver), IUserStatisticsRepository
+{
+    /// <inheritdoc />
+    public async Task<SysUserStatistics?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(stats => stats.UserId == userId)
+            .FirstAsync(cancellationToken);
+    }
+}

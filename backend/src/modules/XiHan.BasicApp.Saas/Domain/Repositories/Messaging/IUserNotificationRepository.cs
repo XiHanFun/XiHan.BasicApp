@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IUserNotificationRepository : ISaasRepository<SysUserNotification>
 {
+    /// <summary>
+    /// 获取用户未读通知
+    /// </summary>
+    Task<IReadOnlyList<SysUserNotification>> GetUnreadByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 批量标记已读
+    /// </summary>
+    Task<int> MarkAsReadAsync(long userId, IEnumerable<long> notificationIds, CancellationToken cancellationToken = default);
 }

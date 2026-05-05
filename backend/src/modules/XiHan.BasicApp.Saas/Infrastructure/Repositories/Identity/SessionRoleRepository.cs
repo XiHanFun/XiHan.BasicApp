@@ -22,4 +22,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 会话角色仓储实现
 /// </summary>
 public sealed class SessionRoleRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysSessionRole>(clientResolver), ISessionRoleRepository;
+    : SaasRepository<SysSessionRole>(clientResolver), ISessionRoleRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysSessionRole>> GetBySessionIdAsync(long sessionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(role => role.SessionId == sessionId)
+            .ToListAsync(cancellationToken);
+    }
+}

@@ -22,4 +22,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 字典项仓储实现
 /// </summary>
 public sealed class DictItemRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysDictItem>(clientResolver), IDictItemRepository;
+    : SaasRepository<SysDictItem>(clientResolver), IDictItemRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysDictItem>> GetByDictIdAsync(long dictId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(item => item.DictId == dictId)
+            .ToListAsync(cancellationToken);
+    }
+}

@@ -22,4 +22,26 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// OAuth 授权码仓储实现
 /// </summary>
 public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysOAuthCode>(clientResolver), IOAuthCodeRepository;
+    : SaasRepository<SysOAuthCode>(clientResolver), IOAuthCodeRepository
+{
+    /// <inheritdoc />
+    public async Task<SysOAuthCode?> GetByCodeAsync(string code, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(code);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(c => c.Code == code)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> CleanExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await DbClient.Deleteable<SysOAuthCode>()
+            .Where(code => code.ExpiresTime < now)
+            .ExecuteCommandAsync(cancellationToken);
+    }
+}

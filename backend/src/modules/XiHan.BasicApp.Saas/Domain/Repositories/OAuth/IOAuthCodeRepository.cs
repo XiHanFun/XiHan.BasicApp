@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IOAuthCodeRepository : ISaasRepository<SysOAuthCode>
 {
+    /// <summary>
+    /// 根据授权码获取
+    /// </summary>
+    Task<SysOAuthCode?> GetByCodeAsync(string code, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 清理过期授权码
+    /// </summary>
+    Task<int> CleanExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken = default);
 }

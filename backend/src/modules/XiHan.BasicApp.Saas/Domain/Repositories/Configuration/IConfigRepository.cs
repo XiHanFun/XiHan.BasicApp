@@ -21,4 +21,13 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IConfigRepository : ISaasRepository<SysConfig>
 {
+    /// <summary>
+    /// 根据配置键获取
+    /// </summary>
+    Task<SysConfig?> GetByKeyAsync(string configKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 检查配置键是否存在
+    /// </summary>
+    Task<bool> ExistsKeyAsync(string configKey, long? excludeId = null, CancellationToken cancellationToken = default);
 }

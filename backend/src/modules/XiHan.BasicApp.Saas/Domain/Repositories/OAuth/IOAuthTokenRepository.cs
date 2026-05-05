@@ -21,4 +21,18 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IOAuthTokenRepository : ISaasRepository<SysOAuthToken>
 {
+    /// <summary>
+    /// 根据访问令牌JTI获取
+    /// </summary>
+    Task<SysOAuthToken?> GetByAccessTokenAsync(string accessTokenJti, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据刷新令牌获取
+    /// </summary>
+    Task<SysOAuthToken?> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 吊销用户所有令牌
+    /// </summary>
+    Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 }

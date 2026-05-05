@@ -22,4 +22,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 文件存储仓储实现
 /// </summary>
 public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysFileStorage>(clientResolver), IFileStorageRepository;
+    : SaasRepository<SysFileStorage>(clientResolver), IFileStorageRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysFileStorage>> GetByProviderAsync(string provider, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(provider);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(storage => storage.StorageProvider == provider)
+            .ToListAsync(cancellationToken);
+    }
+}

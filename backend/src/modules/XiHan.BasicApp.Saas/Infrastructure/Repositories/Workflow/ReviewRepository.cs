@@ -25,4 +25,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class ReviewRepository(
     ISqlSugarClientResolver clientResolver,
     IUnitOfWorkManager unitOfWorkManager)
-    : SaasAggregateRepository<SysReview>(clientResolver, unitOfWorkManager), IReviewRepository;
+    : SaasAggregateRepository<SysReview>(clientResolver, unitOfWorkManager), IReviewRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysReview>> GetPendingByReviewerIdAsync(long reviewerId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(review => review.CurrentReviewUserId == reviewerId && review.ReviewStatus == AuditStatus.Pending)
+            .ToListAsync(cancellationToken);
+    }
+}

@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IMigrationHistoryRepository : ISaasRepository<SysMigrationHistory>
 {
+    /// <summary>
+    /// 根据版本号获取迁移记录
+    /// </summary>
+    Task<SysMigrationHistory?> GetByVersionAsync(string version, CancellationToken cancellationToken = default);
 }

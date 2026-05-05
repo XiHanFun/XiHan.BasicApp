@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface IVersionRepository : ISaasRepository<SysVersion>
 {
+    /// <summary>
+    /// 获取最新版本
+    /// </summary>
+    Task<SysVersion?> GetLatestAsync(CancellationToken cancellationToken = default);
 }

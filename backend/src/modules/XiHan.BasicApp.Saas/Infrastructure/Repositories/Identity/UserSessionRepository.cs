@@ -22,4 +22,29 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 用户会话仓储实现
 /// </summary>
 public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysUserSession>(clientResolver), IUserSessionRepository;
+    : SaasRepository<SysUserSession>(clientResolver), IUserSessionRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysUserSession>> GetActiveSessionsAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked)
+            .OrderByDescending(session => session.LastActivityTime)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await DbClient.Updateable<SysUserSession>()
+            .SetColumns(session => session.IsRevoked == true)
+            .SetColumns(session => session.IsOnline == false)
+            .SetColumns(session => session.RevokedAt == DateTimeOffset.UtcNow)
+            .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked)
+            .ExecuteCommandAsync(cancellationToken);
+    }
+}

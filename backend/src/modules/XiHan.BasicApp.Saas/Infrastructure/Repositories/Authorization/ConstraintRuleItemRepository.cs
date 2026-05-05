@@ -22,4 +22,29 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 约束规则目标项仓储实现
 /// </summary>
 public sealed class ConstraintRuleItemRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysConstraintRuleItem>(clientResolver), IConstraintRuleItemRepository;
+    : SaasRepository<SysConstraintRuleItem>(clientResolver), IConstraintRuleItemRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysConstraintRuleItem>> GetByRuleIdAsync(long ruleId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(item => item.ConstraintRuleId == ruleId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task ReplaceByRuleIdAsync(long ruleId, IEnumerable<SysConstraintRuleItem> items, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await DeleteAsync(item => item.ConstraintRuleId == ruleId, cancellationToken);
+
+        var list = items.ToList();
+        if (list.Count > 0)
+        {
+            await AddRangeAsync(list, cancellationToken);
+        }
+    }
+}

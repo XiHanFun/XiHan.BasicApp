@@ -21,4 +21,8 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// </summary>
 public interface ISmsRepository : ISaasRepository<SysSms>
 {
+    /// <summary>
+    /// 获取待发送短信
+    /// </summary>
+    Task<IReadOnlyList<SysSms>> GetPendingSmsAsync(int maxCount, CancellationToken cancellationToken = default);
 }

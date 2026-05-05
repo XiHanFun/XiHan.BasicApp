@@ -22,4 +22,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 字段级安全仓储实现
 /// </summary>
 public sealed class FieldLevelSecurityRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysFieldLevelSecurity>(clientResolver), IFieldLevelSecurityRepository;
+    : SaasRepository<SysFieldLevelSecurity>(clientResolver), IFieldLevelSecurityRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysFieldLevelSecurity>> GetByResourceAndRoleAsync(long resourceId, long roleId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(fls => fls.ResourceId == resourceId && fls.TargetType == FieldSecurityTargetType.Role && fls.TargetId == roleId)
+            .ToListAsync(cancellationToken);
+    }
+}
