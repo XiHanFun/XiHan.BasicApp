@@ -76,6 +76,9 @@ public static class TaskApplicationMapper
             TaskName = item.TaskName,
             TaskDescription = item.TaskDescription,
             TaskGroup = item.TaskGroup,
+            TaskClass = task.TaskClass,
+            TaskMethod = task.TaskMethod,
+            TaskParams = task.TaskParams,
             TriggerType = item.TriggerType,
             CronExpression = item.CronExpression,
             StartTime = item.StartTime,
@@ -97,7 +100,8 @@ public static class TaskApplicationMapper
             CreatedBy = task.CreatedBy,
             ModifiedTime = item.ModifiedTime,
             ModifiedId = task.ModifiedId,
-            ModifiedBy = task.ModifiedBy
+            ModifiedBy = task.ModifiedBy,
+            Remark = task.Remark
         };
     }
 }

@@ -71,25 +71,32 @@ public static class ReviewApplicationMapper
             ReviewCode = item.ReviewCode,
             ReviewTitle = item.ReviewTitle,
             ReviewType = item.ReviewType,
+            ReviewContent = review.ReviewContent,
+            ReviewDescription = review.ReviewDescription,
             EntityType = item.EntityType,
             EntityId = item.EntityId,
+            BusinessData = review.BusinessData,
             ReviewStatus = item.ReviewStatus,
             ReviewResult = item.ReviewResult,
             Priority = item.Priority,
             SubmitUserId = item.SubmitUserId,
             SubmitTime = item.SubmitTime,
             CurrentReviewUserId = item.CurrentReviewUserId,
+            ReviewUserIds = review.ReviewUserIds,
             ReviewLevel = item.ReviewLevel,
             CurrentLevel = item.CurrentLevel,
             ReviewStartTime = item.ReviewStartTime,
             ReviewEndTime = item.ReviewEndTime,
+            Attachments = review.Attachments,
+            ExtendData = review.ExtendData,
             Status = item.Status,
             CreatedTime = item.CreatedTime,
             CreatedId = review.CreatedId,
             CreatedBy = review.CreatedBy,
             ModifiedTime = item.ModifiedTime,
             ModifiedId = review.ModifiedId,
-            ModifiedBy = review.ModifiedBy
+            ModifiedBy = review.ModifiedBy,
+            Remark = review.Remark
         };
     }
 }

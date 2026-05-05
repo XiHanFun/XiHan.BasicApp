@@ -88,6 +88,11 @@ public static class SaasPermissionCodes
         PasswordHistory.Read,
         ExternalLogin.Read,
         OAuthApp.Read,
+        OAuthApp.Create,
+        OAuthApp.Update,
+        OAuthApp.Status,
+        OAuthApp.Delete,
+        OAuthApp.Secret,
         OAuthCode.Read,
         OAuthToken.Read,
         AccessLog.Read,
@@ -98,14 +103,46 @@ public static class SaasPermissionCodes
         OperationLog.Read,
         PermissionChangeLog.Read,
         Task.Read,
+        Task.Create,
+        Task.Update,
+        Task.Status,
+        Task.RunStatus,
+        Task.Delete,
         TaskLog.Read,
         Review.Read,
+        Review.Create,
+        Review.Update,
+        Review.Status,
+        Review.Audit,
+        Review.Withdraw,
+        Review.Delete,
         ReviewLog.Read,
         Config.Read,
+        Config.Create,
+        Config.Update,
+        Config.Status,
+        Config.Delete,
         Dict.Read,
+        Dict.Create,
+        Dict.Update,
+        Dict.Status,
+        Dict.Delete,
         Version.Read,
+        Version.Create,
+        Version.Update,
+        Version.Upgrade,
+        Version.Delete,
         File.Read,
+        File.Create,
+        File.Update,
+        File.Status,
+        File.Delete,
         Message.Read,
+        Message.Create,
+        Message.Update,
+        Message.Status,
+        Message.Publish,
+        Message.Delete,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -566,6 +603,31 @@ public static class SaasPermissionCodes
         /// 查看 OAuth 应用
         /// </summary>
         public const string Read = "saas:oauth-app:read";
+
+        /// <summary>
+        /// 创建 OAuth 应用
+        /// </summary>
+        public const string Create = "saas:oauth-app:create";
+
+        /// <summary>
+        /// 更新 OAuth 应用
+        /// </summary>
+        public const string Update = "saas:oauth-app:update";
+
+        /// <summary>
+        /// 更新 OAuth 应用状态
+        /// </summary>
+        public const string Status = "saas:oauth-app:status";
+
+        /// <summary>
+        /// 删除 OAuth 应用
+        /// </summary>
+        public const string Delete = "saas:oauth-app:delete";
+
+        /// <summary>
+        /// 重置 OAuth 应用密钥
+        /// </summary>
+        public const string Secret = "saas:oauth-app:secret";
     }
 
     /// <summary>
@@ -676,6 +738,31 @@ public static class SaasPermissionCodes
         /// 查看系统任务
         /// </summary>
         public const string Read = "saas:task:read";
+
+        /// <summary>
+        /// 创建系统任务
+        /// </summary>
+        public const string Create = "saas:task:create";
+
+        /// <summary>
+        /// 更新系统任务
+        /// </summary>
+        public const string Update = "saas:task:update";
+
+        /// <summary>
+        /// 更新系统任务启停状态
+        /// </summary>
+        public const string Status = "saas:task:status";
+
+        /// <summary>
+        /// 更新系统任务运行状态
+        /// </summary>
+        public const string RunStatus = "saas:task:run-status";
+
+        /// <summary>
+        /// 删除系统任务
+        /// </summary>
+        public const string Delete = "saas:task:delete";
     }
 
     /// <summary>
@@ -698,6 +785,36 @@ public static class SaasPermissionCodes
         /// 查看系统审查
         /// </summary>
         public const string Read = "saas:review:read";
+
+        /// <summary>
+        /// 创建系统审查
+        /// </summary>
+        public const string Create = "saas:review:create";
+
+        /// <summary>
+        /// 更新系统审查
+        /// </summary>
+        public const string Update = "saas:review:update";
+
+        /// <summary>
+        /// 更新系统审查启停状态
+        /// </summary>
+        public const string Status = "saas:review:status";
+
+        /// <summary>
+        /// 审核系统审查
+        /// </summary>
+        public const string Audit = "saas:review:audit";
+
+        /// <summary>
+        /// 撤回系统审查
+        /// </summary>
+        public const string Withdraw = "saas:review:withdraw";
+
+        /// <summary>
+        /// 删除系统审查
+        /// </summary>
+        public const string Delete = "saas:review:delete";
     }
 
     /// <summary>
@@ -720,6 +837,26 @@ public static class SaasPermissionCodes
         /// 查看系统配置
         /// </summary>
         public const string Read = "saas:config:read";
+
+        /// <summary>
+        /// 创建系统配置
+        /// </summary>
+        public const string Create = "saas:config:create";
+
+        /// <summary>
+        /// 更新系统配置
+        /// </summary>
+        public const string Update = "saas:config:update";
+
+        /// <summary>
+        /// 更新系统配置状态
+        /// </summary>
+        public const string Status = "saas:config:status";
+
+        /// <summary>
+        /// 删除系统配置
+        /// </summary>
+        public const string Delete = "saas:config:delete";
     }
 
     /// <summary>
@@ -731,6 +868,26 @@ public static class SaasPermissionCodes
         /// 查看系统字典
         /// </summary>
         public const string Read = "saas:dict:read";
+
+        /// <summary>
+        /// 创建系统字典
+        /// </summary>
+        public const string Create = "saas:dict:create";
+
+        /// <summary>
+        /// 更新系统字典
+        /// </summary>
+        public const string Update = "saas:dict:update";
+
+        /// <summary>
+        /// 更新系统字典状态
+        /// </summary>
+        public const string Status = "saas:dict:status";
+
+        /// <summary>
+        /// 删除系统字典
+        /// </summary>
+        public const string Delete = "saas:dict:delete";
     }
 
     /// <summary>
@@ -742,6 +899,26 @@ public static class SaasPermissionCodes
         /// 查看系统版本
         /// </summary>
         public const string Read = "saas:version:read";
+
+        /// <summary>
+        /// 创建系统版本
+        /// </summary>
+        public const string Create = "saas:version:create";
+
+        /// <summary>
+        /// 更新系统版本
+        /// </summary>
+        public const string Update = "saas:version:update";
+
+        /// <summary>
+        /// 更新系统升级状态
+        /// </summary>
+        public const string Upgrade = "saas:version:upgrade";
+
+        /// <summary>
+        /// 删除系统版本
+        /// </summary>
+        public const string Delete = "saas:version:delete";
     }
 
     /// <summary>
@@ -753,6 +930,26 @@ public static class SaasPermissionCodes
         /// 查看系统文件
         /// </summary>
         public const string Read = "saas:file:read";
+
+        /// <summary>
+        /// 创建系统文件
+        /// </summary>
+        public const string Create = "saas:file:create";
+
+        /// <summary>
+        /// 更新系统文件
+        /// </summary>
+        public const string Update = "saas:file:update";
+
+        /// <summary>
+        /// 更新系统文件状态
+        /// </summary>
+        public const string Status = "saas:file:status";
+
+        /// <summary>
+        /// 删除系统文件
+        /// </summary>
+        public const string Delete = "saas:file:delete";
     }
 
     /// <summary>
@@ -764,6 +961,31 @@ public static class SaasPermissionCodes
         /// 查看系统消息
         /// </summary>
         public const string Read = "saas:message:read";
+
+        /// <summary>
+        /// 创建系统消息
+        /// </summary>
+        public const string Create = "saas:message:create";
+
+        /// <summary>
+        /// 更新系统消息
+        /// </summary>
+        public const string Update = "saas:message:update";
+
+        /// <summary>
+        /// 更新系统消息状态
+        /// </summary>
+        public const string Status = "saas:message:status";
+
+        /// <summary>
+        /// 发布系统通知
+        /// </summary>
+        public const string Publish = "saas:message:publish";
+
+        /// <summary>
+        /// 删除系统消息
+        /// </summary>
+        public const string Delete = "saas:message:delete";
     }
 
     /// <summary>
