@@ -21,19 +21,19 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 
 public interface IFileAppService : IApplicationService
 {
-    Task<FileDetailDto> CreateFileAsync(FileCreateDto input, CancellationToken cancellationToken = default);
+    Task<FileDetailDto> UploadFileAsync(FileUploadDto input, CancellationToken cancellationToken = default);
 
-    Task<FileDetailDto> UpdateFileAsync(FileUpdateDto input, CancellationToken cancellationToken = default);
+    Task<FileDetailDto> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default);
+
+    Task<FileDetailDto> UpdateFileMetadataAsync(FileMetadataUpdateDto input, CancellationToken cancellationToken = default);
 
     Task<FileDetailDto> UpdateFileStatusAsync(FileStatusUpdateDto input, CancellationToken cancellationToken = default);
 
-    Task DeleteFileAsync(long id, CancellationToken cancellationToken = default);
+    Task<FileStorageDetailDto> SwitchPrimaryStorageAsync(FilePrimaryStorageSwitchDto input, CancellationToken cancellationToken = default);
 
-    Task<FileStorageDetailDto> CreateFileStorageAsync(FileStorageCreateDto input, CancellationToken cancellationToken = default);
-
-    Task<FileStorageDetailDto> UpdateFileStorageAsync(FileStorageUpdateDto input, CancellationToken cancellationToken = default);
+    Task<FileStorageDetailDto> VerifyFileStorageAsync(FileStorageVerifyDto input, CancellationToken cancellationToken = default);
 
     Task<FileStorageDetailDto> UpdateFileStorageStatusAsync(FileStorageStatusUpdateDto input, CancellationToken cancellationToken = default);
 
-    Task DeleteFileStorageAsync(long id, CancellationToken cancellationToken = default);
+    Task DeleteFileAsync(FileDeleteDto input, CancellationToken cancellationToken = default);
 }

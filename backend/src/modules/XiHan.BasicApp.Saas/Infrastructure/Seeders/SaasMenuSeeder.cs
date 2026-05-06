@@ -839,6 +839,20 @@ public sealed class SaasMenuSeeder(
                 "系统通知",
                 805,
                 null,
+                true),
+            new(
+                "system.file",
+                "文件管理",
+                MenuType.Menu,
+                "/system/file",
+                "SystemFile",
+                "system/file/index",
+                "system.ops",
+                SaasPermissionCodes.File.Read,
+                "lucide:folder-open",
+                "文件管理",
+                806,
+                null,
                 true)
         ];
     }

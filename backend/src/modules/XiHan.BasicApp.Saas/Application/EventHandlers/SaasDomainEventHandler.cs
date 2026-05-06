@@ -41,6 +41,9 @@ public sealed class SaasDomainEventHandler(
       ILocalEventHandler<HierarchyChangedDomainEvent>,
       ILocalEventHandler<TenantMembershipChangedDomainEvent>,
       ILocalEventHandler<TenantStatusChangedDomainEvent>,
+      ILocalEventHandler<FileUploadedDomainEvent>,
+      ILocalEventHandler<FileDeletedDomainEvent>,
+      ILocalEventHandler<FilePrimaryStorageChangedDomainEvent>,
       ILocalEventHandler<UserSessionRevokedDomainEvent>,
       ITransientDependency
 {
@@ -204,6 +207,67 @@ public sealed class SaasDomainEventHandler(
                 eventData.UserSessionId,
                 eventData.AccessTokenJti,
                 eventData.RevokeAllUserSessions
+            });
+    }
+
+    /// <inheritdoc />
+    public async Task HandleEventAsync(FileUploadedDomainEvent eventData)
+    {
+        ArgumentNullException.ThrowIfNull(eventData);
+
+        await WriteDiffLogAsync(
+            eventData,
+            nameof(FileUploadedDomainEvent),
+            eventData.FileId.ToString(),
+            OperationType.Create,
+            AuditRiskLevel.Medium,
+            $"文件上传：File#{eventData.FileId} {eventData.FileName}",
+            new
+            {
+                eventData.FileId,
+                eventData.StorageId,
+                eventData.FileName,
+                eventData.FileSize
+            });
+    }
+
+    /// <inheritdoc />
+    public async Task HandleEventAsync(FileDeletedDomainEvent eventData)
+    {
+        ArgumentNullException.ThrowIfNull(eventData);
+
+        await WriteDiffLogAsync(
+            eventData,
+            nameof(FileDeletedDomainEvent),
+            eventData.FileId.ToString(),
+            OperationType.Delete,
+            eventData.PhysicalDeleted ? AuditRiskLevel.High : AuditRiskLevel.Medium,
+            $"文件删除：File#{eventData.FileId} {eventData.FileName}",
+            new
+            {
+                eventData.FileId,
+                eventData.FileName,
+                eventData.PhysicalDeleted
+            });
+    }
+
+    /// <inheritdoc />
+    public async Task HandleEventAsync(FilePrimaryStorageChangedDomainEvent eventData)
+    {
+        ArgumentNullException.ThrowIfNull(eventData);
+
+        await WriteDiffLogAsync(
+            eventData,
+            nameof(FilePrimaryStorageChangedDomainEvent),
+            eventData.FileId.ToString(),
+            OperationType.Update,
+            AuditRiskLevel.Medium,
+            $"文件主存储切换：File#{eventData.FileId} {eventData.PreviousStorageId?.ToString() ?? "null"} => {eventData.StorageId}",
+            new
+            {
+                eventData.FileId,
+                eventData.StorageId,
+                eventData.PreviousStorageId
             });
     }
 

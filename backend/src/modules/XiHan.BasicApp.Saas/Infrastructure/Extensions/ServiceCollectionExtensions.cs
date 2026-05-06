@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Saas.Application.Caching;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders;
@@ -40,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITenantAccessDomainService, TenantAccessDomainService>();
         services.AddSingleton<IPasswordPolicyDomainService, PasswordPolicyDomainService>();
         services.AddSingleton<IUserSessionDomainService, UserSessionDomainService>();
+        services.AddSingleton<IFileStorageDomainService, FileStorageDomainService>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
@@ -47,6 +50,18 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
         services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 SaaS 应用层内部服务
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
+        services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
         return services;
     }
 

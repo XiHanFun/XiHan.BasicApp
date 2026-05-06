@@ -25,6 +25,40 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
     : SaasRepository<SysFileStorage>(clientResolver), IFileStorageRepository
 {
     /// <inheritdoc />
+    public async Task<IReadOnlyList<SysFileStorage>> GetByFileIdAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        if (fileId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fileId), "系统文件主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(storage => storage.FileId == fileId)
+            .OrderByDescending(storage => storage.IsPrimary)
+            .OrderBy(storage => storage.SortOrder)
+            .OrderBy(storage => storage.StorageType)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<SysFileStorage?> GetPrimaryByFileIdAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        if (fileId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fileId), "系统文件主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(storage => storage.FileId == fileId && storage.IsPrimary)
+            .OrderBy(storage => storage.SortOrder)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<SysFileStorage>> GetByProviderAsync(string provider, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(provider);
@@ -33,5 +67,26 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
         return await CreateQueryable()
             .Where(storage => storage.StorageProvider == provider)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> ClearPrimaryAsync(long fileId, long? excludeStorageId = null, CancellationToken cancellationToken = default)
+    {
+        if (fileId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fileId), "系统文件主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return excludeStorageId.HasValue
+            ? UpdateAsync(
+                storage => new SysFileStorage { IsPrimary = false },
+                storage => storage.FileId == fileId && storage.BasicId != excludeStorageId.Value && storage.IsPrimary,
+                cancellationToken)
+            : UpdateAsync(
+                storage => new SysFileStorage { IsPrimary = false },
+                storage => storage.FileId == fileId && storage.IsPrimary,
+                cancellationToken);
     }
 }

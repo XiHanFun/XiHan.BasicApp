@@ -12,16 +12,24 @@
 
 #endregion <<版权版本注释>>
 
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.ObjectStorage;
+using XiHan.Framework.ObjectStorage.Models;
+using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.Framework.Web.Core.Clients;
 using static XiHan.BasicApp.Saas.Application.AppServices.SaasCommandValidation;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -33,45 +41,202 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统文件")]
 public sealed class FileAppService(
     IFileRepository fileRepository,
-    IFileStorageRepository fileStorageRepository)
+    IFileStorageRepository fileStorageRepository,
+    IFileStorageRouter fileStorageRouter,
+    IFileStorageDomainService fileStorageDomainService,
+    IClientInfoProvider clientInfoProvider,
+    ILocalEventBus localEventBus,
+    ICurrentUser currentUser)
     : SaasApplicationService, IFileAppService
 {
+    private const string Sha256AlgorithmName = "SHA256";
+
     private readonly IFileRepository _fileRepository = fileRepository;
     private readonly IFileStorageRepository _fileStorageRepository = fileStorageRepository;
+    private readonly IFileStorageRouter _fileStorageRouter = fileStorageRouter;
+    private readonly IFileStorageDomainService _fileStorageDomainService = fileStorageDomainService;
+    private readonly IClientInfoProvider _clientInfoProvider = clientInfoProvider;
+    private readonly ILocalEventBus _localEventBus = localEventBus;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     /// <summary>
-    /// 创建系统文件
+    /// 上传文件
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.File.Create)]
-    public async Task<FileDetailDto> CreateFileAsync(FileCreateDto input, CancellationToken cancellationToken = default)
+    public async Task<FileDetailDto> UploadFileAsync(FileUploadDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(input.File);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _fileStorageDomainService.EnsureUploadMetadata(input.File.Length, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
+        ValidateMutableMetadata(input.AccessLevel, input.RetentionDays, input.Width, input.Height, input.Duration, input.ThumbnailFileId);
+
+        var originalName = _fileStorageDomainService.NormalizeOriginalName(input.File.FileName);
+        var fileHash = await ComputeSha256Async(input.File, cancellationToken);
+        var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken);
+        if (existing is { Status: FileStatus.Normal })
+        {
+            return FileApplicationMapper.ToDetailDto(existing);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var resolvedProviderName = _fileStorageRouter.ResolveProviderName(input.RouteKey, input.ProviderName);
+        var provider = _fileStorageRouter.Route(input.RouteKey, resolvedProviderName);
+        var storedFileName = _fileStorageDomainService.BuildStoredFileName(originalName, fileHash);
+        var storagePath = _fileStorageDomainService.BuildStoragePath(storedFileName, input.Directory, now);
+        var accessControl = _fileStorageDomainService.ResolveAccessControl(input.AccessLevel, input.AccessControl);
+        var clientInfo = _clientInfoProvider.GetCurrent();
+
+        var file = new SysFile
+        {
+            FileName = storedFileName,
+            OriginalName = originalName,
+            FileExtension = Path.GetExtension(originalName),
+            FileType = _fileStorageDomainService.ResolveFileType(Path.GetExtension(originalName), input.File.ContentType),
+            MimeType = NormalizeText(input.File.ContentType, 100),
+            FileSize = input.File.Length,
+            FileHash = fileHash,
+            HashAlgorithm = Sha256AlgorithmName,
+            Width = input.Width,
+            Height = input.Height,
+            Duration = input.Duration,
+            ThumbnailFileId = input.ThumbnailFileId,
+            UploadIp = NormalizeText(clientInfo.IpAddress, 50),
+            UploadSource = ResolveUploadSource(clientInfo),
+            AccessLevel = input.AccessLevel,
+            AccessPermissions = Optional(input.AccessPermissions, 500, nameof(input.AccessPermissions), "访问权限不能超过 500 个字符。"),
+            IsEncrypted = input.IsEncrypted,
+            EncryptionKeyId = Optional(input.EncryptionKeyId, 100, nameof(input.EncryptionKeyId), "加密密钥主键不能超过 100 个字符。"),
+            ExpiresAt = input.ExpiresAt,
+            IsTemporary = input.IsTemporary,
+            RetentionDays = input.RetentionDays,
+            Status = FileStatus.Uploading,
+            Tags = Optional(input.Tags, 500, nameof(input.Tags), "文件标签不能超过 500 个字符。"),
+            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。"),
+            ExtendData = OptionalJson(input.ExtendData, "文件扩展数据必须是合法 JSON。")
+        };
+
+        file = await _fileRepository.AddAsync(file, cancellationToken);
+
+        FileUploadResult uploadResult;
+        await using (var stream = input.File.OpenReadStream())
+        {
+            uploadResult = await provider.UploadAsync(
+                new FileUploadRequest
+                {
+                    FileStream = stream,
+                    FileName = storedFileName,
+                    StoragePath = storagePath,
+                    ContentType = input.File.ContentType,
+                    BucketName = NormalizeText(input.BucketName, 100),
+                    Overwrite = input.Overwrite,
+                    AccessControl = accessControl,
+                    CacheControl = NormalizeText(input.CacheControl, 100),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["file-id"] = file.BasicId.ToString(),
+                        ["file-hash"] = fileHash,
+                        ["hash-algorithm"] = Sha256AlgorithmName
+                    }
+                },
+                cancellationToken);
+        }
+
+        if (!uploadResult.Success)
+        {
+            file.Status = FileStatus.UploadFailed;
+            file.Remark = NormalizeText(uploadResult.ErrorMessage, 500) ?? file.Remark;
+            _ = await _fileRepository.UpdateAsync(file, cancellationToken);
+            throw new InvalidOperationException(uploadResult.ErrorMessage ?? "文件上传失败。");
+        }
+
+        file.FileSize = uploadResult.FileSize > 0 ? uploadResult.FileSize : file.FileSize;
+        file.Status = FileStatus.Normal;
+        file = await _fileRepository.UpdateAsync(file, cancellationToken);
+
+        var storage = new SysFileStorage
+        {
+            FileId = file.BasicId,
+            StorageType = _fileStorageDomainService.ResolveStorageType(provider.ProviderName),
+            StorageProvider = NormalizeText(provider.ProviderName, 50),
+            BucketName = NormalizeText(input.BucketName, 100),
+            StoragePath = uploadResult.Path ?? storagePath,
+            FullPath = NormalizeText(uploadResult.FullPath, 1000),
+            InternalUrl = NormalizeText(uploadResult.Url, 1000),
+            ExternalUrl = NormalizeText(uploadResult.Url, 1000),
+            IsPrimary = true,
+            IsBackup = false,
+            Status = FileStorageStatus.Normal,
+            UploadedAt = now,
+            UploadDuration = uploadResult.DurationMs,
+            LastVerifiedAt = now,
+            IsVerified = true,
+            IsSynced = true,
+            SyncedAt = now,
+            AccessControl = accessControl,
+            CacheControl = NormalizeText(input.CacheControl, 100),
+            SortOrder = 0,
+            Remark = NormalizeText(input.Remark, 500)
+        };
+
+        await _fileStorageRepository.ClearPrimaryAsync(file.BasicId, excludeStorageId: null, cancellationToken);
+        storage = await _fileStorageRepository.AddAsync(storage, cancellationToken);
+        await PublishUploadedAsync(file, storage, input.Remark, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(file);
+    }
+
+    /// <summary>
+    /// 秒传文件
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Create)]
+    public async Task<FileDetailDto> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateFileInput(input.FileType, input.FileSize, input.Width, input.Height, input.Duration, input.ThumbnailFileId, input.AccessLevel, input.RetentionDays, input.Status);
-        var file = new SysFile();
-        ApplyFileInput(file, input);
-        var savedFile = await _fileRepository.AddAsync(file, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(savedFile);
+        var fileHash = Required(input.FileHash, 100, nameof(input.FileHash), "文件哈希不能超过 100 个字符。");
+        _fileStorageDomainService.EnsureUploadMetadata(input.FileSize, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
+
+        var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken)
+            ?? throw new InvalidOperationException("文件不存在，无法秒传。");
+        if (existing.Status != FileStatus.Normal)
+        {
+            throw new InvalidOperationException("文件状态非正常，无法秒传。");
+        }
+
+        var primaryStorage = await _fileStorageRepository.GetPrimaryByFileIdAsync(existing.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("文件缺少可用主存储，无法秒传。");
+        if (primaryStorage.Status != FileStorageStatus.Normal)
+        {
+            throw new InvalidOperationException("文件主存储不可用，无法秒传。");
+        }
+
+        ApplyFastUploadMetadata(existing, input);
+        existing = await _fileRepository.UpdateAsync(existing, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(existing);
     }
 
     /// <summary>
-    /// 更新系统文件
+    /// 更新文件业务元数据
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.File.Update)]
-    public async Task<FileDetailDto> UpdateFileAsync(FileUpdateDto input, CancellationToken cancellationToken = default)
+    public async Task<FileDetailDto> UpdateFileMetadataAsync(FileMetadataUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         EnsureId(input.BasicId, "系统文件主键必须大于 0。");
-        ValidateFileInput(input.FileType, input.FileSize, input.Width, input.Height, input.Duration, input.ThumbnailFileId, input.AccessLevel, input.RetentionDays, status: null);
+        ValidateMutableMetadata(input.AccessLevel, input.RetentionDays, input.Width, input.Height, input.Duration, input.ThumbnailFileId);
+        _fileStorageDomainService.EnsureUploadMetadata(1, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
+
         var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
-        ApplyFileInput(file, input);
-        var savedFile = await _fileRepository.UpdateAsync(file, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(savedFile);
+        ApplyMutableMetadata(file, input);
+        file = await _fileRepository.UpdateAsync(file, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(file);
     }
 
     /// <summary>
@@ -89,71 +254,90 @@ public sealed class FileAppService(
         var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
         file.Status = input.Status;
         file.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? file.Remark;
-        var savedFile = await _fileRepository.UpdateAsync(file, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(savedFile);
+        file = await _fileRepository.UpdateAsync(file, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(file);
     }
 
     /// <summary>
-    /// 删除系统文件
+    /// 切换主存储
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Delete)]
-    public async Task DeleteFileAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var file = await GetFileOrThrowAsync(id, cancellationToken);
-        _ = await _fileStorageRepository.DeleteAsync(storage => storage.FileId == file.BasicId, cancellationToken);
-        if (!await _fileRepository.DeleteAsync(file, cancellationToken))
-        {
-            throw new InvalidOperationException("系统文件删除失败。");
-        }
-    }
-
-    /// <summary>
-    /// 创建系统文件存储
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Create)]
-    public async Task<FileStorageDetailDto> CreateFileStorageAsync(FileStorageCreateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.File.Update)]
+    public async Task<FileStorageDetailDto> SwitchPrimaryStorageAsync(FilePrimaryStorageSwitchDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateFileStorageInput(input.FileId, input.StorageType, input.StoragePath, input.CompressionRatio, input.UploadDuration, input.RetryCount, input.SyncSourceId, input.Status);
-        _ = await GetFileOrThrowAsync(input.FileId, cancellationToken);
-        if (input.IsPrimary)
+        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
+        EnsureId(input.StorageId, "系统文件存储主键必须大于 0。");
+
+        _ = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
+        var storage = await GetFileStorageOrThrowAsync(input.StorageId, cancellationToken);
+        if (storage.FileId != input.BasicId)
         {
-            await ClearPrimaryStorageAsync(input.FileId, excludeStorageId: null, cancellationToken);
+            throw new InvalidOperationException("存储副本不属于当前文件。");
         }
 
-        var storage = new SysFileStorage();
-        ApplyFileStorageInput(storage, input);
-        var savedStorage = await _fileStorageRepository.AddAsync(storage, cancellationToken);
-        return FileApplicationMapper.ToStorageDetailDto(savedStorage);
+        _fileStorageDomainService.EnsureCanBecomePrimary(storage);
+        var previousStorage = await _fileStorageRepository.GetPrimaryByFileIdAsync(input.BasicId, cancellationToken);
+        await _fileStorageRepository.ClearPrimaryAsync(input.BasicId, storage.BasicId, cancellationToken);
+        storage.IsPrimary = true;
+        storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
+        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
+
+        await _localEventBus.PublishAsync(
+            new FilePrimaryStorageChangedDomainEvent(
+                storage.TenantId,
+                storage.FileId,
+                storage.BasicId,
+                previousStorage?.BasicId,
+                _currentUser.UserId,
+                input.Remark));
+
+        return FileApplicationMapper.ToStorageDetailDto(storage);
     }
 
     /// <summary>
-    /// 更新系统文件存储
+    /// 校验文件存储副本
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Update)]
-    public async Task<FileStorageDetailDto> UpdateFileStorageAsync(FileStorageUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.File.Status)]
+    public async Task<FileStorageDetailDto> VerifyFileStorageAsync(FileStorageVerifyDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         EnsureId(input.BasicId, "系统文件存储主键必须大于 0。");
-        ValidateFileStorageInput(fileId: null, input.StorageType, input.StoragePath, input.CompressionRatio, input.UploadDuration, input.RetryCount, input.SyncSourceId, status: null);
         var storage = await GetFileStorageOrThrowAsync(input.BasicId, cancellationToken);
-        if (input.IsPrimary)
+        var file = await GetFileOrThrowAsync(storage.FileId, cancellationToken);
+        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        var exists = await provider.ExistsAsync(storage.StoragePath, storage.BucketName, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+
+        storage.LastVerifiedAt = now;
+        storage.IsVerified = exists;
+        storage.Status = exists ? FileStorageStatus.Normal : FileStorageStatus.VerificationFailed;
+        storage.UploadFailureReason = exists ? null : "对象存储文件不存在。";
+        storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
+
+        if (exists)
         {
-            await ClearPrimaryStorageAsync(storage.FileId, storage.BasicId, cancellationToken);
+            var metadata = await provider.GetMetadataAsync(storage.StoragePath, storage.BucketName, cancellationToken);
+            storage.ExternalUrl = NormalizeText(metadata.Url, 1000) ?? storage.ExternalUrl;
+            file.FileSize = metadata.Size > 0 ? metadata.Size : file.FileSize;
+            if (file.Status is FileStatus.UploadFailed or FileStatus.Corrupted)
+            {
+                file.Status = FileStatus.Normal;
+            }
+        }
+        else if (storage.IsPrimary)
+        {
+            file.Status = FileStatus.Corrupted;
         }
 
-        ApplyFileStorageInput(storage, input);
-        var savedStorage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
-        return FileApplicationMapper.ToStorageDetailDto(savedStorage);
+        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
+        _ = await _fileRepository.UpdateAsync(file, cancellationToken);
+        return FileApplicationMapper.ToStorageDetailDto(storage);
     }
 
     /// <summary>
@@ -170,31 +354,64 @@ public sealed class FileAppService(
         EnsureEnum(input.Status, nameof(input.Status));
         var storage = await GetFileStorageOrThrowAsync(input.BasicId, cancellationToken);
         storage.Status = input.Status;
-        storage.UploadFailureReason = Optional(input.UploadFailureReason, 1000, nameof(input.UploadFailureReason), "上传失败原因不能超过 1000 个字符。");
+        storage.UploadFailureReason = Optional(input.UploadFailureReason, 500, nameof(input.UploadFailureReason), "上传失败原因不能超过 500 个字符。");
         storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
-        var savedStorage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
-        return FileApplicationMapper.ToStorageDetailDto(savedStorage);
+        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
+        return FileApplicationMapper.ToStorageDetailDto(storage);
     }
 
     /// <summary>
-    /// 删除系统文件存储
+    /// 删除文件
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.File.Delete)]
-    public async Task DeleteFileStorageAsync(long id, CancellationToken cancellationToken = default)
+    public async Task DeleteFileAsync(FileDeleteDto input, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var storage = await GetFileStorageOrThrowAsync(id, cancellationToken);
-        if (storage.IsPrimary && await _fileStorageRepository.AnyAsync(item => item.FileId == storage.FileId && item.BasicId != storage.BasicId, cancellationToken))
+        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
+        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
+        var storages = await _fileStorageRepository.GetByFileIdAsync(file.BasicId, cancellationToken);
+
+        if (input.DeletePhysical)
         {
-            throw new InvalidOperationException("主存储存在其他副本时不能直接删除，请先切换主存储。");
+            foreach (var storage in storages)
+            {
+                var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+                await provider.DeleteAsync(storage.StoragePath, storage.BucketName, cancellationToken);
+            }
         }
 
-        if (!await _fileStorageRepository.DeleteAsync(storage, cancellationToken))
+        file.Status = FileStatus.Deleted;
+        file.Remark = Optional(input.Reason, 500, nameof(input.Reason), "删除原因不能超过 500 个字符。") ?? file.Remark;
+        _ = await _fileRepository.UpdateAsync(file, cancellationToken);
+
+        foreach (var storage in storages)
         {
-            throw new InvalidOperationException("系统文件存储删除失败。");
+            storage.Status = FileStorageStatus.Deleted;
+            storage.Remark = file.Remark;
         }
+
+        if (storages.Count > 0)
+        {
+            _ = await _fileStorageRepository.UpdateRangeAsync(storages, cancellationToken);
+            _ = await _fileStorageRepository.DeleteAsync(storage => storage.FileId == file.BasicId, cancellationToken);
+        }
+
+        if (!await _fileRepository.DeleteAsync(file, cancellationToken))
+        {
+            throw new InvalidOperationException("系统文件删除失败。");
+        }
+
+        await _localEventBus.PublishAsync(
+            new FileDeletedDomainEvent(
+                file.TenantId,
+                file.BasicId,
+                file.FileName,
+                input.DeletePhysical,
+                _currentUser.UserId,
+                input.Reason));
     }
 
     private async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken)
@@ -211,64 +428,51 @@ public sealed class FileAppService(
             ?? throw new InvalidOperationException("系统文件存储不存在。");
     }
 
-    private Task<bool> ClearPrimaryStorageAsync(long fileId, long? excludeStorageId, CancellationToken cancellationToken)
+    private async Task PublishUploadedAsync(SysFile file, SysFileStorage storage, string? reason, CancellationToken cancellationToken)
     {
-        return excludeStorageId.HasValue
-            ? _fileStorageRepository.UpdateAsync(
-                storage => new SysFileStorage { IsPrimary = false },
-                storage => storage.FileId == fileId && storage.BasicId != excludeStorageId.Value && storage.IsPrimary,
-                cancellationToken)
-            : _fileStorageRepository.UpdateAsync(
-                storage => new SysFileStorage { IsPrimary = false },
-                storage => storage.FileId == fileId && storage.IsPrimary,
-                cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _localEventBus.PublishAsync(
+            new FileUploadedDomainEvent(
+                file.TenantId,
+                file.BasicId,
+                storage.BasicId,
+                file.FileName,
+                file.FileSize,
+                _currentUser.UserId,
+                reason));
     }
 
-    private static void ApplyFileInput(SysFile file, FileCreateDto input)
+    private static async Task<string> ComputeSha256Async(Microsoft.AspNetCore.Http.IFormFile file, CancellationToken cancellationToken)
     {
-        file.FileName = Required(input.FileName, 255, nameof(input.FileName), "文件名不能超过 255 个字符。");
-        file.OriginalName = Required(input.OriginalName, 255, nameof(input.OriginalName), "原始文件名不能超过 255 个字符。");
-        file.FileExtension = Optional(input.FileExtension, 20, nameof(input.FileExtension), "文件扩展名不能超过 20 个字符。");
-        file.FileType = input.FileType;
-        file.MimeType = Optional(input.MimeType, 100, nameof(input.MimeType), "MIME 类型不能超过 100 个字符。");
-        file.FileSize = input.FileSize;
-        file.FileHash = Optional(input.FileHash, 128, nameof(input.FileHash), "文件哈希不能超过 128 个字符。");
-        file.HashAlgorithm = Optional(input.HashAlgorithm, 20, nameof(input.HashAlgorithm), "哈希算法不能超过 20 个字符。");
-        file.Width = input.Width;
-        file.Height = input.Height;
-        file.Duration = input.Duration;
-        file.ThumbnailFileId = input.ThumbnailFileId;
-        file.UploadIp = Optional(input.UploadIp, 64, nameof(input.UploadIp), "上传 IP 不能超过 64 个字符。");
-        file.UploadSource = Optional(input.UploadSource, 50, nameof(input.UploadSource), "上传来源不能超过 50 个字符。");
+        await using var stream = file.OpenReadStream();
+        var hash = await SHA256.HashDataAsync(stream, cancellationToken);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static void ApplyFastUploadMetadata(SysFile file, FileFastUploadDto input)
+    {
+        file.OriginalName = Required(input.OriginalName, 200, nameof(input.OriginalName), "原始文件名不能超过 200 个字符。");
+        file.FileExtension = Optional(input.FileExtension, 20, nameof(input.FileExtension), "文件扩展名不能超过 20 个字符。") ?? file.FileExtension;
+        file.MimeType = Optional(input.MimeType, 100, nameof(input.MimeType), "MIME 类型不能超过 100 个字符。") ?? file.MimeType;
         file.AccessLevel = input.AccessLevel;
-        file.AccessPermissions = Optional(input.AccessPermissions, 1000, nameof(input.AccessPermissions), "访问权限不能超过 1000 个字符。");
-        file.IsEncrypted = input.IsEncrypted;
-        file.EncryptionKeyId = Optional(input.EncryptionKeyId, 100, nameof(input.EncryptionKeyId), "加密密钥主键不能超过 100 个字符。");
+        file.AccessPermissions = Optional(input.AccessPermissions, 500, nameof(input.AccessPermissions), "访问权限不能超过 500 个字符。");
         file.ExpiresAt = input.ExpiresAt;
         file.IsTemporary = input.IsTemporary;
         file.RetentionDays = input.RetentionDays;
-        file.Status = input.Status;
-        file.Tags = Optional(input.Tags, 500, nameof(input.Tags), "文件标签不能超过 500 个字符。");
-        file.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
-        file.ExtendData = OptionalJson(input.ExtendData, "文件扩展数据必须是合法 JSON。");
+        file.Tags = Optional(input.Tags, 500, nameof(input.Tags), "文件标签不能超过 500 个字符。") ?? file.Tags;
+        file.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? file.Remark;
+        file.ExtendData = OptionalJson(input.ExtendData, "文件扩展数据必须是合法 JSON。") ?? file.ExtendData;
     }
 
-    private static void ApplyFileInput(SysFile file, FileUpdateDto input)
+    private static void ApplyMutableMetadata(SysFile file, FileMetadataUpdateDto input)
     {
-        file.FileName = Required(input.FileName, 255, nameof(input.FileName), "文件名不能超过 255 个字符。");
-        file.OriginalName = Required(input.OriginalName, 255, nameof(input.OriginalName), "原始文件名不能超过 255 个字符。");
-        file.FileExtension = Optional(input.FileExtension, 20, nameof(input.FileExtension), "文件扩展名不能超过 20 个字符。");
-        file.FileType = input.FileType;
-        file.MimeType = Optional(input.MimeType, 100, nameof(input.MimeType), "MIME 类型不能超过 100 个字符。");
-        file.FileSize = input.FileSize;
-        file.FileHash = Optional(input.FileHash, 128, nameof(input.FileHash), "文件哈希不能超过 128 个字符。");
-        file.HashAlgorithm = Optional(input.HashAlgorithm, 20, nameof(input.HashAlgorithm), "哈希算法不能超过 20 个字符。");
         file.Width = input.Width;
         file.Height = input.Height;
         file.Duration = input.Duration;
         file.ThumbnailFileId = input.ThumbnailFileId;
         file.AccessLevel = input.AccessLevel;
-        file.AccessPermissions = Optional(input.AccessPermissions, 1000, nameof(input.AccessPermissions), "访问权限不能超过 1000 个字符。");
+        file.AccessPermissions = Optional(input.AccessPermissions, 500, nameof(input.AccessPermissions), "访问权限不能超过 500 个字符。");
         file.IsEncrypted = input.IsEncrypted;
         file.EncryptionKeyId = Optional(input.EncryptionKeyId, 100, nameof(input.EncryptionKeyId), "加密密钥主键不能超过 100 个字符。");
         file.ExpiresAt = input.ExpiresAt;
@@ -279,117 +483,36 @@ public sealed class FileAppService(
         file.ExtendData = OptionalJson(input.ExtendData, "文件扩展数据必须是合法 JSON。");
     }
 
-    private static void ApplyFileStorageInput(SysFileStorage storage, FileStorageCreateDto input)
+    private static void ValidateMutableMetadata(ResourceAccessLevel accessLevel, int retentionDays, int? width, int? height, int? duration, long? thumbnailFileId)
     {
-        storage.FileId = input.FileId;
-        ApplyFileStorageInputCore(storage, input.StorageType, input.StorageProvider, input.StorageConfigId, input.StorageRegion, input.BucketName, input.StoragePath, input.FullPath, input.InternalUrl, input.ExternalUrl, input.CdnUrl, input.IsPrimary, input.IsBackup, input.EnableCdn, input.IsCompressed, input.CompressionRatio, input.UploadedAt, input.UploadDuration, input.UploadFailureReason, input.RetryCount, input.LastVerifiedAt, input.IsVerified, input.IsSynced, input.SyncedAt, input.SyncSourceId, input.AccessControl, input.StorageClass, input.CacheControl, input.SortOrder, input.Remark, input.ExtendData);
-        storage.Status = input.Status;
-    }
-
-    private static void ApplyFileStorageInput(SysFileStorage storage, FileStorageUpdateDto input)
-    {
-        ApplyFileStorageInputCore(storage, input.StorageType, input.StorageProvider, input.StorageConfigId, input.StorageRegion, input.BucketName, input.StoragePath, input.FullPath, input.InternalUrl, input.ExternalUrl, input.CdnUrl, input.IsPrimary, input.IsBackup, input.EnableCdn, input.IsCompressed, input.CompressionRatio, input.UploadedAt, input.UploadDuration, input.UploadFailureReason, input.RetryCount, input.LastVerifiedAt, input.IsVerified, input.IsSynced, input.SyncedAt, input.SyncSourceId, input.AccessControl, input.StorageClass, input.CacheControl, input.SortOrder, input.Remark, input.ExtendData);
-    }
-
-    private static void ApplyFileStorageInputCore(
-        SysFileStorage storage,
-        FileStorageType storageType,
-        string? storageProvider,
-        long? storageConfigId,
-        string? storageRegion,
-        string? bucketName,
-        string storagePath,
-        string? fullPath,
-        string? internalUrl,
-        string? externalUrl,
-        string? cdnUrl,
-        bool isPrimary,
-        bool isBackup,
-        bool enableCdn,
-        bool isCompressed,
-        decimal? compressionRatio,
-        DateTimeOffset? uploadedAt,
-        long? uploadDuration,
-        string? uploadFailureReason,
-        int retryCount,
-        DateTimeOffset? lastVerifiedAt,
-        bool isVerified,
-        bool isSynced,
-        DateTimeOffset? syncedAt,
-        long? syncSourceId,
-        string? accessControl,
-        string? storageClass,
-        string? cacheControl,
-        int sortOrder,
-        string? remark,
-        string? extendData)
-    {
-        storage.StorageType = storageType;
-        storage.StorageProvider = Optional(storageProvider, 100, nameof(storageProvider), "存储服务商不能超过 100 个字符。");
-        storage.StorageConfigId = storageConfigId;
-        storage.StorageRegion = Optional(storageRegion, 100, nameof(storageRegion), "存储区域不能超过 100 个字符。");
-        storage.BucketName = Optional(bucketName, 200, nameof(bucketName), "存储桶不能超过 200 个字符。");
-        storage.StoragePath = Required(storagePath, 1000, nameof(storagePath), "存储路径不能超过 1000 个字符。");
-        storage.FullPath = Optional(fullPath, 2000, nameof(fullPath), "完整路径不能超过 2000 个字符。");
-        storage.InternalUrl = Optional(internalUrl, 2000, nameof(internalUrl), "内部地址不能超过 2000 个字符。");
-        storage.ExternalUrl = Optional(externalUrl, 2000, nameof(externalUrl), "外部地址不能超过 2000 个字符。");
-        storage.CdnUrl = Optional(cdnUrl, 2000, nameof(cdnUrl), "CDN 地址不能超过 2000 个字符。");
-        storage.IsPrimary = isPrimary;
-        storage.IsBackup = isBackup;
-        storage.EnableCdn = enableCdn;
-        storage.IsCompressed = isCompressed;
-        storage.CompressionRatio = compressionRatio;
-        storage.UploadedAt = uploadedAt;
-        storage.UploadDuration = uploadDuration;
-        storage.UploadFailureReason = Optional(uploadFailureReason, 1000, nameof(uploadFailureReason), "上传失败原因不能超过 1000 个字符。");
-        storage.RetryCount = retryCount;
-        storage.LastVerifiedAt = lastVerifiedAt;
-        storage.IsVerified = isVerified;
-        storage.IsSynced = isSynced;
-        storage.SyncedAt = syncedAt;
-        storage.SyncSourceId = syncSourceId;
-        storage.AccessControl = Optional(accessControl, 100, nameof(accessControl), "访问控制不能超过 100 个字符。");
-        storage.StorageClass = Optional(storageClass, 100, nameof(storageClass), "存储类型不能超过 100 个字符。");
-        storage.CacheControl = Optional(cacheControl, 200, nameof(cacheControl), "缓存控制不能超过 200 个字符。");
-        storage.SortOrder = sortOrder;
-        storage.Remark = Optional(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-        storage.ExtendData = OptionalJson(extendData, "文件存储扩展数据必须是合法 JSON。");
-    }
-
-    private static void ValidateFileInput(FileType fileType, long fileSize, int? width, int? height, int? duration, long? thumbnailFileId, ResourceAccessLevel accessLevel, int retentionDays, FileStatus? status)
-    {
-        EnsureEnum(fileType, nameof(fileType));
         EnsureEnum(accessLevel, nameof(accessLevel));
-        if (status.HasValue)
-        {
-            EnsureEnum(status.Value, nameof(status));
-        }
-
-        EnsureNonNegative(fileSize, nameof(fileSize), "文件大小不能小于 0。");
+        EnsureNonNegative(retentionDays, nameof(retentionDays), "保留天数不能小于 0。");
         EnsureOptionalNonNegative(width, nameof(width), "图片宽度不能小于 0。");
         EnsureOptionalNonNegative(height, nameof(height), "图片高度不能小于 0。");
         EnsureOptionalNonNegative(duration, nameof(duration), "媒体时长不能小于 0。");
         EnsureOptionalId(thumbnailFileId, nameof(thumbnailFileId), "缩略图文件主键必须大于 0。");
-        EnsureNonNegative(retentionDays, nameof(retentionDays), "保留天数不能小于 0。");
     }
 
-    private static void ValidateFileStorageInput(long? fileId, FileStorageType storageType, string storagePath, decimal? compressionRatio, long? uploadDuration, int retryCount, long? syncSourceId, FileStorageStatus? status)
+    private static string? ResolveUploadSource(ClientInfo clientInfo)
     {
-        EnsureOptionalId(fileId, nameof(fileId), "系统文件主键必须大于 0。");
-        EnsureEnum(storageType, nameof(storageType));
-        if (status.HasValue)
+        var parts = new[]
         {
-            EnsureEnum(status.Value, nameof(status));
+            NormalizeText(clientInfo.DeviceName, 20),
+            NormalizeText(clientInfo.OperatingSystem, 20),
+            NormalizeText(clientInfo.Browser, 20)
+        }.Where(part => !string.IsNullOrWhiteSpace(part));
+
+        return NormalizeText(string.Join("/", parts), 50);
+    }
+
+    private static string? NormalizeText(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
         }
 
-        _ = Required(storagePath, 1000, nameof(storagePath), "存储路径不能超过 1000 个字符。");
-        if (compressionRatio is < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(compressionRatio), "压缩率不能小于 0。");
-        }
-
-        EnsureOptionalNonNegative(uploadDuration, nameof(uploadDuration), "上传耗时不能小于 0。");
-        EnsureNonNegative(retryCount, nameof(retryCount), "重试次数不能小于 0。");
-        EnsureOptionalId(syncSourceId, nameof(syncSourceId), "同步来源主键必须大于 0。");
+        var trimmed = value.Trim();
+        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
     }
 }

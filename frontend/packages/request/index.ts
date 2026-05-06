@@ -65,9 +65,6 @@ export class RequestClient {
     this.apiPrefix = config?.apiPrefix ?? '/api'
     this.instance = axios.create({
       timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
       ...config,
     })
 
@@ -95,6 +92,26 @@ export class RequestClient {
     return String(method ?? 'GET').toUpperCase()
   }
 
+  private isFormData(input: unknown): input is FormData {
+    return typeof FormData !== 'undefined' && input instanceof FormData
+  }
+
+  private removeContentTypeHeader(headers: unknown) {
+    const rawHeaders = headers as any
+    if (!rawHeaders) {
+      return
+    }
+
+    if (typeof rawHeaders.delete === 'function') {
+      rawHeaders.delete('Content-Type')
+      rawHeaders.delete('content-type')
+      return
+    }
+
+    delete rawHeaders['Content-Type']
+    delete rawHeaders['content-type']
+  }
+
   private tryExtractMeta(config: unknown): RequestMeta | null {
     const raw = asRecord(config)?._meta as RequestMeta | undefined
     return raw ?? null
@@ -103,6 +120,10 @@ export class RequestClient {
   private setupInterceptors() {
     this.instance.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
+        if (this.isFormData(config.data)) {
+          this.removeContentTypeHeader(config.headers)
+        }
+
         const token = LocalStorage.get<string>(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
