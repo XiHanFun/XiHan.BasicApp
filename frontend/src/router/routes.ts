@@ -35,7 +35,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
-        path: '/profile',
+        path: '/workbench/profile',
         name: 'Profile',
         component: ProfilePage,
         meta: {

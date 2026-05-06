@@ -240,7 +240,7 @@ async function handleUserAction(key: string) {
     return
   }
   if (key === 'profile') {
-    router.push('/profile')
+    router.push('/workbench/profile')
     return
   }
   if (key === 'lock') {
