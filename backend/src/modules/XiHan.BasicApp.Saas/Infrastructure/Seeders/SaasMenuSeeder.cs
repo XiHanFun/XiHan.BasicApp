@@ -239,7 +239,7 @@ public sealed class SaasMenuSeeder(
                 "WorkbenchDashboard",
                 "workbench/dashboard/index",
                 "workbench",
-                null,
+                SaasPermissionCodes.UserStatistics.Read,
                 "lucide:gauge",
                 "仪表盘",
                 11,

@@ -38,6 +38,7 @@ const {
   baseMenuSource,
   toLayoutMeta,
   resolveFullPath,
+  resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
 } = useLayoutMenuDomain()
@@ -123,15 +124,6 @@ const topMenuOptions = computed<MenuOption[]>(() => {
 const topLevelKeys = computed(() => new Set(
   topMenuOptions.value.map((opt: MenuOption) => opt.key).filter(Boolean),
 ))
-
-function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
-  const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const firstVisibleChild = routeItem.children?.find(child => !toLayoutMeta(child).hidden)
-  if (!firstVisibleChild) {
-    return fullPath
-  }
-  return resolveFirstVisiblePath(firstVisibleChild, fullPath)
-}
 
 const topMenuActive = computed(() => {
   if (!isSplitMode.value) {
@@ -280,7 +272,7 @@ function handleTopMenuSelect(path: string) {
   if (!rootMenu) {
     return
   }
-  const targetPath = resolveFirstVisiblePath(rootMenu)
+  const targetPath = resolveFirstNavigablePath(rootMenu)
   if (targetPath && targetPath !== route.path) {
     router.push(targetPath)
   }

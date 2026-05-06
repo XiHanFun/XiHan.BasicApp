@@ -90,15 +90,15 @@ function resolveView(component?: string) {
   return null
 }
 
-function findFirstChildPath(children?: RouteRecordRaw[]): string | undefined {
+function findFirstNavigablePath(children?: RouteRecordRaw[]): string | undefined {
   for (const child of children ?? []) {
-    if (child.path) {
-      return child.path
-    }
-
-    const descendant = findFirstChildPath(child.children)
+    const descendant = findFirstNavigablePath(child.children)
     if (descendant) {
       return descendant
+    }
+
+    if (child.path) {
+      return child.path
     }
   }
 
@@ -127,7 +127,7 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
       }
 
       if (route.children?.length) {
-        const firstChildPath = findFirstChildPath(route.children)
+        const firstChildPath = findFirstNavigablePath(route.children)
         const redirect = item.redirect && item.redirect !== item.path
           && hasChildPath(route.children, item.redirect)
           ? item.redirect
