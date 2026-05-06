@@ -22,13 +22,17 @@ export const useAccessStore = defineStore('access', () => {
         continue
       }
 
-      if (route.path) {
-        return route.path
+      if (route.redirect && route.redirect !== route.path) {
+        return route.redirect
       }
 
       const childPath = resolveFirstVisiblePath(route.children ?? [])
       if (childPath) {
         return childPath
+      }
+
+      if (route.path) {
+        return route.path
       }
     }
     return ''
