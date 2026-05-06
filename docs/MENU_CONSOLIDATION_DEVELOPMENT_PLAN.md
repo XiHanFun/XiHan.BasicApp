@@ -474,6 +474,8 @@ frontend/src/views/
 
 重建系统不提供历史路径重定向表。运行时只注册本文目标路径；子实体能力通过主页面内嵌功能重新提供。
 
+动态路由根据后端实际下发的可见子菜单修正目录重定向：当种子里的 `Redirect` 指向已被权限过滤掉的子菜单时，前端自动落到该目录下第一个可导航页面；首页 `homePath` 也使用同一原则，避免进入只有目录壳、没有页面组件的路径。
+
 ### 9.3 API facade
 
 建议新增页面级 facade，避免页面直接散落调用多个子实体 API：
@@ -623,6 +625,7 @@ rg -n "system/user-role|system/role-permission|system/tenant-member|system/diff-
 - `/platform/app`、`/platform/tenant`、`/platform/menu`、`/platform/config`、`/platform/dict`、`/platform/file`、`/platform/job`、`/platform/approval`、`/platform/server`、`/platform/cache` 可访问。
 - `/log/login`、`/log/access`、`/log/operation`、`/log/api`、`/log/exception` 可访问。
 - 子实体路径不注册为前端独立路由。
+- 缺少某目录默认子菜单权限时，目录重定向会落到第一个可见子页面，而不是 404。
 
 权限回归：
 

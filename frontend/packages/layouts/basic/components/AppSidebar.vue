@@ -91,6 +91,7 @@ const {
   activeRootRoute,
   toLayoutMeta,
   resolveFullPath,
+  resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
 } = useLayoutMenuDomain()
@@ -341,17 +342,8 @@ function handleMenuUpdate(key: string) {
     router.push({ name: key })
 }
 
-function resolveFirstVisiblePath(target: LayoutRouteRecord, parentPath = ''): string {
-  const currentPath = resolveFullPath(target.path, parentPath)
-  const visibleChildren = target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
-  const firstVisibleChild = visibleChildren[0]
-  if (!firstVisibleChild)
-    return currentPath
-  return resolveFirstVisiblePath(firstVisibleChild, currentPath)
-}
-
 function jumpToFirstVisibleChild(target: LayoutRouteRecord, parentPath = '') {
-  const targetPath = resolveFirstVisiblePath(target, parentPath)
+  const targetPath = resolveFirstNavigablePath(target, parentPath)
   if (targetPath && targetPath !== route.path)
     router.push(targetPath)
 }

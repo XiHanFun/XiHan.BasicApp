@@ -12,6 +12,16 @@ export const useAccessStore = defineStore('access', () => {
   const isRoutesLoaded = ref(false)
   const loginExpired = ref(false)
 
+  function hasVisiblePath(routes: MenuRoute[], path: string): boolean {
+    return routes.some((route) => {
+      if (route.meta?.hidden) {
+        return hasVisiblePath(route.children ?? [], path)
+      }
+
+      return route.path === path || hasVisiblePath(route.children ?? [], path)
+    })
+  }
+
   function resolveFirstVisiblePath(routes: MenuRoute[]): string {
     for (const route of routes) {
       if (route.meta?.hidden) {
@@ -22,7 +32,11 @@ export const useAccessStore = defineStore('access', () => {
         continue
       }
 
-      if (route.redirect && route.redirect !== route.path) {
+      if (
+        route.redirect
+        && route.redirect !== route.path
+        && hasVisiblePath(route.children ?? [], route.redirect)
+      ) {
         return route.redirect
       }
 

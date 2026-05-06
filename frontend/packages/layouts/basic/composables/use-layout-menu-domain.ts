@@ -79,6 +79,43 @@ function routeTreeContainsMatched(
   )
 }
 
+function routeListContainsVisiblePath(
+  routes: LayoutRouteRecord[] | undefined,
+  targetPath: string,
+  parentPath = '',
+): boolean {
+  return (routes ?? []).some((item) => {
+    const meta = toLayoutMeta(item)
+    const fullPath = resolveFullPath(item.path, parentPath)
+    if (!meta.hidden && fullPath === targetPath) {
+      return true
+    }
+
+    return routeListContainsVisiblePath(item.children, targetPath, fullPath)
+  })
+}
+
+function resolveFirstNavigablePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
+  const fullPath = resolveFullPath(routeItem.path, parentPath)
+  const visibleChildren = routeItem.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
+  const redirect = typeof routeItem.redirect === 'string' ? routeItem.redirect : ''
+
+  if (
+    redirect
+    && redirect !== fullPath
+    && routeListContainsVisiblePath(visibleChildren, redirect, fullPath)
+  ) {
+    return redirect
+  }
+
+  const firstVisibleChild = visibleChildren[0]
+  if (!firstVisibleChild) {
+    return fullPath
+  }
+
+  return resolveFirstNavigablePath(firstVisibleChild, fullPath)
+}
+
 function buildMenuOptionsFromRoutes(
   routeList: LayoutRouteRecord[],
   config: BuildMenuOptionsConfig,
@@ -217,5 +254,6 @@ export function useLayoutMenuDomain() {
     buildMenuOptionsFromRoutes,
     findMatchedRouteNameKey,
     findMatchedRoutePath,
+    resolveFirstNavigablePath,
   }
 }
