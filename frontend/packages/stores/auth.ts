@@ -56,7 +56,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     for (const route of mapMenuToRoutes(permissionInfo.menus)) {
       const routeName = route.name ? String(route.name) : ''
-      if (routeName && !router.hasRoute(routeName)) {
+      const routePathExists = router.getRoutes().some(item => item.path === route.path)
+      if (!routePathExists && routeName && !router.hasRoute(routeName)) {
         router.addRoute('RootLayout', route)
       }
     }

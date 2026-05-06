@@ -632,7 +632,7 @@ public sealed partial class ProfileAppService(
             NotificationType.User,
             VerificationCodeBusinessType,
             user.BasicId,
-            link: "/profile",
+            link: "/workbench/profile",
             icon: "lucide:shield-check",
             cancellationToken: cancellationToken);
 

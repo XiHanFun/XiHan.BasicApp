@@ -10,8 +10,6 @@ const componentAliasMap: Record<string, string> = {
   '_core/dashboard/index': '_core/dashboard/index',
   '_core/about/index': '_core/about/index',
   '_core/profile/index': '_core/profile/index',
-  'approvalflow/index': 'approvalFlow/index',
-  'approval-flow/index': 'approvalFlow/index',
 }
 
 // packages 自身的 _core 视图映射（使用 ~/ 引用，无需从 src 注入）
@@ -92,6 +90,27 @@ function resolveView(component?: string) {
   return null
 }
 
+function findFirstChildPath(children?: RouteRecordRaw[]): string | undefined {
+  for (const child of children ?? []) {
+    if (child.path) {
+      return child.path
+    }
+
+    const descendant = findFirstChildPath(child.children)
+    if (descendant) {
+      return descendant
+    }
+  }
+
+  return undefined
+}
+
+function hasChildPath(children: RouteRecordRaw[] | undefined, path: string): boolean {
+  return (children ?? []).some(child =>
+    child.path === path || hasChildPath(child.children, path),
+  )
+}
+
 export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
   return menuRoutes
     .filter(item => !!item.path)
@@ -107,12 +126,18 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
         route.children = mapMenuToRoutes(item.children)
       }
 
-      // 防御：redirect 指向自身会导致无限循环，自动改为第一个子路由
-      if (item.redirect && item.redirect !== item.path) {
-        route.redirect = item.redirect
+      if (route.children?.length) {
+        const firstChildPath = findFirstChildPath(route.children)
+        const redirect = item.redirect && item.redirect !== item.path
+          && hasChildPath(route.children, item.redirect)
+          ? item.redirect
+          : firstChildPath
+        if (redirect && redirect !== item.path) {
+          route.redirect = redirect
+        }
       }
-      else if (item.redirect && item.redirect === item.path && route.children?.length) {
-        route.redirect = route.children[0]!.path
+      else if (item.redirect && item.redirect !== item.path) {
+        route.redirect = item.redirect
       }
 
       if (component) {

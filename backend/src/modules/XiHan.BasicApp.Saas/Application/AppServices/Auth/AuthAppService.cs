@@ -873,7 +873,7 @@ public sealed class AuthAppService(
                 notificationType,
                 businessType,
                 businessId,
-                link: "/profile",
+                link: "/workbench/profile",
                 icon: icon,
                 cancellationToken: cancellationToken);
         }

@@ -2,7 +2,7 @@
 
 > 版本：v2.0  
 > 日期：2026-05-07  
-> 状态：待实施  
+> 状态：实施中，菜单种子与前端目录第一阶段已落地  
 > 事实源：`E:\Repository\XiHanFun\开发设计\目录.md`  
 > 适用范围：`XiHan.BasicApp/backend/src/modules/XiHan.BasicApp.Saas`、`XiHan.BasicApp/frontend/src`
 
@@ -17,7 +17,6 @@
 系统管理
 平台管理
 日志管理
-开发工具
 ```
 
 目标：
@@ -27,7 +26,7 @@
 - 后端继续使用 DynamicApi，不新增 Controller。
 - 前端主要改 `frontend/src`，不改或少改 `frontend/packages`。
 - 菜单权限、按钮权限、数据范围和审计保持后端可信，不依赖前端隐藏。
-- 旧路径提供重定向或下线说明，避免用户收藏和动态路由缓存直接失效。
+- 重建系统只注册目标目录路径，不提供历史路径兼容层。
 
 非目标：
 
@@ -42,9 +41,9 @@
 - `Domain/Entities` 下有 56 个 `Sys*.cs` 根实体。
 - `SysMenu` 支持 `MenuType`、`PermissionId`、`Path`、`Component`、`RouteName`、`IsVisible`、`Metadata`，可表达目录、页面菜单和按钮权限。
 - `SysPermission` 支持 `PermissionType`、`ModuleCode`、`PermissionCode`、`ResourceId?`、`OperationId?`、`Priority`、`IsRequireAudit`，可承载菜单、按钮、功能、资源和数据范围权限。
-- `SaasMenuSeeder.BuildDefinitions()` 当前仍有大量按实体铺开的独立菜单，例如 `system.user-role`、`system.role-permission`、`system.tenant-member`、`system.diff-log`。
-- `AuthAppService.BuildMenuRoutesAsync()` 当前会先过滤 `menu.IsVisible` 再构建路由。如果要保留隐藏旧路由，必须调整该逻辑；否则旧路径只能走前端静态重定向。
-- 前端 `frontend/src/views/system` 已有一批旧页面，可以迁移为主页面内组件，也可以先用重定向过渡。
+- `SaasMenuSeeder.BuildDefinitions()` 应只声明目标目录菜单，不承载历史菜单迁移、删除或兼容逻辑。
+- `AuthAppService.BuildMenuRoutesAsync()` 当前会先过滤 `menu.IsVisible` 再构建路由；重建后只下发目标路径。
+- 前端视图目录应按 `workbench/system/platform/log` 重建，子实体独立视图不保留为路由页面。
 - 任务调度和审批流程已有后端实体与服务，但当前前端菜单和页面需要补齐或迁移。
 - 开发工具不由 SaaS 实体支撑，应由 `XiHan.BasicApp.CodeGeneration` 模块接入，不应由 SaaS 菜单种子强行生成。
 
@@ -52,14 +51,14 @@
 
 | ID | 标题 | 范围 | 完成标准 | 依赖 |
 |----|------|------|----------|------|
-| REQ-001 | 固化目标目录树 | `SaasMenuSeeder`、动态路由、`目录.md` | 菜单顶层为工作台、系统管理、平台管理、日志管理、开发工具 | 无 |
-| REQ-002 | 收敛工作台入口 | 工作台、个人中心、站内信 | `/workbench` 下有仪表盘、站内信、个人中心；`/profile` 重定向到 `/workbench/profile` | REQ-001 |
+| REQ-001 | 固化目标目录树 | `SaasMenuSeeder`、动态路由、`目录.md` | SaaS 菜单顶层为工作台、系统管理、平台管理、日志管理；开发工具由 CodeGeneration 独立接入 | 无 |
+| REQ-002 | 收敛工作台入口 | 工作台、个人中心、站内信 | `/workbench` 下有仪表盘、站内信、个人中心；个人中心路径为 `/workbench/profile` | REQ-001 |
 | REQ-003 | 收敛系统管理 | 用户、角色、机构、权限、消息 | 账号、角色、机构、权限中心、消息中心成为系统管理可见菜单，相关子实体均内嵌 | REQ-001 |
 | REQ-004 | 收敛平台管理 | 租户、菜单、配置、字典、文件、任务、审批、OAuth、监控、缓存 | 平台管理承载平台级能力，租户版本、任务日志、审批记录、OAuth 令牌等不独立成菜单 | REQ-001 |
 | REQ-005 | 收敛日志管理 | 登录、访问、操作、API、异常、差异、权限变更日志 | 日志管理保留五个主日志入口；差异日志和权限变更日志进入操作日志详情 | REQ-001 |
-| REQ-006 | 隔离开发工具 | `XiHan.BasicApp.CodeGeneration` | 开发工具作为接入位，不由 SaaS 实体菜单种子生成无支撑页面 | REQ-001 |
+| REQ-006 | 隔离开发工具 | `XiHan.BasicApp.CodeGeneration` | 开发工具不进入 SaaS 菜单种子；由 CodeGeneration 独立提供 `/develop/*` | REQ-001 |
 | REQ-007 | 对齐权限与审计 | `SaasPermissionCodes`、按钮菜单、AppService | 页面内按钮绑定权限码；授权、数据范围、FLS、跨租户、导出、强制下线等操作写审计 | REQ-002 至 REQ-005 |
-| REQ-008 | 提供迁移和回滚 | 旧路径、缓存、种子、前端路由 | 旧路径有重定向表；菜单缓存和授权快照失效策略明确；可回滚到旧菜单种子 | REQ-001 至 REQ-007 |
+| REQ-008 | 验证目标入口 | 目标路径、视图目录、缓存、种子 | 只注册目标路径；菜单缓存和授权快照失效策略明确；回滚依赖 git diff | REQ-001 至 REQ-007 |
 | REQ-009 | 完成验证门禁 | 后端构建、前端类型检查、权限回归 | 构建、类型检查、菜单、权限、租户隔离回归通过 | REQ-001 至 REQ-008 |
 
 ## 4. 目标目录树
@@ -78,48 +77,44 @@
 │   │   └── 内嵌：租户、部门、角色、权限、数据范围、安全、会话、第三方绑定、密码历史
 │   ├── 角色管理 /system/role -> system/role/index
 │   │   └── 内嵌：角色层级、角色权限、角色数据范围、会话角色
-│   ├── 机构管理 /system/org -> system/department/index
+│   ├── 机构管理 /system/org -> system/org/index
 │   │   └── 内嵌：机构层级
 │   ├── 权限中心 /system/permission -> system/permission/index
 │   │   └── 内嵌：资源、操作、ABAC 条件、委托、申请、变更历史、字段级安全
 │   └── 消息中心 /system/message -> system/message/index
 │       └── 内嵌：通知公告、邮件记录、短信记录、用户通知状态
 ├── 平台管理 /platform
-│   ├── 应用管理 /platform/app -> system/oauth-app/index
+│   ├── 应用管理 /platform/app -> platform/app/index
 │   │   └── 内嵌：OAuth 授权码、OAuth 令牌
-│   ├── 租户管理 /platform/tenant -> system/tenant/index
+│   ├── 租户管理 /platform/tenant -> platform/tenant/index
 │   │   └── 内嵌：租户成员、租户版本、版本权限
-│   ├── 菜单管理 /platform/menu -> system/menu/index
+│   ├── 菜单管理 /platform/menu -> platform/menu/index
 │   │   └── 内嵌：按钮菜单、权限绑定
-│   ├── 参数配置 /platform/config -> system/config/index
+│   ├── 参数配置 /platform/config -> platform/config/index
 │   │   └── 内嵌：约束规则、规则项、系统版本、迁移历史
-│   ├── 字典管理 /platform/dict -> system/dict/index
+│   ├── 字典管理 /platform/dict -> platform/dict/index
 │   │   └── 内嵌：字典项
-│   ├── 文件管理 /platform/file -> system/file/index
+│   ├── 文件管理 /platform/file -> platform/file/index
 │   │   └── 内嵌：文件存储配置
-│   ├── 任务调度 /platform/job -> system/job/index
+│   ├── 任务调度 /platform/job -> platform/job/index
 │   │   └── 内嵌：任务执行日志
-│   ├── 审批流程 /platform/approval -> approvalFlow/index
+│   ├── 审批流程 /platform/approval -> platform/approval/index
 │   │   └── 内嵌：审批记录
-│   ├── 系统监控 /platform/server -> system/server/index
-│   └── 缓存管理 /platform/cache -> system/cache/index
+│   ├── 系统监控 /platform/server -> platform/server/index
+│   └── 缓存管理 /platform/cache -> platform/cache/index
 ├── 日志管理 /log
-│   ├── 登录日志 /log/login -> system/login-log/index
-│   ├── 访问日志 /log/access -> system/access-log/index
-│   ├── 操作日志 /log/operation -> system/operation-log/index
+│   ├── 登录日志 /log/login -> log/login/index
+│   ├── 访问日志 /log/access -> log/access/index
+│   ├── 操作日志 /log/operation -> log/operation/index
 │   │   └── 内嵌：差异日志、权限变更日志
-│   ├── API 日志 /log/api -> system/api-log/index
-│   └── 异常日志 /log/exception -> system/exception-log/index
-└── 开发工具 /develop
-    ├── 库表管理 /develop/database -> system/database/index
-    ├── 代码生成 /develop/codeGen -> system/codeGen/index
-    └── 表单设计 /develop/formDes -> system/formDes/index
+│   ├── API 日志 /log/api -> log/api/index
+│   └── 异常日志 /log/exception -> log/exception/index
 ```
 
 设计说明：
 
-- `个人中心` 归入工作台，路径为 `/workbench/profile`，旧 `/profile` 做重定向。
-- `开发工具` 只作为 CodeGeneration 模块接入位，SaaS 菜单种子不创建无后端支撑的菜单。
+- `个人中心` 归入工作台，路径为 `/workbench/profile`。
+- `开发工具` 不属于 SaaS 菜单种子；如启用，由 `XiHan.BasicApp.CodeGeneration` 模块独立提供 `/develop/*`。
 - `日志管理` 保留多个主日志入口，而不是单一日志中心，这是当前产品目录的最终取舍。
 - `消息中心` 放入系统管理，聚合通知、邮件、短信；个人消息仍在工作台站内信展示。
 
@@ -132,24 +127,24 @@
 | 工作台 | 个人中心 | `ProfileAppService` | `/workbench/profile` | `_core/profile/index` | 当前登录用户 |
 | 系统管理 | 账号管理 | `SysUser` | `/system/user` | `system/user/index` | `saas:user:read` |
 | 系统管理 | 角色管理 | `SysRole` | `/system/role` | `system/role/index` | `saas:role:read` |
-| 系统管理 | 机构管理 | `SysDepartment` | `/system/org` | `system/department/index` | `saas:department:read` |
+| 系统管理 | 机构管理 | `SysDepartment` | `/system/org` | `system/org/index` | `saas:department:read` |
 | 系统管理 | 权限中心 | `SysPermission` | `/system/permission` | `system/permission/index` | `saas:permission:read` |
 | 系统管理 | 消息中心 | `SysNotification`、`SysEmail`、`SysSms` | `/system/message` | `system/message/index` | `saas:message:read` |
-| 平台管理 | 应用管理 | `SysOAuthApp` | `/platform/app` | `system/oauth-app/index` | `saas:oauth-app:read` |
-| 平台管理 | 租户管理 | `SysTenant` | `/platform/tenant` | `system/tenant/index` | `saas:tenant:read` |
-| 平台管理 | 菜单管理 | `SysMenu` | `/platform/menu` | `system/menu/index` | `saas:menu:read` |
-| 平台管理 | 参数配置 | `SysConfig` | `/platform/config` | `system/config/index` | `saas:config:read` |
-| 平台管理 | 字典管理 | `SysDict` | `/platform/dict` | `system/dict/index` | `saas:dict:read` |
-| 平台管理 | 文件管理 | `SysFile` | `/platform/file` | `system/file/index` | `saas:file:read` |
-| 平台管理 | 任务调度 | `SysTask` | `/platform/job` | `system/job/index` | `saas:task:read` |
-| 平台管理 | 审批流程 | `SysReview` | `/platform/approval` | `approvalFlow/index` | `saas:review:read` |
-| 平台管理 | 系统监控 | `ServerAppService` | `/platform/server` | `system/server/index` | `saas:config:read` 或运维权限 |
-| 平台管理 | 缓存管理 | `CacheAppService` | `/platform/cache` | `system/cache/index` | `saas:config:read` 或运维权限 |
-| 日志管理 | 登录日志 | `SysLoginLog` | `/log/login` | `system/login-log/index` | `saas:login-log:read` |
-| 日志管理 | 访问日志 | `SysAccessLog` | `/log/access` | `system/access-log/index` | `saas:access-log:read` |
-| 日志管理 | 操作日志 | `SysOperationLog` | `/log/operation` | `system/operation-log/index` | `saas:operation-log:read` |
-| 日志管理 | API 日志 | `SysApiLog` | `/log/api` | `system/api-log/index` | `saas:api-log:read` |
-| 日志管理 | 异常日志 | `SysExceptionLog` | `/log/exception` | `system/exception-log/index` | `saas:exception-log:read` |
+| 平台管理 | 应用管理 | `SysOAuthApp` | `/platform/app` | `platform/app/index` | `saas:oauth-app:read` |
+| 平台管理 | 租户管理 | `SysTenant` | `/platform/tenant` | `platform/tenant/index` | `saas:tenant:read` |
+| 平台管理 | 菜单管理 | `SysMenu` | `/platform/menu` | `platform/menu/index` | `saas:menu:read` |
+| 平台管理 | 参数配置 | `SysConfig` | `/platform/config` | `platform/config/index` | `saas:config:read` |
+| 平台管理 | 字典管理 | `SysDict` | `/platform/dict` | `platform/dict/index` | `saas:dict:read` |
+| 平台管理 | 文件管理 | `SysFile` | `/platform/file` | `platform/file/index` | `saas:file:read` |
+| 平台管理 | 任务调度 | `SysTask` | `/platform/job` | `platform/job/index` | `saas:task:read` |
+| 平台管理 | 审批流程 | `SysReview` | `/platform/approval` | `platform/approval/index` | `saas:review:read` |
+| 平台管理 | 系统监控 | `ServerAppService` | `/platform/server` | `platform/server/index` | `saas:config:read` 或运维权限 |
+| 平台管理 | 缓存管理 | `CacheAppService` | `/platform/cache` | `platform/cache/index` | `saas:config:read` 或运维权限 |
+| 日志管理 | 登录日志 | `SysLoginLog` | `/log/login` | `log/login/index` | `saas:login-log:read` |
+| 日志管理 | 访问日志 | `SysAccessLog` | `/log/access` | `log/access/index` | `saas:access-log:read` |
+| 日志管理 | 操作日志 | `SysOperationLog` | `/log/operation` | `log/operation/index` | `saas:operation-log:read` |
+| 日志管理 | API 日志 | `SysApiLog` | `/log/api` | `log/api/index` | `saas:api-log:read` |
+| 日志管理 | 异常日志 | `SysExceptionLog` | `/log/exception` | `log/exception/index` | `saas:exception-log:read` |
 
 ## 6. 实体归属矩阵
 
@@ -237,7 +232,7 @@
 个人中心：
 
 - 路径为 `/workbench/profile`。
-- 旧路径 `/profile` 重定向到 `/workbench/profile`。
+- 只注册 `/workbench/profile` 路由。
 - 支持个人资料、密码修改、第三方绑定、个人通知设置。
 
 ### 7.3 系统管理
@@ -342,13 +337,13 @@
 
 修改 `Infrastructure/Seeders/SaasMenuSeeder.cs`：
 
-- 顶层目录使用 `workbench`、`system`、`platform`、`log`、`develop`。
+- 顶层目录使用 `workbench`、`system`、`platform`、`log`。
 - 可见菜单按本文“主菜单清单”生成。
-- 子实体旧菜单不再作为可见菜单下发。
+- 子实体不生成独立可见菜单。
 - 页面内按钮使用 `MenuType.Button` 并绑定 `SaasPermissionCodes`。
 - `develop` 目录如果由 CodeGeneration 模块接入，SaaS Seeder 不应生成无组件或无服务支撑的菜单。
 
-需要下线或隐藏的旧菜单：
+以下子实体编码只作为页面内能力归属参考，不进入 `SaasMenuSeeder.BuildDefinitions()`：
 
 ```text
 system.user-session
@@ -374,12 +369,7 @@ system.permission-change-log
 .Where(menu => menu.IsVisible)
 ```
 
-因此有两种实现策略：
-
-- 策略 A：旧路由由前端静态 redirect 处理，后端菜单种子不下发隐藏旧路由。
-- 策略 B：调整 `BuildMenuRoutesAsync()`，让隐藏菜单仍能作为路由下发，前端菜单渲染按 `meta.hidden` 隐藏。
-
-推荐先采用策略 A，变更小、风险低。等菜单稳定后，再决定是否支持隐藏动态路由。
+因此重建后只下发可见的目标菜单路由；不通过隐藏菜单、静态路由或前端兼容表承载历史入口。
 
 ### 8.3 聚合查询服务
 
@@ -447,9 +437,7 @@ saas:review:update
 
 ### 9.1 路由和视图目录
 
-短期建议复用现有 `frontend/src/views/system/*` 组件，先完成菜单和重定向；中期再重组目录。
-
-建议最终目录：
+重建后前端视图目录直接按菜单分区组织，动态路由目标只指向目标组件路径：
 
 ```text
 frontend/src/views/
@@ -480,47 +468,11 @@ frontend/src/views/
 │   ├── operation/
 │   ├── api/
 │   └── exception/
-└── develop/
 ```
 
-为了降低风险，第一阶段组件仍可指向旧路径，例如 `/platform/tenant -> system/tenant/index`。
+### 9.2 目标入口策略
 
-### 9.2 旧路径重定向
-
-| 旧路径 | 新路径 |
-|--------|--------|
-| `/profile` | `/workbench/profile` |
-| `/system/department` | `/system/org` |
-| `/system/oauth-app` | `/platform/app` |
-| `/system/tenant` | `/platform/tenant` |
-| `/system/tenant-member` | `/platform/tenant?tab=members` |
-| `/system/tenant-edition` | `/platform/tenant?tab=edition` |
-| `/system/tenant-edition-permission` | `/platform/tenant?tab=edition-permission` |
-| `/system/menu` | `/platform/menu` |
-| `/system/config` | `/platform/config` |
-| `/system/constraint-rule` | `/platform/config?tab=constraint-rule` |
-| `/system/dict` | `/platform/dict` |
-| `/system/file` | `/platform/file` |
-| `/system/cache` | `/platform/cache` |
-| `/system/server` | `/platform/server` |
-| `/system/user-session` | `/system/user?tab=session` |
-| `/system/user-role` | `/system/user?tab=role` |
-| `/system/user-permission` | `/system/user?tab=permission` |
-| `/system/user-data-scope` | `/system/user?tab=data-scope` |
-| `/system/role-hierarchy` | `/system/role?tab=hierarchy` |
-| `/system/role-permission` | `/system/role?tab=permission` |
-| `/system/role-data-scope` | `/system/role?tab=data-scope` |
-| `/system/permission-condition` | `/system/permission?tab=condition` |
-| `/system/field-level-security` | `/system/permission?tab=fls` |
-| `/system/message` | `/system/message` |
-| `/system/notification` | `/system/message?tab=notification` |
-| `/system/login-log` | `/log/login` |
-| `/system/access-log` | `/log/access` |
-| `/system/operation-log` | `/log/operation` |
-| `/system/api-log` | `/log/api` |
-| `/system/exception-log` | `/log/exception` |
-| `/system/diff-log` | `/log/operation?drawer=diff` |
-| `/system/permission-change-log` | `/log/operation?tab=permission-change` |
+重建系统不提供历史路径重定向表。运行时只注册本文目标路径；子实体能力通过主页面内嵌功能重新提供。
 
 ### 9.3 API facade
 
@@ -567,17 +519,17 @@ frontend/src/api/modules/messaging/message-center.ts
 - 形成基线记录。
 - 不修改业务行为。
 
-### M1：菜单种子与重定向
+### M1：菜单种子与目录重建
 
 - 重写 `SaasMenuSeeder.BuildDefinitions()` 为本文目标目录。
-- 添加 `/profile -> /workbench/profile` 和旧系统路径到新路径的前端 redirect。
+- 前端视图目录按 `workbench/system/platform/log` 重建。
 - 不再下发子实体可见菜单。
 - 清理菜单路由缓存。
 
 验收：
 
 - 新登录用户侧边栏只看到目标目录。
-- 旧路径可跳转到新位置。
+- 只注册目标路径。
 
 ### M2：工作台收敛
 
@@ -588,7 +540,7 @@ frontend/src/api/modules/messaging/message-center.ts
 验收：
 
 - 工作台三个菜单均可访问。
-- `/profile` 重定向生效。
+- 顶部用户下拉进入 `/workbench/profile`。
 
 ### M3：系统管理收敛
 
@@ -619,7 +571,7 @@ frontend/src/api/modules/messaging/message-center.ts
 
 - 登录、访问、操作、API、异常日志迁移到 `/log/*`。
 - 操作日志详情接入差异日志和权限变更日志。
-- 旧日志路径完成重定向。
+- 日志统一使用 `/log/*` 目标路径。
 
 验收：
 
@@ -635,15 +587,15 @@ frontend/src/api/modules/messaging/message-center.ts
 
 - 开发工具要么由 CodeGeneration 提供，要么不显示。
 
-### M7：清理与验证
+### M7：目标结构验证
 
-- 清理未引用页面或改为子组件。
-- 清理旧 i18n、旧图标、旧菜单编码引用。
+- 删除未引用页面或改为子组件。
+- 复核 i18n、图标、菜单编码只指向目标结构。
 - 执行构建、类型检查和权限回归。
 
 验收：
 
-- 旧菜单编码只剩重定向或迁移说明。
+- 子实体编码不作为前端路由和菜单种子存在。
 - 构建和权限回归通过。
 
 ## 11. 验证门禁
@@ -670,7 +622,7 @@ rg -n "system/user-role|system/role-permission|system/tenant-member|system/diff-
 - `/system/user`、`/system/role`、`/system/org`、`/system/permission`、`/system/message` 可访问。
 - `/platform/app`、`/platform/tenant`、`/platform/menu`、`/platform/config`、`/platform/dict`、`/platform/file`、`/platform/job`、`/platform/approval`、`/platform/server`、`/platform/cache` 可访问。
 - `/log/login`、`/log/access`、`/log/operation`、`/log/api`、`/log/exception` 可访问。
-- 子实体旧路径能重定向或明确返回迁移提示。
+- 子实体路径不注册为前端独立路由。
 
 权限回归：
 
@@ -683,13 +635,13 @@ rg -n "system/user-role|system/role-permission|system/tenant-member|system/diff-
 
 | 风险 | 影响 | 处理 |
 |------|------|------|
-| 菜单路径大规模变化 | 收藏和旧标签页失效 | 前端提供 redirect 表，至少保留一个版本 |
-| 组件路径与菜单路径不一致 | 动态路由加载失败 | 第一阶段允许新路由指向旧组件路径，例如 `/platform/tenant -> system/tenant/index` |
+| 菜单路径大规模变化 | 收藏和历史标签页失效 | 重建系统不做兼容，发布说明中明确目标路径 |
+| 组件路径与菜单路径不一致 | 动态路由加载失败 | 菜单种子组件路径必须与 `frontend/src/views` 新目录一致 |
 | 子实体 API 仍可直接调用 | 页面隐藏被绕过 | 后端方法级权限完整校验，页面收敛不改变授权边界 |
-| 个人中心进入工作台后旧 `/profile` 失效 | 用户下拉跳转失败 | `/profile` 重定向到 `/workbench/profile` |
+| 个人中心进入工作台后入口变化 | 用户下拉跳转失败 | 顶部用户下拉直接跳转 `/workbench/profile` |
 | 开发工具无 SaaS 实体支撑 | 菜单空页 | 由 CodeGeneration 模块提供菜单，SaaS 不生成 |
 | 日志详情包含敏感信息 | 泄露风险 | 后端 DTO 脱敏，导出独立权限，敏感访问审计 |
-| 菜单缓存未清理 | 用户看到旧菜单 | 菜单种子更新后清理菜单路由缓存和授权快照缓存 |
+| 菜单缓存未刷新 | 用户看不到目标菜单 | 菜单种子更新后刷新菜单路由缓存和授权快照缓存 |
 
 ## 13. 回滚策略
 
@@ -701,23 +653,23 @@ rg -n "system/user-role|system/role-permission|system/tenant-member|system/diff-
 
 前端回滚：
 
-- 新路径上线初期保留旧组件和重定向。
-- 聚合页面异常时，临时将菜单指回旧组件路径。
-- 不在第一阶段删除旧页面文件。
+- 使用 git 回退前端视图目录重建补丁。
+- 不提供历史组件路径作为运行时兜底。
+- 聚合页面异常时修复对应主页面，不恢复子实体独立页面。
 
 后端回滚：
 
-- 聚合 QueryService 为新增接口时，可停止前端调用，不影响旧子实体服务。
+- 聚合 QueryService 为新增接口时，可停止前端调用，不影响既有子实体服务。
 - 不删除已有子实体 AppService、QueryService、DTO。
-- 新增权限码不立即删除旧权限码，确认稳定后再清理。
+- 权限码删除另起专项评估，本轮只保证目标菜单与按钮权限可用。
 
 ## 14. Definition of Done
 
-- 菜单顶层为工作台、系统管理、平台管理、日志管理、开发工具。
+- SaaS 菜单顶层为工作台、系统管理、平台管理、日志管理。
 - 工作台包含仪表盘、站内信、个人中心。
 - 当前 56 个 SaaS 根实体均有明确归属。
 - 子实体不再作为独立可见菜单。
-- 旧路径有重定向或明确迁移说明。
+- 只注册目标路径，独立子实体视图不保留。
 - 页面内按钮绑定 `SaasPermissionCodes`，后端 AppService 方法校验权限。
 - 授权、数据范围、FLS、跨租户、高风险操作均写审计。
 - 后端构建、前端类型检查、前端构建通过。
@@ -742,8 +694,7 @@ frontend/src/
 ├── views/workbench/
 ├── views/system/
 ├── views/platform/
-├── views/log/
-└── views/develop/
+└── views/log/
 ```
 
 后续每个实施批次应在提交说明中标注 `REQ-00x` 和 `M0-M7`，便于回滚和验收追踪。
