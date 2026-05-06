@@ -7,35 +7,18 @@ const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 // 后端 Component 路径（PascalCase）→ 前端实际文件路径（kebab-case）的别名映射
 const componentAliasMap: Record<string, string> = {
   // _core 特殊映射（packages/views/_core 不在 src/views 目录下）
-  'dashboard/index': '_core/dashboard/index',
-  'core/dashboard/index': '_core/dashboard/index',
   '_core/dashboard/index': '_core/dashboard/index',
-  'workbench/dashboard/index': '_core/dashboard/index',
-  'about/index': '_core/about/index',
-  'core/about/index': '_core/about/index',
   '_core/about/index': '_core/about/index',
-  // PascalCase → kebab-case 映射
-  'system/monitor/index': 'system/server/index',
-  'system/cache/index': 'system/cache/index',
-  'system/message/index': 'system/message/index',
-  'system/constraintrule/index': 'system/constraint-rule/index',
-  'system/constraint-rule/index': 'system/constraint-rule/index',
-  'system/oauthapp/index': 'system/oauth-app/index',
-  'system/o-auth-app/index': 'system/oauth-app/index',
-  'system/usersession/index': 'system/user-session/index',
-  'system/user-session/index': 'system/user-session/index',
-  'system/notification/index': 'system/notification/index',
+  '_core/profile/index': '_core/profile/index',
+  'approvalflow/index': 'approvalFlow/index',
+  'approval-flow/index': 'approvalFlow/index',
 }
 
 // packages 自身的 _core 视图映射（使用 ~/ 引用，无需从 src 注入）
 const coreComponentMap: Record<string, () => Promise<unknown>> = {
-  'workbench/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
-  'dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
-  'core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
   '_core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
-  'about/index': () => import('~/views/_core/about/index.vue'),
-  'core/about/index': () => import('~/views/_core/about/index.vue'),
   '_core/about/index': () => import('~/views/_core/about/index.vue'),
+  '_core/profile/index': () => import('~/views/_core/profile/index.vue'),
 }
 
 function toKebabCase(input: string) {

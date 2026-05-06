@@ -46,8 +46,8 @@ const quickLinks = [
   { label: '用户管理', icon: 'lucide:users', to: '/system/user', color: '#18a058' },
   { label: '角色管理', icon: 'lucide:shield', to: '/system/role', color: '#2080f0' },
   { label: '菜单管理', icon: 'lucide:list-tree', to: '/platform/menu', color: '#f0a020' },
-  { label: '部门管理', icon: 'lucide:building-2', to: '/system/department', color: '#8b5cf6' },
-  { label: '操作日志', icon: 'lucide:history', to: '/log/oplog', color: '#d03050' },
+  { label: '机构管理', icon: 'lucide:building-2', to: '/system/org', color: '#8b5cf6' },
+  { label: '操作日志', icon: 'lucide:history', to: '/log/operation', color: '#d03050' },
   { label: '参数配置', icon: 'lucide:sliders-horizontal', to: '/platform/config', color: '#06b6d4' },
 ]
 
