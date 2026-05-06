@@ -39,6 +39,12 @@ public class XiHanBasicAppRbacModule : XiHanModule
         // 注册 SaaS 模块种子数据
         services.AddSaasDataSeeders();
 
+        // 注册 SaaS 领域服务
+        services.AddSaasDomainServices();
+
+        // 注册 SaaS 应用层内部服务
+        services.AddSaasApplicationServices();
+
         // 注册日志写入器
         services.AddSaasLogWriters();
     }

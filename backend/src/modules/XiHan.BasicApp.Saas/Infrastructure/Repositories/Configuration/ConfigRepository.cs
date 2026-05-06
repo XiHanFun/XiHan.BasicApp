@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
@@ -31,8 +32,36 @@ public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
         cancellationToken.ThrowIfCancellationRequested();
 
         return await CreateQueryable()
-            .Where(config => config.ConfigKey == configKey)
+            .Where(config => config.ConfigKey == configKey.Trim())
             .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<SysConfig?> GetEffectiveByKeyAsync(string configKey, long? tenantId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var normalizedKey = configKey.Trim();
+        var configs = await CreateQueryable()
+            .Where(config => config.ConfigKey == normalizedKey && config.Status == EnableStatus.Enabled)
+            .ToListAsync(cancellationToken);
+        if (configs.Count == 0)
+        {
+            return null;
+        }
+
+        if (tenantId.HasValue)
+        {
+            var tenantConfig = configs.FirstOrDefault(config => config.TenantId == tenantId.Value);
+            if (tenantConfig is not null)
+            {
+                return tenantConfig;
+            }
+        }
+
+        return configs.FirstOrDefault(static config => config.TenantId == 0)
+            ?? configs.FirstOrDefault();
     }
 
     /// <inheritdoc />
@@ -41,7 +70,7 @@ public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var query = CreateQueryable().Where(config => config.ConfigKey == configKey);
+        var query = CreateQueryable().Where(config => config.ConfigKey == configKey.Trim());
         if (excludeId.HasValue)
         {
             query = query.Where(config => config.BasicId != excludeId.Value);

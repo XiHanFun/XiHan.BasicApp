@@ -27,6 +27,11 @@ public interface IConfigRepository : ISaasRepository<SysConfig>
     Task<SysConfig?> GetByKeyAsync(string configKey, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 根据配置键获取当前租户有效配置，租户级配置优先，全局配置兜底。
+    /// </summary>
+    Task<SysConfig?> GetEffectiveByKeyAsync(string configKey, long? tenantId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 检查配置键是否存在
     /// </summary>
     Task<bool> ExistsKeyAsync(string configKey, long? excludeId = null, CancellationToken cancellationToken = default);
