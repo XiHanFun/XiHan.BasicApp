@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { LoginLogDetailDto, LoginLogListItemDto } from '@/api'
 import type { LogDetailField } from '../_components/log-detail.types'
+import type { LoginLogDetailDto, LoginLogListItemDto } from '@/api'
 import {
   NButton,
   NIcon,
@@ -10,7 +10,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, LoginResult, loginLogApi } from '@/api'
+import { createPageRequest, loginLogApi, LoginResult } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'

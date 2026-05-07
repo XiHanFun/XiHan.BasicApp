@@ -9,7 +9,7 @@ import { ref, shallowRef } from 'vue'
 import { TOKEN_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 
-export type SignalREventHandler = (...args: any[]) => void
+export type SignalREventHandler = Parameters<HubConnection['on']>[1]
 
 const connection = shallowRef<HubConnection | null>(null)
 const connected = ref(false)

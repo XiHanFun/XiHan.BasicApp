@@ -35,14 +35,47 @@ interface PageSummary {
   total: number
 }
 
-interface EnumQuery {
+interface EnumNameQuery {
   enumName?: string
+  includeDict?: boolean
+  includeHidden?: boolean
+  language?: string
   name?: string
+  tenantId?: string
+}
+
+interface EnumOption {
+  name: string
+  value: boolean | number | object | string
+  valueText: string
+  label: string
+  description: string
+  theme?: string
+  icon?: string
+  order: number
+  disabled: boolean
+  source: 'dict' | 'enum' | string
+  extra?: Record<string, unknown>
 }
 
 interface EnumDefinition {
-  items: unknown[]
+  cultureName: string
+  displayName: string
+  enumName: string
+  fullName: string
+  isFlags: boolean
+  items: EnumOption[]
   name: string
+  underlyingTypeName: string
+}
+
+interface EnumBatchQuery {
+  dictCodes?: string[]
+  enumNames: string[]
+  includeDict?: boolean
+  includeHidden?: boolean
+  language?: string
+  tenantId?: string
 }
 
 interface BackendDependency {
@@ -64,6 +97,19 @@ function emptyPage(input?: { page?: number, pageSize?: number }): PageSummary {
     page: input?.page ?? 1,
     pageSize: input?.pageSize ?? 20,
     total: 0,
+  }
+}
+
+function emptyEnum(name: string): EnumDefinition {
+  return {
+    cultureName: 'zh-CN',
+    displayName: name,
+    enumName: name,
+    fullName: name,
+    isFlags: false,
+    items: [],
+    name,
+    underlyingTypeName: 'Int32',
   }
 }
 
@@ -137,10 +183,10 @@ function createProfileApis() {
     deleteAccountApi(password: string) {
       return requestClient.post('/Profile/DeleteAccount', { password })
     },
-    disable2FAApi(method: string, code: string) {
+    disable2FAApi(method: number | string, code: string) {
       return requestClient.post('/Profile/Disable2FA', { code, method })
     },
-    enable2FAApi(method: string, code: string) {
+    enable2FAApi(method: number | string, code: string) {
       return requestClient.post('/Profile/Enable2FA', { code, method })
     },
     getLinkedAccountsApi() {
@@ -162,7 +208,7 @@ function createProfileApis() {
     revokeSessionApi(sessionId: string) {
       return requestClient.post('/Profile/RevokeSession', { sessionId })
     },
-    send2FASetupCodeApi(method: string) {
+    send2FASetupCodeApi(method: number | string) {
       return requestClient.post<VerificationCodeResult>('/Profile/Send2FASetupCode', { method })
     },
     sendChangeEmailCodeApi(input: ChangeEmailParams) {
@@ -203,17 +249,15 @@ function createShellApis() {
       },
     },
     enumApi: {
-      getBatch(query: EnumQuery[]) {
-        return getWithFallback<EnumDefinition[]>('/Enum/Batch', query.map(item => ({
-          items: [],
-          name: item.enumName ?? item.name ?? '',
-        })))
+      getBatch(query: EnumBatchQuery) {
+        const fallback = Object.fromEntries(
+          (query.enumNames ?? []).map(name => [name, emptyEnum(name)]),
+        )
+        return getWithFallback<Record<string, EnumDefinition>>('/Enum/Batch', fallback, { params: query })
       },
-      getByName(query: EnumQuery) {
-        return getWithFallback<EnumDefinition>('/Enum/ByName', {
-          items: [],
-          name: query.enumName ?? query.name ?? '',
-        })
+      getByName(query: EnumNameQuery) {
+        const name = query.enumName ?? query.name ?? ''
+        return getWithFallback<EnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
       },
     },
     operationLogApi: {
@@ -232,16 +276,16 @@ function createShellApis() {
       },
     },
     userInboxApi: {
-      confirm(id: string, _userId?: string, _tenantId?: string) {
+      confirm(id: string, _userId?: string, _tenantId?: null | string) {
         return currentUserInboxApi.confirm(id)
       },
-      list(_userId?: string, unreadOnly = false, _tenantId?: string) {
+      list(_userId?: string, unreadOnly = false, _tenantId?: null | string) {
         return currentUserInboxApi.list(unreadOnly)
       },
-      markAllRead(_userId?: string, _tenantId?: string) {
+      markAllRead(_userId?: string, _tenantId?: null | string) {
         return currentUserInboxApi.markAllRead()
       },
-      markRead(id: string, _userId?: string, _tenantId?: string) {
+      markRead(id: string, _userId?: string, _tenantId?: null | string) {
         return currentUserInboxApi.markRead(id)
       },
     },

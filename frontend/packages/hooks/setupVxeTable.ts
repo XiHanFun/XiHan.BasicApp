@@ -30,8 +30,9 @@ export function setupVxeTable(app: App) {
   watch(() => appStore.themeMode, syncTheme)
   watch(osTheme, syncTheme)
   watch(i18n.global.locale, (locale) => {
-    if (VxeUI.hasLanguage(locale as any)) {
-      VxeUI.setLanguage(locale as any)
+    const language = locale as 'en-US' | 'zh-CN'
+    if (VxeUI.hasLanguage(language)) {
+      VxeUI.setLanguage(language)
     }
   })
 

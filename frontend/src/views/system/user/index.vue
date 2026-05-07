@@ -238,7 +238,8 @@ function validateForm() {
 }
 
 async function handleSubmit() {
-  if (!validateForm()) return
+  if (!validateForm())
+    return
 
   submitLoading.value = true
   try {

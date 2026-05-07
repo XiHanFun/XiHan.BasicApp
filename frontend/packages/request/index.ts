@@ -16,6 +16,10 @@ import {
 } from './security'
 
 type AnyRecord = Record<string, unknown>
+type HeaderBag = Record<string, unknown> & {
+  delete?: (name: string) => void
+}
+
 interface RequestMeta {
   requestId: string
   startedAt: number
@@ -97,7 +101,7 @@ export class RequestClient {
   }
 
   private removeContentTypeHeader(headers: unknown) {
-    const rawHeaders = headers as any
+    const rawHeaders = headers as HeaderBag | null | undefined
     if (!rawHeaders) {
       return
     }

@@ -13,7 +13,7 @@ export interface EnumOption {
   order: number
   disabled: boolean
   source: 'enum' | 'dict' | string
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
 }
 
 export interface EnumDefinition {

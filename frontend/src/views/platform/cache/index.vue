@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TreeOption } from 'naive-ui'
 import {
   NButton,
   NCard,
@@ -13,7 +14,6 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import type { TreeOption } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { cacheApi } from '@/api'
 import { Icon, XJsonViewer } from '~/components'

@@ -1,5 +1,5 @@
 import type { DateTimeString } from '../../types'
-import { NotificationStatus, NotificationType } from './notification.types'
+import type { NotificationStatus, NotificationType } from './notification.types'
 
 export interface UserInboxItemDto {
   basicId: string

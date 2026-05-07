@@ -173,7 +173,7 @@ function formatValue(field: LogDetailField) {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--code-bg, rgba(128, 128, 128, 0.08));
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;

@@ -80,7 +80,8 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
 }
 
 function handleItemQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<DictItemGridResult> {
-  if (!currentDict.value) return Promise.resolve({ items: [], total: 0 })
+  if (!currentDict.value)
+    return Promise.resolve({ items: [], total: 0 })
   return dictApi
     .itemPage({
       ...createPageRequest({

@@ -5,6 +5,7 @@ import type { MenuRoute } from '~/types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAccessStore } from '~/stores'
+import { resolveFirstNavigableRoutePath, resolveRouteFullPath } from '~/utils'
 
 interface BadgeInfo {
   text?: string | number
@@ -30,15 +31,7 @@ function toLayoutMeta(record: LayoutRouteRecord): LayoutRouteMeta {
   return (record.meta ?? {}) as LayoutRouteMeta
 }
 
-function resolveFullPath(path: string, parentPath = '') {
-  if (!path) {
-    return parentPath || '/'
-  }
-  if (path.startsWith('/')) {
-    return path
-  }
-  return `${parentPath.replace(/\/$/, '')}/${path}`.replace(/\/{2,}/g, '/')
-}
+const resolveFullPath = resolveRouteFullPath
 
 function normalizeMenuRoutes(menuRoutes: MenuRoute[]): LayoutRouteRecord[] {
   return menuRoutes.map((route) => {
@@ -77,43 +70,6 @@ function routeTreeContainsMatched(
   return children.some(child =>
     routeTreeContainsMatched(currentPath, child, matchedNames, fullPath),
   )
-}
-
-function routeListContainsVisiblePath(
-  routes: LayoutRouteRecord[] | undefined,
-  targetPath: string,
-  parentPath = '',
-): boolean {
-  return (routes ?? []).some((item) => {
-    const meta = toLayoutMeta(item)
-    const fullPath = resolveFullPath(item.path, parentPath)
-    if (!meta.hidden && fullPath === targetPath) {
-      return true
-    }
-
-    return routeListContainsVisiblePath(item.children, targetPath, fullPath)
-  })
-}
-
-function resolveFirstNavigablePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
-  const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const visibleChildren = routeItem.children?.filter(child => !toLayoutMeta(child).hidden) ?? []
-  const redirect = typeof routeItem.redirect === 'string' ? routeItem.redirect : ''
-
-  if (
-    redirect
-    && redirect !== fullPath
-    && routeListContainsVisiblePath(visibleChildren, redirect, fullPath)
-  ) {
-    return redirect
-  }
-
-  const firstVisibleChild = visibleChildren[0]
-  if (!firstVisibleChild) {
-    return fullPath
-  }
-
-  return resolveFirstNavigablePath(firstVisibleChild, fullPath)
 }
 
 function buildMenuOptionsFromRoutes(
@@ -254,6 +210,6 @@ export function useLayoutMenuDomain() {
     buildMenuOptionsFromRoutes,
     findMatchedRouteNameKey,
     findMatchedRoutePath,
-    resolveFirstNavigablePath,
+    resolveFirstNavigablePath: resolveFirstNavigableRoutePath,
   }
 }

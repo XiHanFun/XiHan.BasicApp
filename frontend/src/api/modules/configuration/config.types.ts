@@ -1,6 +1,6 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
-import type { EnableStatus } from '../shared'
 import type { ConfigDataType } from '../authorization'
+import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 

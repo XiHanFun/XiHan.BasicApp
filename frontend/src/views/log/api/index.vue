@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiLogDetailDto, ApiLogListItemDto } from '@/api'
 import type { LogDetailField } from '../_components/log-detail.types'
+import type { ApiLogDetailDto, ApiLogListItemDto } from '@/api'
 import {
   NButton,
   NIcon,
@@ -127,8 +127,10 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`
-  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)}KB`
+  if (bytes < 1024)
+    return `${bytes}B`
+  if (bytes < 1048576)
+    return `${(bytes / 1024).toFixed(1)}KB`
   return `${(bytes / 1048576).toFixed(1)}MB`
 }
 
