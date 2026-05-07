@@ -10,13 +10,13 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, DeviceType, exceptionLogApi } from '@/api'
+import { createPageRequest, DeviceType, logManagementApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
-defineOptions({ name: 'SystemExceptionLogPage' })
+defineOptions({ name: 'LogExceptionPage' })
 
 interface LogGridResult {
   items: ExceptionLogListItemDto[]
@@ -124,7 +124,7 @@ function severityLabel(level: number) {
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return exceptionLogApi
+  return logManagementApi.exception
     .page({
       ...createPageRequest({
         page: {
@@ -258,7 +258,7 @@ async function handleDetail(row: ExceptionLogListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   try {
-    detailData.value = await exceptionLogApi.detail(row.basicId) ?? row
+    detailData.value = await logManagementApi.exception.detail(row.basicId) ?? row
   }
   catch {
     detailData.value = row

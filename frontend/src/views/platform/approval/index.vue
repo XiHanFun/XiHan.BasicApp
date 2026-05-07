@@ -13,12 +13,12 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { AuditResult, AuditStatus, createPageRequest, EnableStatus, reviewApi } from '@/api'
+import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'ApprovalFlowPage' })
+defineOptions({ name: 'PlatformApprovalPage' })
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
@@ -101,7 +101,7 @@ function statusTag(status: EnableStatus): TagType {
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<ReviewGridResult> {
-  return reviewApi
+  return approvalManagementApi
     .page({
       ...createPageRequest({
         page: {
@@ -205,7 +205,7 @@ async function handleDetail(row: ReviewListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   try {
-    detailData.value = await reviewApi.detail(row.basicId) ?? row
+    detailData.value = await approvalManagementApi.detail(row.basicId) ?? row
   }
   catch {
     detailData.value = row

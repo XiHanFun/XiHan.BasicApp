@@ -1,39 +1,13 @@
+import type {
+  AppEnumBatchQuery as EnumBatchQuery,
+  AppEnumDefinition as EnumDefinition,
+  AppEnumOption as EnumOption,
+} from '~/types'
 import { computed, ref } from 'vue'
 import { useAppStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
 
-export interface EnumOption {
-  name: string
-  value: number | string | boolean | object
-  valueText: string
-  label: string
-  description: string
-  theme?: string
-  icon?: string
-  order: number
-  disabled: boolean
-  source: 'enum' | 'dict' | string
-  extra?: Record<string, unknown>
-}
-
-export interface EnumDefinition {
-  enumName: string
-  fullName: string
-  displayName: string
-  cultureName: string
-  isFlags: boolean
-  underlyingTypeName: string
-  items: EnumOption[]
-}
-
-export interface EnumBatchQuery {
-  enumNames: string[]
-  language?: string
-  includeHidden?: boolean
-  includeDict?: boolean
-  dictCodes?: string[]
-  tenantId?: string
-}
+export type { EnumBatchQuery, EnumDefinition, EnumOption }
 
 export interface UseEnumOptions {
   language?: string

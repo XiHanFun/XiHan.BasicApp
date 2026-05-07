@@ -10,13 +10,13 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { accessLogApi, AccessResult, createPageRequest } from '@/api'
+import { AccessResult, createPageRequest, logManagementApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
-defineOptions({ name: 'SystemAccessLogPage' })
+defineOptions({ name: 'LogAccessPage' })
 
 interface LogGridResult {
   items: AccessLogListItemDto[]
@@ -92,7 +92,7 @@ function accessResultType(result: AccessResult) {
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return accessLogApi
+  return logManagementApi.access
     .page({
       ...createPageRequest({
         page: {
@@ -199,7 +199,7 @@ async function handleDetail(row: AccessLogListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   try {
-    detailData.value = await accessLogApi.detail(row.basicId) ?? row
+    detailData.value = await logManagementApi.access.detail(row.basicId) ?? row
   }
   catch {
     detailData.value = row

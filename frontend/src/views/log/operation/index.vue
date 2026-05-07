@@ -13,7 +13,7 @@ import { reactive, ref } from 'vue'
 import {
   createPageRequest,
   EnableStatus,
-  operationLogApi,
+  logManagementApi,
   OperationType,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
@@ -21,7 +21,7 @@ import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
-defineOptions({ name: 'SystemOperationLogPage' })
+defineOptions({ name: 'LogOperationPage' })
 
 interface LogGridResult {
   items: OperationLogListItemDto[]
@@ -85,7 +85,7 @@ const detailFields: LogDetailField[] = [
 ]
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return operationLogApi
+  return logManagementApi.operation
     .page({
       ...createPageRequest({
         page: {
@@ -195,7 +195,7 @@ async function handleDetail(row: OperationLogListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   try {
-    detailData.value = await operationLogApi.detail(row.basicId) ?? row
+    detailData.value = await logManagementApi.operation.detail(row.basicId) ?? row
   }
   catch {
     detailData.value = row

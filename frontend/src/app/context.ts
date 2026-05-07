@@ -1,5 +1,10 @@
 import type { Router } from 'vue-router'
 import type {
+  AppBackendDependency,
+  AppEnumBatchQuery,
+  AppEnumDefinition,
+  AppEnumNameQuery,
+  AppPageSummary,
   ChangeEmailParams,
   ChangePasswordParams,
   ChangePhoneParams,
@@ -20,68 +25,31 @@ import type {
   UserSessionItem,
   VerificationCodeResult,
 } from '~/types'
-import * as authorizationApi from '@/api/modules/authorization'
-import { userInboxApi as currentUserInboxApi } from '@/api/modules/messaging'
-import * as tenantApi from '@/api/modules/tenant'
+import { logManagementApi } from '@/api/modules/log'
+import {
+  appManagementApi,
+  approvalManagementApi,
+  cacheManagementApi,
+  configManagementApi,
+  dictManagementApi,
+  fileManagementApi,
+  jobManagementApi,
+  menuManagementApi,
+  serverManagementApi,
+  tenantManagementApi,
+} from '@/api/modules/platform'
+import {
+  messageCenterApi,
+  orgManagementApi,
+  permissionCenterApi,
+  roleManagementApi,
+  userManagementApi,
+} from '@/api/modules/system'
+import { workbenchApi } from '@/api/modules/workbench'
 import { requestClient } from '@/api/request'
 import { router } from '@/router'
 import { staticRoutes } from '@/router/routes'
 import { registerAppContext } from '~/stores/app-context'
-
-interface PageSummary {
-  items: unknown[]
-  page: number
-  pageSize: number
-  total: number
-}
-
-interface EnumNameQuery {
-  enumName?: string
-  includeDict?: boolean
-  includeHidden?: boolean
-  language?: string
-  name?: string
-  tenantId?: string
-}
-
-interface EnumOption {
-  name: string
-  value: boolean | number | object | string
-  valueText: string
-  label: string
-  description: string
-  theme?: string
-  icon?: string
-  order: number
-  disabled: boolean
-  source: 'dict' | 'enum' | string
-  extra?: Record<string, unknown>
-}
-
-interface EnumDefinition {
-  cultureName: string
-  displayName: string
-  enumName: string
-  fullName: string
-  isFlags: boolean
-  items: EnumOption[]
-  name: string
-  underlyingTypeName: string
-}
-
-interface EnumBatchQuery {
-  dictCodes?: string[]
-  enumNames: string[]
-  includeDict?: boolean
-  includeHidden?: boolean
-  language?: string
-  tenantId?: string
-}
-
-interface BackendDependency {
-  packageName: string
-  packageVersion: string
-}
 
 const viewModules = import.meta.glob('/src/views/**/*.vue')
 
@@ -91,7 +59,7 @@ const defaultLoginConfig: LoginConfig = {
   tenantEnabled: true,
 }
 
-function emptyPage(input?: { page?: number, pageSize?: number }): PageSummary {
+function emptyPage(input?: { page?: number, pageSize?: number }): AppPageSummary {
   return {
     items: [],
     page: input?.page ?? 1,
@@ -100,7 +68,7 @@ function emptyPage(input?: { page?: number, pageSize?: number }): PageSummary {
   }
 }
 
-function emptyEnum(name: string): EnumDefinition {
+function emptyEnum(name: string): AppEnumDefinition {
   return {
     cultureName: 'zh-CN',
     displayName: name,
@@ -108,7 +76,6 @@ function emptyEnum(name: string): EnumDefinition {
     fullName: name,
     isFlags: false,
     items: [],
-    name,
     underlyingTypeName: 'Int32',
   }
 }
@@ -245,65 +212,90 @@ function createShellApis() {
   return {
     accessLogApi: {
       page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<PageSummary>('/AccessLogQuery/AccessLogPage', emptyPage(input))
+        return getWithFallback<AppPageSummary>('/AccessLogQuery/AccessLogPage', emptyPage(input))
       },
     },
     enumApi: {
-      getBatch(query: EnumBatchQuery) {
+      getBatch(query: AppEnumBatchQuery) {
         const fallback = Object.fromEntries(
           (query.enumNames ?? []).map(name => [name, emptyEnum(name)]),
         )
-        return getWithFallback<Record<string, EnumDefinition>>('/Enum/Batch', fallback, { params: query })
+        return getWithFallback<Record<string, AppEnumDefinition>>('/Enum/Batch', fallback, { params: query })
       },
-      getByName(query: EnumNameQuery) {
-        const name = query.enumName ?? query.name ?? ''
-        return getWithFallback<EnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
+      getByName(query: AppEnumNameQuery) {
+        const name = query.enumName
+        return getWithFallback<AppEnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
       },
     },
     operationLogApi: {
       page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<PageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))
+        return getWithFallback<AppPageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))
       },
     },
     serverApi: {
       getNuGetPackages() {
-        return getWithFallback<BackendDependency[]>('/Server/NuGetPackages', [])
+        return getWithFallback<AppBackendDependency[]>('/Server/NuGetPackages', [])
       },
     },
     userApi: {
       page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<PageSummary>('/UserQuery/UserPage', emptyPage(input))
+        return getWithFallback<AppPageSummary>('/UserQuery/UserPage', emptyPage(input))
       },
     },
     userInboxApi: {
       confirm(id: string, _userId?: string, _tenantId?: null | string) {
-        return currentUserInboxApi.confirm(id)
+        return workbenchApi.inbox.confirm(id)
       },
       list(_userId?: string, unreadOnly = false, _tenantId?: null | string) {
-        return currentUserInboxApi.list(unreadOnly)
+        return workbenchApi.inbox.list(unreadOnly)
       },
       markAllRead(_userId?: string, _tenantId?: null | string) {
-        return currentUserInboxApi.markAllRead()
+        return workbenchApi.inbox.markAllRead()
       },
       markRead(id: string, _userId?: string, _tenantId?: null | string) {
-        return currentUserInboxApi.markRead(id)
+        return workbenchApi.inbox.markRead(id)
       },
     },
     userSessionApi: {
       page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<PageSummary>('/UserSessionQuery/UserSessionPage', emptyPage(input))
+        return getWithFallback<AppPageSummary>('/UserSessionQuery/UserSessionPage', emptyPage(input))
       },
     },
   }
 }
 
+function createMenuPageApis() {
+  return {
+    logManagementApi,
+    platformApi: {
+      app: appManagementApi,
+      approval: approvalManagementApi,
+      cache: cacheManagementApi,
+      config: configManagementApi,
+      dict: dictManagementApi,
+      file: fileManagementApi,
+      job: jobManagementApi,
+      menu: menuManagementApi,
+      server: serverManagementApi,
+      tenant: tenantManagementApi,
+    },
+    systemApi: {
+      message: messageCenterApi,
+      org: orgManagementApi,
+      permission: permissionCenterApi,
+      role: roleManagementApi,
+      user: userManagementApi,
+    },
+    workbenchApi,
+  }
+}
+
 export function createApplicationApis() {
   return {
-    ...authorizationApi,
     ...createAuthApis(),
     ...createProfileApis(),
     ...createShellApis(),
-    ...tenantApi,
+    ...createMenuPageApis(),
   }
 }
 

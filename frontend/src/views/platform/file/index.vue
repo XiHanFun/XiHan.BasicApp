@@ -27,7 +27,7 @@ import {
 import { computed, nextTick, reactive, ref } from 'vue'
 import {
   createPageRequest,
-  fileApi,
+  fileManagementApi,
   FileStatus,
   FileStorageStatus,
   FileStorageType,
@@ -38,7 +38,7 @@ import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemFilePage' })
+defineOptions({ name: 'PlatformFilePage' })
 
 type FileTab = 'file' | 'storage'
 type DetailKind = 'file' | 'storage'
@@ -237,7 +237,7 @@ function getStorageStatusTagType(status: FileStorageStatus): TagType {
 }
 
 function handleFileQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<FileGridResult> {
-  return fileApi
+  return fileManagementApi
     .page({
       ...createPageRequest({
         page: {
@@ -268,7 +268,7 @@ function handleFileQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Pr
 }
 
 function handleStorageQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<StorageGridResult> {
-  return fileApi
+  return fileManagementApi
     .storagePage({
       ...createPageRequest({
         page: {
@@ -502,7 +502,7 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
 
   uploadLoading.value = true
   try {
-    await fileApi.upload({
+    await fileManagementApi.upload({
       accessControl: normalizeNullable(uploadForm.accessControl),
       accessLevel: uploadForm.accessLevel,
       bucketName: normalizeNullable(uploadForm.bucketName),
@@ -542,7 +542,7 @@ async function handleFileDetail(row: FileListItemDto) {
   currentStorageDetail.value = null
 
   try {
-    currentFileDetail.value = await fileApi.detail(row.basicId)
+    currentFileDetail.value = await fileManagementApi.detail(row.basicId)
   }
   catch {
     currentFileDetail.value = null
@@ -560,7 +560,7 @@ async function handleStorageDetail(row: FileStorageListItemDto) {
   currentFileDetail.value = null
 
   try {
-    currentStorageDetail.value = await fileApi.storageDetail(row.basicId)
+    currentStorageDetail.value = await fileManagementApi.storageDetail(row.basicId)
   }
   catch {
     currentStorageDetail.value = null
@@ -580,7 +580,7 @@ async function handleFileStorages(row: FileListItemDto) {
 
 async function handleVerifyStorage(row: FileStorageListItemDto) {
   try {
-    await fileApi.verifyStorage({ basicId: row.basicId })
+    await fileManagementApi.verifyStorage({ basicId: row.basicId })
     storageGrid.value?.commitProxy('reload')
     message.success('校验完成')
   }
@@ -595,7 +595,7 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
   }
 
   try {
-    await fileApi.switchPrimaryStorage({
+    await fileManagementApi.switchPrimaryStorage({
       basicId: row.fileId,
       storageId: row.basicId,
     })

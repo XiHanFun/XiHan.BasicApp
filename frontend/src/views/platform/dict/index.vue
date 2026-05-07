@@ -12,12 +12,12 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, dictApi, EnableStatus } from '@/api'
+import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemDictPage' })
+defineOptions({ name: 'PlatformDictPage' })
 
 interface DictGridResult {
   items: DictListItemDto[]
@@ -57,7 +57,7 @@ const builtInOptions = [
 ]
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<DictGridResult> {
-  return dictApi
+  return dictManagementApi
     .page({
       ...createPageRequest({
         page: {
@@ -82,7 +82,7 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
 function handleItemQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<DictItemGridResult> {
   if (!currentDict.value)
     return Promise.resolve({ items: [], total: 0 })
-  return dictApi
+  return dictManagementApi
     .itemPage({
       ...createPageRequest({
         page: {

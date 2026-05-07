@@ -21,10 +21,10 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { serverApi } from '@/api'
+import { serverManagementApi } from '@/api'
 import { Icon } from '~/iconify'
 
-defineOptions({ name: 'SystemServerPage' })
+defineOptions({ name: 'PlatformServerPage' })
 
 const message = useMessage()
 const loading = ref(false)
@@ -173,13 +173,13 @@ async function fetchData() {
   try {
     loading.value = true
     const [rtRes, cpuRes, memRes, diskRes, netRes, boardRes, gpuRes] = await Promise.all([
-      serverApi.getRuntimeInfo(),
-      serverApi.getCpuInfo(),
-      serverApi.getMemoryInfo(),
-      serverApi.getDiskInfo(),
-      serverApi.getNetworkInfo(),
-      serverApi.getBoardInfo(),
-      serverApi.getGpuInfo(),
+      serverManagementApi.getRuntimeInfo(),
+      serverManagementApi.getCpuInfo(),
+      serverManagementApi.getMemoryInfo(),
+      serverManagementApi.getDiskInfo(),
+      serverManagementApi.getNetworkInfo(),
+      serverManagementApi.getBoardInfo(),
+      serverManagementApi.getGpuInfo(),
     ])
     runtimeInfo.value = rtRes ?? null
     cpuInfo.value = cpuRes ?? null

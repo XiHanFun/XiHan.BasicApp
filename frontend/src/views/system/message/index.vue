@@ -14,7 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, EmailStatus, messageApi } from '@/api'
+import { createPageRequest, EmailStatus, messageCenterApi } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
@@ -111,7 +111,7 @@ function formatFlag(value: boolean) {
 }
 
 function handleEmailQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<EmailGridResult> {
-  return messageApi
+  return messageCenterApi
     .emailPage({
       ...createPageRequest({
         page: {
@@ -142,7 +142,7 @@ function handleEmailQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): P
 }
 
 function handleSmsQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<SmsGridResult> {
-  return messageApi
+  return messageCenterApi
     .smsPage({
       ...createPageRequest({
         page: {
@@ -354,7 +354,7 @@ async function handleEmailDetail(row: EmailListItemDto) {
   currentSmsDetail.value = null
 
   try {
-    currentEmailDetail.value = await messageApi.emailDetail(row.basicId)
+    currentEmailDetail.value = await messageCenterApi.emailDetail(row.basicId)
   }
   catch {
     currentEmailDetail.value = null
@@ -372,7 +372,7 @@ async function handleSmsDetail(row: SmsListItemDto) {
   currentEmailDetail.value = null
 
   try {
-    currentSmsDetail.value = await messageApi.smsDetail(row.basicId)
+    currentSmsDetail.value = await messageCenterApi.smsDetail(row.basicId)
   }
   catch {
     currentSmsDetail.value = null

@@ -22,14 +22,14 @@ import {
   createDefaultQueryBehavior,
   createPageRequest,
   EnableStatus,
-  menuApi,
+  menuManagementApi,
   MenuType,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemMenuPage' })
+defineOptions({ name: 'PlatformMenuPage' })
 
 interface MenuFormModel extends MenuCreateDto {
   basicId?: ApiId
@@ -109,7 +109,7 @@ function normalizeNullable(value?: string | null) {
 
 async function loadTree() {
   try {
-    treeNodes.value = await menuApi.tree({ keyword: null, limit: 3000, onlyEnabled: false })
+    treeNodes.value = await menuManagementApi.tree({ keyword: null, limit: 3000, onlyEnabled: false })
   }
   catch {
     treeNodes.value = []
@@ -119,7 +119,7 @@ async function loadTree() {
 async function loadTable() {
   loading.value = true
   try {
-    const result = await menuApi.page({
+    const result = await menuManagementApi.page({
       ...createPageRequest({
         behavior: createDefaultQueryBehavior({
           disablePaging: true,
@@ -254,7 +254,7 @@ function buildFormModel(row: MenuDetailDto | MenuListItemDto): MenuFormModel {
 
 async function handleEdit(row: MenuListItemDto) {
   try {
-    const detail = await menuApi.detail(row.basicId)
+    const detail = await menuManagementApi.detail(row.basicId)
     menuForm.value = buildFormModel(detail ?? row)
   }
   catch {
@@ -267,7 +267,7 @@ async function handleEdit(row: MenuListItemDto) {
 async function handleToggleStatus(row: MenuListItemDto) {
   const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
-    await menuApi.updateStatus({ basicId: row.basicId, status: nextStatus })
+    await menuManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
     message.success('状态更新成功')
     await loadTable()
     await loadTree()
@@ -324,7 +324,7 @@ async function handleSubmit() {
         sort: menuForm.value.sort,
         title: normalizeNullable(menuForm.value.title),
       }
-      await menuApi.update(updateInput)
+      await menuManagementApi.update(updateInput)
     }
     else {
       const createInput: MenuCreateDto = {
@@ -352,7 +352,7 @@ async function handleSubmit() {
         status: menuForm.value.status,
         title: normalizeNullable(menuForm.value.title),
       }
-      await menuApi.create(createInput)
+      await menuManagementApi.create(createInput)
     }
 
     message.success('保存成功')

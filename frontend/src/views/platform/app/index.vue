@@ -14,13 +14,13 @@ import {
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, EnableStatus, oauthAppApi } from '@/api'
+import { appManagementApi, createPageRequest, EnableStatus } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemOAuthAppPage' })
+defineOptions({ name: 'PlatformAppPage' })
 
 interface OAuthAppGridResult {
   items: OAuthAppListItemDto[]
@@ -70,7 +70,7 @@ function formatSeconds(seconds: number) {
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<OAuthAppGridResult> {
-  return oauthAppApi
+  return appManagementApi
     .page({
       ...createPageRequest({
         page: {
@@ -173,7 +173,7 @@ async function handleDetail(row: OAuthAppListItemDto) {
   detailLoading.value = true
 
   try {
-    currentDetail.value = await oauthAppApi.detail(row.basicId)
+    currentDetail.value = await appManagementApi.detail(row.basicId)
   }
   catch {
     currentDetail.value = null

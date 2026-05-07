@@ -159,30 +159,30 @@ public static class SaasConfigKeys
     /// </summary>
     public static class Groups
     {
+        /// <summary>
+        /// 应用配置分组。
+        /// </summary>
         public const string Application = "application";
-        public const string Tenant = "tenant";
-        public const string Auth = "auth";
-        public const string Notification = "notification";
-        public const string Audit = "audit";
-    }
 
-    /// <summary>
-    /// 旧版配置键。仅用于种子数据平滑迁移，不应在业务代码继续使用。
-    /// </summary>
-    public static class Legacy
-    {
-        public const string ApplicationName = "app.name";
-        public const string ApplicationDefaultLanguage = "app.default_language";
-        public const string TenantDefaultEditionCode = "tenant.default_edition_code";
-        public const string NotificationAuthLoginEnabled = "notification.auth_login_enabled";
-        public const string NotificationAuthLogoutEnabled = "notification.auth_logout_enabled";
-        public const string PasswordMinLength = "auth.password.min_length";
-        public const string PasswordRequireDigit = "auth.password.require_digit";
-        public const string PasswordRequireUppercase = "auth.password.require_uppercase";
-        public const string SessionAllowMultiLogin = "auth.session.allow_multi_login";
-        public const string SessionMaxLoginDevices = "auth.session.max_login_devices";
-        public const string AccountLockoutMinutes = "security.account_lockout_minutes";
-        public const string AuditLogRetentionDays = "audit.log_retention_days";
+        /// <summary>
+        /// 租户配置分组。
+        /// </summary>
+        public const string Tenant = "tenant";
+
+        /// <summary>
+        /// 认证配置分组。
+        /// </summary>
+        public const string Auth = "auth";
+
+        /// <summary>
+        /// 通知配置分组。
+        /// </summary>
+        public const string Notification = "notification";
+
+        /// <summary>
+        /// 审计配置分组。
+        /// </summary>
+        public const string Audit = "audit";
     }
 
     /// <summary>
