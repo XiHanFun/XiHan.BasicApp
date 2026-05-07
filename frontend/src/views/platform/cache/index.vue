@@ -15,10 +15,10 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
-import { cacheApi } from '@/api'
+import { cacheManagementApi } from '@/api'
 import { Icon, XJsonViewer } from '~/components'
 
-defineOptions({ name: 'SystemCachePage' })
+defineOptions({ name: 'PlatformCachePage' })
 
 const message = useMessage()
 const dialog = useDialog()
@@ -76,7 +76,7 @@ async function handleSearch() {
   selectedKey.value = null
   selectedValue.value = null
   try {
-    const keys = await cacheApi.getKeys(keyPattern.value.trim() || '*')
+    const keys = await cacheManagementApi.getKeys(keyPattern.value.trim() || '*')
     cacheKeys.value = keys?.sort() ?? []
   }
   catch {
@@ -99,7 +99,7 @@ async function handleSelectNode(keys: Array<string | number>, option: Array<Tree
   selectedKey.value = key
   loadingValue.value = true
   try {
-    const value = await cacheApi.getString(key)
+    const value = await cacheManagementApi.getString(key)
     selectedValue.value = value ?? null
   }
   catch {
@@ -124,7 +124,7 @@ function handleDeleteSelected() {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        await cacheApi.remove(key)
+        await cacheManagementApi.remove(key)
         message.success('删除成功')
         cacheKeys.value = cacheKeys.value.filter(k => k !== key)
         selectedKey.value = null
@@ -146,7 +146,7 @@ function handleDeleteByPattern() {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        const count = await cacheApi.removeByPattern(pattern)
+        const count = await cacheManagementApi.removeByPattern(pattern)
         message.success(`已删除 ${count} 个缓存键`)
         await handleSearch()
       }

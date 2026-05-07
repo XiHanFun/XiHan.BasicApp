@@ -31,6 +31,9 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+# Allow frontend business API module named "log".
+!frontend/src/api/modules/log/
+!frontend/src/api/modules/log/**
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

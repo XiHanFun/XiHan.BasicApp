@@ -10,8 +10,8 @@ import {
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import {
-  configApi,
   ConfigDataType,
+  configManagementApi,
   ConfigType,
   createPageRequest,
   EnableStatus,
@@ -20,7 +20,7 @@ import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemConfigPage' })
+defineOptions({ name: 'PlatformConfigPage' })
 
 interface ConfigGridResult {
   items: ConfigListItemDto[]
@@ -64,7 +64,7 @@ const globalOptions = [
 ]
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<ConfigGridResult> {
-  return configApi
+  return configManagementApi
     .page({
       ...createPageRequest({
         page: {

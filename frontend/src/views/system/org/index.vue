@@ -27,15 +27,15 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
-  departmentApi,
   DepartmentType,
   EnableStatus,
+  orgManagementApi,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemDepartmentPage' })
+defineOptions({ name: 'SystemOrgPage' })
 
 interface DeptFormModel extends DepartmentCreateDto {
   basicId?: ApiId
@@ -116,7 +116,7 @@ function normalizeNullable(value?: string | null) {
 
 async function loadTree() {
   try {
-    treeNodes.value = await departmentApi.tree({ keyword: null, limit: 2000, onlyEnabled: false })
+    treeNodes.value = await orgManagementApi.tree({ keyword: null, limit: 2000, onlyEnabled: false })
   }
   catch {
     treeNodes.value = []
@@ -126,7 +126,7 @@ async function loadTree() {
 async function loadTable() {
   loading.value = true
   try {
-    const result = await departmentApi.page({
+    const result = await orgManagementApi.page({
       ...createPageRequest({
         behavior: createDefaultQueryBehavior({
           disablePaging: true,
@@ -243,7 +243,7 @@ function buildFormModel(row: DepartmentDetailDto | DepartmentListItemDto): DeptF
 
 async function handleEdit(row: DepartmentListItemDto) {
   try {
-    const detail = await departmentApi.detail(row.basicId)
+    const detail = await orgManagementApi.detail(row.basicId)
     deptForm.value = buildFormModel(detail ?? row)
   }
   catch {
@@ -256,7 +256,7 @@ async function handleEdit(row: DepartmentListItemDto) {
 async function handleToggleStatus(row: DepartmentListItemDto) {
   const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
-    await departmentApi.updateStatus({ basicId: row.basicId, status: nextStatus })
+    await orgManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
     message.success('状态更新成功')
     await loadTable()
     await loadTree()
@@ -297,7 +297,7 @@ async function handleSubmit() {
         remark: normalizeNullable(deptForm.value.remark),
         sort: deptForm.value.sort,
       }
-      await departmentApi.update(updateInput)
+      await orgManagementApi.update(updateInput)
     }
     else {
       const createInput: DepartmentCreateDto = {
@@ -313,7 +313,7 @@ async function handleSubmit() {
         sort: deptForm.value.sort,
         status: deptForm.value.status,
       }
-      await departmentApi.create(createInput)
+      await orgManagementApi.create(createInput)
     }
 
     message.success('保存成功')

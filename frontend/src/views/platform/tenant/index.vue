@@ -18,16 +18,16 @@ import {
 import { computed, reactive, ref } from 'vue'
 import {
   createPageRequest,
-  tenantApi,
   TenantConfigStatus,
   TenantIsolationMode,
+  tenantManagementApi,
   TenantStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'SystemTenantPage' })
+defineOptions({ name: 'PlatformTenantPage' })
 
 interface TenantGridResult {
   items: TenantListItemDto[]
@@ -102,7 +102,7 @@ function normalizeNullable(value?: string | null) {
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<TenantGridResult> {
-  return tenantApi
+  return tenantManagementApi
     .page({
       ...createPageRequest({
         page: {
@@ -290,10 +290,10 @@ async function handleSubmit() {
         userLimit: tenantForm.value.userLimit ?? null,
       }
 
-      await tenantApi.update(updateInput)
+      await tenantManagementApi.update(updateInput)
 
       if (editingStatus.value !== tenantForm.value.tenantStatus && tenantForm.value.tenantStatus !== undefined) {
-        await tenantApi.updateStatus({
+        await tenantManagementApi.updateStatus({
           basicId: tenantForm.value.basicId,
           reason: '前端更新租户状态',
           tenantStatus: tenantForm.value.tenantStatus,
@@ -316,7 +316,7 @@ async function handleSubmit() {
         userLimit: tenantForm.value.userLimit ?? null,
       }
 
-      await tenantApi.create(createInput)
+      await tenantManagementApi.create(createInput)
     }
 
     message.success('保存成功')

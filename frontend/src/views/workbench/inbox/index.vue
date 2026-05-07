@@ -12,7 +12,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { NotificationStatus, NotificationType, userInboxApi } from '@/api'
+import { NotificationStatus, NotificationType, workbenchApi } from '@/api'
 import { Icon } from '~/iconify'
 import { useNotificationStore } from '~/stores'
 import { formatDate } from '~/utils'
@@ -99,7 +99,7 @@ function syncHeaderStore(list = items.value) {
 async function loadNotifications() {
   loading.value = true
   try {
-    const list = await userInboxApi.list(unreadOnly.value)
+    const list = await workbenchApi.inbox.list(unreadOnly.value)
     items.value = list
     syncHeaderStore(list)
   }
@@ -117,7 +117,7 @@ async function handleMarkRead(item: UserInboxItemDto) {
   }
 
   try {
-    await userInboxApi.markRead(item.basicId)
+    await workbenchApi.inbox.markRead(item.basicId)
     item.notificationStatus = NotificationStatus.Read
     item.readTime = item.readTime ?? new Date().toISOString()
     notificationStore.markItemRead(item.basicId)
@@ -129,7 +129,7 @@ async function handleMarkRead(item: UserInboxItemDto) {
 
 async function handleConfirm(item: UserInboxItemDto) {
   try {
-    await userInboxApi.confirm(item.basicId)
+    await workbenchApi.inbox.confirm(item.basicId)
     const now = new Date().toISOString()
     item.notificationStatus = NotificationStatus.Read
     item.readTime = item.readTime ?? now
@@ -147,7 +147,7 @@ async function handleMarkAllRead() {
   }
 
   try {
-    await userInboxApi.markAllRead()
+    await workbenchApi.inbox.markAllRead()
     const now = new Date().toISOString()
     items.value.forEach((item) => {
       if (item.notificationStatus === NotificationStatus.Unread) {

@@ -53,7 +53,7 @@ public sealed class SaasConfigurationSeeder(
         var client = DbClient;
         var definitions = BuildDefinitions();
         var configKeys = definitions
-            .SelectMany(static definition => definition.LookupKeys)
+            .Select(static definition => definition.ConfigKey)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
         var existingConfigs = await client.Queryable<SysConfig>()
@@ -70,8 +70,7 @@ public sealed class SaasConfigurationSeeder(
         var updateCount = 0;
         foreach (var definition in definitions)
         {
-            if (configMap.TryGetValue(definition.ConfigKey, out var existing)
-                || TryGetLegacyConfig(configMap, definition, out existing))
+            if (configMap.TryGetValue(definition.ConfigKey, out var existing))
             {
                 if (ApplyDefinition(existing, definition, fillValueOnly: true))
                 {
@@ -139,44 +138,27 @@ public sealed class SaasConfigurationSeeder(
     {
         return
         [
-            new("应用名称", SaasConfigKeys.Groups.Application, SaasConfigKeys.Application.Name, "XiHan BasicApp", "XiHan BasicApp", ConfigType.Application, ConfigDataType.String, "前端标题、通知和系统标识使用的应用名称", 10, [SaasConfigKeys.Legacy.ApplicationName]),
-            new("应用 Logo", SaasConfigKeys.Groups.Application, SaasConfigKeys.Application.Logo, string.Empty, string.Empty, ConfigType.Application, ConfigDataType.String, "前端和通知场景使用的应用 Logo 地址", 20, []),
-            new("默认语言", SaasConfigKeys.Groups.Application, SaasConfigKeys.Application.DefaultLanguage, "zh-CN", "zh-CN", ConfigType.Application, ConfigDataType.String, "系统默认语言区域", 30, [SaasConfigKeys.Legacy.ApplicationDefaultLanguage]),
-            new("默认租户版本", SaasConfigKeys.Groups.Tenant, SaasConfigKeys.Tenant.DefaultEditionCode, "free", "free", ConfigType.Business, ConfigDataType.String, "新租户未显式选择版本时使用的版本编码", 40, [SaasConfigKeys.Legacy.TenantDefaultEditionCode]),
-            new("登录方式", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.LoginMethods, "[\"password\"]", "[\"password\"]", ConfigType.System, ConfigDataType.Array, "登录页开放的登录方式编码集合", 50, []),
-            new("租户选择开关", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.TenantSelectionEnabled, "true", "true", ConfigType.System, ConfigDataType.Boolean, "登录页是否允许选择租户上下文", 60, []),
-            new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[]", "[]", ConfigType.System, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70, []),
-            new("登录通知开关", SaasConfigKeys.Groups.Notification, SaasConfigKeys.Notification.AuthLoginEnabled, "true", "true", ConfigType.System, ConfigDataType.Boolean, "登录成功后是否写入并推送当前用户通知", 80, [SaasConfigKeys.Legacy.NotificationAuthLoginEnabled]),
-            new("登出通知开关", SaasConfigKeys.Groups.Notification, SaasConfigKeys.Notification.AuthLogoutEnabled, "true", "true", ConfigType.System, ConfigDataType.Boolean, "主动退出后是否写入并推送当前用户通知", 90, [SaasConfigKeys.Legacy.NotificationAuthLogoutEnabled]),
-            new("密码最小长度", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordMinLength, "8", "8", ConfigType.System, ConfigDataType.Number, "账号密码策略的最小长度基线", 100, [SaasConfigKeys.Legacy.PasswordMinLength]),
-            new("密码要求数字", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordRequireDigit, "true", "true", ConfigType.System, ConfigDataType.Boolean, "账号密码策略是否要求至少包含一个数字", 110, [SaasConfigKeys.Legacy.PasswordRequireDigit]),
-            new("密码要求大写字母", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordRequireUppercase, "true", "true", ConfigType.System, ConfigDataType.Boolean, "账号密码策略是否要求至少包含一个大写字母", 120, [SaasConfigKeys.Legacy.PasswordRequireUppercase]),
-            new("最大登录失败次数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordMaxFailedAttempts, "5", "5", ConfigType.System, ConfigDataType.Number, "账号被锁定前允许的连续密码错误次数", 130, []),
-            new("账号锁定分钟数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.AccountLockoutMinutes, "15", "15", ConfigType.System, ConfigDataType.Number, "触发登录风控后默认锁定时长", 140, [SaasConfigKeys.Legacy.AccountLockoutMinutes]),
-            new("允许多设备登录", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionAllowMultiLogin, "true", "true", ConfigType.System, ConfigDataType.Boolean, "默认登录策略是否允许同一用户多设备在线", 150, [SaasConfigKeys.Legacy.SessionAllowMultiLogin]),
-            new("默认最大登录设备", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionMaxLoginDevices, "5", "5", ConfigType.System, ConfigDataType.Number, "普通账号默认最大在线设备数，0 表示不限", 160, [SaasConfigKeys.Legacy.SessionMaxLoginDevices]),
-            new("默认 OAuth ClientId", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionClientId, "basicapp-web", "basicapp-web", ConfigType.System, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 ClientId", 170, []),
-            new("默认 OAuth Scope", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionScope, "basicapp", "basicapp", ConfigType.System, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 Scope", 180, []),
-            new("刷新令牌有效天数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionRefreshTokenDays, "7", "7", ConfigType.System, ConfigDataType.Number, "密码登录签发刷新令牌的有效天数", 190, []),
-            new("审计日志保留天数", SaasConfigKeys.Groups.Audit, SaasConfigKeys.Audit.LogRetentionDays, "180", "180", ConfigType.System, ConfigDataType.Number, "审计与访问日志默认保留周期", 200, [SaasConfigKeys.Legacy.AuditLogRetentionDays])
+            new("应用名称", SaasConfigKeys.Groups.Application, SaasConfigKeys.Application.Name, "XiHan BasicApp", "XiHan BasicApp", ConfigType.Application, ConfigDataType.String, "前端标题、通知和系统标识使用的应用名称", 10),
+            new("应用 Logo", SaasConfigKeys.Groups.Application, SaasConfigKeys.Application.Logo, string.Empty, string.Empty, ConfigType.Application, ConfigDataType.String, "前端和通知场景使用的应用 Logo 地址", 20),
+            new("默认语言", SaasConfigKeys.Groups.Application, SaasConfigKeys.Application.DefaultLanguage, "zh-CN", "zh-CN", ConfigType.Application, ConfigDataType.String, "系统默认语言区域", 30),
+            new("默认租户版本", SaasConfigKeys.Groups.Tenant, SaasConfigKeys.Tenant.DefaultEditionCode, "free", "free", ConfigType.Business, ConfigDataType.String, "新租户未显式选择版本时使用的版本编码", 40),
+            new("登录方式", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.LoginMethods, "[\"password\"]", "[\"password\"]", ConfigType.System, ConfigDataType.Array, "登录页开放的登录方式编码集合", 50),
+            new("租户选择开关", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.TenantSelectionEnabled, "true", "true", ConfigType.System, ConfigDataType.Boolean, "登录页是否允许选择租户上下文", 60),
+            new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[]", "[]", ConfigType.System, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70),
+            new("登录通知开关", SaasConfigKeys.Groups.Notification, SaasConfigKeys.Notification.AuthLoginEnabled, "true", "true", ConfigType.System, ConfigDataType.Boolean, "登录成功后是否写入并推送当前用户通知", 80),
+            new("登出通知开关", SaasConfigKeys.Groups.Notification, SaasConfigKeys.Notification.AuthLogoutEnabled, "true", "true", ConfigType.System, ConfigDataType.Boolean, "主动退出后是否写入并推送当前用户通知", 90),
+            new("密码最小长度", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordMinLength, "8", "8", ConfigType.System, ConfigDataType.Number, "账号密码策略的最小长度基线", 100),
+            new("密码要求数字", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordRequireDigit, "true", "true", ConfigType.System, ConfigDataType.Boolean, "账号密码策略是否要求至少包含一个数字", 110),
+            new("密码要求大写字母", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordRequireUppercase, "true", "true", ConfigType.System, ConfigDataType.Boolean, "账号密码策略是否要求至少包含一个大写字母", 120),
+            new("最大登录失败次数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.PasswordMaxFailedAttempts, "5", "5", ConfigType.System, ConfigDataType.Number, "账号被锁定前允许的连续密码错误次数", 130),
+            new("账号锁定分钟数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.AccountLockoutMinutes, "15", "15", ConfigType.System, ConfigDataType.Number, "触发登录风控后默认锁定时长", 140),
+            new("允许多设备登录", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionAllowMultiLogin, "true", "true", ConfigType.System, ConfigDataType.Boolean, "默认登录策略是否允许同一用户多设备在线", 150),
+            new("默认最大登录设备", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionMaxLoginDevices, "5", "5", ConfigType.System, ConfigDataType.Number, "普通账号默认最大在线设备数，0 表示不限", 160),
+            new("默认 OAuth ClientId", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionClientId, "basicapp-web", "basicapp-web", ConfigType.System, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 ClientId", 170),
+            new("默认 OAuth Scope", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionScope, "basicapp", "basicapp", ConfigType.System, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 Scope", 180),
+            new("刷新令牌有效天数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionRefreshTokenDays, "7", "7", ConfigType.System, ConfigDataType.Number, "密码登录签发刷新令牌的有效天数", 190),
+            new("审计日志保留天数", SaasConfigKeys.Groups.Audit, SaasConfigKeys.Audit.LogRetentionDays, "180", "180", ConfigType.System, ConfigDataType.Number, "审计与访问日志默认保留周期", 200)
         ];
-    }
-
-    private static bool TryGetLegacyConfig(
-        IReadOnlyDictionary<string, SysConfig> configMap,
-        ConfigSeedDefinition definition,
-        out SysConfig existing)
-    {
-        foreach (var legacyKey in definition.LegacyKeys)
-        {
-            if (configMap.TryGetValue(legacyKey, out existing!))
-            {
-                return true;
-            }
-        }
-
-        existing = null!;
-        return false;
     }
 
     private static bool SetIfChanged<T>(T current, T next, Action<T> setter)
@@ -199,19 +181,5 @@ public sealed class SaasConfigurationSeeder(
         ConfigType ConfigType,
         ConfigDataType DataType,
         string ConfigDescription,
-        int Sort,
-        string[] LegacyKeys)
-    {
-        public IEnumerable<string> LookupKeys
-        {
-            get
-            {
-                yield return ConfigKey;
-                foreach (var legacyKey in LegacyKeys)
-                {
-                    yield return legacyKey;
-                }
-            }
-        }
-    }
+        int Sort);
 }

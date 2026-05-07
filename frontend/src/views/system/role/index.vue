@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { RoleCreateDto, RoleListItemDto, RoleUpdateDto } from '@/api'
+import type { RoleCreateDto, RoleListItemDto, RoleManagementDetailDto, RoleUpdateDto } from '@/api'
 import {
   NButton,
+  NDescriptions,
+  NDescriptionsItem,
+  NDrawer,
+  NDrawerContent,
+  NEmpty,
   NForm,
   NFormItem,
   NIcon,
@@ -10,8 +15,12 @@ import {
   NInputNumber,
   NModal,
   NPopconfirm,
+  NScrollbar,
   NSelect,
   NSpace,
+  NSpin,
+  NTabPane,
+  NTabs,
   NTag,
   useMessage,
 } from 'naive-ui'
@@ -20,8 +29,10 @@ import {
   createPageRequest,
   DataPermissionScope,
   EnableStatus,
-  roleApi,
+  PermissionAction,
+  roleManagementApi,
   RoleType,
+  ValidityStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
@@ -74,9 +85,22 @@ const dataScopeOptions = [
   { label: '自定义', value: DataPermissionScope.Custom },
 ]
 
+const validityStatusOptions = [
+  { label: '无效', value: ValidityStatus.Invalid },
+  { label: '有效', value: ValidityStatus.Valid },
+]
+
+const permissionActionOptions = [
+  { label: '允许', value: PermissionAction.Grant },
+  { label: '拒绝', value: PermissionAction.Deny },
+]
+
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<RoleManagementDetailDto | null>(null)
 const roleForm = ref<RoleFormModel>(createDefaultRoleForm())
 
 const modalTitle = computed(() => (roleForm.value.basicId ? '编辑角色' : '新增角色'))
@@ -103,12 +127,36 @@ function toOptionalBoolean(value: number | undefined) {
   return value === 1
 }
 
+function formatNullable(value: unknown) {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
+}
+
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
+}
+
+function formatBoolean(value?: boolean | null) {
+  if (value === undefined || value === null) {
+    return '-'
+  }
+
+  return value ? '是' : '否'
+}
+
+function formatStatus(value?: EnableStatus | null) {
+  return getOptionLabel(STATUS_OPTIONS, value)
+}
+
+function formatValidityStatus(value?: ValidityStatus | null) {
+  return getOptionLabel(validityStatusOptions, value)
+}
+
 function canMaintainRole(row: RoleListItemDto) {
   return !row.isGlobal && row.roleType !== RoleType.System
 }
 
 function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<RoleGridResult> {
-  return roleApi
+  return roleManagementApi
     .page({
       ...createPageRequest({
         page: {
@@ -180,7 +228,7 @@ const tableOptions = useVxeTable<RoleListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 120,
+        width: 156,
       },
     ],
     id: 'sys_role',
@@ -232,6 +280,25 @@ function handleEdit(row: RoleListItemDto) {
   modalVisible.value = true
 }
 
+async function handleView(row: RoleListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  currentDetail.value = null
+
+  try {
+    currentDetail.value = await roleManagementApi.detailView(row.basicId)
+    if (!currentDetail.value) {
+      message.warning('未查询到角色详情')
+    }
+  }
+  catch {
+    message.error('加载角色详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
+}
+
 function validateRoleForm() {
   if (!roleForm.value.roleName.trim()) {
     message.warning('请输入角色名称')
@@ -266,9 +333,9 @@ async function handleSubmit() {
         sort: roleForm.value.sort,
       }
 
-      await roleApi.update(updateInput)
+      await roleManagementApi.update(updateInput)
       if (editingStatus.value !== roleForm.value.status) {
-        await roleApi.updateStatus({
+        await roleManagementApi.updateStatus({
           basicId: roleForm.value.basicId,
           remark: roleForm.value.remark,
           status: roleForm.value.status,
@@ -288,7 +355,7 @@ async function handleSubmit() {
         status: roleForm.value.status,
       }
 
-      await roleApi.create(createInput)
+      await roleManagementApi.create(createInput)
     }
 
     message.success('保存成功')
@@ -304,13 +371,13 @@ async function handleSubmit() {
 }
 
 async function handleDelete(row: RoleListItemDto) {
-  await roleApi.delete(row.basicId)
+  await roleManagementApi.delete(row.basicId)
   message.success('删除成功')
   xGrid.value?.commitProxy('query')
 }
 
 async function handleToggleStatus(row: RoleListItemDto) {
-  await roleApi.updateStatus({
+  await roleManagementApi.updateStatus({
     basicId: row.basicId,
     remark: row.status === EnableStatus.Enabled ? '前端停用角色' : '前端启用角色',
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
@@ -399,7 +466,12 @@ async function handleToggleStatus(row: RoleListItemDto) {
 
         <template #col_actions="{ row }">
           <NSpace size="small">
-            <!-- 操作列仅图标 -->
+            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:eye" /></NIcon>
+              </template>
+            </NButton>
+
             <NButton
               :disabled="!canMaintainRole(row)"
               aria-label="编辑"
@@ -444,6 +516,178 @@ async function handleToggleStatus(row: RoleListItemDto) {
         </template>
       </vxe-grid>
     </vxe-card>
+
+    <NDrawer v-model:show="detailVisible" :width="900">
+      <NDrawerContent closable title="角色详情">
+        <NSpin :show="detailLoading">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无角色详情" />
+          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
+            <NTabs animated type="line">
+              <NTabPane name="overview" tab="概览">
+                <NDescriptions :column="2" bordered size="small">
+                  <NDescriptionsItem label="角色名称">
+                    {{ currentDetail.role.roleName }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="角色编码">
+                    {{ currentDetail.role.roleCode }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="角色类型">
+                    {{ getOptionLabel(roleTypeOptions, currentDetail.role.roleType) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="数据范围">
+                    {{ getOptionLabel(dataScopeOptions, currentDetail.role.dataScope) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="全局角色">
+                    {{ formatBoolean(currentDetail.role.isGlobal) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="状态">
+                    {{ formatStatus(currentDetail.role.status) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="成员上限">
+                    {{ currentDetail.role.maxMembers }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="排序">
+                    {{ currentDetail.role.sort }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="描述">
+                    {{ formatNullable(currentDetail.role.roleDescription) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="备注">
+                    {{ formatNullable(currentDetail.role.remark) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="创建时间">
+                    {{ formatNullableDate(currentDetail.role.createdTime) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="聚合时间">
+                    {{ formatNullableDate(currentDetail.generatedTime) }}
+                  </NDescriptionsItem>
+                </NDescriptions>
+              </NTabPane>
+
+              <NTabPane name="permissions" :tab="`权限 (${currentDetail.permissions.length})`">
+                <table v-if="currentDetail.permissions.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>权限</th>
+                      <th>编码</th>
+                      <th>动作</th>
+                      <th>状态</th>
+                      <th>有效期</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in currentDetail.permissions" :key="item.basicId">
+                      <td>{{ formatNullable(item.permissionName) }}</td>
+                      <td>{{ formatNullable(item.permissionCode) }}</td>
+                      <td>{{ getOptionLabel(permissionActionOptions, item.permissionAction) }}</td>
+                      <td>{{ formatValidityStatus(item.status) }}</td>
+                      <td>{{ formatNullableDate(item.effectiveTime) }} 至 {{ formatNullableDate(item.expirationTime) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <NEmpty v-else description="暂无权限分配" />
+              </NTabPane>
+
+              <NTabPane name="dataScopes" :tab="`数据范围 (${currentDetail.dataScopes.length})`">
+                <table v-if="currentDetail.dataScopes.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>部门</th>
+                      <th>编码</th>
+                      <th>包含子部门</th>
+                      <th>状态</th>
+                      <th>有效期</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in currentDetail.dataScopes" :key="item.basicId">
+                      <td>{{ formatNullable(item.departmentName) }}</td>
+                      <td>{{ formatNullable(item.departmentCode) }}</td>
+                      <td>{{ formatBoolean(item.includeChildren) }}</td>
+                      <td>{{ formatValidityStatus(item.status) }}</td>
+                      <td>{{ formatNullableDate(item.effectiveTime) }} 至 {{ formatNullableDate(item.expirationTime) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <NEmpty v-else description="暂无角色数据范围" />
+              </NTabPane>
+
+              <NTabPane name="ancestors" :tab="`祖先链 (${currentDetail.ancestors.length})`">
+                <table v-if="currentDetail.ancestors.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>上级角色</th>
+                      <th>编码</th>
+                      <th>深度</th>
+                      <th>状态</th>
+                      <th>路径</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in currentDetail.ancestors" :key="item.basicId">
+                      <td>{{ formatNullable(item.ancestorRoleName) }}</td>
+                      <td>{{ formatNullable(item.ancestorRoleCode) }}</td>
+                      <td>{{ item.depth }}</td>
+                      <td>{{ formatStatus(item.ancestorStatus) }}</td>
+                      <td>{{ formatNullable(item.path) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <NEmpty v-else description="暂无祖先角色" />
+              </NTabPane>
+
+              <NTabPane name="descendants" :tab="`后代链 (${currentDetail.descendants.length})`">
+                <table v-if="currentDetail.descendants.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>下级角色</th>
+                      <th>编码</th>
+                      <th>深度</th>
+                      <th>状态</th>
+                      <th>路径</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in currentDetail.descendants" :key="item.basicId">
+                      <td>{{ formatNullable(item.descendantRoleName) }}</td>
+                      <td>{{ formatNullable(item.descendantRoleCode) }}</td>
+                      <td>{{ item.depth }}</td>
+                      <td>{{ formatStatus(item.descendantStatus) }}</td>
+                      <td>{{ formatNullable(item.path) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <NEmpty v-else description="暂无后代角色" />
+              </NTabPane>
+
+              <NTabPane name="grantedUsers" :tab="`授权用户 (${currentDetail.grantedUsers.length})`">
+                <table v-if="currentDetail.grantedUsers.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>用户</th>
+                      <th>状态</th>
+                      <th>已过期</th>
+                      <th>授权原因</th>
+                      <th>有效期</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in currentDetail.grantedUsers" :key="item.basicId">
+                      <td>{{ formatNullable(item.realName || item.nickName || item.userName) }}</td>
+                      <td>{{ formatValidityStatus(item.status) }}</td>
+                      <td>{{ formatBoolean(item.isExpired) }}</td>
+                      <td>{{ formatNullable(item.grantReason) }}</td>
+                      <td>{{ formatNullableDate(item.effectiveTime) }} 至 {{ formatNullableDate(item.expirationTime) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <NEmpty v-else description="暂无授权用户" />
+              </NTabPane>
+            </NTabs>
+          </NScrollbar>
+        </NSpin>
+      </NDrawerContent>
+    </NDrawer>
 
     <NModal
       v-model:show="modalVisible"
@@ -507,3 +751,28 @@ async function handleToggleStatus(row: RoleListItemDto) {
     </NModal>
   </div>
 </template>
+
+<style scoped>
+.xh-detail-empty {
+  padding: 48px 0;
+}
+
+.xh-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.xh-detail-table th,
+.xh-detail-table td {
+  padding: 9px 10px;
+  border: 1px solid var(--n-border-color);
+  text-align: left;
+  vertical-align: top;
+}
+
+.xh-detail-table th {
+  background: var(--n-merged-th-color);
+  font-weight: 500;
+}
+</style>

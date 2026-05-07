@@ -1,8 +1,8 @@
 # XiHan.BasicApp 菜单收敛与页面内嵌功能开发方案
 
 > 版本：v2.0  
-> 日期：2026-05-07  
-> 状态：实施中，菜单种子与前端目录第一阶段已落地  
+> 日期：2026-05-08
+> 状态：实施中，菜单种子、前端目录、页面级 API facade 与账号/角色/权限中心聚合读模型已落地
 > 事实源：`E:\Repository\XiHanFun\开发设计\目录.md`  
 > 适用范围：`XiHan.BasicApp/backend/src/modules/XiHan.BasicApp.Saas`、`XiHan.BasicApp/frontend/src`
 
@@ -377,10 +377,10 @@ system.permission-change-log
 
 | 聚合读模型 | 建议位置 | 用途 |
 |------------|----------|------|
-| `UserManagementDetailDto` | `Application/Dtos/Identity` | 用户详情聚合用户、部门、角色、安全、会话摘要 |
-| `RoleManagementDetailDto` | `Application/Dtos/Authorization` | 角色详情聚合层级、权限、数据范围 |
+| `UserManagementDetailDto` | `Application/Dtos/System` | 用户详情聚合租户成员、部门、角色、权限、数据范围、安全、会话、统计、第三方绑定、密码历史 |
+| `RoleManagementDetailDto` | `Application/Dtos/System` | 角色详情聚合层级、权限、数据范围、授权用户摘要 |
 | `TenantManagementDetailDto` | `Application/Dtos/Tenancy` | 租户详情聚合成员、套餐、版本权限摘要 |
-| `PermissionCenterDetailDto` | `Application/Dtos/Authorization` | 权限中心聚合资源、操作、ABAC、FLS |
+| `PermissionCenterDetailDto` | `Application/Dtos/System` | 权限中心聚合资源、操作、ABAC、委托、申请、FLS、变更历史 |
 | `OperationLogDetailDto` | `Application/Dtos/Logging` | 操作日志详情聚合差异和权限变更 |
 | `MessageCenterSummaryDto` | `Application/Dtos/Messaging` | 消息中心通知、邮件、短信统计 |
 
@@ -472,27 +472,58 @@ frontend/src/views/
 
 ### 9.2 目标入口策略
 
-重建系统不提供历史路径重定向表。运行时只注册本文目标路径；子实体能力通过主页面内嵌功能重新提供。
+运行时只注册本文目标路径；子实体能力通过主页面内嵌功能重新提供。
 
 动态路由根据后端实际下发的可见子菜单修正目录重定向：当种子里的 `Redirect` 指向已被权限过滤掉的子菜单时，前端自动落到该目录下第一个可导航页面；首页 `homePath` 也使用同一原则，避免进入只有目录壳、没有页面组件的路径。
 
 ### 9.3 API facade
 
-建议新增页面级 facade，避免页面直接散落调用多个子实体 API：
+已新增页面级 facade，目标菜单页面不直接散落调用多个子实体 API：
 
 ```text
-frontend/src/api/modules/workbench/
-frontend/src/api/modules/system/user-management.ts
-frontend/src/api/modules/system/role-management.ts
-frontend/src/api/modules/system/permission-center.ts
-frontend/src/api/modules/platform/tenant-management.ts
-frontend/src/api/modules/platform/job-management.ts
-frontend/src/api/modules/platform/approval-management.ts
-frontend/src/api/modules/log/log-management.ts
-frontend/src/api/modules/messaging/message-center.ts
+frontend/src/api/modules/workbench/index.ts
+frontend/src/api/modules/system/index.ts
+frontend/src/api/modules/platform/index.ts
+frontend/src/api/modules/log/index.ts
 ```
 
-后端聚合 DTO 未完成前，facade 可以短期并行调用现有 API；后端聚合接口完成后替换为单次请求。
+当前 facade 先组合现有 AppService / QueryService，后端聚合 DTO 完成后替换为单次聚合请求。子实体 API 保留为页面内 Tab、抽屉、弹窗和按钮操作的能力入口，不再作为菜单级服务入口直接暴露给目标页面。
+
+已落地的关键归口：
+
+- `workbenchApi.dashboard.statistics` 归口 `UserStatisticsQueryService`，与仪表盘菜单权限 `saas:user-statistics:read` 一致。
+- `workbenchApi.dashboard.summary` 归口 `WorkbenchQueryService.GetDashboardSummaryAsync`，一次返回当前用户今日统计和站内信摘要。
+- `workbenchApi.inbox` 归口当前用户站内信能力。
+- `systemApi` 聚合账号、角色、机构、权限中心、消息中心页面能力。
+- `systemApi.user.detailView` 归口 `UserManagementQueryService.GetUserManagementDetailAsync`，一次返回账号管理详情抽屉所需的只读聚合数据。
+- `systemApi.role.detailView` 归口 `RoleManagementQueryService.GetRoleManagementDetailAsync`，一次返回角色管理详情抽屉所需的层级、权限、数据范围和授权用户摘要。
+- `systemApi.permission.detailView` 归口 `PermissionCenterQueryService.GetPermissionCenterDetailAsync`，一次返回权限中心详情抽屉所需的资源、操作、ABAC 条件、委托、申请、FLS 和变更历史。
+- `systemApi.permission` 内继续暴露资源、操作、条件、委托、申请、字段级安全和权限变更日志 API，作为权限中心页面内 Tab、抽屉和按钮能力。
+- `platformApi` 聚合应用、租户、菜单、参数、字典、文件、任务、审批、监控、缓存页面能力。
+- `logManagementApi` 聚合登录、访问、操作、API、异常日志页面能力。
+
+后端页面级聚合服务已开始落地：
+
+```text
+backend/src/modules/XiHan.BasicApp.Saas/Application/Contracts/Workbench/IWorkbenchQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/Workbench/WorkbenchQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/Workbench/WorkbenchDashboardSummaryDto.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Contracts/System/IUserManagementQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/System/UserManagementQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/System/UserManagementDetailDto.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Contracts/System/IRoleManagementQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/System/RoleManagementQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/System/RoleManagementDetailDto.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Contracts/System/IPermissionCenterQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/QueryServices/System/PermissionCenterQueryService.cs
+backend/src/modules/XiHan.BasicApp.Saas/Application/Dtos/System/PermissionCenterDetailDto.cs
+```
+
+账号管理聚合接口只作为页面详情读模型，不替代子实体授权、撤销、启停、强制下线等命令接口；这些操作仍由原 AppService/QueryService 承载并按细粒度权限码校验。
+
+角色管理聚合接口同样只作为详情读模型，不替代角色层级、角色权限、角色数据范围、用户角色绑定的授权和撤销命令接口。
+
+权限中心聚合接口同样只作为详情读模型，不替代权限定义、资源、操作、ABAC 条件、权限委托、权限申请、FLS 的新增、更新、撤销、审批和启停命令接口。
 
 ### 9.4 权限控制
 
