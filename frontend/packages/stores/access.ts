@@ -2,7 +2,7 @@ import type { MenuRoute } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { HOME_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
-import { LocalStorage } from '~/utils'
+import { LocalStorage, resolveFirstNavigableRouteListPath } from '~/utils'
 
 export const useAccessStore = defineStore('access', () => {
   const accessToken = ref<string | null>(LocalStorage.get<string>(TOKEN_KEY))
@@ -12,47 +12,7 @@ export const useAccessStore = defineStore('access', () => {
   const isRoutesLoaded = ref(false)
   const loginExpired = ref(false)
 
-  function hasVisiblePath(routes: MenuRoute[], path: string): boolean {
-    return routes.some((route) => {
-      if (route.meta?.hidden) {
-        return hasVisiblePath(route.children ?? [], path)
-      }
-
-      return route.path === path || hasVisiblePath(route.children ?? [], path)
-    })
-  }
-
-  function resolveFirstVisiblePath(routes: MenuRoute[]): string {
-    for (const route of routes) {
-      if (route.meta?.hidden) {
-        const hiddenChildPath = resolveFirstVisiblePath(route.children ?? [])
-        if (hiddenChildPath) {
-          return hiddenChildPath
-        }
-        continue
-      }
-
-      if (
-        route.redirect
-        && route.redirect !== route.path
-        && hasVisiblePath(route.children ?? [], route.redirect)
-      ) {
-        return route.redirect
-      }
-
-      const childPath = resolveFirstVisiblePath(route.children ?? [])
-      if (childPath) {
-        return childPath
-      }
-
-      if (route.path) {
-        return route.path
-      }
-    }
-    return ''
-  }
-
-  const homePath = computed(() => resolveFirstVisiblePath(accessRoutes.value) || HOME_PATH)
+  const homePath = computed(() => resolveFirstNavigableRouteListPath(accessRoutes.value) || HOME_PATH)
 
   function setAccessToken(token: string | null) {
     accessToken.value = token

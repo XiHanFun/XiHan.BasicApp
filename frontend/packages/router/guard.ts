@@ -1,4 +1,5 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
+import type { PermissionInfo } from '~/types'
 import { createDiscreteApi } from 'naive-ui'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
@@ -32,7 +33,7 @@ export function setupRouterGuard(router: Router) {
     const appStore = useAppStore()
     const userStore = useUserStore()
     const tabbarStore = useTabbarStore()
-    let permissionInfo: any = null
+    let permissionInfo: null | PermissionInfo = null
 
     if (appStore.transitionProgress) {
       loadingBar.start()

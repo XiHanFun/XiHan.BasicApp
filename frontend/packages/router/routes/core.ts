@@ -81,8 +81,10 @@ export const coreRoutes: RouteRecordRaw[] = [
 function collectRouteNames(routes: RouteRecordRaw[]): string[] {
   const names: string[] = []
   for (const route of routes) {
-    if (route.name) names.push(String(route.name))
-    if (route.children) names.push(...collectRouteNames(route.children))
+    if (route.name)
+      names.push(String(route.name))
+    if (route.children)
+      names.push(...collectRouteNames(route.children))
   }
   return names
 }

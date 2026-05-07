@@ -1,3 +1,12 @@
+type AudioWindow = Window & {
+  webkitAudioContext?: typeof AudioContext
+}
+
+type DeviceNavigator = Navigator & {
+  deviceMemory?: number
+  getBattery?: () => Promise<unknown>
+}
+
 /**
  * 设备指纹生成工具
  * 基于多维度浏览器/硬件特征生成稳定的设备唯一标识
@@ -50,12 +59,12 @@ function getWebGLFingerprint(): string {
 function getAudioFingerprint(): Promise<string> {
   return new Promise((resolve) => {
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext
-      if (!AudioContext) {
+      const AudioContextCtor = window.AudioContext || (window as AudioWindow).webkitAudioContext
+      if (!AudioContextCtor) {
         resolve('')
         return
       }
-      const ctx = new AudioContext()
+      const ctx = new AudioContextCtor()
       const oscillator = ctx.createOscillator()
       const analyser = ctx.createAnalyser()
       const gain = ctx.createGain()
@@ -103,17 +112,17 @@ function getAudioFingerprint(): Promise<string> {
 }
 
 function getNavigatorFeatures(): string {
-  const nav = window.navigator
+  const nav = window.navigator as DeviceNavigator
   return [
     nav.language || '',
     (nav.languages || []).join(','),
     nav.platform || '',
     nav.hardwareConcurrency ?? '',
-    (nav as any).deviceMemory ?? '',
+    nav.deviceMemory ?? '',
     nav.maxTouchPoints ?? 0,
     'ontouchstart' in window ? 1 : 0,
     nav.cookieEnabled ? 1 : 0,
-    typeof (nav as any).getBattery === 'function' ? 1 : 0,
+    typeof nav.getBattery === 'function' ? 1 : 0,
   ].join('|')
 }
 

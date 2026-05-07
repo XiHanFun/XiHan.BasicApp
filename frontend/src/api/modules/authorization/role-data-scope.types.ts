@@ -1,6 +1,6 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString } from '../../types'
-import type { EnableStatus, ValidityStatus } from '../shared'
 import type { DepartmentType } from '../organization'
+import type { EnableStatus, ValidityStatus } from '../shared'
 
 export interface RoleDataScopeListItemDto extends BasicDto {
   createdTime: DateTimeString

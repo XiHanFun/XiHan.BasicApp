@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CascaderOption } from 'naive-ui'
 import type { VxeGridInstance } from 'vxe-table'
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import {
@@ -63,7 +64,7 @@ const menuTypeOptions = [
 
 const modalTitle = computed(() => (menuForm.value.basicId ? '编辑菜单' : '新增菜单'))
 
-function treeToCascaderOptions(nodes: MenuTreeNodeDto[]): any[] {
+function treeToCascaderOptions(nodes: MenuTreeNodeDto[]): CascaderOption[] {
   return nodes.map(node => ({
     children: node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
     label: `${node.menuName}（${node.path}）`,
@@ -293,7 +294,8 @@ function validateForm() {
 }
 
 async function handleSubmit() {
-  if (!validateForm()) return
+  if (!validateForm())
+    return
 
   submitLoading.value = true
   try {

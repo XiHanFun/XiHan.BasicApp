@@ -1,17 +1,17 @@
 // ==================== 通用类型 ====================
 
-export interface Recordable<T = any> {
+export interface Recordable<T = unknown> {
   [key: string]: T
 }
 
-export interface PageResult<T = any> {
+export interface PageResult<T = unknown> {
   items: T[]
   total: number
   page: number
   pageSize: number
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   code: number | string
   message: string
   data: T

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ExceptionLogDetailDto, ExceptionLogListItemDto } from '@/api'
 import type { LogDetailField } from '../_components/log-detail.types'
+import type { ExceptionLogDetailDto, ExceptionLogListItemDto } from '@/api'
 import {
   NButton,
   NIcon,

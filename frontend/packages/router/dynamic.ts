@@ -1,6 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { MenuRoute } from '~/types'
 import { useAppContext } from '~/stores/app-context'
+import {
+  resolveFirstNavigableRouteListPath,
+  routeListContainsVisiblePath,
+} from '~/utils'
 
 const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 
@@ -90,27 +94,6 @@ function resolveView(component?: string) {
   return null
 }
 
-function findFirstNavigablePath(children?: RouteRecordRaw[]): string | undefined {
-  for (const child of children ?? []) {
-    const descendant = findFirstNavigablePath(child.children)
-    if (descendant) {
-      return descendant
-    }
-
-    if (child.path) {
-      return child.path
-    }
-  }
-
-  return undefined
-}
-
-function hasChildPath(children: RouteRecordRaw[] | undefined, path: string): boolean {
-  return (children ?? []).some(child =>
-    child.path === path || hasChildPath(child.children, path),
-  )
-}
-
 export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
   return menuRoutes
     .filter(item => !!item.path)
@@ -127,9 +110,9 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
       }
 
       if (route.children?.length) {
-        const firstChildPath = findFirstNavigablePath(route.children)
+        const firstChildPath = resolveFirstNavigableRouteListPath(route.children)
         const redirect = item.redirect && item.redirect !== item.path
-          && hasChildPath(route.children, item.redirect)
+          && routeListContainsVisiblePath(route.children, item.redirect)
           ? item.redirect
           : firstChildPath
         if (redirect && redirect !== item.path) {

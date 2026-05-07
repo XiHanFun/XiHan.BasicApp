@@ -3,7 +3,9 @@ import type {
   LoginResponse,
   LoginToken,
   OAuthProviderItem,
+  PermissionInfo,
   PhoneLoginParams,
+  UserInfo,
 } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -29,14 +31,15 @@ export const useAuthStore = defineStore('auth', () => {
     accessStore.setAccessToken(result.accessToken)
     accessStore.setRefreshToken(result.refreshToken)
 
-    let userInfo: any
-    let permissionInfo: any
+    let userInfo: UserInfo
+    let permissionInfo: PermissionInfo
     try {
       ;[userInfo, permissionInfo] = await Promise.all([
         ctx.apis.getUserInfoApi(),
         ctx.apis.getPermissionsApi(),
       ])
-    } catch (error) {
+    }
+    catch (error) {
       accessStore.$reset()
       userStore.$reset()
       throw error
@@ -66,12 +69,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (redirect) {
       const target = decodeURIComponent(redirect)
       const resolved = router.resolve(target)
-      const isValid =
-        resolved.matched.length > 0 &&
-        resolved.name !== 'NotFound' &&
-        resolved.name !== 'NotFoundCatchAll'
+      const isValid
+        = resolved.matched.length > 0
+          && resolved.name !== 'NotFound'
+          && resolved.name !== 'NotFoundCatchAll'
       await router.replace(isValid ? target : homePath)
-    } else {
+    }
+    else {
       await router.replace(homePath)
     }
   }
@@ -88,7 +92,8 @@ export const useAuthStore = defineStore('auth', () => {
         await afterLogin(response.token, redirect)
       }
       return null
-    } finally {
+    }
+    finally {
       loginLoading.value = false
     }
   }
@@ -99,7 +104,8 @@ export const useAuthStore = defineStore('auth', () => {
       const ctx = useAppContext()
       const result = await ctx.apis.phoneLoginApi(params)
       await afterLogin(result, redirect)
-    } finally {
+    }
+    finally {
       loginLoading.value = false
     }
   }
@@ -118,7 +124,8 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading.value = true
     try {
       await afterLogin(token, redirect)
-    } finally {
+    }
+    finally {
       loginLoading.value = false
     }
   }
@@ -137,13 +144,15 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const signalR = useSignalR()
       await signalR.destroy()
-    } catch {
+    }
+    catch {
       // ignore signalr destroy error
     }
 
     try {
       await ctx.apis.logoutApi()
-    } catch {
+    }
+    catch {
       // ignore logout api error
     }
 
@@ -153,12 +162,14 @@ export const useAuthStore = defineStore('auth', () => {
         if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
           try {
             router.removeRoute(route.name)
-          } catch {
+          }
+          catch {
             // ignore remove route error
           }
         }
       }
-    } catch {
+    }
+    catch {
       // ignore dynamic route clear error
     }
 
@@ -169,12 +180,14 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await router.replace(LOGIN_PATH)
-    } catch {
+    }
+    catch {
       const base = import.meta.env.VITE_BASE || '/'
       const normalizedBase = base.endsWith('/') ? base : `${base}/`
       if (import.meta.env.VITE_ROUTER_HISTORY === 'history') {
         window.location.href = LOGIN_PATH
-      } else {
+      }
+      else {
         window.location.href = `${normalizedBase}#${LOGIN_PATH}`
       }
     }

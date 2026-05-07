@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CascaderOption } from 'naive-ui'
 import type { VxeGridInstance } from 'vxe-table'
 import type {
   ApiId,
@@ -82,7 +83,7 @@ const deptTypeOptions = [
 const modalTitle = computed(() => (deptForm.value.basicId ? '编辑部门' : '新增部门'))
 
 /** 将树节点转换为 NCascader 选项 */
-function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): any[] {
+function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): CascaderOption[] {
   return nodes.map(node => ({
     children: node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
     label: node.departmentName,
@@ -278,7 +279,8 @@ function validateForm() {
 }
 
 async function handleSubmit() {
-  if (!validateForm()) return
+  if (!validateForm())
+    return
 
   submitLoading.value = true
   try {

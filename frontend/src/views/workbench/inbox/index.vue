@@ -411,7 +411,9 @@ onMounted(loadNotifications)
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   background: var(--bg-surface);
-  transition: border-color 0.16s ease, background 0.16s ease;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease;
 }
 
 .inbox-item--attention {
