@@ -1,17 +1,26 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiId, TenantCreateDto, TenantListItemDto, TenantUpdateDto } from '@/api'
+import type { ApiId, TenantCreateDto, TenantDetailDto, TenantListItemDto, TenantUpdateDto } from '@/api'
 import {
   NButton,
   NDatePicker,
+  NDescriptions,
+  NDescriptionsItem,
+  NDrawer,
+  NDrawerContent,
+  NEmpty,
   NForm,
   NFormItem,
   NIcon,
   NInput,
   NInputNumber,
   NModal,
+  NScrollbar,
   NSelect,
   NSpace,
+  NSpin,
+  NTabPane,
+  NTabs,
   NTag,
   useMessage,
 } from 'naive-ui'
@@ -45,6 +54,9 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<TenantStatus | null>(null)
 const tenantForm = ref<TenantFormModel>(createDefaultForm())
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<TenantDetailDto | null>(null)
 
 const queryParams = reactive({
   configStatus: undefined as TenantConfigStatus | undefined,
@@ -184,7 +196,7 @@ const tableOptions = useVxeTable<TenantListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 56,
+        width: 106,
       },
     ],
     id: 'sys_tenant',
@@ -251,6 +263,37 @@ function handleEdit(row: TenantListItemDto) {
     userLimit: row.userLimit ?? null,
   }
   modalVisible.value = true
+}
+
+async function handleView(row: TenantListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  currentDetail.value = null
+  try {
+    currentDetail.value = await tenantManagementApi.detail(row.basicId)
+    if (!currentDetail.value) {
+      message.warning('未查询到租户详情')
+    }
+  }
+  catch {
+    message.error('加载租户详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
+}
+
+function formatNullable(value: unknown) {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
+}
+
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
+}
+
+function formatBoolean(value?: boolean | null) {
+  if (value === undefined || value === null) return '-'
+  return value ? '是' : '否'
 }
 
 function validateForm() {
@@ -418,15 +461,107 @@ async function handleSubmit() {
         </template>
 
         <template #col_actions="{ row }">
-          <!-- 操作列仅图标 -->
-          <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:pencil" /></NIcon>
-            </template>
-          </NButton>
+          <NSpace size="small">
+            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:eye" /></NIcon>
+              </template>
+            </NButton>
+            <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:pencil" /></NIcon>
+              </template>
+            </NButton>
+          </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>
+
+    <NDrawer v-model:show="detailVisible" :width="800">
+      <NDrawerContent closable title="租户详情">
+        <NSpin :show="detailLoading">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无租户详情" />
+          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
+            <NTabs animated type="line">
+              <NTabPane name="overview" tab="概览">
+                <NDescriptions :column="2" bordered size="small">
+                  <NDescriptionsItem label="租户名称">
+                    {{ currentDetail.tenantName }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="租户编码">
+                    {{ currentDetail.tenantCode }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="简称">
+                    {{ formatNullable(currentDetail.tenantShortName) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="域名">
+                    {{ formatNullable(currentDetail.domain) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="租户状态">
+                    <NTag :type="getTenantStatusTagType(currentDetail.tenantStatus)" round size="small">
+                      {{ getOptionLabel(tenantStatusOptions, currentDetail.tenantStatus) }}
+                    </NTag>
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="配置状态">
+                    <NTag :type="currentDetail.configStatus === TenantConfigStatus.Configured ? 'success' : currentDetail.configStatus === TenantConfigStatus.Failed ? 'error' : 'warning'" round size="small">
+                      {{ getOptionLabel(configStatusOptions, currentDetail.configStatus) }}
+                    </NTag>
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="隔离模式">
+                    {{ getOptionLabel(isolationModeOptions, currentDetail.isolationMode) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="版本 ID">
+                    {{ formatNullable(currentDetail.editionId) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="用户上限">
+                    {{ formatNullable(currentDetail.userLimit) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="存储上限(MB)">
+                    {{ formatNullable(currentDetail.storageLimit) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="排序">
+                    {{ currentDetail.sort }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="已过期">
+                    {{ formatBoolean(currentDetail.isExpired) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="到期时间">
+                    {{ formatNullableDate(currentDetail.expireTime) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="创建时间">
+                    {{ formatNullableDate(currentDetail.createdTime) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="修改时间">
+                    {{ formatNullableDate(currentDetail.modifiedTime) }}
+                  </NDescriptionsItem>
+                </NDescriptions>
+              </NTabPane>
+
+              <NTabPane name="members" tab="成员">
+                <NEmpty description="加载中…" />
+              </NTabPane>
+
+              <NTabPane name="config" tab="配置信息">
+                <NDescriptions :column="1" bordered size="small">
+                  <NDescriptionsItem label="Logo">
+                    {{ formatNullable(currentDetail.logo) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="域名">
+                    {{ formatNullable(currentDetail.domain) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="创建人 ID">
+                    {{ formatNullable(currentDetail.createdId) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="最后修改人 ID">
+                    {{ formatNullable(currentDetail.modifiedId) }}
+                  </NDescriptionsItem>
+                </NDescriptions>
+              </NTabPane>
+            </NTabs>
+          </NScrollbar>
+        </NSpin>
+      </NDrawerContent>
+    </NDrawer>
 
     <NModal
       v-model:show="modalVisible"
@@ -508,3 +643,9 @@ async function handleSubmit() {
     </NModal>
   </div>
 </template>
+
+<style scoped>
+.xh-detail-empty {
+  padding: 48px 0;
+}
+</style>

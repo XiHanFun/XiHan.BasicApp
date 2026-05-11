@@ -155,6 +155,37 @@ public static class SaasConfigKeys
     }
 
     /// <summary>
+    /// 文件存储配置。
+    /// </summary>
+    public static class File
+    {
+        /// <summary>
+        /// 存储提供者。
+        /// </summary>
+        public const string StorageProvider = "saas.file.storage.provider";
+
+        /// <summary>
+        /// 本地存储根路径。
+        /// </summary>
+        public const string StorageBasePath = "saas.file.storage.base.path";
+
+        /// <summary>
+        /// 最大上传文件大小（MB）。
+        /// </summary>
+        public const string MaxFileSize = "saas.file.max.file.size";
+
+        /// <summary>
+        /// 允许的文件扩展名，逗号分隔。
+        /// </summary>
+        public const string AllowedExtensions = "saas.file.allowed.extensions";
+
+        /// <summary>
+        /// 文件存储默认过期天数。
+        /// </summary>
+        public const string FileExpiryDays = "saas.file.expiry.days";
+    }
+
+    /// <summary>
     /// 配置分组。
     /// </summary>
     public static class Groups
@@ -183,6 +214,11 @@ public static class SaasConfigKeys
         /// 审计配置分组。
         /// </summary>
         public const string Audit = "audit";
+
+        /// <summary>
+        /// 文件存储配置分组。
+        /// </summary>
+        public const string File = "file";
     }
 
     /// <summary>
