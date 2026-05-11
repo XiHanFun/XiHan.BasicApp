@@ -301,6 +301,68 @@ public sealed class SaasDictSeeder(
                 new("boolean", "布尔值", "2", false, "布尔值", 2),
                 new("json", "JSON对象", "3", false, "JSON 对象", 3),
                 new("array", "数组", "4", false, "数组", 4)
+            ]),
+            new("department_type", "部门类型", "组织架构部门分类", 140,
+            [
+                new("corporation", "集团", "0", false, "集团公司", 0),
+                new("headquarters", "总部", "1", false, "集团总部", 1),
+                new("company", "公司", "2", false, "独立法人公司", 2),
+                new("branch", "分公司", "3", false, "分支机构", 3),
+                new("division", "事业部", "4", false, "事业部门", 4),
+                new("center", "中心", "5", false, "职能中心", 5),
+                new("department", "部门", "6", true, "标准部门", 6),
+                new("section", "科室", "7", false, "科室", 7),
+                new("team", "小组", "8", false, "工作小组", 8),
+                new("group", "组", "9", false, "组", 9),
+                new("project", "项目组", "10", false, "临时项目组", 10),
+                new("workgroup", "工作组", "11", false, "工作组", 11),
+                new("virtual", "虚拟", "12", false, "虚拟组织", 12),
+                new("office", "办公室", "13", false, "办公室", 13),
+                new("subsidiary", "子公司", "14", false, "子公司", 14),
+                new("other", "其他", "99", false, "其他类型", 99)
+            ]),
+            new("message_channel", "消息发送渠道", "系统通知和消息的发送渠道", 150,
+            [
+                new("email", "邮件", "0", true, "电子邮件渠道", 0),
+                new("sms", "短信", "1", false, "短信渠道", 1),
+                new("push", "推送", "2", false, "App 推送渠道", 2),
+                new("inbox", "站内信", "3", false, "系统站内信渠道", 3),
+                new("wechat", "微信", "4", false, "微信公众号渠道", 4),
+                new("webhook", "Webhook", "99", false, "自定义回调渠道", 99)
+            ]),
+            new("notification_priority", "通知优先级", "系统通知和消息的优先级", 160,
+            [
+                new("low", "低", "0", false, "低优先级通知", 0),
+                new("normal", "普通", "1", true, "普通优先级通知", 1),
+                new("high", "高", "2", false, "高优先级通知", 2),
+                new("urgent", "紧急", "3", false, "紧急通知", 3)
+            ]),
+            new("resource_type", "资源类型", "权限管控的资源类型", 170,
+            [
+                new("api", "接口", "0", true, "API 接口资源", 0),
+                new("file", "文件", "1", false, "文件资源", 1),
+                new("data_table", "数据表", "2", false, "数据表资源", 2),
+                new("business_object", "业务对象", "3", false, "业务对象资源", 3),
+                new("other", "其他", "99", false, "其他资源类型", 99)
+            ]),
+            new("task_status", "任务状态", "系统任务生命周期状态", 180,
+            [
+                new("pending", "待执行", "0", true, "等待调度执行", 0),
+                new("running", "运行中", "1", false, "正在执行", 1),
+                new("paused", "已暂停", "2", false, "已暂停", 2),
+                new("completed", "已完成", "3", false, "执行完成", 3),
+                new("failed", "已失败", "4", false, "执行失败", 4),
+                new("cancelled", "已取消", "5", false, "已被取消", 5)
+            ]),
+            new("review_status", "审查状态", "审批流程状态", 190,
+            [
+                new("draft", "草稿", "0", true, "草稿状态", 0),
+                new("pending", "待审批", "1", false, "等待审批", 1),
+                new("approved", "已通过", "2", false, "审批通过", 2),
+                new("rejected", "已驳回", "3", false, "审批驳回", 3),
+                new("withdrawn", "已撤回", "4", false, "申请人撤回", 4),
+                new("expired", "已过期", "5", false, "审批超时过期", 5),
+                new("cancelled", "已取消", "6", false, "审批取消", 6)
             ])
         ];
     }

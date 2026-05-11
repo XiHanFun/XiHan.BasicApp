@@ -157,7 +157,12 @@ public sealed class SaasConfigurationSeeder(
             new("默认 OAuth ClientId", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionClientId, "basicapp-web", "basicapp-web", ConfigType.System, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 ClientId", 170),
             new("默认 OAuth Scope", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionScope, "basicapp", "basicapp", ConfigType.System, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 Scope", 180),
             new("刷新令牌有效天数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionRefreshTokenDays, "7", "7", ConfigType.System, ConfigDataType.Number, "密码登录签发刷新令牌的有效天数", 190),
-            new("审计日志保留天数", SaasConfigKeys.Groups.Audit, SaasConfigKeys.Audit.LogRetentionDays, "180", "180", ConfigType.System, ConfigDataType.Number, "审计与访问日志默认保留周期", 200)
+            new("审计日志保留天数", SaasConfigKeys.Groups.Audit, SaasConfigKeys.Audit.LogRetentionDays, "180", "180", ConfigType.System, ConfigDataType.Number, "审计与访问日志默认保留周期", 200),
+            new("文件存储提供者", SaasConfigKeys.Groups.File, SaasConfigKeys.File.StorageProvider, "local", "local", ConfigType.System, ConfigDataType.String, "文件存储提供者类型：local / s3 / oss / azure", 210),
+            new("文件存储根路径", SaasConfigKeys.Groups.File, SaasConfigKeys.File.StorageBasePath, "uploads", "uploads", ConfigType.System, ConfigDataType.String, "本地文件存储根路径或云存储 Bucket 前缀", 220),
+            new("文件上传最大大小(MB)", SaasConfigKeys.Groups.File, SaasConfigKeys.File.MaxFileSize, "50", "50", ConfigType.System, ConfigDataType.Number, "单次上传文件的最大大小限制(MB)", 230),
+            new("文件允许扩展名", SaasConfigKeys.Groups.File, SaasConfigKeys.File.AllowedExtensions, ".jpg,.jpeg,.png,.gif,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar", ".jpg,.jpeg,.png,.gif,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar", ConfigType.System, ConfigDataType.String, "允许上传的文件扩展名列表，逗号分隔", 240),
+            new("文件有效期天数", SaasConfigKeys.Groups.File, SaasConfigKeys.File.FileExpiryDays, "0", "0", ConfigType.System, ConfigDataType.Number, "文件存储过期天数，0 表示永不过期", 250)
         ];
     }
 
