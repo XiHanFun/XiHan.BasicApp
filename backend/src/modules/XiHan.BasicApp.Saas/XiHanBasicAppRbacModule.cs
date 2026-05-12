@@ -47,5 +47,8 @@ public class XiHanBasicAppRbacModule : XiHanModule
 
         // 注册日志写入器
         services.AddSaasLogWriters();
+
+        // 注册 SaaS 认证基础设施（用户存储、第三方登录存储、密码历史存储）
+        services.AddSaasAuthStores();
     }
 }
