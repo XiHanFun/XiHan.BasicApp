@@ -722,7 +722,11 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     <NDrawer v-model:show="detailVisible" :width="980">
       <NDrawerContent closable title="权限详情">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无权限详情" />
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无权限详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
               <NTabPane name="overview" tab="概览">
@@ -819,7 +823,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无 ABAC 条件" />
+                <NEmpty v-else description="暂无 ABAC 条件" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="delegations" :tab="`委托 (${currentDetail.delegations.length})`">
@@ -845,7 +849,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限委托" />
+                <NEmpty v-else description="暂无权限委托" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="requests" :tab="`申请 (${currentDetail.requests.length})`">
@@ -871,7 +875,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限申请" />
+                <NEmpty v-else description="暂无权限申请" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="fieldSecurities" :tab="`字段级安全 (${currentDetail.fieldSecurities.length})`">
@@ -899,7 +903,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无字段级安全策略" />
+                <NEmpty v-else description="暂无字段级安全策略" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="changeLogs" :tab="`变更历史 (${currentDetail.changeLogs.length})`">
@@ -927,7 +931,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限变更历史" />
+                <NEmpty v-else description="暂无权限变更历史" style="padding: 40px 0" />
               </NTabPane>
             </NTabs>
           </NScrollbar>
