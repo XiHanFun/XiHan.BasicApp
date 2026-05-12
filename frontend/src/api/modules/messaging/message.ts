@@ -1,11 +1,17 @@
 import type { PageResult } from '../../types'
 import type {
+  EmailCreateDto,
   EmailDetailDto,
   EmailListItemDto,
   EmailPageQueryDto,
+  EmailStatusUpdateDto,
+  EmailUpdateDto,
+  SmsCreateDto,
   SmsDetailDto,
   SmsListItemDto,
   SmsPageQueryDto,
+  SmsStatusUpdateDto,
+  SmsUpdateDto,
 } from './message.types'
 import {
   appendDynamicApiParam,
@@ -15,8 +21,10 @@ import {
 } from '../../base'
 
 const messageQueryApi = createDynamicApiClient('MessageQuery')
+const messageCommandApi = createDynamicApiClient('Message')
 
 export const messageApi = {
+  // Query
   emailDetail(id: EmailDetailDto['basicId']) {
     return messageQueryApi.get<EmailDetailDto | null>(`EmailDetail/${formatDynamicApiRouteValue(id)}`)
   },
@@ -34,6 +42,32 @@ export const messageApi = {
       'SmsPage',
       toSmsPageParams(input),
     )
+  },
+  // Email commands
+  createEmail(input: EmailCreateDto) {
+    return messageCommandApi.post<EmailDetailDto, EmailCreateDto>('CreateEmail', input)
+  },
+  deleteEmail(id: EmailDetailDto['basicId']) {
+    return messageCommandApi.delete(`DeleteEmail/${formatDynamicApiRouteValue(id)}`)
+  },
+  updateEmail(input: EmailUpdateDto) {
+    return messageCommandApi.put<EmailDetailDto, EmailUpdateDto>('UpdateEmail', input)
+  },
+  updateEmailStatus(input: EmailStatusUpdateDto) {
+    return messageCommandApi.put<EmailDetailDto, EmailStatusUpdateDto>('UpdateEmailStatus', input)
+  },
+  // SMS commands
+  createSms(input: SmsCreateDto) {
+    return messageCommandApi.post<SmsDetailDto, SmsCreateDto>('CreateSms', input)
+  },
+  deleteSms(id: SmsDetailDto['basicId']) {
+    return messageCommandApi.delete(`DeleteSms/${formatDynamicApiRouteValue(id)}`)
+  },
+  updateSms(input: SmsUpdateDto) {
+    return messageCommandApi.put<SmsDetailDto, SmsUpdateDto>('UpdateSms', input)
+  },
+  updateSmsStatus(input: SmsStatusUpdateDto) {
+    return messageCommandApi.put<SmsDetailDto, SmsStatusUpdateDto>('UpdateSmsStatus', input)
   },
 }
 

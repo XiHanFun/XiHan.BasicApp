@@ -68,3 +68,72 @@ export interface TaskDetailDto extends TaskListItemDto {
   taskMethod?: string | null
   taskParams?: string | null
 }
+
+// ---- Command DTOs ----
+
+export interface TaskCreateDto {
+  taskCode: string
+  taskName: string
+  taskDescription?: string | null
+  taskGroup?: string | null
+  taskClass: string
+  taskMethod?: string | null
+  taskParams?: string | null
+  triggerType: TriggerType
+  cronExpression?: string | null
+  startTime?: DateTimeString | null
+  endTime?: DateTimeString | null
+  nextRunTime?: DateTimeString | null
+  lastRunTime?: DateTimeString | null
+  intervalSeconds?: number | null
+  repeatCount: number
+  executedCount: number
+  timeoutSeconds: number
+  runTaskStatus: RunTaskStatus
+  priority: number
+  allowConcurrent: boolean
+  retryCount: number
+  maxRetryCount: number
+  status: EnableStatus
+  remark?: string | null
+}
+
+export interface TaskUpdateDto extends BasicDto {
+  taskName: string
+  taskDescription?: string | null
+  taskGroup?: string | null
+  taskClass: string
+  taskMethod?: string | null
+  taskParams?: string | null
+  triggerType: TriggerType
+  cronExpression?: string | null
+  startTime?: DateTimeString | null
+  endTime?: DateTimeString | null
+  nextRunTime?: DateTimeString | null
+  lastRunTime?: DateTimeString | null
+  intervalSeconds?: number | null
+  repeatCount: number
+  executedCount: number
+  timeoutSeconds: number
+  priority: number
+  allowConcurrent: boolean
+  retryCount: number
+  maxRetryCount: number
+  remark?: string | null
+}
+
+export interface TaskStatusUpdateDto {
+  basicId: ApiId
+  status: EnableStatus
+  remark?: string | null
+}
+
+export interface TaskRunStatusUpdateDto {
+  basicId: ApiId
+  runTaskStatus: RunTaskStatus
+  nextRunTime?: DateTimeString | null
+  lastRunTime?: DateTimeString | null
+  executedCount?: number | null
+  retryCount?: number | null
+  remark?: string | null
+}
