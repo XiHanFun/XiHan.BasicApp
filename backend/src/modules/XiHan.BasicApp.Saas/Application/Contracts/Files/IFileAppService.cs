@@ -36,4 +36,8 @@ public interface IFileAppService : IApplicationService
     Task<FileStorageDetailDto> UpdateFileStorageStatusAsync(FileStorageStatusUpdateDto input, CancellationToken cancellationToken = default);
 
     Task DeleteFileAsync(FileDeleteDto input, CancellationToken cancellationToken = default);
+
+    Task<Stream> DownloadFileAsync(long fileId, CancellationToken cancellationToken = default);
+
+    Task<string> GenerateFilePresignedUrlAsync(long fileId, TimeSpan? expiresIn = null, CancellationToken cancellationToken = default);
 }

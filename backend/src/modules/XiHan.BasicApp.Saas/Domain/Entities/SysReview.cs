@@ -99,12 +99,16 @@ public partial class SysReview : BasicAppAggregateRoot
 
     /// <summary>
     /// 业务实体类型
+    /// 注意：本表使用 EntityType/EntityId（字符串）命名，与 SysEmail/SysSms/SysNotification 中 BusinessType/BusinessId（string+long）命名不一致。
+    /// 两者语义相同（均指向被关联的业务主单据），但因历史原因命名未统一，保持现状不重命名以免破坏已有数据库结构。
     /// </summary>
     [SugarColumn(ColumnDescription = "业务实体类型", Length = 100, IsNullable = true)]
     public virtual string? EntityType { get; set; }
 
     /// <summary>
     /// 业务实体ID
+    /// 注意：本表使用 EntityId（字符串），与 SysEmail/SysSms/SysNotification 中 BusinessId（long?）类型不一致。
+    /// SysReview.EntityId 设计为字符串以兼容多种主键类型（long/Guid/string），但也带来了类型安全性下降的代价。
     /// </summary>
     [SugarColumn(ColumnDescription = "业务实体ID", Length = 100, IsNullable = true)]
     public virtual string? EntityId { get; set; }
