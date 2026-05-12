@@ -12,14 +12,24 @@ import type {
 import {
   NButton,
   NCascader,
+  NDescriptions,
+  NDescriptionsItem,
+  NDrawer,
+  NDrawerContent,
+  NEmpty,
   NForm,
   NFormItem,
   NIcon,
   NInput,
   NInputNumber,
   NModal,
+  NPopconfirm,
+  NScrollbar,
   NSelect,
   NSpace,
+  NSpin,
+  NTabPane,
+  NTabs,
   NTag,
   useMessage,
 } from 'naive-ui'
@@ -47,6 +57,9 @@ const xGrid = ref<VxeGridInstance<DepartmentListItemDto>>()
 const loading = ref(false)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<DepartmentDetailDto | null>(null)
 const deptForm = ref<DeptFormModel>(createDefaultForm())
 const tableData = ref<DepartmentListItemDto[]>([])
 const treeNodes = ref<DepartmentTreeNodeDto[]>([])
@@ -94,6 +107,28 @@ function normalizeNullable(value?: string | null) {
   const normalized = value?.trim()
   return normalized || null
 }
+
+function formatNullable(value: unknown) {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
+}
+
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
+}
+
+function formatStatus(value?: EnableStatus | null) {
+  return getOptionLabel(statusOptions, value)
+}
+
+function findDepartmentName(parentId: ApiId) {
+  const dept = tableData.value.find(item => item.basicId === parentId)
+  return dept?.departmentName ?? formatNullable(parentId)
+}
+
+const childDepartments = computed(() => {
+  if (!currentDetail.value) return []
+  return tableData.value.filter(item => item.parentId === currentDetail.value!.basicId)
+})
 
 async function loadTree() {
   try {
@@ -169,7 +204,7 @@ const tableOptions = useVxeTable<DepartmentListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 180,
+        width: 216,
       },
     ],
     id: 'sys_department',
@@ -232,6 +267,25 @@ async function handleEdit(row: DepartmentListItemDto) {
     deptForm.value = buildFormModel(row)
   }
   modalVisible.value = true
+}
+
+async function handleView(row: DepartmentListItemDto) {
+  detailVisible.value = true
+  detailLoading.value = true
+  currentDetail.value = null
+
+  try {
+    currentDetail.value = await orgManagementApi.detail(row.basicId)
+    if (!currentDetail.value) {
+      message.warning('未查询到部门详情')
+    }
+  }
+  catch {
+    message.error('加载部门详情失败')
+  }
+  finally {
+    detailLoading.value = false
+  }
 }
 
 async function handleToggleStatus(row: DepartmentListItemDto) {
@@ -376,24 +430,111 @@ async function handleSubmit() {
 
         <template #col_actions="{ row }">
           <NSpace size="small">
+            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:eye" /></NIcon>
+              </template>
+            </NButton>
+
             <NButton size="small" text type="info" @click="handleAdd(row.basicId)">
               新增子部门
             </NButton>
             <NButton size="small" text type="primary" @click="handleEdit(row)">
               编辑
             </NButton>
-            <NButton
-              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              size="small"
-              text
-              @click="handleToggleStatus(row)"
-            >
-              {{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}
-            </NButton>
+            <NPopconfirm @positive-click="handleToggleStatus(row)">
+              <template #trigger>
+                <NButton
+                  :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
+                  size="small"
+                  text
+                >
+                  {{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}
+                </NButton>
+              </template>
+              确认{{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}？
+            </NPopconfirm>
           </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>
+
+    <NDrawer v-model:show="detailVisible" :width="820">
+      <NDrawerContent closable title="部门详情">
+        <NSpin :show="detailLoading">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无部门详情" />
+          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
+            <NTabs animated type="line">
+              <NTabPane name="overview" tab="概览">
+                <NDescriptions :column="2" bordered size="small">
+                  <NDescriptionsItem label="部门名称">
+                    {{ currentDetail.departmentName }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="部门编码">
+                    {{ currentDetail.departmentCode }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="部门类型">
+                    {{ getOptionLabel(deptTypeOptions, currentDetail.departmentType) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="父级部门">
+                    {{ currentDetail.parentId ? findDepartmentName(currentDetail.parentId) : '-' }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="负责人">
+                    {{ formatNullable(currentDetail.leaderId) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="电话">
+                    {{ formatNullable(currentDetail.phone) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="邮箱">
+                    {{ formatNullable(currentDetail.email) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="地址">
+                    {{ formatNullable(currentDetail.address) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="排序">
+                    {{ currentDetail.sort }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="状态">
+                    {{ formatStatus(currentDetail.status) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem label="创建时间">
+                    {{ formatNullableDate(currentDetail.createdTime) }}
+                  </NDescriptionsItem>
+                </NDescriptions>
+              </NTabPane>
+
+              <NTabPane name="children" :tab="`子部门 (${childDepartments.length})`">
+                <table v-if="childDepartments.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>部门名称</th>
+                      <th>编码</th>
+                      <th>类型</th>
+                      <th>电话</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in childDepartments" :key="item.basicId">
+                      <td>{{ item.departmentName }}</td>
+                      <td>{{ item.departmentCode }}</td>
+                      <td>{{ getOptionLabel(deptTypeOptions, item.departmentType) }}</td>
+                      <td>{{ formatNullable(item.phone) }}</td>
+                      <td>{{ formatStatus(item.status) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <NEmpty v-else description="暂无子部门" />
+              </NTabPane>
+
+              <NTabPane name="members" tab="部门成员">
+                <NEmpty description="暂无部门成员" />
+              </NTabPane>
+            </NTabs>
+          </NScrollbar>
+        </NSpin>
+      </NDrawerContent>
+    </NDrawer>
 
     <NModal
       v-model:show="modalVisible"
@@ -458,3 +599,28 @@ async function handleSubmit() {
     </NModal>
   </div>
 </template>
+
+<style scoped>
+.xh-detail-empty {
+  padding: 48px 0;
+}
+
+.xh-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.xh-detail-table th,
+.xh-detail-table td {
+  padding: 9px 10px;
+  border: 1px solid var(--n-border-color);
+  text-align: left;
+  vertical-align: top;
+}
+
+.xh-detail-table th {
+  background: var(--n-merged-th-color);
+  font-weight: 500;
+}
+</style>
