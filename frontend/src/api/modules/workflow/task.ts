@@ -1,5 +1,13 @@
 import type { ApiId, PageResult } from '../../types'
-import type { TaskDetailDto, TaskListItemDto, TaskPageQueryDto } from './task.types'
+import type {
+  TaskCreateDto,
+  TaskDetailDto,
+  TaskListItemDto,
+  TaskPageQueryDto,
+  TaskRunStatusUpdateDto,
+  TaskStatusUpdateDto,
+  TaskUpdateDto,
+} from './task.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
@@ -8,8 +16,10 @@ import {
 } from '../../base'
 
 const taskQueryApi = createDynamicApiClient('TaskQuery')
+const taskCommandApi = createDynamicApiClient('Task')
 
 export const taskApi = {
+  // Query
   detail(id: ApiId) {
     return taskQueryApi.get<TaskDetailDto | null>(
       `TaskDetail/${formatDynamicApiRouteValue(id)}`,
@@ -20,6 +30,22 @@ export const taskApi = {
       'TaskPage',
       toTaskPageParams(input),
     )
+  },
+  // Commands
+  create(input: TaskCreateDto) {
+    return taskCommandApi.post<TaskDetailDto, TaskCreateDto>('CreateTask', input)
+  },
+  delete(id: ApiId) {
+    return taskCommandApi.delete(`DeleteTask/${formatDynamicApiRouteValue(id)}`)
+  },
+  update(input: TaskUpdateDto) {
+    return taskCommandApi.put<TaskDetailDto, TaskUpdateDto>('UpdateTask', input)
+  },
+  updateRunStatus(input: TaskRunStatusUpdateDto) {
+    return taskCommandApi.put<TaskDetailDto, TaskRunStatusUpdateDto>('UpdateTaskRunStatus', input)
+  },
+  updateStatus(input: TaskStatusUpdateDto) {
+    return taskCommandApi.put<TaskDetailDto, TaskStatusUpdateDto>('UpdateTaskStatus', input)
   },
 }
 

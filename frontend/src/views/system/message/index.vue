@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiId, EmailDetailDto, EmailListItemDto, EmailType, SmsDetailDto, SmsListItemDto, SmsStatus, SmsType } from '@/api'
+import type { ApiId, EmailDetailDto, EmailListItemDto, EmailType, SmsDetailDto, SmsListItemDto, SmsType } from '@/api'
 import {
   NButton,
   NDescriptions,
@@ -8,13 +8,14 @@ import {
   NDrawer,
   NDrawerContent,
   NIcon,
+  NPopconfirm,
   NSelect,
   NSpace,
   NTag,
   useMessage,
 } from 'naive-ui'
 import { reactive, ref } from 'vue'
-import { createPageRequest, EmailStatus, messageCenterApi } from '@/api'
+import { createPageRequest, EmailStatus, messageCenterApi, SmsStatus } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
@@ -44,6 +45,7 @@ const detailLoading = ref(false)
 const detailTab = ref<MessageTab>('email')
 const currentEmailDetail = ref<EmailDetailDto | null>(null)
 const currentSmsDetail = ref<SmsDetailDto | null>(null)
+const actionLoading = ref(false)
 
 const emailQuery = reactive({
   businessId: null as ApiId | null,
@@ -108,6 +110,10 @@ function formatRetry(row: { maxRetryCount: number, retryCount: number }) {
 
 function formatFlag(value: boolean) {
   return value ? '是' : '否'
+}
+
+function canResend(status: EmailStatus | SmsStatus) {
+  return status === EmailStatus.Failed || status === EmailStatus.Pending || status === EmailStatus.Cancelled
 }
 
 function handleEmailQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<EmailGridResult> {
@@ -225,7 +231,7 @@ const emailTableOptions = useVxeTable<EmailListItemDto>(
         fixed: 'right',
         slots: { default: 'col_email_actions' },
         title: '操作',
-        width: 90,
+        width: 160,
       },
     ],
     id: 'sys_email_message',
@@ -288,7 +294,7 @@ const smsTableOptions = useVxeTable<SmsListItemDto>(
         fixed: 'right',
         slots: { default: 'col_sms_actions' },
         title: '操作',
-        width: 90,
+        width: 160,
       },
     ],
     id: 'sys_sms_message',
@@ -345,6 +351,73 @@ function handleReset() {
   }
 
   reloadActiveGrid()
+}
+
+async function handleResendEmail(row: EmailListItemDto) {
+  actionLoading.value = true
+  try {
+    // Mark as pending to trigger a retry through status update
+    await messageCenterApi.updateEmailStatus({
+      basicId: row.basicId,
+      emailStatus: EmailStatus.Pending,
+    })
+    message.success('邮件已重新加入发送队列')
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('重发邮件失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+async function handleResendSms(row: SmsListItemDto) {
+  actionLoading.value = true
+  try {
+    await messageCenterApi.updateSmsStatus({
+      basicId: row.basicId,
+      smsStatus: SmsStatus.Pending,
+    })
+    message.success('短信已重新加入发送队列')
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('重发短信失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+async function handleDeleteEmail(row: EmailListItemDto) {
+  actionLoading.value = true
+  try {
+    await messageCenterApi.deleteEmail(row.basicId)
+    message.success('邮件已删除')
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('删除邮件失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+async function handleDeleteSms(row: SmsListItemDto) {
+  actionLoading.value = true
+  try {
+    await messageCenterApi.deleteSms(row.basicId)
+    message.success('短信已删除')
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('删除短信失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
 }
 
 async function handleEmailDetail(row: EmailListItemDto) {
@@ -493,6 +566,11 @@ async function handleSmsDetail(row: SmsListItemDto) {
     <vxe-card v-show="activeTab === 'email'" class="flex-1" style="height: 0">
       <vxe-grid ref="emailGrid" v-bind="emailTableOptions">
         <template #toolbar_buttons />
+        <template #empty>
+          <div class="py-12 text-center text-gray-400">
+            暂无邮件数据
+          </div>
+        </template>
 
         <template #col_email_status="{ row }">
           <NTag :type="getMessageStatusTagType(row.emailStatus)" round size="small">
@@ -507,12 +585,44 @@ async function handleSmsDetail(row: SmsListItemDto) {
         </template>
 
         <template #col_email_actions="{ row }">
-          <!-- 操作列仅图标 -->
-          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleEmailDetail(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:eye" /></NIcon>
-            </template>
-          </NButton>
+          <NSpace :size="4">
+            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleEmailDetail(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:eye" /></NIcon>
+              </template>
+            </NButton>
+            <NButton
+              v-if="canResend(row.emailStatus)"
+              aria-label="重发"
+              circle
+              quaternary
+              size="small"
+              type="warning"
+              :loading="actionLoading"
+              @click="handleResendEmail(row)"
+            >
+              <template #icon>
+                <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+              </template>
+            </NButton>
+            <NPopconfirm @positive-click="handleDeleteEmail(row)">
+              <template #trigger>
+                <NButton
+                  aria-label="删除"
+                  circle
+                  quaternary
+                  size="small"
+                  type="error"
+                  :loading="actionLoading"
+                >
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              确定删除该邮件？
+            </NPopconfirm>
+          </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>
@@ -520,6 +630,11 @@ async function handleSmsDetail(row: SmsListItemDto) {
     <vxe-card v-show="activeTab === 'sms'" class="flex-1" style="height: 0">
       <vxe-grid ref="smsGrid" v-bind="smsTableOptions">
         <template #toolbar_buttons />
+        <template #empty>
+          <div class="py-12 text-center text-gray-400">
+            暂无短信数据
+          </div>
+        </template>
 
         <template #col_sms_status="{ row }">
           <NTag :type="getMessageStatusTagType(row.smsStatus)" round size="small">
@@ -528,12 +643,44 @@ async function handleSmsDetail(row: SmsListItemDto) {
         </template>
 
         <template #col_sms_actions="{ row }">
-          <!-- 操作列仅图标 -->
-          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleSmsDetail(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:eye" /></NIcon>
-            </template>
-          </NButton>
+          <NSpace :size="4">
+            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleSmsDetail(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:eye" /></NIcon>
+              </template>
+            </NButton>
+            <NButton
+              v-if="canResend(row.smsStatus)"
+              aria-label="重发"
+              circle
+              quaternary
+              size="small"
+              type="warning"
+              :loading="actionLoading"
+              @click="handleResendSms(row)"
+            >
+              <template #icon>
+                <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+              </template>
+            </NButton>
+            <NPopconfirm @positive-click="handleDeleteSms(row)">
+              <template #trigger>
+                <NButton
+                  aria-label="删除"
+                  circle
+                  quaternary
+                  size="small"
+                  type="error"
+                  :loading="actionLoading"
+                >
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              确定删除该短信？
+            </NPopconfirm>
+          </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>
@@ -642,6 +789,10 @@ async function handleSmsDetail(row: SmsListItemDto) {
             {{ currentSmsDetail.modifiedTime ? formatDate(currentSmsDetail.modifiedTime) : '-' }}
           </NDescriptionsItem>
         </NDescriptions>
+
+        <div v-else class="py-8 text-center text-gray-400">
+          暂无详情数据
+        </div>
       </NDrawerContent>
     </NDrawer>
   </div>

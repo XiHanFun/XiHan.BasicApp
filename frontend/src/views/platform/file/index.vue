@@ -17,6 +17,7 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NPopconfirm,
   NSelect,
   NSpace,
   NSwitch,
@@ -65,6 +66,9 @@ const currentFileDetail = ref<FileDetailDto | null>(null)
 const currentStorageDetail = ref<FileStorageDetailDto | null>(null)
 const uploadVisible = ref(false)
 const uploadLoading = ref(false)
+const metadataVisible = ref(false)
+const metadataLoading = ref(false)
+const actionLoading = ref(false)
 
 const fileQuery = reactive({
   accessLevel: null as ResourceAccessLevel | null,
@@ -100,6 +104,16 @@ const uploadForm = reactive({
   remark: '',
   retentionDays: 0,
   routeKey: '',
+  tags: '',
+})
+
+const metadataForm = reactive({
+  accessLevel: ResourceAccessLevel.Authorized as ResourceAccessLevel,
+  accessPermissions: '',
+  isEncrypted: false,
+  isTemporary: false,
+  remark: '',
+  retentionDays: 0,
   tags: '',
 })
 
@@ -355,7 +369,7 @@ const fileTableOptions = useVxeTable<FileListItemDto>(
         fixed: 'right',
         slots: { default: 'col_file_actions' },
         title: '操作',
-        width: 132,
+        width: 200,
       },
     ],
     id: 'sys_file',
@@ -491,6 +505,82 @@ function handleReset() {
 
 function openUploadDrawer() {
   uploadVisible.value = true
+}
+
+function openMetadataDrawer(row: FileListItemDto) {
+  metadataForm.accessLevel = row.accessLevel
+  metadataForm.accessPermissions = ''
+  metadataForm.isEncrypted = row.isEncrypted
+  metadataForm.isTemporary = row.isTemporary
+  metadataForm.retentionDays = row.retentionDays
+  metadataForm.tags = ''
+  metadataForm.remark = ''
+  metadataVisible.value = true
+  // store the row for later use
+  ;(metadataForm as any)._row = row
+}
+
+async function handleSaveMetadata() {
+  const row = (metadataForm as any)._row as FileListItemDto | undefined
+  if (!row) return
+  metadataLoading.value = true
+  try {
+    await fileManagementApi.updateMetadata({
+      basicId: row.basicId,
+      accessLevel: metadataForm.accessLevel,
+      accessPermissions: normalizeNullable(metadataForm.accessPermissions),
+      isEncrypted: metadataForm.isEncrypted,
+      isTemporary: metadataForm.isTemporary,
+      retentionDays: metadataForm.retentionDays,
+      tags: normalizeNullable(metadataForm.tags),
+      remark: normalizeNullable(metadataForm.remark),
+    })
+    message.success('元数据已更新')
+    metadataVisible.value = false
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('更新元数据失败')
+  }
+  finally {
+    metadataLoading.value = false
+  }
+}
+
+async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus) {
+  actionLoading.value = true
+  try {
+    await fileManagementApi.updateStatus({
+      basicId: row.basicId,
+      status,
+    })
+    message.success('文件状态已更新')
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('更新文件状态失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+async function handleDeleteFile(row: FileListItemDto) {
+  actionLoading.value = true
+  try {
+    await fileManagementApi.updateStatus({
+      basicId: row.basicId,
+      status: FileStatus.Deleted,
+    })
+    message.success('文件已删除')
+    reloadActiveGrid()
+  }
+  catch {
+    message.error('删除文件失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
 }
 
 async function handleUploadRequest(options: UploadCustomRequestOptions) {
@@ -754,6 +844,11 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
     <vxe-card v-show="activeTab === 'file'" class="flex-1" style="height: 0">
       <vxe-grid ref="fileGrid" v-bind="fileTableOptions">
         <template #toolbar_buttons />
+        <template #empty>
+          <div class="py-12 text-center text-gray-400">
+            暂无文件数据
+          </div>
+        </template>
 
         <template #col_file_type="{ row }">
           <NTag round size="small">
@@ -786,11 +881,47 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
                 <NIcon><Icon icon="lucide:eye" /></NIcon>
               </template>
             </NButton>
+            <NButton aria-label="元数据" circle quaternary size="small" @click="openMetadataDrawer(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:pencil" /></NIcon>
+              </template>
+            </NButton>
             <NButton aria-label="存储副本" circle quaternary size="small" @click="handleFileStorages(row)">
               <template #icon>
                 <NIcon><Icon icon="lucide:database" /></NIcon>
               </template>
             </NButton>
+            <NButton
+              v-if="row.status !== FileStatus.Archived"
+              aria-label="归档"
+              circle
+              quaternary
+              size="small"
+              type="warning"
+              @click="handleUpdateFileStatus(row, FileStatus.Archived)"
+            >
+              <template #icon>
+                <NIcon><Icon icon="lucide:archive" /></NIcon>
+              </template>
+            </NButton>
+            <NPopconfirm @positive-click="handleDeleteFile(row)">
+              <template #trigger>
+                <NButton
+                  v-if="row.status !== FileStatus.Deleted"
+                  aria-label="删除"
+                  circle
+                  quaternary
+                  size="small"
+                  type="error"
+                  :loading="actionLoading"
+                >
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              确定删除该文件？
+            </NPopconfirm>
           </NSpace>
         </template>
       </vxe-grid>
@@ -799,6 +930,11 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
     <vxe-card v-show="activeTab === 'storage'" class="flex-1" style="height: 0">
       <vxe-grid ref="storageGrid" v-bind="storageTableOptions">
         <template #toolbar_buttons />
+        <template #empty>
+          <div class="py-12 text-center text-gray-400">
+            暂无存储副本数据
+          </div>
+        </template>
 
         <template #col_storage_status="{ row }">
           <NTag :type="getStorageStatusTagType(row.status)" round size="small">
@@ -899,6 +1035,38 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
               选择文件
             </NButton>
           </NUpload>
+        </NSpace>
+      </NDrawerContent>
+    </NDrawer>
+
+    <NDrawer v-model:show="metadataVisible" :width="460">
+      <NDrawerContent closable title="编辑文件元数据">
+        <NSpace vertical>
+          <NSelect
+            v-model:value="metadataForm.accessLevel"
+            :options="accessLevelOptions"
+            placeholder="访问级别"
+          />
+          <NInput v-model:value="metadataForm.accessPermissions" clearable placeholder="访问权限" />
+          <NInput v-model:value="metadataForm.tags" clearable placeholder="标签" />
+          <NInput v-model:value="metadataForm.remark" clearable placeholder="备注" type="textarea" />
+          <NInputNumber v-model:value="metadataForm.retentionDays" :min="0" placeholder="保留天数" style="width: 100%" />
+          <div class="file-upload-switches">
+            <NSpace align="center">
+              <span>加密</span>
+              <NSwitch v-model:value="metadataForm.isEncrypted" />
+            </NSpace>
+            <NSpace align="center">
+              <span>临时</span>
+              <NSwitch v-model:value="metadataForm.isTemporary" />
+            </NSpace>
+          </div>
+          <NButton block :loading="metadataLoading" type="primary" @click="handleSaveMetadata">
+            <template #icon>
+              <NIcon><Icon icon="lucide:save" /></NIcon>
+            </template>
+            保存元数据
+          </NButton>
         </NSpace>
       </NDrawerContent>
     </NDrawer>
@@ -1075,6 +1243,10 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
             {{ formatDateTime(currentStorageDetail.modifiedTime) }}
           </NDescriptionsItem>
         </NDescriptions>
+
+        <div v-else class="py-8 text-center text-gray-400">
+          暂无详情数据
+        </div>
       </NDrawerContent>
     </NDrawer>
   </div>

@@ -595,7 +595,19 @@ public sealed class SaasMenuSeeder(
                 "异常日志",
                 450,
                 null,
-                true)
+                true),
+            new(
+                "log.diff",
+                "差异日志",
+                MenuType.Menu,
+                "/log/diff",
+                "LogDiff",
+                "log/diff/index",
+                "log",
+                SaasPermissionCodes.DiffLog.Read,
+                "lucide:file-diff",
+                "差异日志",
+                460)
         ];
     }
 

@@ -4,6 +4,7 @@ import {
   NButton,
   NEmpty,
   NIcon,
+  NSelect,
   NSkeleton,
   NSpace,
   NSwitch,
@@ -27,14 +28,27 @@ const notificationStore = useNotificationStore()
 
 const loading = ref(false)
 const unreadOnly = ref(false)
+const typeFilter = ref<NotificationType | undefined>(undefined)
 const items = ref<UserInboxItemDto[]>([])
 
-const visibleItems = computed(() => {
-  if (!unreadOnly.value) {
-    return items.value
-  }
+const notificationTypeOptions = [
+  { label: '全部类型', value: undefined },
+  { label: '系统', value: NotificationType.System },
+  { label: '用户', value: NotificationType.User },
+  { label: '公告', value: NotificationType.Announcement },
+  { label: '警告', value: NotificationType.Warning },
+  { label: '错误', value: NotificationType.Error },
+]
 
-  return items.value.filter(needsAttention)
+const visibleItems = computed(() => {
+  let result = items.value
+  if (unreadOnly.value) {
+    result = result.filter(needsAttention)
+  }
+  if (typeFilter.value !== undefined) {
+    result = result.filter(item => item.notificationType === typeFilter.value)
+  }
+  return result
 })
 
 const unreadCount = computed(() =>
@@ -191,44 +205,54 @@ onMounted(loadNotifications)
         </NTag>
       </div>
 
-      <NSpace align="center" :size="8">
-        <NTag round size="small">
-          未读 {{ unreadCount }}
-        </NTag>
-        <NTag round size="small" :type="confirmCount > 0 ? 'warning' : 'default'">
-          待确认 {{ confirmCount }}
-        </NTag>
-        <NSwitch
-          v-model:value="unreadOnly"
+      <div class="inbox-toolbar-right">
+        <NSelect
+          v-model:value="typeFilter"
+          :options="notificationTypeOptions"
+          clearable
+          placeholder="通知类型"
           size="small"
-          @update:value="loadNotifications"
-        >
-          <template #checked>
-            待处理
-          </template>
-          <template #unchecked>
-            全部
-          </template>
-        </NSwitch>
-        <NButton
-          :disabled="unreadCount === 0"
-          :loading="loading"
-          size="small"
-          secondary
-          type="primary"
-          @click="handleMarkAllRead"
-        >
-          <template #icon>
-            <NIcon><Icon icon="lucide:check-check" /></NIcon>
-          </template>
-          全部已读
-        </NButton>
-        <NButton aria-label="刷新" circle :loading="loading" size="small" @click="loadNotifications">
-          <template #icon>
-            <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-          </template>
-        </NButton>
-      </NSpace>
+          style="width: 120px"
+        />
+        <NSpace align="center" :size="8">
+          <NTag round size="small">
+            未读 {{ unreadCount }}
+          </NTag>
+          <NTag round size="small" :type="confirmCount > 0 ? 'warning' : 'default'">
+            待确认 {{ confirmCount }}
+          </NTag>
+          <NSwitch
+            v-model:value="unreadOnly"
+            size="small"
+            @update:value="loadNotifications"
+          >
+            <template #checked>
+              待处理
+            </template>
+            <template #unchecked>
+              全部
+            </template>
+          </NSwitch>
+          <NButton
+            :disabled="unreadCount === 0"
+            :loading="loading"
+            size="small"
+            secondary
+            type="primary"
+            @click="handleMarkAllRead"
+          >
+            <template #icon>
+              <NIcon><Icon icon="lucide:check-check" /></NIcon>
+            </template>
+            全部已读
+          </NButton>
+          <NButton aria-label="刷新" circle :loading="loading" size="small" @click="loadNotifications">
+            <template #icon>
+              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+            </template>
+          </NButton>
+        </NSpace>
+      </div>
     </div>
 
     <div v-if="loading && items.length === 0" class="inbox-skeleton">
@@ -347,6 +371,12 @@ onMounted(loadNotifications)
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   background: var(--bg-surface);
+}
+
+.inbox-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .inbox-title {
@@ -484,6 +514,10 @@ onMounted(loadNotifications)
   .inbox-toolbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .inbox-toolbar-right {
+    flex-wrap: wrap;
   }
 
   .inbox-item {

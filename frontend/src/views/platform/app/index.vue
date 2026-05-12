@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { OAuthAppDetailDto, OAuthAppListItemDto } from '@/api'
+import type { OAuthAppDetailDto, OAuthAppListItemDto, OAuthAppSecretDto } from '@/api'
 import {
   NButton,
   NDescriptions,
@@ -8,6 +8,7 @@ import {
   NDrawer,
   NDrawerContent,
   NIcon,
+  NPopconfirm,
   NSelect,
   NSpace,
   NTag,
@@ -32,6 +33,9 @@ const xGrid = ref<VxeGridInstance<OAuthAppListItemDto>>()
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<OAuthAppDetailDto | null>(null)
+const actionLoading = ref(false)
+const secretVisible = ref(false)
+const currentSecret = ref<OAuthAppSecretDto | null>(null)
 
 const queryParams = reactive({
   appType: undefined as OAuthAppListItemDto['appType'] | undefined,
@@ -140,7 +144,7 @@ const tableOptions = useVxeTable<OAuthAppListItemDto>(
         fixed: 'right',
         slots: { default: 'col_actions' },
         title: '操作',
-        width: 90,
+        width: 170,
       },
     ],
     id: 'sys_oauth_app',
@@ -156,8 +160,12 @@ const tableOptions = useVxeTable<OAuthAppListItemDto>(
   },
 )
 
-function handleSearch() {
+function reload() {
   xGrid.value?.commitProxy('reload')
+}
+
+function handleSearch() {
+  reload()
 }
 
 function handleReset() {
@@ -165,12 +173,13 @@ function handleReset() {
   queryParams.appType = undefined
   queryParams.skipConsent = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  reload()
 }
 
 async function handleDetail(row: OAuthAppListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
+  currentDetail.value = null
 
   try {
     currentDetail.value = await appManagementApi.detail(row.basicId)
@@ -181,6 +190,65 @@ async function handleDetail(row: OAuthAppListItemDto) {
   }
   finally {
     detailLoading.value = false
+  }
+}
+
+async function handleRegenerateSecret() {
+  if (!currentDetail.value) return
+  actionLoading.value = true
+  try {
+    currentSecret.value = await appManagementApi.regenerateSecret(currentDetail.value.basicId)
+    secretVisible.value = true
+    message.success('密钥已重新生成')
+  }
+  catch {
+    message.error('重新生成密钥失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+function copySecret() {
+  if (!currentSecret.value?.clientSecret) return
+  navigator.clipboard.writeText(currentSecret.value.clientSecret).then(() => {
+    message.success('密钥已复制到剪贴板')
+  }).catch(() => {
+    message.error('复制失败')
+  })
+}
+
+async function handleToggleStatus(row: OAuthAppListItemDto) {
+  const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
+  actionLoading.value = true
+  try {
+    await appManagementApi.updateStatus({
+      basicId: row.basicId,
+      status: newStatus,
+    })
+    message.success(newStatus === EnableStatus.Enabled ? '应用已启用' : '应用已停用')
+    reload()
+  }
+  catch {
+    message.error('更新状态失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+async function handleDelete(row: OAuthAppListItemDto) {
+  actionLoading.value = true
+  try {
+    await appManagementApi.delete(row.basicId)
+    message.success('应用已删除')
+    reload()
+  }
+  catch {
+    message.error('删除应用失败')
+  }
+  finally {
+    actionLoading.value = false
   }
 }
 </script>
@@ -235,6 +303,11 @@ async function handleDetail(row: OAuthAppListItemDto) {
     <vxe-card class="flex-1" style="height: 0">
       <vxe-grid ref="xGrid" v-bind="tableOptions">
         <template #toolbar_buttons />
+        <template #empty>
+          <div class="py-12 text-center text-gray-400">
+            暂无 OAuth 应用数据
+          </div>
+        </template>
 
         <template #col_skip_consent="{ row }">
           <NTag :type="row.skipConsent ? 'warning' : 'default'" round size="small">
@@ -249,12 +322,42 @@ async function handleDetail(row: OAuthAppListItemDto) {
         </template>
 
         <template #col_actions="{ row }">
-          <!-- 操作列仅图标 -->
-          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:eye" /></NIcon>
-            </template>
-          </NButton>
+          <NSpace :size="4">
+            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
+              <template #icon>
+                <NIcon><Icon icon="lucide:eye" /></NIcon>
+              </template>
+            </NButton>
+            <NButton
+              aria-label="启停"
+              circle
+              quaternary
+              size="small"
+              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
+              @click="handleToggleStatus(row)"
+            >
+              <template #icon>
+                <NIcon :icon="row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" />
+              </template>
+            </NButton>
+            <NPopconfirm @positive-click="handleDelete(row)">
+              <template #trigger>
+                <NButton
+                  aria-label="删除"
+                  circle
+                  quaternary
+                  size="small"
+                  type="error"
+                  :loading="actionLoading"
+                >
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              确定删除该 OAuth 应用？删除后不可恢复。
+            </NPopconfirm>
+          </NSpace>
         </template>
       </vxe-grid>
     </vxe-card>
@@ -290,6 +393,9 @@ async function handleDetail(row: OAuthAppListItemDto) {
           <NDescriptionsItem label="主页">
             {{ currentDetail.homepage || '-' }}
           </NDescriptionsItem>
+          <NDescriptionsItem label=" Logo">
+            {{ currentDetail.logo || '-' }}
+          </NDescriptionsItem>
           <NDescriptionsItem label="访问令牌有效期">
             {{ formatSeconds(currentDetail.accessTokenLifetime) }}
           </NDescriptionsItem>
@@ -315,6 +421,77 @@ async function handleDetail(row: OAuthAppListItemDto) {
             {{ currentDetail.modifiedTime ? formatDate(currentDetail.modifiedTime) : '-' }}
           </NDescriptionsItem>
         </NDescriptions>
+
+        <div v-else class="py-8 text-center text-gray-400">
+          暂无应用详情
+        </div>
+
+        <template v-if="currentDetail && !detailLoading" #footer>
+          <NSpace justify="end">
+            <NButton
+              type="primary"
+              :loading="actionLoading"
+              @click="handleRegenerateSecret"
+            >
+              <template #icon>
+                <NIcon><Icon icon="lucide:key-round" /></NIcon>
+              </template>
+              重新生成密钥
+            </NButton>
+            <NButton
+              :type="currentDetail.status === EnableStatus.Enabled ? 'warning' : 'success'"
+              :loading="actionLoading"
+              @click="handleToggleStatus(currentDetail)"
+            >
+              <template #icon>
+                <NIcon :icon="currentDetail.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" />
+              </template>
+              {{ currentDetail.status === EnableStatus.Enabled ? '停用' : '启用' }}
+            </NButton>
+            <NPopconfirm @positive-click="handleDelete(currentDetail); detailVisible = false">
+              <template #trigger>
+                <NButton type="error" :loading="actionLoading">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                  删除
+                </NButton>
+              </template>
+              确定删除该 OAuth 应用？
+            </NPopconfirm>
+          </NSpace>
+        </template>
+      </NDrawerContent>
+    </NDrawer>
+
+    <NDrawer v-model:show="secretVisible" :width="420">
+      <NDrawerContent closable title="客户端密钥">
+        <NSpace v-if="currentSecret" vertical>
+          <NDescriptions :column="1" bordered size="small">
+            <NDescriptionsItem label="Client ID">
+              {{ currentSecret.clientId }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="Client Secret">
+              <div class="relative">
+                <div class="break-all font-mono text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                  {{ currentSecret.clientSecret }}
+                </div>
+              </div>
+            </NDescriptionsItem>
+          </NDescriptions>
+          <div class="text-xs text-gray-400 mt-2">
+            密钥仅显示一次，请妥善保管。丢失后需重新生成。
+          </div>
+          <NButton block type="primary" @click="copySecret">
+            <template #icon>
+              <NIcon><Icon icon="lucide:copy" /></NIcon>
+            </template>
+            复制密钥
+          </NButton>
+          <NButton block @click="secretVisible = false">
+            关闭
+          </NButton>
+        </NSpace>
       </NDrawerContent>
     </NDrawer>
   </div>

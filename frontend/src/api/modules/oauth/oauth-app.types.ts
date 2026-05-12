@@ -41,3 +41,52 @@ export interface OAuthAppDetailDto extends OAuthAppListItemDto {
   redirectUris?: string | null
   remark?: string | null
 }
+
+// ---- Command DTOs ----
+
+export interface OAuthAppCreateDto {
+  appName: string
+  appDescription?: string | null
+  clientId: string
+  clientSecret?: string | null
+  appType: OAuthAppType
+  grantTypes: string
+  redirectUris?: string | null
+  scopes?: string | null
+  accessTokenLifetime: number
+  refreshTokenLifetime: number
+  authorizationCodeLifetime: number
+  logo?: string | null
+  homepage?: string | null
+  skipConsent: boolean
+  status: EnableStatus
+  remark?: string | null
+}
+
+export interface OAuthAppUpdateDto extends BasicDto {
+  appName: string
+  appDescription?: string | null
+  appType: OAuthAppType
+  grantTypes: string
+  redirectUris?: string | null
+  scopes?: string | null
+  accessTokenLifetime: number
+  refreshTokenLifetime: number
+  authorizationCodeLifetime: number
+  logo?: string | null
+  homepage?: string | null
+  skipConsent: boolean
+  remark?: string | null
+}
+
+export interface OAuthAppStatusUpdateDto {
+  basicId: ApiId
+  status: EnableStatus
+  remark?: string | null
+}
+
+export interface OAuthAppSecretDto {
+  basicId: ApiId
+  clientId: string
+  clientSecret: string
+}

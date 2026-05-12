@@ -126,3 +126,99 @@ export interface SmsDetailDto extends SmsListItemDto {
   modifiedBy?: string | null
   modifiedId?: ApiId | null
 }
+
+// ---- Command DTOs ----
+
+export interface EmailCreateDto {
+  sendUserId?: ApiId | null
+  receiveUserId?: ApiId | null
+  emailType: EmailType
+  fromEmail: string
+  fromName?: string | null
+  toEmail: string
+  ccEmail?: string | null
+  bccEmail?: string | null
+  subject: string
+  content?: string | null
+  isHtml: boolean
+  attachments?: string | null
+  templateId?: ApiId | null
+  templateParams?: string | null
+  scheduledTime?: DateTimeString | null
+  maxRetryCount: number
+  businessType?: string | null
+  businessId?: ApiId | null
+  remark?: string | null
+}
+
+export interface EmailUpdateDto extends BasicDto {
+  receiveUserId?: ApiId | null
+  emailType: EmailType
+  fromEmail: string
+  fromName?: string | null
+  toEmail: string
+  ccEmail?: string | null
+  bccEmail?: string | null
+  subject: string
+  content?: string | null
+  isHtml: boolean
+  attachments?: string | null
+  templateId?: ApiId | null
+  templateParams?: string | null
+  scheduledTime?: DateTimeString | null
+  maxRetryCount: number
+  businessType?: string | null
+  businessId?: ApiId | null
+  remark?: string | null
+}
+
+export interface EmailStatusUpdateDto {
+  basicId: ApiId
+  emailStatus: EmailStatus
+  sendTime?: DateTimeString | null
+  retryCount?: number | null
+  errorMessage?: string | null
+  remark?: string | null
+}
+
+export interface SmsCreateDto {
+  senderId?: ApiId | null
+  receiverId?: ApiId | null
+  smsType: SmsType
+  toPhone: string
+  content: string
+  templateId?: ApiId | null
+  templateParams?: string | null
+  provider?: string | null
+  scheduledTime?: DateTimeString | null
+  maxRetryCount: number
+  businessType?: string | null
+  businessId?: ApiId | null
+  remark?: string | null
+}
+
+export interface SmsUpdateDto extends BasicDto {
+  receiverId?: ApiId | null
+  smsType: SmsType
+  toPhone: string
+  content: string
+  templateId?: ApiId | null
+  templateParams?: string | null
+  provider?: string | null
+  scheduledTime?: DateTimeString | null
+  maxRetryCount: number
+  businessType?: string | null
+  businessId?: ApiId | null
+  remark?: string | null
+}
+
+export interface SmsStatusUpdateDto {
+  basicId: ApiId
+  smsStatus: SmsStatus
+  sendTime?: DateTimeString | null
+  providerMessageId?: string | null
+  retryCount?: number | null
+  cost?: number | null
+  errorMessage?: string | null
+  remark?: string | null
+}
