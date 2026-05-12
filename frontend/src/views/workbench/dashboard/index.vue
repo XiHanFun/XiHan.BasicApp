@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import {
-  NButton,
   NCard,
-  NGi,
   NGrid,
   NGridItem,
   NIcon,
-  NNumberAnimation,
   NProgress,
   NSkeleton,
   NStatistic,
@@ -88,11 +85,11 @@ const statCards = computed(() => [
   },
 ])
 
-const systemMetrics = [
-  { label: 'CPU', value: serverCpu, color: '#3b82f6' },
-  { label: '内存', value: serverMemory, color: '#22c55e' },
-  { label: '磁盘', value: serverDisk, color: '#f59e0b' },
-]
+const systemMetrics = computed(() => [
+  { label: 'CPU', value: serverCpu.value, color: '#3b82f6' },
+  { label: '内存', value: serverMemory.value, color: '#22c55e' },
+  { label: '磁盘', value: serverDisk.value, color: '#f59e0b' },
+])
 
 const quickLinks = [
   { label: '站内信', desc: '查看系统消息', icon: 'lucide:inbox', to: '/workbench/inbox', color: '#3b82f6' },
@@ -310,7 +307,7 @@ onMounted(() => {
               <span>最近动态</span>
             </div>
           </template>
-          <NTimeline size="small">
+          <NTimeline>
             <NTimelineItem
               v-for="(item, index) in recentActivities"
               :key="index"

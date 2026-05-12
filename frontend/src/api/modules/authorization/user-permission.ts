@@ -10,7 +10,7 @@ import type {
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userPermissionQueryApi = createDynamicApiClient('UserPermissionQuery')
-const userPermissionCommandApi = createDynamicApiClient('UserPermission')
+const userPermissionCommandApi = createDynamicApiClient('User')
 
 export const userPermissionApi = {
   detail(id: ApiId) {

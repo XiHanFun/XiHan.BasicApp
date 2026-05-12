@@ -17,6 +17,7 @@ import {
   EnableStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
+import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -38,25 +39,11 @@ const queryParams = reactive({
   status: undefined as EnableStatus | undefined,
 })
 
-const statusOptions = [
-  { label: '启用', value: EnableStatus.Enabled },
-  { label: '禁用', value: EnableStatus.Disabled },
-]
+const statusOptions = STATUS_OPTIONS
 
-const configTypeOptions = [
-  { label: '系统配置', value: ConfigType.System },
-  { label: '用户配置', value: ConfigType.User },
-  { label: '应用配置', value: ConfigType.Application },
-  { label: '业务配置', value: ConfigType.Business },
-]
+const configTypeOptions = CONFIG_TYPE_OPTIONS
 
-const dataTypeOptions = [
-  { label: '字符串', value: ConfigDataType.String },
-  { label: '数字', value: ConfigDataType.Number },
-  { label: '布尔值', value: ConfigDataType.Boolean },
-  { label: 'JSON', value: ConfigDataType.Json },
-  { label: '数组', value: ConfigDataType.Array },
-]
+const dataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
 
 const globalOptions = [
   { label: '全局', value: 1 },

@@ -32,6 +32,7 @@ import {
   orgManagementApi,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
+import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -56,29 +57,9 @@ const queryParams = reactive({
   status: undefined as EnableStatus | undefined,
 })
 
-const statusOptions = [
-  { label: '启用', value: EnableStatus.Enabled },
-  { label: '禁用', value: EnableStatus.Disabled },
-]
+const statusOptions = STATUS_OPTIONS
 
-const deptTypeOptions = [
-  { label: '集团', value: DepartmentType.Corporation },
-  { label: '总部', value: DepartmentType.Headquarters },
-  { label: '公司', value: DepartmentType.Company },
-  { label: '分公司', value: DepartmentType.Branch },
-  { label: '事业部', value: DepartmentType.Division },
-  { label: '中心', value: DepartmentType.Center },
-  { label: '部门', value: DepartmentType.Department },
-  { label: '科室', value: DepartmentType.Section },
-  { label: '小组', value: DepartmentType.Team },
-  { label: '组', value: DepartmentType.Group },
-  { label: '项目组', value: DepartmentType.Project },
-  { label: '工作组', value: DepartmentType.Workgroup },
-  { label: '虚拟', value: DepartmentType.Virtual },
-  { label: '办公室', value: DepartmentType.Office },
-  { label: '子公司', value: DepartmentType.Subsidiary },
-  { label: '其他', value: DepartmentType.Other },
-]
+const deptTypeOptions = DEPARTMENT_TYPE_OPTIONS
 
 const modalTitle = computed(() => (deptForm.value.basicId ? '编辑部门' : '新增部门'))
 

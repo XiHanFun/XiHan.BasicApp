@@ -10,7 +10,7 @@ import type {
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userDataScopeQueryApi = createDynamicApiClient('UserDataScopeQuery')
-const userDataScopeCommandApi = createDynamicApiClient('UserDataScope')
+const userDataScopeCommandApi = createDynamicApiClient('User')
 
 export const userDataScopeApi = {
   detail(id: ApiId) {

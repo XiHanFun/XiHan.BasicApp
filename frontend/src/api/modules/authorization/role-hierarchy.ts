@@ -8,7 +8,7 @@ import type {
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const roleHierarchyQueryApi = createDynamicApiClient('RoleHierarchyQuery')
-const roleHierarchyCommandApi = createDynamicApiClient('RoleHierarchy')
+const roleHierarchyCommandApi = createDynamicApiClient('Role')
 
 function buildIncludeSelfParams(includeSelf: boolean) {
   const params: DynamicApiParams = {}

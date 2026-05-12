@@ -17,7 +17,7 @@ import {
 } from '../../base'
 
 const permissionDelegationQueryApi = createDynamicApiClient('PermissionDelegationQuery')
-const permissionDelegationCommandApi = createDynamicApiClient('PermissionDelegation')
+const permissionDelegationCommandApi = createDynamicApiClient('Permission')
 const permissionDelegationReadApi = createReadApi<
   PermissionDelegationListItemDto,
   PermissionDelegationDetailDto,
@@ -27,7 +27,7 @@ const permissionDelegationBaseCommandApi = createCommandApi<
   PermissionDelegationCreateDto,
   PermissionDelegationUpdateDto,
   PermissionDelegationDetailDto
->('PermissionDelegation', 'PermissionDelegation')
+>('Permission', 'PermissionDelegation')
 
 export const permissionDelegationApi = {
   create(input: PermissionDelegationCreateDto) {

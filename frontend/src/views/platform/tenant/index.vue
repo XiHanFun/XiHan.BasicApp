@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
-import type { ApiId, TenantCreateDto, TenantDetailDto, TenantListItemDto, TenantUpdateDto } from '@/api'
+import type {
+  ApiId,
+  TenantCreateDto,
+  TenantDetailDto,
+  TenantListItemDto,
+  TenantMemberListItemDto,
+  TenantMemberStatusUpdateDto,
+  TenantMemberUpdateDto,
+  TenantUpdateDto,
+} from '@/api'
 import {
   NButton,
   NDatePicker,
@@ -26,13 +35,25 @@ import {
 } from 'naive-ui'
 import { computed, reactive, ref } from 'vue'
 import {
+  createDefaultQueryBehavior,
   createPageRequest,
   TenantConfigStatus,
   TenantIsolationMode,
+  TenantMemberInviteStatus,
+  TenantMemberType,
   tenantManagementApi,
   TenantStatus,
+  ValidityStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
+import {
+  MEMBER_INVITE_STATUS_OPTIONS,
+  MEMBER_TYPE_OPTIONS,
+  TENANT_CONFIG_STATUS_OPTIONS,
+  TENANT_ISOLATION_MODE_OPTIONS,
+  TENANT_STATUS_OPTIONS,
+  VALIDITY_STATUS_OPTIONS,
+} from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -58,6 +79,24 @@ const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<TenantDetailDto | null>(null)
 
+const memberTypeOptions = MEMBER_TYPE_OPTIONS
+
+const inviteStatusOptions = MEMBER_INVITE_STATUS_OPTIONS
+
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
+
+const memberLoading = ref(false)
+const memberError = ref(false)
+const members = ref<TenantMemberListItemDto[]>([])
+const memberEditVisible = ref(false)
+const memberEditLoading = ref(false)
+const editingMember = ref<TenantMemberUpdateDto | null>(null)
+const editingMemberId = ref<ApiId | null>(null)
+const memberStatusVisible = ref(false)
+const memberStatusLoading = ref(false)
+const editingMemberStatusId = ref<ApiId | null>(null)
+const editingMemberStatus = ref<ValidityStatus>(ValidityStatus.Valid)
+
 const queryParams = reactive({
   configStatus: undefined as TenantConfigStatus | undefined,
   editionId: undefined as ApiId | null | undefined,
@@ -67,26 +106,11 @@ const queryParams = reactive({
   tenantStatus: undefined as TenantStatus | undefined,
 })
 
-const tenantStatusOptions = [
-  { label: '正常', value: TenantStatus.Normal },
-  { label: '暂停', value: TenantStatus.Suspended },
-  { label: '过期', value: TenantStatus.Expired },
-  { label: '禁用', value: TenantStatus.Disabled },
-]
+const tenantStatusOptions = TENANT_STATUS_OPTIONS
 
-const configStatusOptions = [
-  { label: '待配置', value: TenantConfigStatus.Pending },
-  { label: '配置中', value: TenantConfigStatus.Configuring },
-  { label: '已配置', value: TenantConfigStatus.Configured },
-  { label: '配置失败', value: TenantConfigStatus.Failed },
-  { label: '已停用', value: TenantConfigStatus.Disabled },
-]
+const configStatusOptions = TENANT_CONFIG_STATUS_OPTIONS
 
-const isolationModeOptions = [
-  { label: '字段隔离', value: TenantIsolationMode.Field },
-  { label: '数据库隔离', value: TenantIsolationMode.Database },
-  { label: 'Schema 隔离', value: TenantIsolationMode.Schema },
-]
+const isolationModeOptions = TENANT_ISOLATION_MODE_OPTIONS
 
 const modalTitle = computed(() => (tenantForm.value.basicId ? '编辑租户' : '新增租户'))
 
@@ -269,6 +293,7 @@ async function handleView(row: TenantListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   currentDetail.value = null
+  members.value = []
   try {
     currentDetail.value = await tenantManagementApi.detail(row.basicId)
     if (!currentDetail.value) {
@@ -281,6 +306,96 @@ async function handleView(row: TenantListItemDto) {
   finally {
     detailLoading.value = false
   }
+  loadMembers()
+}
+
+async function loadMembers() {
+  if (!currentDetail.value) return
+  memberLoading.value = true
+  memberError.value = false
+  try {
+    const result = await tenantManagementApi.members.page({
+      ...createPageRequest({
+        behavior: createDefaultQueryBehavior({ ignoreTenant: true }),
+        page: { pageIndex: 1, pageSize: 200 },
+      }),
+    })
+    members.value = result.items
+  }
+  catch {
+    memberError.value = true
+    members.value = []
+    message.error('加载成员列表失败')
+  }
+  finally {
+    memberLoading.value = false
+  }
+}
+
+function handleEditMember(row: TenantMemberListItemDto) {
+  editingMemberId.value = row.basicId
+  editingMember.value = {
+    basicId: row.basicId,
+    displayName: row.displayName ?? null,
+    effectiveTime: row.effectiveTime ?? null,
+    expirationTime: row.expirationTime ?? null,
+    inviteRemark: null,
+    memberType: row.memberType,
+    remark: null,
+  }
+  memberEditVisible.value = true
+}
+
+async function handleSaveMember() {
+  if (!editingMember.value || !editingMemberId.value) return
+  memberEditLoading.value = true
+  try {
+    await tenantManagementApi.members.update(editingMember.value)
+    message.success('成员资料更新成功')
+    memberEditVisible.value = false
+    await loadMembers()
+  }
+  catch {
+    message.error('成员资料更新失败')
+  }
+  finally {
+    memberEditLoading.value = false
+  }
+}
+
+function handleChangeMemberStatus(row: TenantMemberListItemDto) {
+  editingMemberStatusId.value = row.basicId
+  editingMemberStatus.value = row.status
+  memberStatusVisible.value = true
+}
+
+async function handleSaveMemberStatus() {
+  if (!editingMemberStatusId.value) return
+  memberStatusLoading.value = true
+  try {
+    const input: TenantMemberStatusUpdateDto = {
+      basicId: editingMemberStatusId.value,
+      status: editingMemberStatus.value,
+    }
+    await tenantManagementApi.members.updateStatus(input)
+    message.success('成员状态更新成功')
+    memberStatusVisible.value = false
+    await loadMembers()
+  }
+  catch {
+    message.error('成员状态更新失败')
+  }
+  finally {
+    memberStatusLoading.value = false
+  }
+}
+
+function getInviteStatusTagType(status: TenantMemberInviteStatus) {
+  if (status === TenantMemberInviteStatus.Accepted) return 'success'
+  if (status === TenantMemberInviteStatus.Pending) return 'info'
+  if (status === TenantMemberInviteStatus.Rejected) return 'error'
+  if (status === TenantMemberInviteStatus.Revoked) return 'warning'
+  return 'default'
 }
 
 function formatNullable(value: unknown) {
@@ -538,7 +653,57 @@ async function handleSubmit() {
               </NTabPane>
 
               <NTabPane name="members" tab="成员">
-                <NEmpty description="加载中…" />
+                <NSpin :show="memberLoading">
+                  <div v-if="memberError" class="xh-detail-empty">
+                    <NEmpty description="加载成员失败">
+                      <template #extra>
+                        <NButton size="small" @click="loadMembers">重试</NButton>
+                      </template>
+                    </NEmpty>
+                  </div>
+                  <NEmpty v-else-if="!memberLoading && members.length === 0" class="xh-detail-empty" description="暂无成员" />
+                  <table v-else class="xh-detail-table">
+                    <thead>
+                      <tr>
+                        <th>用户ID</th>
+                        <th>显示名</th>
+                        <th>成员类型</th>
+                        <th>邀请状态</th>
+                        <th>状态</th>
+                        <th>加入时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in members" :key="item.basicId">
+                        <td>{{ item.userId }}</td>
+                        <td>{{ formatNullable(item.displayName) }}</td>
+                        <td>
+                          <NTag :type="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'primary' : 'default'" round size="small">
+                            {{ getOptionLabel(memberTypeOptions, item.memberType) }}
+                          </NTag>
+                        </td>
+                        <td>
+                          <NTag :type="getInviteStatusTagType(item.inviteStatus)" round size="small">
+                            {{ getOptionLabel(inviteStatusOptions, item.inviteStatus) }}
+                          </NTag>
+                        </td>
+                        <td>
+                          <NTag :type="item.status === ValidityStatus.Valid ? 'success' : 'error'" round size="small">
+                            {{ getOptionLabel(validityStatusOptions, item.status) }}
+                          </NTag>
+                        </td>
+                        <td>{{ formatNullableDate(item.createdTime) }}</td>
+                        <td>
+                          <NSpace size="small">
+                            <NButton size="tiny" @click="handleEditMember(item)">编辑资料</NButton>
+                            <NButton size="tiny" type="warning" @click="handleChangeMemberStatus(item)">变更状态</NButton>
+                          </NSpace>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </NSpin>
               </NTabPane>
 
               <NTabPane name="config" tab="配置信息">
@@ -641,11 +806,115 @@ async function handleSubmit() {
         </NSpace>
       </template>
     </NModal>
+
+    <!-- 编辑成员资料 -->
+    <NModal
+      v-model:show="memberEditVisible"
+      :auto-focus="false"
+      :bordered="false"
+      preset="card"
+      style="width: 520px; max-width: 92vw"
+      title="编辑成员资料"
+    >
+      <NForm v-if="editingMember" :model="editingMember" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem label="显示名" path="displayName">
+          <NInput v-model:value="editingMember.displayName" clearable placeholder="请输入显示名" />
+        </NFormItem>
+        <NFormItem label="成员类型" path="memberType">
+          <NSelect v-model:value="editingMember.memberType" :options="memberTypeOptions" />
+        </NFormItem>
+        <NFormItem label="生效时间" path="effectiveTime">
+          <NDatePicker
+            v-model:formatted-value="editingMember.effectiveTime"
+            clearable
+            style="width: 100%"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </NFormItem>
+        <NFormItem label="过期时间" path="expirationTime">
+          <NDatePicker
+            v-model:formatted-value="editingMember.expirationTime"
+            clearable
+            style="width: 100%"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </NFormItem>
+        <NFormItem label="邀请备注" path="inviteRemark">
+          <NInput
+            v-model:value="editingMember.inviteRemark"
+            clearable
+            placeholder="请输入邀请备注"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput
+            v-model:value="editingMember.remark"
+            clearable
+            placeholder="请输入备注"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="memberEditVisible = false">取消</NButton>
+          <NButton :loading="memberEditLoading" type="primary" @click="handleSaveMember">保存</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 变更成员状态 -->
+    <NModal
+      v-model:show="memberStatusVisible"
+      :auto-focus="false"
+      :bordered="false"
+      preset="card"
+      style="width: 360px; max-width: 92vw"
+      title="变更成员状态"
+    >
+      <NForm label-placement="top">
+        <NFormItem label="状态">
+          <NSelect v-model:value="editingMemberStatus" :options="validityStatusOptions" />
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="memberStatusVisible = false">取消</NButton>
+          <NButton :loading="memberStatusLoading" type="primary" @click="handleSaveMemberStatus">保存</NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </div>
 </template>
 
 <style scoped>
 .xh-detail-empty {
   padding: 48px 0;
+}
+
+.xh-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.xh-detail-table th,
+.xh-detail-table td {
+  padding: 9px 10px;
+  border: 1px solid var(--n-border-color);
+  text-align: left;
+  vertical-align: top;
+}
+
+.xh-detail-table th {
+  background: var(--n-merged-th-color);
+  font-weight: 500;
 }
 </style>

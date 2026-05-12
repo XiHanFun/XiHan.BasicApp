@@ -9,7 +9,7 @@ import type {
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const tenantEditionPermissionQueryApi = createDynamicApiClient('TenantEditionPermissionQuery')
-const tenantEditionPermissionCommandApi = createDynamicApiClient('TenantEditionPermission')
+const tenantEditionPermissionCommandApi = createDynamicApiClient('TenantEdition')
 
 export const tenantEditionPermissionApi = {
   detail(id: ApiId) {

@@ -10,7 +10,7 @@ import type {
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userRoleQueryApi = createDynamicApiClient('UserRoleQuery')
-const userRoleCommandApi = createDynamicApiClient('UserRole')
+const userRoleCommandApi = createDynamicApiClient('User')
 
 export const userRoleApi = {
   detail(id: ApiId) {

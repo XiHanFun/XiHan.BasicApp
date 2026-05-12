@@ -25,19 +25,25 @@ import {
 import { computed, reactive, ref } from 'vue'
 import {
   createPageRequest,
-  DataPermissionScope,
-  DeviceType,
   EnableStatus,
-  PermissionAction,
-  RoleType,
-  StatisticsPeriod,
   TenantMemberType,
-  TwoFactorMethod,
   UserGender,
   userManagementApi,
   ValidityStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
+import {
+  DATA_SCOPE_OPTIONS,
+  DEVICE_TYPE_OPTIONS,
+  GENDER_OPTIONS,
+  MEMBER_TYPE_OPTIONS,
+  PERMISSION_ACTION_OPTIONS,
+  ROLE_TYPE_OPTIONS,
+  STATISTICS_PERIOD_OPTIONS,
+  STATUS_OPTIONS,
+  TWO_FACTOR_METHOD_OPTIONS,
+  VALIDITY_STATUS_OPTIONS,
+} from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -67,82 +73,25 @@ const queryParams = reactive({
   status: undefined as EnableStatus | undefined,
 })
 
-const genderOptions = [
-  { label: '未知', value: UserGender.Unknown },
-  { label: '男', value: UserGender.Male },
-  { label: '女', value: UserGender.Female },
-]
+const genderOptions = GENDER_OPTIONS
 
-const statusOptions = [
-  { label: '启用', value: EnableStatus.Enabled },
-  { label: '禁用', value: EnableStatus.Disabled },
-]
+const statusOptions = STATUS_OPTIONS
 
-const memberTypeOptions = [
-  { label: '负责人', value: TenantMemberType.Owner },
-  { label: '管理员', value: TenantMemberType.Admin },
-  { label: '成员', value: TenantMemberType.Member },
-  { label: '外部成员', value: TenantMemberType.External },
-  { label: '访客', value: TenantMemberType.Guest },
-  { label: '顾问', value: TenantMemberType.Consultant },
-  { label: '平台管理员', value: TenantMemberType.PlatformAdmin },
-]
+const memberTypeOptions = MEMBER_TYPE_OPTIONS
 
-const validityStatusOptions = [
-  { label: '无效', value: ValidityStatus.Invalid },
-  { label: '有效', value: ValidityStatus.Valid },
-]
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 
-const roleTypeOptions = [
-  { label: '系统角色', value: RoleType.System },
-  { label: '业务角色', value: RoleType.Business },
-  { label: '自定义角色', value: RoleType.Custom },
-]
+const roleTypeOptions = ROLE_TYPE_OPTIONS
 
-const dataScopeOptions = [
-  { label: '仅本人', value: DataPermissionScope.SelfOnly },
-  { label: '本部门', value: DataPermissionScope.DepartmentOnly },
-  { label: '本部门及以下', value: DataPermissionScope.DepartmentAndChildren },
-  { label: '全部数据', value: DataPermissionScope.All },
-  { label: '自定义', value: DataPermissionScope.Custom },
-]
+const dataScopeOptions = DATA_SCOPE_OPTIONS
 
-const permissionActionOptions = [
-  { label: '允许', value: PermissionAction.Grant },
-  { label: '拒绝', value: PermissionAction.Deny },
-]
+const permissionActionOptions = PERMISSION_ACTION_OPTIONS
 
-const twoFactorMethodOptions = [
-  { label: '未设置', value: TwoFactorMethod.None },
-  { label: 'TOTP', value: TwoFactorMethod.Totp },
-  { label: '邮箱', value: TwoFactorMethod.Email },
-  { label: '手机', value: TwoFactorMethod.Phone },
-]
+const twoFactorMethodOptions = TWO_FACTOR_METHOD_OPTIONS
 
-const deviceTypeOptions = [
-  { label: '未知', value: DeviceType.Unknown },
-  { label: '网页', value: DeviceType.Web },
-  { label: 'iOS', value: DeviceType.IOS },
-  { label: 'Android', value: DeviceType.Android },
-  { label: 'Windows', value: DeviceType.Windows },
-  { label: 'MacOS', value: DeviceType.MacOS },
-  { label: 'Linux', value: DeviceType.Linux },
-  { label: '平板', value: DeviceType.Tablet },
-  { label: '小程序', value: DeviceType.MiniProgram },
-  { label: '接口', value: DeviceType.Api },
-]
+const deviceTypeOptions = DEVICE_TYPE_OPTIONS
 
-const statisticsPeriodOptions = [
-  { label: '今天', value: StatisticsPeriod.Today },
-  { label: '昨天', value: StatisticsPeriod.Yesterday },
-  { label: '本周', value: StatisticsPeriod.ThisWeek },
-  { label: '上周', value: StatisticsPeriod.LastWeek },
-  { label: '本月', value: StatisticsPeriod.ThisMonth },
-  { label: '上月', value: StatisticsPeriod.LastMonth },
-  { label: '今年', value: StatisticsPeriod.ThisYear },
-  { label: '去年', value: StatisticsPeriod.LastYear },
-  { label: '自定义', value: StatisticsPeriod.Custom },
-]
+const statisticsPeriodOptions = STATISTICS_PERIOD_OPTIONS
 
 const modalTitle = computed(() => (userForm.value.basicId ? '编辑用户' : '新增用户'))
 
