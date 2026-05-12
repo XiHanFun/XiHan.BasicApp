@@ -524,7 +524,11 @@ async function handleSubmit() {
     <NDrawer v-model:show="detailVisible" :width="820">
       <NDrawerContent closable title="菜单详情">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无菜单详情" />
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无菜单详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
               <NTabPane name="overview" tab="概览">
@@ -601,7 +605,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无子菜单" />
+                <NEmpty v-else description="暂无子菜单" style="padding: 40px 0" />
               </NTabPane>
             </NTabs>
           </NScrollbar>

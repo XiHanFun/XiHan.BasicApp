@@ -469,7 +469,11 @@ async function handleSubmit() {
     <NDrawer v-model:show="detailVisible" :width="960">
       <NDrawerContent closable title="用户详情">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无用户详情" />
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无用户详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
               <NTabPane name="overview" tab="概览">
@@ -520,7 +524,11 @@ async function handleSubmit() {
               </NTabPane>
 
               <NTabPane name="security" tab="安全设置">
-                <NEmpty v-if="!currentDetail.security" description="暂无安全设置" />
+                <NEmpty v-if="!currentDetail.security" description="暂无安全设置" style="padding: 40px 0">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:inbox" /></NIcon>
+                  </template>
+                </NEmpty>
                 <NDescriptions v-else :column="2" bordered size="small">
                   <NDescriptionsItem label="允许多端登录">
                     {{ formatBoolean(currentDetail.security.allowMultiLogin) }}
@@ -582,7 +590,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无部门分配" />
+                <NEmpty v-else description="暂无部门分配" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="roles" :tab="`角色 (${currentDetail.roles.length})`">
@@ -606,7 +614,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无角色分配" />
+                <NEmpty v-else description="暂无角色分配" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="permissions" :tab="`额外权限 (${currentDetail.permissions.length})`">
@@ -630,7 +638,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无额外权限" />
+                <NEmpty v-else description="暂无额外权限" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="dataScopes" :tab="`数据范围 (${currentDetail.dataScopes.length})`">
@@ -654,7 +662,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无自定义数据范围" />
+                <NEmpty v-else description="暂无自定义数据范围" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="sessions" :tab="`登录会话 (${currentDetail.sessions.length})`">
@@ -678,7 +686,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无登录会话" />
+                <NEmpty v-else description="暂无登录会话" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="externalLogins" :tab="`第三方绑定 (${currentDetail.externalLogins.length})`">
@@ -700,7 +708,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无第三方绑定" />
+                <NEmpty v-else description="暂无第三方绑定" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="passwordHistories" :tab="`密码历史 (${currentDetail.passwordHistories.length})`">
@@ -720,7 +728,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无密码历史" />
+                <NEmpty v-else description="暂无密码历史" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="statistics" :tab="`统计 (${currentDetail.statistics.length})`">
@@ -746,7 +754,7 @@ async function handleSubmit() {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无统计数据" />
+                <NEmpty v-else description="暂无统计数据" style="padding: 40px 0" />
               </NTabPane>
             </NTabs>
           </NScrollbar>

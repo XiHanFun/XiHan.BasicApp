@@ -15,6 +15,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { workbenchApi, serverManagementApi } from '@/api'
 import { Icon } from '~/iconify'
+import { usePermission } from '~/hooks'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
@@ -22,6 +23,7 @@ defineOptions({ name: 'WorkbenchDashboardPage' })
 
 const router = useRouter()
 const userStore = useUserStore()
+const { hasPermission } = usePermission()
 
 const loading = ref(true)
 const loginCount = ref(0)
@@ -91,14 +93,19 @@ const systemMetrics = computed(() => [
   { label: '磁盘', value: serverDisk.value, color: '#f59e0b' },
 ])
 
-const quickLinks = [
-  { label: '站内信', desc: '查看系统消息', icon: 'lucide:inbox', to: '/workbench/inbox', color: '#3b82f6' },
-  { label: '用户管理', desc: '账号与权限', icon: 'lucide:users', to: '/system/user', color: '#22c55e' },
-  { label: '角色管理', desc: '角色与授权', icon: 'lucide:shield-user', to: '/system/role', color: '#8b5cf6' },
-  { label: '菜单管理', desc: '导航配置', icon: 'lucide:list-tree', to: '/platform/menu', color: '#f59e0b' },
-  { label: '日志管理', desc: '审计与追踪', icon: 'lucide:file-search', to: '/log/login', color: '#ef4444' },
-  { label: '个人中心', desc: '资料与安全', icon: 'lucide:user-round-cog', to: '/workbench/profile', color: '#06b6d4' },
-]
+// TODO: 确认各快捷入口的权限码与后台权限中心一致，当前为基于模块命名约定的占位码。
+const quickLinkDefinitions = [
+  { label: '站内信', desc: '查看系统消息', icon: 'lucide:inbox', to: '/workbench/inbox', color: '#3b82f6', permission: 'workbench:inbox:view' },
+  { label: '用户管理', desc: '账号与权限', icon: 'lucide:users', to: '/system/user', color: '#22c55e', permission: 'saas:user:read' },
+  { label: '角色管理', desc: '角色与授权', icon: 'lucide:shield-user', to: '/system/role', color: '#8b5cf6', permission: 'saas:role:read' },
+  { label: '菜单管理', desc: '导航配置', icon: 'lucide:list-tree', to: '/platform/menu', color: '#f59e0b', permission: 'platform:menu:view' },
+  { label: '日志管理', desc: '审计与追踪', icon: 'lucide:file-search', to: '/log/login', color: '#ef4444', permission: 'log:login:view' },
+  { label: '个人中心', desc: '资料与安全', icon: 'lucide:user-round-cog', to: '/workbench/profile', color: '#06b6d4', permission: null },
+] as const
+
+const quickLinks = computed(() =>
+  quickLinkDefinitions.filter(link => !link.permission || hasPermission(link.permission)),
+)
 
 // TODO: Replace with API call when backend provides ActivityFeed endpoint
 // const recentActivities = await workbenchApi.dashboard.recentActivities()

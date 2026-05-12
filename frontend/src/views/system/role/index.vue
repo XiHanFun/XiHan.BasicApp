@@ -509,7 +509,11 @@ async function handleToggleStatus(row: RoleListItemDto) {
     <NDrawer v-model:show="detailVisible" :width="900">
       <NDrawerContent closable title="角色详情">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无角色详情" />
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无角色详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
               <NTabPane name="overview" tab="概览">
@@ -574,7 +578,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限分配" />
+                <NEmpty v-else description="暂无权限分配" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="dataScopes" :tab="`数据范围 (${currentDetail.dataScopes.length})`">
@@ -598,7 +602,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无角色数据范围" />
+                <NEmpty v-else description="暂无角色数据范围" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="ancestors" :tab="`祖先链 (${currentDetail.ancestors.length})`">
@@ -622,7 +626,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无祖先角色" />
+                <NEmpty v-else description="暂无祖先角色" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="descendants" :tab="`后代链 (${currentDetail.descendants.length})`">
@@ -646,7 +650,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无后代角色" />
+                <NEmpty v-else description="暂无后代角色" style="padding: 40px 0" />
               </NTabPane>
 
               <NTabPane name="grantedUsers" :tab="`授权用户 (${currentDetail.grantedUsers.length})`">
@@ -670,7 +674,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无授权用户" />
+                <NEmpty v-else description="暂无授权用户" style="padding: 40px 0" />
               </NTabPane>
             </NTabs>
           </NScrollbar>

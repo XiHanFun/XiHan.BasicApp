@@ -22,6 +22,7 @@ import {
   NPopconfirm,
   NScrollbar,
   NSelect,
+  NSkeleton,
   NSpace,
   NSpin,
   NSwitch,
@@ -67,6 +68,7 @@ interface ConfigFormModel {
 }
 
 const message = useMessage()
+const loading = ref(true)
 const xGrid = ref<VxeGridInstance<ConfigListItemDto>>()
 
 const queryParams = reactive({
@@ -151,11 +153,15 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       keyword: queryParams.keyword?.trim() || undefined,
       status: queryParams.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
+    .then(result => {
+      loading.value = false
+      return {
+        items: result.items,
+        total: result.page.totalCount,
+      }
+    })
     .catch(() => {
+      loading.value = false
       message.error('查询配置失败')
       return { items: [], total: 0 }
     })
@@ -444,7 +450,8 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     </XSystemQueryPanel>
 
     <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
+      <NSkeleton v-if="loading" :height="48" :repeat="5" text style="padding: 16px" />
+      <vxe-grid v-show="!loading" ref="xGrid" v-bind="tableOptions">
         <template #toolbar_buttons>
           <NButton size="small" type="primary" @click="handleAdd">
             <template #icon>
@@ -534,7 +541,11 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     <NDrawer v-model:show="detailVisible" :width="720">
       <NDrawerContent closable title="配置详情">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无配置详情" />
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无配置详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NDescriptions :column="2" bordered size="small">
               <NDescriptionsItem label="配置名称">
