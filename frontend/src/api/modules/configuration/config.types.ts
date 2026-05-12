@@ -47,3 +47,38 @@ export interface ConfigDetailDto extends ConfigListItemDto {
   modifiedBy?: string | null
   modifiedId?: ApiId | null
 }
+
+export interface ConfigCreateDto {
+  configDescription?: string | null
+  configGroup?: string | null
+  configKey: string
+  configName: string
+  configType: ConfigType
+  configValue?: string | null
+  dataType: ConfigDataType
+  defaultValue?: string | null
+  isEncrypted: boolean
+  isGlobal: boolean
+  remark?: string | null
+  sort: number
+  status: EnableStatus
+}
+
+export interface ConfigUpdateDto extends BasicDto {
+  configDescription?: string | null
+  configGroup?: string | null
+  configName: string
+  configType: ConfigType
+  configValue?: string | null
+  dataType: ConfigDataType
+  defaultValue?: string | null
+  isEncrypted: boolean
+  isGlobal: boolean
+  remark?: string | null
+  sort: number
+}
+
+export interface ConfigStatusUpdateDto extends BasicDto {
+  remark?: string | null
+  status: EnableStatus
+}

@@ -81,3 +81,50 @@ export interface DictItemTreeNodeDto extends BasicDto {
   sort: number
   status: EnableStatus
 }
+
+export interface DictCreateDto {
+  dictCode: string
+  dictDescription?: string | null
+  dictName: string
+  dictType: string
+  sort: number
+  status: EnableStatus
+}
+
+export interface DictUpdateDto extends BasicDto {
+  dictDescription?: string | null
+  dictName: string
+  dictType: string
+  sort: number
+}
+
+export interface DictStatusUpdateDto extends BasicDto {
+  remark?: string | null
+  status: EnableStatus
+}
+
+export interface DictItemCreateDto {
+  dictId: ApiId
+  isDefault: boolean
+  itemCode: string
+  itemDescription?: string | null
+  itemName: string
+  itemValue?: string | null
+  parentId?: ApiId | null
+  sort: number
+  status: EnableStatus
+}
+
+export interface DictItemUpdateDto extends BasicDto {
+  isDefault: boolean
+  itemDescription?: string | null
+  itemName: string
+  itemValue?: string | null
+  parentId?: ApiId | null
+  sort: number
+}
+
+export interface DictItemStatusUpdateDto extends BasicDto {
+  remark?: string | null
+  status: EnableStatus
+}

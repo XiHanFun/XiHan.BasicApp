@@ -13,6 +13,7 @@ import {
   NIcon,
   NInput,
   NModal,
+  NPopconfirm,
   NScrollbar,
   NSelect,
   NSpace,
@@ -78,6 +79,14 @@ const genderOptions = GENDER_OPTIONS
 const statusOptions = STATUS_OPTIONS
 
 const memberTypeOptions = MEMBER_TYPE_OPTIONS
+
+const languageOptions = [
+  { label: '简体中文', value: 'zh-CN' },
+  { label: '繁體中文', value: 'zh-TW' },
+  { label: 'English', value: 'en-US' },
+  { label: '日本語', value: 'ja-JP' },
+  { label: '한국어', value: 'ko-KR' },
+]
 
 const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 
@@ -434,20 +443,24 @@ async function handleSubmit() {
                 <NIcon><Icon icon="lucide:pencil" /></NIcon>
               </template>
             </NButton>
-            <NButton
-              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              aria-label="切换状态"
-              circle
-              quaternary
-              size="small"
-              @click="handleToggleStatus(row)"
-            >
-              <template #icon>
-                <NIcon>
-                  <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:check'" />
-                </NIcon>
+            <NPopconfirm @positive-click="handleToggleStatus(row)">
+              <template #trigger>
+                <NButton
+                  :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
+                  aria-label="切换状态"
+                  circle
+                  quaternary
+                  size="small"
+                >
+                  <template #icon>
+                    <NIcon>
+                      <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:check'" />
+                    </NIcon>
+                  </template>
+                </NButton>
               </template>
-            </NButton>
+              确认{{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}？
+            </NPopconfirm>
           </NSpace>
         </template>
       </vxe-grid>
@@ -783,7 +796,7 @@ async function handleSubmit() {
           <NInput v-model:value="userForm.email" clearable placeholder="请输入邮箱" />
         </NFormItem>
         <NFormItem label="语言" path="language">
-          <NInput v-model:value="userForm.language" clearable placeholder="如: zh-CN" />
+          <NSelect v-model:value="userForm.language" :options="languageOptions" clearable placeholder="选择语言" />
         </NFormItem>
         <NFormItem v-if="!userForm.basicId" label="成员类型" path="memberType">
           <NSelect v-model:value="userForm.memberType" :options="memberTypeOptions" />

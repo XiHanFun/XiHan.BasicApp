@@ -100,6 +100,8 @@ const quickLinks = [
   { label: '个人中心', desc: '资料与安全', icon: 'lucide:user-round-cog', to: '/workbench/profile', color: '#06b6d4' },
 ]
 
+// TODO: Replace with API call when backend provides ActivityFeed endpoint
+// const recentActivities = await workbenchApi.dashboard.recentActivities()
 const recentActivities = [
   { time: '10 分钟前', text: '超级管理员 更新了角色权限配置' },
   { time: '30 分钟前', text: '系统 执行了数据备份任务' },
@@ -175,6 +177,7 @@ function getProgressStatus(value: number) {
 
 onMounted(() => {
   fetchDashboardData()
+  // TODO: Replace with workbenchApi.serverMetrics() when backend provides aggregated endpoint
   fetchServerMetrics()
 })
 </script>
