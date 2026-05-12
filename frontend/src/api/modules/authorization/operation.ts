@@ -20,13 +20,13 @@ import {
 } from '../../base'
 
 const operationQueryApi = createDynamicApiClient('OperationQuery')
-const operationCommandApi = createDynamicApiClient('Operation')
+const operationCommandApi = createDynamicApiClient('Permission')
 const operationReadApi = createReadApi<OperationListItemDto, OperationDetailDto, OperationPageQueryDto>(
   'OperationQuery',
   'Operation',
 )
 const operationBaseCommandApi = createCommandApi<OperationCreateDto, OperationUpdateDto, OperationDetailDto>(
-  'Operation',
+  'Permission',
   'Operation',
 )
 

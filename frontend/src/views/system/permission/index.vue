@@ -35,26 +35,30 @@ import {
 } from 'naive-ui'
 import { computed, reactive, ref, watch } from 'vue'
 import {
-  ConditionOperator,
-  ConfigDataType,
   createPageRequest,
-  DelegationStatus,
   EnableStatus,
-  FieldMaskStrategy,
-  FieldSecurityTargetType,
-  HttpMethodType,
-  OperationCategory,
-  OperationTypeCode,
   permissionCenterApi,
-  PermissionChangeType,
-  PermissionRequestStatus,
   PermissionType,
-  ResourceAccessLevel,
-  ResourceType,
   ValidityStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
-import { STATUS_OPTIONS } from '~/constants'
+import {
+  CONDITION_OPERATOR_OPTIONS,
+  CONFIG_DATA_TYPE_OPTIONS,
+  DELEGATION_STATUS_OPTIONS,
+  FIELD_MASK_STRATEGY_OPTIONS,
+  FIELD_SECURITY_TARGET_TYPE_OPTIONS,
+  HTTP_METHOD_OPTIONS,
+  OPERATION_CATEGORY_OPTIONS,
+  OPERATION_TYPE_OPTIONS,
+  PERMISSION_CHANGE_TYPE_OPTIONS,
+  PERMISSION_REQUEST_STATUS_OPTIONS,
+  PERMISSION_TYPE_OPTIONS,
+  RESOURCE_ACCESS_LEVEL_OPTIONS,
+  RESOURCE_TYPE_OPTIONS,
+  STATUS_OPTIONS,
+  VALIDITY_STATUS_OPTIONS,
+} from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -96,11 +100,7 @@ const queryParams = reactive({
   status: undefined as EnableStatus | undefined,
 })
 
-const permissionTypeOptions = [
-  { label: '资源操作', value: PermissionType.ResourceBased },
-  { label: '功能', value: PermissionType.Functional },
-  { label: '数据范围', value: PermissionType.DataScope },
-]
+const permissionTypeOptions = PERMISSION_TYPE_OPTIONS
 
 const globalOptions = [
   { label: '全局权限', value: 1 },
@@ -112,133 +112,31 @@ const auditOptions = [
   { label: '无需审计', value: 0 },
 ]
 
-const validityStatusOptions = [
-  { label: '无效', value: ValidityStatus.Invalid },
-  { label: '有效', value: ValidityStatus.Valid },
-]
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 
-const resourceTypeOptions = [
-  { label: '接口', value: ResourceType.Api },
-  { label: '文件', value: ResourceType.File },
-  { label: '数据表', value: ResourceType.DataTable },
-  { label: '业务对象', value: ResourceType.BusinessObject },
-  { label: '其他', value: ResourceType.Other },
-]
+const resourceTypeOptions = RESOURCE_TYPE_OPTIONS
 
-const resourceAccessLevelOptions = [
-  { label: '公开', value: ResourceAccessLevel.Public },
-  { label: '登录可访问', value: ResourceAccessLevel.Authenticated },
-  { label: '授权可访问', value: ResourceAccessLevel.Authorized },
-]
+const resourceAccessLevelOptions = RESOURCE_ACCESS_LEVEL_OPTIONS
 
-const httpMethodOptions = [
-  { label: 'GET', value: HttpMethodType.GET },
-  { label: 'POST', value: HttpMethodType.POST },
-  { label: 'PUT', value: HttpMethodType.PUT },
-  { label: 'DELETE', value: HttpMethodType.DELETE },
-  { label: 'PATCH', value: HttpMethodType.PATCH },
-  { label: 'HEAD', value: HttpMethodType.HEAD },
-  { label: 'OPTIONS', value: HttpMethodType.OPTIONS },
-  { label: 'ALL', value: HttpMethodType.ALL },
-]
+const httpMethodOptions = HTTP_METHOD_OPTIONS
 
-const operationCategoryOptions = [
-  { label: 'CRUD', value: OperationCategory.Crud },
-  { label: '业务', value: OperationCategory.Business },
-  { label: '管理', value: OperationCategory.Admin },
-  { label: '系统', value: OperationCategory.System },
-  { label: '自定义', value: OperationCategory.Custom },
-]
+const operationCategoryOptions = OPERATION_CATEGORY_OPTIONS
 
-const operationTypeOptions = [
-  { label: '创建', value: OperationTypeCode.Create },
-  { label: '读取', value: OperationTypeCode.Read },
-  { label: '更新', value: OperationTypeCode.Update },
-  { label: '删除', value: OperationTypeCode.Delete },
-  { label: '查看', value: OperationTypeCode.View },
-  { label: '审核', value: OperationTypeCode.Approve },
-  { label: '执行', value: OperationTypeCode.Execute },
-  { label: '导入', value: OperationTypeCode.Import },
-  { label: '导出', value: OperationTypeCode.Export },
-  { label: '上传', value: OperationTypeCode.Upload },
-  { label: '下载', value: OperationTypeCode.Download },
-  { label: '打印', value: OperationTypeCode.Print },
-  { label: '分享', value: OperationTypeCode.Share },
-  { label: '授权', value: OperationTypeCode.Grant },
-  { label: '撤销', value: OperationTypeCode.Revoke },
-  { label: '启用', value: OperationTypeCode.Enable },
-  { label: '停用', value: OperationTypeCode.Disable },
-  { label: '自定义', value: OperationTypeCode.Custom },
-]
+const operationTypeOptions = OPERATION_TYPE_OPTIONS
 
-const conditionOperatorOptions = [
-  { label: '等于', value: ConditionOperator.Equals },
-  { label: '不等于', value: ConditionOperator.NotEquals },
-  { label: '大于', value: ConditionOperator.GreaterThan },
-  { label: '大于等于', value: ConditionOperator.GreaterThanOrEquals },
-  { label: '小于', value: ConditionOperator.LessThan },
-  { label: '小于等于', value: ConditionOperator.LessThanOrEquals },
-  { label: '包含', value: ConditionOperator.Contains },
-  { label: '不包含', value: ConditionOperator.NotContains },
-  { label: '属于', value: ConditionOperator.In },
-  { label: '不属于', value: ConditionOperator.NotIn },
-  { label: '区间', value: ConditionOperator.Between },
-  { label: '开头匹配', value: ConditionOperator.StartsWith },
-  { label: '结尾匹配', value: ConditionOperator.EndsWith },
-  { label: '为空', value: ConditionOperator.IsNull },
-  { label: '不为空', value: ConditionOperator.IsNotNull },
-]
+const conditionOperatorOptions = CONDITION_OPERATOR_OPTIONS
 
-const configDataTypeOptions = [
-  { label: '字符串', value: ConfigDataType.String },
-  { label: '数值', value: ConfigDataType.Number },
-  { label: '布尔', value: ConfigDataType.Boolean },
-  { label: 'JSON', value: ConfigDataType.Json },
-  { label: '数组', value: ConfigDataType.Array },
-]
+const configDataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
 
-const delegationStatusOptions = [
-  { label: '待生效', value: DelegationStatus.Pending },
-  { label: '生效中', value: DelegationStatus.Active },
-  { label: '已过期', value: DelegationStatus.Expired },
-  { label: '已撤销', value: DelegationStatus.Revoked },
-]
+const delegationStatusOptions = DELEGATION_STATUS_OPTIONS
 
-const requestStatusOptions = [
-  { label: '待审批', value: PermissionRequestStatus.Pending },
-  { label: '已通过', value: PermissionRequestStatus.Approved },
-  { label: '已拒绝', value: PermissionRequestStatus.Rejected },
-  { label: '已撤回', value: PermissionRequestStatus.Withdrawn },
-  { label: '已过期', value: PermissionRequestStatus.Expired },
-]
+const requestStatusOptions = PERMISSION_REQUEST_STATUS_OPTIONS
 
-const fieldMaskStrategyOptions = [
-  { label: '不脱敏', value: FieldMaskStrategy.None },
-  { label: '隐藏', value: FieldMaskStrategy.Hidden },
-  { label: '全量遮盖', value: FieldMaskStrategy.FullMask },
-  { label: '部分遮盖', value: FieldMaskStrategy.PartialMask },
-  { label: '哈希', value: FieldMaskStrategy.Hash },
-  { label: '编辑遮盖', value: FieldMaskStrategy.Redact },
-  { label: '自定义', value: FieldMaskStrategy.Custom },
-]
+const fieldMaskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
 
-const fieldSecurityTargetTypeOptions = [
-  { label: '角色', value: FieldSecurityTargetType.Role },
-  { label: '用户', value: FieldSecurityTargetType.User },
-  { label: '权限', value: FieldSecurityTargetType.Permission },
-  { label: '部门', value: FieldSecurityTargetType.Department },
-]
+const fieldSecurityTargetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
 
-const changeTypeOptions = [
-  { label: '角色授权权限', value: PermissionChangeType.RoleGrantPermission },
-  { label: '角色撤销权限', value: PermissionChangeType.RoleRevokePermission },
-  { label: '用户授权权限', value: PermissionChangeType.UserGrantPermission },
-  { label: '用户撤销权限', value: PermissionChangeType.UserRevokePermission },
-  { label: '用户分配角色', value: PermissionChangeType.UserAssignRole },
-  { label: '用户移除角色', value: PermissionChangeType.UserRemoveRole },
-  { label: '用户拒绝权限', value: PermissionChangeType.UserDenyPermission },
-  { label: '角色拒绝权限', value: PermissionChangeType.RoleDenyPermission },
-]
+const changeTypeOptions = PERMISSION_CHANGE_TYPE_OPTIONS
 
 const modalTitle = computed(() => (permissionForm.value.basicId ? '编辑权限' : '新增权限'))
 const isResourceBasedForm = computed(() => permissionForm.value.permissionType === PermissionType.ResourceBased)

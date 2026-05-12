@@ -20,13 +20,13 @@ import {
 } from '../../base'
 
 const resourceQueryApi = createDynamicApiClient('ResourceQuery')
-const resourceCommandApi = createDynamicApiClient('Resource')
+const resourceCommandApi = createDynamicApiClient('Permission')
 const resourceReadApi = createReadApi<ResourceListItemDto, ResourceDetailDto, ResourcePageQueryDto>(
   'ResourceQuery',
   'Resource',
 )
 const resourceBaseCommandApi = createCommandApi<ResourceCreateDto, ResourceUpdateDto, ResourceDetailDto>(
-  'Resource',
+  'Permission',
   'Resource',
 )
 

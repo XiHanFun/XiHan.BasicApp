@@ -29,13 +29,18 @@ import {
   createPageRequest,
   DataPermissionScope,
   EnableStatus,
-  PermissionAction,
   roleManagementApi,
   RoleType,
   ValidityStatus,
 } from '@/api'
 import { Icon, XSystemQueryPanel } from '~/components'
-import { STATUS_OPTIONS } from '~/constants'
+import {
+  DATA_SCOPE_OPTIONS,
+  PERMISSION_ACTION_OPTIONS,
+  ROLE_TYPE_OPTIONS,
+  STATUS_OPTIONS,
+  VALIDITY_STATUS_OPTIONS,
+} from '~/constants'
 import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -66,34 +71,18 @@ const globalOptions = [
   { label: '租户角色', value: 0 },
 ]
 
-const roleTypeOptions = [
-  { label: '系统角色', value: RoleType.System },
-  { label: '业务角色', value: RoleType.Business },
-  { label: '自定义角色', value: RoleType.Custom },
-]
+const roleTypeOptions = ROLE_TYPE_OPTIONS
 
 const maintainableRoleTypeOptions = [
   { label: '业务角色', value: RoleType.Business },
   { label: '自定义角色', value: RoleType.Custom },
 ]
 
-const dataScopeOptions = [
-  { label: '仅本人', value: DataPermissionScope.SelfOnly },
-  { label: '本部门', value: DataPermissionScope.DepartmentOnly },
-  { label: '本部门及以下', value: DataPermissionScope.DepartmentAndChildren },
-  { label: '全部数据', value: DataPermissionScope.All },
-  { label: '自定义', value: DataPermissionScope.Custom },
-]
+const dataScopeOptions = DATA_SCOPE_OPTIONS
 
-const validityStatusOptions = [
-  { label: '无效', value: ValidityStatus.Invalid },
-  { label: '有效', value: ValidityStatus.Valid },
-]
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 
-const permissionActionOptions = [
-  { label: '允许', value: PermissionAction.Grant },
-  { label: '拒绝', value: PermissionAction.Deny },
-]
+const permissionActionOptions = PERMISSION_ACTION_OPTIONS
 
 const modalVisible = ref(false)
 const submitLoading = ref(false)

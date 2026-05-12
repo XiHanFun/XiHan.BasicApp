@@ -16,7 +16,7 @@ import {
 } from '../../base'
 
 const tenantMemberQueryApi = createDynamicApiClient('TenantMemberQuery')
-const tenantMemberCommandApi = createDynamicApiClient('TenantMember')
+const tenantMemberCommandApi = createDynamicApiClient('Tenant')
 const tenantMemberReadApi = createReadApi<TenantMemberListItemDto, TenantMemberDetailDto, TenantMemberPageQueryDto>(
   'TenantMemberQuery',
   'TenantMember',

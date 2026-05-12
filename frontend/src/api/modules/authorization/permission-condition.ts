@@ -10,7 +10,7 @@ import type {
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const permissionConditionQueryApi = createDynamicApiClient('PermissionConditionQuery')
-const permissionConditionCommandApi = createDynamicApiClient('PermissionCondition')
+const permissionConditionCommandApi = createDynamicApiClient('Permission')
 
 function buildOnlyValidParams(onlyValid: boolean) {
   const params: DynamicApiParams = {}
