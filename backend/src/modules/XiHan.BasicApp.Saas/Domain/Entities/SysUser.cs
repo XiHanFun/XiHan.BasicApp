@@ -43,6 +43,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///                        (3) 登录成功后若用户在其它租户也有 SysTenantUser，展示"切换租户"入口
 /// - 鉴权决策：UserId + 当前会话 TenantId → 查 SysTenantUser 校验成员身份 → 再查 SysUserRole 加载角色
 /// - 联系方式查询走 IX_Em / IX_Ph（非唯一，仅作辅助找回/验证，不用于登录定位）
+/// - 按激活状态筛选：IX_TeId_St_IsAc
 ///
 /// 删除：
 /// - 仅支持软删（IsDeleted=1）保留审计
@@ -50,6 +51,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 状态：
 /// - Status: Yes=启用 / No=禁用（禁用后所有租户下均不可登录）
+/// - IsActive: false=未激活（邮箱/手机未验证），true=已激活；与 Status 正交：未激活+启用仍不可登录，已激活+禁用亦不可登录
 ///
 /// 场景：
 /// - 登录认证入口（身份校验）
@@ -65,6 +67,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_Em", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ph", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St_IsAc", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsActive), OrderByType.Asc)]
 public partial class SysUser : BasicAppAggregateRoot
 {
     /// <summary>
@@ -120,6 +123,12 @@ public partial class SysUser : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
+
+    /// <summary>
+    /// 是否已激活（IsActive=false表示邮箱/手机未验证，Status=Disabled表示管理员禁用）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "是否已激活")]
+    public virtual bool IsActive { get; set; } = true;
 
     /// <summary>
     /// 最后登录时间

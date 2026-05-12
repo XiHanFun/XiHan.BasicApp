@@ -162,7 +162,8 @@ public sealed class SaasConfigurationSeeder(
             new("文件存储根路径", SaasConfigKeys.Groups.File, SaasConfigKeys.File.StorageBasePath, "uploads", "uploads", ConfigType.System, ConfigDataType.String, "本地文件存储根路径或云存储 Bucket 前缀", 220),
             new("文件上传最大大小(MB)", SaasConfigKeys.Groups.File, SaasConfigKeys.File.MaxFileSize, "50", "50", ConfigType.System, ConfigDataType.Number, "单次上传文件的最大大小限制(MB)", 230),
             new("文件允许扩展名", SaasConfigKeys.Groups.File, SaasConfigKeys.File.AllowedExtensions, ".jpg,.jpeg,.png,.gif,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar", ".jpg,.jpeg,.png,.gif,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar", ConfigType.System, ConfigDataType.String, "允许上传的文件扩展名列表，逗号分隔", 240),
-            new("文件有效期天数", SaasConfigKeys.Groups.File, SaasConfigKeys.File.FileExpiryDays, "0", "0", ConfigType.System, ConfigDataType.Number, "文件存储过期天数，0 表示永不过期", 250)
+            new("文件有效期天数", SaasConfigKeys.Groups.File, SaasConfigKeys.File.FileExpiryDays, "0", "0", ConfigType.System, ConfigDataType.Number, "文件存储过期天数，0 表示永不过期", 250),
+            new("文件存储路由映射", SaasConfigKeys.Groups.File, SaasConfigKeys.File.StorageRoutes, "[{\"route\":\"avatar\",\"provider\":\"local\"},{\"route\":\"document\",\"provider\":\"minio\"}]", "[{\"route\":\"avatar\",\"provider\":\"local\"},{\"route\":\"document\",\"provider\":\"minio\"}]", ConfigType.System, ConfigDataType.Array, "文件类别到存储提供者的路由映射 JSON，格式：[{\"route\":\"avatar\",\"provider\":\"local\"}]", 260)
         ];
     }
 

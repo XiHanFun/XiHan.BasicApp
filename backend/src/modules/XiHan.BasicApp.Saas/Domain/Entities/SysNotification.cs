@@ -36,7 +36,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 查询：
 /// - 租户最近发布：IX_TeId_SeTi
-/// - 按类型过滤：IX_NoTy
+/// - 按通知类型过滤：IX_NoTy
+/// - 按目标类型过滤：IX_TaTy
 ///
 /// 删除：
 /// - 仅软删；删除时级联软删所有 SysUserNotification
@@ -44,6 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 状态：
 /// - IsPublished: false=草稿 / true=已发布
 /// - NotificationType: System/Announcement/Activity/Personal 等
+/// - IsBroadcast: 已废弃，由 TargetType+TargetValue 取代；TargetType=All 等同于 IsBroadcast=true
 ///
 /// 场景：
 /// - 系统公告、版本升级通知、营销活动、告警推送
@@ -53,6 +55,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_NoTy", nameof(NotificationType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TaTy", nameof(TargetType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsPu", nameof(IsPublished), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
 public partial class SysNotification : BasicAppFullAuditedEntity
@@ -120,8 +123,21 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     /// <summary>
     /// 是否全员通知（注意：此字段表示"广播给所有用户"，与权限体系中 IsGlobal 表示"平台级 TenantId=0"的语义不同）
     /// </summary>
+    [Obsolete("Use TargetType=All instead")]
     [SugarColumn(ColumnDescription = "是否全员通知")]
     public virtual bool IsBroadcast { get; set; } = false;
+
+    /// <summary>
+    /// 通知目标类型（All=全员, Role=角色, Department=部门, User=指定用户）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "通知目标类型")]
+    public virtual NotificationTargetType TargetType { get; set; } = NotificationTargetType.All;
+
+    /// <summary>
+    /// 目标值（JSON格式，存储目标ID数组，如 [1,2,3]；TargetType=All时可为null）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "目标值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? TargetValue { get; set; }
 
     /// <summary>
     /// 是否需要确认

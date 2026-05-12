@@ -183,6 +183,11 @@ public static class SaasConfigKeys
         /// 文件存储默认过期天数。
         /// </summary>
         public const string FileExpiryDays = "saas.file.expiry.days";
+
+        /// <summary>
+        /// 文件存储路由映射。
+        /// </summary>
+        public const string StorageRoutes = "saas.file.storage.routes";
     }
 
     /// <summary>

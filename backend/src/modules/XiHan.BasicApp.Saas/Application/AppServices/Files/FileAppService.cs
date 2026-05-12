@@ -43,6 +43,7 @@ public sealed class FileAppService(
     IFileRepository fileRepository,
     IFileStorageRepository fileStorageRepository,
     IFileStorageRouter fileStorageRouter,
+    IFileStorageProviderManager fileStorageProviderManager,
     IFileStorageDomainService fileStorageDomainService,
     IClientInfoProvider clientInfoProvider,
     ILocalEventBus localEventBus,
@@ -54,6 +55,7 @@ public sealed class FileAppService(
     private readonly IFileRepository _fileRepository = fileRepository;
     private readonly IFileStorageRepository _fileStorageRepository = fileStorageRepository;
     private readonly IFileStorageRouter _fileStorageRouter = fileStorageRouter;
+    private readonly IFileStorageProviderManager _fileStorageProviderManager = fileStorageProviderManager;
     private readonly IFileStorageDomainService _fileStorageDomainService = fileStorageDomainService;
     private readonly IClientInfoProvider _clientInfoProvider = clientInfoProvider;
     private readonly ILocalEventBus _localEventBus = localEventBus;
@@ -412,6 +414,43 @@ public sealed class FileAppService(
                 input.DeletePhysical,
                 _currentUser.UserId,
                 input.Reason));
+    }
+
+    /// <summary>
+    /// 下载文件
+    /// </summary>
+    [UnitOfWork]
+    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
+    public async Task<Stream> DownloadFileAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        EnsureId(fileId, "系统文件主键必须大于 0。");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
+        var storage = await _fileStorageRepository.GetPrimaryByFileIdAsync(file.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("文件缺少可用主存储，无法下载。");
+
+        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
+    }
+
+    /// <summary>
+    /// 生成文件预签名访问 URL
+    /// </summary>
+    [UnitOfWork]
+    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
+    public async Task<string> GenerateFilePresignedUrlAsync(long fileId, TimeSpan? expiresIn = null, CancellationToken cancellationToken = default)
+    {
+        EnsureId(fileId, "系统文件主键必须大于 0。");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
+        var storage = await _fileStorageRepository.GetPrimaryByFileIdAsync(file.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("文件缺少可用主存储，无法生成访问链接。");
+
+        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        var effectiveExpiresIn = expiresIn ?? TimeSpan.FromMinutes(30);
+        return await provider.GeneratePresignedUrlAsync(storage.StoragePath, effectiveExpiresIn, cancellationToken);
     }
 
     private async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken)
