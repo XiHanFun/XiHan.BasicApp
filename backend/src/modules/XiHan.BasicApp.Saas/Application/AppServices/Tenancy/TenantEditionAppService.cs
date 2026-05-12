@@ -31,13 +31,26 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户版本")]
-public sealed class TenantEditionAppService(ITenantEditionRepository tenantEditionRepository)
+public sealed class TenantEditionAppService(
+    ITenantEditionRepository tenantEditionRepository,
+    ITenantEditionPermissionRepository tenantEditionPermissionRepository,
+    IPermissionRepository permissionRepository)
     : SaasApplicationService, ITenantEditionAppService
 {
     /// <summary>
     /// 租户版本仓储
     /// </summary>
     private readonly ITenantEditionRepository _tenantEditionRepository = tenantEditionRepository;
+
+    /// <summary>
+    /// 租户版本权限仓储
+    /// </summary>
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
+
+    /// <summary>
+    /// 权限仓储
+    /// </summary>
+    private readonly IPermissionRepository _permissionRepository = permissionRepository;
 
     /// <summary>
     /// 创建租户版本
@@ -332,4 +345,155 @@ public sealed class TenantEditionAppService(ITenantEditionRepository tenantEditi
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
+
+    #region EditionPermissions
+
+    /// <summary>
+    /// 授予租户版本权限
+    /// </summary>
+    /// <param name="input">授权参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户版本权限详情</returns>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Grant)]
+    public async Task<TenantEditionPermissionDetailDto> GrantTenantEditionPermissionAsync(TenantEditionPermissionGrantDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ValidateGrantInput(input);
+
+        _ = await _tenantEditionRepository.GetByIdAsync(input.EditionId, cancellationToken)
+            ?? throw new InvalidOperationException("租户版本不存在。");
+
+        var permission = await GetGrantablePermissionOrThrowAsync(input.PermissionId, cancellationToken);
+        if (await _tenantEditionPermissionRepository.AnyAsync(
+            editionPermission => editionPermission.EditionId == input.EditionId && editionPermission.PermissionId == input.PermissionId,
+            cancellationToken))
+        {
+            throw new InvalidOperationException("租户版本权限已绑定。");
+        }
+
+        var editionPermission = new SysTenantEditionPermission
+        {
+            EditionId = input.EditionId,
+            PermissionId = input.PermissionId,
+            Status = ValidityStatus.Valid,
+            Remark = NormalizeNullable(input.Remark)
+        };
+
+        var savedEditionPermission = await _tenantEditionPermissionRepository.AddAsync(editionPermission, cancellationToken);
+        return TenantEditionPermissionApplicationMapper.ToDetailDto(savedEditionPermission, permission);
+    }
+
+    /// <summary>
+    /// 更新租户版本权限状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户版本权限详情</returns>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Update)]
+    public async Task<TenantEditionPermissionDetailDto> UpdateTenantEditionPermissionStatusAsync(TenantEditionPermissionStatusUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "租户版本权限绑定主键必须大于 0。");
+        }
+
+        ValidateEnum(input.Status, nameof(input.Status));
+
+        var editionPermission = await GetTenantEditionPermissionOrThrowAsync(input.BasicId, cancellationToken);
+        var permission = input.Status == ValidityStatus.Valid
+            ? await GetGrantablePermissionOrThrowAsync(editionPermission.PermissionId, cancellationToken)
+            : await _permissionRepository.GetByIdAsync(editionPermission.PermissionId, cancellationToken);
+
+        editionPermission.Status = input.Status;
+        editionPermission.Remark = NormalizeNullable(input.Remark);
+
+        var savedEditionPermission = await _tenantEditionPermissionRepository.UpdateAsync(editionPermission, cancellationToken);
+        return TenantEditionPermissionApplicationMapper.ToDetailDto(savedEditionPermission, permission);
+    }
+
+    /// <summary>
+    /// 撤销租户版本权限
+    /// </summary>
+    /// <param name="id">租户版本权限绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Revoke)]
+    public async Task RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var editionPermission = await GetTenantEditionPermissionOrThrowAsync(id, cancellationToken);
+        if (!await _tenantEditionPermissionRepository.DeleteAsync(editionPermission, cancellationToken))
+        {
+            throw new InvalidOperationException("租户版本权限撤销失败。");
+        }
+    }
+
+    /// <summary>
+    /// 获取租户版本权限绑定，不存在时抛出异常
+    /// </summary>
+    /// <param name="id">租户版本权限绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户版本权限绑定实体</returns>
+    private async Task<SysTenantEditionPermission> GetTenantEditionPermissionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "租户版本权限绑定主键必须大于 0。");
+        }
+
+        return await _tenantEditionPermissionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("租户版本权限绑定不存在。");
+    }
+
+    /// <summary>
+    /// 获取可绑定权限，不满足版本门控规则时抛出异常
+    /// </summary>
+    /// <param name="permissionId">权限主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限实体</returns>
+    private async Task<SysPermission> GetGrantablePermissionOrThrowAsync(long permissionId, CancellationToken cancellationToken)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
+            ?? throw new InvalidOperationException("权限不存在。");
+
+        if (!permission.IsGlobal)
+        {
+            throw new InvalidOperationException("租户版本只能绑定平台级全局权限。");
+        }
+
+        if (permission.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用权限不能绑定到租户版本。");
+        }
+
+        return permission;
+    }
+
+    /// <summary>
+    /// 校验授权参数
+    /// </summary>
+    /// <param name="input">授权参数</param>
+    private static void ValidateGrantInput(TenantEditionPermissionGrantDto input)
+    {
+        if (input.EditionId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
+        }
+
+        if (input.PermissionId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "权限主键必须大于 0。");
+        }
+    }
+
+    #endregion EditionPermissions
+
 }

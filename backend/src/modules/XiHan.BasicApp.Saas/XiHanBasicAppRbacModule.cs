@@ -51,6 +51,8 @@ public class XiHanBasicAppRbacModule : XiHanModule
         services.AddSaasDomainServices();
 
         // 注册 SaaS 应用层内部服务
+        // TODO: Remove after frontend migration — old sub-services (UserSecurity/Role/Permission/DataScope/Department/SessionAppService)
+        // are marked [Obsolete] and their logic has been merged into UserAppService.
         services.AddSaasApplicationServices();
 
         // 注册 SaaS 领域事件处理器（ILocalEventHandler<T> 由事件总线框架自动发现并订阅）

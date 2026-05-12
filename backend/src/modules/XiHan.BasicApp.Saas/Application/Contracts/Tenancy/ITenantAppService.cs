@@ -45,4 +45,39 @@ public interface ITenantAppService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>租户详情</returns>
     Task<TenantDetailDto> UpdateTenantStatusAsync(TenantStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    #region TenantMembers
+
+    /// <summary>
+    /// 更新租户成员
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
+    Task<TenantMemberDetailDto> UpdateTenantMemberAsync(TenantMemberUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新租户成员状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
+    Task<TenantMemberDetailDto> UpdateTenantMemberStatusAsync(TenantMemberStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新租户成员邀请状态
+    /// </summary>
+    /// <param name="input">邀请状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
+    Task<TenantMemberDetailDto> UpdateTenantMemberInviteStatusAsync(TenantMemberInviteStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 撤销租户成员
+    /// </summary>
+    /// <param name="id">租户成员主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteTenantMemberAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion TenantMembers
 }

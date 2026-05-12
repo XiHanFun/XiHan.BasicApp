@@ -29,6 +29,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 租户成员命令应用服务
 /// </summary>
+[Obsolete("Merged into TenantAppService.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户成员")]
 public sealed class TenantMemberAppService(ITenantUserRepository tenantUserRepository)

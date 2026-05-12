@@ -31,6 +31,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 用户会话命令应用服务
 /// </summary>
+[Obsolete("Merged into UserAppService. Use IUserAppService instead.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户会话")]
 public sealed class UserSessionAppService(

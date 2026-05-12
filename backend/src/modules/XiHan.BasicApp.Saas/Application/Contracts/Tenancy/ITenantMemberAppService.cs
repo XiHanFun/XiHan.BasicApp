@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 租户成员命令应用服务接口
 /// </summary>
+[Obsolete("Merged into ITenantAppService.")]
 public interface ITenantMemberAppService : IApplicationService
 {
     /// <summary>

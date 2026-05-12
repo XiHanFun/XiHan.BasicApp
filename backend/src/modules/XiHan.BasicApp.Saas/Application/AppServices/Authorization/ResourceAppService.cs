@@ -29,6 +29,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 资源定义命令应用服务
 /// </summary>
+// TODO: Remove after frontend migration
+[Obsolete("Merged into PermissionAppService.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "资源定义")]
 public sealed class ResourceAppService(

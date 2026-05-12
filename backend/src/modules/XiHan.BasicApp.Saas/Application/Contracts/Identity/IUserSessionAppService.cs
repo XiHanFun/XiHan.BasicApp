@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 用户会话命令应用服务接口
 /// </summary>
+[Obsolete("Merged into IUserAppService. Use IUserAppService instead.")]
 public interface IUserSessionAppService : IApplicationService
 {
     /// <summary>

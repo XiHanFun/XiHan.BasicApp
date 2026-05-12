@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 资源定义命令应用服务接口
 /// </summary>
+[Obsolete("Merged into IPermissionAppService.")]
 public interface IResourceAppService : IApplicationService
 {
     /// <summary>
