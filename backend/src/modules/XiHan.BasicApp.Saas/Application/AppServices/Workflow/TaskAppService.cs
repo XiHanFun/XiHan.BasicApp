@@ -20,8 +20,11 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Infrastructure.Tasks.Jobs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
+using XiHan.Framework.Tasks.ScheduledJobs.Models;
 using XiHan.Framework.Uow.Attributes;
 using static XiHan.BasicApp.Saas.Application.AppServices.SaasCommandValidation;
 
@@ -32,10 +35,16 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统任务")]
-public sealed class TaskAppService(ITaskRepository taskRepository)
-    : SaasApplicationService, ITaskAppService
+public sealed class TaskAppService : SaasApplicationService, ITaskAppService
 {
-    private readonly ITaskRepository _taskRepository = taskRepository;
+    private readonly ITaskRepository _taskRepository;
+    private readonly IJobScheduler _jobScheduler;
+
+    public TaskAppService(ITaskRepository taskRepository, IJobScheduler jobScheduler)
+    {
+        _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
+        _jobScheduler = jobScheduler ?? throw new ArgumentNullException(nameof(jobScheduler));
+    }
 
     /// <summary>
     /// 创建系统任务
@@ -84,6 +93,14 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
         };
 
         var savedTask = await _taskRepository.AddAsync(task, cancellationToken);
+
+        // 注册到框架调度器
+        if (savedTask.Status == EnableStatus.Enabled)
+        {
+            var jobInfo = BuildJobInfo(savedTask);
+            _jobScheduler.RegisterJob(jobInfo);
+        }
+
         return TaskApplicationMapper.ToDetailDto(savedTask);
     }
 
@@ -103,6 +120,8 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
         {
             throw new InvalidOperationException("运行中的任务不能修改任务配置。");
         }
+
+        var wasEnabled = task.Status == EnableStatus.Enabled;
 
         task.TaskName = Required(input.TaskName, 200, nameof(input.TaskName), "任务名称不能超过 200 个字符。");
         task.TaskDescription = Optional(input.TaskDescription, 500, nameof(input.TaskDescription), "任务描述不能超过 500 个字符。");
@@ -127,6 +146,15 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
         task.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
 
         var savedTask = await _taskRepository.UpdateAsync(task, cancellationToken);
+
+        // 重新注册到框架调度器（先取消注册旧配置，再注册新配置）
+        _jobScheduler.UnregisterJob(savedTask.TaskCode);
+        if (savedTask.Status == EnableStatus.Enabled)
+        {
+            var jobInfo = BuildJobInfo(savedTask);
+            _jobScheduler.RegisterJob(jobInfo);
+        }
+
         return TaskApplicationMapper.ToDetailDto(savedTask);
     }
 
@@ -144,6 +172,8 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
         EnsureEnum(input.Status, nameof(input.Status));
 
         var task = await GetTaskOrThrowAsync(input.BasicId, cancellationToken);
+        var wasEnabled = task.Status == EnableStatus.Enabled;
+
         task.Status = input.Status;
         if (input.Status == EnableStatus.Disabled && task.RunTaskStatus == RunTaskStatus.Running)
         {
@@ -153,6 +183,20 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
         task.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? task.Remark;
 
         var savedTask = await _taskRepository.UpdateAsync(task, cancellationToken);
+
+        // 启停状态变更时同步调度器
+        if (wasEnabled && input.Status == EnableStatus.Disabled)
+        {
+            _jobScheduler.PauseJob(savedTask.TaskCode);
+        }
+        else if (!wasEnabled && input.Status == EnableStatus.Enabled)
+        {
+            // 重新注册
+            _jobScheduler.UnregisterJob(savedTask.TaskCode);
+            var jobInfo = BuildJobInfo(savedTask);
+            _jobScheduler.RegisterJob(jobInfo);
+        }
+
         return TaskApplicationMapper.ToDetailDto(savedTask);
     }
 
@@ -177,6 +221,8 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
             throw new InvalidOperationException("停用任务不能设置为执行中。");
         }
 
+        var oldRunStatus = task.RunTaskStatus;
+
         task.RunTaskStatus = input.RunTaskStatus;
         task.NextRunTime = input.NextRunTime ?? task.NextRunTime;
         task.LastRunTime = input.LastRunTime ?? task.LastRunTime;
@@ -185,6 +231,17 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
         task.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? task.Remark;
 
         var savedTask = await _taskRepository.UpdateAsync(task, cancellationToken);
+
+        // 运行状态变更时同步调度器
+        if (oldRunStatus != RunTaskStatus.Paused && input.RunTaskStatus == RunTaskStatus.Paused)
+        {
+            _jobScheduler.PauseJob(savedTask.TaskCode);
+        }
+        else if (oldRunStatus == RunTaskStatus.Paused && input.RunTaskStatus != RunTaskStatus.Paused)
+        {
+            _jobScheduler.ResumeJob(savedTask.TaskCode);
+        }
+
         return TaskApplicationMapper.ToDetailDto(savedTask);
     }
 
@@ -203,11 +260,109 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
             throw new InvalidOperationException("运行中的任务不能删除。");
         }
 
+        // 先取消注册调度器，再删除实体
+        _jobScheduler.UnregisterJob(task.TaskCode);
+
         if (!await _taskRepository.DeleteAsync(task, cancellationToken))
         {
+            // 删除失败时重新注册任务
+            if (task.Status == EnableStatus.Enabled)
+            {
+                _jobScheduler.RegisterJob(BuildJobInfo(task));
+            }
             throw new InvalidOperationException("系统任务删除失败。");
         }
     }
+
+    /// <summary>
+    /// 同步所有活跃的 SysTask 到框架调度器（用于应用启动时初始化）
+    /// </summary>
+    public async Task SyncAllActiveJobsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var allTasks = await _taskRepository.GetListAsync(
+            task => task.Status == EnableStatus.Enabled,
+            cancellationToken);
+
+        if (allTasks.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var task in allTasks)
+        {
+            // 跳过已注册的同名任务，避免重复注册
+            var existingJobs = _jobScheduler.GetAllJobs();
+            if (existingJobs.Any(j => j.JobName == task.TaskCode))
+            {
+                continue;
+            }
+
+            var jobInfo = BuildJobInfo(task);
+            _jobScheduler.RegisterJob(jobInfo);
+        }
+    }
+
+    #region Private Helpers
+
+    /// <summary>
+    /// 从 SysTask 实体构建 JobInfo
+    /// </summary>
+    private static JobInfo BuildJobInfo(SysTask task)
+    {
+        return new JobInfo
+        {
+            JobName = task.TaskCode,
+            Description = task.TaskDescription,
+            JobType = typeof(DynamicJobWorker),
+            TriggerType = MapTriggerType(task.TriggerType),
+            CronExpression = task.CronExpression,
+            Interval = task.IntervalSeconds.HasValue
+                ? TimeSpan.FromSeconds(task.IntervalSeconds.Value)
+                : null,
+            Priority = MapPriority(task.Priority),
+            AllowConcurrent = task.AllowConcurrent,
+            TimeoutMilliseconds = task.TimeoutSeconds * 1000,
+            RetryPolicy = new JobRetryPolicy
+            {
+                MaxRetryCount = task.MaxRetryCount,
+                RetryIntervalMilliseconds = 1000,
+                UseExponentialBackoff = true
+            },
+            IsEnabled = task.Status == EnableStatus.Enabled,
+            TenantId = task.TenantId,
+            DefaultParameters = new Dictionary<string, object?>
+            {
+                ["taskId"] = task.BasicId,
+                ["taskClass"] = task.TaskClass,
+                ["taskMethod"] = task.TaskMethod,
+                ["taskParams"] = task.TaskParams
+            }
+        };
+    }
+
+    /// <summary>
+    /// 将领域 TriggerType 映射到框架 JobTriggerType
+    /// </summary>
+    private static JobTriggerType MapTriggerType(TriggerType triggerType) => triggerType switch
+    {
+        TriggerType.Immediate => JobTriggerType.Manual,
+        TriggerType.Schedule => JobTriggerType.Delay,
+        TriggerType.Recurring => JobTriggerType.Interval,
+        TriggerType.Cron => JobTriggerType.Cron,
+        _ => JobTriggerType.Manual
+    };
+
+    /// <summary>
+    /// 将领域优先级（int）映射到框架 JobPriority
+    /// </summary>
+    private static JobPriority MapPriority(int priority) => priority switch
+    {
+        <= 0 => JobPriority.Normal,
+        1 => JobPriority.High,
+        _ => JobPriority.Critical
+    };
 
     private async Task<SysTask> GetTaskOrThrowAsync(long id, CancellationToken cancellationToken)
     {
@@ -322,4 +477,6 @@ public sealed class TaskAppService(ITaskRepository taskRepository)
             throw new InvalidOperationException(message);
         }
     }
+
+    #endregion
 }

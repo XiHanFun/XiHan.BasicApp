@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -21,6 +22,10 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Messaging.Abstractions;
+using XiHan.Framework.Messaging.Models;
+using XiHan.Framework.Messaging.Options;
+using XiHan.Framework.Templating.Services;
 using XiHan.Framework.Uow.Attributes;
 using static XiHan.BasicApp.Saas.Application.AppServices.SaasCommandValidation;
 
@@ -29,15 +34,42 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 系统消息命令应用服务
 /// </summary>
+/// <remarks>
+/// 创建邮件/短信时通过框架 <see cref="IMessageDispatcher"/> 分发至对应通道发送器，
+/// 由发送器负责实体持久化与外部发送。发件箱启用时则先落库再入队，由后台处理器异步发送。
+/// </remarks>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统消息")]
-public sealed class MessageAppService(
-    IEmailRepository emailRepository,
-    ISmsRepository smsRepository)
-    : SaasApplicationService, IMessageAppService
+public sealed class MessageAppService : SaasApplicationService, IMessageAppService
 {
-    private readonly IEmailRepository _emailRepository = emailRepository;
-    private readonly ISmsRepository _smsRepository = smsRepository;
+    private readonly IEmailRepository _emailRepository;
+    private readonly ISmsRepository _smsRepository;
+    private readonly IMessageDispatcher _messageDispatcher;
+    private readonly IMessageOutbox _messageOutbox;
+    private readonly ITemplateService _templateService;
+    private readonly XiHanMessagingOptions _messagingOptions;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public MessageAppService(
+        IEmailRepository emailRepository,
+        ISmsRepository smsRepository,
+        IMessageDispatcher messageDispatcher,
+        IMessageOutbox messageOutbox,
+        ITemplateService templateService,
+        IOptions<XiHanMessagingOptions> messagingOptions)
+        : base()
+    {
+        _emailRepository = emailRepository;
+        _smsRepository = smsRepository;
+        _messageDispatcher = messageDispatcher;
+        _messageOutbox = messageOutbox;
+        _templateService = templateService;
+        _messagingOptions = messagingOptions.Value;
+    }
+
+    #region 系统邮件
 
     /// <summary>
     /// 创建系统邮件
@@ -50,32 +82,59 @@ public sealed class MessageAppService(
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidateEmailInput(input.EmailType, input.FromEmail, input.FromName, input.ToEmail, input.CcEmail, input.BccEmail, input.Subject, input.MaxRetryCount, input.BusinessType, input.BusinessId, input.Remark);
-        var email = new SysEmail
-        {
-            SendUserId = input.SendUserId,
-            ReceiveUserId = input.ReceiveUserId,
-            EmailType = input.EmailType,
-            FromEmail = Required(input.FromEmail, 200, nameof(input.FromEmail), "发件邮箱不能超过 200 个字符。"),
-            FromName = Optional(input.FromName, 100, nameof(input.FromName), "发件人不能超过 100 个字符。"),
-            ToEmail = Required(input.ToEmail, 500, nameof(input.ToEmail), "收件邮箱不能超过 500 个字符。"),
-            CcEmail = Optional(input.CcEmail, 500, nameof(input.CcEmail), "抄送邮箱不能超过 500 个字符。"),
-            BccEmail = Optional(input.BccEmail, 500, nameof(input.BccEmail), "密送邮箱不能超过 500 个字符。"),
-            Subject = Required(input.Subject, 200, nameof(input.Subject), "邮件主题不能超过 200 个字符。"),
-            Content = NormalizeNullable(input.Content),
-            IsHtml = input.IsHtml,
-            Attachments = OptionalJson(input.Attachments, "邮件附件必须是合法 JSON。"),
-            TemplateId = input.TemplateId,
-            TemplateParams = OptionalJson(input.TemplateParams, "邮件模板参数必须是合法 JSON。"),
-            EmailStatus = EmailStatus.Pending,
-            ScheduledTime = input.ScheduledTime,
-            MaxRetryCount = input.MaxRetryCount,
-            BusinessType = Optional(input.BusinessType, 100, nameof(input.BusinessType), "业务类型不能超过 100 个字符。"),
-            BusinessId = input.BusinessId,
-            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
-        };
 
-        var savedEmail = await _emailRepository.AddAsync(email, cancellationToken);
-        return MessageApplicationMapper.ToEmailDetailDto(savedEmail);
+        // 构建消息信封
+        var envelope = BuildEmailEnvelope(input);
+
+        // 渲染模板内容（如有模板编码和参数）
+        if (!string.IsNullOrWhiteSpace(envelope.TemplateCode) && envelope.TemplateParams?.Count > 0)
+        {
+            var variables = new Dictionary<string, object?>();
+            foreach (var kvp in envelope.TemplateParams)
+            {
+                variables[kvp.Key] = kvp.Value;
+            }
+
+            try
+            {
+                envelope.Content = await _templateService.RenderAsync(envelope.TemplateCode, variables);
+            }
+            catch
+            {
+                // 渲染失败保留原始内容
+            }
+        }
+
+        if (_messagingOptions.OutboxEnabled)
+        {
+            // 发件箱模式：先创建实体（Pending），入队后由后台异步发送
+            var email = BuildEmailEntity(input, envelope.Content);
+            var savedEmail = await _emailRepository.AddAsync(email, cancellationToken);
+            envelope.Metadata["EntityId"] = savedEmail.BasicId.ToString();
+            await _messageOutbox.EnqueueAsync(envelope, cancellationToken);
+            return MessageApplicationMapper.ToEmailDetailDto(savedEmail);
+        }
+        else
+        {
+            // 直接分发模式：通过调度器路由至 EmailMessageSender 创建实体并发送
+            var results = await _messageDispatcher.DispatchAsync(envelope, cancellationToken);
+            var result = results.FirstOrDefault()
+                ?? throw new InvalidOperationException("邮件分发未返回结果。");
+
+            if (!result.IsSuccess)
+            {
+                throw new InvalidOperationException($"邮件分发失败: {result.ErrorMessage ?? "未知错误"}");
+            }
+
+            if (!long.TryParse(result.ProviderMessageId, out var emailId) || emailId <= 0)
+            {
+                throw new InvalidOperationException("邮件分发未返回有效记录 ID。");
+            }
+
+            var savedEmail = await _emailRepository.GetByIdAsync(emailId, cancellationToken)
+                ?? throw new InvalidOperationException("系统邮件记录不存在。");
+            return MessageApplicationMapper.ToEmailDetailDto(savedEmail);
+        }
     }
 
     /// <summary>
@@ -162,6 +221,10 @@ public sealed class MessageAppService(
         }
     }
 
+    #endregion
+
+    #region 系统短信
+
     /// <summary>
     /// 创建系统短信
     /// </summary>
@@ -173,26 +236,59 @@ public sealed class MessageAppService(
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidateSmsInput(input.SmsType, input.ToPhone, input.Content, input.Provider, input.MaxRetryCount, input.BusinessType, input.BusinessId, input.Remark);
-        var sms = new SysSms
-        {
-            SenderId = input.SenderId,
-            ReceiverId = input.ReceiverId,
-            SmsType = input.SmsType,
-            ToPhone = Required(input.ToPhone, 50, nameof(input.ToPhone), "手机号不能超过 50 个字符。"),
-            Content = Required(input.Content, 1000, nameof(input.Content), "短信内容不能超过 1000 个字符。"),
-            TemplateId = input.TemplateId,
-            TemplateParams = OptionalJson(input.TemplateParams, "短信模板参数必须是合法 JSON。"),
-            Provider = Optional(input.Provider, 50, nameof(input.Provider), "短信服务商不能超过 50 个字符。"),
-            SmsStatus = SmsStatus.Pending,
-            ScheduledTime = input.ScheduledTime,
-            MaxRetryCount = input.MaxRetryCount,
-            BusinessType = Optional(input.BusinessType, 100, nameof(input.BusinessType), "业务类型不能超过 100 个字符。"),
-            BusinessId = input.BusinessId,
-            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
-        };
 
-        var savedSms = await _smsRepository.AddAsync(sms, cancellationToken);
-        return MessageApplicationMapper.ToSmsDetailDto(savedSms);
+        // 构建消息信封
+        var envelope = BuildSmsEnvelope(input);
+
+        // 渲染模板内容（如有模板编码和参数）
+        if (!string.IsNullOrWhiteSpace(envelope.TemplateCode) && envelope.TemplateParams?.Count > 0)
+        {
+            var variables = new Dictionary<string, object?>();
+            foreach (var kvp in envelope.TemplateParams)
+            {
+                variables[kvp.Key] = kvp.Value;
+            }
+
+            try
+            {
+                envelope.Content = await _templateService.RenderAsync(envelope.TemplateCode, variables);
+            }
+            catch
+            {
+                // 渲染失败保留原始内容
+            }
+        }
+
+        if (_messagingOptions.OutboxEnabled)
+        {
+            // 发件箱模式：先创建实体（Pending），入队后由后台异步发送
+            var sms = BuildSmsEntity(input, envelope.Content);
+            var savedSms = await _smsRepository.AddAsync(sms, cancellationToken);
+            envelope.Metadata["EntityId"] = savedSms.BasicId.ToString();
+            await _messageOutbox.EnqueueAsync(envelope, cancellationToken);
+            return MessageApplicationMapper.ToSmsDetailDto(savedSms);
+        }
+        else
+        {
+            // 直接分发模式：通过调度器路由至 SmsMessageSender 创建实体并发送
+            var results = await _messageDispatcher.DispatchAsync(envelope, cancellationToken);
+            var result = results.FirstOrDefault()
+                ?? throw new InvalidOperationException("短信分发未返回结果。");
+
+            if (!result.IsSuccess)
+            {
+                throw new InvalidOperationException($"短信分发失败: {result.ErrorMessage ?? "未知错误"}");
+            }
+
+            if (!long.TryParse(result.ProviderMessageId, out var smsId) || smsId <= 0)
+            {
+                throw new InvalidOperationException("短信分发未返回有效记录 ID。");
+            }
+
+            var savedSms = await _smsRepository.GetByIdAsync(smsId, cancellationToken)
+                ?? throw new InvalidOperationException("系统短信记录不存在。");
+            return MessageApplicationMapper.ToSmsDetailDto(savedSms);
+        }
     }
 
     /// <summary>
@@ -276,6 +372,10 @@ public sealed class MessageAppService(
         }
     }
 
+    #endregion
+
+    #region 私有方法
+
     private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "系统邮件主键必须大于 0。");
@@ -288,6 +388,162 @@ public sealed class MessageAppService(
         EnsureId(id, "系统短信主键必须大于 0。");
         return await _smsRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("系统短信不存在。");
+    }
+
+    /// <summary>
+    /// 构建邮件消息信封
+    /// </summary>
+    private static MessageEnvelope BuildEmailEnvelope(EmailCreateDto input)
+    {
+        return new MessageEnvelope
+        {
+            Channel = "email",
+            TenantId = null, // 由多租户中间件自动注入
+            Subject = input.Subject ?? string.Empty,
+            Content = input.Content,
+            TemplateCode = input.TemplateId?.ToString(),
+            TemplateParams = ParseTemplateParams(input.TemplateParams),
+            ScheduledTime = input.ScheduledTime,
+            Recipients =
+            [
+                new MessageRecipient
+                {
+                    Address = input.ToEmail,
+                    DisplayName = input.ToEmail
+                }
+            ],
+            Metadata = new Dictionary<string, string?>
+            {
+                ["FromEmail"] = input.FromEmail,
+                ["FromName"] = input.FromName,
+                ["IsHtml"] = input.IsHtml.ToString(),
+                ["CcEmail"] = input.CcEmail,
+                ["BccEmail"] = input.BccEmail,
+                ["Attachments"] = input.Attachments,
+                ["EmailType"] = input.EmailType.ToString(),
+                ["SendUserId"] = input.SendUserId?.ToString(),
+                ["ReceiveUserId"] = input.ReceiveUserId?.ToString(),
+                ["TemplateId"] = input.TemplateId?.ToString(),
+                ["TemplateParams"] = input.TemplateParams,
+                ["MaxRetryCount"] = input.MaxRetryCount.ToString(),
+                ["BusinessType"] = input.BusinessType,
+                ["BusinessId"] = input.BusinessId?.ToString(),
+                ["Remark"] = input.Remark
+            }
+        };
+    }
+
+    /// <summary>
+    /// 构建邮件实体（发件箱预创建用）
+    /// </summary>
+    private static SysEmail BuildEmailEntity(EmailCreateDto input, string? renderedContent)
+    {
+        return new SysEmail
+        {
+            SendUserId = input.SendUserId,
+            ReceiveUserId = input.ReceiveUserId,
+            EmailType = input.EmailType,
+            FromEmail = input.FromEmail,
+            FromName = input.FromName,
+            ToEmail = input.ToEmail,
+            CcEmail = input.CcEmail,
+            BccEmail = input.BccEmail,
+            Subject = input.Subject,
+            Content = renderedContent ?? input.Content,
+            IsHtml = input.IsHtml,
+            Attachments = input.Attachments,
+            TemplateId = input.TemplateId,
+            TemplateParams = input.TemplateParams,
+            EmailStatus = EmailStatus.Pending,
+            ScheduledTime = input.ScheduledTime,
+            MaxRetryCount = input.MaxRetryCount,
+            BusinessType = input.BusinessType,
+            BusinessId = input.BusinessId,
+            Remark = input.Remark
+        };
+    }
+
+    /// <summary>
+    /// 构建短信消息信封
+    /// </summary>
+    private static MessageEnvelope BuildSmsEnvelope(SmsCreateDto input)
+    {
+        return new MessageEnvelope
+        {
+            Channel = "sms",
+            TenantId = null, // 由多租户中间件自动注入
+            Subject = string.Empty,
+            Content = input.Content,
+            TemplateCode = input.TemplateId?.ToString(),
+            TemplateParams = ParseTemplateParams(input.TemplateParams),
+            ScheduledTime = input.ScheduledTime,
+            Recipients =
+            [
+                new MessageRecipient
+                {
+                    Address = input.ToPhone,
+                    DisplayName = input.ToPhone
+                }
+            ],
+            Metadata = new Dictionary<string, string?>
+            {
+                ["SmsType"] = input.SmsType.ToString(),
+                ["Provider"] = input.Provider,
+                ["SenderId"] = input.SenderId?.ToString(),
+                ["ReceiverId"] = input.ReceiverId?.ToString(),
+                ["TemplateId"] = input.TemplateId?.ToString(),
+                ["TemplateParams"] = input.TemplateParams,
+                ["MaxRetryCount"] = input.MaxRetryCount.ToString(),
+                ["BusinessType"] = input.BusinessType,
+                ["BusinessId"] = input.BusinessId?.ToString(),
+                ["Remark"] = input.Remark
+            }
+        };
+    }
+
+    /// <summary>
+    /// 构建短信实体（发件箱预创建用）
+    /// </summary>
+    private static SysSms BuildSmsEntity(SmsCreateDto input, string? renderedContent)
+    {
+        return new SysSms
+        {
+            SenderId = input.SenderId,
+            ReceiverId = input.ReceiverId,
+            SmsType = input.SmsType,
+            ToPhone = input.ToPhone,
+            Content = renderedContent ?? input.Content,
+            TemplateId = input.TemplateId,
+            TemplateParams = input.TemplateParams,
+            Provider = input.Provider,
+            SmsStatus = SmsStatus.Pending,
+            ScheduledTime = input.ScheduledTime,
+            MaxRetryCount = input.MaxRetryCount,
+            BusinessType = input.BusinessType,
+            BusinessId = input.BusinessId,
+            Remark = input.Remark
+        };
+    }
+
+    /// <summary>
+    /// 解析模板参数字符串为字典
+    /// </summary>
+    private static Dictionary<string, string?> ParseTemplateParams(string? templateParamsJson)
+    {
+        if (string.IsNullOrWhiteSpace(templateParamsJson))
+        {
+            return [];
+        }
+
+        try
+        {
+            var deserialized = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(templateParamsJson);
+            return deserialized?.ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value) ?? [];
+        }
+        catch
+        {
+            return [];
+        }
     }
 
     private static void ValidateEmailInput(
@@ -351,4 +607,6 @@ public sealed class MessageAppService(
             throw new InvalidOperationException($"{messageName}已发送或发送中，不能直接更新。");
         }
     }
+
+    #endregion
 }
