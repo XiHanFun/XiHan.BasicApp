@@ -20,7 +20,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
-using XiHan.Framework.Authentication.Password;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
