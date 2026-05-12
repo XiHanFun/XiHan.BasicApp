@@ -24,7 +24,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Jwt;
-using XiHan.Framework.Security.Password;
+using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
@@ -54,7 +54,7 @@ public sealed class AuthAppService(
     IOAuthTokenRepository oauthTokenRepository,
     ILoginLogPipeline loginLogPipeline,
     IUserNotificationDispatchService notificationDispatchService,
-    IPasswordHasher passwordHasher,
+    IAuthenticationService authenticationService,
     IJwtTokenService jwtTokenService,
     ICurrentTenant currentTenant,
     ICurrentUser currentUser,
@@ -63,8 +63,6 @@ public sealed class AuthAppService(
     : SaasApplicationService, IAuthAppService
 {
     private const string SuperAdminRoleCode = "super_admin";
-    private const int MaxFailedLoginAttempts = 5;
-    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
@@ -80,7 +78,7 @@ public sealed class AuthAppService(
     private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
     private readonly ILoginLogPipeline _loginLogPipeline = loginLogPipeline;
     private readonly IUserNotificationDispatchService _notificationDispatchService = notificationDispatchService;
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IAuthenticationService _authService = authenticationService;
     private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
     private readonly ICurrentTenant _currentTenant = currentTenant;
     private readonly ICurrentUser _currentUser = currentUser;
@@ -110,60 +108,79 @@ public sealed class AuthAppService(
         using var tenantScope = _currentTenant.Change(effectiveTenantId, tenant?.TenantName);
 
         var now = DateTimeOffset.UtcNow;
-        var user = await _userRepository.GetByUserNameAsync(userName, cancellationToken)
-            ?? throw new InvalidOperationException("用户名或密码错误。");
+
+        // 阶段一：委托框架认证服务进行凭据校验（含锁定检查、密码验证、重哈希、失败次数管理、2FA 检测）
+        var authResult = await _authService.AuthenticateAsync(userName, password, cancellationToken);
+
+        if (!authResult.Succeeded)
+        {
+            await PublishLoginLogAsync(null, userName, null,
+                authResult.IsLockedOut ? LoginResult.AccountLocked : LoginResult.InvalidCredentials,
+                authResult.ErrorMessage, now);
+            throw new InvalidOperationException(authResult.ErrorMessage ?? "用户名或密码错误。");
+        }
+
+        if (authResult.RequiresTwoFactor)
+        {
+            if (!long.TryParse(authResult.UserId, out var twoFactorUserId))
+            {
+                throw new InvalidOperationException("用户标识无效。");
+            }
+
+            var twoFactorSecurity = await _userSecurityRepository.GetByUserIdAsync(twoFactorUserId, cancellationToken);
+            if (twoFactorSecurity is not null && twoFactorSecurity.TwoFactorMethod != TwoFactorMethod.None)
+            {
+                return BuildTwoFactorChallenge(twoFactorSecurity);
+            }
+        }
+
+        // 阶段二：框架认证成功后，执行应用程序特有逻辑
+        if (!long.TryParse(authResult.UserId, out var userId))
+        {
+            throw new InvalidOperationException("用户标识无效。");
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("认证用户不存在。");
+
         if (user.Status != EnableStatus.Enabled)
         {
             throw new InvalidOperationException("用户已被禁用。");
         }
 
-        await EnsureTenantMembershipValidAsync(user.BasicId, effectiveTenantId, now, cancellationToken);
+        await EnsureTenantMembershipValidAsync(userId, effectiveTenantId, now, cancellationToken);
 
-        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == user.BasicId, cancellationToken)
-            ?? throw new InvalidOperationException("用户安全记录不存在。");
-        await EnsureSecurityCanLoginAsync(security, now, cancellationToken);
-
-        if (!_passwordHasher.VerifyPassword(security.Password, password))
-        {
-            await RecordFailedLoginAsync(security, now, cancellationToken);
-            await PublishLoginLogAsync(user.BasicId, userName, null, LoginResult.InvalidCredentials, "用户名或密码错误", now);
-            throw new InvalidOperationException("用户名或密码错误。");
-        }
-
-        if (security.PasswordExpiryTime.HasValue && security.PasswordExpiryTime.Value <= now)
+        var security = await _userSecurityRepository.GetByUserIdAsync(userId, cancellationToken);
+        if (security is not null && security.PasswordExpiryTime.HasValue && security.PasswordExpiryTime.Value <= now)
         {
             throw new InvalidOperationException("密码已过期，请联系管理员重置密码。");
         }
 
-        if (security.TwoFactorEnabled && security.TwoFactorMethod != TwoFactorMethod.None)
-        {
-            return BuildTwoFactorChallenge(security);
-        }
-
-        var authSnapshot = await BuildAuthorizationSnapshotAsync(user.BasicId, now, cancellationToken);
+        // 构建授权快照（角色 + 权限）
+        var authSnapshot = await BuildAuthorizationSnapshotAsync(userId, now, cancellationToken);
         var client = ResolveClientInfo();
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
+
+        // 生成包含应用级声明的 JWT
         var claims = BuildClaims(user, effectiveTenantId, sessionBusinessId, accessTokenJti, authSnapshot.Roles, authSnapshot.Permissions, input.DeviceId);
         var tokenResult = _jwtTokenService.GenerateAccessToken(claims);
 
-        user.LastLoginTime = now;
+        // 更新应用特有字段（框架已通过 IUserStore 处理了 LastLoginTime 与安全状态重置）
         user.LastLoginIp = client.IpAddress;
-        security.FailedLoginAttempts = 0;
-        security.LastFailedLoginTime = null;
-        security.IsLocked = false;
-        security.LockoutTime = null;
-        security.LockoutEndTime = null;
-        security.LastSecurityCheckTime = now;
+        if (security is not null)
+        {
+            security.LastSecurityCheckTime = now;
+            _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        }
 
         var session = await CreateLoginSessionAsync(user, sessionBusinessId, accessTokenJti, tokenResult, input.DeviceId, client, now, cancellationToken);
         await CreateOAuthTokenAsync(user, session, accessTokenJti, tokenResult, now, cancellationToken);
         _ = await _userRepository.UpdateAsync(user, cancellationToken);
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-        await TouchTenantMembershipAsync(user.BasicId, effectiveTenantId, now, cancellationToken);
-        await PublishLoginLogAsync(user.BasicId, userName, sessionBusinessId, LoginResult.Success, "登录成功", now);
+        await TouchTenantMembershipAsync(userId, effectiveTenantId, now, cancellationToken);
+        await PublishLoginLogAsync(userId, userName, sessionBusinessId, LoginResult.Success, "登录成功", now);
         await TryDispatchAuthNotificationAsync(
-            user.BasicId,
+            userId,
             "登录成功",
             BuildAuthNotificationContent("您的账号已成功登录。", client, now),
             NotificationType.User,
@@ -535,42 +552,6 @@ public sealed class AuthAppService(
         {
             throw new InvalidOperationException("用户当前租户成员身份已过期。");
         }
-    }
-
-    private async Task EnsureSecurityCanLoginAsync(SysUserSecurity security, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        if (!security.IsLocked)
-        {
-            return;
-        }
-
-        if (security.LockoutEndTime.HasValue && security.LockoutEndTime.Value <= now)
-        {
-            security.IsLocked = false;
-            security.LockoutTime = null;
-            security.LockoutEndTime = null;
-            security.FailedLoginAttempts = 0;
-            security.LastFailedLoginTime = null;
-            _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-            return;
-        }
-
-        throw new InvalidOperationException("账号已被锁定，请稍后再试。");
-    }
-
-    private async Task RecordFailedLoginAsync(SysUserSecurity security, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        security.FailedLoginAttempts++;
-        security.LastFailedLoginTime = now;
-
-        if (security.FailedLoginAttempts >= MaxFailedLoginAttempts)
-        {
-            security.IsLocked = true;
-            security.LockoutTime = now;
-            security.LockoutEndTime = now.Add(LockoutDuration);
-        }
-
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
     }
 
     private async Task<AuthorizationSnapshot> BuildAuthorizationSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)

@@ -13,13 +13,19 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
+using XiHan.BasicApp.Saas.Infrastructure.Security;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+using XiHan.Framework.Authentication.OAuth;
+using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.Framework.Security.Services;
 using XiHan.Framework.Web.Api.Logging.Writers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Extensions;
@@ -96,6 +102,25 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILoginLogWriter, RbacLoginLogWriter>();
         services.AddScoped<IEntityDiffLogWriter, RbacEntityDiffLogWriter>();
         services.AddScoped<IEntityAuditContextProvider, RbacEntityDiffContextProvider>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 SaaS 认证基础设施服务
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasAuthStores(this IServiceCollection services)
+    {
+        // 替换框架默认 IUserStore 为数据库实现
+        services.Replace(ServiceDescriptor.Scoped<IUserStore, SaasUserStore>());
+
+        // 注册第三方登录存储
+        services.Replace(ServiceDescriptor.Scoped<IExternalLoginStore, SaasExternalLoginStore>());
+
+        // 注册密码历史存储
+        services.AddScoped<IPasswordHistoryStore, SaasPasswordHistoryStore>();
+
         return services;
     }
 }
