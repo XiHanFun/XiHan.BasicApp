@@ -26,7 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Otp;
-using XiHan.Framework.Authentication.Password;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
