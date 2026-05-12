@@ -52,4 +52,93 @@ public interface IRoleAppService : IApplicationService
     /// <param name="id">角色主键</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task DeleteRoleAsync(long id, CancellationToken cancellationToken = default);
+
+    #region RolePermission
+
+    /// <summary>
+    /// 授予角色权限
+    /// </summary>
+    /// <param name="input">授权参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色权限详情</returns>
+    Task<RolePermissionDetailDto> CreateRolePermissionAsync(RolePermissionGrantDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新角色权限
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色权限详情</returns>
+    Task<RolePermissionDetailDto> UpdateRolePermissionAsync(RolePermissionUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新角色权限状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色权限详情</returns>
+    Task<RolePermissionDetailDto> UpdateRolePermissionStatusAsync(RolePermissionStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 撤销角色权限
+    /// </summary>
+    /// <param name="id">角色权限绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion RolePermission
+
+    #region RoleDataScope
+
+    /// <summary>
+    /// 授予角色数据范围
+    /// </summary>
+    /// <param name="input">授权参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色数据范围详情</returns>
+    Task<RoleDataScopeDetailDto> CreateRoleDataScopeAsync(RoleDataScopeGrantDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新角色数据范围
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色数据范围详情</returns>
+    Task<RoleDataScopeDetailDto> UpdateRoleDataScopeAsync(RoleDataScopeUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新角色数据范围状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色数据范围详情</returns>
+    Task<RoleDataScopeDetailDto> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 撤销角色数据范围
+    /// </summary>
+    /// <param name="id">角色数据范围绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion RoleDataScope
+
+    #region RoleHierarchy
+
+    /// <summary>
+    /// 创建角色直接继承关系
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色继承详情</returns>
+    Task<RoleHierarchyDetailDto> CreateRoleHierarchyAsync(RoleHierarchyCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除角色直接继承关系
+    /// </summary>
+    /// <param name="id">角色继承主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion RoleHierarchy
 }

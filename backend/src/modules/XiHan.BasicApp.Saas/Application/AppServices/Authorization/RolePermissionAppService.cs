@@ -29,6 +29,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 角色权限命令应用服务
 /// </summary>
+// TODO: Remove after frontend migration
+[Obsolete("Merged into RoleAppService.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色权限")]
 public sealed class RolePermissionAppService(

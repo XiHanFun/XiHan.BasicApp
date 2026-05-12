@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 用户数据范围命令应用服务接口
 /// </summary>
+[Obsolete("Merged into IUserAppService. Use IUserAppService instead.")]
 public interface IUserDataScopeAppService : IApplicationService
 {
     /// <summary>

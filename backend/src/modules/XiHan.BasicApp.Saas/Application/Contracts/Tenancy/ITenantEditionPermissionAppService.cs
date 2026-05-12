@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 租户版本权限命令应用服务接口
 /// </summary>
+[Obsolete("Merged into ITenantEditionAppService.")]
 public interface ITenantEditionPermissionAppService : IApplicationService
 {
     /// <summary>

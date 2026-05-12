@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 角色权限命令应用服务接口
 /// </summary>
+[Obsolete("Merged into IRoleAppService.")]
 public interface IRolePermissionAppService : IApplicationService
 {
     /// <summary>

@@ -30,6 +30,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 权限申请命令应用服务
 /// </summary>
+// TODO: Remove after frontend migration
+[Obsolete("Merged into PermissionAppService.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限申请")]
 public sealed class PermissionRequestAppService(

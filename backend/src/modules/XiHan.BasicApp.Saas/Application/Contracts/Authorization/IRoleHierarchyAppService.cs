@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 角色继承命令应用服务接口
 /// </summary>
+[Obsolete("Merged into IRoleAppService.")]
 public interface IRoleHierarchyAppService : IApplicationService
 {
     /// <summary>

@@ -29,6 +29,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 租户版本权限命令应用服务
 /// </summary>
+[Obsolete("Merged into TenantEditionAppService.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户版本权限")]
 public sealed class TenantEditionPermissionAppService(

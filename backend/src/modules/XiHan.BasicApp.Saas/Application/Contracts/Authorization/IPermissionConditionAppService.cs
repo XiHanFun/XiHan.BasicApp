@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 /// <summary>
 /// 权限 ABAC 条件命令应用服务接口
 /// </summary>
+[Obsolete("Merged into IPermissionAppService.")]
 public interface IPermissionConditionAppService : IApplicationService
 {
     /// <summary>

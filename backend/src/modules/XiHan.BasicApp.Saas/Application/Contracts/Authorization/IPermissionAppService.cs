@@ -52,4 +52,179 @@ public interface IPermissionAppService : IApplicationService
     /// <param name="id">权限主键</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task DeletePermissionAsync(long id, CancellationToken cancellationToken = default);
+
+    #region Resource
+
+    /// <summary>
+    /// 创建资源定义
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>资源详情</returns>
+    Task<ResourceDetailDto> CreateResourceAsync(ResourceCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新资源定义
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>资源详情</returns>
+    Task<ResourceDetailDto> UpdateResourceAsync(ResourceUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新资源定义状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>资源详情</returns>
+    Task<ResourceDetailDto> UpdateResourceStatusAsync(ResourceStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除资源定义
+    /// </summary>
+    /// <param name="id">资源主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteResourceAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion Resource
+
+    #region Operation
+
+    /// <summary>
+    /// 创建操作定义
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>操作详情</returns>
+    Task<OperationDetailDto> CreateOperationAsync(OperationCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新操作定义
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>操作详情</returns>
+    Task<OperationDetailDto> UpdateOperationAsync(OperationUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新操作定义状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>操作详情</returns>
+    Task<OperationDetailDto> UpdateOperationStatusAsync(OperationStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除操作定义
+    /// </summary>
+    /// <param name="id">操作主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteOperationAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion Operation
+
+    #region PermissionCondition
+
+    /// <summary>
+    /// 创建权限 ABAC 条件
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>ABAC 条件详情</returns>
+    Task<PermissionConditionDetailDto> CreatePermissionConditionAsync(PermissionConditionCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新权限 ABAC 条件
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>ABAC 条件详情</returns>
+    Task<PermissionConditionDetailDto> UpdatePermissionConditionAsync(PermissionConditionUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新权限 ABAC 条件状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>ABAC 条件详情</returns>
+    Task<PermissionConditionDetailDto> UpdatePermissionConditionStatusAsync(PermissionConditionStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除权限 ABAC 条件
+    /// </summary>
+    /// <param name="id">ABAC 条件主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion PermissionCondition
+
+    #region PermissionDelegation
+
+    /// <summary>
+    /// 创建权限委托
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限委托详情</returns>
+    Task<PermissionDelegationDetailDto> CreatePermissionDelegationAsync(PermissionDelegationCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新权限委托
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限委托详情</returns>
+    Task<PermissionDelegationDetailDto> UpdatePermissionDelegationAsync(PermissionDelegationUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新权限委托状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限委托详情</returns>
+    Task<PermissionDelegationDetailDto> UpdatePermissionDelegationStatusAsync(PermissionDelegationStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 撤销权限委托
+    /// </summary>
+    /// <param name="id">权限委托主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeletePermissionDelegationAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion PermissionDelegation
+
+    #region PermissionRequest
+
+    /// <summary>
+    /// 创建权限申请
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限申请详情</returns>
+    Task<PermissionRequestDetailDto> CreatePermissionRequestAsync(PermissionRequestCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新权限申请
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限申请详情</returns>
+    Task<PermissionRequestDetailDto> UpdatePermissionRequestAsync(PermissionRequestUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新权限申请状态
+    /// </summary>
+    /// <param name="input">状态更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限申请详情</returns>
+    Task<PermissionRequestDetailDto> UpdatePermissionRequestStatusAsync(PermissionRequestStatusUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 撤回权限申请
+    /// </summary>
+    /// <param name="id">权限申请主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeletePermissionRequestAsync(long id, CancellationToken cancellationToken = default);
+
+    #endregion PermissionRequest
 }

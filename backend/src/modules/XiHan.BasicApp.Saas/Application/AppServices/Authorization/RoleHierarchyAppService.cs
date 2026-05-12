@@ -28,6 +28,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 角色继承命令应用服务
 /// </summary>
+// TODO: Remove after frontend migration
+[Obsolete("Merged into RoleAppService.")]
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色继承")]
 public sealed class RoleHierarchyAppService(
