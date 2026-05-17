@@ -38,17 +38,17 @@ public sealed class TenantEditionQueryService
     : SaasApplicationService, ITenantEditionQueryService
 {
     /// <summary>
+    /// 租户版本仓储
+    /// </summary>
+    private readonly ITenantEditionRepository _tenantEditionRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public TenantEditionQueryService(ITenantEditionRepository tenantEditionRepository)
     {
         _tenantEditionRepository = tenantEditionRepository;
     }
-
-    /// <summary>
-    /// 租户版本仓储
-    /// </summary>
-    private readonly ITenantEditionRepository _tenantEditionRepository;
 
     /// <summary>
     /// 获取租户版本分页列表

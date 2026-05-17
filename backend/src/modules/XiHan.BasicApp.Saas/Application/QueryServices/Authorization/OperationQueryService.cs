@@ -38,17 +38,17 @@ public sealed class OperationQueryService
     : SaasApplicationService, IOperationQueryService
 {
     /// <summary>
+    /// 操作仓储
+    /// </summary>
+    private readonly IOperationRepository _operationRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public OperationQueryService(IOperationRepository operationRepository)
     {
         _operationRepository = operationRepository;
     }
-
-    /// <summary>
-    /// 操作仓储
-    /// </summary>
-    private readonly IOperationRepository _operationRepository;
 
     /// <summary>
     /// 获取操作分页列表

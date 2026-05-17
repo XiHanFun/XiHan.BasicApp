@@ -29,12 +29,6 @@ public sealed class TenantRepository(
     : SaasAggregateRepository<SysTenant>(clientResolver, unitOfWorkManager), ITenantRepository
 {
     /// <inheritdoc />
-    protected override ISugarQueryable<SysTenant> CreateQueryable()
-    {
-        return CreateNoTenantQueryable();
-    }
-
-    /// <inheritdoc />
     public async Task<SysTenant?> GetByCodeAsync(string tenantCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantCode);
@@ -75,5 +69,11 @@ public sealed class TenantRepository(
         }
 
         return await query.AnyAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    protected override ISugarQueryable<SysTenant> CreateQueryable()
+    {
+        return CreateNoTenantQueryable();
     }
 }

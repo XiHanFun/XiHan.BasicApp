@@ -24,6 +24,18 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class AuthorizationSnapshotQueryService
     : IAuthorizationSnapshotQueryService
 {
+    private const string SuperAdminRoleCode = "super_admin";
+
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -40,13 +52,6 @@ public sealed class AuthorizationSnapshotQueryService
         _userPermissionRepository = userPermissionRepository;
         _permissionRepository = permissionRepository;
     }
-
-    private const string SuperAdminRoleCode = "super_admin";
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository;
-    private readonly IPermissionRepository _permissionRepository;
 
     /// <inheritdoc />
     public async Task<AuthorizationSnapshot> BuildAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default)

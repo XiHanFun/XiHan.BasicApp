@@ -35,6 +35,10 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class DictAppService
     : SaasApplicationService, IDictAppService
 {
+    private readonly IDictItemRepository _dictItemRepository;
+
+    private readonly IDictRepository _dictRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -44,12 +48,8 @@ public sealed class DictAppService
     {
         _dictRepository = dictRepository;
         _dictItemRepository = dictItemRepository;
-    }
-
-    private readonly IDictRepository _dictRepository;
-    private readonly IDictItemRepository _dictItemRepository;
-
-    /// <summary>
+    }
+    /// <summary>
     /// 创建系统字典
     /// </summary>
     [UnitOfWork(true)]
@@ -81,75 +81,6 @@ public sealed class DictAppService
 
         var savedDict = await _dictRepository.AddAsync(dict, cancellationToken);
         return DictApplicationMapper.ToDetailDto(savedDict);
-    }
-
-    /// <summary>
-    /// 更新系统字典
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Dict.Update)]
-    public async Task<DictDetailDto> UpdateDictAsync(DictUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        ValidateDictUpdateInput(input);
-        var dict = await GetDictOrThrowAsync(input.BasicId, cancellationToken);
-        dict.DictName = Required(input.DictName, 100, nameof(input.DictName), "字典名称不能超过 100 个字符。");
-        dict.DictType = Required(input.DictType, 50, nameof(input.DictType), "字典类型不能超过 50 个字符。");
-        dict.DictDescription = Optional(input.DictDescription, 500, nameof(input.DictDescription), "字典描述不能超过 500 个字符。");
-        dict.Sort = input.Sort;
-        dict.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
-
-        var savedDict = await _dictRepository.UpdateAsync(dict, cancellationToken);
-        return DictApplicationMapper.ToDetailDto(savedDict);
-    }
-
-    /// <summary>
-    /// 更新系统字典状态
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Dict.Status)]
-    public async Task<DictDetailDto> UpdateDictStatusAsync(DictStatusUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        EnsureId(input.BasicId, "系统字典主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-
-        var dict = await GetDictOrThrowAsync(input.BasicId, cancellationToken);
-        dict.Status = input.Status;
-        dict.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? dict.Remark;
-
-        var savedDict = await _dictRepository.UpdateAsync(dict, cancellationToken);
-        return DictApplicationMapper.ToDetailDto(savedDict);
-    }
-
-    /// <summary>
-    /// 删除系统字典
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Dict.Delete)]
-    public async Task DeleteDictAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var dict = await GetDictOrThrowAsync(id, cancellationToken);
-        if (dict.IsBuiltIn)
-        {
-            throw new InvalidOperationException("内置系统字典不能删除。");
-        }
-
-        if (await _dictItemRepository.AnyAsync(item => item.DictId == dict.BasicId, cancellationToken))
-        {
-            throw new InvalidOperationException("系统字典存在字典项，不能直接删除。");
-        }
-
-        if (!await _dictRepository.DeleteAsync(dict, cancellationToken))
-        {
-            throw new InvalidOperationException("系统字典删除失败。");
-        }
     }
 
     /// <summary>
@@ -199,6 +130,75 @@ public sealed class DictAppService
 
         var savedDictItem = await _dictItemRepository.AddAsync(dictItem, cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(savedDictItem);
+    }
+
+    /// <summary>
+    /// 删除系统字典
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Dict.Delete)]
+    public async Task DeleteDictAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dict = await GetDictOrThrowAsync(id, cancellationToken);
+        if (dict.IsBuiltIn)
+        {
+            throw new InvalidOperationException("内置系统字典不能删除。");
+        }
+
+        if (await _dictItemRepository.AnyAsync(item => item.DictId == dict.BasicId, cancellationToken))
+        {
+            throw new InvalidOperationException("系统字典存在字典项，不能直接删除。");
+        }
+
+        if (!await _dictRepository.DeleteAsync(dict, cancellationToken))
+        {
+            throw new InvalidOperationException("系统字典删除失败。");
+        }
+    }
+
+    /// <summary>
+    /// 删除系统字典项
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Dict.Delete)]
+    public async Task DeleteDictItemAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dictItem = await GetDictItemOrThrowAsync(id, cancellationToken);
+        if (await _dictItemRepository.AnyAsync(item => item.ParentId == dictItem.BasicId, cancellationToken))
+        {
+            throw new InvalidOperationException("系统字典项存在子节点，不能直接删除。");
+        }
+
+        if (!await _dictItemRepository.DeleteAsync(dictItem, cancellationToken))
+        {
+            throw new InvalidOperationException("系统字典项删除失败。");
+        }
+    }
+
+    /// <summary>
+    /// 更新系统字典
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Dict.Update)]
+    public async Task<DictDetailDto> UpdateDictAsync(DictUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ValidateDictUpdateInput(input);
+        var dict = await GetDictOrThrowAsync(input.BasicId, cancellationToken);
+        dict.DictName = Required(input.DictName, 100, nameof(input.DictName), "字典名称不能超过 100 个字符。");
+        dict.DictType = Required(input.DictType, 50, nameof(input.DictType), "字典类型不能超过 50 个字符。");
+        dict.DictDescription = Optional(input.DictDescription, 500, nameof(input.DictDescription), "字典描述不能超过 500 个字符。");
+        dict.Sort = input.Sort;
+        dict.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
+
+        var savedDict = await _dictRepository.UpdateAsync(dict, cancellationToken);
+        return DictApplicationMapper.ToDetailDto(savedDict);
     }
 
     /// <summary>
@@ -254,62 +254,68 @@ public sealed class DictAppService
     }
 
     /// <summary>
-    /// 删除系统字典项
+    /// 更新系统字典状态
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Dict.Delete)]
-    public async Task DeleteDictItemAsync(long id, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.Dict.Status)]
+    public async Task<DictDetailDto> UpdateDictStatusAsync(DictStatusUpdateDto input, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var dictItem = await GetDictItemOrThrowAsync(id, cancellationToken);
-        if (await _dictItemRepository.AnyAsync(item => item.ParentId == dictItem.BasicId, cancellationToken))
-        {
-            throw new InvalidOperationException("系统字典项存在子节点，不能直接删除。");
-        }
+        EnsureId(input.BasicId, "系统字典主键必须大于 0。");
+        EnsureEnum(input.Status, nameof(input.Status));
 
-        if (!await _dictItemRepository.DeleteAsync(dictItem, cancellationToken))
+        var dict = await GetDictOrThrowAsync(input.BasicId, cancellationToken);
+        dict.Status = input.Status;
+        dict.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? dict.Remark;
+
+        var savedDict = await _dictRepository.UpdateAsync(dict, cancellationToken);
+        return DictApplicationMapper.ToDetailDto(savedDict);
+    }
+
+    private static void EnsureCodeHasNoWhitespace(string value, string message)
+    {
+        if (value.Any(char.IsWhiteSpace))
         {
-            throw new InvalidOperationException("系统字典项删除失败。");
+            throw new InvalidOperationException(message);
         }
     }
 
-    private async Task<SysDict> GetDictOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void ValidateDictCreateInput(DictCreateDto input)
     {
-        EnsureId(id, "系统字典主键必须大于 0。");
-        return await _dictRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统字典不存在。");
+        EnsureEnum(input.Status, nameof(input.Status));
     }
 
-    private async Task<SysDictItem> GetDictItemOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void ValidateDictItemCreateInput(DictItemCreateDto input)
     {
-        EnsureId(id, "系统字典项主键必须大于 0。");
-        return await _dictItemRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统字典项不存在。");
+        EnsureId(input.DictId, "系统字典主键必须大于 0。");
+        EnsureOptionalId(input.ParentId, nameof(input.ParentId), "父级字典项主键必须大于 0。");
+        EnsureEnum(input.Status, nameof(input.Status));
     }
 
-    private async Task<SysDictItem?> ValidateParentAsync(long dictId, long? parentId, long? currentItemId, CancellationToken cancellationToken)
+    private static void ValidateDictItemUpdateInput(DictItemUpdateDto input)
     {
-        EnsureOptionalId(parentId, nameof(parentId), "父级字典项主键必须大于 0。");
-        if (!parentId.HasValue)
-        {
-            return null;
-        }
+        EnsureId(input.BasicId, "系统字典项主键必须大于 0。");
+        EnsureOptionalId(input.ParentId, nameof(input.ParentId), "父级字典项主键必须大于 0。");
+    }
 
-        if (currentItemId.HasValue && parentId.Value == currentItemId.Value)
-        {
-            throw new InvalidOperationException("系统字典项不能选择自身作为父级。");
-        }
+    private static void ValidateDictUpdateInput(DictUpdateDto input)
+    {
+        EnsureId(input.BasicId, "系统字典主键必须大于 0。");
+    }
 
-        var parent = await _dictItemRepository.GetByIdAsync(parentId.Value, cancellationToken)
-            ?? throw new InvalidOperationException("父级字典项不存在。");
-        if (parent.DictId != dictId)
-        {
-            throw new InvalidOperationException("父级字典项必须属于同一个系统字典。");
-        }
-
-        await EnsureNoParentCycleAsync(parent, currentItemId, cancellationToken);
-        return parent;
+    private Task<bool> ClearDefaultItemsAsync(long dictId, long? excludeItemId, CancellationToken cancellationToken)
+    {
+        return excludeItemId.HasValue
+            ? _dictItemRepository.UpdateAsync(
+                item => new SysDictItem { IsDefault = false },
+                item => item.DictId == dictId && item.BasicId != excludeItemId.Value && item.IsDefault,
+                cancellationToken)
+            : _dictItemRepository.UpdateAsync(
+                item => new SysDictItem { IsDefault = false },
+                item => item.DictId == dictId && item.IsDefault,
+                cancellationToken);
     }
 
     private async Task EnsureNoParentCycleAsync(SysDictItem parent, long? currentItemId, CancellationToken cancellationToken)
@@ -343,47 +349,41 @@ public sealed class DictAppService
         }
     }
 
-    private Task<bool> ClearDefaultItemsAsync(long dictId, long? excludeItemId, CancellationToken cancellationToken)
+    private async Task<SysDictItem> GetDictItemOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        return excludeItemId.HasValue
-            ? _dictItemRepository.UpdateAsync(
-                item => new SysDictItem { IsDefault = false },
-                item => item.DictId == dictId && item.BasicId != excludeItemId.Value && item.IsDefault,
-                cancellationToken)
-            : _dictItemRepository.UpdateAsync(
-                item => new SysDictItem { IsDefault = false },
-                item => item.DictId == dictId && item.IsDefault,
-                cancellationToken);
+        EnsureId(id, "系统字典项主键必须大于 0。");
+        return await _dictItemRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统字典项不存在。");
     }
 
-    private static void ValidateDictCreateInput(DictCreateDto input)
+    private async Task<SysDict> GetDictOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        EnsureEnum(input.Status, nameof(input.Status));
+        EnsureId(id, "系统字典主键必须大于 0。");
+        return await _dictRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统字典不存在。");
     }
 
-    private static void ValidateDictUpdateInput(DictUpdateDto input)
+    private async Task<SysDictItem?> ValidateParentAsync(long dictId, long? parentId, long? currentItemId, CancellationToken cancellationToken)
     {
-        EnsureId(input.BasicId, "系统字典主键必须大于 0。");
-    }
-
-    private static void ValidateDictItemCreateInput(DictItemCreateDto input)
-    {
-        EnsureId(input.DictId, "系统字典主键必须大于 0。");
-        EnsureOptionalId(input.ParentId, nameof(input.ParentId), "父级字典项主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-    }
-
-    private static void ValidateDictItemUpdateInput(DictItemUpdateDto input)
-    {
-        EnsureId(input.BasicId, "系统字典项主键必须大于 0。");
-        EnsureOptionalId(input.ParentId, nameof(input.ParentId), "父级字典项主键必须大于 0。");
-    }
-
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
-    {
-        if (value.Any(char.IsWhiteSpace))
+        EnsureOptionalId(parentId, nameof(parentId), "父级字典项主键必须大于 0。");
+        if (!parentId.HasValue)
         {
-            throw new InvalidOperationException(message);
+            return null;
         }
+
+        if (currentItemId.HasValue && parentId.Value == currentItemId.Value)
+        {
+            throw new InvalidOperationException("系统字典项不能选择自身作为父级。");
+        }
+
+        var parent = await _dictItemRepository.GetByIdAsync(parentId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("父级字典项不存在。");
+        if (parent.DictId != dictId)
+        {
+            throw new InvalidOperationException("父级字典项必须属于同一个系统字典。");
+        }
+
+        await EnsureNoParentCycleAsync(parent, currentItemId, cancellationToken);
+        return parent;
     }
 }

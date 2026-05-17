@@ -38,17 +38,17 @@ public sealed class UserQueryService
     : SaasApplicationService, IUserQueryService
 {
     /// <summary>
+    /// 用户仓储
+    /// </summary>
+    private readonly IUserRepository _userRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserQueryService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
     }
-
-    /// <summary>
-    /// 用户仓储
-    /// </summary>
-    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取用户分页列表

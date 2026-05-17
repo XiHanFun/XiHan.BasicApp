@@ -43,11 +43,11 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class MessageAppService : SaasApplicationService, IMessageAppService
 {
     private readonly IEmailRepository _emailRepository;
-    private readonly ISmsRepository _smsRepository;
     private readonly IMessageDispatcher _messageDispatcher;
     private readonly IMessageOutbox _messageOutbox;
-    private readonly ITemplateService _templateService;
     private readonly XiHanMessagingOptions _messagingOptions;
+    private readonly ISmsRepository _smsRepository;
+    private readonly ITemplateService _templateService;
 
     /// <summary>
     /// 构造函数
@@ -138,6 +138,27 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     }
 
     /// <summary>
+    /// 删除系统邮件
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
+    public async Task DeleteEmailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var email = await GetEmailOrThrowAsync(id, cancellationToken);
+        if (email.EmailStatus == EmailStatus.Sending)
+        {
+            throw new InvalidOperationException("发送中的邮件不能删除。");
+        }
+
+        if (!await _emailRepository.DeleteAsync(email, cancellationToken))
+        {
+            throw new InvalidOperationException("系统邮件删除失败。");
+        }
+    }
+
+    /// <summary>
     /// 更新系统邮件
     /// </summary>
     [UnitOfWork(true)]
@@ -198,27 +219,6 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
 
         var savedEmail = await _emailRepository.UpdateAsync(email, cancellationToken);
         return MessageApplicationMapper.ToEmailDetailDto(savedEmail);
-    }
-
-    /// <summary>
-    /// 删除系统邮件
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
-    public async Task DeleteEmailAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var email = await GetEmailOrThrowAsync(id, cancellationToken);
-        if (email.EmailStatus == EmailStatus.Sending)
-        {
-            throw new InvalidOperationException("发送中的邮件不能删除。");
-        }
-
-        if (!await _emailRepository.DeleteAsync(email, cancellationToken))
-        {
-            throw new InvalidOperationException("系统邮件删除失败。");
-        }
     }
 
     #endregion
@@ -292,6 +292,27 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     }
 
     /// <summary>
+    /// 删除系统短信
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
+    public async Task DeleteSmsAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var sms = await GetSmsOrThrowAsync(id, cancellationToken);
+        if (sms.SmsStatus == SmsStatus.Sending)
+        {
+            throw new InvalidOperationException("发送中的短信不能删除。");
+        }
+
+        if (!await _smsRepository.DeleteAsync(sms, cancellationToken))
+        {
+            throw new InvalidOperationException("系统短信删除失败。");
+        }
+    }
+
+    /// <summary>
     /// 更新系统短信
     /// </summary>
     [UnitOfWork(true)]
@@ -351,43 +372,38 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         return MessageApplicationMapper.ToSmsDetailDto(savedSms);
     }
 
-    /// <summary>
-    /// 删除系统短信
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
-    public async Task DeleteSmsAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var sms = await GetSmsOrThrowAsync(id, cancellationToken);
-        if (sms.SmsStatus == SmsStatus.Sending)
-        {
-            throw new InvalidOperationException("发送中的短信不能删除。");
-        }
-
-        if (!await _smsRepository.DeleteAsync(sms, cancellationToken))
-        {
-            throw new InvalidOperationException("系统短信删除失败。");
-        }
-    }
-
     #endregion
 
     #region 私有方法
 
-    private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
+    /// <summary>
+    /// 构建邮件实体（发件箱预创建用）
+    /// </summary>
+    private static SysEmail BuildEmailEntity(EmailCreateDto input, string? renderedContent)
     {
-        EnsureId(id, "系统邮件主键必须大于 0。");
-        return await _emailRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统邮件不存在。");
-    }
-
-    private async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统短信主键必须大于 0。");
-        return await _smsRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统短信不存在。");
+        return new SysEmail
+        {
+            SendUserId = input.SendUserId,
+            ReceiveUserId = input.ReceiveUserId,
+            EmailType = input.EmailType,
+            FromEmail = input.FromEmail,
+            FromName = input.FromName,
+            ToEmail = input.ToEmail,
+            CcEmail = input.CcEmail,
+            BccEmail = input.BccEmail,
+            Subject = input.Subject,
+            Content = renderedContent ?? input.Content,
+            IsHtml = input.IsHtml,
+            Attachments = input.Attachments,
+            TemplateId = input.TemplateId,
+            TemplateParams = input.TemplateParams,
+            EmailStatus = EmailStatus.Pending,
+            ScheduledTime = input.ScheduledTime,
+            MaxRetryCount = input.MaxRetryCount,
+            BusinessType = input.BusinessType,
+            BusinessId = input.BusinessId,
+            Remark = input.Remark
+        };
     }
 
     /// <summary>
@@ -434,27 +450,21 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     }
 
     /// <summary>
-    /// 构建邮件实体（发件箱预创建用）
+    /// 构建短信实体（发件箱预创建用）
     /// </summary>
-    private static SysEmail BuildEmailEntity(EmailCreateDto input, string? renderedContent)
+    private static SysSms BuildSmsEntity(SmsCreateDto input, string? renderedContent)
     {
-        return new SysEmail
+        return new SysSms
         {
-            SendUserId = input.SendUserId,
-            ReceiveUserId = input.ReceiveUserId,
-            EmailType = input.EmailType,
-            FromEmail = input.FromEmail,
-            FromName = input.FromName,
-            ToEmail = input.ToEmail,
-            CcEmail = input.CcEmail,
-            BccEmail = input.BccEmail,
-            Subject = input.Subject,
+            SenderId = input.SenderId,
+            ReceiverId = input.ReceiverId,
+            SmsType = input.SmsType,
+            ToPhone = input.ToPhone,
             Content = renderedContent ?? input.Content,
-            IsHtml = input.IsHtml,
-            Attachments = input.Attachments,
             TemplateId = input.TemplateId,
             TemplateParams = input.TemplateParams,
-            EmailStatus = EmailStatus.Pending,
+            Provider = input.Provider,
+            SmsStatus = SmsStatus.Pending,
             ScheduledTime = input.ScheduledTime,
             MaxRetryCount = input.MaxRetryCount,
             BusinessType = input.BusinessType,
@@ -501,28 +511,20 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         };
     }
 
-    /// <summary>
-    /// 构建短信实体（发件箱预创建用）
-    /// </summary>
-    private static SysSms BuildSmsEntity(SmsCreateDto input, string? renderedContent)
+    private static void EnsureMessageEditable(EmailStatus status, string messageName)
     {
-        return new SysSms
+        if (status is EmailStatus.Sending or EmailStatus.Success)
         {
-            SenderId = input.SenderId,
-            ReceiverId = input.ReceiverId,
-            SmsType = input.SmsType,
-            ToPhone = input.ToPhone,
-            Content = renderedContent ?? input.Content,
-            TemplateId = input.TemplateId,
-            TemplateParams = input.TemplateParams,
-            Provider = input.Provider,
-            SmsStatus = SmsStatus.Pending,
-            ScheduledTime = input.ScheduledTime,
-            MaxRetryCount = input.MaxRetryCount,
-            BusinessType = input.BusinessType,
-            BusinessId = input.BusinessId,
-            Remark = input.Remark
-        };
+            throw new InvalidOperationException($"{messageName}已发送或发送中，不能直接更新。");
+        }
+    }
+
+    private static void EnsureMessageEditable(SmsStatus status, string messageName)
+    {
+        if (status is SmsStatus.Sending or SmsStatus.Success)
+        {
+            throw new InvalidOperationException($"{messageName}已发送或发送中，不能直接更新。");
+        }
     }
 
     /// <summary>
@@ -592,20 +594,18 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         EnsureNonNegative(maxRetryCount, nameof(maxRetryCount), "最大重试次数不能小于 0。");
     }
 
-    private static void EnsureMessageEditable(EmailStatus status, string messageName)
+    private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (status is EmailStatus.Sending or EmailStatus.Success)
-        {
-            throw new InvalidOperationException($"{messageName}已发送或发送中，不能直接更新。");
-        }
+        EnsureId(id, "系统邮件主键必须大于 0。");
+        return await _emailRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统邮件不存在。");
     }
 
-    private static void EnsureMessageEditable(SmsStatus status, string messageName)
+    private async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (status is SmsStatus.Sending or SmsStatus.Success)
-        {
-            throw new InvalidOperationException($"{messageName}已发送或发送中，不能直接更新。");
-        }
+        EnsureId(id, "系统短信主键必须大于 0。");
+        return await _smsRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统短信不存在。");
     }
 
     #endregion

@@ -42,6 +42,24 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class FileAppService
     : SaasApplicationService, IFileAppService
 {
+    private const string Sha256AlgorithmName = "SHA256";
+
+    private readonly IClientInfoProvider _clientInfoProvider;
+
+    private readonly ICurrentUser _currentUser;
+
+    private readonly IFileRepository _fileRepository;
+
+    private readonly IFileStorageDomainService _fileStorageDomainService;
+
+    private readonly IFileStorageProviderManager _fileStorageProviderManager;
+
+    private readonly IFileStorageRepository _fileStorageRepository;
+
+    private readonly IFileStorageRouter _fileStorageRouter;
+
+    private readonly ILocalEventBus _localEventBus;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -65,15 +83,226 @@ public sealed class FileAppService
         _currentUser = currentUser;
     }
 
-    private const string Sha256AlgorithmName = "SHA256";
-    private readonly IFileRepository _fileRepository;
-    private readonly IFileStorageRepository _fileStorageRepository;
-    private readonly IFileStorageRouter _fileStorageRouter;
-    private readonly IFileStorageProviderManager _fileStorageProviderManager;
-    private readonly IFileStorageDomainService _fileStorageDomainService;
-    private readonly IClientInfoProvider _clientInfoProvider;
-    private readonly ILocalEventBus _localEventBus;
-    private readonly ICurrentUser _currentUser;
+    /// <summary>
+    /// 删除文件
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Delete)]
+    public async Task DeleteFileAsync(FileDeleteDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
+        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
+        var storages = await _fileStorageRepository.GetByFileIdAsync(file.BasicId, cancellationToken);
+
+        if (input.DeletePhysical)
+        {
+            foreach (var storage in storages)
+            {
+                var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+                await provider.DeleteAsync(storage.StoragePath, storage.BucketName, cancellationToken);
+            }
+        }
+
+        file.Status = FileStatus.Deleted;
+        file.Remark = Optional(input.Reason, 500, nameof(input.Reason), "删除原因不能超过 500 个字符。") ?? file.Remark;
+        _ = await _fileRepository.UpdateAsync(file, cancellationToken);
+
+        foreach (var storage in storages)
+        {
+            storage.Status = FileStorageStatus.Deleted;
+            storage.Remark = file.Remark;
+        }
+
+        if (storages.Count > 0)
+        {
+            _ = await _fileStorageRepository.UpdateRangeAsync(storages, cancellationToken);
+            _ = await _fileStorageRepository.DeleteAsync(storage => storage.FileId == file.BasicId, cancellationToken);
+        }
+
+        if (!await _fileRepository.DeleteAsync(file, cancellationToken))
+        {
+            throw new InvalidOperationException("系统文件删除失败。");
+        }
+
+        await _localEventBus.PublishAsync(
+            new FileDeletedDomainEvent(
+                file.TenantId,
+                file.BasicId,
+                file.FileName,
+                input.DeletePhysical,
+                _currentUser.UserId,
+                input.Reason));
+    }
+
+    /// <summary>
+    /// 下载文件
+    /// </summary>
+    [UnitOfWork]
+    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
+    public async Task<Stream> DownloadFileAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        EnsureId(fileId, "系统文件主键必须大于 0。");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
+        var storage = await _fileStorageRepository.GetPrimaryByFileIdAsync(file.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("文件缺少可用主存储，无法下载。");
+
+        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
+    }
+
+    /// <summary>
+    /// 秒传文件
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Create)]
+    public async Task<FileDetailDto> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var fileHash = Required(input.FileHash, 100, nameof(input.FileHash), "文件哈希不能超过 100 个字符。");
+        _fileStorageDomainService.EnsureUploadMetadata(input.FileSize, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
+
+        var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken)
+            ?? throw new InvalidOperationException("文件不存在，无法秒传。");
+        if (existing.Status != FileStatus.Normal)
+        {
+            throw new InvalidOperationException("文件状态非正常，无法秒传。");
+        }
+
+        var primaryStorage = await _fileStorageRepository.GetPrimaryByFileIdAsync(existing.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("文件缺少可用主存储，无法秒传。");
+        if (primaryStorage.Status != FileStorageStatus.Normal)
+        {
+            throw new InvalidOperationException("文件主存储不可用，无法秒传。");
+        }
+
+        ApplyFastUploadMetadata(existing, input);
+        existing = await _fileRepository.UpdateAsync(existing, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(existing);
+    }
+
+    /// <summary>
+    /// 生成文件预签名访问 URL
+    /// </summary>
+    [UnitOfWork]
+    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
+    public async Task<string> GenerateFilePresignedUrlAsync(long fileId, TimeSpan? expiresIn = null, CancellationToken cancellationToken = default)
+    {
+        EnsureId(fileId, "系统文件主键必须大于 0。");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
+        var storage = await _fileStorageRepository.GetPrimaryByFileIdAsync(file.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("文件缺少可用主存储，无法生成访问链接。");
+
+        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        var effectiveExpiresIn = expiresIn ?? TimeSpan.FromMinutes(30);
+        return await provider.GeneratePresignedUrlAsync(storage.StoragePath, effectiveExpiresIn, cancellationToken);
+    }
+
+    /// <summary>
+    /// 切换主存储
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Update)]
+    public async Task<FileStorageDetailDto> SwitchPrimaryStorageAsync(FilePrimaryStorageSwitchDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
+        EnsureId(input.StorageId, "系统文件存储主键必须大于 0。");
+
+        _ = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
+        var storage = await GetFileStorageOrThrowAsync(input.StorageId, cancellationToken);
+        if (storage.FileId != input.BasicId)
+        {
+            throw new InvalidOperationException("存储副本不属于当前文件。");
+        }
+
+        _fileStorageDomainService.EnsureCanBecomePrimary(storage);
+        var previousStorage = await _fileStorageRepository.GetPrimaryByFileIdAsync(input.BasicId, cancellationToken);
+        await _fileStorageRepository.ClearPrimaryAsync(input.BasicId, storage.BasicId, cancellationToken);
+        storage.IsPrimary = true;
+        storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
+        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
+
+        await _localEventBus.PublishAsync(
+            new FilePrimaryStorageChangedDomainEvent(
+                storage.TenantId,
+                storage.FileId,
+                storage.BasicId,
+                previousStorage?.BasicId,
+                _currentUser.UserId,
+                input.Remark));
+
+        return FileApplicationMapper.ToStorageDetailDto(storage);
+    }
+
+    /// <summary>
+    /// 更新文件业务元数据
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Update)]
+    public async Task<FileDetailDto> UpdateFileMetadataAsync(FileMetadataUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
+        ValidateMutableMetadata(input.AccessLevel, input.RetentionDays, input.Width, input.Height, input.Duration, input.ThumbnailFileId);
+        _fileStorageDomainService.EnsureUploadMetadata(1, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
+
+        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
+        ApplyMutableMetadata(file, input);
+        file = await _fileRepository.UpdateAsync(file, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(file);
+    }
+
+    /// <summary>
+    /// 更新系统文件状态
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Status)]
+    public async Task<FileDetailDto> UpdateFileStatusAsync(FileStatusUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
+        EnsureEnum(input.Status, nameof(input.Status));
+        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
+        file.Status = input.Status;
+        file.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? file.Remark;
+        file = await _fileRepository.UpdateAsync(file, cancellationToken);
+        return FileApplicationMapper.ToDetailDto(file);
+    }
+
+    /// <summary>
+    /// 更新系统文件存储状态
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.File.Status)]
+    public async Task<FileStorageDetailDto> UpdateFileStorageStatusAsync(FileStorageStatusUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(input.BasicId, "系统文件存储主键必须大于 0。");
+        EnsureEnum(input.Status, nameof(input.Status));
+        var storage = await GetFileStorageOrThrowAsync(input.BasicId, cancellationToken);
+        storage.Status = input.Status;
+        storage.UploadFailureReason = Optional(input.UploadFailureReason, 500, nameof(input.UploadFailureReason), "上传失败原因不能超过 500 个字符。");
+        storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
+        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
+        return FileApplicationMapper.ToStorageDetailDto(storage);
+    }
 
     /// <summary>
     /// 上传文件
@@ -204,116 +433,6 @@ public sealed class FileAppService
     }
 
     /// <summary>
-    /// 秒传文件
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Create)]
-    public async Task<FileDetailDto> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var fileHash = Required(input.FileHash, 100, nameof(input.FileHash), "文件哈希不能超过 100 个字符。");
-        _fileStorageDomainService.EnsureUploadMetadata(input.FileSize, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
-
-        var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken)
-            ?? throw new InvalidOperationException("文件不存在，无法秒传。");
-        if (existing.Status != FileStatus.Normal)
-        {
-            throw new InvalidOperationException("文件状态非正常，无法秒传。");
-        }
-
-        var primaryStorage = await _fileStorageRepository.GetPrimaryByFileIdAsync(existing.BasicId, cancellationToken)
-            ?? throw new InvalidOperationException("文件缺少可用主存储，无法秒传。");
-        if (primaryStorage.Status != FileStorageStatus.Normal)
-        {
-            throw new InvalidOperationException("文件主存储不可用，无法秒传。");
-        }
-
-        ApplyFastUploadMetadata(existing, input);
-        existing = await _fileRepository.UpdateAsync(existing, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(existing);
-    }
-
-    /// <summary>
-    /// 更新文件业务元数据
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Update)]
-    public async Task<FileDetailDto> UpdateFileMetadataAsync(FileMetadataUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
-        ValidateMutableMetadata(input.AccessLevel, input.RetentionDays, input.Width, input.Height, input.Duration, input.ThumbnailFileId);
-        _fileStorageDomainService.EnsureUploadMetadata(1, input.IsTemporary, input.ExpiresAt, input.RetentionDays);
-
-        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
-        ApplyMutableMetadata(file, input);
-        file = await _fileRepository.UpdateAsync(file, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(file);
-    }
-
-    /// <summary>
-    /// 更新系统文件状态
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Status)]
-    public async Task<FileDetailDto> UpdateFileStatusAsync(FileStatusUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
-        file.Status = input.Status;
-        file.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? file.Remark;
-        file = await _fileRepository.UpdateAsync(file, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(file);
-    }
-
-    /// <summary>
-    /// 切换主存储
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Update)]
-    public async Task<FileStorageDetailDto> SwitchPrimaryStorageAsync(FilePrimaryStorageSwitchDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
-        EnsureId(input.StorageId, "系统文件存储主键必须大于 0。");
-
-        _ = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
-        var storage = await GetFileStorageOrThrowAsync(input.StorageId, cancellationToken);
-        if (storage.FileId != input.BasicId)
-        {
-            throw new InvalidOperationException("存储副本不属于当前文件。");
-        }
-
-        _fileStorageDomainService.EnsureCanBecomePrimary(storage);
-        var previousStorage = await _fileStorageRepository.GetPrimaryByFileIdAsync(input.BasicId, cancellationToken);
-        await _fileStorageRepository.ClearPrimaryAsync(input.BasicId, storage.BasicId, cancellationToken);
-        storage.IsPrimary = true;
-        storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
-        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
-
-        await _localEventBus.PublishAsync(
-            new FilePrimaryStorageChangedDomainEvent(
-                storage.TenantId,
-                storage.FileId,
-                storage.BasicId,
-                previousStorage?.BasicId,
-                _currentUser.UserId,
-                input.Remark));
-
-        return FileApplicationMapper.ToStorageDetailDto(storage);
-    }
-
-    /// <summary>
     /// 校验文件存储副本
     /// </summary>
     [UnitOfWork(true)]
@@ -356,153 +475,6 @@ public sealed class FileAppService
         return FileApplicationMapper.ToStorageDetailDto(storage);
     }
 
-    /// <summary>
-    /// 更新系统文件存储状态
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Status)]
-    public async Task<FileStorageDetailDto> UpdateFileStorageStatusAsync(FileStorageStatusUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        EnsureId(input.BasicId, "系统文件存储主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-        var storage = await GetFileStorageOrThrowAsync(input.BasicId, cancellationToken);
-        storage.Status = input.Status;
-        storage.UploadFailureReason = Optional(input.UploadFailureReason, 500, nameof(input.UploadFailureReason), "上传失败原因不能超过 500 个字符。");
-        storage.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? storage.Remark;
-        storage = await _fileStorageRepository.UpdateAsync(storage, cancellationToken);
-        return FileApplicationMapper.ToStorageDetailDto(storage);
-    }
-
-    /// <summary>
-    /// 删除文件
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.File.Delete)]
-    public async Task DeleteFileAsync(FileDeleteDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        EnsureId(input.BasicId, "系统文件主键必须大于 0。");
-        var file = await GetFileOrThrowAsync(input.BasicId, cancellationToken);
-        var storages = await _fileStorageRepository.GetByFileIdAsync(file.BasicId, cancellationToken);
-
-        if (input.DeletePhysical)
-        {
-            foreach (var storage in storages)
-            {
-                var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-                await provider.DeleteAsync(storage.StoragePath, storage.BucketName, cancellationToken);
-            }
-        }
-
-        file.Status = FileStatus.Deleted;
-        file.Remark = Optional(input.Reason, 500, nameof(input.Reason), "删除原因不能超过 500 个字符。") ?? file.Remark;
-        _ = await _fileRepository.UpdateAsync(file, cancellationToken);
-
-        foreach (var storage in storages)
-        {
-            storage.Status = FileStorageStatus.Deleted;
-            storage.Remark = file.Remark;
-        }
-
-        if (storages.Count > 0)
-        {
-            _ = await _fileStorageRepository.UpdateRangeAsync(storages, cancellationToken);
-            _ = await _fileStorageRepository.DeleteAsync(storage => storage.FileId == file.BasicId, cancellationToken);
-        }
-
-        if (!await _fileRepository.DeleteAsync(file, cancellationToken))
-        {
-            throw new InvalidOperationException("系统文件删除失败。");
-        }
-
-        await _localEventBus.PublishAsync(
-            new FileDeletedDomainEvent(
-                file.TenantId,
-                file.BasicId,
-                file.FileName,
-                input.DeletePhysical,
-                _currentUser.UserId,
-                input.Reason));
-    }
-
-    /// <summary>
-    /// 下载文件
-    /// </summary>
-    [UnitOfWork]
-    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
-    public async Task<Stream> DownloadFileAsync(long fileId, CancellationToken cancellationToken = default)
-    {
-        EnsureId(fileId, "系统文件主键必须大于 0。");
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
-        var storage = await _fileStorageRepository.GetPrimaryByFileIdAsync(file.BasicId, cancellationToken)
-            ?? throw new InvalidOperationException("文件缺少可用主存储，无法下载。");
-
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-        return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
-    }
-
-    /// <summary>
-    /// 生成文件预签名访问 URL
-    /// </summary>
-    [UnitOfWork]
-    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
-    public async Task<string> GenerateFilePresignedUrlAsync(long fileId, TimeSpan? expiresIn = null, CancellationToken cancellationToken = default)
-    {
-        EnsureId(fileId, "系统文件主键必须大于 0。");
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
-        var storage = await _fileStorageRepository.GetPrimaryByFileIdAsync(file.BasicId, cancellationToken)
-            ?? throw new InvalidOperationException("文件缺少可用主存储，无法生成访问链接。");
-
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-        var effectiveExpiresIn = expiresIn ?? TimeSpan.FromMinutes(30);
-        return await provider.GeneratePresignedUrlAsync(storage.StoragePath, effectiveExpiresIn, cancellationToken);
-    }
-
-    private async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统文件主键必须大于 0。");
-        return await _fileRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统文件不存在。");
-    }
-
-    private async Task<SysFileStorage> GetFileStorageOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统文件存储主键必须大于 0。");
-        return await _fileStorageRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统文件存储不存在。");
-    }
-
-    private async Task PublishUploadedAsync(SysFile file, SysFileStorage storage, string? reason, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await _localEventBus.PublishAsync(
-            new FileUploadedDomainEvent(
-                file.TenantId,
-                file.BasicId,
-                storage.BasicId,
-                file.FileName,
-                file.FileSize,
-                _currentUser.UserId,
-                reason));
-    }
-
-    private static async Task<string> ComputeSha256Async(Microsoft.AspNetCore.Http.IFormFile file, CancellationToken cancellationToken)
-    {
-        await using var stream = file.OpenReadStream();
-        var hash = await SHA256.HashDataAsync(stream, cancellationToken);
-        return Convert.ToHexString(hash).ToLowerInvariant();
-    }
-
     private static void ApplyFastUploadMetadata(SysFile file, FileFastUploadDto input)
     {
         file.OriginalName = Required(input.OriginalName, 200, nameof(input.OriginalName), "原始文件名不能超过 200 个字符。");
@@ -536,14 +508,22 @@ public sealed class FileAppService
         file.ExtendData = OptionalJson(input.ExtendData, "文件扩展数据必须是合法 JSON。");
     }
 
-    private static void ValidateMutableMetadata(ResourceAccessLevel accessLevel, int retentionDays, int? width, int? height, int? duration, long? thumbnailFileId)
+    private static async Task<string> ComputeSha256Async(Microsoft.AspNetCore.Http.IFormFile file, CancellationToken cancellationToken)
     {
-        EnsureEnum(accessLevel, nameof(accessLevel));
-        EnsureNonNegative(retentionDays, nameof(retentionDays), "保留天数不能小于 0。");
-        EnsureOptionalNonNegative(width, nameof(width), "图片宽度不能小于 0。");
-        EnsureOptionalNonNegative(height, nameof(height), "图片高度不能小于 0。");
-        EnsureOptionalNonNegative(duration, nameof(duration), "媒体时长不能小于 0。");
-        EnsureOptionalId(thumbnailFileId, nameof(thumbnailFileId), "缩略图文件主键必须大于 0。");
+        await using var stream = file.OpenReadStream();
+        var hash = await SHA256.HashDataAsync(stream, cancellationToken);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static string? NormalizeText(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var trimmed = value.Trim();
+        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
     }
 
     private static string? ResolveUploadSource(ClientInfo clientInfo)
@@ -558,14 +538,42 @@ public sealed class FileAppService
         return NormalizeText(string.Join("/", parts), 50);
     }
 
-    private static string? NormalizeText(string? value, int maxLength)
+    private static void ValidateMutableMetadata(ResourceAccessLevel accessLevel, int retentionDays, int? width, int? height, int? duration, long? thumbnailFileId)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
+        EnsureEnum(accessLevel, nameof(accessLevel));
+        EnsureNonNegative(retentionDays, nameof(retentionDays), "保留天数不能小于 0。");
+        EnsureOptionalNonNegative(width, nameof(width), "图片宽度不能小于 0。");
+        EnsureOptionalNonNegative(height, nameof(height), "图片高度不能小于 0。");
+        EnsureOptionalNonNegative(duration, nameof(duration), "媒体时长不能小于 0。");
+        EnsureOptionalId(thumbnailFileId, nameof(thumbnailFileId), "缩略图文件主键必须大于 0。");
+    }
 
-        var trimmed = value.Trim();
-        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
+    private async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统文件主键必须大于 0。");
+        return await _fileRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统文件不存在。");
+    }
+
+    private async Task<SysFileStorage> GetFileStorageOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统文件存储主键必须大于 0。");
+        return await _fileStorageRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统文件存储不存在。");
+    }
+
+    private async Task PublishUploadedAsync(SysFile file, SysFileStorage storage, string? reason, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _localEventBus.PublishAsync(
+            new FileUploadedDomainEvent(
+                file.TenantId,
+                file.BasicId,
+                storage.BasicId,
+                file.FileName,
+                file.FileSize,
+                _currentUser.UserId,
+                reason));
     }
 }

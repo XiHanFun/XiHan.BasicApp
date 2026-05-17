@@ -22,7 +22,6 @@ using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Jwt;
@@ -42,6 +41,30 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class AuthAppService
     : SaasApplicationService, IAuthAppService
 {
+    private readonly IAuthContextQueryService _authContextQueryService;
+
+    private readonly IAuthenticationDomainService _authenticationDomainService;
+
+    private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
+
+    private readonly IClientInfoProvider _clientInfoProvider;
+
+    private readonly ICurrentTenant _currentTenant;
+
+    private readonly ICurrentUser _currentUser;
+
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    private readonly IJwtTokenService _jwtTokenService;
+
+    private readonly ILocalEventBus _localEventBus;
+
+    private readonly ILoginSessionDomainService _loginSessionDomainService;
+
+    private readonly IMenuRouteQueryService _menuRouteQueryService;
+
+    private readonly ISaasConfigurationService _saasConfigurationService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -73,25 +96,45 @@ public sealed class AuthAppService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private readonly IAuthenticationDomainService _authenticationDomainService;
-    private readonly ILoginSessionDomainService _loginSessionDomainService;
-    private readonly IAuthContextQueryService _authContextQueryService;
-    private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
-    private readonly IMenuRouteQueryService _menuRouteQueryService;
-    private readonly ISaasConfigurationService _saasConfigurationService;
-    private readonly IJwtTokenService _jwtTokenService;
-    private readonly ILocalEventBus _localEventBus;
-    private readonly ICurrentTenant _currentTenant;
-    private readonly ICurrentUser _currentUser;
-    private readonly IClientInfoProvider _clientInfoProvider;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
     /// <inheritdoc />
     [AllowAnonymous]
     public async Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return await _saasConfigurationService.GetLoginConfigAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<PermissionInfoDto> GetPermissionsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+        using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
+
+        var now = DateTimeOffset.UtcNow;
+        var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, now, cancellationToken);
+        var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, cancellationToken);
+
+        return new PermissionInfoDto
+        {
+            Roles = snapshot.Roles,
+            Permissions = snapshot.Permissions,
+            Menus = menus
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<UserInfoDto> GetUserInfoAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+        using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
+
+        return await _authContextQueryService.GetCurrentUserInfoAsync(
+            userId,
+            _currentUser.TenantId,
+            _currentUser.Roles,
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -186,56 +229,6 @@ public sealed class AuthAppService
     }
 
     /// <inheritdoc />
-    [AllowAnonymous]
-    public Task<LoginTokenDto> RefreshTokenAsync(RefreshTokenRequestDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (string.IsNullOrWhiteSpace(input.AccessToken) || string.IsNullOrWhiteSpace(input.RefreshToken))
-        {
-            throw new InvalidOperationException("刷新令牌参数不完整。");
-        }
-
-        var tokenResult = _jwtTokenService.RefreshAccessToken(input.AccessToken.Trim(), input.RefreshToken.Trim())
-            ?? throw new InvalidOperationException("刷新令牌无效或已过期。");
-        return Task.FromResult(ToLoginTokenDto(tokenResult));
-    }
-
-    /// <inheritdoc />
-    public async Task<UserInfoDto> GetUserInfoAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
-        using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
-
-        return await _authContextQueryService.GetCurrentUserInfoAsync(
-            userId,
-            _currentUser.TenantId,
-            _currentUser.Roles,
-            cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<PermissionInfoDto> GetPermissionsAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
-        using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
-
-        var now = DateTimeOffset.UtcNow;
-        var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, now, cancellationToken);
-        var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, cancellationToken);
-
-        return new PermissionInfoDto
-        {
-            Roles = snapshot.Roles,
-            Permissions = snapshot.Permissions,
-            Menus = menus
-        };
-    }
-
-    /// <inheritdoc />
     [UnitOfWork(true)]
     public async Task LogoutAsync(CancellationToken cancellationToken = default)
     {
@@ -275,6 +268,23 @@ public sealed class AuthAppService
                 client.UserAgent));
     }
 
+    /// <inheritdoc />
+    [AllowAnonymous]
+    public Task<LoginTokenDto> RefreshTokenAsync(RefreshTokenRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(input.AccessToken) || string.IsNullOrWhiteSpace(input.RefreshToken))
+        {
+            throw new InvalidOperationException("刷新令牌参数不完整。");
+        }
+
+        var tokenResult = _jwtTokenService.RefreshAccessToken(input.AccessToken.Trim(), input.RefreshToken.Trim())
+            ?? throw new InvalidOperationException("刷新令牌无效或已过期。");
+        return Task.FromResult(ToLoginTokenDto(tokenResult));
+    }
+
     private static LoginResponseDto BuildTwoFactorChallenge(SysUserSecurity security)
     {
         var methods = ResolveTwoFactorMethods(security.TwoFactorMethod);
@@ -288,17 +298,31 @@ public sealed class AuthAppService
         };
     }
 
-    private static LoginTokenDto ToLoginTokenDto(JwtTokenResult tokenResult)
+    private static string? NormalizeNullable(string? value, int maxLength)
     {
-        return new LoginTokenDto
+        if (string.IsNullOrWhiteSpace(value))
         {
-            AccessToken = tokenResult.AccessToken,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ExpiresIn = tokenResult.ExpiresIn,
-            IssuedAt = tokenResult.IssuedAt,
-            ExpiresAt = tokenResult.ExpiresAt
-        };
+            return null;
+        }
+
+        var normalized = value.Trim();
+        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
+    }
+
+    private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException(requiredMessage);
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), maxLengthMessage);
+        }
+
+        return normalized;
     }
 
     private static List<string> ResolveTwoFactorMethods(TwoFactorMethod method)
@@ -322,31 +346,17 @@ public sealed class AuthAppService
         return methods.Count == 0 ? ["totp"] : methods;
     }
 
-    private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
+    private static LoginTokenDto ToLoginTokenDto(JwtTokenResult tokenResult)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        return new LoginTokenDto
         {
-            throw new ArgumentException(requiredMessage);
-        }
-
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), maxLengthMessage);
-        }
-
-        return normalized;
-    }
-
-    private static string? NormalizeNullable(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ExpiresIn = tokenResult.ExpiresIn,
+            IssuedAt = tokenResult.IssuedAt,
+            ExpiresAt = tokenResult.ExpiresAt
+        };
     }
 
     private List<Claim> BuildClaims(
@@ -416,5 +426,4 @@ public sealed class AuthAppService
 
         return claims;
     }
-
 }

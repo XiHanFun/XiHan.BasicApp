@@ -25,6 +25,14 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class AuthenticationDomainService
     : IAuthenticationDomainService
 {
+    private readonly IAuthenticationService _authenticationService;
+
+    private readonly IUserRepository _userRepository;
+
+    private readonly IUserSecurityRepository _userSecurityRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -38,14 +46,8 @@ public sealed class AuthenticationDomainService
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
         _tenantUserRepository = tenantUserRepository;
-    }
-
-    private readonly IAuthenticationService _authenticationService;
-    private readonly IUserRepository _userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public async Task<LoginAuthenticationResult> AuthenticatePasswordLoginAsync(
         string userName,
         string password,

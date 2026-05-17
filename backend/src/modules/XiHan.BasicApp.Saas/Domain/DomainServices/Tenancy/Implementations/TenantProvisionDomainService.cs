@@ -24,6 +24,16 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class TenantProvisionDomainService
     : ITenantProvisionDomainService
 {
+    private readonly IUserRepository _userRepository;
+
+    private readonly IUserSecurityRepository _userSecurityRepository;
+
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly ITenantEditionRepository _tenantEditionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,15 +49,8 @@ public sealed class TenantProvisionDomainService
         _userRoleRepository = userRoleRepository;
         _tenantUserRepository = tenantUserRepository;
         _tenantEditionRepository = tenantEditionRepository;
-    }
-
-    private readonly IUserRepository _userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-    private readonly ITenantEditionRepository _tenantEditionRepository;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public async Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string passwordHash, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);

@@ -32,6 +32,14 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class WorkbenchQueryService
     : SaasApplicationService, IWorkbenchQueryService
 {
+    private const int LatestInboxCount = 5;
+
+    private readonly IUserStatisticsRepository _userStatisticsRepository;
+
+    private readonly IUserInboxAppService _userInboxAppService;
+
+    private readonly ICurrentUser _currentUser;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -44,11 +52,6 @@ public sealed class WorkbenchQueryService
         _userInboxAppService = userInboxAppService;
         _currentUser = currentUser;
     }
-
-    private const int LatestInboxCount = 5;
-    private readonly IUserStatisticsRepository _userStatisticsRepository;
-    private readonly IUserInboxAppService _userInboxAppService;
-    private readonly ICurrentUser _currentUser;
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.UserStatistics.Read)]
@@ -67,20 +70,6 @@ public sealed class WorkbenchQueryService
             Inbox = BuildInboxSummary(inboxItems),
             Statistics = BuildStatisticsSummary(statistics, today)
         };
-    }
-
-    private async Task<SysUserStatistics?> GetTodayStatisticsAsync(long userId, DateOnly today, CancellationToken cancellationToken)
-    {
-        var statistics = await _userStatisticsRepository.GetListAsync(
-            item => item.UserId == userId &&
-                    item.Period == StatisticsPeriod.Today &&
-                    item.StatisticsDate == today,
-            cancellationToken);
-
-        return statistics
-            .OrderByDescending(item => item.ModifiedTime ?? item.CreatedTime)
-            .ThenByDescending(item => item.BasicId)
-            .FirstOrDefault();
     }
 
     private static WorkbenchDashboardStatisticsDto BuildStatisticsSummary(SysUserStatistics? statistics, DateOnly today)
@@ -121,5 +110,19 @@ public sealed class WorkbenchQueryService
             PendingConfirmCount = inboxItems.Count(item => item.NeedConfirm && !item.ConfirmTime.HasValue),
             UnreadCount = inboxItems.Count(item => item.NotificationStatus == (int)NotificationStatus.Unread)
         };
+    }
+
+    private async Task<SysUserStatistics?> GetTodayStatisticsAsync(long userId, DateOnly today, CancellationToken cancellationToken)
+    {
+        var statistics = await _userStatisticsRepository.GetListAsync(
+            item => item.UserId == userId &&
+                    item.Period == StatisticsPeriod.Today &&
+                    item.StatisticsDate == today,
+            cancellationToken);
+
+        return statistics
+            .OrderByDescending(item => item.ModifiedTime ?? item.CreatedTime)
+            .ThenByDescending(item => item.BasicId)
+            .FirstOrDefault();
     }
 }

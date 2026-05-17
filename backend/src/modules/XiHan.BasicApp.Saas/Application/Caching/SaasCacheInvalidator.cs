@@ -22,6 +22,12 @@ namespace XiHan.BasicApp.Saas.Application.Caching;
 public sealed class SaasCacheInvalidator
     : ISaasCacheInvalidator
 {
+    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache;
+
+    private readonly IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> _authorizationSnapshotCache;
+
+    private readonly IDistributedCache<SaasMenuRoutesCacheItem, string> _menuRoutesCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -33,13 +39,8 @@ public sealed class SaasCacheInvalidator
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
         _menuRoutesCache = menuRoutesCache;
-    }
-
-    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache;
-    private readonly IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> _authorizationSnapshotCache;
-    private readonly IDistributedCache<SaasMenuRoutesCacheItem, string> _menuRoutesCache;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
     {
         var pattern = string.IsNullOrWhiteSpace(configKey)

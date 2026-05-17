@@ -37,6 +37,16 @@ public sealed class PasswordHistoryQueryService
     : SaasApplicationService, IPasswordHistoryQueryService
 {
     /// <summary>
+    /// 密码历史仓储
+    /// </summary>
+    private readonly IPasswordHistoryRepository _passwordHistoryRepository;
+
+    /// <summary>
+    /// 用户仓储
+    /// </summary>
+    private readonly IUserRepository _userRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PasswordHistoryQueryService(
@@ -46,16 +56,6 @@ public sealed class PasswordHistoryQueryService
         _passwordHistoryRepository = passwordHistoryRepository;
         _userRepository = userRepository;
     }
-
-    /// <summary>
-    /// 密码历史仓储
-    /// </summary>
-    private readonly IPasswordHistoryRepository _passwordHistoryRepository;
-
-    /// <summary>
-    /// 用户仓储
-    /// </summary>
-    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取密码历史分页列表
@@ -149,28 +149,6 @@ public sealed class PasswordHistoryQueryService
     }
 
     /// <summary>
-    /// 构建用户映射
-    /// </summary>
-    /// <param name="userIds">用户主键集合</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户映射</returns>
-    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)
-    {
-        var ids = userIds
-            .Where(userId => userId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysUser>();
-        }
-
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
-        return users.ToDictionary(user => user.BasicId);
-    }
-
-    /// <summary>
     /// 校验分页参数
     /// </summary>
     /// <param name="input">查询参数</param>
@@ -194,5 +172,27 @@ public sealed class PasswordHistoryQueryService
         {
             throw new ArgumentOutOfRangeException(paramName, message);
         }
+    }
+
+    /// <summary>
+    /// 构建用户映射
+    /// </summary>
+    /// <param name="userIds">用户主键集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户映射</returns>
+    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)
+    {
+        var ids = userIds
+            .Where(userId => userId > 0)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysUser>();
+        }
+
+        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        return users.ToDictionary(user => user.BasicId);
     }
 }

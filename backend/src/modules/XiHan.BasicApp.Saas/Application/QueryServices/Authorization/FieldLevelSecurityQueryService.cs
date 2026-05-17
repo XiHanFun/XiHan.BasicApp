@@ -37,25 +37,6 @@ public sealed class FieldLevelSecurityQueryService
     : SaasApplicationService, IFieldLevelSecurityQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public FieldLevelSecurityQueryService(
-        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
-        IResourceRepository resourceRepository,
-        IRoleRepository roleRepository,
-        IPermissionRepository permissionRepository,
-        IDepartmentRepository departmentRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
-        _resourceRepository = resourceRepository;
-        _roleRepository = roleRepository;
-        _permissionRepository = permissionRepository;
-        _departmentRepository = departmentRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 字段级安全仓储
     /// </summary>
     private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
@@ -84,6 +65,25 @@ public sealed class FieldLevelSecurityQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public FieldLevelSecurityQueryService(
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
+        IResourceRepository resourceRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        IDepartmentRepository departmentRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+        _resourceRepository = resourceRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _departmentRepository = departmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取字段级安全分页列表

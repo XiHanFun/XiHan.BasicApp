@@ -35,6 +35,12 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class OAuthAppAppService
     : SaasApplicationService, IOAuthAppAppService
 {
+    private readonly IOAuthAppRepository _oauthAppRepository;
+
+    private readonly IOAuthCodeRepository _oauthCodeRepository;
+
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -46,13 +52,8 @@ public sealed class OAuthAppAppService
         _oauthAppRepository = oauthAppRepository;
         _oauthCodeRepository = oauthCodeRepository;
         _oauthTokenRepository = oauthTokenRepository;
-    }
-
-    private readonly IOAuthAppRepository _oauthAppRepository;
-    private readonly IOAuthCodeRepository _oauthCodeRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository;
-
-    /// <summary>
+    }
+    /// <summary>
     /// 创建 OAuth 应用
     /// </summary>
     [UnitOfWork(true)]
@@ -95,6 +96,47 @@ public sealed class OAuthAppAppService
         EnsureEnum(input.Status, nameof(input.Status));
 
         var savedApp = await _oauthAppRepository.AddAsync(app, cancellationToken);
+        return ToSecretDto(savedApp);
+    }
+
+    /// <summary>
+    /// 删除 OAuth 应用
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.OAuthApp.Delete)]
+    public async Task DeleteOAuthAppAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
+        if (await _oauthCodeRepository.AnyAsync(code => code.ClientId == app.ClientId, cancellationToken))
+        {
+            throw new InvalidOperationException("OAuth 应用存在授权码记录，不能删除。");
+        }
+
+        if (await _oauthTokenRepository.AnyAsync(token => token.ClientId == app.ClientId, cancellationToken))
+        {
+            throw new InvalidOperationException("OAuth 应用存在 Token 记录，不能删除。");
+        }
+
+        if (!await _oauthAppRepository.DeleteAsync(app, cancellationToken))
+        {
+            throw new InvalidOperationException("OAuth 应用删除失败。");
+        }
+    }
+
+    /// <summary>
+    /// 重置 OAuth 应用密钥
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.OAuthApp.Secret)]
+    public async Task<OAuthAppSecretDto> RegenerateOAuthAppSecretAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
+        app.ClientSecret = GenerateSecret();
+        var savedApp = await _oauthAppRepository.UpdateAsync(app, cancellationToken);
         return ToSecretDto(savedApp);
     }
 
@@ -149,52 +191,35 @@ public sealed class OAuthAppAppService
         return OAuthAppApplicationMapper.ToDetailDto(savedApp);
     }
 
-    /// <summary>
-    /// 重置 OAuth 应用密钥
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.OAuthApp.Secret)]
-    public async Task<OAuthAppSecretDto> RegenerateOAuthAppSecretAsync(long id, CancellationToken cancellationToken = default)
+    private static void EnsureCodeHasNoWhitespace(string value, string message)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
-        app.ClientSecret = GenerateSecret();
-        var savedApp = await _oauthAppRepository.UpdateAsync(app, cancellationToken);
-        return ToSecretDto(savedApp);
-    }
-
-    /// <summary>
-    /// 删除 OAuth 应用
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.OAuthApp.Delete)]
-    public async Task DeleteOAuthAppAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
-        if (await _oauthCodeRepository.AnyAsync(code => code.ClientId == app.ClientId, cancellationToken))
+        if (value.Any(char.IsWhiteSpace))
         {
-            throw new InvalidOperationException("OAuth 应用存在授权码记录，不能删除。");
-        }
-
-        if (await _oauthTokenRepository.AnyAsync(token => token.ClientId == app.ClientId, cancellationToken))
-        {
-            throw new InvalidOperationException("OAuth 应用存在 Token 记录，不能删除。");
-        }
-
-        if (!await _oauthAppRepository.DeleteAsync(app, cancellationToken))
-        {
-            throw new InvalidOperationException("OAuth 应用删除失败。");
+            throw new InvalidOperationException(message);
         }
     }
 
-    private async Task<SysOAuthApp> GetOAuthAppOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void EnsurePositive(int value, string paramName, string message)
     {
-        EnsureId(id, "OAuth 应用主键必须大于 0。");
-        return await _oauthAppRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("OAuth 应用不存在。");
+        if (value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static string GenerateSecret()
+    {
+        return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+    }
+
+    private static OAuthAppSecretDto ToSecretDto(SysOAuthApp app)
+    {
+        return new OAuthAppSecretDto
+        {
+            BasicId = app.BasicId,
+            ClientId = app.ClientId,
+            ClientSecret = app.ClientSecret
+        };
     }
 
     private static void ValidateOAuthAppInput(
@@ -225,34 +250,10 @@ public sealed class OAuthAppAppService
         EnsurePositive(authorizationCodeLifetime, nameof(authorizationCodeLifetime), "授权码有效期必须大于 0。");
     }
 
-    private static void EnsurePositive(int value, string paramName, string message)
+    private async Task<SysOAuthApp> GetOAuthAppOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
-    {
-        if (value.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException(message);
-        }
-    }
-
-    private static string GenerateSecret()
-    {
-        return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-    }
-
-    private static OAuthAppSecretDto ToSecretDto(SysOAuthApp app)
-    {
-        return new OAuthAppSecretDto
-        {
-            BasicId = app.BasicId,
-            ClientId = app.ClientId,
-            ClientSecret = app.ClientSecret
-        };
+        EnsureId(id, "OAuth 应用主键必须大于 0。");
+        return await _oauthAppRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("OAuth 应用不存在。");
     }
 }

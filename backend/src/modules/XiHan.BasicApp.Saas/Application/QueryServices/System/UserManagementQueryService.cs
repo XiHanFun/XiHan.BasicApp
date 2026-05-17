@@ -32,6 +32,40 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class UserManagementQueryService
     : SaasApplicationService, IUserManagementQueryService
 {
+    private const int MaxSessionCount = 20;
+
+    private const int MaxStatisticsCount = 8;
+
+    private const int MaxPasswordHistoryCount = 10;
+
+    private readonly IUserRepository _userRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+
+    private readonly IDepartmentRepository _departmentRepository;
+
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
+
+    private readonly IUserSecurityRepository _userSecurityRepository;
+
+    private readonly IUserSessionRepository _userSessionRepository;
+
+    private readonly IUserStatisticsRepository _userStatisticsRepository;
+
+    private readonly IExternalLoginRepository _externalLoginRepository;
+
+    private readonly IPasswordHistoryRepository _passwordHistoryRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -66,24 +100,6 @@ public sealed class UserManagementQueryService
         _externalLoginRepository = externalLoginRepository;
         _passwordHistoryRepository = passwordHistoryRepository;
     }
-
-    private const int MaxSessionCount = 20;
-    private const int MaxStatisticsCount = 8;
-    private const int MaxPasswordHistoryCount = 10;
-    private readonly IUserRepository _userRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-    private readonly IUserDepartmentRepository _userDepartmentRepository;
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IUserDataScopeRepository _userDataScopeRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository;
-    private readonly IUserSessionRepository _userSessionRepository;
-    private readonly IUserStatisticsRepository _userStatisticsRepository;
-    private readonly IExternalLoginRepository _externalLoginRepository;
-    private readonly IPasswordHistoryRepository _passwordHistoryRepository;
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.User.Read)]

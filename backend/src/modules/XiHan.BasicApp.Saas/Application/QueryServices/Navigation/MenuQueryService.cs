@@ -38,6 +38,16 @@ public sealed class MenuQueryService
     : SaasApplicationService, IMenuQueryService
 {
     /// <summary>
+    /// 菜单仓储
+    /// </summary>
+    private readonly IMenuRepository _menuRepository;
+
+    /// <summary>
+    /// 权限仓储
+    /// </summary>
+    private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public MenuQueryService(
@@ -47,16 +57,6 @@ public sealed class MenuQueryService
         _menuRepository = menuRepository;
         _permissionRepository = permissionRepository;
     }
-
-    /// <summary>
-    /// 菜单仓储
-    /// </summary>
-    private readonly IMenuRepository _menuRepository;
-
-    /// <summary>
-    /// 权限仓储
-    /// </summary>
-    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 获取菜单分页列表
@@ -279,26 +279,6 @@ public sealed class MenuQueryService
     }
 
     /// <summary>
-    /// 构建权限定义映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysPermission>> BuildPermissionMapAsync(IEnumerable<long?> permissionIds, CancellationToken cancellationToken)
-    {
-        var ids = permissionIds
-            .Where(permissionId => permissionId.HasValue && permissionId.Value > 0)
-            .Select(permissionId => permissionId!.Value)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysPermission>();
-        }
-
-        var permissions = await _permissionRepository.GetByIdsAsync(ids, cancellationToken);
-        return permissions.ToDictionary(permission => permission.BasicId);
-    }
-
-    /// <summary>
     /// 构建菜单树
     /// </summary>
     private static IReadOnlyList<MenuTreeNodeDto> BuildTree(IReadOnlyList<MenuTreeNodeDto> nodes)
@@ -329,5 +309,25 @@ public sealed class MenuQueryService
         where TValue : class
     {
         return id.HasValue && map.TryGetValue(id.Value, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// 构建权限定义映射
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, SysPermission>> BuildPermissionMapAsync(IEnumerable<long?> permissionIds, CancellationToken cancellationToken)
+    {
+        var ids = permissionIds
+            .Where(permissionId => permissionId.HasValue && permissionId.Value > 0)
+            .Select(permissionId => permissionId!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysPermission>();
+        }
+
+        var permissions = await _permissionRepository.GetByIdsAsync(ids, cancellationToken);
+        return permissions.ToDictionary(permission => permission.BasicId);
     }
 }

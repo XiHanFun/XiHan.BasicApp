@@ -36,6 +36,85 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class PermissionAppService
     : SaasApplicationService, IPermissionAppService
 {
+    private const int MaxConditionGroups = 5;
+
+    private const int MaxConditionsPerGroup = 10;
+
+    /// <summary>
+    /// 当前用户
+    /// </summary>
+    private readonly ICurrentUser _currentUser;
+
+    /// <summary>
+    /// 字段级安全仓储
+    /// </summary>
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
+    /// <summary>
+    /// 菜单仓储
+    /// </summary>
+    private readonly IMenuRepository _menuRepository;
+
+    /// <summary>
+    /// 操作仓储
+    /// </summary>
+    private readonly IOperationRepository _operationRepository;
+
+    /// <summary>
+    /// 权限 ABAC 条件仓储
+    /// </summary>
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
+
+    /// <summary>
+    /// 权限委托仓储
+    /// </summary>
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
+
+    /// <summary>
+    /// 权限仓储
+    /// </summary>
+    private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
+    /// 权限申请仓储
+    /// </summary>
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
+
+    /// <summary>
+    /// 资源仓储
+    /// </summary>
+    private readonly IResourceRepository _resourceRepository;
+
+    /// <summary>
+    /// 审批仓储
+    /// </summary>
+    private readonly IReviewRepository _reviewRepository;
+
+    /// <summary>
+    /// 角色权限仓储
+    /// </summary>
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
+    /// 租户版本权限仓储
+    /// </summary>
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
+
+    /// <summary>
+    /// 租户成员仓储
+    /// </summary>
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 用户权限仓储
+    /// </summary>
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -72,84 +151,6 @@ public sealed class PermissionAppService
         _reviewRepository = reviewRepository;
         _currentUser = currentUser;
     }
-
-    private const int MaxConditionGroups = 5;
-    private const int MaxConditionsPerGroup = 10;
-
-    /// <summary>
-    /// 权限仓储
-    /// </summary>
-    private readonly IPermissionRepository _permissionRepository;
-
-    /// <summary>
-    /// 资源仓储
-    /// </summary>
-    private readonly IResourceRepository _resourceRepository;
-
-    /// <summary>
-    /// 操作仓储
-    /// </summary>
-    private readonly IOperationRepository _operationRepository;
-
-    /// <summary>
-    /// 角色权限仓储
-    /// </summary>
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-
-    /// <summary>
-    /// 用户权限仓储
-    /// </summary>
-    private readonly IUserPermissionRepository _userPermissionRepository;
-
-    /// <summary>
-    /// 租户版本权限仓储
-    /// </summary>
-    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
-
-    /// <summary>
-    /// 菜单仓储
-    /// </summary>
-    private readonly IMenuRepository _menuRepository;
-
-    /// <summary>
-    /// 权限委托仓储
-    /// </summary>
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
-
-    /// <summary>
-    /// 权限申请仓储
-    /// </summary>
-    private readonly IPermissionRequestRepository _permissionRequestRepository;
-
-    /// <summary>
-    /// 字段级安全仓储
-    /// </summary>
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-
-    /// <summary>
-    /// 权限 ABAC 条件仓储
-    /// </summary>
-    private readonly IPermissionConditionRepository _permissionConditionRepository;
-
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
-    private readonly IRoleRepository _roleRepository;
-
-    /// <summary>
-    /// 租户成员仓储
-    /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository;
-
-    /// <summary>
-    /// 审批仓储
-    /// </summary>
-    private readonly IReviewRepository _reviewRepository;
-
-    /// <summary>
-    /// 当前用户
-    /// </summary>
-    private readonly ICurrentUser _currentUser;
 
     /// <summary>
     /// 创建权限定义
@@ -204,6 +205,26 @@ public sealed class PermissionAppService
 
         var savedPermission = await _permissionRepository.AddAsync(permission, cancellationToken);
         return PermissionApplicationMapper.ToDetailDto(savedPermission, resource, operation);
+    }
+
+    /// <summary>
+    /// 删除权限定义
+    /// </summary>
+    /// <param name="id">权限主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Permission.Delete)]
+    public async Task DeletePermissionAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var permission = await GetEditablePermissionOrThrowAsync(id, cancellationToken);
+        await EnsurePermissionNotReferencedAsync(permission.BasicId, cancellationToken);
+
+        if (!await _permissionRepository.DeleteAsync(permission, cancellationToken))
+        {
+            throw new InvalidOperationException("权限定义删除失败。");
+        }
     }
 
     /// <summary>
@@ -268,44 +289,225 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 删除权限定义
+    /// 判断编码片段字符是否合法
     /// </summary>
-    /// <param name="id">权限主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Permission.Delete)]
-    public async Task DeletePermissionAsync(long id, CancellationToken cancellationToken = default)
+    private static bool IsValidCodeSegmentChar(char code)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        return code is >= 'a' and <= 'z'
+            || code is >= '0' and <= '9'
+            || code is '-' or '_' or '.';
+    }
 
-        var permission = await GetEditablePermissionOrThrowAsync(id, cancellationToken);
-        await EnsurePermissionNotReferencedAsync(permission.BasicId, cancellationToken);
+    /// <summary>
+    /// 规范化可空字符串
+    /// </summary>
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 
-        if (!await _permissionRepository.DeleteAsync(permission, cancellationToken))
+    /// <summary>
+    /// 规范化权限标签
+    /// </summary>
+    private static string? NormalizeTags(string? tags)
+    {
+        var normalized = NormalizeNullable(tags);
+        if (normalized is null)
         {
-            throw new InvalidOperationException("权限定义删除失败。");
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(normalized);
+            if (document.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidOperationException("权限标签必须是 JSON 数组。");
+            }
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("权限标签必须是合法 JSON 数组。", exception);
+        }
+
+        return normalized;
+    }
+
+    /// <summary>
+    /// 解析模块编码
+    /// </summary>
+    private static string ResolveModuleCode(string? moduleCode, string permissionCode)
+    {
+        var normalizedPermissionCode = permissionCode.Trim();
+        var firstSeparatorIndex = normalizedPermissionCode.IndexOf(':', StringComparison.Ordinal);
+        if (firstSeparatorIndex <= 0)
+        {
+            throw new InvalidOperationException("权限编码必须使用 module:resource:action 格式。");
+        }
+
+        var codeModule = normalizedPermissionCode[..firstSeparatorIndex];
+        ValidateCodeSegment(codeModule, nameof(permissionCode), "权限编码模块段只能包含小写英文、数字、连字符、下划线或点。");
+
+        var normalizedModuleCode = NormalizeNullable(moduleCode);
+        if (normalizedModuleCode is null)
+        {
+            return codeModule;
+        }
+
+        ValidateLength(normalizedModuleCode, 50, nameof(moduleCode), "模块编码不能超过 50 个字符。");
+        ValidateCodeSegment(normalizedModuleCode, nameof(moduleCode), "模块编码只能包含小写英文、数字、连字符、下划线或点。");
+        if (!string.Equals(normalizedModuleCode, codeModule, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("模块编码必须与权限编码第一段一致。");
+        }
+
+        return normalizedModuleCode;
+    }
+
+    /// <summary>
+    /// 校验编码片段
+    /// </summary>
+    private static void ValidateCodeSegment(string segment, string paramName, string message)
+    {
+        if (segment.Any(static code => !IsValidCodeSegmentChar(code)))
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
         }
     }
 
     /// <summary>
-    /// 获取可维护权限定义
+    /// 校验通用参数
     /// </summary>
-    private async Task<SysPermission> GetEditablePermissionOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void ValidateCommonInput(
+        string permissionName,
+        string? permissionDescription,
+        string? tags,
+        string? remark)
     {
-        if (id <= 0)
+        ArgumentException.ThrowIfNullOrWhiteSpace(permissionName);
+        ValidateLength(permissionName, 200, nameof(permissionName), "权限名称不能超过 200 个字符。");
+        ValidateOptionalLength(permissionDescription, 500, nameof(permissionDescription), "权限描述不能超过 500 个字符。");
+        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
+        _ = NormalizeTags(tags);
+    }
+
+    /// <summary>
+    /// 校验创建参数
+    /// </summary>
+    private static void ValidateCreateInput(PermissionCreateDto input)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.PermissionCode);
+        ValidateEnum(input.PermissionType, nameof(input.PermissionType));
+        ValidatePermissionCode(input.PermissionCode);
+        _ = ResolveModuleCode(input.ModuleCode, input.PermissionCode);
+        ValidatePermissionTargetInput(input.PermissionType, input.ResourceId, input.OperationId);
+        ValidateCommonInput(
+            input.PermissionName,
+            input.PermissionDescription,
+            input.Tags,
+            input.Remark);
+        ValidateEnum(input.Status, nameof(input.Status));
+    }
+
+    /// <summary>
+    /// 校验枚举值
+    /// </summary>
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "权限主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    /// <summary>
+    /// 校验字符串长度
+    /// </summary>
+    private static void ValidateLength(string value, int maxLength, string paramName, string message)
+    {
+        if (value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    /// <summary>
+    /// 校验可空字符串长度
+    /// </summary>
+    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    /// <summary>
+    /// 校验权限编码
+    /// </summary>
+    private static void ValidatePermissionCode(string permissionCode)
+    {
+        var normalizedPermissionCode = permissionCode.Trim();
+        ValidateLength(normalizedPermissionCode, 200, nameof(permissionCode), "权限编码不能超过 200 个字符。");
+        if (normalizedPermissionCode.Any(char.IsWhiteSpace))
+        {
+            throw new InvalidOperationException("权限编码不能包含空白字符。");
         }
 
-        var permission = await _permissionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("权限定义不存在。");
-
-        if (permission.IsGlobal)
+        var segments = normalizedPermissionCode.Split(':');
+        if (segments.Length < 3 || segments.Any(string.IsNullOrWhiteSpace))
         {
-            throw new InvalidOperationException("平台级全局权限必须通过平台运维流程维护。");
+            throw new InvalidOperationException("权限编码必须使用 module:resource:action 格式。");
         }
 
-        return permission;
+        foreach (var segment in segments)
+        {
+            ValidateCodeSegment(segment, nameof(permissionCode), "权限编码只能包含小写英文、数字、冒号、连字符、下划线或点。");
+        }
+    }
+
+    /// <summary>
+    /// 校验权限目标
+    /// </summary>
+    private static void ValidatePermissionTargetInput(PermissionType permissionType, long? resourceId, long? operationId)
+    {
+        if (permissionType == PermissionType.ResourceBased)
+        {
+            if (!resourceId.HasValue || resourceId.Value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(resourceId), "资源操作权限必须绑定有效资源。");
+            }
+
+            if (!operationId.HasValue || operationId.Value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(operationId), "资源操作权限必须绑定有效操作。");
+            }
+
+            return;
+        }
+
+        if (resourceId.HasValue || operationId.HasValue)
+        {
+            throw new InvalidOperationException("功能权限和数据范围权限不能绑定资源或操作。");
+        }
+    }
+
+    /// <summary>
+    /// 校验更新参数
+    /// </summary>
+    private static void ValidateUpdateInput(PermissionUpdateDto input)
+    {
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "权限主键必须大于 0。");
+        }
+
+        ValidateCommonInput(
+            input.PermissionName,
+            input.PermissionDescription,
+            input.Tags,
+            input.Remark);
     }
 
     /// <summary>
@@ -347,6 +549,27 @@ public sealed class PermissionAppService
         {
             throw new InvalidOperationException("权限已被字段级安全策略引用，不能删除。");
         }
+    }
+
+    /// <summary>
+    /// 获取可维护权限定义
+    /// </summary>
+    private async Task<SysPermission> GetEditablePermissionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "权限主键必须大于 0。");
+        }
+
+        var permission = await _permissionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("权限定义不存在。");
+
+        if (permission.IsGlobal)
+        {
+            throw new InvalidOperationException("平台级全局权限必须通过平台运维流程维护。");
+        }
+
+        return permission;
     }
 
     /// <summary>
@@ -396,186 +619,6 @@ public sealed class PermissionAppService
         return PermissionApplicationMapper.ToDetailDto(permission, resource, operation);
     }
 
-    /// <summary>
-    /// 校验创建参数
-    /// </summary>
-    private static void ValidateCreateInput(PermissionCreateDto input)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.PermissionCode);
-        ValidateEnum(input.PermissionType, nameof(input.PermissionType));
-        ValidatePermissionCode(input.PermissionCode);
-        _ = ResolveModuleCode(input.ModuleCode, input.PermissionCode);
-        ValidatePermissionTargetInput(input.PermissionType, input.ResourceId, input.OperationId);
-        ValidateCommonInput(
-            input.PermissionName,
-            input.PermissionDescription,
-            input.Tags,
-            input.Remark);
-        ValidateEnum(input.Status, nameof(input.Status));
-    }
-
-    /// <summary>
-    /// 校验更新参数
-    /// </summary>
-    private static void ValidateUpdateInput(PermissionUpdateDto input)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "权限主键必须大于 0。");
-        }
-
-        ValidateCommonInput(
-            input.PermissionName,
-            input.PermissionDescription,
-            input.Tags,
-            input.Remark);
-    }
-
-    /// <summary>
-    /// 校验通用参数
-    /// </summary>
-    private static void ValidateCommonInput(
-        string permissionName,
-        string? permissionDescription,
-        string? tags,
-        string? remark)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(permissionName);
-        ValidateLength(permissionName, 200, nameof(permissionName), "权限名称不能超过 200 个字符。");
-        ValidateOptionalLength(permissionDescription, 500, nameof(permissionDescription), "权限描述不能超过 500 个字符。");
-        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-        _ = NormalizeTags(tags);
-    }
-
-    /// <summary>
-    /// 校验权限目标
-    /// </summary>
-    private static void ValidatePermissionTargetInput(PermissionType permissionType, long? resourceId, long? operationId)
-    {
-        if (permissionType == PermissionType.ResourceBased)
-        {
-            if (!resourceId.HasValue || resourceId.Value <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(resourceId), "资源操作权限必须绑定有效资源。");
-            }
-
-            if (!operationId.HasValue || operationId.Value <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(operationId), "资源操作权限必须绑定有效操作。");
-            }
-
-            return;
-        }
-
-        if (resourceId.HasValue || operationId.HasValue)
-        {
-            throw new InvalidOperationException("功能权限和数据范围权限不能绑定资源或操作。");
-        }
-    }
-
-    /// <summary>
-    /// 解析模块编码
-    /// </summary>
-    private static string ResolveModuleCode(string? moduleCode, string permissionCode)
-    {
-        var normalizedPermissionCode = permissionCode.Trim();
-        var firstSeparatorIndex = normalizedPermissionCode.IndexOf(':', StringComparison.Ordinal);
-        if (firstSeparatorIndex <= 0)
-        {
-            throw new InvalidOperationException("权限编码必须使用 module:resource:action 格式。");
-        }
-
-        var codeModule = normalizedPermissionCode[..firstSeparatorIndex];
-        ValidateCodeSegment(codeModule, nameof(permissionCode), "权限编码模块段只能包含小写英文、数字、连字符、下划线或点。");
-
-        var normalizedModuleCode = NormalizeNullable(moduleCode);
-        if (normalizedModuleCode is null)
-        {
-            return codeModule;
-        }
-
-        ValidateLength(normalizedModuleCode, 50, nameof(moduleCode), "模块编码不能超过 50 个字符。");
-        ValidateCodeSegment(normalizedModuleCode, nameof(moduleCode), "模块编码只能包含小写英文、数字、连字符、下划线或点。");
-        if (!string.Equals(normalizedModuleCode, codeModule, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("模块编码必须与权限编码第一段一致。");
-        }
-
-        return normalizedModuleCode;
-    }
-
-    /// <summary>
-    /// 校验权限编码
-    /// </summary>
-    private static void ValidatePermissionCode(string permissionCode)
-    {
-        var normalizedPermissionCode = permissionCode.Trim();
-        ValidateLength(normalizedPermissionCode, 200, nameof(permissionCode), "权限编码不能超过 200 个字符。");
-        if (normalizedPermissionCode.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException("权限编码不能包含空白字符。");
-        }
-
-        var segments = normalizedPermissionCode.Split(':');
-        if (segments.Length < 3 || segments.Any(string.IsNullOrWhiteSpace))
-        {
-            throw new InvalidOperationException("权限编码必须使用 module:resource:action 格式。");
-        }
-
-        foreach (var segment in segments)
-        {
-            ValidateCodeSegment(segment, nameof(permissionCode), "权限编码只能包含小写英文、数字、冒号、连字符、下划线或点。");
-        }
-    }
-
-    /// <summary>
-    /// 校验编码片段
-    /// </summary>
-    private static void ValidateCodeSegment(string segment, string paramName, string message)
-    {
-        if (segment.Any(static code => !IsValidCodeSegmentChar(code)))
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    /// <summary>
-    /// 判断编码片段字符是否合法
-    /// </summary>
-    private static bool IsValidCodeSegmentChar(char code)
-    {
-        return code is >= 'a' and <= 'z'
-            || code is >= '0' and <= '9'
-            || code is '-' or '_' or '.';
-    }
-
-    /// <summary>
-    /// 规范化权限标签
-    /// </summary>
-    private static string? NormalizeTags(string? tags)
-    {
-        var normalized = NormalizeNullable(tags);
-        if (normalized is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            using var document = JsonDocument.Parse(normalized);
-            if (document.RootElement.ValueKind != JsonValueKind.Array)
-            {
-                throw new InvalidOperationException("权限标签必须是 JSON 数组。");
-            }
-        }
-        catch (JsonException exception)
-        {
-            throw new InvalidOperationException("权限标签必须是合法 JSON 数组。", exception);
-        }
-
-        return normalized;
-    }
-
     #region Resource
 
     /// <summary>
@@ -613,6 +656,24 @@ public sealed class PermissionAppService
 
         var savedResource = await _resourceRepository.AddAsync(resource, cancellationToken);
         return ResourceApplicationMapper.ToDetailDto(savedResource);
+    }
+
+    /// <summary>
+    /// 删除资源定义
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Resource.Delete)]
+    public async Task DeleteResourceAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var resource = await GetEditableResourceOrThrowAsync(id, cancellationToken);
+        await EnsureResourceNotReferencedAsync(resource.BasicId, cancellationToken);
+
+        if (!await _resourceRepository.DeleteAsync(resource, cancellationToken))
+        {
+            throw new InvalidOperationException("资源定义删除失败。");
+        }
     }
 
     /// <summary>
@@ -667,58 +728,61 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 删除资源定义
+    /// 规范化资源元数据
     /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Resource.Delete)]
-    public async Task DeleteResourceAsync(long id, CancellationToken cancellationToken = default)
+    private static string? NormalizeMetadata(string? metadata)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var resource = await GetEditableResourceOrThrowAsync(id, cancellationToken);
-        await EnsureResourceNotReferencedAsync(resource.BasicId, cancellationToken);
-
-        if (!await _resourceRepository.DeleteAsync(resource, cancellationToken))
+        var normalized = NormalizeNullable(metadata);
+        if (normalized is null)
         {
-            throw new InvalidOperationException("资源定义删除失败。");
+            return null;
+        }
+
+        try
+        {
+            using var _ = JsonDocument.Parse(normalized);
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("资源元数据必须是合法 JSON。", exception);
+        }
+
+        return normalized;
+    }
+
+    /// <summary>
+    /// 校验资源编码
+    /// </summary>
+    private static void ValidateResourceCode(string resourceCode)
+    {
+        var normalizedResourceCode = resourceCode.Trim();
+        ValidateLength(normalizedResourceCode, 100, nameof(resourceCode), "资源编码不能超过 100 个字符。");
+        if (normalizedResourceCode.Any(char.IsWhiteSpace))
+        {
+            throw new InvalidOperationException("资源编码不能包含空白字符。");
         }
     }
 
     /// <summary>
-    /// 获取可维护资源定义
+    /// 校验资源通用输入
     /// </summary>
-    private async Task<SysResource> GetEditableResourceOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void ValidateResourceCommonInput(
+        string resourceName,
+        ResourceType resourceType,
+        string? resourcePath,
+        string? description,
+        string? metadata,
+        ResourceAccessLevel accessLevel,
+        string? remark)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "资源主键必须大于 0。");
-        }
-
-        var resource = await _resourceRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("资源定义不存在。");
-
-        if (resource.IsGlobal)
-        {
-            throw new InvalidOperationException("平台级全局资源必须通过平台运维流程维护。");
-        }
-
-        return resource;
-    }
-
-    /// <summary>
-    /// 校验资源未被引用
-    /// </summary>
-    private async Task EnsureResourceNotReferencedAsync(long resourceId, CancellationToken cancellationToken)
-    {
-        if (await _permissionRepository.AnyAsync(permission => permission.ResourceId == resourceId, cancellationToken))
-        {
-            throw new InvalidOperationException("资源已被权限定义引用，不能删除。");
-        }
-
-        if (await _fieldLevelSecurityRepository.AnyAsync(policy => policy.ResourceId == resourceId, cancellationToken))
-        {
-            throw new InvalidOperationException("资源已被字段级安全策略引用，不能删除。");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(resourceName);
+        ValidateEnum(resourceType, nameof(resourceType));
+        ValidateEnum(accessLevel, nameof(accessLevel));
+        ValidateLength(resourceName, 100, nameof(resourceName), "资源名称不能超过 100 个字符。");
+        ValidateOptionalLength(resourcePath, 500, nameof(resourcePath), "资源路径不能超过 500 个字符。");
+        ValidateOptionalLength(description, 500, nameof(description), "资源描述不能超过 500 个字符。");
+        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
+        _ = NormalizeMetadata(metadata);
     }
 
     /// <summary>
@@ -760,61 +824,40 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 校验资源通用输入
+    /// 校验资源未被引用
     /// </summary>
-    private static void ValidateResourceCommonInput(
-        string resourceName,
-        ResourceType resourceType,
-        string? resourcePath,
-        string? description,
-        string? metadata,
-        ResourceAccessLevel accessLevel,
-        string? remark)
+    private async Task EnsureResourceNotReferencedAsync(long resourceId, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(resourceName);
-        ValidateEnum(resourceType, nameof(resourceType));
-        ValidateEnum(accessLevel, nameof(accessLevel));
-        ValidateLength(resourceName, 100, nameof(resourceName), "资源名称不能超过 100 个字符。");
-        ValidateOptionalLength(resourcePath, 500, nameof(resourcePath), "资源路径不能超过 500 个字符。");
-        ValidateOptionalLength(description, 500, nameof(description), "资源描述不能超过 500 个字符。");
-        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-        _ = NormalizeMetadata(metadata);
-    }
-
-    /// <summary>
-    /// 校验资源编码
-    /// </summary>
-    private static void ValidateResourceCode(string resourceCode)
-    {
-        var normalizedResourceCode = resourceCode.Trim();
-        ValidateLength(normalizedResourceCode, 100, nameof(resourceCode), "资源编码不能超过 100 个字符。");
-        if (normalizedResourceCode.Any(char.IsWhiteSpace))
+        if (await _permissionRepository.AnyAsync(permission => permission.ResourceId == resourceId, cancellationToken))
         {
-            throw new InvalidOperationException("资源编码不能包含空白字符。");
+            throw new InvalidOperationException("资源已被权限定义引用，不能删除。");
+        }
+
+        if (await _fieldLevelSecurityRepository.AnyAsync(policy => policy.ResourceId == resourceId, cancellationToken))
+        {
+            throw new InvalidOperationException("资源已被字段级安全策略引用，不能删除。");
         }
     }
 
     /// <summary>
-    /// 规范化资源元数据
+    /// 获取可维护资源定义
     /// </summary>
-    private static string? NormalizeMetadata(string? metadata)
+    private async Task<SysResource> GetEditableResourceOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        var normalized = NormalizeNullable(metadata);
-        if (normalized is null)
+        if (id <= 0)
         {
-            return null;
+            throw new ArgumentOutOfRangeException(nameof(id), "资源主键必须大于 0。");
         }
 
-        try
+        var resource = await _resourceRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("资源定义不存在。");
+
+        if (resource.IsGlobal)
         {
-            using var _ = JsonDocument.Parse(normalized);
-        }
-        catch (JsonException exception)
-        {
-            throw new InvalidOperationException("资源元数据必须是合法 JSON。", exception);
+            throw new InvalidOperationException("平台级全局资源必须通过平台运维流程维护。");
         }
 
-        return normalized;
+        return resource;
     }
 
     #endregion Resource
@@ -859,6 +902,24 @@ public sealed class PermissionAppService
 
         var savedOperation = await _operationRepository.AddAsync(operation, cancellationToken);
         return OperationApplicationMapper.ToDetailDto(savedOperation);
+    }
+
+    /// <summary>
+    /// 删除操作定义
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Operation.Delete)]
+    public async Task DeleteOperationAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var operation = await GetEditableOperationOrThrowAsync(id, cancellationToken);
+        await EnsureOperationNotReferencedAsync(operation.BasicId, cancellationToken);
+
+        if (!await _operationRepository.DeleteAsync(operation, cancellationToken))
+        {
+            throw new InvalidOperationException("操作定义删除失败。");
+        }
     }
 
     /// <summary>
@@ -916,53 +977,59 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 删除操作定义
+    /// 判断操作编码字符是否合法
     /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Operation.Delete)]
-    public async Task DeleteOperationAsync(long id, CancellationToken cancellationToken = default)
+    private static bool IsValidOperationCodeChar(char code)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        return code is >= 'a' and <= 'z'
+            || code is >= '0' and <= '9'
+            || code is '-' or '_';
+    }
 
-        var operation = await GetEditableOperationOrThrowAsync(id, cancellationToken);
-        await EnsureOperationNotReferencedAsync(operation.BasicId, cancellationToken);
-
-        if (!await _operationRepository.DeleteAsync(operation, cancellationToken))
+    /// <summary>
+    /// 校验操作编码
+    /// </summary>
+    private static void ValidateOperationCode(string operationCode)
+    {
+        var normalizedOperationCode = operationCode.Trim();
+        ValidateLength(normalizedOperationCode, 50, nameof(operationCode), "操作编码不能超过 50 个字符。");
+        if (normalizedOperationCode.Any(char.IsWhiteSpace))
         {
-            throw new InvalidOperationException("操作定义删除失败。");
+            throw new InvalidOperationException("操作编码不能包含空白字符。");
+        }
+
+        if (normalizedOperationCode.Any(static code => !IsValidOperationCodeChar(code)))
+        {
+            throw new InvalidOperationException("操作编码只能包含小写英文、数字、连字符或下划线。");
         }
     }
 
     /// <summary>
-    /// 获取可维护操作定义
+    /// 校验操作通用输入
     /// </summary>
-    private async Task<SysOperation> GetEditableOperationOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void ValidateOperationCommonInput(
+        string operationName,
+        OperationTypeCode operationTypeCode,
+        OperationCategory category,
+        HttpMethodType? httpMethod,
+        string? description,
+        string? icon,
+        string? color,
+        string? remark)
     {
-        if (id <= 0)
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
+        ValidateEnum(operationTypeCode, nameof(operationTypeCode));
+        ValidateEnum(category, nameof(category));
+        if (httpMethod.HasValue)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "操作主键必须大于 0。");
+            ValidateEnum(httpMethod.Value, nameof(httpMethod));
         }
 
-        var operation = await _operationRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("操作定义不存在。");
-
-        if (operation.IsGlobal)
-        {
-            throw new InvalidOperationException("平台级全局操作必须通过平台运维流程维护。");
-        }
-
-        return operation;
-    }
-
-    /// <summary>
-    /// 校验操作未被引用
-    /// </summary>
-    private async Task EnsureOperationNotReferencedAsync(long operationId, CancellationToken cancellationToken)
-    {
-        if (await _permissionRepository.AnyAsync(permission => permission.OperationId == operationId, cancellationToken))
-        {
-            throw new InvalidOperationException("操作已被权限定义引用，不能删除。");
-        }
+        ValidateLength(operationName, 100, nameof(operationName), "操作名称不能超过 100 个字符。");
+        ValidateOptionalLength(description, 500, nameof(description), "操作描述不能超过 500 个字符。");
+        ValidateOptionalLength(icon, 100, nameof(icon), "操作图标不能超过 100 个字符。");
+        ValidateOptionalLength(color, 20, nameof(color), "操作颜色不能超过 20 个字符。");
+        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
     }
 
     /// <summary>
@@ -1006,59 +1073,35 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 校验操作通用输入
+    /// 校验操作未被引用
     /// </summary>
-    private static void ValidateOperationCommonInput(
-        string operationName,
-        OperationTypeCode operationTypeCode,
-        OperationCategory category,
-        HttpMethodType? httpMethod,
-        string? description,
-        string? icon,
-        string? color,
-        string? remark)
+    private async Task EnsureOperationNotReferencedAsync(long operationId, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
-        ValidateEnum(operationTypeCode, nameof(operationTypeCode));
-        ValidateEnum(category, nameof(category));
-        if (httpMethod.HasValue)
+        if (await _permissionRepository.AnyAsync(permission => permission.OperationId == operationId, cancellationToken))
         {
-            ValidateEnum(httpMethod.Value, nameof(httpMethod));
-        }
-
-        ValidateLength(operationName, 100, nameof(operationName), "操作名称不能超过 100 个字符。");
-        ValidateOptionalLength(description, 500, nameof(description), "操作描述不能超过 500 个字符。");
-        ValidateOptionalLength(icon, 100, nameof(icon), "操作图标不能超过 100 个字符。");
-        ValidateOptionalLength(color, 20, nameof(color), "操作颜色不能超过 20 个字符。");
-        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-    }
-
-    /// <summary>
-    /// 校验操作编码
-    /// </summary>
-    private static void ValidateOperationCode(string operationCode)
-    {
-        var normalizedOperationCode = operationCode.Trim();
-        ValidateLength(normalizedOperationCode, 50, nameof(operationCode), "操作编码不能超过 50 个字符。");
-        if (normalizedOperationCode.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException("操作编码不能包含空白字符。");
-        }
-
-        if (normalizedOperationCode.Any(static code => !IsValidOperationCodeChar(code)))
-        {
-            throw new InvalidOperationException("操作编码只能包含小写英文、数字、连字符或下划线。");
+            throw new InvalidOperationException("操作已被权限定义引用，不能删除。");
         }
     }
 
     /// <summary>
-    /// 判断操作编码字符是否合法
+    /// 获取可维护操作定义
     /// </summary>
-    private static bool IsValidOperationCodeChar(char code)
+    private async Task<SysOperation> GetEditableOperationOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        return code is >= 'a' and <= 'z'
-            || code is >= '0' and <= '9'
-            || code is '-' or '_';
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "操作主键必须大于 0。");
+        }
+
+        var operation = await _operationRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("操作定义不存在。");
+
+        if (operation.IsGlobal)
+        {
+            throw new InvalidOperationException("平台级全局操作必须通过平台运维流程维护。");
+        }
+
+        return operation;
     }
 
     #endregion Operation
@@ -1105,6 +1148,22 @@ public sealed class PermissionAppService
 
         var savedCondition = await _permissionConditionRepository.AddAsync(condition, cancellationToken);
         return await BuildConditionDetailDtoAsync(savedCondition, cancellationToken);
+    }
+
+    /// <summary>
+    /// 删除权限 ABAC 条件
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.PermissionCondition.Delete)]
+    public async Task DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var condition = await GetPermissionConditionOrThrowAsync(id, cancellationToken);
+        if (!await _permissionConditionRepository.DeleteAsync(condition, cancellationToken))
+        {
+            throw new InvalidOperationException("权限 ABAC 条件删除失败。");
+        }
     }
 
     /// <summary>
@@ -1185,33 +1244,168 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 删除权限 ABAC 条件
+    /// 校验授权有效性
     /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.PermissionCondition.Delete)]
-    public async Task DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default)
+    private static void EnsureValidity(
+        ValidityStatus status,
+        DateTimeOffset? effectiveTime,
+        DateTimeOffset? expirationTime,
+        DateTimeOffset now,
+        string message)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var condition = await GetPermissionConditionOrThrowAsync(id, cancellationToken);
-        if (!await _permissionConditionRepository.DeleteAsync(condition, cancellationToken))
+        if (status != ValidityStatus.Valid)
         {
-            throw new InvalidOperationException("权限 ABAC 条件删除失败。");
+            throw new InvalidOperationException(message);
+        }
+
+        if (effectiveTime.HasValue && effectiveTime.Value > now)
+        {
+            throw new InvalidOperationException("未生效授权绑定不能配置 ABAC 条件。");
+        }
+
+        if (expirationTime.HasValue && expirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("已过期授权绑定不能配置 ABAC 条件。");
         }
     }
 
     /// <summary>
-    /// 获取权限 ABAC 条件，不存在时抛出异常
+    /// 判断属性命名空间是否有效
     /// </summary>
-    private async Task<SysPermissionCondition> GetPermissionConditionOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static bool HasKnownAttributePrefix(string attributeName)
     {
-        if (id <= 0)
+        return attributeName.StartsWith("subject.", StringComparison.OrdinalIgnoreCase) ||
+            attributeName.StartsWith("resource.", StringComparison.OrdinalIgnoreCase) ||
+            attributeName.StartsWith("environment.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 校验绑定主键
+    /// </summary>
+    private static void ValidateBindingIds(long? rolePermissionId, long? userPermissionId)
+    {
+        if (rolePermissionId.HasValue == userPermissionId.HasValue)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "权限 ABAC 条件主键必须大于 0。");
+            throw new InvalidOperationException("ABAC 条件必须且只能绑定到角色权限或用户直授权限中的一种。");
         }
 
-        return await _permissionConditionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("权限 ABAC 条件不存在。");
+        if (rolePermissionId.HasValue && rolePermissionId.Value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rolePermissionId), "角色权限绑定主键必须大于 0。");
+        }
+
+        if (userPermissionId.HasValue && userPermissionId.Value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userPermissionId), "用户直授权限绑定主键必须大于 0。");
+        }
+    }
+
+    /// <summary>
+    /// 校验 ABAC 条件通用输入
+    /// </summary>
+    private static void ValidateConditionCommonInput(
+        long? rolePermissionId,
+        long? userPermissionId,
+        int conditionGroup,
+        string attributeName,
+        ConditionOperator conditionOperator,
+        ConfigDataType valueType,
+        string conditionValue,
+        string? description,
+        string? remark)
+    {
+        ValidateBindingIds(rolePermissionId, userPermissionId);
+        ValidateEnum(conditionOperator, nameof(conditionOperator));
+        ValidateEnum(valueType, nameof(valueType));
+        ArgumentException.ThrowIfNullOrWhiteSpace(attributeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(conditionValue);
+        ValidateLength(attributeName, 200, nameof(attributeName), "属性名称不能超过 200 个字符。");
+        ValidateOptionalLength(description, 500, nameof(description), "条件说明不能超过 500 个字符。");
+        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
+
+        if (conditionGroup < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(conditionGroup), "条件分组不能小于 0。");
+        }
+
+        if (!HasKnownAttributePrefix(attributeName.Trim()))
+        {
+            throw new InvalidOperationException("属性名称必须使用 subject./resource./environment. 命名空间前缀。");
+        }
+    }
+
+    /// <summary>
+    /// 校验 ABAC 条件创建输入
+    /// </summary>
+    private static void ValidateConditionCreateInput(PermissionConditionCreateDto input)
+    {
+        ValidateConditionCommonInput(
+            input.RolePermissionId,
+            input.UserPermissionId,
+            input.ConditionGroup,
+            input.AttributeName,
+            input.Operator,
+            input.ValueType,
+            input.ConditionValue,
+            input.Description,
+            input.Remark);
+        ValidateEnum(input.Status, nameof(input.Status));
+    }
+
+    /// <summary>
+    /// 校验 ABAC 条件更新输入
+    /// </summary>
+    private static void ValidateConditionUpdateInput(PermissionConditionUpdateDto input)
+    {
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "权限 ABAC 条件主键必须大于 0。");
+        }
+
+        ValidateConditionCommonInput(
+            input.RolePermissionId,
+            input.UserPermissionId,
+            input.ConditionGroup,
+            input.AttributeName,
+            input.Operator,
+            input.ValueType,
+            input.ConditionValue,
+            input.Description,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 构建 ABAC 条件详情 DTO
+    /// </summary>
+    private async Task<PermissionConditionDetailDto> BuildConditionDetailDtoAsync(SysPermissionCondition condition, CancellationToken cancellationToken)
+    {
+        SysRolePermission? rolePermission = null;
+        SysUserPermission? userPermission = null;
+        SysPermission? permission = null;
+        SysRole? role = null;
+        SysTenantUser? tenantMember = null;
+
+        if (condition.RolePermissionId.HasValue)
+        {
+            rolePermission = await _rolePermissionRepository.GetByIdAsync(condition.RolePermissionId.Value, cancellationToken);
+            if (rolePermission is not null)
+            {
+                role = await _roleRepository.GetByIdAsync(rolePermission.RoleId, cancellationToken);
+                permission = await _permissionRepository.GetByIdAsync(rolePermission.PermissionId, cancellationToken);
+            }
+        }
+
+        if (condition.UserPermissionId.HasValue)
+        {
+            userPermission = await _userPermissionRepository.GetByIdAsync(condition.UserPermissionId.Value, cancellationToken);
+            if (userPermission is not null)
+            {
+                tenantMember = await _tenantUserRepository.GetMembershipAsync(userPermission.UserId, cancellationToken);
+                permission ??= await _permissionRepository.GetByIdAsync(userPermission.PermissionId, cancellationToken);
+            }
+        }
+
+        return PermissionConditionApplicationMapper.ToDetailDto(condition, rolePermission, userPermission, permission, role, tenantMember);
     }
 
     /// <summary>
@@ -1265,68 +1459,6 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 校验授权有效性
-    /// </summary>
-    private static void EnsureValidity(
-        ValidityStatus status,
-        DateTimeOffset? effectiveTime,
-        DateTimeOffset? expirationTime,
-        DateTimeOffset now,
-        string message)
-    {
-        if (status != ValidityStatus.Valid)
-        {
-            throw new InvalidOperationException(message);
-        }
-
-        if (effectiveTime.HasValue && effectiveTime.Value > now)
-        {
-            throw new InvalidOperationException("未生效授权绑定不能配置 ABAC 条件。");
-        }
-
-        if (expirationTime.HasValue && expirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("已过期授权绑定不能配置 ABAC 条件。");
-        }
-    }
-
-    /// <summary>
-    /// 获取可授权租户成员（ABAC 条件场景）
-    /// </summary>
-    private async Task<SysTenantUser> GetAssignableTenantMemberOrThrowAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("当前租户成员不存在。");
-
-        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
-        {
-            throw new InvalidOperationException("未接受邀请的租户成员不能配置 ABAC 条件。");
-        }
-
-        if (tenantMember.Status != ValidityStatus.Valid)
-        {
-            throw new InvalidOperationException("无效租户成员不能配置 ABAC 条件。");
-        }
-
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
-        {
-            throw new InvalidOperationException("平台管理员成员 ABAC 条件必须通过平台运维流程维护。");
-        }
-
-        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
-        {
-            throw new InvalidOperationException("未生效租户成员不能配置 ABAC 条件。");
-        }
-
-        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("已过期租户成员不能配置 ABAC 条件。");
-        }
-
-        return tenantMember;
-    }
-
-    /// <summary>
     /// 校验 ABAC 条件数量和值类型一致性
     /// </summary>
     private async Task EnsureConditionLimitsAsync(
@@ -1371,6 +1503,42 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
+    /// 获取可授权租户成员（ABAC 条件场景）
+    /// </summary>
+    private async Task<SysTenantUser> GetAssignableTenantMemberOrThrowAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前租户成员不存在。");
+
+        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
+        {
+            throw new InvalidOperationException("未接受邀请的租户成员不能配置 ABAC 条件。");
+        }
+
+        if (tenantMember.Status != ValidityStatus.Valid)
+        {
+            throw new InvalidOperationException("无效租户成员不能配置 ABAC 条件。");
+        }
+
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("平台管理员成员 ABAC 条件必须通过平台运维流程维护。");
+        }
+
+        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
+        {
+            throw new InvalidOperationException("未生效租户成员不能配置 ABAC 条件。");
+        }
+
+        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("已过期租户成员不能配置 ABAC 条件。");
+        }
+
+        return tenantMember;
+    }
+
+    /// <summary>
     /// 获取授权绑定下的条件集合
     /// </summary>
     private async Task<IReadOnlyList<SysPermissionCondition>> GetConditionsByBindingAsync(
@@ -1393,142 +1561,17 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 构建 ABAC 条件详情 DTO
+    /// 获取权限 ABAC 条件，不存在时抛出异常
     /// </summary>
-    private async Task<PermissionConditionDetailDto> BuildConditionDetailDtoAsync(SysPermissionCondition condition, CancellationToken cancellationToken)
+    private async Task<SysPermissionCondition> GetPermissionConditionOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        SysRolePermission? rolePermission = null;
-        SysUserPermission? userPermission = null;
-        SysPermission? permission = null;
-        SysRole? role = null;
-        SysTenantUser? tenantMember = null;
-
-        if (condition.RolePermissionId.HasValue)
+        if (id <= 0)
         {
-            rolePermission = await _rolePermissionRepository.GetByIdAsync(condition.RolePermissionId.Value, cancellationToken);
-            if (rolePermission is not null)
-            {
-                role = await _roleRepository.GetByIdAsync(rolePermission.RoleId, cancellationToken);
-                permission = await _permissionRepository.GetByIdAsync(rolePermission.PermissionId, cancellationToken);
-            }
+            throw new ArgumentOutOfRangeException(nameof(id), "权限 ABAC 条件主键必须大于 0。");
         }
 
-        if (condition.UserPermissionId.HasValue)
-        {
-            userPermission = await _userPermissionRepository.GetByIdAsync(condition.UserPermissionId.Value, cancellationToken);
-            if (userPermission is not null)
-            {
-                tenantMember = await _tenantUserRepository.GetMembershipAsync(userPermission.UserId, cancellationToken);
-                permission ??= await _permissionRepository.GetByIdAsync(userPermission.PermissionId, cancellationToken);
-            }
-        }
-
-        return PermissionConditionApplicationMapper.ToDetailDto(condition, rolePermission, userPermission, permission, role, tenantMember);
-    }
-
-    /// <summary>
-    /// 校验 ABAC 条件创建输入
-    /// </summary>
-    private static void ValidateConditionCreateInput(PermissionConditionCreateDto input)
-    {
-        ValidateConditionCommonInput(
-            input.RolePermissionId,
-            input.UserPermissionId,
-            input.ConditionGroup,
-            input.AttributeName,
-            input.Operator,
-            input.ValueType,
-            input.ConditionValue,
-            input.Description,
-            input.Remark);
-        ValidateEnum(input.Status, nameof(input.Status));
-    }
-
-    /// <summary>
-    /// 校验 ABAC 条件更新输入
-    /// </summary>
-    private static void ValidateConditionUpdateInput(PermissionConditionUpdateDto input)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "权限 ABAC 条件主键必须大于 0。");
-        }
-
-        ValidateConditionCommonInput(
-            input.RolePermissionId,
-            input.UserPermissionId,
-            input.ConditionGroup,
-            input.AttributeName,
-            input.Operator,
-            input.ValueType,
-            input.ConditionValue,
-            input.Description,
-            input.Remark);
-    }
-
-    /// <summary>
-    /// 校验 ABAC 条件通用输入
-    /// </summary>
-    private static void ValidateConditionCommonInput(
-        long? rolePermissionId,
-        long? userPermissionId,
-        int conditionGroup,
-        string attributeName,
-        ConditionOperator conditionOperator,
-        ConfigDataType valueType,
-        string conditionValue,
-        string? description,
-        string? remark)
-    {
-        ValidateBindingIds(rolePermissionId, userPermissionId);
-        ValidateEnum(conditionOperator, nameof(conditionOperator));
-        ValidateEnum(valueType, nameof(valueType));
-        ArgumentException.ThrowIfNullOrWhiteSpace(attributeName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(conditionValue);
-        ValidateLength(attributeName, 200, nameof(attributeName), "属性名称不能超过 200 个字符。");
-        ValidateOptionalLength(description, 500, nameof(description), "条件说明不能超过 500 个字符。");
-        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-
-        if (conditionGroup < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(conditionGroup), "条件分组不能小于 0。");
-        }
-
-        if (!HasKnownAttributePrefix(attributeName.Trim()))
-        {
-            throw new InvalidOperationException("属性名称必须使用 subject./resource./environment. 命名空间前缀。");
-        }
-    }
-
-    /// <summary>
-    /// 校验绑定主键
-    /// </summary>
-    private static void ValidateBindingIds(long? rolePermissionId, long? userPermissionId)
-    {
-        if (rolePermissionId.HasValue == userPermissionId.HasValue)
-        {
-            throw new InvalidOperationException("ABAC 条件必须且只能绑定到角色权限或用户直授权限中的一种。");
-        }
-
-        if (rolePermissionId.HasValue && rolePermissionId.Value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(rolePermissionId), "角色权限绑定主键必须大于 0。");
-        }
-
-        if (userPermissionId.HasValue && userPermissionId.Value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userPermissionId), "用户直授权限绑定主键必须大于 0。");
-        }
-    }
-
-    /// <summary>
-    /// 判断属性命名空间是否有效
-    /// </summary>
-    private static bool HasKnownAttributePrefix(string attributeName)
-    {
-        return attributeName.StartsWith("subject.", StringComparison.OrdinalIgnoreCase) ||
-            attributeName.StartsWith("resource.", StringComparison.OrdinalIgnoreCase) ||
-            attributeName.StartsWith("environment.", StringComparison.OrdinalIgnoreCase);
+        return await _permissionConditionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("权限 ABAC 条件不存在。");
     }
 
     #endregion PermissionCondition
@@ -1569,6 +1612,21 @@ public sealed class PermissionAppService
 
         var savedDelegation = await _permissionDelegationRepository.AddAsync(delegation, cancellationToken);
         return PermissionDelegationApplicationMapper.ToDetailDto(savedDelegation, delegator, delegatee, permission, role, now);
+    }
+
+    /// <summary>
+    /// 撤销权限委托
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.PermissionDelegation.Revoke)]
+    public async Task DeletePermissionDelegationAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var delegation = await GetPermissionDelegationOrThrowAsync(id, cancellationToken);
+        delegation.DelegationStatus = DelegationStatus.Revoked;
+
+        _ = await _permissionDelegationRepository.UpdateAsync(delegation, cancellationToken);
     }
 
     /// <summary>
@@ -1663,32 +1721,151 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 撤销权限委托
+    /// 解析可写状态
     /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.PermissionDelegation.Revoke)]
-    public async Task DeletePermissionDelegationAsync(long id, CancellationToken cancellationToken = default)
+    private static DelegationStatus ResolveWritableStatus(DateTimeOffset? effectiveTime, DateTimeOffset now)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var delegation = await GetPermissionDelegationOrThrowAsync(id, cancellationToken);
-        delegation.DelegationStatus = DelegationStatus.Revoked;
-
-        _ = await _permissionDelegationRepository.UpdateAsync(delegation, cancellationToken);
+        return effectiveTime.HasValue && effectiveTime.Value > now
+            ? DelegationStatus.Pending
+            : DelegationStatus.Active;
     }
 
     /// <summary>
-    /// 获取权限委托，不存在时抛出异常
+    /// 校验委托通用输入
     /// </summary>
-    private async Task<SysPermissionDelegation> GetPermissionDelegationOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void ValidateDelegationCommonInput(
+        long delegatorUserId,
+        long delegateeUserId,
+        long? permissionId,
+        long? roleId,
+        DateTimeOffset? effectiveTime,
+        DateTimeOffset expirationTime,
+        DateTimeOffset now)
     {
-        if (id <= 0)
+        if (delegatorUserId <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "权限委托主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(delegatorUserId), "委托人用户主键必须大于 0。");
         }
 
-        return await _permissionDelegationRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("权限委托不存在。");
+        if (delegateeUserId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(delegateeUserId), "被委托人用户主键必须大于 0。");
+        }
+
+        if (delegatorUserId == delegateeUserId)
+        {
+            throw new InvalidOperationException("委托人和被委托人不能相同。");
+        }
+
+        ValidateOptionalId(permissionId, nameof(permissionId), "权限主键必须大于 0。");
+        ValidateOptionalId(roleId, nameof(roleId), "角色主键必须大于 0。");
+        ValidateWritablePeriod(effectiveTime, expirationTime, now);
+    }
+
+    /// <summary>
+    /// 校验委托创建输入
+    /// </summary>
+    private static void ValidateDelegationCreateInput(PermissionDelegationCreateDto input, DateTimeOffset now)
+    {
+        ValidateDelegationCommonInput(
+            input.DelegatorUserId,
+            input.DelegateeUserId,
+            input.PermissionId,
+            input.RoleId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            now);
+    }
+
+    /// <summary>
+    /// 校验委托更新输入
+    /// </summary>
+    private static void ValidateDelegationUpdateInput(PermissionDelegationUpdateDto input, DateTimeOffset now)
+    {
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "权限委托主键必须大于 0。");
+        }
+
+        ValidateDelegationCommonInput(
+            input.DelegatorUserId,
+            input.DelegateeUserId,
+            input.PermissionId,
+            input.RoleId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            now);
+    }
+
+    /// <summary>
+    /// 校验状态与有效期一致
+    /// </summary>
+    private static void ValidateStatusMatchesPeriod(DelegationStatus status, DateTimeOffset? effectiveTime, DateTimeOffset expirationTime, DateTimeOffset now)
+    {
+        if (status == DelegationStatus.Pending && (!effectiveTime.HasValue || effectiveTime.Value <= now))
+        {
+            throw new InvalidOperationException("待生效权限委托必须存在晚于当前时间的生效时间。");
+        }
+
+        if (status == DelegationStatus.Active && ((effectiveTime.HasValue && effectiveTime.Value > now) || expirationTime <= now))
+        {
+            throw new InvalidOperationException("生效中权限委托必须处于当前有效期内。");
+        }
+
+        if (status == DelegationStatus.Expired && expirationTime > now)
+        {
+            throw new InvalidOperationException("未到失效时间的权限委托不能标记为已过期。");
+        }
+    }
+
+    /// <summary>
+    /// 校验可写有效期
+    /// </summary>
+    private static void ValidateWritablePeriod(DateTimeOffset? effectiveTime, DateTimeOffset expirationTime, DateTimeOffset now)
+    {
+        if (expirationTime == default)
+        {
+            throw new ArgumentOutOfRangeException(nameof(expirationTime), "权限委托失效时间不能为空。");
+        }
+
+        if (expirationTime <= now)
+        {
+            throw new InvalidOperationException("权限委托失效时间必须晚于当前时间。");
+        }
+
+        if (effectiveTime.HasValue && expirationTime <= effectiveTime.Value)
+        {
+            throw new InvalidOperationException("权限委托失效时间必须晚于生效时间。");
+        }
+    }
+
+    /// <summary>
+    /// 校验权限委托不存在
+    /// </summary>
+    private async Task EnsureDelegationNotExistsAsync(
+        long delegatorUserId,
+        long delegateeUserId,
+        long? permissionId,
+        long? excludeId,
+        CancellationToken cancellationToken)
+    {
+        var exists = excludeId.HasValue
+            ? await _permissionDelegationRepository.AnyAsync(
+                delegation => delegation.DelegatorUserId == delegatorUserId
+                    && delegation.DelegateeUserId == delegateeUserId
+                    && delegation.PermissionId == permissionId
+                    && delegation.BasicId != excludeId.Value,
+                cancellationToken)
+            : await _permissionDelegationRepository.AnyAsync(
+                delegation => delegation.DelegatorUserId == delegatorUserId
+                    && delegation.DelegateeUserId == delegateeUserId
+                    && delegation.PermissionId == permissionId,
+                cancellationToken);
+
+        if (exists)
+        {
+            throw new InvalidOperationException("权限委托已存在。");
+        }
     }
 
     /// <summary>
@@ -1775,151 +1952,17 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 校验权限委托不存在
+    /// 获取权限委托，不存在时抛出异常
     /// </summary>
-    private async Task EnsureDelegationNotExistsAsync(
-        long delegatorUserId,
-        long delegateeUserId,
-        long? permissionId,
-        long? excludeId,
-        CancellationToken cancellationToken)
+    private async Task<SysPermissionDelegation> GetPermissionDelegationOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        var exists = excludeId.HasValue
-            ? await _permissionDelegationRepository.AnyAsync(
-                delegation => delegation.DelegatorUserId == delegatorUserId
-                    && delegation.DelegateeUserId == delegateeUserId
-                    && delegation.PermissionId == permissionId
-                    && delegation.BasicId != excludeId.Value,
-                cancellationToken)
-            : await _permissionDelegationRepository.AnyAsync(
-                delegation => delegation.DelegatorUserId == delegatorUserId
-                    && delegation.DelegateeUserId == delegateeUserId
-                    && delegation.PermissionId == permissionId,
-                cancellationToken);
-
-        if (exists)
+        if (id <= 0)
         {
-            throw new InvalidOperationException("权限委托已存在。");
-        }
-    }
-
-    /// <summary>
-    /// 校验委托创建输入
-    /// </summary>
-    private static void ValidateDelegationCreateInput(PermissionDelegationCreateDto input, DateTimeOffset now)
-    {
-        ValidateDelegationCommonInput(
-            input.DelegatorUserId,
-            input.DelegateeUserId,
-            input.PermissionId,
-            input.RoleId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            now);
-    }
-
-    /// <summary>
-    /// 校验委托更新输入
-    /// </summary>
-    private static void ValidateDelegationUpdateInput(PermissionDelegationUpdateDto input, DateTimeOffset now)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "权限委托主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(id), "权限委托主键必须大于 0。");
         }
 
-        ValidateDelegationCommonInput(
-            input.DelegatorUserId,
-            input.DelegateeUserId,
-            input.PermissionId,
-            input.RoleId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            now);
-    }
-
-    /// <summary>
-    /// 校验委托通用输入
-    /// </summary>
-    private static void ValidateDelegationCommonInput(
-        long delegatorUserId,
-        long delegateeUserId,
-        long? permissionId,
-        long? roleId,
-        DateTimeOffset? effectiveTime,
-        DateTimeOffset expirationTime,
-        DateTimeOffset now)
-    {
-        if (delegatorUserId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(delegatorUserId), "委托人用户主键必须大于 0。");
-        }
-
-        if (delegateeUserId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(delegateeUserId), "被委托人用户主键必须大于 0。");
-        }
-
-        if (delegatorUserId == delegateeUserId)
-        {
-            throw new InvalidOperationException("委托人和被委托人不能相同。");
-        }
-
-        ValidateOptionalId(permissionId, nameof(permissionId), "权限主键必须大于 0。");
-        ValidateOptionalId(roleId, nameof(roleId), "角色主键必须大于 0。");
-        ValidateWritablePeriod(effectiveTime, expirationTime, now);
-    }
-
-    /// <summary>
-    /// 校验可写有效期
-    /// </summary>
-    private static void ValidateWritablePeriod(DateTimeOffset? effectiveTime, DateTimeOffset expirationTime, DateTimeOffset now)
-    {
-        if (expirationTime == default)
-        {
-            throw new ArgumentOutOfRangeException(nameof(expirationTime), "权限委托失效时间不能为空。");
-        }
-
-        if (expirationTime <= now)
-        {
-            throw new InvalidOperationException("权限委托失效时间必须晚于当前时间。");
-        }
-
-        if (effectiveTime.HasValue && expirationTime <= effectiveTime.Value)
-        {
-            throw new InvalidOperationException("权限委托失效时间必须晚于生效时间。");
-        }
-    }
-
-    /// <summary>
-    /// 校验状态与有效期一致
-    /// </summary>
-    private static void ValidateStatusMatchesPeriod(DelegationStatus status, DateTimeOffset? effectiveTime, DateTimeOffset expirationTime, DateTimeOffset now)
-    {
-        if (status == DelegationStatus.Pending && (!effectiveTime.HasValue || effectiveTime.Value <= now))
-        {
-            throw new InvalidOperationException("待生效权限委托必须存在晚于当前时间的生效时间。");
-        }
-
-        if (status == DelegationStatus.Active && ((effectiveTime.HasValue && effectiveTime.Value > now) || expirationTime <= now))
-        {
-            throw new InvalidOperationException("生效中权限委托必须处于当前有效期内。");
-        }
-
-        if (status == DelegationStatus.Expired && expirationTime > now)
-        {
-            throw new InvalidOperationException("未到失效时间的权限委托不能标记为已过期。");
-        }
-    }
-
-    /// <summary>
-    /// 解析可写状态
-    /// </summary>
-    private static DelegationStatus ResolveWritableStatus(DateTimeOffset? effectiveTime, DateTimeOffset now)
-    {
-        return effectiveTime.HasValue && effectiveTime.Value > now
-            ? DelegationStatus.Pending
-            : DelegationStatus.Active;
+        return await _permissionDelegationRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("权限委托不存在。");
     }
 
     #endregion PermissionDelegation
@@ -1959,6 +2002,23 @@ public sealed class PermissionAppService
 
         var savedRequest = await _permissionRequestRepository.AddAsync(permissionRequest, cancellationToken);
         return PermissionRequestApplicationMapper.ToDetailDto(savedRequest, requestUser, permission, role, null, now);
+    }
+
+    /// <summary>
+    /// 撤回权限申请
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Withdraw)]
+    public async Task DeletePermissionRequestAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var requestUserId = GetCurrentUserIdOrThrow();
+        var permissionRequest = await GetPermissionRequestOrThrowAsync(id, cancellationToken);
+        EnsurePendingOwnerRequest(permissionRequest, requestUserId);
+
+        permissionRequest.RequestStatus = PermissionRequestStatus.Withdrawn;
+        _ = await _permissionRequestRepository.UpdateAsync(permissionRequest, cancellationToken);
     }
 
     /// <summary>
@@ -2032,47 +2092,123 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 撤回权限申请
+    /// 校验待审批本人申请
     /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Withdraw)]
-    public async Task DeletePermissionRequestAsync(long id, CancellationToken cancellationToken = default)
+    private static void EnsurePendingOwnerRequest(SysPermissionRequest permissionRequest, long currentUserId)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (permissionRequest.RequestUserId != currentUserId)
+        {
+            throw new InvalidOperationException("只能维护自己的权限申请。");
+        }
 
-        var requestUserId = GetCurrentUserIdOrThrow();
-        var permissionRequest = await GetPermissionRequestOrThrowAsync(id, cancellationToken);
-        EnsurePendingOwnerRequest(permissionRequest, requestUserId);
-
-        permissionRequest.RequestStatus = PermissionRequestStatus.Withdrawn;
-        _ = await _permissionRequestRepository.UpdateAsync(permissionRequest, cancellationToken);
+        if (permissionRequest.RequestStatus != PermissionRequestStatus.Pending)
+        {
+            throw new InvalidOperationException("只有待审批权限申请可以维护。");
+        }
     }
 
     /// <summary>
-    /// 获取权限申请，不存在时抛出异常
+    /// 校验状态变更
     /// </summary>
-    private async Task<SysPermissionRequest> GetPermissionRequestOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void EnsureStatusCanBeChanged(SysPermissionRequest permissionRequest, PermissionRequestStatus nextStatus)
     {
-        if (id <= 0)
+        if (nextStatus == PermissionRequestStatus.Approved)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "权限申请主键必须大于 0。");
+            throw new InvalidOperationException("权限申请审批通过必须走审批流并自动授权，不能直接更新为已批准。");
         }
 
-        return await _permissionRequestRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("权限申请不存在。");
+        if (permissionRequest.RequestStatus != PermissionRequestStatus.Pending && permissionRequest.RequestStatus != nextStatus)
+        {
+            throw new InvalidOperationException("已完结权限申请不能变更状态。");
+        }
     }
 
     /// <summary>
-    /// 获取当前用户主键
+    /// 校验申请通用输入
     /// </summary>
-    private long GetCurrentUserIdOrThrow()
+    private static void ValidateRequestCommonInput(
+        long? permissionId,
+        long? roleId,
+        string requestReason,
+        DateTimeOffset? expectedEffectiveTime,
+        DateTimeOffset? expectedExpirationTime,
+        DateTimeOffset now)
     {
-        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
+        if (!permissionId.HasValue && !roleId.HasValue)
         {
-            throw new InvalidOperationException("当前用户未登录。");
+            throw new InvalidOperationException("权限申请必须指定权限或角色。");
         }
 
-        return _currentUser.UserId.Value;
+        ValidateOptionalId(permissionId, nameof(permissionId), "权限主键必须大于 0。");
+        ValidateOptionalId(roleId, nameof(roleId), "角色主键必须大于 0。");
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestReason);
+
+        if (requestReason.Trim().Length > 1000)
+        {
+            throw new ArgumentOutOfRangeException(nameof(requestReason), "申请原因不能超过 1000 个字符。");
+        }
+
+        if (expectedExpirationTime.HasValue && expectedExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("期望失效时间必须晚于当前时间。");
+        }
+
+        if (expectedEffectiveTime.HasValue && expectedExpirationTime.HasValue && expectedExpirationTime.Value <= expectedEffectiveTime.Value)
+        {
+            throw new InvalidOperationException("期望失效时间必须晚于期望生效时间。");
+        }
+    }
+
+    /// <summary>
+    /// 校验申请创建输入
+    /// </summary>
+    private static void ValidateRequestCreateInput(PermissionRequestCreateDto input, DateTimeOffset now)
+    {
+        ValidateRequestCommonInput(input.PermissionId, input.RoleId, input.RequestReason, input.ExpectedEffectiveTime, input.ExpectedExpirationTime, now);
+    }
+
+    /// <summary>
+    /// 校验申请更新输入
+    /// </summary>
+    private static void ValidateRequestUpdateInput(PermissionRequestUpdateDto input, DateTimeOffset now)
+    {
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "权限申请主键必须大于 0。");
+        }
+
+        ValidateRequestCommonInput(input.PermissionId, input.RoleId, input.RequestReason, input.ExpectedEffectiveTime, input.ExpectedExpirationTime, now);
+    }
+
+    /// <summary>
+    /// 校验待审批申请不存在
+    /// </summary>
+    private async Task EnsurePendingRequestNotExistsAsync(
+        long requestUserId,
+        long? permissionId,
+        long? roleId,
+        long? excludeId,
+        CancellationToken cancellationToken)
+    {
+        var exists = excludeId.HasValue
+            ? await _permissionRequestRepository.AnyAsync(
+                request => request.RequestUserId == requestUserId
+                    && request.PermissionId == permissionId
+                    && request.RoleId == roleId
+                    && request.RequestStatus == PermissionRequestStatus.Pending
+                    && request.BasicId != excludeId.Value,
+                cancellationToken)
+            : await _permissionRequestRepository.AnyAsync(
+                request => request.RequestUserId == requestUserId
+                    && request.PermissionId == permissionId
+                    && request.RoleId == roleId
+                    && request.RequestStatus == PermissionRequestStatus.Pending,
+                cancellationToken);
+
+        if (exists)
+        {
+            throw new InvalidOperationException("相同权限或角色的待审批申请已存在。");
+        }
     }
 
     /// <summary>
@@ -2109,6 +2245,49 @@ public sealed class PermissionAppService
         }
 
         return tenantMember;
+    }
+
+    /// <summary>
+    /// 获取当前用户主键
+    /// </summary>
+    private long GetCurrentUserIdOrThrow()
+    {
+        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
+        {
+            throw new InvalidOperationException("当前用户未登录。");
+        }
+
+        return _currentUser.UserId.Value;
+    }
+
+    /// <summary>
+    /// 获取启用审批单
+    /// </summary>
+    private async Task<SysReview> GetEnabledReviewOrThrowAsync(long reviewId, CancellationToken cancellationToken)
+    {
+        var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken)
+            ?? throw new InvalidOperationException("审批单不存在。");
+
+        if (review.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用审批单不能关联权限申请。");
+        }
+
+        return review;
+    }
+
+    /// <summary>
+    /// 获取权限申请，不存在时抛出异常
+    /// </summary>
+    private async Task<SysPermissionRequest> GetPermissionRequestOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "权限申请主键必须大于 0。");
+        }
+
+        return await _permissionRequestRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("权限申请不存在。");
     }
 
     /// <summary>
@@ -2159,22 +2338,6 @@ public sealed class PermissionAppService
     }
 
     /// <summary>
-    /// 获取启用审批单
-    /// </summary>
-    private async Task<SysReview> GetEnabledReviewOrThrowAsync(long reviewId, CancellationToken cancellationToken)
-    {
-        var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken)
-            ?? throw new InvalidOperationException("审批单不存在。");
-
-        if (review.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用审批单不能关联权限申请。");
-        }
-
-        return review;
-    }
-
-    /// <summary>
     /// 按需获取审批单
     /// </summary>
     private async Task<SysReview?> GetReviewOrDefaultAsync(long? reviewId, CancellationToken cancellationToken)
@@ -2184,129 +2347,20 @@ public sealed class PermissionAppService
             : null;
     }
 
-    /// <summary>
-    /// 校验待审批申请不存在
-    /// </summary>
-    private async Task EnsurePendingRequestNotExistsAsync(
-        long requestUserId,
-        long? permissionId,
-        long? roleId,
-        long? excludeId,
-        CancellationToken cancellationToken)
-    {
-        var exists = excludeId.HasValue
-            ? await _permissionRequestRepository.AnyAsync(
-                request => request.RequestUserId == requestUserId
-                    && request.PermissionId == permissionId
-                    && request.RoleId == roleId
-                    && request.RequestStatus == PermissionRequestStatus.Pending
-                    && request.BasicId != excludeId.Value,
-                cancellationToken)
-            : await _permissionRequestRepository.AnyAsync(
-                request => request.RequestUserId == requestUserId
-                    && request.PermissionId == permissionId
-                    && request.RoleId == roleId
-                    && request.RequestStatus == PermissionRequestStatus.Pending,
-                cancellationToken);
-
-        if (exists)
-        {
-            throw new InvalidOperationException("相同权限或角色的待审批申请已存在。");
-        }
-    }
-
-    /// <summary>
-    /// 校验待审批本人申请
-    /// </summary>
-    private static void EnsurePendingOwnerRequest(SysPermissionRequest permissionRequest, long currentUserId)
-    {
-        if (permissionRequest.RequestUserId != currentUserId)
-        {
-            throw new InvalidOperationException("只能维护自己的权限申请。");
-        }
-
-        if (permissionRequest.RequestStatus != PermissionRequestStatus.Pending)
-        {
-            throw new InvalidOperationException("只有待审批权限申请可以维护。");
-        }
-    }
-
-    /// <summary>
-    /// 校验状态变更
-    /// </summary>
-    private static void EnsureStatusCanBeChanged(SysPermissionRequest permissionRequest, PermissionRequestStatus nextStatus)
-    {
-        if (nextStatus == PermissionRequestStatus.Approved)
-        {
-            throw new InvalidOperationException("权限申请审批通过必须走审批流并自动授权，不能直接更新为已批准。");
-        }
-
-        if (permissionRequest.RequestStatus != PermissionRequestStatus.Pending && permissionRequest.RequestStatus != nextStatus)
-        {
-            throw new InvalidOperationException("已完结权限申请不能变更状态。");
-        }
-    }
-
-    /// <summary>
-    /// 校验申请创建输入
-    /// </summary>
-    private static void ValidateRequestCreateInput(PermissionRequestCreateDto input, DateTimeOffset now)
-    {
-        ValidateRequestCommonInput(input.PermissionId, input.RoleId, input.RequestReason, input.ExpectedEffectiveTime, input.ExpectedExpirationTime, now);
-    }
-
-    /// <summary>
-    /// 校验申请更新输入
-    /// </summary>
-    private static void ValidateRequestUpdateInput(PermissionRequestUpdateDto input, DateTimeOffset now)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "权限申请主键必须大于 0。");
-        }
-
-        ValidateRequestCommonInput(input.PermissionId, input.RoleId, input.RequestReason, input.ExpectedEffectiveTime, input.ExpectedExpirationTime, now);
-    }
-
-    /// <summary>
-    /// 校验申请通用输入
-    /// </summary>
-    private static void ValidateRequestCommonInput(
-        long? permissionId,
-        long? roleId,
-        string requestReason,
-        DateTimeOffset? expectedEffectiveTime,
-        DateTimeOffset? expectedExpirationTime,
-        DateTimeOffset now)
-    {
-        if (!permissionId.HasValue && !roleId.HasValue)
-        {
-            throw new InvalidOperationException("权限申请必须指定权限或角色。");
-        }
-
-        ValidateOptionalId(permissionId, nameof(permissionId), "权限主键必须大于 0。");
-        ValidateOptionalId(roleId, nameof(roleId), "角色主键必须大于 0。");
-        ArgumentException.ThrowIfNullOrWhiteSpace(requestReason);
-
-        if (requestReason.Trim().Length > 1000)
-        {
-            throw new ArgumentOutOfRangeException(nameof(requestReason), "申请原因不能超过 1000 个字符。");
-        }
-
-        if (expectedExpirationTime.HasValue && expectedExpirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("期望失效时间必须晚于当前时间。");
-        }
-
-        if (expectedEffectiveTime.HasValue && expectedExpirationTime.HasValue && expectedExpirationTime.Value <= expectedEffectiveTime.Value)
-        {
-            throw new InvalidOperationException("期望失效时间必须晚于期望生效时间。");
-        }
-    }
-
     #endregion PermissionRequest
 
     #region Shared Helpers
+
+    /// <summary>
+    /// 校验可选主键
+    /// </summary>
+    private static void ValidateOptionalId(long? id, string paramName, string message)
+    {
+        if (id.HasValue && id.Value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
 
     /// <summary>
     /// 按需获取权限
@@ -2328,58 +2382,5 @@ public sealed class PermissionAppService
             : null;
     }
 
-    /// <summary>
-    /// 校验可选主键
-    /// </summary>
-    private static void ValidateOptionalId(long? id, string paramName, string message)
-    {
-        if (id.HasValue && id.Value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
     #endregion Shared Helpers
-
-    /// <summary>
-    /// 校验枚举值
-    /// </summary>
-    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    /// <summary>
-    /// 校验字符串长度
-    /// </summary>
-    private static void ValidateLength(string value, int maxLength, string paramName, string message)
-    {
-        if (value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    /// <summary>
-    /// 校验可空字符串长度
-    /// </summary>
-    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
-    {
-        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    /// <summary>
-    /// 规范化可空字符串
-    /// </summary>
-    private static string? NormalizeNullable(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
 }

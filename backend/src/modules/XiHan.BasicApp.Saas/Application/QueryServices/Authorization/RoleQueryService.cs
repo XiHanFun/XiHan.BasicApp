@@ -38,17 +38,17 @@ public sealed class RoleQueryService
     : SaasApplicationService, IRoleQueryService
 {
     /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public RoleQueryService(IRoleRepository roleRepository)
     {
         _roleRepository = roleRepository;
     }
-
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
-    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 获取角色分页列表

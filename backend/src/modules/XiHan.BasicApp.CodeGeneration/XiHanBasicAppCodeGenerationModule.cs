@@ -12,8 +12,9 @@
 
 #endregion <<版权版本注释>>
 
-using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.CodeGeneration.Extensions;
+
+using XiHan.BasicApp.Saas;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.CodeGeneration;

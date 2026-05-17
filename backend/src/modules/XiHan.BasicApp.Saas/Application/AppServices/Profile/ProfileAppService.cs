@@ -56,55 +56,34 @@ public sealed partial class ProfileAppService(
     ICurrentUser currentUser)
     : SaasApplicationService, IProfileAppService
 {
-    private const int VerificationCodeSeconds = 600;
     private const int UserNameChangeIntervalDays = 90;
     private const string VerificationCodeBusinessType = "profile.verification-code";
+    private const int VerificationCodeSeconds = 600;
     private static readonly ConcurrentDictionary<string, VerificationCodeState> VerificationCodes = new();
 
+    private readonly IAuthenticationService _authenticationService = authenticationService;
+    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IExternalLoginRepository _externalLoginRepository = externalLoginRepository;
+    private readonly ILocalEventBus _localEventBus = localEventBus;
+    private readonly IUserNotificationDispatchService _notificationDispatchService = notificationDispatchService;
+    private readonly IOtpService _otpService = otpService;
+    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
     private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
-    private readonly IExternalLoginRepository _externalLoginRepository = externalLoginRepository;
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
-    private readonly IAuthenticationService _authenticationService = authenticationService;
-    private readonly IOtpService _otpService = otpService;
-    private readonly ILocalEventBus _localEventBus = localEventBus;
-    private readonly IUserNotificationDispatchService _notificationDispatchService = notificationDispatchService;
-    private readonly ICurrentUser _currentUser = currentUser;
+
+    private enum VerificationPurpose
+    {
+        VerifyEmail,
+        VerifyPhone,
+        ChangeEmail,
+        ChangePhone,
+        TwoFactorEmail,
+        TwoFactorPhone
+    }
 
     private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
-
-    /// <inheritdoc />
-    public async Task<UserProfileDto> GetProfileAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        return ToProfileDto(user, security);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task<UserProfileDto> UpdateProfileAsync(ProfileUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-        ValidateProfileUpdate(input);
-
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        user.NickName = NormalizeNullable(input.NickName, 50);
-        user.RealName = NormalizeNullable(input.RealName, 50);
-        user.Avatar = NormalizeNullable(input.Avatar, 500);
-        user.Gender = input.Gender.HasValue ? (UserGender)input.Gender.Value : user.Gender;
-        user.Birthday = input.Birthday;
-        user.TimeZone = NormalizeNullable(input.TimeZone, 50);
-        user.Language = NormalizeNullable(input.Language, 10);
-        user.Country = NormalizeNullable(input.Country, 50);
-        user.Remark = NormalizeNullable(input.Remark, 500);
-
-        var savedUser = await _userRepository.UpdateAsync(user, cancellationToken);
-        return ToProfileDto(savedUser, security);
-    }
 
     /// <inheritdoc />
     [UnitOfWork(true)]
@@ -190,81 +169,6 @@ public sealed partial class ProfileAppService(
     }
 
     /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendEmailVerifyCodeAsync(CancellationToken cancellationToken = default)
-    {
-        var (user, _) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        if (string.IsNullOrWhiteSpace(user.Email))
-        {
-            throw new InvalidOperationException("当前账号未绑定邮箱。");
-        }
-
-        return await SendVerificationCodeAsync(user, VerificationPurpose.VerifyEmail, user.Email, "邮箱验证", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendPhoneVerifyCodeAsync(CancellationToken cancellationToken = default)
-    {
-        var (user, _) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        if (string.IsNullOrWhiteSpace(user.Phone))
-        {
-            throw new InvalidOperationException("当前账号未绑定手机号。");
-        }
-
-        return await SendVerificationCodeAsync(user, VerificationPurpose.VerifyPhone, user.Phone, "手机验证", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task VerifyEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
-    {
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        ConsumeVerificationCode(user.BasicId, VerificationPurpose.VerifyEmail, input.Code);
-        security.EmailVerified = true;
-        security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task VerifyPhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
-    {
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        ConsumeVerificationCode(user.BasicId, VerificationPurpose.VerifyPhone, input.Code);
-        security.PhoneVerified = true;
-        security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendChangeEmailCodeAsync(ProfileChangeEmailDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var newEmail = NormalizeRequired(input.NewEmail, "新邮箱不能为空。", 100, "邮箱不能超过 100 个字符。");
-        if (!EmailRegex().IsMatch(newEmail))
-        {
-            throw new InvalidOperationException("邮箱格式无效。");
-        }
-
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        EnsurePasswordMatches(security, input.Password);
-        return await SendVerificationCodeAsync(user, VerificationPurpose.ChangeEmail, newEmail, "邮箱换绑", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendChangePhoneCodeAsync(ProfileChangePhoneDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var newPhone = NormalizeRequired(input.NewPhone, "新手机号不能为空。", 20, "手机号不能超过 20 个字符。");
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        EnsurePasswordMatches(security, input.Password);
-        return await SendVerificationCodeAsync(user, VerificationPurpose.ChangePhone, newPhone, "手机换绑", cancellationToken);
-    }
-
-    /// <inheritdoc />
     [UnitOfWork(true)]
     public async Task ConfirmChangeEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
@@ -292,55 +196,35 @@ public sealed partial class ProfileAppService(
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task<ProfileTwoFactorSetupDto> Setup2FAAsync(CancellationToken cancellationToken = default)
+    public async Task DeactivateAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        var secret = string.IsNullOrWhiteSpace(security.TwoFactorSecret)
-            ? _otpService.GenerateTotpSecret()
-            : security.TwoFactorSecret;
+        EnsurePasswordMatches(security, input.Password);
+        EnsureAccountCanBeClosed(user);
+        await EnsureCurrentUserIsNotTenantOwnerAsync(user, cancellationToken);
 
-        security.TwoFactorSecret = secret;
+        user.Status = EnableStatus.Disabled;
+        security.SecurityStamp = NewSecurityStamp();
+        _ = await _userRepository.UpdateAsync(user, cancellationToken);
         _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-
-        return new ProfileTwoFactorSetupDto
-        {
-            SharedKey = secret,
-            AuthenticatorUri = _otpService.GenerateTotpUri(secret, "XiHan BasicApp", user.UserName)
-        };
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> Send2FASetupCodeAsync(ProfileTwoFactorMethodDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var (user, _) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        var method = ToTwoFactorMethod(input.Method);
-        return method switch
-        {
-            TwoFactorMethod.Email => await SendVerificationCodeAsync(user, VerificationPurpose.TwoFactorEmail, user.Email, "邮箱两步验证", cancellationToken),
-            TwoFactorMethod.Phone => await SendVerificationCodeAsync(user, VerificationPurpose.TwoFactorPhone, user.Phone, "手机两步验证", cancellationToken),
-            _ => throw new InvalidOperationException("该双因素方式不需要发送验证码。")
-        };
+        await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心停用账号", cancellationToken);
     }
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task Enable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
+    public async Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
         var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        var method = ToTwoFactorMethod(input.Method);
-        await EnsureTwoFactorCodeValidAsync(user, security, method, input.Code, enabling: true, cancellationToken);
+        EnsurePasswordMatches(security, input.Password);
+        EnsureAccountCanBeClosed(user);
+        await EnsureCurrentUserIsNotTenantOwnerAsync(user, cancellationToken);
 
-        security.TwoFactorMethod |= method;
-        security.TwoFactorEnabled = security.TwoFactorMethod != TwoFactorMethod.None;
+        security.IsDeleted = true;
+        security.DeletedTime = DateTimeOffset.UtcNow;
         security.SecurityStamp = NewSecurityStamp();
         _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        await _userRepository.SoftDeleteAsync(user, cancellationToken);
+        await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心注销账号", cancellationToken);
     }
 
     /// <inheritdoc />
@@ -367,6 +251,80 @@ public sealed partial class ProfileAppService(
 
         security.SecurityStamp = NewSecurityStamp();
         _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task Enable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        var method = ToTwoFactorMethod(input.Method);
+        await EnsureTwoFactorCodeValidAsync(user, security, method, input.Code, enabling: true, cancellationToken);
+
+        security.TwoFactorMethod |= method;
+        security.TwoFactorEnabled = security.TwoFactorMethod != TwoFactorMethod.None;
+        security.SecurityStamp = NewSecurityStamp();
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var userId = GetCurrentUserIdOrThrow();
+        var accounts = await _externalLoginRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
+        return [.. accounts
+            .OrderBy(item => item.Provider)
+            .Select(item => new ProfileExternalLoginDto
+            {
+                Provider = item.Provider,
+                ProviderDisplayName = item.ProviderDisplayName,
+                Email = item.Email,
+                AvatarUrl = item.AvatarUrl,
+                LastLoginTime = item.LastLoginTime
+            })];
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileLoginLogPageDto> GetLoginLogsAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var userId = GetCurrentUserIdOrThrow();
+        page = Math.Clamp(page, 1, 10000);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
+        var query = DbClient.Queryable<SysLoginLog>()
+            .Where(log => log.UserId == userId)
+            .SplitTable()
+            .OrderBy(log => log.LoginTime, OrderByType.Desc);
+
+        RefAsync<int> total = 0;
+        var logs = await query.ToPageListAsync(page, pageSize, total, cancellationToken);
+        return new ProfileLoginLogPageDto
+        {
+            Items = [.. logs.Select(log => new ProfileLoginLogItemDto
+            {
+                LoginTime = log.LoginTime,
+                LoginIp = log.LoginIp,
+                LoginLocation = log.LoginLocation,
+                Browser = log.Browser,
+                Os = log.Os,
+                LoginResult = (int)log.LoginResult,
+                Message = log.Message
+            })],
+            Total = total
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfileDto> GetProfileAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        return ToProfileDto(user, security);
     }
 
     /// <inheritdoc />
@@ -403,31 +361,6 @@ public sealed partial class ProfileAppService(
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task RevokeSessionAsync(ProfileSessionRevokeDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        var sessionId = NormalizeRequired(input.SessionId, "会话标识不能为空。", 100, "会话标识不能超过 100 个字符。");
-        var currentSessionId = GetCurrentSessionId();
-        if (string.Equals(sessionId, currentSessionId, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("不能在个人中心踢下线当前会话。");
-        }
-
-        var session = await _userSessionRepository.GetFirstAsync(
-            item => item.UserId == userId && item.UserSessionId == sessionId,
-            cancellationToken)
-            ?? throw new InvalidOperationException("会话不存在。");
-
-        RevokeSession(session, "用户在个人中心撤销会话");
-        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
-        await PublishSessionRevokedAsync(session, revokeAll: false, "用户在个人中心撤销会话", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
     public async Task RevokeOtherSessionsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -456,52 +389,117 @@ public sealed partial class ProfileAppService(
     }
 
     /// <inheritdoc />
-    public async Task<ProfileLoginLogPageDto> GetLoginLogsAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    [UnitOfWork(true)]
+    public async Task RevokeSessionAsync(ProfileSessionRevokeDto input, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
         var userId = GetCurrentUserIdOrThrow();
-        page = Math.Clamp(page, 1, 10000);
-        pageSize = Math.Clamp(pageSize, 1, 50);
-
-        var query = DbClient.Queryable<SysLoginLog>()
-            .Where(log => log.UserId == userId)
-            .SplitTable()
-            .OrderBy(log => log.LoginTime, OrderByType.Desc);
-
-        RefAsync<int> total = 0;
-        var logs = await query.ToPageListAsync(page, pageSize, total, cancellationToken);
-        return new ProfileLoginLogPageDto
+        var sessionId = NormalizeRequired(input.SessionId, "会话标识不能为空。", 100, "会话标识不能超过 100 个字符。");
+        var currentSessionId = GetCurrentSessionId();
+        if (string.Equals(sessionId, currentSessionId, StringComparison.Ordinal))
         {
-            Items = [.. logs.Select(log => new ProfileLoginLogItemDto
-            {
-                LoginTime = log.LoginTime,
-                LoginIp = log.LoginIp,
-                LoginLocation = log.LoginLocation,
-                Browser = log.Browser,
-                Os = log.Os,
-                LoginResult = (int)log.LoginResult,
-                Message = log.Message
-            })],
-            Total = total
+            throw new InvalidOperationException("不能在个人中心踢下线当前会话。");
+        }
+
+        var session = await _userSessionRepository.GetFirstAsync(
+            item => item.UserId == userId && item.UserSessionId == sessionId,
+            cancellationToken)
+            ?? throw new InvalidOperationException("会话不存在。");
+
+        RevokeSession(session, "用户在个人中心撤销会话");
+        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await PublishSessionRevokedAsync(session, revokeAll: false, "用户在个人中心撤销会话", cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileVerificationCodeResultDto> Send2FASetupCodeAsync(ProfileTwoFactorMethodDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var (user, _) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        var method = ToTwoFactorMethod(input.Method);
+        return method switch
+        {
+            TwoFactorMethod.Email => await SendVerificationCodeAsync(user, VerificationPurpose.TwoFactorEmail, user.Email, "邮箱两步验证", cancellationToken),
+            TwoFactorMethod.Phone => await SendVerificationCodeAsync(user, VerificationPurpose.TwoFactorPhone, user.Phone, "手机两步验证", cancellationToken),
+            _ => throw new InvalidOperationException("该双因素方式不需要发送验证码。")
         };
     }
 
     /// <inheritdoc />
-    public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default)
+    public async Task<ProfileVerificationCodeResultDto> SendChangeEmailCodeAsync(ProfileChangeEmailDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var newEmail = NormalizeRequired(input.NewEmail, "新邮箱不能为空。", 100, "邮箱不能超过 100 个字符。");
+        if (!EmailRegex().IsMatch(newEmail))
+        {
+            throw new InvalidOperationException("邮箱格式无效。");
+        }
+
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        EnsurePasswordMatches(security, input.Password);
+        return await SendVerificationCodeAsync(user, VerificationPurpose.ChangeEmail, newEmail, "邮箱换绑", cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileVerificationCodeResultDto> SendChangePhoneCodeAsync(ProfileChangePhoneDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var newPhone = NormalizeRequired(input.NewPhone, "新手机号不能为空。", 20, "手机号不能超过 20 个字符。");
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        EnsurePasswordMatches(security, input.Password);
+        return await SendVerificationCodeAsync(user, VerificationPurpose.ChangePhone, newPhone, "手机换绑", cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileVerificationCodeResultDto> SendEmailVerifyCodeAsync(CancellationToken cancellationToken = default)
+    {
+        var (user, _) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new InvalidOperationException("当前账号未绑定邮箱。");
+        }
+
+        return await SendVerificationCodeAsync(user, VerificationPurpose.VerifyEmail, user.Email, "邮箱验证", cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileVerificationCodeResultDto> SendPhoneVerifyCodeAsync(CancellationToken cancellationToken = default)
+    {
+        var (user, _) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(user.Phone))
+        {
+            throw new InvalidOperationException("当前账号未绑定手机号。");
+        }
+
+        return await SendVerificationCodeAsync(user, VerificationPurpose.VerifyPhone, user.Phone, "手机验证", cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<ProfileTwoFactorSetupDto> Setup2FAAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var userId = GetCurrentUserIdOrThrow();
-        var accounts = await _externalLoginRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
-        return [.. accounts
-            .OrderBy(item => item.Provider)
-            .Select(item => new ProfileExternalLoginDto
-            {
-                Provider = item.Provider,
-                ProviderDisplayName = item.ProviderDisplayName,
-                Email = item.Email,
-                AvatarUrl = item.AvatarUrl,
-                LastLoginTime = item.LastLoginTime
-            })];
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        var secret = string.IsNullOrWhiteSpace(security.TwoFactorSecret)
+            ? _otpService.GenerateTotpSecret()
+            : security.TwoFactorSecret;
+
+        security.TwoFactorSecret = secret;
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+
+        return new ProfileTwoFactorSetupDto
+        {
+            SharedKey = secret,
+            AuthenticatorUri = _otpService.GenerateTotpUri(secret, "XiHan BasicApp", user.UserName)
+        };
     }
 
     /// <inheritdoc />
@@ -525,118 +523,58 @@ public sealed partial class ProfileAppService(
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task DeactivateAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
+    public async Task<UserProfileDto> UpdateProfileAsync(ProfileUpdateDto input, CancellationToken cancellationToken = default)
     {
-        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        EnsurePasswordMatches(security, input.Password);
-        EnsureAccountCanBeClosed(user);
-        await EnsureCurrentUserIsNotTenantOwnerAsync(user, cancellationToken);
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateProfileUpdate(input);
 
-        user.Status = EnableStatus.Disabled;
-        security.SecurityStamp = NewSecurityStamp();
-        _ = await _userRepository.UpdateAsync(user, cancellationToken);
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-        await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心停用账号", cancellationToken);
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        user.NickName = NormalizeNullable(input.NickName, 50);
+        user.RealName = NormalizeNullable(input.RealName, 50);
+        user.Avatar = NormalizeNullable(input.Avatar, 500);
+        user.Gender = input.Gender.HasValue ? (UserGender)input.Gender.Value : user.Gender;
+        user.Birthday = input.Birthday;
+        user.TimeZone = NormalizeNullable(input.TimeZone, 50);
+        user.Language = NormalizeNullable(input.Language, 10);
+        user.Country = NormalizeNullable(input.Country, 50);
+        user.Remark = NormalizeNullable(input.Remark, 500);
+
+        var savedUser = await _userRepository.UpdateAsync(user, cancellationToken);
+        return ToProfileDto(savedUser, security);
     }
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
+    public async Task VerifyEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
         var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
-        EnsurePasswordMatches(security, input.Password);
-        EnsureAccountCanBeClosed(user);
-        await EnsureCurrentUserIsNotTenantOwnerAsync(user, cancellationToken);
-
-        security.IsDeleted = true;
-        security.DeletedTime = DateTimeOffset.UtcNow;
+        ConsumeVerificationCode(user.BasicId, VerificationPurpose.VerifyEmail, input.Code);
+        security.EmailVerified = true;
         security.SecurityStamp = NewSecurityStamp();
         _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-        await _userRepository.SoftDeleteAsync(user, cancellationToken);
-        await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心注销账号", cancellationToken);
     }
 
-    private async Task<(SysUser User, SysUserSecurity Security)> GetCurrentUserSecurityOrThrowAsync(CancellationToken cancellationToken)
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task VerifyPhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
-        var userId = GetCurrentUserIdOrThrow();
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("当前用户不存在。");
-        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == user.BasicId, cancellationToken)
-            ?? throw new InvalidOperationException("用户安全记录不存在。");
-        return (user, security);
+        var (user, security) = await GetCurrentUserSecurityOrThrowAsync(cancellationToken);
+        ConsumeVerificationCode(user.BasicId, VerificationPurpose.VerifyPhone, input.Code);
+        security.PhoneVerified = true;
+        security.SecurityStamp = NewSecurityStamp();
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
     }
 
-    private long GetCurrentUserIdOrThrow()
+    private static string BuildVerificationKey(long userId, VerificationPurpose purpose)
     {
-        return _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+        return $"{userId}:{purpose}";
     }
 
-    private string? GetCurrentSessionId()
+    private static bool CanChangeUserName(SysUserSecurity security, DateTimeOffset now)
     {
-        return _currentUser.FindClaim(XiHanClaimTypes.SessionId)?.Value;
-    }
-
-    private UserProfileDto ToProfileDto(SysUser user, SysUserSecurity security)
-    {
-        return new UserProfileDto
-        {
-            UserId = user.BasicId,
-            UserName = user.UserName,
-            RealName = user.RealName,
-            NickName = user.NickName,
-            Avatar = user.Avatar,
-            Email = user.Email,
-            Phone = user.Phone,
-            Gender = (int)user.Gender,
-            Birthday = user.Birthday,
-            TimeZone = user.TimeZone,
-            Language = user.Language,
-            Country = user.Country,
-            Remark = user.Remark,
-            TenantId = _currentUser.TenantId,
-            LastLoginTime = user.LastLoginTime,
-            LastLoginIp = user.LastLoginIp,
-            IsSystemAccount = user.IsSystemAccount,
-            TwoFactorEnabled = security.TwoFactorEnabled,
-            TwoFactorMethod = (int)security.TwoFactorMethod,
-            EmailVerified = security.EmailVerified,
-            PhoneVerified = security.PhoneVerified,
-            LastPasswordChangeTime = security.LastPasswordChangeTime,
-            LastUserNameChangeTime = security.LastUserNameChangeTime,
-            CanChangeUserName = !user.IsSystemAccount && CanChangeUserName(security, DateTimeOffset.UtcNow)
-        };
-    }
-
-    private async Task<ProfileVerificationCodeResultDto> SendVerificationCodeAsync(
-        SysUser user,
-        VerificationPurpose purpose,
-        string? target,
-        string title,
-        CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(target))
-        {
-            throw new InvalidOperationException("当前账号缺少可接收验证码的联系方式。");
-        }
-
-        var code = GenerateVerificationCode();
-        VerificationCodes[BuildVerificationKey(user.BasicId, purpose)] = new VerificationCodeState(
-            code,
-            target.Trim(),
-            DateTimeOffset.UtcNow.AddSeconds(VerificationCodeSeconds));
-
-        await _notificationDispatchService.DispatchToUserAsync(
-            user.BasicId,
-            $"{title}验证码",
-            $"验证码：{code}，10 分钟内有效。",
-            NotificationType.User,
-            VerificationCodeBusinessType,
-            user.BasicId,
-            link: "/workbench/profile",
-            icon: "lucide:shield-check",
-            cancellationToken: cancellationToken);
-
-        return new ProfileVerificationCodeResultDto { ExpiresInSeconds = VerificationCodeSeconds };
+        return !security.LastUserNameChangeTime.HasValue ||
+               security.LastUserNameChangeTime.Value.AddDays(UserNameChangeIntervalDays) <= now;
     }
 
     private static string ConsumeVerificationCode(long userId, VerificationPurpose purpose, string? code)
@@ -651,6 +589,138 @@ public sealed partial class ProfileAppService(
         }
 
         return state.PendingValue;
+    }
+
+    [GeneratedRegex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", RegexOptions.Compiled)]
+    private static partial Regex EmailRegex();
+
+    private static string GenerateVerificationCode()
+    {
+        return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+    }
+
+    private static string NewSecurityStamp()
+    {
+        return Guid.NewGuid().ToString("N");
+    }
+
+    private static string? NormalizeNullable(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
+    }
+
+    private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException(requiredMessage);
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), maxLengthMessage);
+        }
+
+        return normalized;
+    }
+
+    private static void RevokeSession(SysUserSession session, string reason)
+    {
+        var now = DateTimeOffset.UtcNow;
+        session.IsOnline = false;
+        session.IsRevoked = true;
+        session.RevokedAt = now;
+        session.RevokedReason = NormalizeNullable(reason, 200);
+        session.LogoutTime ??= now;
+        session.LastActivityTime = now;
+    }
+
+    private static TwoFactorMethod ToTwoFactorMethod(int method)
+    {
+        return method switch
+        {
+            (int)TwoFactorMethod.Totp => TwoFactorMethod.Totp,
+            (int)TwoFactorMethod.Email => TwoFactorMethod.Email,
+            (int)TwoFactorMethod.Phone => TwoFactorMethod.Phone,
+            _ => throw new ArgumentOutOfRangeException(nameof(method), "双因素方式无效。")
+        };
+    }
+
+    [GeneratedRegex("^[A-Za-z0-9_]{3,30}$", RegexOptions.Compiled)]
+    private static partial Regex UserNameRegex();
+
+    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static void ValidateProfileUpdate(ProfileUpdateDto input)
+    {
+        ValidateOptionalLength(input.NickName, 50, nameof(input.NickName), "昵称不能超过 50 个字符。");
+        ValidateOptionalLength(input.RealName, 50, nameof(input.RealName), "真实姓名不能超过 50 个字符。");
+        ValidateOptionalLength(input.Avatar, 500, nameof(input.Avatar), "头像不能超过 500 个字符。");
+        ValidateOptionalLength(input.TimeZone, 50, nameof(input.TimeZone), "时区不能超过 50 个字符。");
+        ValidateOptionalLength(input.Language, 10, nameof(input.Language), "语言不能超过 10 个字符。");
+        ValidateOptionalLength(input.Country, 50, nameof(input.Country), "国家/地区不能超过 50 个字符。");
+        ValidateOptionalLength(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
+        if (input.Gender.HasValue && !Enum.IsDefined(typeof(UserGender), input.Gender.Value))
+        {
+            throw new ArgumentOutOfRangeException(nameof(input.Gender), "性别枚举值无效。");
+        }
+    }
+
+    private void EnsureAccountCanBeClosed(SysUser user)
+    {
+        if (user.IsSystemAccount)
+        {
+            throw new InvalidOperationException("系统内置账号不能在个人中心自助关闭。");
+        }
+    }
+
+    private async Task EnsureCurrentUserIsNotTenantOwnerAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
+        if (membership?.MemberType == TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者账号不能在个人中心自助关闭。");
+        }
+    }
+
+    private void EnsurePasswordMatches(SysUserSecurity security, string? password)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
+        if (!_passwordHasher.VerifyPassword(security.Password, password))
+        {
+            throw new InvalidOperationException("当前密码不正确。");
+        }
+    }
+
+    private async Task EnsurePasswordMeetsPolicyAsync(SysUser user, string password, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var blacklist = new[] { user.UserName, user.RealName, user.NickName, user.Email, user.Phone }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value!.Trim())
+            .ToList();
+        var result = await _authenticationService.ValidatePasswordStrengthAsync(password, blacklist);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        var errors = result.Errors.Count > 0 ? string.Join("；", result.Errors) : result.Message;
+        throw new InvalidOperationException($"新密码不符合安全要求：{errors}");
     }
 
     private async Task EnsureTwoFactorCodeValidAsync(
@@ -695,22 +765,24 @@ public sealed partial class ProfileAppService(
         }
     }
 
-    private async Task EnsurePasswordMeetsPolicyAsync(SysUser user, string password, CancellationToken cancellationToken)
+    private string? GetCurrentSessionId()
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        return _currentUser.FindClaim(XiHanClaimTypes.SessionId)?.Value;
+    }
 
-        var blacklist = new[] { user.UserName, user.RealName, user.NickName, user.Email, user.Phone }
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .Select(value => value!.Trim())
-            .ToList();
-        var result = await _authenticationService.ValidatePasswordStrengthAsync(password, blacklist);
-        if (result.IsValid)
-        {
-            return;
-        }
+    private long GetCurrentUserIdOrThrow()
+    {
+        return _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+    }
 
-        var errors = result.Errors.Count > 0 ? string.Join("；", result.Errors) : result.Message;
-        throw new InvalidOperationException($"新密码不符合安全要求：{errors}");
+    private async Task<(SysUser User, SysUserSecurity Security)> GetCurrentUserSecurityOrThrowAsync(CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserIdOrThrow();
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前用户不存在。");
+        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == user.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("用户安全记录不存在。");
+        return (user, security);
     }
 
     private async Task PublishSessionRevokedAsync(SysUserSession session, bool revokeAll, string reason, CancellationToken cancellationToken)
@@ -744,139 +816,67 @@ public sealed partial class ProfileAppService(
         await PublishSessionRevokedAsync(sessions[0], revokeAll: true, reason, cancellationToken);
     }
 
-    private static void RevokeSession(SysUserSession session, string reason)
+    private async Task<ProfileVerificationCodeResultDto> SendVerificationCodeAsync(
+        SysUser user,
+        VerificationPurpose purpose,
+        string? target,
+        string title,
+        CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
-        session.IsOnline = false;
-        session.IsRevoked = true;
-        session.RevokedAt = now;
-        session.RevokedReason = NormalizeNullable(reason, 200);
-        session.LogoutTime ??= now;
-        session.LastActivityTime = now;
-    }
-
-    private async Task EnsureCurrentUserIsNotTenantOwnerAsync(SysUser user, CancellationToken cancellationToken)
-    {
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
+        if (string.IsNullOrWhiteSpace(target))
         {
-            throw new InvalidOperationException("租户所有者账号不能在个人中心自助关闭。");
+            throw new InvalidOperationException("当前账号缺少可接收验证码的联系方式。");
         }
+
+        var code = GenerateVerificationCode();
+        VerificationCodes[BuildVerificationKey(user.BasicId, purpose)] = new VerificationCodeState(
+            code,
+            target.Trim(),
+            DateTimeOffset.UtcNow.AddSeconds(VerificationCodeSeconds));
+
+        await _notificationDispatchService.DispatchToUserAsync(
+            user.BasicId,
+            $"{title}验证码",
+            $"验证码：{code}，10 分钟内有效。",
+            NotificationType.User,
+            VerificationCodeBusinessType,
+            user.BasicId,
+            link: "/workbench/profile",
+            icon: "lucide:shield-check",
+            cancellationToken: cancellationToken);
+
+        return new ProfileVerificationCodeResultDto { ExpiresInSeconds = VerificationCodeSeconds };
     }
 
-    private void EnsureAccountCanBeClosed(SysUser user)
+    private UserProfileDto ToProfileDto(SysUser user, SysUserSecurity security)
     {
-        if (user.IsSystemAccount)
+        return new UserProfileDto
         {
-            throw new InvalidOperationException("系统内置账号不能在个人中心自助关闭。");
-        }
-    }
-
-    private void EnsurePasswordMatches(SysUserSecurity security, string? password)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
-        if (!_passwordHasher.VerifyPassword(security.Password, password))
-        {
-            throw new InvalidOperationException("当前密码不正确。");
-        }
-    }
-
-    private static void ValidateProfileUpdate(ProfileUpdateDto input)
-    {
-        ValidateOptionalLength(input.NickName, 50, nameof(input.NickName), "昵称不能超过 50 个字符。");
-        ValidateOptionalLength(input.RealName, 50, nameof(input.RealName), "真实姓名不能超过 50 个字符。");
-        ValidateOptionalLength(input.Avatar, 500, nameof(input.Avatar), "头像不能超过 500 个字符。");
-        ValidateOptionalLength(input.TimeZone, 50, nameof(input.TimeZone), "时区不能超过 50 个字符。");
-        ValidateOptionalLength(input.Language, 10, nameof(input.Language), "语言不能超过 10 个字符。");
-        ValidateOptionalLength(input.Country, 50, nameof(input.Country), "国家/地区不能超过 50 个字符。");
-        ValidateOptionalLength(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
-        if (input.Gender.HasValue && !Enum.IsDefined(typeof(UserGender), input.Gender.Value))
-        {
-            throw new ArgumentOutOfRangeException(nameof(input.Gender), "性别枚举值无效。");
-        }
-    }
-
-    private static TwoFactorMethod ToTwoFactorMethod(int method)
-    {
-        return method switch
-        {
-            (int)TwoFactorMethod.Totp => TwoFactorMethod.Totp,
-            (int)TwoFactorMethod.Email => TwoFactorMethod.Email,
-            (int)TwoFactorMethod.Phone => TwoFactorMethod.Phone,
-            _ => throw new ArgumentOutOfRangeException(nameof(method), "双因素方式无效。")
+            UserId = user.BasicId,
+            UserName = user.UserName,
+            RealName = user.RealName,
+            NickName = user.NickName,
+            Avatar = user.Avatar,
+            Email = user.Email,
+            Phone = user.Phone,
+            Gender = (int)user.Gender,
+            Birthday = user.Birthday,
+            TimeZone = user.TimeZone,
+            Language = user.Language,
+            Country = user.Country,
+            Remark = user.Remark,
+            TenantId = _currentUser.TenantId,
+            LastLoginTime = user.LastLoginTime,
+            LastLoginIp = user.LastLoginIp,
+            IsSystemAccount = user.IsSystemAccount,
+            TwoFactorEnabled = security.TwoFactorEnabled,
+            TwoFactorMethod = (int)security.TwoFactorMethod,
+            EmailVerified = security.EmailVerified,
+            PhoneVerified = security.PhoneVerified,
+            LastPasswordChangeTime = security.LastPasswordChangeTime,
+            LastUserNameChangeTime = security.LastUserNameChangeTime,
+            CanChangeUserName = !user.IsSystemAccount && CanChangeUserName(security, DateTimeOffset.UtcNow)
         };
-    }
-
-    private static bool CanChangeUserName(SysUserSecurity security, DateTimeOffset now)
-    {
-        return !security.LastUserNameChangeTime.HasValue ||
-               security.LastUserNameChangeTime.Value.AddDays(UserNameChangeIntervalDays) <= now;
-    }
-
-    private static string GenerateVerificationCode()
-    {
-        return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
-    }
-
-    private static string BuildVerificationKey(long userId, VerificationPurpose purpose)
-    {
-        return $"{userId}:{purpose}";
-    }
-
-    private static string NewSecurityStamp()
-    {
-        return Guid.NewGuid().ToString("N");
-    }
-
-    private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new ArgumentException(requiredMessage);
-        }
-
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), maxLengthMessage);
-        }
-
-        return normalized;
-    }
-
-    private static string? NormalizeNullable(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
-    }
-
-    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
-    {
-        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    [GeneratedRegex("^[A-Za-z0-9_]{3,30}$", RegexOptions.Compiled)]
-    private static partial Regex UserNameRegex();
-
-    [GeneratedRegex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", RegexOptions.Compiled)]
-    private static partial Regex EmailRegex();
-
-    private enum VerificationPurpose
-    {
-        VerifyEmail,
-        VerifyPhone,
-        ChangeEmail,
-        ChangePhone,
-        TwoFactorEmail,
-        TwoFactorPhone
     }
 
     private sealed record VerificationCodeState(string Code, string PendingValue, DateTimeOffset ExpiresAt);

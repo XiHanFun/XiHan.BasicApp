@@ -35,6 +35,12 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class UserAppService
     : SaasApplicationService, IUserAppService
 {
+    private readonly ICurrentUser _currentUser;
+
+    private readonly ILocalEventBus _localEventBus;
+
+    private readonly IUserDomainService _userDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -47,10 +53,6 @@ public sealed class UserAppService
         _currentUser = currentUser;
         _localEventBus = localEventBus;
     }
-
-    private readonly IUserDomainService _userDomainService;
-    private readonly ICurrentUser _currentUser;
-    private readonly ILocalEventBus _localEventBus;
 
     #region 用户核心
 
@@ -66,6 +68,17 @@ public sealed class UserAppService
 
         var result = await _userDomainService.CreateUserAsync(ToCreateCommand(input), cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
+    }
+
+    /// <summary>
+    /// 删除用户
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.User.Delete)]
+    public async Task DeleteUserAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _userDomainService.DeleteUserAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -94,17 +107,6 @@ public sealed class UserAppService
 
         var result = await _userDomainService.UpdateUserStatusAsync(ToStatusCommand(input), cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
-    }
-
-    /// <summary>
-    /// 删除用户
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.User.Delete)]
-    public async Task DeleteUserAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _userDomainService.DeleteUserAsync(id, cancellationToken);
     }
 
     #endregion
@@ -172,6 +174,17 @@ public sealed class UserAppService
     }
 
     /// <summary>
+    /// 撤销用户角色
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserRole.Revoke)]
+    public async Task DeleteUserRoleAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _userDomainService.DeleteUserRoleAsync(id, cancellationToken);
+    }
+
+    /// <summary>
     /// 更新用户角色
     /// </summary>
     [UnitOfWork(true)]
@@ -199,17 +212,6 @@ public sealed class UserAppService
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 
-    /// <summary>
-    /// 撤销用户角色
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserRole.Revoke)]
-    public async Task DeleteUserRoleAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _userDomainService.DeleteUserRoleAsync(id, cancellationToken);
-    }
-
     #endregion
 
     #region 用户直授权限
@@ -226,6 +228,17 @@ public sealed class UserAppService
 
         var result = await _userDomainService.CreateUserPermissionAsync(ToPermissionGrantCommand(input), cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
+    }
+
+    /// <summary>
+    /// 撤销用户直授权限
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Revoke)]
+    public async Task DeleteUserPermissionAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _userDomainService.DeleteUserPermissionAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -256,17 +269,6 @@ public sealed class UserAppService
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
-    /// <summary>
-    /// 撤销用户直授权限
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Revoke)]
-    public async Task DeleteUserPermissionAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _userDomainService.DeleteUserPermissionAsync(id, cancellationToken);
-    }
-
     #endregion
 
     #region 用户数据范围
@@ -283,6 +285,17 @@ public sealed class UserAppService
 
         var result = await _userDomainService.CreateUserDataScopeAsync(ToDataScopeGrantCommand(input), cancellationToken);
         return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
+    }
+
+    /// <summary>
+    /// 撤销用户数据范围
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Revoke)]
+    public async Task DeleteUserDataScopeAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _userDomainService.DeleteUserDataScopeAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -313,17 +326,6 @@ public sealed class UserAppService
         return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
     }
 
-    /// <summary>
-    /// 撤销用户数据范围
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Revoke)]
-    public async Task DeleteUserDataScopeAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _userDomainService.DeleteUserDataScopeAsync(id, cancellationToken);
-    }
-
     #endregion
 
     #region 用户部门
@@ -340,6 +342,17 @@ public sealed class UserAppService
 
         var result = await _userDomainService.CreateUserDepartmentAsync(ToDepartmentAssignCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
+    }
+
+    /// <summary>
+    /// 撤销用户部门归属
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserDepartment.Revoke)]
+    public async Task DeleteUserDepartmentAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _userDomainService.DeleteUserDepartmentAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -368,17 +381,6 @@ public sealed class UserAppService
 
         var result = await _userDomainService.UpdateUserDepartmentStatusAsync(ToDepartmentStatusCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
-    }
-
-    /// <summary>
-    /// 撤销用户部门归属
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDepartment.Revoke)]
-    public async Task DeleteUserDepartmentAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _userDomainService.DeleteUserDepartmentAsync(id, cancellationToken);
     }
 
     #endregion
@@ -417,6 +419,148 @@ public sealed class UserAppService
 
     #endregion
 
+    private static UserDataScopeGrantCommand ToDataScopeGrantCommand(UserDataScopeGrantDto input)
+    {
+        return new UserDataScopeGrantCommand(
+            input.UserId,
+            input.DataScope,
+            input.DepartmentId,
+            input.IncludeChildren,
+            input.Remark);
+    }
+
+    private static UserDataScopeStatusChangeCommand ToDataScopeStatusCommand(UserDataScopeStatusUpdateDto input)
+    {
+        return new UserDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static UserDataScopeUpdateCommand ToDataScopeUpdateCommand(UserDataScopeUpdateDto input)
+    {
+        return new UserDataScopeUpdateCommand(
+            input.BasicId,
+            input.DataScope,
+            input.DepartmentId,
+            input.IncludeChildren,
+            input.Remark);
+    }
+
+    private static UserDepartmentAssignCommand ToDepartmentAssignCommand(UserDepartmentAssignDto input)
+    {
+        return new UserDepartmentAssignCommand(input.UserId, input.DepartmentId, input.IsMain, input.Remark);
+    }
+
+    private static UserDepartmentStatusChangeCommand ToDepartmentStatusCommand(UserDepartmentStatusUpdateDto input)
+    {
+        return new UserDepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static UserDepartmentUpdateCommand ToDepartmentUpdateCommand(UserDepartmentUpdateDto input)
+    {
+        return new UserDepartmentUpdateCommand(input.BasicId, input.IsMain, input.Remark);
+    }
+
+    private static UserLockChangeCommand ToLockCommand(UserLockUpdateDto input)
+    {
+        return new UserLockChangeCommand(input.UserId, input.IsLocked, input.LockoutEndTime, input.Remark);
+    }
+
+    private static UserLoginPolicyUpdateCommand ToLoginPolicyCommand(UserLoginPolicyUpdateDto input)
+    {
+        return new UserLoginPolicyUpdateCommand(input.UserId, input.AllowMultiLogin, input.MaxLoginDevices, input.Remark);
+    }
+
+    private static UserPasswordResetCommand ToPasswordResetCommand(UserPasswordResetDto input)
+    {
+        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpiryTime, input.Remark);
+    }
+
+    private static UserPermissionGrantCommand ToPermissionGrantCommand(UserPermissionGrantDto input)
+    {
+        return new UserPermissionGrantCommand(
+            input.UserId,
+            input.PermissionId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
+    private static UserPermissionStatusChangeCommand ToPermissionStatusCommand(UserPermissionStatusUpdateDto input)
+    {
+        return new UserPermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static UserPermissionUpdateCommand ToPermissionUpdateCommand(UserPermissionUpdateDto input)
+    {
+        return new UserPermissionUpdateCommand(
+            input.BasicId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
+    private static UserRoleGrantCommand ToRoleGrantCommand(UserRoleGrantDto input)
+    {
+        return new UserRoleGrantCommand(
+            input.UserId,
+            input.RoleId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
+    private static UserRoleStatusChangeCommand ToRoleStatusCommand(UserRoleStatusUpdateDto input)
+    {
+        return new UserRoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static UserRoleUpdateCommand ToRoleUpdateCommand(UserRoleUpdateDto input)
+    {
+        return new UserRoleUpdateCommand(
+            input.BasicId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
+    private static UserStatusChangeCommand ToStatusCommand(UserStatusUpdateDto input)
+    {
+        return new UserStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static UserUpdateCommand ToUpdateCommand(UserUpdateDto input)
+    {
+        return new UserUpdateCommand(
+            input.BasicId,
+            input.RealName,
+            input.NickName,
+            input.Avatar,
+            input.Email,
+            input.Phone,
+            input.Gender,
+            input.Birthday,
+            input.TimeZone,
+            input.Language,
+            input.Country,
+            input.Remark);
+    }
+
+    private async Task PublishDomainEventAsync(UserSessionRevokedDomainEvent? domainEvent, CancellationToken cancellationToken)
+    {
+        if (domainEvent is null)
+        {
+            return;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await _localEventBus.PublishAsync(domainEvent);
+    }
+
     private UserCreateCommand ToCreateCommand(UserCreateDto input)
     {
         return new UserCreateCommand(
@@ -442,137 +586,6 @@ public sealed class UserAppService
             _currentUser.UserId);
     }
 
-    private static UserUpdateCommand ToUpdateCommand(UserUpdateDto input)
-    {
-        return new UserUpdateCommand(
-            input.BasicId,
-            input.RealName,
-            input.NickName,
-            input.Avatar,
-            input.Email,
-            input.Phone,
-            input.Gender,
-            input.Birthday,
-            input.TimeZone,
-            input.Language,
-            input.Country,
-            input.Remark);
-    }
-
-    private static UserStatusChangeCommand ToStatusCommand(UserStatusUpdateDto input)
-    {
-        return new UserStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserPasswordResetCommand ToPasswordResetCommand(UserPasswordResetDto input)
-    {
-        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpiryTime, input.Remark);
-    }
-
-    private static UserLockChangeCommand ToLockCommand(UserLockUpdateDto input)
-    {
-        return new UserLockChangeCommand(input.UserId, input.IsLocked, input.LockoutEndTime, input.Remark);
-    }
-
-    private static UserLoginPolicyUpdateCommand ToLoginPolicyCommand(UserLoginPolicyUpdateDto input)
-    {
-        return new UserLoginPolicyUpdateCommand(input.UserId, input.AllowMultiLogin, input.MaxLoginDevices, input.Remark);
-    }
-
-    private static UserRoleGrantCommand ToRoleGrantCommand(UserRoleGrantDto input)
-    {
-        return new UserRoleGrantCommand(
-            input.UserId,
-            input.RoleId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserRoleUpdateCommand ToRoleUpdateCommand(UserRoleUpdateDto input)
-    {
-        return new UserRoleUpdateCommand(
-            input.BasicId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserRoleStatusChangeCommand ToRoleStatusCommand(UserRoleStatusUpdateDto input)
-    {
-        return new UserRoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserPermissionGrantCommand ToPermissionGrantCommand(UserPermissionGrantDto input)
-    {
-        return new UserPermissionGrantCommand(
-            input.UserId,
-            input.PermissionId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserPermissionUpdateCommand ToPermissionUpdateCommand(UserPermissionUpdateDto input)
-    {
-        return new UserPermissionUpdateCommand(
-            input.BasicId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserPermissionStatusChangeCommand ToPermissionStatusCommand(UserPermissionStatusUpdateDto input)
-    {
-        return new UserPermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserDataScopeGrantCommand ToDataScopeGrantCommand(UserDataScopeGrantDto input)
-    {
-        return new UserDataScopeGrantCommand(
-            input.UserId,
-            input.DataScope,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.Remark);
-    }
-
-    private static UserDataScopeUpdateCommand ToDataScopeUpdateCommand(UserDataScopeUpdateDto input)
-    {
-        return new UserDataScopeUpdateCommand(
-            input.BasicId,
-            input.DataScope,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.Remark);
-    }
-
-    private static UserDataScopeStatusChangeCommand ToDataScopeStatusCommand(UserDataScopeStatusUpdateDto input)
-    {
-        return new UserDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserDepartmentAssignCommand ToDepartmentAssignCommand(UserDepartmentAssignDto input)
-    {
-        return new UserDepartmentAssignCommand(input.UserId, input.DepartmentId, input.IsMain, input.Remark);
-    }
-
-    private static UserDepartmentUpdateCommand ToDepartmentUpdateCommand(UserDepartmentUpdateDto input)
-    {
-        return new UserDepartmentUpdateCommand(input.BasicId, input.IsMain, input.Remark);
-    }
-
-    private static UserDepartmentStatusChangeCommand ToDepartmentStatusCommand(UserDepartmentStatusUpdateDto input)
-    {
-        return new UserDepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
     private UserSessionRevokeCommand ToSessionRevokeCommand(UserSessionRevokeDto input)
     {
         return new UserSessionRevokeCommand(input.BasicId, input.Reason, _currentUser.UserId);
@@ -581,16 +594,5 @@ public sealed class UserAppService
     private UserSessionsRevokeCommand ToSessionsRevokeCommand(UserSessionsRevokeDto input)
     {
         return new UserSessionsRevokeCommand(input.UserId, input.Reason, _currentUser.UserId);
-    }
-
-    private async Task PublishDomainEventAsync(UserSessionRevokedDomainEvent? domainEvent, CancellationToken cancellationToken)
-    {
-        if (domainEvent is null)
-        {
-            return;
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        await _localEventBus.PublishAsync(domainEvent);
     }
 }

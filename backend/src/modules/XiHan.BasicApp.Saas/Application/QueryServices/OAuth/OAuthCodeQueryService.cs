@@ -37,19 +37,6 @@ public sealed class OAuthCodeQueryService
     : SaasApplicationService, IOAuthCodeQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public OAuthCodeQueryService(
-        IOAuthCodeRepository oauthCodeRepository,
-        IOAuthAppRepository oauthAppRepository,
-        IUserRepository userRepository)
-    {
-        _oauthCodeRepository = oauthCodeRepository;
-        _oauthAppRepository = oauthAppRepository;
-        _userRepository = userRepository;
-    }
-
-    /// <summary>
     /// OAuth 授权码仓储
     /// </summary>
     private readonly IOAuthCodeRepository _oauthCodeRepository;
@@ -63,6 +50,19 @@ public sealed class OAuthCodeQueryService
     /// 用户仓储
     /// </summary>
     private readonly IUserRepository _userRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OAuthCodeQueryService(
+        IOAuthCodeRepository oauthCodeRepository,
+        IOAuthAppRepository oauthAppRepository,
+        IUserRepository userRepository)
+    {
+        _oauthCodeRepository = oauthCodeRepository;
+        _oauthAppRepository = oauthAppRepository;
+        _userRepository = userRepository;
+    }
 
     /// <summary>
     /// 获取 OAuth 授权码分页列表
@@ -191,48 +191,6 @@ public sealed class OAuthCodeQueryService
     }
 
     /// <summary>
-    /// 构建 OAuth 应用映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<string, SysOAuthApp>> BuildAppMapAsync(IEnumerable<string> clientIds, CancellationToken cancellationToken)
-    {
-        var ids = clientIds
-            .Where(clientId => !string.IsNullOrWhiteSpace(clientId))
-            .Select(clientId => clientId.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<string, SysOAuthApp>(StringComparer.OrdinalIgnoreCase);
-        }
-
-        var apps = await _oauthAppRepository.GetListAsync(
-            app => ids.Contains(app.ClientId),
-            app => app.AppName,
-            cancellationToken);
-        return apps.ToDictionary(app => app.ClientId, StringComparer.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 构建用户映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)
-    {
-        var ids = userIds
-            .Where(userId => userId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysUser>();
-        }
-
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
-        return users.ToDictionary(user => user.BasicId);
-    }
-
-    /// <summary>
     /// 校验分页参数
     /// </summary>
     /// <param name="input">查询参数</param>
@@ -275,5 +233,47 @@ public sealed class OAuthCodeQueryService
         {
             throw new ArgumentOutOfRangeException(paramName, message);
         }
+    }
+
+    /// <summary>
+    /// 构建 OAuth 应用映射
+    /// </summary>
+    private async Task<IReadOnlyDictionary<string, SysOAuthApp>> BuildAppMapAsync(IEnumerable<string> clientIds, CancellationToken cancellationToken)
+    {
+        var ids = clientIds
+            .Where(clientId => !string.IsNullOrWhiteSpace(clientId))
+            .Select(clientId => clientId.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<string, SysOAuthApp>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var apps = await _oauthAppRepository.GetListAsync(
+            app => ids.Contains(app.ClientId),
+            app => app.AppName,
+            cancellationToken);
+        return apps.ToDictionary(app => app.ClientId, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 构建用户映射
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)
+    {
+        var ids = userIds
+            .Where(userId => userId > 0)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysUser>();
+        }
+
+        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        return users.ToDictionary(user => user.BasicId);
     }
 }

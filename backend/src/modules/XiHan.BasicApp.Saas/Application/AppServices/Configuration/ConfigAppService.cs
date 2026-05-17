@@ -34,17 +34,16 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class ConfigAppService
     : SaasApplicationService, IConfigAppService
 {
+    private readonly IConfigRepository _configRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public ConfigAppService(IConfigRepository configRepository)
     {
         _configRepository = configRepository;
-    }
-
-    private readonly IConfigRepository _configRepository;
-
-    /// <summary>
+    }
+    /// <summary>
     /// 创建系统配置
     /// </summary>
     [UnitOfWork(true)]
@@ -82,6 +81,27 @@ public sealed class ConfigAppService
 
         var savedConfig = await _configRepository.AddAsync(config, cancellationToken);
         return ConfigApplicationMapper.ToDetailDto(savedConfig);
+    }
+
+    /// <summary>
+    /// 删除系统配置
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Config.Delete)]
+    public async Task DeleteConfigAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var config = await GetConfigOrThrowAsync(id, cancellationToken);
+        if (config.IsBuiltIn)
+        {
+            throw new InvalidOperationException("内置系统配置不能删除。");
+        }
+
+        if (!await _configRepository.DeleteAsync(config, cancellationToken))
+        {
+            throw new InvalidOperationException("系统配置删除失败。");
+        }
     }
 
     /// <summary>
@@ -132,32 +152,12 @@ public sealed class ConfigAppService
         return ConfigApplicationMapper.ToDetailDto(savedConfig);
     }
 
-    /// <summary>
-    /// 删除系统配置
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Config.Delete)]
-    public async Task DeleteConfigAsync(long id, CancellationToken cancellationToken = default)
+    private static void EnsureCodeHasNoWhitespace(string value, string message)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var config = await GetConfigOrThrowAsync(id, cancellationToken);
-        if (config.IsBuiltIn)
+        if (value.Any(char.IsWhiteSpace))
         {
-            throw new InvalidOperationException("内置系统配置不能删除。");
+            throw new InvalidOperationException(message);
         }
-
-        if (!await _configRepository.DeleteAsync(config, cancellationToken))
-        {
-            throw new InvalidOperationException("系统配置删除失败。");
-        }
-    }
-
-    private async Task<SysConfig> GetConfigOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统配置主键必须大于 0。");
-        return await _configRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统配置不存在。");
     }
 
     private static void ValidateCreateInput(ConfigCreateDto input)
@@ -174,11 +174,10 @@ public sealed class ConfigAppService
         EnsureEnum(input.DataType, nameof(input.DataType));
     }
 
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
+    private async Task<SysConfig> GetConfigOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (value.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException(message);
-        }
+        EnsureId(id, "系统配置主键必须大于 0。");
+        return await _configRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统配置不存在。");
     }
 }

@@ -66,6 +66,116 @@ public sealed class SaasIdentitySeeder(
         Logger.LogInformation("SaaS 基础身份数据已就绪，默认登录账号 {UserName}", SuperAdminUserName);
     }
 
+    private static bool ApplySuperAdminRole(SysRole role)
+    {
+        var changed = false;
+        changed |= SetIfChanged(role.TenantId, 0, value => role.TenantId = value);
+        changed |= SetIfChanged(role.RoleCode, SuperAdminRoleCode, value => role.RoleCode = value);
+        changed |= SetIfChanged(role.RoleName, "超级管理员", value => role.RoleName = value);
+        changed |= SetIfChanged(role.RoleDescription, "系统初始化超级管理员角色", value => role.RoleDescription = value);
+        changed |= SetIfChanged(role.RoleType, RoleType.System, value => role.RoleType = value);
+        changed |= SetIfChanged(role.IsGlobal, true, value => role.IsGlobal = value);
+        changed |= SetIfChanged(role.DataScope, DataPermissionScope.All, value => role.DataScope = value);
+        changed |= SetIfChanged(role.MaxMembers, 0, value => role.MaxMembers = value);
+        changed |= SetIfChanged(role.Status, EnableStatus.Enabled, value => role.Status = value);
+        changed |= SetIfChanged(role.Sort, 1, value => role.Sort = value);
+        changed |= SetIfChanged(role.Remark, "系统初始化全局角色", value => role.Remark = value);
+        return changed;
+    }
+
+    private static bool ApplySuperAdminUser(SysUser user, long tenantId, bool overwriteProfile)
+    {
+        var changed = false;
+        changed |= SetIfChanged(user.TenantId, tenantId, value => user.TenantId = value);
+        changed |= SetIfChanged(user.UserName, SuperAdminUserName, value => user.UserName = value);
+        changed |= SetIfChanged(user.Status, EnableStatus.Enabled, value => user.Status = value);
+        changed |= SetIfChanged(user.Language, string.IsNullOrWhiteSpace(user.Language) ? "zh-CN" : user.Language, value => user.Language = value);
+        changed |= SetIfChanged(user.IsSystemAccount, true, value => user.IsSystemAccount = value);
+        changed |= SetIfChanged(user.Remark, "系统初始化超级管理员账号", value => user.Remark = value);
+
+        if (overwriteProfile || string.IsNullOrWhiteSpace(user.RealName))
+        {
+            changed |= SetIfChanged(user.RealName, "超级管理员", value => user.RealName = value);
+        }
+
+        if (overwriteProfile || string.IsNullOrWhiteSpace(user.NickName))
+        {
+            changed |= SetIfChanged(user.NickName, "超级管理员", value => user.NickName = value);
+        }
+
+        if (overwriteProfile || string.IsNullOrWhiteSpace(user.Email))
+        {
+            changed |= SetIfChanged(user.Email, "superadmin@xihan.fun", value => user.Email = value);
+        }
+
+        return changed;
+    }
+
+    private static bool ApplySuperAdminMembership(SysTenantUser member, long tenantId, long userId)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var changed = false;
+        changed |= SetIfChanged(member.TenantId, tenantId, value => member.TenantId = value);
+        changed |= SetIfChanged(member.UserId, userId, value => member.UserId = value);
+        changed |= SetIfChanged(member.MemberType, TenantMemberType.Owner, value => member.MemberType = value);
+        changed |= SetIfChanged(member.InviteStatus, TenantMemberInviteStatus.Accepted, value => member.InviteStatus = value);
+        changed |= SetIfChanged(member.DisplayName, "超级管理员", value => member.DisplayName = value);
+        changed |= SetIfChanged(member.Status, ValidityStatus.Valid, value => member.Status = value);
+        changed |= SetIfChanged(member.Remark, "系统初始化默认租户所有者", value => member.Remark = value);
+
+        if (!member.InvitedTime.HasValue)
+        {
+            member.InvitedTime = now;
+            changed = true;
+        }
+
+        if (!member.RespondedTime.HasValue)
+        {
+            member.RespondedTime = now;
+            changed = true;
+        }
+
+        if (!member.LastActiveTime.HasValue)
+        {
+            member.LastActiveTime = now;
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool ApplySuperAdminUserRole(SysUserRole userRole, long tenantId, long userId, long roleId)
+    {
+        var changed = false;
+        changed |= SetIfChanged(userRole.TenantId, tenantId, value => userRole.TenantId = value);
+        changed |= SetIfChanged(userRole.UserId, userId, value => userRole.UserId = value);
+        changed |= SetIfChanged(userRole.RoleId, roleId, value => userRole.RoleId = value);
+        changed |= SetIfChanged(userRole.Status, ValidityStatus.Valid, value => userRole.Status = value);
+        changed |= SetIfChanged(userRole.GrantReason, "系统初始化超级管理员角色", value => userRole.GrantReason = value);
+        changed |= SetIfChanged(userRole.Remark, "系统初始化角色绑定", value => userRole.Remark = value);
+        return changed;
+    }
+
+    private static void SetBasicId<TEntity>(TEntity entity, long basicId)
+        where TEntity : class
+    {
+        var property = typeof(TEntity).GetProperty(nameof(SysTenant.BasicId));
+        var setter = property?.GetSetMethod(true)
+            ?? throw new InvalidOperationException($"实体 {typeof(TEntity).Name} 未暴露 BasicId setter。");
+        setter.Invoke(entity, [basicId]);
+    }
+
+    private static bool SetIfChanged<T>(T current, T next, Action<T> setter)
+    {
+        if (EqualityComparer<T>.Default.Equals(current, next))
+        {
+            return false;
+        }
+
+        setter(next);
+        return true;
+    }
+
     private async Task<long> EnsureDefaultTenantAsync()
     {
         using var platformScope = _currentTenant.Change(null);
@@ -241,51 +351,6 @@ public sealed class SaasIdentitySeeder(
         return changed;
     }
 
-    private static bool ApplySuperAdminRole(SysRole role)
-    {
-        var changed = false;
-        changed |= SetIfChanged(role.TenantId, 0, value => role.TenantId = value);
-        changed |= SetIfChanged(role.RoleCode, SuperAdminRoleCode, value => role.RoleCode = value);
-        changed |= SetIfChanged(role.RoleName, "超级管理员", value => role.RoleName = value);
-        changed |= SetIfChanged(role.RoleDescription, "系统初始化超级管理员角色", value => role.RoleDescription = value);
-        changed |= SetIfChanged(role.RoleType, RoleType.System, value => role.RoleType = value);
-        changed |= SetIfChanged(role.IsGlobal, true, value => role.IsGlobal = value);
-        changed |= SetIfChanged(role.DataScope, DataPermissionScope.All, value => role.DataScope = value);
-        changed |= SetIfChanged(role.MaxMembers, 0, value => role.MaxMembers = value);
-        changed |= SetIfChanged(role.Status, EnableStatus.Enabled, value => role.Status = value);
-        changed |= SetIfChanged(role.Sort, 1, value => role.Sort = value);
-        changed |= SetIfChanged(role.Remark, "系统初始化全局角色", value => role.Remark = value);
-        return changed;
-    }
-
-    private static bool ApplySuperAdminUser(SysUser user, long tenantId, bool overwriteProfile)
-    {
-        var changed = false;
-        changed |= SetIfChanged(user.TenantId, tenantId, value => user.TenantId = value);
-        changed |= SetIfChanged(user.UserName, SuperAdminUserName, value => user.UserName = value);
-        changed |= SetIfChanged(user.Status, EnableStatus.Enabled, value => user.Status = value);
-        changed |= SetIfChanged(user.Language, string.IsNullOrWhiteSpace(user.Language) ? "zh-CN" : user.Language, value => user.Language = value);
-        changed |= SetIfChanged(user.IsSystemAccount, true, value => user.IsSystemAccount = value);
-        changed |= SetIfChanged(user.Remark, "系统初始化超级管理员账号", value => user.Remark = value);
-
-        if (overwriteProfile || string.IsNullOrWhiteSpace(user.RealName))
-        {
-            changed |= SetIfChanged(user.RealName, "超级管理员", value => user.RealName = value);
-        }
-
-        if (overwriteProfile || string.IsNullOrWhiteSpace(user.NickName))
-        {
-            changed |= SetIfChanged(user.NickName, "超级管理员", value => user.NickName = value);
-        }
-
-        if (overwriteProfile || string.IsNullOrWhiteSpace(user.Email))
-        {
-            changed |= SetIfChanged(user.Email, "superadmin@xihan.fun", value => user.Email = value);
-        }
-
-        return changed;
-    }
-
     private bool ApplySuperAdminSecurity(SysUserSecurity security, long tenantId, long userId, bool resetPassword)
     {
         var now = DateTimeOffset.UtcNow;
@@ -317,70 +382,5 @@ public sealed class SaasIdentitySeeder(
         }
 
         return changed;
-    }
-
-    private static bool ApplySuperAdminMembership(SysTenantUser member, long tenantId, long userId)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var changed = false;
-        changed |= SetIfChanged(member.TenantId, tenantId, value => member.TenantId = value);
-        changed |= SetIfChanged(member.UserId, userId, value => member.UserId = value);
-        changed |= SetIfChanged(member.MemberType, TenantMemberType.Owner, value => member.MemberType = value);
-        changed |= SetIfChanged(member.InviteStatus, TenantMemberInviteStatus.Accepted, value => member.InviteStatus = value);
-        changed |= SetIfChanged(member.DisplayName, "超级管理员", value => member.DisplayName = value);
-        changed |= SetIfChanged(member.Status, ValidityStatus.Valid, value => member.Status = value);
-        changed |= SetIfChanged(member.Remark, "系统初始化默认租户所有者", value => member.Remark = value);
-
-        if (!member.InvitedTime.HasValue)
-        {
-            member.InvitedTime = now;
-            changed = true;
-        }
-
-        if (!member.RespondedTime.HasValue)
-        {
-            member.RespondedTime = now;
-            changed = true;
-        }
-
-        if (!member.LastActiveTime.HasValue)
-        {
-            member.LastActiveTime = now;
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    private static bool ApplySuperAdminUserRole(SysUserRole userRole, long tenantId, long userId, long roleId)
-    {
-        var changed = false;
-        changed |= SetIfChanged(userRole.TenantId, tenantId, value => userRole.TenantId = value);
-        changed |= SetIfChanged(userRole.UserId, userId, value => userRole.UserId = value);
-        changed |= SetIfChanged(userRole.RoleId, roleId, value => userRole.RoleId = value);
-        changed |= SetIfChanged(userRole.Status, ValidityStatus.Valid, value => userRole.Status = value);
-        changed |= SetIfChanged(userRole.GrantReason, "系统初始化超级管理员角色", value => userRole.GrantReason = value);
-        changed |= SetIfChanged(userRole.Remark, "系统初始化角色绑定", value => userRole.Remark = value);
-        return changed;
-    }
-
-    private static void SetBasicId<TEntity>(TEntity entity, long basicId)
-        where TEntity : class
-    {
-        var property = typeof(TEntity).GetProperty(nameof(SysTenant.BasicId));
-        var setter = property?.GetSetMethod(true)
-            ?? throw new InvalidOperationException($"实体 {typeof(TEntity).Name} 未暴露 BasicId setter。");
-        setter.Invoke(entity, [basicId]);
-    }
-
-    private static bool SetIfChanged<T>(T current, T next, Action<T> setter)
-    {
-        if (EqualityComparer<T>.Default.Equals(current, next))
-        {
-            return false;
-        }
-
-        setter(next);
-        return true;
     }
 }

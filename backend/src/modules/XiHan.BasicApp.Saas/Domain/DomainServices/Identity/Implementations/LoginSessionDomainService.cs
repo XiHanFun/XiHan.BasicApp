@@ -26,6 +26,16 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class LoginSessionDomainService
     : ILoginSessionDomainService
 {
+    private readonly IUserRepository _userRepository;
+
+    private readonly IUserSecurityRepository _userSecurityRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly IUserSessionRepository _userSessionRepository;
+
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -41,15 +51,8 @@ public sealed class LoginSessionDomainService
         _tenantUserRepository = tenantUserRepository;
         _userSessionRepository = userSessionRepository;
         _oauthTokenRepository = oauthTokenRepository;
-    }
-
-    private readonly IUserRepository _userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-    private readonly IUserSessionRepository _userSessionRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public async Task<LoginSessionIssueResult> IssuePasswordLoginAsync(
         SysUser user,
         SysUserSecurity? security,

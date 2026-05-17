@@ -32,6 +32,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class RoleAppService
     : SaasApplicationService, IRoleAppService
 {
+    private readonly IRoleDomainService _roleDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,8 +41,6 @@ public sealed class RoleAppService
     {
         _roleDomainService = roleDomainService;
     }
-
-    private readonly IRoleDomainService _roleDomainService;
 
     /// <summary>
     /// 创建角色
@@ -57,42 +57,31 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 更新角色
+    /// 授予角色数据范围
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Role.Update)]
-    public async Task<RoleDetailDto> UpdateRoleAsync(RoleUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Grant)]
+    public async Task<RoleDataScopeDetailDto> CreateRoleDataScopeAsync(RoleDataScopeGrantDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRoleAsync(ToUpdateCommand(input), cancellationToken);
-        return RoleApplicationMapper.ToDetailDto(result.Role);
+        var result = await _roleDomainService.CreateRoleDataScopeAsync(ToGrantDataScopeCommand(input), cancellationToken);
+        return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
     /// <summary>
-    /// 更新角色状态
+    /// 创建角色直接继承关系
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Role.Status)]
-    public async Task<RoleDetailDto> UpdateRoleStatusAsync(RoleStatusUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Create)]
+    public async Task<RoleHierarchyDetailDto> CreateRoleHierarchyAsync(RoleHierarchyCreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRoleStatusAsync(ToStatusCommand(input), cancellationToken);
-        return RoleApplicationMapper.ToDetailDto(result.Role);
-    }
-
-    /// <summary>
-    /// 删除角色
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Role.Delete)]
-    public async Task DeleteRoleAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _roleDomainService.DeleteRoleAsync(id, cancellationToken);
+        var result = await _roleDomainService.CreateRoleHierarchyAsync(ToHierarchyCreateCommand(input), cancellationToken);
+        return RoleHierarchyApplicationMapper.ToDetailDto(result.Hierarchy, result.Ancestor, result.Descendant);
     }
 
     /// <summary>
@@ -110,31 +99,36 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 更新角色权限
+    /// 删除角色
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Update)]
-    public async Task<RolePermissionDetailDto> UpdateRolePermissionAsync(RolePermissionUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.Role.Delete)]
+    public async Task DeleteRoleAsync(long id, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
-
-        var result = await _roleDomainService.UpdateRolePermissionAsync(ToUpdatePermissionCommand(input), cancellationToken);
-        return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
+        await _roleDomainService.DeleteRoleAsync(id, cancellationToken);
     }
 
     /// <summary>
-    /// 更新角色权限状态
+    /// 撤销角色数据范围
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Status)]
-    public async Task<RolePermissionDetailDto> UpdateRolePermissionStatusAsync(RolePermissionStatusUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Revoke)]
+    public async Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+        await _roleDomainService.DeleteRoleDataScopeAsync(id, cancellationToken);
+    }
 
-        var result = await _roleDomainService.UpdateRolePermissionStatusAsync(ToPermissionStatusCommand(input), cancellationToken);
-        return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
+    /// <summary>
+    /// 删除角色直接继承关系
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Delete)]
+    public async Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _roleDomainService.DeleteRoleHierarchyAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -149,17 +143,17 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 授予角色数据范围
+    /// 更新角色
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Grant)]
-    public async Task<RoleDataScopeDetailDto> CreateRoleDataScopeAsync(RoleDataScopeGrantDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.Role.Update)]
+    public async Task<RoleDetailDto> UpdateRoleAsync(RoleUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.CreateRoleDataScopeAsync(ToGrantDataScopeCommand(input), cancellationToken);
-        return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
+        var result = await _roleDomainService.UpdateRoleAsync(ToUpdateCommand(input), cancellationToken);
+        return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
     /// <summary>
@@ -191,39 +185,45 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 撤销角色数据范围
+    /// 更新角色权限
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Revoke)]
-    public async Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _roleDomainService.DeleteRoleDataScopeAsync(id, cancellationToken);
-    }
-
-    /// <summary>
-    /// 创建角色直接继承关系
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Create)]
-    public async Task<RoleHierarchyDetailDto> CreateRoleHierarchyAsync(RoleHierarchyCreateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Update)]
+    public async Task<RolePermissionDetailDto> UpdateRolePermissionAsync(RolePermissionUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.CreateRoleHierarchyAsync(ToHierarchyCreateCommand(input), cancellationToken);
-        return RoleHierarchyApplicationMapper.ToDetailDto(result.Hierarchy, result.Ancestor, result.Descendant);
+        var result = await _roleDomainService.UpdateRolePermissionAsync(ToUpdatePermissionCommand(input), cancellationToken);
+        return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
     /// <summary>
-    /// 删除角色直接继承关系
+    /// 更新角色权限状态
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Delete)]
-    public async Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Status)]
+    public async Task<RolePermissionDetailDto> UpdateRolePermissionStatusAsync(RolePermissionStatusUpdateDto input, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
-        await _roleDomainService.DeleteRoleHierarchyAsync(id, cancellationToken);
+
+        var result = await _roleDomainService.UpdateRolePermissionStatusAsync(ToPermissionStatusCommand(input), cancellationToken);
+        return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
+    }
+
+    /// <summary>
+    /// 更新角色状态
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Role.Status)]
+    public async Task<RoleDetailDto> UpdateRoleStatusAsync(RoleStatusUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _roleDomainService.UpdateRoleStatusAsync(ToStatusCommand(input), cancellationToken);
+        return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
     private static RoleCreateCommand ToCreateCommand(RoleCreateDto input)
@@ -240,22 +240,20 @@ public sealed class RoleAppService
             input.Remark);
     }
 
-    private static RoleUpdateCommand ToUpdateCommand(RoleUpdateDto input)
+    private static RoleDataScopeStatusChangeCommand ToDataScopeStatusCommand(RoleDataScopeStatusUpdateDto input)
     {
-        return new RoleUpdateCommand(
-            input.BasicId,
-            input.RoleName,
-            input.RoleDescription,
-            input.RoleType,
-            input.DataScope,
-            input.MaxMembers,
-            input.Sort,
-            input.Remark);
+        return new RoleDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
     }
 
-    private static RoleStatusChangeCommand ToStatusCommand(RoleStatusUpdateDto input)
+    private static RoleDataScopeGrantCommand ToGrantDataScopeCommand(RoleDataScopeGrantDto input)
     {
-        return new RoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+        return new RoleDataScopeGrantCommand(
+            input.RoleId,
+            input.DepartmentId,
+            input.IncludeChildren,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.Remark);
     }
 
     private static RolePermissionGrantCommand ToGrantPermissionCommand(RolePermissionGrantDto input)
@@ -270,15 +268,9 @@ public sealed class RoleAppService
             input.Remark);
     }
 
-    private static RolePermissionUpdateCommand ToUpdatePermissionCommand(RolePermissionUpdateDto input)
+    private static RoleHierarchyCreateCommand ToHierarchyCreateCommand(RoleHierarchyCreateDto input)
     {
-        return new RolePermissionUpdateCommand(
-            input.BasicId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
+        return new RoleHierarchyCreateCommand(input.AncestorId, input.DescendantId, input.Remark);
     }
 
     private static RolePermissionStatusChangeCommand ToPermissionStatusCommand(RolePermissionStatusUpdateDto input)
@@ -286,14 +278,21 @@ public sealed class RoleAppService
         return new RolePermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
     }
 
-    private static RoleDataScopeGrantCommand ToGrantDataScopeCommand(RoleDataScopeGrantDto input)
+    private static RoleStatusChangeCommand ToStatusCommand(RoleStatusUpdateDto input)
     {
-        return new RoleDataScopeGrantCommand(
-            input.RoleId,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.EffectiveTime,
-            input.ExpirationTime,
+        return new RoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static RoleUpdateCommand ToUpdateCommand(RoleUpdateDto input)
+    {
+        return new RoleUpdateCommand(
+            input.BasicId,
+            input.RoleName,
+            input.RoleDescription,
+            input.RoleType,
+            input.DataScope,
+            input.MaxMembers,
+            input.Sort,
             input.Remark);
     }
 
@@ -307,13 +306,14 @@ public sealed class RoleAppService
             input.Remark);
     }
 
-    private static RoleDataScopeStatusChangeCommand ToDataScopeStatusCommand(RoleDataScopeStatusUpdateDto input)
+    private static RolePermissionUpdateCommand ToUpdatePermissionCommand(RolePermissionUpdateDto input)
     {
-        return new RoleDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static RoleHierarchyCreateCommand ToHierarchyCreateCommand(RoleHierarchyCreateDto input)
-    {
-        return new RoleHierarchyCreateCommand(input.AncestorId, input.DescendantId, input.Remark);
+        return new RolePermissionUpdateCommand(
+            input.BasicId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
     }
 }

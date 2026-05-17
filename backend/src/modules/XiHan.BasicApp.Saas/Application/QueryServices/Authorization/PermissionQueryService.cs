@@ -38,19 +38,6 @@ public sealed class PermissionQueryService
     : SaasApplicationService, IPermissionQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public PermissionQueryService(
-        IPermissionRepository permissionRepository,
-        IResourceRepository resourceRepository,
-        IOperationRepository operationRepository)
-    {
-        _permissionRepository = permissionRepository;
-        _resourceRepository = resourceRepository;
-        _operationRepository = operationRepository;
-    }
-
-    /// <summary>
     /// 权限仓储
     /// </summary>
     private readonly IPermissionRepository _permissionRepository;
@@ -64,6 +51,19 @@ public sealed class PermissionQueryService
     /// 操作仓储
     /// </summary>
     private readonly IOperationRepository _operationRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionQueryService(
+        IPermissionRepository permissionRepository,
+        IResourceRepository resourceRepository,
+        IOperationRepository operationRepository)
+    {
+        _permissionRepository = permissionRepository;
+        _resourceRepository = resourceRepository;
+        _operationRepository = operationRepository;
+    }
 
     /// <summary>
     /// 获取权限分页列表
@@ -275,6 +275,15 @@ public sealed class PermissionQueryService
     }
 
     /// <summary>
+    /// 从可空主键映射中读取实体
+    /// </summary>
+    private static TValue? TryGetMapValue<TValue>(IReadOnlyDictionary<long, TValue> map, long? id)
+        where TValue : class
+    {
+        return id.HasValue && map.TryGetValue(id.Value, out var value) ? value : null;
+    }
+
+    /// <summary>
     /// 构建资源定义映射
     /// </summary>
     private async Task<IReadOnlyDictionary<long, SysResource>> BuildResourceMapAsync(IEnumerable<long?> resourceIds, CancellationToken cancellationToken)
@@ -312,14 +321,5 @@ public sealed class PermissionQueryService
 
         var operations = await _operationRepository.GetByIdsAsync(ids, cancellationToken);
         return operations.ToDictionary(operation => operation.BasicId);
-    }
-
-    /// <summary>
-    /// 从可空主键映射中读取实体
-    /// </summary>
-    private static TValue? TryGetMapValue<TValue>(IReadOnlyDictionary<long, TValue> map, long? id)
-        where TValue : class
-    {
-        return id.HasValue && map.TryGetValue(id.Value, out var value) ? value : null;
     }
 }

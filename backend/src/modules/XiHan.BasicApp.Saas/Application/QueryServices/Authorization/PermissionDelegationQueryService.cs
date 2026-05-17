@@ -37,21 +37,6 @@ public sealed class PermissionDelegationQueryService
     : SaasApplicationService, IPermissionDelegationQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public PermissionDelegationQueryService(
-        IPermissionDelegationRepository permissionDelegationRepository,
-        ITenantUserRepository tenantUserRepository,
-        IPermissionRepository permissionRepository,
-        IRoleRepository roleRepository)
-    {
-        _permissionDelegationRepository = permissionDelegationRepository;
-        _tenantUserRepository = tenantUserRepository;
-        _permissionRepository = permissionRepository;
-        _roleRepository = roleRepository;
-    }
-
-    /// <summary>
     /// 权限委托仓储
     /// </summary>
     private readonly IPermissionDelegationRepository _permissionDelegationRepository;
@@ -70,6 +55,21 @@ public sealed class PermissionDelegationQueryService
     /// 角色仓储
     /// </summary>
     private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionDelegationQueryService(
+        IPermissionDelegationRepository permissionDelegationRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPermissionRepository permissionRepository,
+        IRoleRepository roleRepository)
+    {
+        _permissionDelegationRepository = permissionDelegationRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _permissionRepository = permissionRepository;
+        _roleRepository = roleRepository;
+    }
 
     /// <summary>
     /// 获取权限委托分页列表

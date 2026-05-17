@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -36,6 +36,12 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class NotificationAppService
     : SaasApplicationService, INotificationAppService
 {
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
+    private readonly IUserRepository _userRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -47,13 +53,8 @@ public sealed class NotificationAppService
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
         _userRepository = userRepository;
-    }
-
-    private readonly INotificationRepository _notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository;
-    private readonly IUserRepository _userRepository;
-
-    /// <summary>
+    }
+    /// <summary>
     /// 创建系统通知
     /// </summary>
     [UnitOfWork(true)]
@@ -95,6 +96,51 @@ public sealed class NotificationAppService
     }
 
     /// <summary>
+    /// 删除系统通知
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
+    public async Task DeleteNotificationAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var notification = await GetNotificationOrThrowAsync(id, cancellationToken);
+        _ = await _userNotificationRepository.DeleteAsync(item => item.NotificationId == notification.BasicId, cancellationToken);
+        if (!await _notificationRepository.DeleteAsync(notification, cancellationToken))
+        {
+            throw new InvalidOperationException("系统通知删除失败。");
+        }
+    }
+
+    /// <summary>
+    /// 发布系统通知
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Message.Publish)]
+    public async Task<NotificationPublishResultDto> PublishNotificationAsync(NotificationPublishDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var notification = await GetNotificationOrThrowAsync(input.BasicId, cancellationToken);
+        var targetType = input.TargetType ?? notification.TargetType;
+        IReadOnlyList<long> targetUserIds = input.UserIds ?? [];
+        if (targetType == NotificationTargetType.User && targetUserIds.Count == 0 && !string.IsNullOrWhiteSpace(notification.TargetValue))
+        {
+            targetUserIds = JsonSerializer.Deserialize<long[]>(notification.TargetValue) ?? [];
+        }
+
+        var recipientCount = await PublishInternalAsync(notification, targetUserIds, targetType, cancellationToken);
+        _ = await _notificationRepository.UpdateAsync(notification, cancellationToken);
+        return new NotificationPublishResultDto
+        {
+            BasicId = notification.BasicId,
+            RecipientCount = recipientCount,
+            SendTime = notification.SendTime
+        };
+    }
+
+    /// <summary>
     /// 更新系统通知
     /// </summary>
     [UnitOfWork(true)]
@@ -132,49 +178,57 @@ public sealed class NotificationAppService
         return NotificationApplicationMapper.ToDetailDto(savedNotification);
     }
 
-    /// <summary>
-    /// 发布系统通知
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Publish)]
-    public async Task<NotificationPublishResultDto> PublishNotificationAsync(NotificationPublishDto input, CancellationToken cancellationToken = default)
+    private static long[] NormalizeUserIds(IReadOnlyList<long>? inputUserIds)
     {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var notification = await GetNotificationOrThrowAsync(input.BasicId, cancellationToken);
-        var targetType = input.TargetType ?? notification.TargetType;
-        IReadOnlyList<long> targetUserIds = input.UserIds ?? [];
-        if (targetType == NotificationTargetType.User && targetUserIds.Count == 0 && !string.IsNullOrWhiteSpace(notification.TargetValue))
+        var source = inputUserIds ?? [];
+        var userIds = source
+            .Where(userId => userId > 0)
+            .Distinct()
+            .ToArray();
+        if (userIds.Length != source.Count)
         {
-            targetUserIds = JsonSerializer.Deserialize<long[]>(notification.TargetValue) ?? [];
+            throw new ArgumentOutOfRangeException(nameof(inputUserIds), "接收用户主键必须大于 0 且不能重复。");
         }
 
-        var recipientCount = await PublishInternalAsync(notification, targetUserIds, targetType, cancellationToken);
-        _ = await _notificationRepository.UpdateAsync(notification, cancellationToken);
-        return new NotificationPublishResultDto
-        {
-            BasicId = notification.BasicId,
-            RecipientCount = recipientCount,
-            SendTime = notification.SendTime
-        };
+        return userIds;
     }
 
-    /// <summary>
-    /// 删除系统通知
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
-    public async Task DeleteNotificationAsync(long id, CancellationToken cancellationToken = default)
+    private static void ValidateNotificationInput(
+        NotificationType notificationType,
+        NotificationTargetType targetType,
+        string title,
+        string? icon,
+        string? link,
+        string? businessType,
+        long? businessId,
+        DateTimeOffset? sendTime,
+        DateTimeOffset? expireTime,
+        string? remark)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var notification = await GetNotificationOrThrowAsync(id, cancellationToken);
-        _ = await _userNotificationRepository.DeleteAsync(item => item.NotificationId == notification.BasicId, cancellationToken);
-        if (!await _notificationRepository.DeleteAsync(notification, cancellationToken))
+        EnsureEnum(notificationType, nameof(notificationType));
+        EnsureEnum(targetType, nameof(targetType));
+        if (targetType is not NotificationTargetType.All and not NotificationTargetType.User)
         {
-            throw new InvalidOperationException("系统通知删除失败。");
+            throw new NotSupportedException("系统通知暂只支持全员或指定用户目标。");
         }
+
+        _ = Required(title, 200, nameof(title), "通知标题不能超过 200 个字符。");
+        _ = Optional(icon, 100, nameof(icon), "通知图标不能超过 100 个字符。");
+        _ = Optional(link, 500, nameof(link), "通知链接不能超过 500 个字符。");
+        _ = Optional(businessType, 100, nameof(businessType), "业务类型不能超过 100 个字符。");
+        _ = Optional(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
+        EnsureOptionalId(businessId, nameof(businessId), "业务主键必须大于 0。");
+        if (sendTime.HasValue && expireTime.HasValue && expireTime.Value <= sendTime.Value)
+        {
+            throw new ArgumentOutOfRangeException(nameof(expireTime), "过期时间必须晚于发送时间。");
+        }
+    }
+
+    private async Task<SysNotification> GetNotificationOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统通知主键必须大于 0。");
+        return await _notificationRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统通知不存在。");
     }
 
     private async Task<int> PublishInternalAsync(SysNotification notification, IReadOnlyList<long> inputUserIds, NotificationTargetType targetType, CancellationToken cancellationToken)
@@ -227,58 +281,5 @@ public sealed class NotificationAppService
         }
 
         return NormalizeUserIds(inputUserIds);
-    }
-
-    private static long[] NormalizeUserIds(IReadOnlyList<long>? inputUserIds)
-    {
-        var source = inputUserIds ?? [];
-        var userIds = source
-            .Where(userId => userId > 0)
-            .Distinct()
-            .ToArray();
-        if (userIds.Length != source.Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(inputUserIds), "接收用户主键必须大于 0 且不能重复。");
-        }
-
-        return userIds;
-    }
-
-    private async Task<SysNotification> GetNotificationOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统通知主键必须大于 0。");
-        return await _notificationRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统通知不存在。");
-    }
-
-    private static void ValidateNotificationInput(
-        NotificationType notificationType,
-        NotificationTargetType targetType,
-        string title,
-        string? icon,
-        string? link,
-        string? businessType,
-        long? businessId,
-        DateTimeOffset? sendTime,
-        DateTimeOffset? expireTime,
-        string? remark)
-    {
-        EnsureEnum(notificationType, nameof(notificationType));
-        EnsureEnum(targetType, nameof(targetType));
-        if (targetType is not NotificationTargetType.All and not NotificationTargetType.User)
-        {
-            throw new NotSupportedException("系统通知暂只支持全员或指定用户目标。");
-        }
-
-        _ = Required(title, 200, nameof(title), "通知标题不能超过 200 个字符。");
-        _ = Optional(icon, 100, nameof(icon), "通知图标不能超过 100 个字符。");
-        _ = Optional(link, 500, nameof(link), "通知链接不能超过 500 个字符。");
-        _ = Optional(businessType, 100, nameof(businessType), "业务类型不能超过 100 个字符。");
-        _ = Optional(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-        EnsureOptionalId(businessId, nameof(businessId), "业务主键必须大于 0。");
-        if (sendTime.HasValue && expireTime.HasValue && expireTime.Value <= sendTime.Value)
-        {
-            throw new ArgumentOutOfRangeException(nameof(expireTime), "过期时间必须晚于发送时间。");
-        }
     }
 }

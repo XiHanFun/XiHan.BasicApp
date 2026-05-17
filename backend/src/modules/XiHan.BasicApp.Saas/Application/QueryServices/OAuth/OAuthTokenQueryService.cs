@@ -37,21 +37,6 @@ public sealed class OAuthTokenQueryService
     : SaasApplicationService, IOAuthTokenQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public OAuthTokenQueryService(
-        IOAuthTokenRepository oauthTokenRepository,
-        IOAuthAppRepository oauthAppRepository,
-        IUserSessionRepository userSessionRepository,
-        IUserRepository userRepository)
-    {
-        _oauthTokenRepository = oauthTokenRepository;
-        _oauthAppRepository = oauthAppRepository;
-        _userSessionRepository = userSessionRepository;
-        _userRepository = userRepository;
-    }
-
-    /// <summary>
     /// OAuth Token 仓储
     /// </summary>
     private readonly IOAuthTokenRepository _oauthTokenRepository;
@@ -70,6 +55,21 @@ public sealed class OAuthTokenQueryService
     /// 用户仓储
     /// </summary>
     private readonly IUserRepository _userRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OAuthTokenQueryService(
+        IOAuthTokenRepository oauthTokenRepository,
+        IOAuthAppRepository oauthAppRepository,
+        IUserSessionRepository userSessionRepository,
+        IUserRepository userRepository)
+    {
+        _oauthTokenRepository = oauthTokenRepository;
+        _oauthAppRepository = oauthAppRepository;
+        _userSessionRepository = userSessionRepository;
+        _userRepository = userRepository;
+    }
 
     /// <summary>
     /// 获取 OAuth Token 分页列表
@@ -238,69 +238,6 @@ public sealed class OAuthTokenQueryService
     }
 
     /// <summary>
-    /// 构建 OAuth 应用映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<string, SysOAuthApp>> BuildAppMapAsync(IEnumerable<string> clientIds, CancellationToken cancellationToken)
-    {
-        var ids = clientIds
-            .Where(clientId => !string.IsNullOrWhiteSpace(clientId))
-            .Select(clientId => clientId.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<string, SysOAuthApp>(StringComparer.OrdinalIgnoreCase);
-        }
-
-        var apps = await _oauthAppRepository.GetListAsync(
-            app => ids.Contains(app.ClientId),
-            app => app.AppName,
-            cancellationToken);
-        return apps.ToDictionary(app => app.ClientId, StringComparer.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 构建会话映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysUserSession>> BuildSessionMapAsync(IEnumerable<long?> sessionIds, CancellationToken cancellationToken)
-    {
-        var ids = sessionIds
-            .Where(sessionId => sessionId > 0)
-            .Select(sessionId => sessionId!.Value)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysUserSession>();
-        }
-
-        var sessions = await _userSessionRepository.GetByIdsAsync(ids, cancellationToken);
-        return sessions.ToDictionary(session => session.BasicId);
-    }
-
-    /// <summary>
-    /// 构建用户映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long?> userIds, CancellationToken cancellationToken)
-    {
-        var ids = userIds
-            .Where(userId => userId > 0)
-            .Select(userId => userId!.Value)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysUser>();
-        }
-
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
-        return users.ToDictionary(user => user.BasicId);
-    }
-
-    /// <summary>
     /// 校验分页参数
     /// </summary>
     /// <param name="input">查询参数</param>
@@ -366,5 +303,68 @@ public sealed class OAuthTokenQueryService
         {
             throw new ArgumentOutOfRangeException(paramName, message);
         }
+    }
+
+    /// <summary>
+    /// 构建 OAuth 应用映射
+    /// </summary>
+    private async Task<IReadOnlyDictionary<string, SysOAuthApp>> BuildAppMapAsync(IEnumerable<string> clientIds, CancellationToken cancellationToken)
+    {
+        var ids = clientIds
+            .Where(clientId => !string.IsNullOrWhiteSpace(clientId))
+            .Select(clientId => clientId.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<string, SysOAuthApp>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var apps = await _oauthAppRepository.GetListAsync(
+            app => ids.Contains(app.ClientId),
+            app => app.AppName,
+            cancellationToken);
+        return apps.ToDictionary(app => app.ClientId, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 构建会话映射
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, SysUserSession>> BuildSessionMapAsync(IEnumerable<long?> sessionIds, CancellationToken cancellationToken)
+    {
+        var ids = sessionIds
+            .Where(sessionId => sessionId > 0)
+            .Select(sessionId => sessionId!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysUserSession>();
+        }
+
+        var sessions = await _userSessionRepository.GetByIdsAsync(ids, cancellationToken);
+        return sessions.ToDictionary(session => session.BasicId);
+    }
+
+    /// <summary>
+    /// 构建用户映射
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long?> userIds, CancellationToken cancellationToken)
+    {
+        var ids = userIds
+            .Where(userId => userId > 0)
+            .Select(userId => userId!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysUser>();
+        }
+
+        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        return users.ToDictionary(user => user.BasicId);
     }
 }

@@ -38,6 +38,16 @@ public sealed class DictQueryService
     : SaasApplicationService, IDictQueryService
 {
     /// <summary>
+    /// 系统字典仓储
+    /// </summary>
+    private readonly IDictRepository _dictRepository;
+
+    /// <summary>
+    /// 系统字典项仓储
+    /// </summary>
+    private readonly IDictItemRepository _dictItemRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public DictQueryService(
@@ -47,16 +57,6 @@ public sealed class DictQueryService
         _dictRepository = dictRepository;
         _dictItemRepository = dictItemRepository;
     }
-
-    /// <summary>
-    /// 系统字典仓储
-    /// </summary>
-    private readonly IDictRepository _dictRepository;
-
-    /// <summary>
-    /// 系统字典项仓储
-    /// </summary>
-    private readonly IDictItemRepository _dictItemRepository;
 
     /// <summary>
     /// 获取系统字典分页列表

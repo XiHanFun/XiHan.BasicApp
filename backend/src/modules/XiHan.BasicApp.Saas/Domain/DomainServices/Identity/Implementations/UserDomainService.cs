@@ -29,6 +29,83 @@ public sealed class UserDomainService
     : IUserDomainService
 {
     /// <summary>
+    /// 用户仓储
+    /// </summary>
+    private readonly IUserRepository _userRepository;
+
+    // ================================================================
+    // 字段 — 用户核心
+    // ================================================================
+    /// <summary>
+    /// 用户安全仓储
+    /// </summary>
+    private readonly IUserSecurityRepository _userSecurityRepository;
+
+    /// <summary>
+    /// 租户成员仓储
+    /// </summary>
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 密码哈希服务
+    /// </summary>
+    private readonly IPasswordHasher _passwordHasher;
+
+    /// <summary>
+    /// 认证服务
+    /// </summary>
+    private readonly IAuthenticationService _authenticationService;
+
+    /// <summary>
+    /// 用户角色仓储
+    /// </summary>
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    // ================================================================
+    // 字段 — 用户角色
+    // ================================================================
+    /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
+    /// 用户直授权限仓储
+    /// </summary>
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
+    // ================================================================
+    // 字段 — 用户直授权限
+    // ================================================================
+    /// <summary>
+    /// 权限仓储
+    /// </summary>
+    private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
+    /// 用户数据范围仓储
+    /// </summary>
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
+
+    // ================================================================
+    // 字段 — 用户数据范围
+    // ================================================================
+    /// <summary>
+    /// 部门仓储
+    /// </summary>
+    private readonly IDepartmentRepository _departmentRepository;
+
+    /// <summary>
+    /// 用户部门仓储
+    /// </summary>
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+
+    /// <summary>
+    /// 用户会话仓储
+    /// </summary>
+    private readonly IUserSessionRepository _userSessionRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserDomainService(
@@ -62,96 +139,11 @@ public sealed class UserDomainService
     }
 
     // ================================================================
-    // 字段 — 用户核心
-    // ================================================================
-
-    /// <summary>
-    /// 用户仓储
-    /// </summary>
-    private readonly IUserRepository _userRepository;
-
-    /// <summary>
-    /// 用户安全仓储
-    /// </summary>
-    private readonly IUserSecurityRepository _userSecurityRepository;
-
-    /// <summary>
-    /// 租户成员仓储
-    /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository;
-
-    /// <summary>
-    /// 密码哈希服务
-    /// </summary>
-    private readonly IPasswordHasher _passwordHasher;
-
-    /// <summary>
-    /// 认证服务
-    /// </summary>
-    private readonly IAuthenticationService _authenticationService;
-
-
-    // ================================================================
-    // 字段 — 用户角色
-    // ================================================================
-
-    /// <summary>
-    /// 用户角色仓储
-    /// </summary>
-    private readonly IUserRoleRepository _userRoleRepository;
-
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
-    private readonly IRoleRepository _roleRepository;
-
-    // ================================================================
-    // 字段 — 用户直授权限
-    // ================================================================
-
-    /// <summary>
-    /// 用户直授权限仓储
-    /// </summary>
-    private readonly IUserPermissionRepository _userPermissionRepository;
-
-    /// <summary>
-    /// 权限仓储
-    /// </summary>
-    private readonly IPermissionRepository _permissionRepository;
-
-    // ================================================================
-    // 字段 — 用户数据范围
-    // ================================================================
-
-    /// <summary>
-    /// 用户数据范围仓储
-    /// </summary>
-    private readonly IUserDataScopeRepository _userDataScopeRepository;
-
-    /// <summary>
-    /// 部门仓储
-    /// </summary>
-    private readonly IDepartmentRepository _departmentRepository;
-
-    // ================================================================
     // 字段 — 用户部门归属
     // ================================================================
-
-    /// <summary>
-    /// 用户部门仓储
-    /// </summary>
-    private readonly IUserDepartmentRepository _userDepartmentRepository;
-
     // ================================================================
     // 字段 — 用户会话
     // ================================================================
-
-    /// <summary>
-    /// 用户会话仓储
-    /// </summary>
-    private readonly IUserSessionRepository _userSessionRepository;
-
-
     // ================================================================
     // #region 用户核心 (原始 UserAppService 方法)
     // ================================================================
@@ -996,218 +988,6 @@ public sealed class UserDomainService
     // ---- 用户核心辅助 ----
 
     /// <summary>
-    /// 创建用户安全记录
-    /// </summary>
-    private async Task CreateUserSecurityAsync(long userId, string password, DateTimeOffset now, string? remark, CancellationToken cancellationToken)
-    {
-        var userSecurity = new SysUserSecurity
-        {
-            UserId = userId,
-            Password = _passwordHasher.HashPassword(password),
-            LastPasswordChangeTime = now,
-            FailedLoginAttempts = 0,
-            IsLocked = false,
-            TwoFactorEnabled = false,
-            TwoFactorMethod = TwoFactorMethod.None,
-            SecurityStamp = NewSecurityStamp(),
-            EmailVerified = false,
-            PhoneVerified = false,
-            AllowMultiLogin = true,
-            MaxLoginDevices = 0,
-            LastSecurityCheckTime = now,
-            Remark = NormalizeNullable(remark)
-        };
-
-        _ = await _userSecurityRepository.AddAsync(userSecurity, cancellationToken);
-    }
-
-    /// <summary>
-    /// 创建当前租户成员记录
-    /// </summary>
-    private async Task CreateTenantMembershipAsync(long userId, UserCreateCommand command, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var tenantMember = new SysTenantUser
-        {
-            UserId = userId,
-            MemberType = command.MemberType,
-            InviteStatus = TenantMemberInviteStatus.Accepted,
-            InvitedBy = command.OperatorUserId,
-            InvitedTime = now,
-            RespondedTime = now,
-            EffectiveTime = command.EffectiveTime,
-            ExpirationTime = command.ExpirationTime,
-            DisplayName = NormalizeNullable(command.DisplayName),
-            InviteRemark = NormalizeNullable(command.InviteRemark),
-            Status = ValidityStatus.Valid,
-            Remark = NormalizeNullable(command.Remark)
-        };
-
-        _ = await _tenantUserRepository.AddAsync(tenantMember, cancellationToken);
-    }
-
-    /// <summary>
-    /// 获取用户，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUser> GetUserOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户主键必须大于 0。");
-        }
-
-        return await _userRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户不存在。");
-    }
-
-    /// <summary>
-    /// 校验用户能否停用
-    /// </summary>
-    private async Task EnsureUserCanBeDisabledAsync(SysUser user, CancellationToken cancellationToken)
-    {
-        if (user.IsSystemAccount)
-        {
-            throw new InvalidOperationException("系统内置账号不能停用。");
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
-        {
-            throw new InvalidOperationException("租户所有者账号不能直接停用。");
-        }
-    }
-
-    /// <summary>
-    /// 校验用户能否删除
-    /// </summary>
-    private async Task<SysTenantUser?> EnsureUserCanBeDeletedAsync(SysUser user, CancellationToken cancellationToken)
-    {
-        if (user.IsSystemAccount)
-        {
-            throw new InvalidOperationException("系统内置账号不能删除。");
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
-        {
-            throw new InvalidOperationException("租户所有者账号不能直接删除。");
-        }
-
-        return membership;
-    }
-
-    /// <summary>
-    /// 重置联系方式验证状态
-    /// </summary>
-    private async Task ResetContactVerificationAsync(long userId, bool emailChanged, bool phoneChanged, CancellationToken cancellationToken)
-    {
-        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == userId, cancellationToken);
-        if (security is null)
-        {
-            return;
-        }
-
-        if (emailChanged)
-        {
-            security.EmailVerified = false;
-        }
-
-        if (phoneChanged)
-        {
-            security.PhoneVerified = false;
-        }
-
-        security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-    }
-
-    /// <summary>
-    /// 刷新安全戳
-    /// </summary>
-    private async Task RefreshSecurityStampAsync(long userId, CancellationToken cancellationToken)
-    {
-        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == userId, cancellationToken);
-        if (security is null)
-        {
-            return;
-        }
-
-        security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-    }
-
-    /// <summary>
-    /// 软删除用户安全记录
-    /// </summary>
-    private async Task SoftDeleteUserSecurityAsync(long userId, CancellationToken cancellationToken)
-    {
-        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == userId, cancellationToken);
-        if (security is null)
-        {
-            return;
-        }
-
-        security.IsDeleted = true;
-        security.DeletedTime = DateTimeOffset.UtcNow;
-        security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-    }
-
-    // ---- 用户安全辅助 ----
-
-    /// <summary>
-    /// 获取用户与安全记录，不存在时抛出异常
-    /// </summary>
-    private async Task<(SysUser User, SysUserSecurity Security)> GetUserSecurityOrThrowAsync(long userId, CancellationToken cancellationToken)
-    {
-        if (userId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
-        }
-
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("用户不存在。");
-        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == user.BasicId, cancellationToken)
-            ?? throw new InvalidOperationException("用户安全记录不存在。");
-
-        return (user, security);
-    }
-
-    /// <summary>
-    /// 校验用户能否被锁定
-    /// </summary>
-    private async Task EnsureUserCanBeLockedAsync(SysUser user, CancellationToken cancellationToken)
-    {
-        if (user.IsSystemAccount)
-        {
-            throw new InvalidOperationException("系统内置账号不能通过用户安全服务锁定。");
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
-        {
-            throw new InvalidOperationException("租户所有者账号不能通过用户安全服务锁定。");
-        }
-    }
-
-    /// <summary>
-    /// 校验密码策略 (SysUser 重载)
-    /// </summary>
-    private async Task EnsurePasswordMeetsPolicyAsync(SysUser user, string password, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var blacklist = BuildPasswordBlacklist(user);
-        var result = await _authenticationService.ValidatePasswordStrengthAsync(password, blacklist);
-        if (result.IsValid)
-        {
-            return;
-        }
-
-        var errors = result.Errors.Count > 0 ? string.Join("；", result.Errors) : result.Message;
-        throw new InvalidOperationException($"新密码不符合安全要求：{errors}");
-    }
-
-    /// <summary>
     /// 构建密码黑名单 (SysUser 重载)
     /// </summary>
     private static List<string> BuildPasswordBlacklist(SysUser user)
@@ -1227,272 +1007,12 @@ public sealed class UserDomainService
         ];
     }
 
-    // ---- 用户角色辅助 ----
-
-    /// <summary>
-    /// 获取用户角色绑定，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUserRole> GetUserRoleOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户角色绑定主键必须大于 0。");
-        }
-
-        return await _userRoleRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户角色绑定不存在。");
-    }
-
-    /// <summary>
-    /// 获取可授权角色，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysRole> GetAssignableRoleOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-
-        if (role.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用角色不能分配给用户。");
-        }
-
-        if (role.RoleType == RoleType.System)
-        {
-            throw new InvalidOperationException("系统角色必须通过平台运维流程分配。");
-        }
-
-        return role;
-    }
-
-    // ---- 用户直授权限辅助 ----
-
-    /// <summary>
-    /// 获取用户直授权限绑定，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUserPermission> GetUserPermissionOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户直授权限绑定主键必须大于 0。");
-        }
-
-        return await _userPermissionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户直授权限绑定不存在。");
-    }
-
-    /// <summary>
-    /// 获取可授权权限，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysPermission> GetGrantablePermissionOrThrowAsync(long permissionId, CancellationToken cancellationToken)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
-            ?? throw new InvalidOperationException("权限不存在。");
-
-        if (permission.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用权限不能直授给用户。");
-        }
-
-        return permission;
-    }
-
-    // ---- 用户数据范围辅助 ----
-
-    /// <summary>
-    /// 获取用户数据范围绑定，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUserDataScope> GetUserDataScopeOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户数据范围绑定主键必须大于 0。");
-        }
-
-        return await _userDataScopeRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户数据范围绑定不存在。");
-    }
-
-    /// <summary>
-    /// 校验用户数据范围覆盖可持久化
-    /// </summary>
-    private async Task EnsureCanPersistScopeAsync(long userId, DataPermissionScope dataScope, long departmentId, long? excludeId, CancellationToken cancellationToken)
-    {
-        var hasOtherMode = dataScope == DataPermissionScope.Custom
-            ? await _userDataScopeRepository.AnyAsync(
-                scope => scope.UserId == userId && scope.DataScope != DataPermissionScope.Custom && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
-                cancellationToken)
-            : await _userDataScopeRepository.AnyAsync(
-                scope => scope.UserId == userId && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
-                cancellationToken);
-
-        if (hasOtherMode)
-        {
-            throw new InvalidOperationException("用户数据范围覆盖模式冲突。");
-        }
-
-        if (await _userDataScopeRepository.AnyAsync(
-            scope => scope.UserId == userId && scope.DepartmentId == departmentId && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
-            cancellationToken))
-        {
-            throw new InvalidOperationException("用户数据范围已绑定。");
-        }
-    }
-
-    /// <summary>
-    /// 获取数据范围对应部门，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysDepartment?> GetDepartmentForScopeOrThrowAsync(DataPermissionScope dataScope, long? departmentId, CancellationToken cancellationToken)
-    {
-        if (dataScope == DataPermissionScope.Custom)
-        {
-            if (!departmentId.HasValue || departmentId.Value <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(departmentId), "自定义用户数据范围必须指定部门主键。");
-            }
-
-            return await GetEnabledDepartmentOrThrowAsync(departmentId.Value, cancellationToken);
-        }
-
-        if (departmentId.HasValue && departmentId.Value > 0)
-        {
-            throw new InvalidOperationException("非自定义用户数据范围不能指定部门。");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 获取已启用部门，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysDepartment> GetEnabledDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
-            ?? throw new InvalidOperationException("部门不存在。");
-
-        if (department.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用部门不能绑定到用户数据范围。");
-        }
-
-        return department;
-    }
-
-    /// <summary>
-    /// 按需获取部门
-    /// </summary>
-    private async Task<SysDepartment?> GetDepartmentOrDefaultAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        return departmentId > 0
-            ? await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
-            : null;
-    }
-
     /// <summary>
     /// 解析持久化部门主键
     /// </summary>
     private static long ResolveDataScopeDepartmentId(DataPermissionScope dataScope, long? departmentId)
     {
         return dataScope == DataPermissionScope.Custom ? departmentId!.Value : 0;
-    }
-
-    // ---- 用户部门辅助 ----
-
-    /// <summary>
-    /// 获取用户部门归属，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUserDepartment> GetUserDepartmentOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户部门归属主键必须大于 0。");
-        }
-
-        return await _userDepartmentRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户部门归属不存在。");
-    }
-
-    /// <summary>
-    /// 获取可分配部门，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysDepartment> GetAssignableDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
-            ?? throw new InvalidOperationException("部门不存在。");
-
-        if (department.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用部门不能分配给用户。");
-        }
-
-        return department;
-    }
-
-    /// <summary>
-    /// 判断用户是否已有有效部门归属
-    /// </summary>
-    private async Task<bool> HasValidDepartmentAsync(long userId, CancellationToken cancellationToken)
-    {
-        return await _userDepartmentRepository.AnyAsync(
-            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid,
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// 清理用户其它主部门标记
-    /// </summary>
-    private async Task ClearOtherMainDepartmentsAsync(long userId, long? excludeId, CancellationToken cancellationToken)
-    {
-        var mainDepartments = await _userDepartmentRepository.GetListAsync(
-            relation => relation.UserId == userId && relation.IsMain && (!excludeId.HasValue || relation.BasicId != excludeId.Value),
-            cancellationToken);
-        if (mainDepartments.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var mainDepartment in mainDepartments)
-        {
-            mainDepartment.IsMain = false;
-        }
-
-        await _userDepartmentRepository.UpdateRangeAsync(mainDepartments, cancellationToken);
-    }
-
-    /// <summary>
-    /// 用户撤销主部门后自动接续一个有效部门
-    /// </summary>
-    private async Task PromoteMainDepartmentIfNeededAsync(long userId, long revokedId, CancellationToken cancellationToken)
-    {
-        if (await _userDepartmentRepository.AnyAsync(
-            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid && relation.IsMain,
-            cancellationToken))
-        {
-            return;
-        }
-
-        var candidates = await _userDepartmentRepository.GetListAsync(
-            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid && relation.BasicId != revokedId,
-            relation => relation.CreatedTime,
-            cancellationToken);
-        var nextMain = candidates.FirstOrDefault();
-        if (nextMain is null)
-        {
-            return;
-        }
-
-        nextMain.IsMain = true;
-        _ = await _userDepartmentRepository.UpdateAsync(nextMain, cancellationToken);
-    }
-
-    // ---- 用户会话辅助 ----
-
-    /// <summary>
-    /// 获取会话，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUserSession> GetSessionOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        return await _userSessionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户会话不存在。");
     }
 
     /// <summary>
@@ -1548,52 +1068,6 @@ public sealed class UserDomainService
             reason);
     }
 
-    // ---- 共享辅助 (可授权租户成员) ----
-
-    /// <summary>
-    /// 获取可操作租户成员，不满足规则时抛出异常
-    /// </summary>
-    /// <param name="userId">用户主键</param>
-    /// <param name="now">当前时间</param>
-    /// <param name="operationContext">操作上下文描述（如"分配角色"）</param>
-    /// <param name="platformAdminMessage">平台管理员拦截消息</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    private async Task<SysTenantUser> GetAssignableTenantMemberOrThrowAsync(
-        long userId, DateTimeOffset now, string operationContext, string platformAdminMessage, CancellationToken cancellationToken)
-    {
-        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("当前租户成员不存在。");
-
-        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
-        {
-            throw new InvalidOperationException($"未接受邀请的租户成员不能{operationContext}。");
-        }
-
-        if (tenantMember.Status != ValidityStatus.Valid)
-        {
-            throw new InvalidOperationException($"无效租户成员不能{operationContext}。");
-        }
-
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
-        {
-            throw new InvalidOperationException(platformAdminMessage);
-        }
-
-        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
-        {
-            throw new InvalidOperationException($"未生效租户成员不能{operationContext}。");
-        }
-
-        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
-        {
-            throw new InvalidOperationException($"已过期租户成员不能{operationContext}。");
-        }
-
-        return tenantMember;
-    }
-
-    // ---- 共享校验 ----
-
     /// <summary>
     /// 校验创建参数
     /// </summary>
@@ -1621,6 +1095,7 @@ public sealed class UserDomainService
         EnsureMemberTypeCanBeCreated(command.MemberType);
     }
 
+    // ---- 共享校验 ----
     /// <summary>
     /// 校验更新参数
     /// </summary>
@@ -1641,24 +1116,6 @@ public sealed class UserDomainService
         ValidateOptionalLength(command.Country, 50, nameof(command.Country), "国家/地区不能超过 50 个字符。");
         ValidateOptionalLength(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。");
         ValidateEnum(command.Gender, nameof(command.Gender));
-    }
-
-    /// <summary>
-    /// 校验密码策略 (UserCreateCommand 重载)
-    /// </summary>
-    private async Task EnsurePasswordMeetsPolicyAsync(UserCreateCommand command, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var blacklist = BuildPasswordBlacklist(command);
-        var result = await _authenticationService.ValidatePasswordStrengthAsync(command.InitialPassword, blacklist);
-        if (result.IsValid)
-        {
-            return;
-        }
-
-        var errors = result.Errors.Count > 0 ? string.Join("；", result.Errors) : result.Message;
-        throw new InvalidOperationException($"初始密码不符合安全要求：{errors}");
     }
 
     /// <summary>
@@ -1951,6 +1408,539 @@ public sealed class UserDomainService
         return Guid.NewGuid().ToString("N");
     }
 
+    /// <summary>
+    /// 创建用户安全记录
+    /// </summary>
+    private async Task CreateUserSecurityAsync(long userId, string password, DateTimeOffset now, string? remark, CancellationToken cancellationToken)
+    {
+        var userSecurity = new SysUserSecurity
+        {
+            UserId = userId,
+            Password = _passwordHasher.HashPassword(password),
+            LastPasswordChangeTime = now,
+            FailedLoginAttempts = 0,
+            IsLocked = false,
+            TwoFactorEnabled = false,
+            TwoFactorMethod = TwoFactorMethod.None,
+            SecurityStamp = NewSecurityStamp(),
+            EmailVerified = false,
+            PhoneVerified = false,
+            AllowMultiLogin = true,
+            MaxLoginDevices = 0,
+            LastSecurityCheckTime = now,
+            Remark = NormalizeNullable(remark)
+        };
+
+        _ = await _userSecurityRepository.AddAsync(userSecurity, cancellationToken);
+    }
+
+    /// <summary>
+    /// 创建当前租户成员记录
+    /// </summary>
+    private async Task CreateTenantMembershipAsync(long userId, UserCreateCommand command, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var tenantMember = new SysTenantUser
+        {
+            UserId = userId,
+            MemberType = command.MemberType,
+            InviteStatus = TenantMemberInviteStatus.Accepted,
+            InvitedBy = command.OperatorUserId,
+            InvitedTime = now,
+            RespondedTime = now,
+            EffectiveTime = command.EffectiveTime,
+            ExpirationTime = command.ExpirationTime,
+            DisplayName = NormalizeNullable(command.DisplayName),
+            InviteRemark = NormalizeNullable(command.InviteRemark),
+            Status = ValidityStatus.Valid,
+            Remark = NormalizeNullable(command.Remark)
+        };
+
+        _ = await _tenantUserRepository.AddAsync(tenantMember, cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取用户，不存在时抛出异常
+    /// </summary>
+    private async Task<SysUser> GetUserOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "用户主键必须大于 0。");
+        }
+
+        return await _userRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户不存在。");
+    }
+
+    /// <summary>
+    /// 校验用户能否停用
+    /// </summary>
+    private async Task EnsureUserCanBeDisabledAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        if (user.IsSystemAccount)
+        {
+            throw new InvalidOperationException("系统内置账号不能停用。");
+        }
+
+        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
+        if (membership?.MemberType == TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者账号不能直接停用。");
+        }
+    }
+
+    /// <summary>
+    /// 校验用户能否删除
+    /// </summary>
+    private async Task<SysTenantUser?> EnsureUserCanBeDeletedAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        if (user.IsSystemAccount)
+        {
+            throw new InvalidOperationException("系统内置账号不能删除。");
+        }
+
+        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
+        if (membership?.MemberType == TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者账号不能直接删除。");
+        }
+
+        return membership;
+    }
+
+    /// <summary>
+    /// 重置联系方式验证状态
+    /// </summary>
+    private async Task ResetContactVerificationAsync(long userId, bool emailChanged, bool phoneChanged, CancellationToken cancellationToken)
+    {
+        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == userId, cancellationToken);
+        if (security is null)
+        {
+            return;
+        }
+
+        if (emailChanged)
+        {
+            security.EmailVerified = false;
+        }
+
+        if (phoneChanged)
+        {
+            security.PhoneVerified = false;
+        }
+
+        security.SecurityStamp = NewSecurityStamp();
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+    }
+
+    /// <summary>
+    /// 刷新安全戳
+    /// </summary>
+    private async Task RefreshSecurityStampAsync(long userId, CancellationToken cancellationToken)
+    {
+        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == userId, cancellationToken);
+        if (security is null)
+        {
+            return;
+        }
+
+        security.SecurityStamp = NewSecurityStamp();
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+    }
+
+    /// <summary>
+    /// 软删除用户安全记录
+    /// </summary>
+    private async Task SoftDeleteUserSecurityAsync(long userId, CancellationToken cancellationToken)
+    {
+        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == userId, cancellationToken);
+        if (security is null)
+        {
+            return;
+        }
+
+        security.IsDeleted = true;
+        security.DeletedTime = DateTimeOffset.UtcNow;
+        security.SecurityStamp = NewSecurityStamp();
+        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+    }
+
+    // ---- 用户安全辅助 ----
+
+    /// <summary>
+    /// 获取用户与安全记录，不存在时抛出异常
+    /// </summary>
+    private async Task<(SysUser User, SysUserSecurity Security)> GetUserSecurityOrThrowAsync(long userId, CancellationToken cancellationToken)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("用户不存在。");
+        var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == user.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("用户安全记录不存在。");
+
+        return (user, security);
+    }
+
+    /// <summary>
+    /// 校验用户能否被锁定
+    /// </summary>
+    private async Task EnsureUserCanBeLockedAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        if (user.IsSystemAccount)
+        {
+            throw new InvalidOperationException("系统内置账号不能通过用户安全服务锁定。");
+        }
+
+        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
+        if (membership?.MemberType == TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者账号不能通过用户安全服务锁定。");
+        }
+    }
+
+    /// <summary>
+    /// 校验密码策略 (SysUser 重载)
+    /// </summary>
+    private async Task EnsurePasswordMeetsPolicyAsync(SysUser user, string password, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var blacklist = BuildPasswordBlacklist(user);
+        var result = await _authenticationService.ValidatePasswordStrengthAsync(password, blacklist);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        var errors = result.Errors.Count > 0 ? string.Join("；", result.Errors) : result.Message;
+        throw new InvalidOperationException($"新密码不符合安全要求：{errors}");
+    }
+
+    // ---- 用户角色辅助 ----
+
+    /// <summary>
+    /// 获取用户角色绑定，不存在时抛出异常
+    /// </summary>
+    private async Task<SysUserRole> GetUserRoleOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "用户角色绑定主键必须大于 0。");
+        }
+
+        return await _userRoleRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户角色绑定不存在。");
+    }
+
+    /// <summary>
+    /// 获取可授权角色，不满足规则时抛出异常
+    /// </summary>
+    private async Task<SysRole> GetAssignableRoleOrThrowAsync(long roleId, CancellationToken cancellationToken)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+
+        if (role.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用角色不能分配给用户。");
+        }
+
+        if (role.RoleType == RoleType.System)
+        {
+            throw new InvalidOperationException("系统角色必须通过平台运维流程分配。");
+        }
+
+        return role;
+    }
+
+    // ---- 用户直授权限辅助 ----
+
+    /// <summary>
+    /// 获取用户直授权限绑定，不存在时抛出异常
+    /// </summary>
+    private async Task<SysUserPermission> GetUserPermissionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "用户直授权限绑定主键必须大于 0。");
+        }
+
+        return await _userPermissionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户直授权限绑定不存在。");
+    }
+
+    /// <summary>
+    /// 获取可授权权限，不满足规则时抛出异常
+    /// </summary>
+    private async Task<SysPermission> GetGrantablePermissionOrThrowAsync(long permissionId, CancellationToken cancellationToken)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
+            ?? throw new InvalidOperationException("权限不存在。");
+
+        if (permission.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用权限不能直授给用户。");
+        }
+
+        return permission;
+    }
+
+    // ---- 用户数据范围辅助 ----
+
+    /// <summary>
+    /// 获取用户数据范围绑定，不存在时抛出异常
+    /// </summary>
+    private async Task<SysUserDataScope> GetUserDataScopeOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "用户数据范围绑定主键必须大于 0。");
+        }
+
+        return await _userDataScopeRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户数据范围绑定不存在。");
+    }
+
+    /// <summary>
+    /// 校验用户数据范围覆盖可持久化
+    /// </summary>
+    private async Task EnsureCanPersistScopeAsync(long userId, DataPermissionScope dataScope, long departmentId, long? excludeId, CancellationToken cancellationToken)
+    {
+        var hasOtherMode = dataScope == DataPermissionScope.Custom
+            ? await _userDataScopeRepository.AnyAsync(
+                scope => scope.UserId == userId && scope.DataScope != DataPermissionScope.Custom && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
+                cancellationToken)
+            : await _userDataScopeRepository.AnyAsync(
+                scope => scope.UserId == userId && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
+                cancellationToken);
+
+        if (hasOtherMode)
+        {
+            throw new InvalidOperationException("用户数据范围覆盖模式冲突。");
+        }
+
+        if (await _userDataScopeRepository.AnyAsync(
+            scope => scope.UserId == userId && scope.DepartmentId == departmentId && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
+            cancellationToken))
+        {
+            throw new InvalidOperationException("用户数据范围已绑定。");
+        }
+    }
+
+    /// <summary>
+    /// 获取数据范围对应部门，不满足规则时抛出异常
+    /// </summary>
+    private async Task<SysDepartment?> GetDepartmentForScopeOrThrowAsync(DataPermissionScope dataScope, long? departmentId, CancellationToken cancellationToken)
+    {
+        if (dataScope == DataPermissionScope.Custom)
+        {
+            if (!departmentId.HasValue || departmentId.Value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(departmentId), "自定义用户数据范围必须指定部门主键。");
+            }
+
+            return await GetEnabledDepartmentOrThrowAsync(departmentId.Value, cancellationToken);
+        }
+
+        if (departmentId.HasValue && departmentId.Value > 0)
+        {
+            throw new InvalidOperationException("非自定义用户数据范围不能指定部门。");
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 获取已启用部门，不满足规则时抛出异常
+    /// </summary>
+    private async Task<SysDepartment> GetEnabledDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
+    {
+        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
+            ?? throw new InvalidOperationException("部门不存在。");
+
+        if (department.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用部门不能绑定到用户数据范围。");
+        }
+
+        return department;
+    }
+
+    /// <summary>
+    /// 按需获取部门
+    /// </summary>
+    private async Task<SysDepartment?> GetDepartmentOrDefaultAsync(long departmentId, CancellationToken cancellationToken)
+    {
+        return departmentId > 0
+            ? await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
+            : null;
+    }
+
+    // ---- 用户部门辅助 ----
+
+    /// <summary>
+    /// 获取用户部门归属，不存在时抛出异常
+    /// </summary>
+    private async Task<SysUserDepartment> GetUserDepartmentOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "用户部门归属主键必须大于 0。");
+        }
+
+        return await _userDepartmentRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户部门归属不存在。");
+    }
+
+    /// <summary>
+    /// 获取可分配部门，不满足规则时抛出异常
+    /// </summary>
+    private async Task<SysDepartment> GetAssignableDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
+    {
+        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
+            ?? throw new InvalidOperationException("部门不存在。");
+
+        if (department.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用部门不能分配给用户。");
+        }
+
+        return department;
+    }
+
+    /// <summary>
+    /// 判断用户是否已有有效部门归属
+    /// </summary>
+    private async Task<bool> HasValidDepartmentAsync(long userId, CancellationToken cancellationToken)
+    {
+        return await _userDepartmentRepository.AnyAsync(
+            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// 清理用户其它主部门标记
+    /// </summary>
+    private async Task ClearOtherMainDepartmentsAsync(long userId, long? excludeId, CancellationToken cancellationToken)
+    {
+        var mainDepartments = await _userDepartmentRepository.GetListAsync(
+            relation => relation.UserId == userId && relation.IsMain && (!excludeId.HasValue || relation.BasicId != excludeId.Value),
+            cancellationToken);
+        if (mainDepartments.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var mainDepartment in mainDepartments)
+        {
+            mainDepartment.IsMain = false;
+        }
+
+        await _userDepartmentRepository.UpdateRangeAsync(mainDepartments, cancellationToken);
+    }
+
+    /// <summary>
+    /// 用户撤销主部门后自动接续一个有效部门
+    /// </summary>
+    private async Task PromoteMainDepartmentIfNeededAsync(long userId, long revokedId, CancellationToken cancellationToken)
+    {
+        if (await _userDepartmentRepository.AnyAsync(
+            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid && relation.IsMain,
+            cancellationToken))
+        {
+            return;
+        }
+
+        var candidates = await _userDepartmentRepository.GetListAsync(
+            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid && relation.BasicId != revokedId,
+            relation => relation.CreatedTime,
+            cancellationToken);
+        var nextMain = candidates.FirstOrDefault();
+        if (nextMain is null)
+        {
+            return;
+        }
+
+        nextMain.IsMain = true;
+        _ = await _userDepartmentRepository.UpdateAsync(nextMain, cancellationToken);
+    }
+
+    // ---- 用户会话辅助 ----
+
+    /// <summary>
+    /// 获取会话，不存在时抛出异常
+    /// </summary>
+    private async Task<SysUserSession> GetSessionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        return await _userSessionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户会话不存在。");
+    }
+
+    // ---- 共享辅助 (可授权租户成员) ----
+
+    /// <summary>
+    /// 获取可操作租户成员，不满足规则时抛出异常
+    /// </summary>
+    /// <param name="userId">用户主键</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="operationContext">操作上下文描述（如"分配角色"）</param>
+    /// <param name="platformAdminMessage">平台管理员拦截消息</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    private async Task<SysTenantUser> GetAssignableTenantMemberOrThrowAsync(
+        long userId, DateTimeOffset now, string operationContext, string platformAdminMessage, CancellationToken cancellationToken)
+    {
+        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前租户成员不存在。");
+
+        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
+        {
+            throw new InvalidOperationException($"未接受邀请的租户成员不能{operationContext}。");
+        }
+
+        if (tenantMember.Status != ValidityStatus.Valid)
+        {
+            throw new InvalidOperationException($"无效租户成员不能{operationContext}。");
+        }
+
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException(platformAdminMessage);
+        }
+
+        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
+        {
+            throw new InvalidOperationException($"未生效租户成员不能{operationContext}。");
+        }
+
+        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException($"已过期租户成员不能{operationContext}。");
+        }
+
+        return tenantMember;
+    }
+
+    /// <summary>
+    /// 校验密码策略 (UserCreateCommand 重载)
+    /// </summary>
+    private async Task EnsurePasswordMeetsPolicyAsync(UserCreateCommand command, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var blacklist = BuildPasswordBlacklist(command);
+        var result = await _authenticationService.ValidatePasswordStrengthAsync(command.InitialPassword, blacklist);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        var errors = result.Errors.Count > 0 ? string.Join("；", result.Errors) : result.Message;
+        throw new InvalidOperationException($"初始密码不符合安全要求：{errors}");
+    }
+
     #endregion
 }
-

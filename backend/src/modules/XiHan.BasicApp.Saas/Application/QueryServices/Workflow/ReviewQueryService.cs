@@ -37,17 +37,17 @@ public sealed class ReviewQueryService
     : SaasApplicationService, IReviewQueryService
 {
     /// <summary>
+    /// 系统审查仓储
+    /// </summary>
+    private readonly IReviewRepository _reviewRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ReviewQueryService(IReviewRepository reviewRepository)
     {
         _reviewRepository = reviewRepository;
     }
-
-    /// <summary>
-    /// 系统审查仓储
-    /// </summary>
-    private readonly IReviewRepository _reviewRepository;
 
     /// <summary>
     /// 获取系统审查分页列表
