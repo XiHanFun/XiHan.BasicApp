@@ -13,17 +13,15 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Cryptography;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
-using static XiHan.BasicApp.Saas.Application.AppServices.SaasCommandValidation;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -35,25 +33,17 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class OAuthAppAppService
     : SaasApplicationService, IOAuthAppAppService
 {
-    private readonly IOAuthAppRepository _oauthAppRepository;
-
-    private readonly IOAuthCodeRepository _oauthCodeRepository;
-
-    private readonly IOAuthTokenRepository _oauthTokenRepository;
+    private readonly IOAuthAppDomainService _oauthAppDomainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public OAuthAppAppService(
-        IOAuthAppRepository oauthAppRepository,
-        IOAuthCodeRepository oauthCodeRepository,
-        IOAuthTokenRepository oauthTokenRepository)
+    public OAuthAppAppService(IOAuthAppDomainService oauthAppDomainService)
     {
-        _oauthAppRepository = oauthAppRepository;
-        _oauthCodeRepository = oauthCodeRepository;
-        _oauthTokenRepository = oauthTokenRepository;
+        _oauthAppDomainService = oauthAppDomainService;
     }
-    /// <summary>
+
+    /// <summary>
     /// 创建 OAuth 应用
     /// </summary>
     [UnitOfWork(true)]
@@ -63,40 +53,8 @@ public sealed class OAuthAppAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateOAuthAppInput(input.AppName, input.ClientId, input.AppType, input.GrantTypes, input.RedirectUris, input.Scopes, input.AccessTokenLifetime, input.RefreshTokenLifetime, input.AuthorizationCodeLifetime, input.Logo, input.Homepage, input.Remark);
-        var clientId = Required(input.ClientId, 100, nameof(input.ClientId), "客户端主键不能超过 100 个字符。");
-        EnsureCodeHasNoWhitespace(clientId, "客户端主键不能包含空白字符。");
-        if (await _oauthAppRepository.AnyAsync(app => app.ClientId == clientId, cancellationToken))
-        {
-            throw new InvalidOperationException("客户端主键已存在。");
-        }
-
-        var clientSecret = string.IsNullOrWhiteSpace(input.ClientSecret)
-            ? GenerateSecret()
-            : Required(input.ClientSecret, 200, nameof(input.ClientSecret), "客户端密钥不能超过 200 个字符。");
-        var app = new SysOAuthApp
-        {
-            AppName = Required(input.AppName, 100, nameof(input.AppName), "应用名称不能超过 100 个字符。"),
-            AppDescription = Optional(input.AppDescription, 500, nameof(input.AppDescription), "应用描述不能超过 500 个字符。"),
-            ClientId = clientId,
-            ClientSecret = clientSecret,
-            AppType = input.AppType,
-            GrantTypes = Required(input.GrantTypes, 500, nameof(input.GrantTypes), "授权类型不能超过 500 个字符。"),
-            RedirectUris = Optional(input.RedirectUris, 2000, nameof(input.RedirectUris), "回调地址不能超过 2000 个字符。"),
-            Scopes = Optional(input.Scopes, 1000, nameof(input.Scopes), "授权范围不能超过 1000 个字符。"),
-            AccessTokenLifetime = input.AccessTokenLifetime,
-            RefreshTokenLifetime = input.RefreshTokenLifetime,
-            AuthorizationCodeLifetime = input.AuthorizationCodeLifetime,
-            Logo = Optional(input.Logo, 500, nameof(input.Logo), "应用图标不能超过 500 个字符。"),
-            Homepage = Optional(input.Homepage, 500, nameof(input.Homepage), "应用主页不能超过 500 个字符。"),
-            SkipConsent = input.SkipConsent,
-            Status = input.Status,
-            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
-        };
-        EnsureEnum(input.Status, nameof(input.Status));
-
-        var savedApp = await _oauthAppRepository.AddAsync(app, cancellationToken);
-        return ToSecretDto(savedApp);
+        var result = await _oauthAppDomainService.CreateOAuthAppAsync(ToCreateCommand(input), cancellationToken);
+        return ToSecretDto(result.App);
     }
 
     /// <summary>
@@ -107,22 +65,7 @@ public sealed class OAuthAppAppService
     public async Task DeleteOAuthAppAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
-        if (await _oauthCodeRepository.AnyAsync(code => code.ClientId == app.ClientId, cancellationToken))
-        {
-            throw new InvalidOperationException("OAuth 应用存在授权码记录，不能删除。");
-        }
-
-        if (await _oauthTokenRepository.AnyAsync(token => token.ClientId == app.ClientId, cancellationToken))
-        {
-            throw new InvalidOperationException("OAuth 应用存在 Token 记录，不能删除。");
-        }
-
-        if (!await _oauthAppRepository.DeleteAsync(app, cancellationToken))
-        {
-            throw new InvalidOperationException("OAuth 应用删除失败。");
-        }
+        await _oauthAppDomainService.DeleteOAuthAppAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -134,10 +77,8 @@ public sealed class OAuthAppAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
-        app.ClientSecret = GenerateSecret();
-        var savedApp = await _oauthAppRepository.UpdateAsync(app, cancellationToken);
-        return ToSecretDto(savedApp);
+        var result = await _oauthAppDomainService.RegenerateOAuthAppSecretAsync(id, cancellationToken);
+        return ToSecretDto(result.App);
     }
 
     /// <summary>
@@ -150,25 +91,8 @@ public sealed class OAuthAppAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(input.BasicId, "OAuth 应用主键必须大于 0。");
-        ValidateOAuthAppInput(input.AppName, clientId: "skip", input.AppType, input.GrantTypes, input.RedirectUris, input.Scopes, input.AccessTokenLifetime, input.RefreshTokenLifetime, input.AuthorizationCodeLifetime, input.Logo, input.Homepage, input.Remark);
-        var app = await GetOAuthAppOrThrowAsync(input.BasicId, cancellationToken);
-        app.AppName = Required(input.AppName, 100, nameof(input.AppName), "应用名称不能超过 100 个字符。");
-        app.AppDescription = Optional(input.AppDescription, 500, nameof(input.AppDescription), "应用描述不能超过 500 个字符。");
-        app.AppType = input.AppType;
-        app.GrantTypes = Required(input.GrantTypes, 500, nameof(input.GrantTypes), "授权类型不能超过 500 个字符。");
-        app.RedirectUris = Optional(input.RedirectUris, 2000, nameof(input.RedirectUris), "回调地址不能超过 2000 个字符。");
-        app.Scopes = Optional(input.Scopes, 1000, nameof(input.Scopes), "授权范围不能超过 1000 个字符。");
-        app.AccessTokenLifetime = input.AccessTokenLifetime;
-        app.RefreshTokenLifetime = input.RefreshTokenLifetime;
-        app.AuthorizationCodeLifetime = input.AuthorizationCodeLifetime;
-        app.Logo = Optional(input.Logo, 500, nameof(input.Logo), "应用图标不能超过 500 个字符。");
-        app.Homepage = Optional(input.Homepage, 500, nameof(input.Homepage), "应用主页不能超过 500 个字符。");
-        app.SkipConsent = input.SkipConsent;
-        app.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
-
-        var savedApp = await _oauthAppRepository.UpdateAsync(app, cancellationToken);
-        return OAuthAppApplicationMapper.ToDetailDto(savedApp);
+        var result = await _oauthAppDomainService.UpdateOAuthAppAsync(ToUpdateCommand(input), cancellationToken);
+        return OAuthAppApplicationMapper.ToDetailDto(result.App);
     }
 
     /// <summary>
@@ -181,35 +105,50 @@ public sealed class OAuthAppAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(input.BasicId, "OAuth 应用主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-        var app = await GetOAuthAppOrThrowAsync(input.BasicId, cancellationToken);
-        app.Status = input.Status;
-        app.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? app.Remark;
-
-        var savedApp = await _oauthAppRepository.UpdateAsync(app, cancellationToken);
-        return OAuthAppApplicationMapper.ToDetailDto(savedApp);
+        var result = await _oauthAppDomainService.UpdateOAuthAppStatusAsync(
+            new OAuthAppStatusChangeCommand(input.BasicId, input.Status, input.Remark),
+            cancellationToken);
+        return OAuthAppApplicationMapper.ToDetailDto(result.App);
     }
 
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
+    private static OAuthAppCreateCommand ToCreateCommand(OAuthAppCreateDto input)
     {
-        if (value.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException(message);
-        }
+        return new OAuthAppCreateCommand(
+            input.AppName,
+            input.AppDescription,
+            input.ClientId,
+            input.ClientSecret,
+            input.AppType,
+            input.GrantTypes,
+            input.RedirectUris,
+            input.Scopes,
+            input.AccessTokenLifetime,
+            input.RefreshTokenLifetime,
+            input.AuthorizationCodeLifetime,
+            input.Logo,
+            input.Homepage,
+            input.SkipConsent,
+            input.Status,
+            input.Remark);
     }
 
-    private static void EnsurePositive(int value, string paramName, string message)
+    private static OAuthAppUpdateCommand ToUpdateCommand(OAuthAppUpdateDto input)
     {
-        if (value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    private static string GenerateSecret()
-    {
-        return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        return new OAuthAppUpdateCommand(
+            input.BasicId,
+            input.AppName,
+            input.AppDescription,
+            input.AppType,
+            input.GrantTypes,
+            input.RedirectUris,
+            input.Scopes,
+            input.AccessTokenLifetime,
+            input.RefreshTokenLifetime,
+            input.AuthorizationCodeLifetime,
+            input.Logo,
+            input.Homepage,
+            input.SkipConsent,
+            input.Remark);
     }
 
     private static OAuthAppSecretDto ToSecretDto(SysOAuthApp app)
@@ -220,40 +159,5 @@ public sealed class OAuthAppAppService
             ClientId = app.ClientId,
             ClientSecret = app.ClientSecret
         };
-    }
-
-    private static void ValidateOAuthAppInput(
-        string appName,
-        string clientId,
-        OAuthAppType appType,
-        string grantTypes,
-        string? redirectUris,
-        string? scopes,
-        int accessTokenLifetime,
-        int refreshTokenLifetime,
-        int authorizationCodeLifetime,
-        string? logo,
-        string? homepage,
-        string? remark)
-    {
-        _ = Required(appName, 100, nameof(appName), "应用名称不能超过 100 个字符。");
-        _ = Required(clientId, 100, nameof(clientId), "客户端主键不能超过 100 个字符。");
-        EnsureEnum(appType, nameof(appType));
-        _ = Required(grantTypes, 500, nameof(grantTypes), "授权类型不能超过 500 个字符。");
-        _ = Optional(redirectUris, 2000, nameof(redirectUris), "回调地址不能超过 2000 个字符。");
-        _ = Optional(scopes, 1000, nameof(scopes), "授权范围不能超过 1000 个字符。");
-        _ = Optional(logo, 500, nameof(logo), "应用图标不能超过 500 个字符。");
-        _ = Optional(homepage, 500, nameof(homepage), "应用主页不能超过 500 个字符。");
-        _ = Optional(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-        EnsurePositive(accessTokenLifetime, nameof(accessTokenLifetime), "访问令牌有效期必须大于 0。");
-        EnsurePositive(refreshTokenLifetime, nameof(refreshTokenLifetime), "刷新令牌有效期必须大于 0。");
-        EnsurePositive(authorizationCodeLifetime, nameof(authorizationCodeLifetime), "授权码有效期必须大于 0。");
-    }
-
-    private async Task<SysOAuthApp> GetOAuthAppOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "OAuth 应用主键必须大于 0。");
-        return await _oauthAppRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("OAuth 应用不存在。");
     }
 }

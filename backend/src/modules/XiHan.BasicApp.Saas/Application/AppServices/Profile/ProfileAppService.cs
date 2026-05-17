@@ -41,19 +41,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "个人中心")]
-public sealed partial class ProfileAppService(
-    IUserRepository userRepository,
-    IUserSecurityRepository userSecurityRepository,
-    IUserSessionRepository userSessionRepository,
-    IExternalLoginRepository externalLoginRepository,
-    ITenantUserRepository tenantUserRepository,
-    IPasswordHasher passwordHasher,
-    IAuthenticationService authenticationService,
-    IOtpService otpService,
-    ILocalEventBus localEventBus,
-    IUserNotificationDispatchService notificationDispatchService,
-    ISqlSugarClientResolver clientResolver,
-    ICurrentUser currentUser)
+public sealed partial class ProfileAppService
     : SaasApplicationService, IProfileAppService
 {
     private const int UserNameChangeIntervalDays = 90;
@@ -61,17 +49,49 @@ public sealed partial class ProfileAppService(
     private const int VerificationCodeSeconds = 600;
     private static readonly ConcurrentDictionary<string, VerificationCodeState> VerificationCodes = new();
 
-    private readonly IAuthenticationService _authenticationService = authenticationService;
-    private readonly ICurrentUser _currentUser = currentUser;
-    private readonly IExternalLoginRepository _externalLoginRepository = externalLoginRepository;
-    private readonly ILocalEventBus _localEventBus = localEventBus;
-    private readonly IUserNotificationDispatchService _notificationDispatchService = notificationDispatchService;
-    private readonly IOtpService _otpService = otpService;
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly ISqlSugarClientResolver _clientResolver;
+    private readonly ICurrentUser _currentUser;
+    private readonly IExternalLoginRepository _externalLoginRepository;
+    private readonly ILocalEventBus _localEventBus;
+    private readonly IUserNotificationDispatchService _notificationDispatchService;
+    private readonly IOtpService _otpService;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IUserSecurityRepository _userSecurityRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ProfileAppService(
+        IUserRepository userRepository,
+        IUserSecurityRepository userSecurityRepository,
+        IUserSessionRepository userSessionRepository,
+        IExternalLoginRepository externalLoginRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPasswordHasher passwordHasher,
+        IAuthenticationService authenticationService,
+        IOtpService otpService,
+        ILocalEventBus localEventBus,
+        IUserNotificationDispatchService notificationDispatchService,
+        ISqlSugarClientResolver clientResolver,
+        ICurrentUser currentUser)
+    {
+        _userRepository = userRepository;
+        _userSecurityRepository = userSecurityRepository;
+        _userSessionRepository = userSessionRepository;
+        _externalLoginRepository = externalLoginRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _passwordHasher = passwordHasher;
+        _authenticationService = authenticationService;
+        _otpService = otpService;
+        _localEventBus = localEventBus;
+        _notificationDispatchService = notificationDispatchService;
+        _clientResolver = clientResolver;
+        _currentUser = currentUser;
+    }
 
     private enum VerificationPurpose
     {
@@ -83,7 +103,7 @@ public sealed partial class ProfileAppService(
         TwoFactorPhone
     }
 
-    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <inheritdoc />
     [UnitOfWork(true)]
