@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
@@ -59,6 +60,7 @@ public static class ServiceCollectionExtensions
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();
         services.AddScoped<ILoginSessionDomainService, LoginSessionDomainService>();
+        services.AddScoped<IMenuDomainService, MenuDomainService>();
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
         services.AddScoped<IRoleHierarchyDomainService, RoleHierarchyDomainService>();
         services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
@@ -74,6 +76,9 @@ public static class ServiceCollectionExtensions
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasApplicationServices(this IServiceCollection services)
     {
+        services.AddScoped<IAuthContextQueryService, AuthContextQueryService>();
+        services.AddScoped<IAuthorizationSnapshotQueryService, AuthorizationSnapshotQueryService>();
+        services.AddScoped<IMenuRouteQueryService, MenuRouteQueryService>();
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
         return services;

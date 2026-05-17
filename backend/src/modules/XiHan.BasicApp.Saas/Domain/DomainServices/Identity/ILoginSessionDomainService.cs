@@ -48,4 +48,18 @@ public interface ILoginSessionDomainService
         ClientInfo client,
         DateTimeOffset now,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 退出当前登录会话并撤销关联 OAuth Token
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="sessionBusinessId">业务会话标识</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已退出的用户会话，不存在时返回空</returns>
+    Task<SysUserSession?> LogoutAsync(
+        long userId,
+        string sessionBusinessId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default);
 }

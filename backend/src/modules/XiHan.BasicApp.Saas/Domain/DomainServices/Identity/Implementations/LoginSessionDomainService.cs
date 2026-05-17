@@ -128,6 +128,56 @@ public sealed class LoginSessionDomainService
         return new LoginSessionIssueResult(session);
     }
 
+    /// <inheritdoc />
+    public async Task<SysUserSession?> LogoutAsync(
+        long userId,
+        string sessionBusinessId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户标识必须大于 0。");
+        }
+
+        if (string.IsNullOrWhiteSpace(sessionBusinessId))
+        {
+            throw new ArgumentException("业务会话标识不能为空。", nameof(sessionBusinessId));
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var normalizedSessionBusinessId = sessionBusinessId.Trim();
+        var session = await _userSessionRepository.GetFirstAsync(
+            item => item.UserId == userId && item.UserSessionId == normalizedSessionBusinessId,
+            cancellationToken);
+        if (session is null)
+        {
+            return null;
+        }
+
+        session.IsOnline = false;
+        session.IsRevoked = true;
+        session.RevokedAt = now;
+        session.RevokedReason = "用户主动退出";
+        session.LogoutTime = now;
+        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+
+        var tokens = await _oauthTokenRepository.GetListAsync(item => item.SessionId == session.BasicId && !item.IsRevoked, cancellationToken);
+        foreach (var token in tokens)
+        {
+            token.IsRevoked = true;
+            token.RevokedTime = now;
+        }
+
+        if (tokens.Count > 0)
+        {
+            _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
+        }
+
+        return session;
+    }
+
     private static DateTimeOffset ToDateTimeOffset(DateTime value)
     {
         return new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc));
