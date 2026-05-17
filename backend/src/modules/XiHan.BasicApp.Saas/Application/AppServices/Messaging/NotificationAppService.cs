@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -62,7 +63,8 @@ public sealed class NotificationAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateNotificationInput(input.NotificationType, input.Title, input.Icon, input.Link, input.BusinessType, input.BusinessId, input.SendTime, input.ExpireTime, input.Remark);
+        ValidateNotificationInput(input.NotificationType, input.TargetType, input.Title, input.Icon, input.Link, input.BusinessType, input.BusinessId, input.SendTime, input.ExpireTime, input.Remark);
+        var targetUserIds = input.TargetType == NotificationTargetType.All ? Array.Empty<long>() : NormalizeUserIds(input.UserIds);
         var notification = new SysNotification
         {
             SendUserId = input.SendUserId,
@@ -75,7 +77,8 @@ public sealed class NotificationAppService
             BusinessId = input.BusinessId,
             SendTime = input.SendTime ?? DateTimeOffset.UtcNow,
             ExpireTime = input.ExpireTime,
-            IsBroadcast = input.IsBroadcast,
+            TargetType = input.TargetType,
+            TargetValue = input.TargetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(targetUserIds),
             NeedConfirm = input.NeedConfirm,
             IsPublished = false,
             Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
@@ -84,7 +87,7 @@ public sealed class NotificationAppService
         var savedNotification = await _notificationRepository.AddAsync(notification, cancellationToken);
         if (input.PublishImmediately)
         {
-            _ = await PublishInternalAsync(savedNotification, input.UserIds, input.IsBroadcast, cancellationToken);
+            _ = await PublishInternalAsync(savedNotification, input.UserIds, input.TargetType, cancellationToken);
             savedNotification = await _notificationRepository.UpdateAsync(savedNotification, cancellationToken);
         }
 
@@ -102,7 +105,8 @@ public sealed class NotificationAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         EnsureId(input.BasicId, "系统通知主键必须大于 0。");
-        ValidateNotificationInput(input.NotificationType, input.Title, input.Icon, input.Link, input.BusinessType, input.BusinessId, input.SendTime, input.ExpireTime, input.Remark);
+        ValidateNotificationInput(input.NotificationType, input.TargetType, input.Title, input.Icon, input.Link, input.BusinessType, input.BusinessId, input.SendTime, input.ExpireTime, input.Remark);
+        var targetUserIds = input.TargetType == NotificationTargetType.All ? Array.Empty<long>() : NormalizeUserIds(input.UserIds);
 
         var notification = await GetNotificationOrThrowAsync(input.BasicId, cancellationToken);
         if (notification.IsPublished)
@@ -119,7 +123,8 @@ public sealed class NotificationAppService
         notification.BusinessId = input.BusinessId;
         notification.SendTime = input.SendTime ?? notification.SendTime;
         notification.ExpireTime = input.ExpireTime;
-        notification.IsBroadcast = input.IsBroadcast;
+        notification.TargetType = input.TargetType;
+        notification.TargetValue = input.TargetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(targetUserIds);
         notification.NeedConfirm = input.NeedConfirm;
         notification.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
 
@@ -138,7 +143,14 @@ public sealed class NotificationAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var notification = await GetNotificationOrThrowAsync(input.BasicId, cancellationToken);
-        var recipientCount = await PublishInternalAsync(notification, input.UserIds, input.IncludeAllEnabledUsers, cancellationToken);
+        var targetType = input.TargetType ?? notification.TargetType;
+        IReadOnlyList<long> targetUserIds = input.UserIds ?? [];
+        if (targetType == NotificationTargetType.User && targetUserIds.Count == 0 && !string.IsNullOrWhiteSpace(notification.TargetValue))
+        {
+            targetUserIds = JsonSerializer.Deserialize<long[]>(notification.TargetValue) ?? [];
+        }
+
+        var recipientCount = await PublishInternalAsync(notification, targetUserIds, targetType, cancellationToken);
         _ = await _notificationRepository.UpdateAsync(notification, cancellationToken);
         return new NotificationPublishResultDto
         {
@@ -165,14 +177,14 @@ public sealed class NotificationAppService
         }
     }
 
-    private async Task<int> PublishInternalAsync(SysNotification notification, IReadOnlyList<long> inputUserIds, bool includeAllEnabledUsers, CancellationToken cancellationToken)
+    private async Task<int> PublishInternalAsync(SysNotification notification, IReadOnlyList<long> inputUserIds, NotificationTargetType targetType, CancellationToken cancellationToken)
     {
         if (notification.IsPublished)
         {
             throw new InvalidOperationException("系统通知已发布。");
         }
 
-        var recipientIds = await ResolveRecipientIdsAsync(notification, inputUserIds, includeAllEnabledUsers, cancellationToken);
+        var recipientIds = await ResolveRecipientIdsAsync(inputUserIds, targetType, cancellationToken);
         if (recipientIds.Count == 0)
         {
             throw new InvalidOperationException("系统通知没有有效接收用户。");
@@ -196,22 +208,35 @@ public sealed class NotificationAppService
 
         notification.IsPublished = true;
         notification.SendTime = notification.SendTime == default ? DateTimeOffset.UtcNow : notification.SendTime;
+        notification.TargetType = targetType;
+        notification.TargetValue = targetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(recipientIds);
         return recipientIds.Count;
     }
 
-    private async Task<IReadOnlyCollection<long>> ResolveRecipientIdsAsync(SysNotification notification, IReadOnlyList<long> inputUserIds, bool includeAllEnabledUsers, CancellationToken cancellationToken)
+    private async Task<IReadOnlyCollection<long>> ResolveRecipientIdsAsync(IReadOnlyList<long> inputUserIds, NotificationTargetType targetType, CancellationToken cancellationToken)
     {
-        if (notification.IsBroadcast || includeAllEnabledUsers)
+        if (targetType == NotificationTargetType.All)
         {
             var users = await _userRepository.GetListAsync(user => user.Status == EnableStatus.Enabled, cancellationToken);
             return users.Select(user => user.BasicId).Distinct().ToArray();
         }
 
-        var userIds = inputUserIds
+        if (targetType != NotificationTargetType.User)
+        {
+            throw new NotSupportedException("系统通知发布暂只支持全员或指定用户目标。");
+        }
+
+        return NormalizeUserIds(inputUserIds);
+    }
+
+    private static long[] NormalizeUserIds(IReadOnlyList<long>? inputUserIds)
+    {
+        var source = inputUserIds ?? [];
+        var userIds = source
             .Where(userId => userId > 0)
             .Distinct()
             .ToArray();
-        if (userIds.Length != inputUserIds.Count)
+        if (userIds.Length != source.Count)
         {
             throw new ArgumentOutOfRangeException(nameof(inputUserIds), "接收用户主键必须大于 0 且不能重复。");
         }
@@ -228,6 +253,7 @@ public sealed class NotificationAppService
 
     private static void ValidateNotificationInput(
         NotificationType notificationType,
+        NotificationTargetType targetType,
         string title,
         string? icon,
         string? link,
@@ -238,6 +264,12 @@ public sealed class NotificationAppService
         string? remark)
     {
         EnsureEnum(notificationType, nameof(notificationType));
+        EnsureEnum(targetType, nameof(targetType));
+        if (targetType is not NotificationTargetType.All and not NotificationTargetType.User)
+        {
+            throw new NotSupportedException("系统通知暂只支持全员或指定用户目标。");
+        }
+
         _ = Required(title, 200, nameof(title), "通知标题不能超过 200 个字符。");
         _ = Optional(icon, 100, nameof(icon), "通知图标不能超过 100 个字符。");
         _ = Optional(link, 500, nameof(link), "通知链接不能超过 500 个字符。");

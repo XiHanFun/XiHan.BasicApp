@@ -79,7 +79,8 @@ public sealed class UserNotificationDispatchService
             BusinessId = businessId,
             SendTime = now,
             ExpireTime = null,
-            IsBroadcast = false,
+            TargetType = NotificationTargetType.User,
+            TargetValue = $"[{userId}]",
             NeedConfirm = needConfirm,
             IsPublished = true
         }, cancellationToken);
@@ -117,7 +118,7 @@ public sealed class UserNotificationDispatchService
             SendTime = notification.SendTime,
             ReadTime = userNotification.ReadTime,
             ConfirmTime = userNotification.ConfirmTime,
-            IsGlobal = notification.IsBroadcast,
+            IsGlobal = notification.TargetType == NotificationTargetType.All,
             NeedConfirm = notification.NeedConfirm,
             Icon = notification.Icon,
             Link = notification.Link

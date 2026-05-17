@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 状态：
 /// - IsPublished: false=草稿 / true=已发布
 /// - NotificationType: System/Announcement/Activity/Personal 等
-/// - IsBroadcast: 已废弃，由 TargetType+TargetValue 取代；TargetType=All 等同于 IsBroadcast=true
+/// - TargetType: All=全员通知；Role/Department/User=定向通知
 ///
 /// 场景：
 /// - 系统公告、版本升级通知、营销活动、告警推送
@@ -119,13 +119,6 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpireTime { get; set; }
-
-    /// <summary>
-    /// 是否全员通知（注意：此字段表示"广播给所有用户"，与权限体系中 IsGlobal 表示"平台级 TenantId=0"的语义不同）
-    /// </summary>
-    [Obsolete("Use TargetType=All instead")]
-    [SugarColumn(ColumnDescription = "是否全员通知")]
-    public virtual bool IsBroadcast { get; set; } = false;
 
     /// <summary>
     /// 通知目标类型（All=全员, Role=角色, Department=部门, User=指定用户）

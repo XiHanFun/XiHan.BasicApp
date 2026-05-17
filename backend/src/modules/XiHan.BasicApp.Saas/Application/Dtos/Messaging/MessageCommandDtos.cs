@@ -31,7 +31,7 @@ public sealed class NotificationCreateDto
     public long? BusinessId { get; set; }
     public DateTimeOffset? SendTime { get; set; }
     public DateTimeOffset? ExpireTime { get; set; }
-    public bool IsBroadcast { get; set; }
+    public NotificationTargetType TargetType { get; set; } = NotificationTargetType.User;
     public bool NeedConfirm { get; set; }
     public IReadOnlyList<long> UserIds { get; set; } = [];
     public bool PublishImmediately { get; set; }
@@ -49,15 +49,16 @@ public sealed class NotificationUpdateDto : BasicAppUDto
     public long? BusinessId { get; set; }
     public DateTimeOffset? SendTime { get; set; }
     public DateTimeOffset? ExpireTime { get; set; }
-    public bool IsBroadcast { get; set; }
+    public NotificationTargetType TargetType { get; set; } = NotificationTargetType.User;
     public bool NeedConfirm { get; set; }
+    public IReadOnlyList<long> UserIds { get; set; } = [];
     public string? Remark { get; set; }
 }
 
 public sealed class NotificationPublishDto : BasicAppDto
 {
+    public NotificationTargetType? TargetType { get; set; }
     public IReadOnlyList<long> UserIds { get; set; } = [];
-    public bool IncludeAllEnabledUsers { get; set; }
 }
 
 public sealed class NotificationPublishResultDto
