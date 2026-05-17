@@ -56,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IPasswordPolicyDomainService, PasswordPolicyDomainService>();
         services.AddSingleton<IUserSessionDomainService, UserSessionDomainService>();
         services.AddSingleton<IFileStorageDomainService, FileStorageDomainService>();
+        services.AddSingleton<ITaskScheduleDomainService, TaskScheduleDomainService>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();
@@ -63,11 +64,25 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMenuDomainService, MenuDomainService>();
         services.AddScoped<IRoleDomainService, RoleDomainService>();
         services.AddScoped<IUserDomainService, UserDomainService>();
+        services.AddScoped<IConstraintRuleDomainService, ConstraintRuleDomainService>();
+        services.AddScoped<IFieldLevelSecurityDomainService, FieldLevelSecurityDomainService>();
+        services.AddScoped<IFileDomainService, FileDomainService>();
+        services.AddScoped<IConfigDomainService, ConfigDomainService>();
+        services.AddScoped<IDictDomainService, DictDomainService>();
+        services.AddScoped<IVersionDomainService, VersionDomainService>();
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
         services.AddScoped<IRoleHierarchyDomainService, RoleHierarchyDomainService>();
         services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
         services.AddScoped<IDepartmentDomainService, DepartmentDomainService>();
         services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
+        services.AddScoped<ITaskDomainService, TaskDomainService>();
+        services.AddScoped<IReviewDomainService, ReviewDomainService>();
+        services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();
+        services.AddScoped<IMessageDomainService, MessageDomainService>();
+        services.AddScoped<INotificationDomainService, NotificationDomainService>();
+        services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
+        services.AddScoped<ITenantDomainService, TenantDomainService>();
+        services.AddScoped<ITenantEditionDomainService, TenantEditionDomainService>();
 
         return services;
     }
@@ -82,6 +97,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthContextQueryService, AuthContextQueryService>();
         services.AddScoped<IAuthorizationSnapshotQueryService, AuthorizationSnapshotQueryService>();
         services.AddScoped<IMenuRouteQueryService, MenuRouteQueryService>();
+        services.AddScoped<IFileRecordQueryService, FileRecordQueryService>();
+        services.AddScoped<ITaskSchedulerQueryService, TaskSchedulerQueryService>();
+        services.AddScoped<IMessageRecordQueryService, MessageRecordQueryService>();
+        services.AddScoped<IUserInboxQueryService, UserInboxQueryService>();
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
         return services;

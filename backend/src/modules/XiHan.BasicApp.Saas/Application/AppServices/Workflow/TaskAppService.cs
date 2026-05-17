@@ -16,17 +16,17 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks.Jobs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Tasks.ScheduledJobs.Models;
 using XiHan.Framework.Uow.Attributes;
-using static XiHan.BasicApp.Saas.Application.AppServices.SaasCommandValidation;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -38,12 +38,20 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class TaskAppService : SaasApplicationService, ITaskAppService
 {
     private readonly IJobScheduler _jobScheduler;
-    private readonly ITaskRepository _taskRepository;
+    private readonly ITaskDomainService _taskDomainService;
+    private readonly ITaskSchedulerQueryService _taskSchedulerQueryService;
 
-    public TaskAppService(ITaskRepository taskRepository, IJobScheduler jobScheduler)
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TaskAppService(
+        ITaskDomainService taskDomainService,
+        ITaskSchedulerQueryService taskSchedulerQueryService,
+        IJobScheduler jobScheduler)
     {
-        _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
-        _jobScheduler = jobScheduler ?? throw new ArgumentNullException(nameof(jobScheduler));
+        _taskDomainService = taskDomainService;
+        _taskSchedulerQueryService = taskSchedulerQueryService;
+        _jobScheduler = jobScheduler;
     }
 
     /// <summary>
@@ -56,52 +64,9 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateCreateInput(input);
-        var taskCode = Required(input.TaskCode, 100, nameof(input.TaskCode), "任务编码不能超过 100 个字符。");
-        EnsureCodeHasNoWhitespace(taskCode, "任务编码不能包含空白字符。");
-        if (await _taskRepository.AnyAsync(task => task.TaskCode == taskCode, cancellationToken))
-        {
-            throw new InvalidOperationException("任务编码已存在。");
-        }
-
-        var task = new SysTask
-        {
-            TaskCode = taskCode,
-            TaskName = Required(input.TaskName, 200, nameof(input.TaskName), "任务名称不能超过 200 个字符。"),
-            TaskDescription = Optional(input.TaskDescription, 500, nameof(input.TaskDescription), "任务描述不能超过 500 个字符。"),
-            TaskGroup = Optional(input.TaskGroup, 50, nameof(input.TaskGroup), "任务分组不能超过 50 个字符。"),
-            TaskClass = Required(input.TaskClass, 200, nameof(input.TaskClass), "任务类名不能超过 200 个字符。"),
-            TaskMethod = Optional(input.TaskMethod, 100, nameof(input.TaskMethod), "任务方法不能超过 100 个字符。"),
-            TaskParams = OptionalJson(input.TaskParams, "任务参数必须是有效 JSON。"),
-            TriggerType = input.TriggerType,
-            CronExpression = Optional(input.CronExpression, 100, nameof(input.CronExpression), "Cron 表达式不能超过 100 个字符。"),
-            StartTime = input.StartTime,
-            EndTime = input.EndTime,
-            NextRunTime = input.NextRunTime,
-            LastRunTime = input.LastRunTime,
-            IntervalSeconds = input.IntervalSeconds,
-            RepeatCount = input.RepeatCount,
-            ExecutedCount = input.ExecutedCount,
-            TimeoutSeconds = input.TimeoutSeconds,
-            RunTaskStatus = input.RunTaskStatus,
-            Priority = input.Priority,
-            AllowConcurrent = input.AllowConcurrent,
-            RetryCount = input.RetryCount,
-            MaxRetryCount = input.MaxRetryCount,
-            Status = input.Status,
-            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
-        };
-
-        var savedTask = await _taskRepository.AddAsync(task, cancellationToken);
-
-        // 注册到框架调度器
-        if (savedTask.Status == EnableStatus.Enabled)
-        {
-            var jobInfo = BuildJobInfo(savedTask);
-            _jobScheduler.RegisterJob(jobInfo);
-        }
-
-        return TaskApplicationMapper.ToDetailDto(savedTask);
+        var result = await _taskDomainService.CreateTaskAsync(ToCreateCommand(input), cancellationToken);
+        ApplySchedulerSync(result.Task, result.SchedulerSyncAction);
+        return TaskApplicationMapper.ToDetailDto(result.Task);
     }
 
     /// <summary>
@@ -113,24 +78,8 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var task = await GetTaskOrThrowAsync(id, cancellationToken);
-        if (task.RunTaskStatus == RunTaskStatus.Running)
-        {
-            throw new InvalidOperationException("运行中的任务不能删除。");
-        }
-
-        // 先取消注册调度器，再删除实体
-        _jobScheduler.UnregisterJob(task.TaskCode);
-
-        if (!await _taskRepository.DeleteAsync(task, cancellationToken))
-        {
-            // 删除失败时重新注册任务
-            if (task.Status == EnableStatus.Enabled)
-            {
-                _jobScheduler.RegisterJob(BuildJobInfo(task));
-            }
-            throw new InvalidOperationException("系统任务删除失败。");
-        }
+        var result = await _taskDomainService.DeleteTaskAsync(id, cancellationToken);
+        ApplySchedulerSync(result.Task, result.SchedulerSyncAction);
     }
 
     /// <summary>
@@ -140,26 +89,25 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var allTasks = await _taskRepository.GetListAsync(
-            task => task.Status == EnableStatus.Enabled,
-            cancellationToken);
-
-        if (allTasks.Count == 0)
+        var tasks = await _taskSchedulerQueryService.GetEnabledTasksAsync(cancellationToken);
+        if (tasks.Count == 0)
         {
             return;
         }
 
-        foreach (var task in allTasks)
+        var registeredJobNames = _jobScheduler
+            .GetAllJobs()
+            .Select(job => job.JobName)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var task in tasks)
         {
-            // 跳过已注册的同名任务，避免重复注册
-            var existingJobs = _jobScheduler.GetAllJobs();
-            if (existingJobs.Any(j => j.JobName == task.TaskCode))
+            if (registeredJobNames.Contains(task.TaskCode))
             {
                 continue;
             }
 
-            var jobInfo = BuildJobInfo(task);
-            _jobScheduler.RegisterJob(jobInfo);
+            _jobScheduler.RegisterJob(BuildJobInfo(task));
         }
     }
 
@@ -173,48 +121,9 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateUpdateInput(input);
-        var task = await GetTaskOrThrowAsync(input.BasicId, cancellationToken);
-        if (task.RunTaskStatus == RunTaskStatus.Running)
-        {
-            throw new InvalidOperationException("运行中的任务不能修改任务配置。");
-        }
-
-        var wasEnabled = task.Status == EnableStatus.Enabled;
-
-        task.TaskName = Required(input.TaskName, 200, nameof(input.TaskName), "任务名称不能超过 200 个字符。");
-        task.TaskDescription = Optional(input.TaskDescription, 500, nameof(input.TaskDescription), "任务描述不能超过 500 个字符。");
-        task.TaskGroup = Optional(input.TaskGroup, 50, nameof(input.TaskGroup), "任务分组不能超过 50 个字符。");
-        task.TaskClass = Required(input.TaskClass, 200, nameof(input.TaskClass), "任务类名不能超过 200 个字符。");
-        task.TaskMethod = Optional(input.TaskMethod, 100, nameof(input.TaskMethod), "任务方法不能超过 100 个字符。");
-        task.TaskParams = OptionalJson(input.TaskParams, "任务参数必须是有效 JSON。");
-        task.TriggerType = input.TriggerType;
-        task.CronExpression = Optional(input.CronExpression, 100, nameof(input.CronExpression), "Cron 表达式不能超过 100 个字符。");
-        task.StartTime = input.StartTime;
-        task.EndTime = input.EndTime;
-        task.NextRunTime = input.NextRunTime;
-        task.LastRunTime = input.LastRunTime;
-        task.IntervalSeconds = input.IntervalSeconds;
-        task.RepeatCount = input.RepeatCount;
-        task.ExecutedCount = input.ExecutedCount;
-        task.TimeoutSeconds = input.TimeoutSeconds;
-        task.Priority = input.Priority;
-        task.AllowConcurrent = input.AllowConcurrent;
-        task.RetryCount = input.RetryCount;
-        task.MaxRetryCount = input.MaxRetryCount;
-        task.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
-
-        var savedTask = await _taskRepository.UpdateAsync(task, cancellationToken);
-
-        // 重新注册到框架调度器（先取消注册旧配置，再注册新配置）
-        _jobScheduler.UnregisterJob(savedTask.TaskCode);
-        if (savedTask.Status == EnableStatus.Enabled)
-        {
-            var jobInfo = BuildJobInfo(savedTask);
-            _jobScheduler.RegisterJob(jobInfo);
-        }
-
-        return TaskApplicationMapper.ToDetailDto(savedTask);
+        var result = await _taskDomainService.UpdateTaskAsync(ToUpdateCommand(input), cancellationToken);
+        ApplySchedulerSync(result.Task, result.SchedulerSyncAction);
+        return TaskApplicationMapper.ToDetailDto(result.Task);
     }
 
     /// <summary>
@@ -227,39 +136,9 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(input.BasicId, "系统任务主键必须大于 0。");
-        EnsureEnum(input.RunTaskStatus, nameof(input.RunTaskStatus));
-        EnsureOptionalNonNegative(input.ExecutedCount, nameof(input.ExecutedCount), "已执行次数不能小于 0。");
-        EnsureOptionalNonNegative(input.RetryCount, nameof(input.RetryCount), "失败重试次数不能小于 0。");
-
-        var task = await GetTaskOrThrowAsync(input.BasicId, cancellationToken);
-        if (task.Status == EnableStatus.Disabled && input.RunTaskStatus == RunTaskStatus.Running)
-        {
-            throw new InvalidOperationException("停用任务不能设置为执行中。");
-        }
-
-        var oldRunStatus = task.RunTaskStatus;
-
-        task.RunTaskStatus = input.RunTaskStatus;
-        task.NextRunTime = input.NextRunTime ?? task.NextRunTime;
-        task.LastRunTime = input.LastRunTime ?? task.LastRunTime;
-        task.ExecutedCount = input.ExecutedCount ?? task.ExecutedCount;
-        task.RetryCount = input.RetryCount ?? task.RetryCount;
-        task.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? task.Remark;
-
-        var savedTask = await _taskRepository.UpdateAsync(task, cancellationToken);
-
-        // 运行状态变更时同步调度器
-        if (oldRunStatus != RunTaskStatus.Paused && input.RunTaskStatus == RunTaskStatus.Paused)
-        {
-            _jobScheduler.PauseJob(savedTask.TaskCode);
-        }
-        else if (oldRunStatus == RunTaskStatus.Paused && input.RunTaskStatus != RunTaskStatus.Paused)
-        {
-            _jobScheduler.ResumeJob(savedTask.TaskCode);
-        }
-
-        return TaskApplicationMapper.ToDetailDto(savedTask);
+        var result = await _taskDomainService.UpdateTaskRunStatusAsync(ToRunStatusCommand(input), cancellationToken);
+        ApplySchedulerSync(result.Task, result.SchedulerSyncAction);
+        return TaskApplicationMapper.ToDetailDto(result.Task);
     }
 
     /// <summary>
@@ -272,39 +151,114 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(input.BasicId, "系统任务主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-
-        var task = await GetTaskOrThrowAsync(input.BasicId, cancellationToken);
-        var wasEnabled = task.Status == EnableStatus.Enabled;
-
-        task.Status = input.Status;
-        if (input.Status == EnableStatus.Disabled && task.RunTaskStatus == RunTaskStatus.Running)
-        {
-            task.RunTaskStatus = RunTaskStatus.Stopped;
-        }
-
-        task.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? task.Remark;
-
-        var savedTask = await _taskRepository.UpdateAsync(task, cancellationToken);
-
-        // 启停状态变更时同步调度器
-        if (wasEnabled && input.Status == EnableStatus.Disabled)
-        {
-            _jobScheduler.PauseJob(savedTask.TaskCode);
-        }
-        else if (!wasEnabled && input.Status == EnableStatus.Enabled)
-        {
-            // 重新注册
-            _jobScheduler.UnregisterJob(savedTask.TaskCode);
-            var jobInfo = BuildJobInfo(savedTask);
-            _jobScheduler.RegisterJob(jobInfo);
-        }
-
-        return TaskApplicationMapper.ToDetailDto(savedTask);
+        var result = await _taskDomainService.UpdateTaskStatusAsync(ToStatusCommand(input), cancellationToken);
+        ApplySchedulerSync(result.Task, result.SchedulerSyncAction);
+        return TaskApplicationMapper.ToDetailDto(result.Task);
     }
 
-    #region Private Helpers
+    private static TaskCreateCommand ToCreateCommand(TaskCreateDto input)
+    {
+        return new TaskCreateCommand(
+            input.TaskCode,
+            input.TaskName,
+            input.TaskDescription,
+            input.TaskGroup,
+            input.TaskClass,
+            input.TaskMethod,
+            input.TaskParams,
+            input.TriggerType,
+            input.CronExpression,
+            input.StartTime,
+            input.EndTime,
+            input.NextRunTime,
+            input.LastRunTime,
+            input.IntervalSeconds,
+            input.RepeatCount,
+            input.ExecutedCount,
+            input.TimeoutSeconds,
+            input.RunTaskStatus,
+            input.Priority,
+            input.AllowConcurrent,
+            input.RetryCount,
+            input.MaxRetryCount,
+            input.Status,
+            input.Remark);
+    }
+
+    private static TaskRunStatusChangeCommand ToRunStatusCommand(TaskRunStatusUpdateDto input)
+    {
+        return new TaskRunStatusChangeCommand(
+            input.BasicId,
+            input.RunTaskStatus,
+            input.NextRunTime,
+            input.LastRunTime,
+            input.ExecutedCount,
+            input.RetryCount,
+            input.Remark);
+    }
+
+    private static TaskStatusChangeCommand ToStatusCommand(TaskStatusUpdateDto input)
+    {
+        return new TaskStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    private static TaskUpdateCommand ToUpdateCommand(TaskUpdateDto input)
+    {
+        return new TaskUpdateCommand(
+            input.BasicId,
+            input.TaskName,
+            input.TaskDescription,
+            input.TaskGroup,
+            input.TaskClass,
+            input.TaskMethod,
+            input.TaskParams,
+            input.TriggerType,
+            input.CronExpression,
+            input.StartTime,
+            input.EndTime,
+            input.NextRunTime,
+            input.LastRunTime,
+            input.IntervalSeconds,
+            input.RepeatCount,
+            input.ExecutedCount,
+            input.TimeoutSeconds,
+            input.Priority,
+            input.AllowConcurrent,
+            input.RetryCount,
+            input.MaxRetryCount,
+            input.Remark);
+    }
+
+    private void ApplySchedulerSync(SysTask task, TaskSchedulerSyncAction syncAction)
+    {
+        switch (syncAction)
+        {
+            case TaskSchedulerSyncAction.None:
+                return;
+            case TaskSchedulerSyncAction.Register:
+                _jobScheduler.RegisterJob(BuildJobInfo(task));
+                return;
+            case TaskSchedulerSyncAction.Unregister:
+                _jobScheduler.UnregisterJob(task.TaskCode);
+                return;
+            case TaskSchedulerSyncAction.Replace:
+                _jobScheduler.UnregisterJob(task.TaskCode);
+                if (task.Status == EnableStatus.Enabled)
+                {
+                    _jobScheduler.RegisterJob(BuildJobInfo(task));
+                }
+
+                return;
+            case TaskSchedulerSyncAction.Pause:
+                _jobScheduler.PauseJob(task.TaskCode);
+                return;
+            case TaskSchedulerSyncAction.Resume:
+                _jobScheduler.ResumeJob(task.TaskCode);
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(syncAction), "任务调度同步动作无效。");
+        }
+    }
 
     /// <summary>
     /// 从 SysTask 实体构建 JobInfo
@@ -342,16 +296,8 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
         };
     }
 
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
-    {
-        if (value.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException(message);
-        }
-    }
-
     /// <summary>
-    /// 将领域优先级（int）映射到框架 JobPriority
+    /// 将领域优先级映射到框架 JobPriority
     /// </summary>
     private static JobPriority MapPriority(int priority) => priority switch
     {
@@ -371,112 +317,4 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
         TriggerType.Cron => JobTriggerType.Cron,
         _ => JobTriggerType.Manual
     };
-
-    private static void ValidateCreateInput(TaskCreateDto input)
-    {
-        ValidateTaskInput(
-            input.TriggerType,
-            input.CronExpression,
-            input.StartTime,
-            input.EndTime,
-            input.IntervalSeconds,
-            input.RepeatCount,
-            input.ExecutedCount,
-            input.TimeoutSeconds,
-            input.RunTaskStatus,
-            input.Status,
-            input.RetryCount,
-            input.MaxRetryCount);
-    }
-
-    private static void ValidateTaskInput(
-        TriggerType triggerType,
-        string? cronExpression,
-        DateTimeOffset? startTime,
-        DateTimeOffset? endTime,
-        int? intervalSeconds,
-        int repeatCount,
-        int executedCount,
-        int timeoutSeconds,
-        RunTaskStatus? runTaskStatus,
-        EnableStatus? status,
-        int retryCount,
-        int maxRetryCount)
-    {
-        EnsureEnum(triggerType, nameof(triggerType));
-        if (runTaskStatus.HasValue)
-        {
-            EnsureEnum(runTaskStatus.Value, nameof(runTaskStatus));
-        }
-
-        if (status.HasValue)
-        {
-            EnsureEnum(status.Value, nameof(status));
-        }
-
-        if (startTime.HasValue && endTime.HasValue && endTime.Value <= startTime.Value)
-        {
-            throw new InvalidOperationException("结束时间必须晚于开始时间。");
-        }
-
-        if (triggerType == TriggerType.Cron && string.IsNullOrWhiteSpace(cronExpression))
-        {
-            throw new InvalidOperationException("Cron 触发任务必须填写 Cron 表达式。");
-        }
-
-        if (triggerType == TriggerType.Recurring && (!intervalSeconds.HasValue || intervalSeconds.Value <= 0))
-        {
-            throw new InvalidOperationException("循环执行任务必须填写大于 0 的执行间隔。");
-        }
-
-        if (intervalSeconds is <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(intervalSeconds), "执行间隔必须大于 0。");
-        }
-
-        if (repeatCount < -1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(repeatCount), "重复次数不能小于 -1。");
-        }
-
-        EnsureNonNegative(executedCount, nameof(executedCount), "已执行次数不能小于 0。");
-        if (timeoutSeconds <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(timeoutSeconds), "超时时间必须大于 0。");
-        }
-
-        EnsureNonNegative(retryCount, nameof(retryCount), "失败重试次数不能小于 0。");
-        EnsureNonNegative(maxRetryCount, nameof(maxRetryCount), "最大重试次数不能小于 0。");
-        if (retryCount > maxRetryCount)
-        {
-            throw new InvalidOperationException("失败重试次数不能大于最大重试次数。");
-        }
-    }
-
-    private static void ValidateUpdateInput(TaskUpdateDto input)
-    {
-        EnsureId(input.BasicId, "系统任务主键必须大于 0。");
-        ValidateTaskInput(
-            input.TriggerType,
-            input.CronExpression,
-            input.StartTime,
-            input.EndTime,
-            input.IntervalSeconds,
-            input.RepeatCount,
-            input.ExecutedCount,
-            input.TimeoutSeconds,
-            null,
-            null,
-            input.RetryCount,
-            input.MaxRetryCount);
-    }
-
-    private async Task<SysTask> GetTaskOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统任务主键必须大于 0。");
-        return await _taskRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统任务不存在。");
-    }
-
-    #endregion
 }

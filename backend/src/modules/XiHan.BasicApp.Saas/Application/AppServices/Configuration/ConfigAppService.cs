@@ -16,13 +16,11 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
-using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
-using static XiHan.BasicApp.Saas.Application.AppServices.SaasCommandValidation;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -34,14 +32,14 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class ConfigAppService
     : SaasApplicationService, IConfigAppService
 {
-    private readonly IConfigRepository _configRepository;
+    private readonly IConfigDomainService _configDomainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ConfigAppService(IConfigRepository configRepository)
+    public ConfigAppService(IConfigDomainService configDomainService)
     {
-        _configRepository = configRepository;
+        _configDomainService = configDomainService;
     }
     /// <summary>
     /// 创建系统配置
@@ -53,34 +51,23 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateCreateInput(input);
-        var configKey = Required(input.ConfigKey, 100, nameof(input.ConfigKey), "配置键不能超过 100 个字符。");
-        EnsureCodeHasNoWhitespace(configKey, "配置键不能包含空白字符。");
-        if (await _configRepository.AnyAsync(config => config.ConfigKey == configKey, cancellationToken))
-        {
-            throw new InvalidOperationException("配置键已存在。");
-        }
-
-        var config = new SysConfig
-        {
-            IsGlobal = input.IsGlobal,
-            ConfigName = Required(input.ConfigName, 100, nameof(input.ConfigName), "配置名称不能超过 100 个字符。"),
-            ConfigGroup = Optional(input.ConfigGroup, 100, nameof(input.ConfigGroup), "配置分组不能超过 100 个字符。"),
-            ConfigKey = configKey,
-            ConfigValue = NormalizeNullable(input.ConfigValue),
-            DefaultValue = NormalizeNullable(input.DefaultValue),
-            ConfigType = input.ConfigType,
-            DataType = input.DataType,
-            ConfigDescription = Optional(input.ConfigDescription, 500, nameof(input.ConfigDescription), "配置描述不能超过 500 个字符。"),
-            IsBuiltIn = false,
-            IsEncrypted = input.IsEncrypted,
-            Status = input.Status,
-            Sort = input.Sort,
-            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
-        };
-
-        var savedConfig = await _configRepository.AddAsync(config, cancellationToken);
-        return ConfigApplicationMapper.ToDetailDto(savedConfig);
+        var result = await _configDomainService.CreateConfigAsync(
+            new ConfigCreateCommand(
+                input.IsGlobal,
+                input.ConfigName,
+                input.ConfigGroup,
+                input.ConfigKey,
+                input.ConfigValue,
+                input.DefaultValue,
+                input.ConfigType,
+                input.DataType,
+                input.ConfigDescription,
+                input.IsEncrypted,
+                input.Status,
+                input.Sort,
+                input.Remark),
+            cancellationToken);
+        return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 
     /// <summary>
@@ -91,17 +78,7 @@ public sealed class ConfigAppService
     public async Task DeleteConfigAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        var config = await GetConfigOrThrowAsync(id, cancellationToken);
-        if (config.IsBuiltIn)
-        {
-            throw new InvalidOperationException("内置系统配置不能删除。");
-        }
-
-        if (!await _configRepository.DeleteAsync(config, cancellationToken))
-        {
-            throw new InvalidOperationException("系统配置删除失败。");
-        }
+        await _configDomainService.DeleteConfigAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -114,21 +91,21 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateUpdateInput(input);
-        var config = await GetConfigOrThrowAsync(input.BasicId, cancellationToken);
-        config.ConfigName = Required(input.ConfigName, 100, nameof(input.ConfigName), "配置名称不能超过 100 个字符。");
-        config.ConfigGroup = Optional(input.ConfigGroup, 100, nameof(input.ConfigGroup), "配置分组不能超过 100 个字符。");
-        config.ConfigValue = NormalizeNullable(input.ConfigValue);
-        config.DefaultValue = NormalizeNullable(input.DefaultValue);
-        config.ConfigType = input.ConfigType;
-        config.DataType = input.DataType;
-        config.ConfigDescription = Optional(input.ConfigDescription, 500, nameof(input.ConfigDescription), "配置描述不能超过 500 个字符。");
-        config.IsEncrypted = input.IsEncrypted;
-        config.Sort = input.Sort;
-        config.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
-
-        var savedConfig = await _configRepository.UpdateAsync(config, cancellationToken);
-        return ConfigApplicationMapper.ToDetailDto(savedConfig);
+        var result = await _configDomainService.UpdateConfigAsync(
+            new ConfigUpdateCommand(
+                input.BasicId,
+                input.ConfigName,
+                input.ConfigGroup,
+                input.ConfigValue,
+                input.DefaultValue,
+                input.ConfigType,
+                input.DataType,
+                input.ConfigDescription,
+                input.IsEncrypted,
+                input.Sort,
+                input.Remark),
+            cancellationToken);
+        return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 
     /// <summary>
@@ -141,43 +118,9 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(input.BasicId, "系统配置主键必须大于 0。");
-        EnsureEnum(input.Status, nameof(input.Status));
-
-        var config = await GetConfigOrThrowAsync(input.BasicId, cancellationToken);
-        config.Status = input.Status;
-        config.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? config.Remark;
-
-        var savedConfig = await _configRepository.UpdateAsync(config, cancellationToken);
-        return ConfigApplicationMapper.ToDetailDto(savedConfig);
-    }
-
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
-    {
-        if (value.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException(message);
-        }
-    }
-
-    private static void ValidateCreateInput(ConfigCreateDto input)
-    {
-        EnsureEnum(input.ConfigType, nameof(input.ConfigType));
-        EnsureEnum(input.DataType, nameof(input.DataType));
-        EnsureEnum(input.Status, nameof(input.Status));
-    }
-
-    private static void ValidateUpdateInput(ConfigUpdateDto input)
-    {
-        EnsureId(input.BasicId, "系统配置主键必须大于 0。");
-        EnsureEnum(input.ConfigType, nameof(input.ConfigType));
-        EnsureEnum(input.DataType, nameof(input.DataType));
-    }
-
-    private async Task<SysConfig> GetConfigOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统配置主键必须大于 0。");
-        return await _configRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统配置不存在。");
+        var result = await _configDomainService.UpdateConfigStatusAsync(
+            new ConfigStatusChangeCommand(input.BasicId, input.Status, input.Remark),
+            cancellationToken);
+        return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 }
