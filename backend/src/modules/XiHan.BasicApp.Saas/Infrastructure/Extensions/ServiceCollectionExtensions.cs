@@ -61,9 +61,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();
         services.AddScoped<ILoginSessionDomainService, LoginSessionDomainService>();
         services.AddScoped<IMenuDomainService, MenuDomainService>();
+        services.AddScoped<IRoleDomainService, RoleDomainService>();
+        services.AddScoped<IUserDomainService, UserDomainService>();
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
         services.AddScoped<IRoleHierarchyDomainService, RoleHierarchyDomainService>();
         services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
+        services.AddScoped<IDepartmentDomainService, DepartmentDomainService>();
         services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
 
         return services;
