@@ -33,19 +33,6 @@ public sealed class UserRoleQueryService
     : SaasApplicationService, IUserRoleQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public UserRoleQueryService(
-        IUserRoleRepository userRoleRepository,
-        IRoleRepository roleRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _userRoleRepository = userRoleRepository;
-        _roleRepository = roleRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 用户角色仓储
     /// </summary>
     private readonly IUserRoleRepository _userRoleRepository;
@@ -59,6 +46,19 @@ public sealed class UserRoleQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserRoleQueryService(
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取用户角色列表

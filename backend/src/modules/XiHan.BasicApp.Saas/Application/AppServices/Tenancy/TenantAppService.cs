@@ -36,17 +36,9 @@ public sealed class TenantAppService
     : SaasApplicationService, ITenantAppService
 {
     /// <summary>
-    /// 构造函数
+    /// 当前用户
     /// </summary>
-    public TenantAppService(
-        ITenantRepository tenantRepository,
-        ITenantUserRepository tenantUserRepository,
-        ICurrentUser currentUser)
-    {
-        _tenantRepository = tenantRepository;
-        _tenantUserRepository = tenantUserRepository;
-        _currentUser = currentUser;
-    }
+    private readonly ICurrentUser _currentUser;
 
     /// <summary>
     /// 租户仓储
@@ -59,9 +51,17 @@ public sealed class TenantAppService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
-    /// 当前用户
+    /// 构造函数
     /// </summary>
-    private readonly ICurrentUser _currentUser;
+    public TenantAppService(
+        ITenantRepository tenantRepository,
+        ITenantUserRepository tenantUserRepository,
+        ICurrentUser currentUser)
+    {
+        _tenantRepository = tenantRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _currentUser = currentUser;
+    }
 
     /// <summary>
     /// 创建租户
@@ -171,46 +171,13 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 获取租户，不存在时抛出异常
+    /// 规范化可空字符串
     /// </summary>
-    /// <param name="id">租户主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>租户实体</returns>
-    private async Task<SysTenant> GetTenantOrThrowAsync(long id, CancellationToken cancellationToken)
+    /// <param name="value">字符串值</param>
+    /// <returns>规范化后的字符串</returns>
+    private static string? NormalizeNullable(string? value)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "租户主键必须大于 0。");
-        }
-
-        return await _tenantRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("租户不存在。");
-    }
-
-    /// <summary>
-    /// 校验创建参数
-    /// </summary>
-    /// <param name="input">创建参数</param>
-    private static void ValidateCreateInput(TenantCreateDto input)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.TenantCode);
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.TenantName);
-        ValidateCommonInput(input.IsolationMode, input.EditionId, input.UserLimit, input.StorageLimit);
-    }
-
-    /// <summary>
-    /// 校验更新参数
-    /// </summary>
-    /// <param name="input">更新参数</param>
-    private static void ValidateUpdateInput(TenantUpdateDto input)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "租户主键必须大于 0。");
-        }
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.TenantName);
-        ValidateCommonInput(input.IsolationMode, input.EditionId, input.UserLimit, input.StorageLimit);
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     /// <summary>
@@ -241,6 +208,17 @@ public sealed class TenantAppService
     }
 
     /// <summary>
+    /// 校验创建参数
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    private static void ValidateCreateInput(TenantCreateDto input)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.TenantCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.TenantName);
+        ValidateCommonInput(input.IsolationMode, input.EditionId, input.UserLimit, input.StorageLimit);
+    }
+
+    /// <summary>
     /// 校验枚举值
     /// </summary>
     /// <typeparam name="TEnum">枚举类型</typeparam>
@@ -253,6 +231,21 @@ public sealed class TenantAppService
         {
             throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
         }
+    }
+
+    /// <summary>
+    /// 校验更新参数
+    /// </summary>
+    /// <param name="input">更新参数</param>
+    private static void ValidateUpdateInput(TenantUpdateDto input)
+    {
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "租户主键必须大于 0。");
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.TenantName);
+        ValidateCommonInput(input.IsolationMode, input.EditionId, input.UserLimit, input.StorageLimit);
     }
 
     /// <summary>
@@ -276,16 +269,44 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 规范化可空字符串
+    /// 获取租户，不存在时抛出异常
     /// </summary>
-    /// <param name="value">字符串值</param>
-    /// <returns>规范化后的字符串</returns>
-    private static string? NormalizeNullable(string? value)
+    /// <param name="id">租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户实体</returns>
+    private async Task<SysTenant> GetTenantOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "租户主键必须大于 0。");
+        }
+
+        return await _tenantRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("租户不存在。");
     }
 
     #region TenantMembers
+
+    /// <summary>
+    /// 撤销租户成员
+    /// </summary>
+    /// <param name="id">租户成员主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantMember.Revoke)]
+    public async Task DeleteTenantMemberAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var member = await GetTenantMemberOrThrowAsync(id, cancellationToken);
+        EnsureOwnerCanBeRevoked(member, TenantMemberInviteStatus.Revoked);
+
+        member.InviteStatus = TenantMemberInviteStatus.Revoked;
+        member.Status = ValidityStatus.Invalid;
+        member.RespondedTime ??= DateTimeOffset.UtcNow;
+
+        _ = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
+    }
 
     /// <summary>
     /// 更新租户成员
@@ -311,39 +332,6 @@ public sealed class TenantAppService
         member.ExpirationTime = input.ExpirationTime;
         member.DisplayName = NormalizeNullable(input.DisplayName);
         member.InviteRemark = NormalizeNullable(input.InviteRemark);
-        member.Remark = NormalizeNullable(input.Remark);
-
-        var savedMember = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
-        return TenantMemberApplicationMapper.ToDetailDto(savedMember, DateTimeOffset.UtcNow);
-    }
-
-    /// <summary>
-    /// 更新租户成员状态
-    /// </summary>
-    /// <param name="input">状态更新参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>租户成员详情</returns>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantMember.Status)]
-    public async Task<TenantMemberDetailDto> UpdateTenantMemberStatusAsync(TenantMemberStatusUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "租户成员主键必须大于 0。");
-        }
-
-        ValidateEnum(input.Status, nameof(input.Status));
-
-        var member = await GetTenantMemberOrThrowAsync(input.BasicId, cancellationToken);
-        if (member.MemberType == TenantMemberType.Owner && input.Status == ValidityStatus.Invalid)
-        {
-            throw new InvalidOperationException("租户所有者成员关系不能直接停用。");
-        }
-
-        member.Status = input.Status;
         member.Remark = NormalizeNullable(input.Remark);
 
         var savedMember = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
@@ -392,41 +380,87 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 撤销租户成员
+    /// 更新租户成员状态
     /// </summary>
-    /// <param name="id">租户成员主键</param>
+    /// <param name="input">状态更新参数</param>
     /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantMember.Revoke)]
-    public async Task DeleteTenantMemberAsync(long id, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.TenantMember.Status)]
+    public async Task<TenantMemberDetailDto> UpdateTenantMemberStatusAsync(TenantMemberStatusUpdateDto input, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var member = await GetTenantMemberOrThrowAsync(id, cancellationToken);
-        EnsureOwnerCanBeRevoked(member, TenantMemberInviteStatus.Revoked);
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "租户成员主键必须大于 0。");
+        }
 
-        member.InviteStatus = TenantMemberInviteStatus.Revoked;
-        member.Status = ValidityStatus.Invalid;
-        member.RespondedTime ??= DateTimeOffset.UtcNow;
+        ValidateEnum(input.Status, nameof(input.Status));
 
-        _ = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
+        var member = await GetTenantMemberOrThrowAsync(input.BasicId, cancellationToken);
+        if (member.MemberType == TenantMemberType.Owner && input.Status == ValidityStatus.Invalid)
+        {
+            throw new InvalidOperationException("租户所有者成员关系不能直接停用。");
+        }
+
+        member.Status = input.Status;
+        member.Remark = NormalizeNullable(input.Remark);
+
+        var savedMember = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
+        return TenantMemberApplicationMapper.ToDetailDto(savedMember, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
-    /// 获取租户成员，不存在时抛出异常
+    /// 校验租户所有者成员类型变更
     /// </summary>
-    /// <param name="id">租户成员主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>租户成员实体</returns>
-    private async Task<SysTenantUser> GetTenantMemberOrThrowAsync(long id, CancellationToken cancellationToken)
+    /// <param name="member">租户成员</param>
+    /// <param name="newMemberType">新的成员类型</param>
+    private static void EnsureOwnerCanBeChanged(SysTenantUser member, TenantMemberType newMemberType)
     {
-        if (id <= 0)
+        if (member.MemberType == TenantMemberType.Owner && newMemberType != TenantMemberType.Owner)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "租户成员主键必须大于 0。");
+            throw new InvalidOperationException("租户所有者成员类型不能直接变更。");
         }
+    }
 
-        return await _tenantUserRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("租户成员不存在。");
+    /// <summary>
+    /// 校验租户所有者不能直接撤销
+    /// </summary>
+    /// <param name="member">租户成员</param>
+    /// <param name="newInviteStatus">新的邀请状态</param>
+    private static void EnsureOwnerCanBeRevoked(SysTenantUser member, TenantMemberInviteStatus newInviteStatus)
+    {
+        if (member.MemberType == TenantMemberType.Owner && newInviteStatus is TenantMemberInviteStatus.Revoked or TenantMemberInviteStatus.Expired)
+        {
+            throw new InvalidOperationException("租户所有者成员关系不能直接撤销或过期。");
+        }
+    }
+
+    /// <summary>
+    /// 校验不能通过租户成员服务分配平台管理员身份
+    /// </summary>
+    /// <param name="memberType">成员类型</param>
+    private static void EnsurePlatformAdminNotAssigned(TenantMemberType memberType)
+    {
+        if (memberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("平台管理员成员身份必须通过平台运维流程分配。");
+        }
+    }
+
+    /// <summary>
+    /// 校验成员有效期
+    /// </summary>
+    /// <param name="effectiveTime">生效时间</param>
+    /// <param name="expirationTime">失效时间</param>
+    private static void ValidateEffectivePeriod(DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime)
+    {
+        if (effectiveTime.HasValue && expirationTime.HasValue && expirationTime.Value <= effectiveTime.Value)
+        {
+            throw new InvalidOperationException("租户成员失效时间必须晚于生效时间。");
+        }
     }
 
     /// <summary>
@@ -445,54 +479,20 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 校验成员有效期
+    /// 获取租户成员，不存在时抛出异常
     /// </summary>
-    /// <param name="effectiveTime">生效时间</param>
-    /// <param name="expirationTime">失效时间</param>
-    private static void ValidateEffectivePeriod(DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime)
+    /// <param name="id">租户成员主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员实体</returns>
+    private async Task<SysTenantUser> GetTenantMemberOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (effectiveTime.HasValue && expirationTime.HasValue && expirationTime.Value <= effectiveTime.Value)
+        if (id <= 0)
         {
-            throw new InvalidOperationException("租户成员失效时间必须晚于生效时间。");
+            throw new ArgumentOutOfRangeException(nameof(id), "租户成员主键必须大于 0。");
         }
-    }
 
-    /// <summary>
-    /// 校验租户所有者成员类型变更
-    /// </summary>
-    /// <param name="member">租户成员</param>
-    /// <param name="newMemberType">新的成员类型</param>
-    private static void EnsureOwnerCanBeChanged(SysTenantUser member, TenantMemberType newMemberType)
-    {
-        if (member.MemberType == TenantMemberType.Owner && newMemberType != TenantMemberType.Owner)
-        {
-            throw new InvalidOperationException("租户所有者成员类型不能直接变更。");
-        }
-    }
-
-    /// <summary>
-    /// 校验不能通过租户成员服务分配平台管理员身份
-    /// </summary>
-    /// <param name="memberType">成员类型</param>
-    private static void EnsurePlatformAdminNotAssigned(TenantMemberType memberType)
-    {
-        if (memberType == TenantMemberType.PlatformAdmin)
-        {
-            throw new InvalidOperationException("平台管理员成员身份必须通过平台运维流程分配。");
-        }
-    }
-
-    /// <summary>
-    /// 校验租户所有者不能直接撤销
-    /// </summary>
-    /// <param name="member">租户成员</param>
-    /// <param name="newInviteStatus">新的邀请状态</param>
-    private static void EnsureOwnerCanBeRevoked(SysTenantUser member, TenantMemberInviteStatus newInviteStatus)
-    {
-        if (member.MemberType == TenantMemberType.Owner && newInviteStatus is TenantMemberInviteStatus.Revoked or TenantMemberInviteStatus.Expired)
-        {
-            throw new InvalidOperationException("租户所有者成员关系不能直接撤销或过期。");
-        }
+        return await _tenantUserRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("租户成员不存在。");
     }
 
     #endregion TenantMembers

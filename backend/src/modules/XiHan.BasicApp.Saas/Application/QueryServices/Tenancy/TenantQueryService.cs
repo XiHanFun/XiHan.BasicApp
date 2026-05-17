@@ -38,19 +38,6 @@ public sealed class TenantQueryService
     : SaasApplicationService, ITenantQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public TenantQueryService(
-        ITenantUserRepository tenantUserRepository,
-        ITenantRepository tenantRepository,
-        ICurrentUser currentUser)
-    {
-        _tenantUserRepository = tenantUserRepository;
-        _tenantRepository = tenantRepository;
-        _currentUser = currentUser;
-    }
-
-    /// <summary>
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
@@ -64,6 +51,19 @@ public sealed class TenantQueryService
     /// 当前用户
     /// </summary>
     private readonly ICurrentUser _currentUser;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantQueryService(
+        ITenantUserRepository tenantUserRepository,
+        ITenantRepository tenantRepository,
+        ICurrentUser currentUser)
+    {
+        _tenantUserRepository = tenantUserRepository;
+        _tenantRepository = tenantRepository;
+        _currentUser = currentUser;
+    }
 
     /// <summary>
     /// 获取租户分页列表

@@ -38,15 +38,6 @@ public class CacheAppService : ApplicationServiceBase
     }
 
     /// <summary>
-    /// 获取缓存字符串值
-    /// </summary>
-    public string? GetString(string key)
-    {
-        ValidateKey(key);
-        return _distributedCache.GetString(key);
-    }
-
-    /// <summary>
     /// 判断缓存键是否存在
     /// </summary>
     public bool Exists(string key)
@@ -67,6 +58,15 @@ public class CacheAppService : ApplicationServiceBase
         }
 
         return [];
+    }
+
+    /// <summary>
+    /// 获取缓存字符串值
+    /// </summary>
+    public string? GetString(string key)
+    {
+        ValidateKey(key);
+        return _distributedCache.GetString(key);
     }
 
     /// <summary>
@@ -104,16 +104,16 @@ public class CacheAppService : ApplicationServiceBase
         return matchedKeys.Count;
     }
 
+    private static string NormalizePattern(string pattern)
+    {
+        return string.IsNullOrWhiteSpace(pattern) ? "*" : pattern.Trim();
+    }
+
     private static void ValidateKey(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
         {
             throw new ArgumentException("缓存键不能为空", nameof(key));
         }
-    }
-
-    private static string NormalizePattern(string pattern)
-    {
-        return string.IsNullOrWhiteSpace(pattern) ? "*" : pattern.Trim();
     }
 }

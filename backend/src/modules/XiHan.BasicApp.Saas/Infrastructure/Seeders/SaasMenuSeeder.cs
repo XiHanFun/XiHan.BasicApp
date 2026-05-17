@@ -32,8 +32,8 @@ public sealed class SaasMenuSeeder(
     ICurrentTenant currentTenant)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
-    private readonly ICurrentTenant _currentTenant = currentTenant;
     private const string SeededMenuRemark = "系统初始化全局菜单";
+    private readonly ICurrentTenant _currentTenant = currentTenant;
 
     /// <summary>
     /// 种子数据优先级

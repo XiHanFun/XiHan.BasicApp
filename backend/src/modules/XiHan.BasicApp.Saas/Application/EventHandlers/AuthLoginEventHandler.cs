@@ -30,6 +30,12 @@ public sealed class AuthLoginEventHandler
       ILocalEventHandler<AuthLoginFailedDomainEvent>,
       ILocalEventHandler<AuthLogoutDomainEvent>
 {
+    private readonly ILoginLogPipeline _loginLogPipeline;
+
+    private readonly IUserNotificationDispatchService _notificationDispatchService;
+
+    private readonly ILogger<AuthLoginEventHandler> _logger;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -41,13 +47,8 @@ public sealed class AuthLoginEventHandler
         _loginLogPipeline = loginLogPipeline;
         _notificationDispatchService = notificationDispatchService;
         _logger = logger;
-    }
-
-    private readonly ILoginLogPipeline _loginLogPipeline;
-    private readonly IUserNotificationDispatchService _notificationDispatchService;
-    private readonly ILogger<AuthLoginEventHandler> _logger;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public async Task HandleEventAsync(AuthLoginSucceededDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);
@@ -118,8 +119,36 @@ public sealed class AuthLoginEventHandler
             "/workbench/profile");
     }
 
+    private static string BuildAuthNotificationContent(string prefix, AuthLoginSucceededDomainEvent eventData)
+    {
+        var parts = new List<string> { prefix, $"时间：{eventData.LoginTime:yyyy-MM-dd HH:mm:ss} UTC" };
+
+        var location = FirstNotEmpty(eventData.Location, eventData.IpAddress);
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            parts.Add($"位置：{location}");
+        }
+
+        var device = string.Join(
+            " / ",
+            new[] { eventData.Browser, eventData.OperatingSystem, eventData.DeviceName }
+                .Where(static item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(device))
+        {
+            parts.Add($"设备：{device}");
+        }
+
+        return string.Join(" ", parts);
+    }
+
+    private static string? FirstNotEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
+    }
+
     private async Task WriteLoginLogAsync(
-        string? traceId,
+                string? traceId,
         long? userId,
         string? userName,
         string? sessionId,
@@ -178,33 +207,5 @@ public sealed class AuthLoginEventHandler
         {
             _logger.LogError(ex, "认证通知发送失败，用户：{UserId}，业务：{BusinessType}", userId, businessType);
         }
-    }
-
-    private static string BuildAuthNotificationContent(string prefix, AuthLoginSucceededDomainEvent eventData)
-    {
-        var parts = new List<string> { prefix, $"时间：{eventData.LoginTime:yyyy-MM-dd HH:mm:ss} UTC" };
-
-        var location = FirstNotEmpty(eventData.Location, eventData.IpAddress);
-        if (!string.IsNullOrWhiteSpace(location))
-        {
-            parts.Add($"位置：{location}");
-        }
-
-        var device = string.Join(
-            " / ",
-            new[] { eventData.Browser, eventData.OperatingSystem, eventData.DeviceName }
-                .Where(static item => !string.IsNullOrWhiteSpace(item))
-                .Distinct(StringComparer.OrdinalIgnoreCase));
-        if (!string.IsNullOrWhiteSpace(device))
-        {
-            parts.Add($"设备：{device}");
-        }
-
-        return string.Join(" ", parts);
-    }
-
-    private static string? FirstNotEmpty(params string?[] values)
-    {
-        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
     }
 }

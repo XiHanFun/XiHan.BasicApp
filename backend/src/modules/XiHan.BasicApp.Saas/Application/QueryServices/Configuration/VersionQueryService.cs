@@ -37,6 +37,16 @@ public sealed class VersionQueryService
     : SaasApplicationService, IVersionQueryService
 {
     /// <summary>
+    /// 系统版本仓储
+    /// </summary>
+    private readonly IVersionRepository _versionRepository;
+
+    /// <summary>
+    /// 系统迁移历史仓储
+    /// </summary>
+    private readonly IMigrationHistoryRepository _migrationHistoryRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public VersionQueryService(
@@ -46,16 +56,6 @@ public sealed class VersionQueryService
         _versionRepository = versionRepository;
         _migrationHistoryRepository = migrationHistoryRepository;
     }
-
-    /// <summary>
-    /// 系统版本仓储
-    /// </summary>
-    private readonly IVersionRepository _versionRepository;
-
-    /// <summary>
-    /// 系统迁移历史仓储
-    /// </summary>
-    private readonly IMigrationHistoryRepository _migrationHistoryRepository;
 
     /// <summary>
     /// 获取系统版本分页列表

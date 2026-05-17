@@ -24,6 +24,20 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class DepartmentDomainService
     : IDepartmentDomainService
 {
+    private readonly IDepartmentRepository _departmentRepository;
+
+    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
+
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
+
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -44,14 +58,6 @@ public sealed class DepartmentDomainService
         _userDataScopeRepository = userDataScopeRepository;
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
     }
-
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-    private readonly IUserDepartmentRepository _userDepartmentRepository;
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
-    private readonly IUserDataScopeRepository _userDataScopeRepository;
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
 
     /// <inheritdoc />
     public async Task<DepartmentCommandResult> CreateAsync(DepartmentCreateCommand command, CancellationToken cancellationToken = default)
@@ -171,6 +177,160 @@ public sealed class DepartmentDomainService
         }
 
         await RebuildDepartmentHierarchyAsync(cancellationToken);
+    }
+
+    private static IReadOnlyList<SysDepartmentHierarchy> BuildHierarchyRows(IReadOnlyList<SysDepartment> departments)
+    {
+        var departmentMap = departments.ToDictionary(department => department.BasicId);
+        var rows = new List<SysDepartmentHierarchy>();
+
+        foreach (var department in departments.OrderBy(department => department.ParentId ?? 0).ThenBy(department => department.Sort).ThenBy(department => department.DepartmentCode, StringComparer.Ordinal))
+        {
+            var chain = BuildAncestorChain(department, departmentMap);
+            for (var depth = 0; depth < chain.Count; depth++)
+            {
+                var ancestor = chain[depth];
+                var pathNodes = chain.Take(depth + 1).Reverse().ToArray();
+                rows.Add(new SysDepartmentHierarchy
+                {
+                    AncestorId = ancestor.BasicId,
+                    DescendantId = department.BasicId,
+                    Depth = depth,
+                    Path = string.Join("/", pathNodes.Select(node => node.BasicId)),
+                    PathName = string.Join("/", pathNodes.Select(node => node.DepartmentName))
+                });
+            }
+        }
+
+        return rows;
+    }
+
+    private static IReadOnlyList<SysDepartment> BuildAncestorChain(SysDepartment department, IReadOnlyDictionary<long, SysDepartment> departmentMap)
+    {
+        var chain = new List<SysDepartment>();
+        var visited = new HashSet<long>();
+        var cursor = department;
+
+        while (true)
+        {
+            if (!visited.Add(cursor.BasicId))
+            {
+                throw new InvalidOperationException("部门层级存在环路，不能重建闭包表。");
+            }
+
+            chain.Add(cursor);
+            if (!cursor.ParentId.HasValue)
+            {
+                return chain;
+            }
+
+            if (!departmentMap.TryGetValue(cursor.ParentId.Value, out var parent))
+            {
+                throw new InvalidOperationException("部门层级存在缺失父级，不能重建闭包表。");
+            }
+
+            cursor = parent;
+        }
+    }
+
+    private static void ValidateCreateCommand(DepartmentCreateCommand command)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(command.DepartmentCode);
+        ValidateDepartmentCode(command.DepartmentCode);
+        ValidateCommonCommand(
+            command.DepartmentName,
+            command.DepartmentType,
+            command.Phone,
+            command.Email,
+            command.Address,
+            command.Remark);
+        ValidateEnum(command.Status, nameof(command.Status));
+    }
+
+    private static void ValidateUpdateCommand(DepartmentUpdateCommand command)
+    {
+        if (command.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
+        }
+
+        ValidateCommonCommand(
+            command.DepartmentName,
+            command.DepartmentType,
+            command.Phone,
+            command.Email,
+            command.Address,
+            command.Remark);
+    }
+
+    private static void ValidateCommonCommand(
+        string departmentName,
+        DepartmentType departmentType,
+        string? phone,
+        string? email,
+        string? address,
+        string? remark)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(departmentName);
+        ValidateEnum(departmentType, nameof(departmentType));
+        ValidateLength(departmentName, 100, nameof(departmentName), "部门名称不能超过 100 个字符。");
+        ValidateOptionalLength(phone, 20, nameof(phone), "联系电话不能超过 20 个字符。");
+        ValidateOptionalLength(email, 100, nameof(email), "邮箱不能超过 100 个字符。");
+        ValidateOptionalLength(address, 500, nameof(address), "地址不能超过 500 个字符。");
+        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
+    }
+
+    private static void ValidateDepartmentCode(string departmentCode)
+    {
+        var normalizedDepartmentCode = departmentCode.Trim();
+        ValidateLength(normalizedDepartmentCode, 100, nameof(departmentCode), "部门编码不能超过 100 个字符。");
+        if (normalizedDepartmentCode.Any(char.IsWhiteSpace))
+        {
+            throw new InvalidOperationException("部门编码不能包含空白字符。");
+        }
+
+        if (normalizedDepartmentCode.Any(static code => !IsValidDepartmentCodeChar(code)))
+        {
+            throw new InvalidOperationException("部门编码只能包含英文、数字、连字符、下划线或点。");
+        }
+    }
+
+    private static bool IsValidDepartmentCodeChar(char code)
+    {
+        return code is >= 'a' and <= 'z'
+            || code is >= 'A' and <= 'Z'
+            || code is >= '0' and <= '9'
+            || code is '-' or '_' or '.';
+    }
+
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    private static void ValidateLength(string value, int maxLength, string paramName, string message)
+    {
+        if (value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     private async Task<SysDepartment> GetDepartmentOrThrowAsync(long id, CancellationToken cancellationToken)
@@ -326,159 +486,5 @@ public sealed class DepartmentDomainService
         {
             await _departmentHierarchyRepository.AddRangeAsync(rows, cancellationToken);
         }
-    }
-
-    private static IReadOnlyList<SysDepartmentHierarchy> BuildHierarchyRows(IReadOnlyList<SysDepartment> departments)
-    {
-        var departmentMap = departments.ToDictionary(department => department.BasicId);
-        var rows = new List<SysDepartmentHierarchy>();
-
-        foreach (var department in departments.OrderBy(department => department.ParentId ?? 0).ThenBy(department => department.Sort).ThenBy(department => department.DepartmentCode, StringComparer.Ordinal))
-        {
-            var chain = BuildAncestorChain(department, departmentMap);
-            for (var depth = 0; depth < chain.Count; depth++)
-            {
-                var ancestor = chain[depth];
-                var pathNodes = chain.Take(depth + 1).Reverse().ToArray();
-                rows.Add(new SysDepartmentHierarchy
-                {
-                    AncestorId = ancestor.BasicId,
-                    DescendantId = department.BasicId,
-                    Depth = depth,
-                    Path = string.Join("/", pathNodes.Select(node => node.BasicId)),
-                    PathName = string.Join("/", pathNodes.Select(node => node.DepartmentName))
-                });
-            }
-        }
-
-        return rows;
-    }
-
-    private static IReadOnlyList<SysDepartment> BuildAncestorChain(SysDepartment department, IReadOnlyDictionary<long, SysDepartment> departmentMap)
-    {
-        var chain = new List<SysDepartment>();
-        var visited = new HashSet<long>();
-        var cursor = department;
-
-        while (true)
-        {
-            if (!visited.Add(cursor.BasicId))
-            {
-                throw new InvalidOperationException("部门层级存在环路，不能重建闭包表。");
-            }
-
-            chain.Add(cursor);
-            if (!cursor.ParentId.HasValue)
-            {
-                return chain;
-            }
-
-            if (!departmentMap.TryGetValue(cursor.ParentId.Value, out var parent))
-            {
-                throw new InvalidOperationException("部门层级存在缺失父级，不能重建闭包表。");
-            }
-
-            cursor = parent;
-        }
-    }
-
-    private static void ValidateCreateCommand(DepartmentCreateCommand command)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(command.DepartmentCode);
-        ValidateDepartmentCode(command.DepartmentCode);
-        ValidateCommonCommand(
-            command.DepartmentName,
-            command.DepartmentType,
-            command.Phone,
-            command.Email,
-            command.Address,
-            command.Remark);
-        ValidateEnum(command.Status, nameof(command.Status));
-    }
-
-    private static void ValidateUpdateCommand(DepartmentUpdateCommand command)
-    {
-        if (command.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
-        }
-
-        ValidateCommonCommand(
-            command.DepartmentName,
-            command.DepartmentType,
-            command.Phone,
-            command.Email,
-            command.Address,
-            command.Remark);
-    }
-
-    private static void ValidateCommonCommand(
-        string departmentName,
-        DepartmentType departmentType,
-        string? phone,
-        string? email,
-        string? address,
-        string? remark)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(departmentName);
-        ValidateEnum(departmentType, nameof(departmentType));
-        ValidateLength(departmentName, 100, nameof(departmentName), "部门名称不能超过 100 个字符。");
-        ValidateOptionalLength(phone, 20, nameof(phone), "联系电话不能超过 20 个字符。");
-        ValidateOptionalLength(email, 100, nameof(email), "邮箱不能超过 100 个字符。");
-        ValidateOptionalLength(address, 500, nameof(address), "地址不能超过 500 个字符。");
-        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-    }
-
-    private static void ValidateDepartmentCode(string departmentCode)
-    {
-        var normalizedDepartmentCode = departmentCode.Trim();
-        ValidateLength(normalizedDepartmentCode, 100, nameof(departmentCode), "部门编码不能超过 100 个字符。");
-        if (normalizedDepartmentCode.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException("部门编码不能包含空白字符。");
-        }
-
-        if (normalizedDepartmentCode.Any(static code => !IsValidDepartmentCodeChar(code)))
-        {
-            throw new InvalidOperationException("部门编码只能包含英文、数字、连字符、下划线或点。");
-        }
-    }
-
-    private static bool IsValidDepartmentCodeChar(char code)
-    {
-        return code is >= 'a' and <= 'z'
-            || code is >= 'A' and <= 'Z'
-            || code is >= '0' and <= '9'
-            || code is '-' or '_' or '.';
-    }
-
-    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    private static void ValidateLength(string value, int maxLength, string paramName, string message)
-    {
-        if (value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
-    {
-        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    private static string? NormalizeNullable(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }

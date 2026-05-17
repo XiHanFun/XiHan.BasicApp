@@ -24,6 +24,20 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class RoleDomainService
     : IRoleDomainService
 {
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IDepartmentRepository _departmentRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -44,14 +58,6 @@ public sealed class RoleDomainService
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
     }
-
-    private readonly IRoleRepository _roleRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IDepartmentRepository _departmentRepository;
 
     /// <inheritdoc />
     public async Task<RoleCommandResult> CreateRoleAsync(RoleCreateCommand command, CancellationToken cancellationToken = default)
@@ -467,158 +473,6 @@ public sealed class RoleDomainService
         }
     }
 
-    private async Task<SysRole> GetEditableRoleOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色主键必须大于 0。");
-        }
-
-        var role = await _roleRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-
-        EnsureRoleCanBeMaintained(role);
-        return role;
-    }
-
-    private async Task EnsureRoleNotReferencedAsync(long roleId, CancellationToken cancellationToken)
-    {
-        if (await _userRoleRepository.AnyAsync(userRole => userRole.RoleId == roleId, cancellationToken))
-        {
-            throw new InvalidOperationException("角色已分配给用户，不能删除。");
-        }
-
-        if (await _rolePermissionRepository.AnyAsync(rolePermission => rolePermission.RoleId == roleId, cancellationToken))
-        {
-            throw new InvalidOperationException("角色已绑定权限，不能删除。");
-        }
-
-        if (await _roleHierarchyRepository.AnyAsync(
-            hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
-            cancellationToken))
-        {
-            throw new InvalidOperationException("角色存在继承关系，不能删除。");
-        }
-
-        if (await _roleDataScopeRepository.AnyAsync(dataScope => dataScope.RoleId == roleId, cancellationToken))
-        {
-            throw new InvalidOperationException("角色已配置数据范围，不能删除。");
-        }
-    }
-
-    private async Task<SysRolePermission> GetRolePermissionOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色权限绑定主键必须大于 0。");
-        }
-
-        return await _rolePermissionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("角色权限绑定不存在。");
-    }
-
-    private async Task<SysRole> GetEnabledRoleForPermissionOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-
-        if (role.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用角色不能维护权限绑定。");
-        }
-
-        return role;
-    }
-
-    private async Task<SysPermission> GetEnabledPermissionOrThrowAsync(long permissionId, CancellationToken cancellationToken)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
-            ?? throw new InvalidOperationException("权限不存在。");
-
-        if (permission.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用权限不能绑定到角色。");
-        }
-
-        return permission;
-    }
-
-    private async Task<SysRoleDataScope> GetRoleDataScopeOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色数据范围绑定主键必须大于 0。");
-        }
-
-        return await _roleDataScopeRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("角色数据范围绑定不存在。");
-    }
-
-    private async Task<SysRole> GetCustomDataScopeRoleOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-
-        if (role.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用角色不能维护数据范围。");
-        }
-
-        if (role.IsGlobal || role.RoleType == RoleType.System)
-        {
-            throw new InvalidOperationException("平台全局角色或系统角色必须通过平台运维流程维护。");
-        }
-
-        if (role.DataScope != DataPermissionScope.Custom)
-        {
-            throw new InvalidOperationException("只有自定义数据权限范围角色才能维护数据范围。");
-        }
-
-        return role;
-    }
-
-    private async Task<SysDepartment> GetEnabledDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
-            ?? throw new InvalidOperationException("部门不存在。");
-
-        if (department.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用部门不能绑定到角色数据范围。");
-        }
-
-        return department;
-    }
-
-    private async Task<SysRole> GetRoleForHierarchyOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        if (roleId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(roleId), "角色主键必须大于 0。");
-        }
-
-        return await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-    }
-
-    private async Task<SysRoleHierarchy> GetDirectHierarchyOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色继承主键必须大于 0。");
-        }
-
-        var hierarchy = await _roleHierarchyRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("角色继承关系不存在。");
-
-        if (hierarchy.Depth != 1)
-        {
-            throw new InvalidOperationException("只能删除直接继承关系。");
-        }
-
-        return hierarchy;
-    }
-
     private static void ValidateCreateCommand(RoleCreateCommand command)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleCode);
@@ -861,6 +715,158 @@ public sealed class RoleDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private async Task<SysRole> GetEditableRoleOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "角色主键必须大于 0。");
+        }
+
+        var role = await _roleRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+
+        EnsureRoleCanBeMaintained(role);
+        return role;
+    }
+
+    private async Task EnsureRoleNotReferencedAsync(long roleId, CancellationToken cancellationToken)
+    {
+        if (await _userRoleRepository.AnyAsync(userRole => userRole.RoleId == roleId, cancellationToken))
+        {
+            throw new InvalidOperationException("角色已分配给用户，不能删除。");
+        }
+
+        if (await _rolePermissionRepository.AnyAsync(rolePermission => rolePermission.RoleId == roleId, cancellationToken))
+        {
+            throw new InvalidOperationException("角色已绑定权限，不能删除。");
+        }
+
+        if (await _roleHierarchyRepository.AnyAsync(
+            hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
+            cancellationToken))
+        {
+            throw new InvalidOperationException("角色存在继承关系，不能删除。");
+        }
+
+        if (await _roleDataScopeRepository.AnyAsync(dataScope => dataScope.RoleId == roleId, cancellationToken))
+        {
+            throw new InvalidOperationException("角色已配置数据范围，不能删除。");
+        }
+    }
+
+    private async Task<SysRolePermission> GetRolePermissionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "角色权限绑定主键必须大于 0。");
+        }
+
+        return await _rolePermissionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("角色权限绑定不存在。");
+    }
+
+    private async Task<SysRole> GetEnabledRoleForPermissionOrThrowAsync(long roleId, CancellationToken cancellationToken)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+
+        if (role.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用角色不能维护权限绑定。");
+        }
+
+        return role;
+    }
+
+    private async Task<SysPermission> GetEnabledPermissionOrThrowAsync(long permissionId, CancellationToken cancellationToken)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
+            ?? throw new InvalidOperationException("权限不存在。");
+
+        if (permission.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用权限不能绑定到角色。");
+        }
+
+        return permission;
+    }
+
+    private async Task<SysRoleDataScope> GetRoleDataScopeOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "角色数据范围绑定主键必须大于 0。");
+        }
+
+        return await _roleDataScopeRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("角色数据范围绑定不存在。");
+    }
+
+    private async Task<SysRole> GetCustomDataScopeRoleOrThrowAsync(long roleId, CancellationToken cancellationToken)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+
+        if (role.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用角色不能维护数据范围。");
+        }
+
+        if (role.IsGlobal || role.RoleType == RoleType.System)
+        {
+            throw new InvalidOperationException("平台全局角色或系统角色必须通过平台运维流程维护。");
+        }
+
+        if (role.DataScope != DataPermissionScope.Custom)
+        {
+            throw new InvalidOperationException("只有自定义数据权限范围角色才能维护数据范围。");
+        }
+
+        return role;
+    }
+
+    private async Task<SysDepartment> GetEnabledDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
+    {
+        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
+            ?? throw new InvalidOperationException("部门不存在。");
+
+        if (department.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用部门不能绑定到角色数据范围。");
+        }
+
+        return department;
+    }
+
+    private async Task<SysRole> GetRoleForHierarchyOrThrowAsync(long roleId, CancellationToken cancellationToken)
+    {
+        if (roleId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(roleId), "角色主键必须大于 0。");
+        }
+
+        return await _roleRepository.GetByIdAsync(roleId, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+    }
+
+    private async Task<SysRoleHierarchy> GetDirectHierarchyOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "角色继承主键必须大于 0。");
+        }
+
+        var hierarchy = await _roleHierarchyRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("角色继承关系不存在。");
+
+        if (hierarchy.Depth != 1)
+        {
+            throw new InvalidOperationException("只能删除直接继承关系。");
+        }
+
+        return hierarchy;
     }
 
     private readonly record struct HierarchyPair(long AncestorId, long DescendantId);

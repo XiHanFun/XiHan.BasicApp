@@ -34,21 +34,6 @@ public sealed class UserDepartmentQueryService
     : SaasApplicationService, IUserDepartmentQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public UserDepartmentQueryService(
-        IUserDepartmentRepository userDepartmentRepository,
-        IDepartmentRepository departmentRepository,
-        IDepartmentHierarchyRepository departmentHierarchyRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _userDepartmentRepository = userDepartmentRepository;
-        _departmentRepository = departmentRepository;
-        _departmentHierarchyRepository = departmentHierarchyRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 用户部门仓储
     /// </summary>
     private readonly IUserDepartmentRepository _userDepartmentRepository;
@@ -67,6 +52,21 @@ public sealed class UserDepartmentQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserDepartmentQueryService(
+        IUserDepartmentRepository userDepartmentRepository,
+        IDepartmentRepository departmentRepository,
+        IDepartmentHierarchyRepository departmentHierarchyRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userDepartmentRepository = userDepartmentRepository;
+        _departmentRepository = departmentRepository;
+        _departmentHierarchyRepository = departmentHierarchyRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取用户部门归属列表

@@ -22,17 +22,16 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class DepartmentHierarchyDomainService
     : IDepartmentHierarchyDomainService
 {
+    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public DepartmentHierarchyDomainService(IDepartmentHierarchyRepository departmentHierarchyRepository)
     {
         _departmentHierarchyRepository = departmentHierarchyRepository;
-    }
-
-    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public async Task<bool> WouldCreateCycleAsync(long departmentId, long? newParentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

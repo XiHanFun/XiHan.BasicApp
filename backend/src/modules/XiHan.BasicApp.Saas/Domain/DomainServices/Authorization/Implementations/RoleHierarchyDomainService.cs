@@ -22,17 +22,16 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class RoleHierarchyDomainService
     : IRoleHierarchyDomainService
 {
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public RoleHierarchyDomainService(IRoleHierarchyRepository roleHierarchyRepository)
     {
         _roleHierarchyRepository = roleHierarchyRepository;
-    }
-
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
-
-    /// <inheritdoc />
+    }
+    /// <inheritdoc />
     public async Task<bool> WouldCreateCycleAsync(long parentRoleId, long childRoleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

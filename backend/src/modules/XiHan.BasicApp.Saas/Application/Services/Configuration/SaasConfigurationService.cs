@@ -31,6 +31,14 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 public sealed class SaasConfigurationService
     : ISaasConfigurationService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    private readonly IConfigRepository _configRepository;
+
+    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache;
+
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -43,11 +51,6 @@ public sealed class SaasConfigurationService
         _configValueCache = configValueCache;
         _currentTenant = currentTenant;
     }
-
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly IConfigRepository _configRepository;
-    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache;
-    private readonly ICurrentTenant _currentTenant;
 
     /// <inheritdoc />
     public async Task<string?> GetStringAsync(string configKey, string? defaultValue = null, CancellationToken cancellationToken = default)
@@ -125,6 +128,26 @@ public sealed class SaasConfigurationService
         };
     }
 
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
+    private static string? ResolveValue(SysConfig? config)
+    {
+        if (config is null)
+        {
+            return null;
+        }
+
+        return string.IsNullOrWhiteSpace(config.ConfigValue)
+            ? config.DefaultValue
+            : config.ConfigValue;
+    }
+
     private async Task<List<OAuthProviderItemDto>> GetOAuthProvidersAsync(CancellationToken cancellationToken)
     {
         var value = await GetStringAsync(SaasConfigKeys.Auth.OAuthProviders, "[]", cancellationToken);
@@ -177,25 +200,5 @@ public sealed class SaasConfigurationService
                 Exists = false,
                 CachedAt = DateTimeOffset.UtcNow
             };
-    }
-
-    private static DistributedCacheEntryOptions CreateCacheOptions()
-    {
-        return new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-        };
-    }
-
-    private static string? ResolveValue(SysConfig? config)
-    {
-        if (config is null)
-        {
-            return null;
-        }
-
-        return string.IsNullOrWhiteSpace(config.ConfigValue)
-            ? config.DefaultValue
-            : config.ConfigValue;
     }
 }

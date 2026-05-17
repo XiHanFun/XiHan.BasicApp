@@ -38,17 +38,17 @@ public sealed class DepartmentQueryService
     : SaasApplicationService, IDepartmentQueryService
 {
     /// <summary>
+    /// 部门仓储
+    /// </summary>
+    private readonly IDepartmentRepository _departmentRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public DepartmentQueryService(IDepartmentRepository departmentRepository)
     {
         _departmentRepository = departmentRepository;
     }
-
-    /// <summary>
-    /// 部门仓储
-    /// </summary>
-    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 获取部门分页列表

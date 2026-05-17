@@ -37,6 +37,16 @@ public sealed class MessageQueryService
     : SaasApplicationService, IMessageQueryService
 {
     /// <summary>
+    /// 系统邮件仓储
+    /// </summary>
+    private readonly IEmailRepository _emailRepository;
+
+    /// <summary>
+    /// 系统短信仓储
+    /// </summary>
+    private readonly ISmsRepository _smsRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public MessageQueryService(
@@ -46,16 +56,6 @@ public sealed class MessageQueryService
         _emailRepository = emailRepository;
         _smsRepository = smsRepository;
     }
-
-    /// <summary>
-    /// 系统邮件仓储
-    /// </summary>
-    private readonly IEmailRepository _emailRepository;
-
-    /// <summary>
-    /// 系统短信仓储
-    /// </summary>
-    private readonly ISmsRepository _smsRepository;
 
     /// <summary>
     /// 获取系统邮件分页列表

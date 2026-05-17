@@ -24,6 +24,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class AuthContextQueryService
     : IAuthContextQueryService
 {
+    private readonly IUserRepository _userRepository;
+
+    private readonly ITenantRepository _tenantRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -34,9 +38,6 @@ public sealed class AuthContextQueryService
         _userRepository = userRepository;
         _tenantRepository = tenantRepository;
     }
-
-    private readonly IUserRepository _userRepository;
-    private readonly ITenantRepository _tenantRepository;
 
     /// <inheritdoc />
     public async Task<LoginTenantContext?> GetLoginTenantOrThrowAsync(long? tenantId, DateTimeOffset now, CancellationToken cancellationToken = default)

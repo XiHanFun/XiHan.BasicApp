@@ -34,17 +34,16 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class VersionAppService
     : SaasApplicationService, IVersionAppService
 {
+    private readonly IVersionRepository _versionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public VersionAppService(IVersionRepository versionRepository)
     {
         _versionRepository = versionRepository;
-    }
-
-    private readonly IVersionRepository _versionRepository;
-
-    /// <summary>
+    }
+    /// <summary>
     /// 创建系统版本
     /// </summary>
     [UnitOfWork(true)]
@@ -70,46 +69,24 @@ public sealed class VersionAppService
     }
 
     /// <summary>
-    /// 更新系统版本
+    /// 删除系统版本
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Version.Update)]
-    public async Task<VersionDetailDto> UpdateVersionAsync(VersionUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.Version.Delete)]
+    public async Task DeleteVersionAsync(long id, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(input.BasicId, "系统版本主键必须大于 0。");
-        ValidateVersionInput(input.AppVersion, input.DbVersion, input.MinSupportVersion, input.UpgradeNode);
-        var version = await GetVersionOrThrowAsync(input.BasicId, cancellationToken);
-        version.AppVersion = Required(input.AppVersion, 64, nameof(input.AppVersion), "应用版本不能超过 64 个字符。");
-        version.DbVersion = Required(input.DbVersion, 64, nameof(input.DbVersion), "数据库版本不能超过 64 个字符。");
-        version.MinSupportVersion = Optional(input.MinSupportVersion, 64, nameof(input.MinSupportVersion), "最小支持版本不能超过 64 个字符。");
-        version.IsUpgrading = input.IsUpgrading;
-        version.UpgradeNode = Optional(input.UpgradeNode, 128, nameof(input.UpgradeNode), "升级节点不能超过 128 个字符。");
-        version.UpgradeStartTime = input.IsUpgrading ? input.UpgradeStartTime ?? version.UpgradeStartTime ?? DateTimeOffset.UtcNow : input.UpgradeStartTime;
+        var version = await GetVersionOrThrowAsync(id, cancellationToken);
+        if (version.IsUpgrading)
+        {
+            throw new InvalidOperationException("系统升级中的版本记录不能删除。");
+        }
 
-        var savedVersion = await _versionRepository.UpdateAsync(version, cancellationToken);
-        return VersionApplicationMapper.ToDetailDto(savedVersion);
-    }
-
-    /// <summary>
-    /// 开始系统升级
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Version.Upgrade)]
-    public async Task<VersionDetailDto> StartVersionUpgradeAsync(VersionUpgradeStartDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var version = await GetVersionOrThrowAsync(input.BasicId, cancellationToken);
-        version.IsUpgrading = true;
-        version.UpgradeNode = Optional(input.UpgradeNode, 128, nameof(input.UpgradeNode), "升级节点不能超过 128 个字符。");
-        version.UpgradeStartTime = input.UpgradeStartTime ?? DateTimeOffset.UtcNow;
-
-        var savedVersion = await _versionRepository.UpdateAsync(version, cancellationToken);
-        return VersionApplicationMapper.ToDetailDto(savedVersion);
+        if (!await _versionRepository.DeleteAsync(version, cancellationToken))
+        {
+            throw new InvalidOperationException("系统版本删除失败。");
+        }
     }
 
     /// <summary>
@@ -141,31 +118,46 @@ public sealed class VersionAppService
     }
 
     /// <summary>
-    /// 删除系统版本
+    /// 开始系统升级
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Version.Delete)]
-    public async Task DeleteVersionAsync(long id, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.Version.Upgrade)]
+    public async Task<VersionDetailDto> StartVersionUpgradeAsync(VersionUpgradeStartDto input, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var version = await GetVersionOrThrowAsync(id, cancellationToken);
-        if (version.IsUpgrading)
-        {
-            throw new InvalidOperationException("系统升级中的版本记录不能删除。");
-        }
+        var version = await GetVersionOrThrowAsync(input.BasicId, cancellationToken);
+        version.IsUpgrading = true;
+        version.UpgradeNode = Optional(input.UpgradeNode, 128, nameof(input.UpgradeNode), "升级节点不能超过 128 个字符。");
+        version.UpgradeStartTime = input.UpgradeStartTime ?? DateTimeOffset.UtcNow;
 
-        if (!await _versionRepository.DeleteAsync(version, cancellationToken))
-        {
-            throw new InvalidOperationException("系统版本删除失败。");
-        }
+        var savedVersion = await _versionRepository.UpdateAsync(version, cancellationToken);
+        return VersionApplicationMapper.ToDetailDto(savedVersion);
     }
 
-    private async Task<SysVersion> GetVersionOrThrowAsync(long id, CancellationToken cancellationToken)
+    /// <summary>
+    /// 更新系统版本
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Version.Update)]
+    public async Task<VersionDetailDto> UpdateVersionAsync(VersionUpdateDto input, CancellationToken cancellationToken = default)
     {
-        EnsureId(id, "系统版本主键必须大于 0。");
-        return await _versionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统版本不存在。");
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(input.BasicId, "系统版本主键必须大于 0。");
+        ValidateVersionInput(input.AppVersion, input.DbVersion, input.MinSupportVersion, input.UpgradeNode);
+        var version = await GetVersionOrThrowAsync(input.BasicId, cancellationToken);
+        version.AppVersion = Required(input.AppVersion, 64, nameof(input.AppVersion), "应用版本不能超过 64 个字符。");
+        version.DbVersion = Required(input.DbVersion, 64, nameof(input.DbVersion), "数据库版本不能超过 64 个字符。");
+        version.MinSupportVersion = Optional(input.MinSupportVersion, 64, nameof(input.MinSupportVersion), "最小支持版本不能超过 64 个字符。");
+        version.IsUpgrading = input.IsUpgrading;
+        version.UpgradeNode = Optional(input.UpgradeNode, 128, nameof(input.UpgradeNode), "升级节点不能超过 128 个字符。");
+        version.UpgradeStartTime = input.IsUpgrading ? input.UpgradeStartTime ?? version.UpgradeStartTime ?? DateTimeOffset.UtcNow : input.UpgradeStartTime;
+
+        var savedVersion = await _versionRepository.UpdateAsync(version, cancellationToken);
+        return VersionApplicationMapper.ToDetailDto(savedVersion);
     }
 
     private static void ValidateVersionInput(string appVersion, string dbVersion, string? minSupportVersion, string? upgradeNode)
@@ -174,5 +166,12 @@ public sealed class VersionAppService
         _ = Required(dbVersion, 64, nameof(dbVersion), "数据库版本不能超过 64 个字符。");
         _ = Optional(minSupportVersion, 64, nameof(minSupportVersion), "最小支持版本不能超过 64 个字符。");
         _ = Optional(upgradeNode, 128, nameof(upgradeNode), "升级节点不能超过 128 个字符。");
+    }
+
+    private async Task<SysVersion> GetVersionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统版本主键必须大于 0。");
+        return await _versionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统版本不存在。");
     }
 }

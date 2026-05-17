@@ -37,17 +37,17 @@ public sealed class OAuthAppQueryService
     : SaasApplicationService, IOAuthAppQueryService
 {
     /// <summary>
+    /// OAuth 应用仓储
+    /// </summary>
+    private readonly IOAuthAppRepository _oauthAppRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public OAuthAppQueryService(IOAuthAppRepository oauthAppRepository)
     {
         _oauthAppRepository = oauthAppRepository;
     }
-
-    /// <summary>
-    /// OAuth 应用仓储
-    /// </summary>
-    private readonly IOAuthAppRepository _oauthAppRepository;
 
     /// <summary>
     /// 获取 OAuth 应用分页列表

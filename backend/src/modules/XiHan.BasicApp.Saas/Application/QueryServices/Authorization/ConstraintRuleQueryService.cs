@@ -37,23 +37,6 @@ public sealed class ConstraintRuleQueryService
     : SaasApplicationService, IConstraintRuleQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public ConstraintRuleQueryService(
-        IConstraintRuleRepository constraintRuleRepository,
-        IConstraintRuleItemRepository constraintRuleItemRepository,
-        IRoleRepository roleRepository,
-        IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _constraintRuleRepository = constraintRuleRepository;
-        _constraintRuleItemRepository = constraintRuleItemRepository;
-        _roleRepository = roleRepository;
-        _permissionRepository = permissionRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 约束规则仓储
     /// </summary>
     private readonly IConstraintRuleRepository _constraintRuleRepository;
@@ -77,6 +60,23 @@ public sealed class ConstraintRuleQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ConstraintRuleQueryService(
+        IConstraintRuleRepository constraintRuleRepository,
+        IConstraintRuleItemRepository constraintRuleItemRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _constraintRuleRepository = constraintRuleRepository;
+        _constraintRuleItemRepository = constraintRuleItemRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取约束规则分页列表

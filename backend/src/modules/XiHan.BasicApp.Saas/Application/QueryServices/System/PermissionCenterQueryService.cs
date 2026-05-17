@@ -34,7 +34,37 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class PermissionCenterQueryService
     : SaasApplicationService, IPermissionCenterQueryService
 {
+    private const int MaxDelegationCount = 50;
+    private const int MaxRequestCount = 50;
+    private const int MaxFieldSecurityCount = 100;
+    private const int MaxChangeLogCount = 20;
     private readonly ISqlSugarClientResolver _clientResolver;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IResourceRepository _resourceRepository;
+
+    private readonly IOperationRepository _operationRepository;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
+
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
+
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
+
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly IDepartmentRepository _departmentRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly IReviewRepository _reviewRepository;
 
     /// <summary>
     /// 构造函数
@@ -70,24 +100,6 @@ public sealed class PermissionCenterQueryService
         _reviewRepository = reviewRepository;
         _clientResolver = clientResolver;
     }
-
-    private const int MaxDelegationCount = 50;
-    private const int MaxRequestCount = 50;
-    private const int MaxFieldSecurityCount = 100;
-    private const int MaxChangeLogCount = 20;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IResourceRepository _resourceRepository;
-    private readonly IOperationRepository _operationRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository;
-    private readonly IPermissionConditionRepository _permissionConditionRepository;
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
-    private readonly IPermissionRequestRepository _permissionRequestRepository;
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-    private readonly IReviewRepository _reviewRepository;
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
@@ -127,6 +139,31 @@ public sealed class PermissionCenterQueryService
             FieldSecurities = await GetFieldSecuritiesAsync(permission, cancellationToken),
             ChangeLogs = await GetChangeLogsAsync(permission.BasicId, cancellationToken),
             GeneratedTime = now
+        };
+    }
+
+    private static (string? Code, string? Name) ResolveFieldSecurityTarget(
+        SysFieldLevelSecurity policy,
+        IReadOnlyDictionary<long, SysRole> roleMap,
+        IReadOnlyDictionary<long, SysPermission> permissionMap,
+        IReadOnlyDictionary<long, SysDepartment> departmentMap,
+        IReadOnlyDictionary<long, SysTenantUser> tenantMemberMap)
+    {
+        return policy.TargetType switch
+        {
+            FieldSecurityTargetType.Role => roleMap.TryGetValue(policy.TargetId, out var role)
+                ? (role.RoleCode, role.RoleName)
+                : (null, null),
+            FieldSecurityTargetType.Permission => permissionMap.TryGetValue(policy.TargetId, out var permission)
+                ? (permission.PermissionCode, permission.PermissionName)
+                : (null, null),
+            FieldSecurityTargetType.Department => departmentMap.TryGetValue(policy.TargetId, out var department)
+                ? (department.DepartmentCode, department.DepartmentName)
+                : (null, null),
+            FieldSecurityTargetType.User => tenantMemberMap.TryGetValue(policy.TargetId, out var tenantMember)
+                ? (null, tenantMember.DisplayName)
+                : (null, null),
+            _ => (null, null)
         };
     }
 
@@ -366,31 +403,6 @@ public sealed class PermissionCenterQueryService
             .ToListAsync(cancellationToken);
 
         return [.. logs.Select(PermissionChangeLogApplicationMapper.ToListItemDto)];
-    }
-
-    private static (string? Code, string? Name) ResolveFieldSecurityTarget(
-        SysFieldLevelSecurity policy,
-        IReadOnlyDictionary<long, SysRole> roleMap,
-        IReadOnlyDictionary<long, SysPermission> permissionMap,
-        IReadOnlyDictionary<long, SysDepartment> departmentMap,
-        IReadOnlyDictionary<long, SysTenantUser> tenantMemberMap)
-    {
-        return policy.TargetType switch
-        {
-            FieldSecurityTargetType.Role => roleMap.TryGetValue(policy.TargetId, out var role)
-                ? (role.RoleCode, role.RoleName)
-                : (null, null),
-            FieldSecurityTargetType.Permission => permissionMap.TryGetValue(policy.TargetId, out var permission)
-                ? (permission.PermissionCode, permission.PermissionName)
-                : (null, null),
-            FieldSecurityTargetType.Department => departmentMap.TryGetValue(policy.TargetId, out var department)
-                ? (department.DepartmentCode, department.DepartmentName)
-                : (null, null),
-            FieldSecurityTargetType.User => tenantMemberMap.TryGetValue(policy.TargetId, out var tenantMember)
-                ? (null, tenantMember.DisplayName)
-                : (null, null),
-            _ => (null, null)
-        };
     }
 
     private async Task<IReadOnlyDictionary<long, SysPermission>> BuildPermissionMapAsync(IEnumerable<long> permissionIds, CancellationToken cancellationToken)

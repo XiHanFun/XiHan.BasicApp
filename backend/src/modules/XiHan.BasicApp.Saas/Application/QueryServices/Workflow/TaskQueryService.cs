@@ -37,17 +37,17 @@ public sealed class TaskQueryService
     : SaasApplicationService, ITaskQueryService
 {
     /// <summary>
+    /// 系统任务仓储
+    /// </summary>
+    private readonly ITaskRepository _taskRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public TaskQueryService(ITaskRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }
-
-    /// <summary>
-    /// 系统任务仓储
-    /// </summary>
-    private readonly ITaskRepository _taskRepository;
 
     /// <summary>
     /// 获取系统任务分页列表

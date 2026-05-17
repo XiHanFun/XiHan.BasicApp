@@ -32,6 +32,24 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class RoleManagementQueryService
     : SaasApplicationService, IRoleManagementQueryService
 {
+    private const int MaxGrantedUserCount = 100;
+
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
+
+    private readonly IDepartmentRepository _departmentRepository;
+
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    private readonly IUserRepository _userRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -54,16 +72,6 @@ public sealed class RoleManagementQueryService
         _userRoleRepository = userRoleRepository;
         _userRepository = userRepository;
     }
-
-    private const int MaxGrantedUserCount = 100;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IUserRepository _userRepository;
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.Role.Read)]
@@ -96,8 +104,28 @@ public sealed class RoleManagementQueryService
         };
     }
 
+    private static RoleManagementGrantedUserDto ToGrantedUserDto(SysUserRole userRole, SysUser? user, DateTimeOffset now)
+    {
+        return new RoleManagementGrantedUserDto
+        {
+            BasicId = userRole.BasicId,
+            UserId = userRole.UserId,
+            UserName = user?.UserName,
+            RealName = user?.RealName,
+            NickName = user?.NickName,
+            Avatar = user?.Avatar,
+            EffectiveTime = userRole.EffectiveTime,
+            ExpirationTime = userRole.ExpirationTime,
+            GrantReason = userRole.GrantReason,
+            Status = userRole.Status,
+            IsExpired = userRole.ExpirationTime.HasValue && userRole.ExpirationTime.Value <= now,
+            Remark = userRole.Remark,
+            CreatedTime = userRole.CreatedTime
+        };
+    }
+
     private async Task<List<RoleHierarchyListItemDto>> GetHierarchiesAsync(
-        long roleId,
+            long roleId,
         bool isAncestorQuery,
         CancellationToken cancellationToken)
     {
@@ -196,26 +224,6 @@ public sealed class RoleManagementQueryService
             .OrderBy(item => item.UserName)
             .ThenBy(item => item.UserId)
             .Take(MaxGrantedUserCount)];
-    }
-
-    private static RoleManagementGrantedUserDto ToGrantedUserDto(SysUserRole userRole, SysUser? user, DateTimeOffset now)
-    {
-        return new RoleManagementGrantedUserDto
-        {
-            BasicId = userRole.BasicId,
-            UserId = userRole.UserId,
-            UserName = user?.UserName,
-            RealName = user?.RealName,
-            NickName = user?.NickName,
-            Avatar = user?.Avatar,
-            EffectiveTime = userRole.EffectiveTime,
-            ExpirationTime = userRole.ExpirationTime,
-            GrantReason = userRole.GrantReason,
-            Status = userRole.Status,
-            IsExpired = userRole.ExpirationTime.HasValue && userRole.ExpirationTime.Value <= now,
-            Remark = userRole.Remark,
-            CreatedTime = userRole.CreatedTime
-        };
     }
 
     private async Task<IReadOnlyDictionary<long, SysRole>> BuildRoleMapAsync(IEnumerable<long> roleIds, CancellationToken cancellationToken)

@@ -33,19 +33,6 @@ public sealed class RolePermissionQueryService
     : SaasApplicationService, IRolePermissionQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public RolePermissionQueryService(
-        IRoleRepository roleRepository,
-        IRolePermissionRepository rolePermissionRepository,
-        IPermissionRepository permissionRepository)
-    {
-        _roleRepository = roleRepository;
-        _rolePermissionRepository = rolePermissionRepository;
-        _permissionRepository = permissionRepository;
-    }
-
-    /// <summary>
     /// 角色仓储
     /// </summary>
     private readonly IRoleRepository _roleRepository;
@@ -59,6 +46,19 @@ public sealed class RolePermissionQueryService
     /// 权限仓储
     /// </summary>
     private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RolePermissionQueryService(
+        IRoleRepository roleRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IPermissionRepository permissionRepository)
+    {
+        _roleRepository = roleRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _permissionRepository = permissionRepository;
+    }
 
     /// <summary>
     /// 获取角色权限列表

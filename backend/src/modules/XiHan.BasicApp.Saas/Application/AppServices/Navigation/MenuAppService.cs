@@ -32,6 +32,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class MenuAppService
     : SaasApplicationService, IMenuAppService
 {
+    private readonly IMenuDomainService _menuDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,8 +41,6 @@ public sealed class MenuAppService
     {
         _menuDomainService = menuDomainService;
     }
-
-    private readonly IMenuDomainService _menuDomainService;
 
     /// <summary>
     /// 创建菜单
@@ -57,6 +57,19 @@ public sealed class MenuAppService
 
         var result = await _menuDomainService.CreateAsync(ToCreateCommand(input), cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
+    }
+
+    /// <summary>
+    /// 删除菜单
+    /// </summary>
+    /// <param name="id">菜单主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Menu.Delete)]
+    public async Task DeleteMenuAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _menuDomainService.DeleteAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -93,19 +106,6 @@ public sealed class MenuAppService
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
     }
 
-    /// <summary>
-    /// 删除菜单
-    /// </summary>
-    /// <param name="id">菜单主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Menu.Delete)]
-    public async Task DeleteMenuAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _menuDomainService.DeleteAsync(id, cancellationToken);
-    }
-
     private static MenuCreateCommand ToCreateCommand(MenuCreateDto input)
     {
         return new MenuCreateCommand(
@@ -134,6 +134,11 @@ public sealed class MenuAppService
             input.Remark);
     }
 
+    private static MenuStatusChangeCommand ToStatusCommand(MenuStatusUpdateDto input)
+    {
+        return new MenuStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     private static MenuUpdateCommand ToUpdateCommand(MenuUpdateDto input)
     {
         return new MenuUpdateCommand(
@@ -159,10 +164,5 @@ public sealed class MenuAppService
             input.Metadata,
             input.Sort,
             input.Remark);
-    }
-
-    private static MenuStatusChangeCommand ToStatusCommand(MenuStatusUpdateDto input)
-    {
-        return new MenuStatusChangeCommand(input.BasicId, input.Status, input.Remark);
     }
 }

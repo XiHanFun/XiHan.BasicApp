@@ -25,6 +25,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class MenuRouteQueryService
     : IMenuRouteQueryService
 {
+    private readonly IMenuRepository _menuRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -35,9 +39,6 @@ public sealed class MenuRouteQueryService
         _menuRepository = menuRepository;
         _permissionRepository = permissionRepository;
     }
-
-    private readonly IMenuRepository _menuRepository;
-    private readonly IPermissionRepository _permissionRepository;
 
     /// <inheritdoc />
     public async Task<List<MenuRouteDto>> GetRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken = default)

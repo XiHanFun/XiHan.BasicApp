@@ -33,19 +33,6 @@ public sealed class UserDataScopeQueryService
     : SaasApplicationService, IUserDataScopeQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public UserDataScopeQueryService(
-        IUserDataScopeRepository userDataScopeRepository,
-        IDepartmentRepository departmentRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _userDataScopeRepository = userDataScopeRepository;
-        _departmentRepository = departmentRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 用户数据范围仓储
     /// </summary>
     private readonly IUserDataScopeRepository _userDataScopeRepository;
@@ -59,6 +46,19 @@ public sealed class UserDataScopeQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserDataScopeQueryService(
+        IUserDataScopeRepository userDataScopeRepository,
+        IDepartmentRepository departmentRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userDataScopeRepository = userDataScopeRepository;
+        _departmentRepository = departmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取用户数据范围列表

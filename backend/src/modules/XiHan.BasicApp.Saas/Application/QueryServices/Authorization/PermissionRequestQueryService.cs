@@ -37,23 +37,6 @@ public sealed class PermissionRequestQueryService
     : SaasApplicationService, IPermissionRequestQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public PermissionRequestQueryService(
-        IPermissionRequestRepository permissionRequestRepository,
-        ITenantUserRepository tenantUserRepository,
-        IPermissionRepository permissionRepository,
-        IRoleRepository roleRepository,
-        IReviewRepository reviewRepository)
-    {
-        _permissionRequestRepository = permissionRequestRepository;
-        _tenantUserRepository = tenantUserRepository;
-        _permissionRepository = permissionRepository;
-        _roleRepository = roleRepository;
-        _reviewRepository = reviewRepository;
-    }
-
-    /// <summary>
     /// 权限申请仓储
     /// </summary>
     private readonly IPermissionRequestRepository _permissionRequestRepository;
@@ -77,6 +60,23 @@ public sealed class PermissionRequestQueryService
     /// 审批仓储
     /// </summary>
     private readonly IReviewRepository _reviewRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionRequestQueryService(
+        IPermissionRequestRepository permissionRequestRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPermissionRepository permissionRepository,
+        IRoleRepository roleRepository,
+        IReviewRepository reviewRepository)
+    {
+        _permissionRequestRepository = permissionRequestRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _permissionRepository = permissionRepository;
+        _roleRepository = roleRepository;
+        _reviewRepository = reviewRepository;
+    }
 
     /// <summary>
     /// 获取权限申请分页列表

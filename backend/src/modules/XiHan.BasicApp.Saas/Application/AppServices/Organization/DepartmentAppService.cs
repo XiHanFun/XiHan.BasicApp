@@ -32,6 +32,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class DepartmentAppService
     : SaasApplicationService, IDepartmentAppService
 {
+    private readonly IDepartmentDomainService _departmentDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,8 +41,6 @@ public sealed class DepartmentAppService
     {
         _departmentDomainService = departmentDomainService;
     }
-
-    private readonly IDepartmentDomainService _departmentDomainService;
 
     /// <summary>
     /// 创建部门
@@ -54,6 +54,17 @@ public sealed class DepartmentAppService
 
         var result = await _departmentDomainService.CreateAsync(ToCreateCommand(input), cancellationToken);
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
+    }
+
+    /// <summary>
+    /// 删除部门
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Department.Delete)]
+    public async Task DeleteDepartmentAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _departmentDomainService.DeleteAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -84,17 +95,6 @@ public sealed class DepartmentAppService
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
     }
 
-    /// <summary>
-    /// 删除部门
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Department.Delete)]
-    public async Task DeleteDepartmentAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _departmentDomainService.DeleteAsync(id, cancellationToken);
-    }
-
     private static DepartmentCreateCommand ToCreateCommand(DepartmentCreateDto input)
     {
         return new DepartmentCreateCommand(
@@ -111,6 +111,11 @@ public sealed class DepartmentAppService
             input.Remark);
     }
 
+    private static DepartmentStatusChangeCommand ToStatusCommand(DepartmentStatusUpdateDto input)
+    {
+        return new DepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     private static DepartmentUpdateCommand ToUpdateCommand(DepartmentUpdateDto input)
     {
         return new DepartmentUpdateCommand(
@@ -124,10 +129,5 @@ public sealed class DepartmentAppService
             input.Address,
             input.Sort,
             input.Remark);
-    }
-
-    private static DepartmentStatusChangeCommand ToStatusCommand(DepartmentStatusUpdateDto input)
-    {
-        return new DepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
     }
 }

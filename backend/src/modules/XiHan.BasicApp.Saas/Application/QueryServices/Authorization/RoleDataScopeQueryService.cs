@@ -33,19 +33,6 @@ public sealed class RoleDataScopeQueryService
     : SaasApplicationService, IRoleDataScopeQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public RoleDataScopeQueryService(
-        IRoleRepository roleRepository,
-        IRoleDataScopeRepository roleDataScopeRepository,
-        IDepartmentRepository departmentRepository)
-    {
-        _roleRepository = roleRepository;
-        _roleDataScopeRepository = roleDataScopeRepository;
-        _departmentRepository = departmentRepository;
-    }
-
-    /// <summary>
     /// 角色仓储
     /// </summary>
     private readonly IRoleRepository _roleRepository;
@@ -59,6 +46,19 @@ public sealed class RoleDataScopeQueryService
     /// 部门仓储
     /// </summary>
     private readonly IDepartmentRepository _departmentRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleDataScopeQueryService(
+        IRoleRepository roleRepository,
+        IRoleDataScopeRepository roleDataScopeRepository,
+        IDepartmentRepository departmentRepository)
+    {
+        _roleRepository = roleRepository;
+        _roleDataScopeRepository = roleDataScopeRepository;
+        _departmentRepository = departmentRepository;
+    }
 
     /// <summary>
     /// 获取角色数据范围列表

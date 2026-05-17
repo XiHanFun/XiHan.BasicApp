@@ -31,14 +31,14 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Metadata;
 public sealed class EnumMetadataAppService : ApplicationServiceBase
 {
     /// <summary>
-    /// 领域层程序集
-    /// </summary>
-    private static readonly Assembly DomainAssembly = typeof(SysUser).Assembly;
-
-    /// <summary>
     /// 枚举所在的目标命名空间
     /// </summary>
     private const string TargetNamespace = "XiHan.BasicApp.Saas.Domain.Entities";
+
+    /// <summary>
+    /// 领域层程序集
+    /// </summary>
+    private static readonly Assembly DomainAssembly = typeof(SysUser).Assembly;
 
     /// <summary>
     /// XML 文档缓存（延迟加载，线程安全）
@@ -94,6 +94,26 @@ public sealed class EnumMetadataAppService : ApplicationServiceBase
     #region 枚举反射构建
 
     /// <summary>
+    /// 构建单个枚举项的元数据
+    /// </summary>
+    /// <param name="enumType">枚举类型</param>
+    /// <param name="value">枚举值</param>
+    /// <returns>枚举项 DTO</returns>
+    private static EnumItemDto BuildEnumItem(Type enumType, object value)
+    {
+        var name = Enum.GetName(enumType, value)!;
+        var field = enumType.GetField(name)!;
+
+        return new EnumItemDto
+        {
+            Name = name,
+            Value = Convert.ToInt32(value, provider: null),
+            DisplayName = ResolveEnumMemberDisplayName(field),
+            Description = ResolveEnumMemberDescription(enumType, field)
+        };
+    }
+
+    /// <summary>
     /// 构建单个枚举类型的完整元数据
     /// </summary>
     /// <param name="enumType">枚举类型</param>
@@ -114,94 +134,9 @@ public sealed class EnumMetadataAppService : ApplicationServiceBase
         };
     }
 
-    /// <summary>
-    /// 构建单个枚举项的元数据
-    /// </summary>
-    /// <param name="enumType">枚举类型</param>
-    /// <param name="value">枚举值</param>
-    /// <returns>枚举项 DTO</returns>
-    private static EnumItemDto BuildEnumItem(Type enumType, object value)
-    {
-        var name = Enum.GetName(enumType, value)!;
-        var field = enumType.GetField(name)!;
-
-        return new EnumItemDto
-        {
-            Name = name,
-            Value = Convert.ToInt32(value, provider: null),
-            DisplayName = ResolveEnumMemberDisplayName(field),
-            Description = ResolveEnumMemberDescription(enumType, field)
-        };
-    }
-
     #endregion
 
     #region 显示名称与描述解析
-
-    /// <summary>
-    /// 解析枚举类型级别的显示名称
-    /// 优先级：XML 文档 Summary > 类型名称（去除"枚举"后缀）
-    /// </summary>
-    /// <param name="enumType">枚举类型</param>
-    /// <returns>类型显示名称</returns>
-    private static string ResolveEnumTypeDisplayName(Type enumType)
-    {
-        // 优先从 XML 文档注释中获取 Summary
-        var xmlSummary = GetXmlDocSummary(MakeXmlMemberId('T', enumType.FullName!));
-        if (!string.IsNullOrWhiteSpace(xmlSummary))
-        {
-            return xmlSummary;
-        }
-
-        // 回退：使用类型名称，去除常见后缀
-        var typeName = enumType.Name;
-        if (typeName.EndsWith("Enum", StringComparison.Ordinal))
-        {
-            typeName = typeName[..^4];
-        }
-
-        return typeName;
-    }
-
-    /// <summary>
-    /// 解析枚举成员的显示名称
-    /// 读取字段上的 [Description] 特性，回退到字段名称。
-    /// </summary>
-    /// <param name="field">枚举字段信息</param>
-    /// <returns>成员显示名称</returns>
-    private static string ResolveEnumMemberDisplayName(FieldInfo field)
-    {
-        var descriptionAttr = field.GetCustomAttribute<DescriptionAttribute>();
-        return descriptionAttr?.Description ?? field.Name;
-    }
-
-    /// <summary>
-    /// 解析枚举成员的描述文本
-    /// 从 XML 文档注释中获取该字段的 Summary，作为 Tooltip 级别的辅助描述。
-    /// 注意：此处获取的是字段级 Summary，区别于 [Description] 特性的显示名称。
-    /// 例如 UserGender.Male 的 Summary 为"男"（与 [Description] 相同），
-    /// 而 DataPermissionScope.All 的 Summary 为"可以看到所有数据"（更详细的描述）。
-    /// </summary>
-    /// <param name="enumType">枚举类型</param>
-    /// <param name="field">枚举字段信息</param>
-    /// <returns>字段 XML 文档 Summary；若不存在则返回 null</returns>
-    private static string? ResolveEnumMemberDescription(Type enumType, FieldInfo field)
-    {
-        var memberId = MakeXmlMemberId('F', $"{enumType.FullName}.{field.Name}");
-        return GetXmlDocSummary(memberId);
-    }
-
-    /// <summary>
-    /// 构造 XML 文档成员标识符
-    /// 格式：{prefix}:{fullName}（如 T:Namespace.TypeName 或 F:Namespace.TypeName.FieldName）
-    /// </summary>
-    /// <param name="prefix">成员前缀（T 表示类型，F 表示字段）</param>
-    /// <param name="fullName">完整名称</param>
-    /// <returns>XML 文档成员 ID</returns>
-    private static string MakeXmlMemberId(char prefix, string fullName)
-    {
-        return $"{prefix}:{fullName}";
-    }
 
     /// <summary>
     /// 从缓存的 XML 文档中获取指定成员的 Summary 文本
@@ -226,6 +161,18 @@ public sealed class EnumMetadataAppService : ApplicationServiceBase
     }
 
     /// <summary>
+    /// 构造 XML 文档成员标识符
+    /// 格式：{prefix}:{fullName}（如 T:Namespace.TypeName 或 F:Namespace.TypeName.FieldName）
+    /// </summary>
+    /// <param name="prefix">成员前缀（T 表示类型，F 表示字段）</param>
+    /// <param name="fullName">完整名称</param>
+    /// <returns>XML 文档成员 ID</returns>
+    private static string MakeXmlMemberId(char prefix, string fullName)
+    {
+        return $"{prefix}:{fullName}";
+    }
+
+    /// <summary>
     /// 规范化 XML Summary 文本
     /// 去除前后空白并将内部连续空白合并为单个空格。
     /// </summary>
@@ -236,6 +183,59 @@ public sealed class EnumMetadataAppService : ApplicationServiceBase
         // XML doc summary 中可能包含换行和缩进空白，统一整理为单行可读文本
         var parts = raw.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         return string.Join(' ', parts.Select(static part => part.Trim()).Where(static part => part.Length > 0));
+    }
+
+    /// <summary>
+    /// 解析枚举成员的描述文本
+    /// 从 XML 文档注释中获取该字段的 Summary，作为 Tooltip 级别的辅助描述。
+    /// 注意：此处获取的是字段级 Summary，区别于 [Description] 特性的显示名称。
+    /// 例如 UserGender.Male 的 Summary 为"男"（与 [Description] 相同），
+    /// 而 DataPermissionScope.All 的 Summary 为"可以看到所有数据"（更详细的描述）。
+    /// </summary>
+    /// <param name="enumType">枚举类型</param>
+    /// <param name="field">枚举字段信息</param>
+    /// <returns>字段 XML 文档 Summary；若不存在则返回 null</returns>
+    private static string? ResolveEnumMemberDescription(Type enumType, FieldInfo field)
+    {
+        var memberId = MakeXmlMemberId('F', $"{enumType.FullName}.{field.Name}");
+        return GetXmlDocSummary(memberId);
+    }
+
+    /// <summary>
+    /// 解析枚举成员的显示名称
+    /// 读取字段上的 [Description] 特性，回退到字段名称。
+    /// </summary>
+    /// <param name="field">枚举字段信息</param>
+    /// <returns>成员显示名称</returns>
+    private static string ResolveEnumMemberDisplayName(FieldInfo field)
+    {
+        var descriptionAttr = field.GetCustomAttribute<DescriptionAttribute>();
+        return descriptionAttr?.Description ?? field.Name;
+    }
+
+    /// <summary>
+    /// 解析枚举类型级别的显示名称
+    /// 优先级：XML 文档 Summary > 类型名称（去除"枚举"后缀）
+    /// </summary>
+    /// <param name="enumType">枚举类型</param>
+    /// <returns>类型显示名称</returns>
+    private static string ResolveEnumTypeDisplayName(Type enumType)
+    {
+        // 优先从 XML 文档注释中获取 Summary
+        var xmlSummary = GetXmlDocSummary(MakeXmlMemberId('T', enumType.FullName!));
+        if (!string.IsNullOrWhiteSpace(xmlSummary))
+        {
+            return xmlSummary;
+        }
+
+        // 回退：使用类型名称，去除常见后缀
+        var typeName = enumType.Name;
+        if (typeName.EndsWith("Enum", StringComparison.Ordinal))
+        {
+            typeName = typeName[..^4];
+        }
+
+        return typeName;
     }
 
     #endregion

@@ -44,6 +44,14 @@ public sealed class SaasDomainEventHandler
 {
     private readonly ISqlSugarClientResolver _clientResolver;
 
+    private readonly IUserSessionRepository _userSessionRepository;
+
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
+
+    private readonly ISessionRoleRepository _sessionRoleRepository;
+
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -60,12 +68,6 @@ public sealed class SaasDomainEventHandler
         _clientResolver = clientResolver;
         _currentTenant = currentTenant;
     }
-
-    private readonly IUserSessionRepository _userSessionRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository;
-    private readonly ISessionRoleRepository _sessionRoleRepository;
-    private readonly ICurrentTenant _currentTenant;
-
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <inheritdoc />
@@ -286,6 +288,55 @@ public sealed class SaasDomainEventHandler
     }
 
     /// <summary>
+    /// 标记会话为撤销。
+    /// </summary>
+    private static void RevokeSession(SysUserSession session, DateTimeOffset now, string reason)
+    {
+        session.IsRevoked = true;
+        session.RevokedAt = now;
+        session.RevokedReason = reason;
+        session.IsOnline = false;
+        session.LogoutTime ??= now;
+        session.LastActivityTime = now;
+    }
+
+    /// <summary>
+    /// 解析权限变更类型。
+    /// </summary>
+    private static PermissionChangeType ResolvePermissionChangeType(bool isRoleTarget, PermissionAction action)
+    {
+        return (isRoleTarget, action) switch
+        {
+            (true, PermissionAction.Deny) => PermissionChangeType.RoleDenyPermission,
+            (true, _) => PermissionChangeType.RoleGrantPermission,
+            (false, PermissionAction.Deny) => PermissionChangeType.UserDenyPermission,
+            (false, _) => PermissionChangeType.UserGrantPermission
+        };
+    }
+
+    /// <summary>
+    /// 判断目标类型。
+    /// </summary>
+    private static bool IsTargetType(string targetType, string keyword)
+    {
+        return targetType.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 规范化字符串长度。
+    /// </summary>
+    private static string? NormalizeText(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var trimmed = value.Trim();
+        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
+    }
+
+    /// <summary>
     /// 租户进入非正常状态时撤销该租户内所有在线会话、Token 与会话角色。
     /// </summary>
     private async Task RevokeTenantSessionsAsync(TenantStatusChangedDomainEvent eventData)
@@ -488,19 +539,6 @@ public sealed class SaasDomainEventHandler
     }
 
     /// <summary>
-    /// 标记会话为撤销。
-    /// </summary>
-    private static void RevokeSession(SysUserSession session, DateTimeOffset now, string reason)
-    {
-        session.IsRevoked = true;
-        session.RevokedAt = now;
-        session.RevokedReason = reason;
-        session.IsOnline = false;
-        session.LogoutTime ??= now;
-        session.LastActivityTime = now;
-    }
-
-    /// <summary>
     /// 写入权限变更日志。
     /// </summary>
     private async Task WritePermissionChangeLogAsync(AuthorizationChangedDomainEvent eventData)
@@ -560,41 +598,5 @@ public sealed class SaasDomainEventHandler
         };
 
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
-    }
-
-    /// <summary>
-    /// 解析权限变更类型。
-    /// </summary>
-    private static PermissionChangeType ResolvePermissionChangeType(bool isRoleTarget, PermissionAction action)
-    {
-        return (isRoleTarget, action) switch
-        {
-            (true, PermissionAction.Deny) => PermissionChangeType.RoleDenyPermission,
-            (true, _) => PermissionChangeType.RoleGrantPermission,
-            (false, PermissionAction.Deny) => PermissionChangeType.UserDenyPermission,
-            (false, _) => PermissionChangeType.UserGrantPermission
-        };
-    }
-
-    /// <summary>
-    /// 判断目标类型。
-    /// </summary>
-    private static bool IsTargetType(string targetType, string keyword)
-    {
-        return targetType.Contains(keyword, StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 规范化字符串长度。
-    /// </summary>
-    private static string? NormalizeText(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var trimmed = value.Trim();
-        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
     }
 }

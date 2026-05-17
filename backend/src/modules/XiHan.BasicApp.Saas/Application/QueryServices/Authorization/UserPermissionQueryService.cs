@@ -33,19 +33,6 @@ public sealed class UserPermissionQueryService
     : SaasApplicationService, IUserPermissionQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public UserPermissionQueryService(
-        IUserPermissionRepository userPermissionRepository,
-        IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _userPermissionRepository = userPermissionRepository;
-        _permissionRepository = permissionRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 用户直授权限仓储
     /// </summary>
     private readonly IUserPermissionRepository _userPermissionRepository;
@@ -59,6 +46,19 @@ public sealed class UserPermissionQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserPermissionQueryService(
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userPermissionRepository = userPermissionRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取用户直授权限列表

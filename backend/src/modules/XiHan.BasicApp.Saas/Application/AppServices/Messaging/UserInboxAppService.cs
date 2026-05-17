@@ -33,6 +33,14 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class UserInboxAppService
     : SaasApplicationService, IUserInboxAppService
 {
+    private const int MaxInboxItems = 100;
+
+    private readonly ICurrentUser _currentUser;
+
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -46,10 +54,29 @@ public sealed class UserInboxAppService
         _currentUser = currentUser;
     }
 
-    private const int MaxInboxItems = 100;
-    private readonly INotificationRepository _notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository;
-    private readonly ICurrentUser _currentUser;
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task ConfirmAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userNotification = await GetCurrentUserNotificationOrThrowAsync(input.BasicId, cancellationToken);
+        var notification = await _notificationRepository.GetByIdAsync(userNotification.NotificationId, cancellationToken)
+            ?? throw new InvalidOperationException("通知不存在。");
+        if (!notification.NeedConfirm)
+        {
+            MarkRead(userNotification, DateTimeOffset.UtcNow);
+        }
+        else
+        {
+            var now = DateTimeOffset.UtcNow;
+            MarkRead(userNotification, now);
+            userNotification.ConfirmTime ??= now;
+        }
+
+        _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
+    }
 
     /// <inheritdoc />
     public async Task<List<UserInboxItemDto>> GetListAsync(bool unreadOnly = false, CancellationToken cancellationToken = default)
@@ -101,18 +128,6 @@ public sealed class UserInboxAppService
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task MarkReadAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userNotification = await GetCurrentUserNotificationOrThrowAsync(input.BasicId, cancellationToken);
-        MarkRead(userNotification, DateTimeOffset.UtcNow);
-        _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
     public async Task MarkAllReadAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -136,26 +151,23 @@ public sealed class UserInboxAppService
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task ConfirmAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default)
+    public async Task MarkReadAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         var userNotification = await GetCurrentUserNotificationOrThrowAsync(input.BasicId, cancellationToken);
-        var notification = await _notificationRepository.GetByIdAsync(userNotification.NotificationId, cancellationToken)
-            ?? throw new InvalidOperationException("通知不存在。");
-        if (!notification.NeedConfirm)
-        {
-            MarkRead(userNotification, DateTimeOffset.UtcNow);
-        }
-        else
-        {
-            var now = DateTimeOffset.UtcNow;
-            MarkRead(userNotification, now);
-            userNotification.ConfirmTime ??= now;
-        }
-
+        MarkRead(userNotification, DateTimeOffset.UtcNow);
         _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
+    }
+
+    private static void MarkRead(SysUserNotification userNotification, DateTimeOffset now)
+    {
+        if (userNotification.NotificationStatus == NotificationStatus.Unread)
+        {
+            userNotification.NotificationStatus = NotificationStatus.Read;
+            userNotification.ReadTime ??= now;
+        }
     }
 
     private long GetCurrentUserIdOrThrow()
@@ -174,14 +186,5 @@ public sealed class UserInboxAppService
         }
 
         return userNotification;
-    }
-
-    private static void MarkRead(SysUserNotification userNotification, DateTimeOffset now)
-    {
-        if (userNotification.NotificationStatus == NotificationStatus.Unread)
-        {
-            userNotification.NotificationStatus = NotificationStatus.Read;
-            userNotification.ReadTime ??= now;
-        }
     }
 }

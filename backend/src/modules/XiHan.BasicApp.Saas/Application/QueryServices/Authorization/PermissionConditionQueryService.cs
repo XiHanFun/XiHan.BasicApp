@@ -33,25 +33,6 @@ public sealed class PermissionConditionQueryService
     : SaasApplicationService, IPermissionConditionQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public PermissionConditionQueryService(
-        IPermissionConditionRepository permissionConditionRepository,
-        IRolePermissionRepository rolePermissionRepository,
-        IUserPermissionRepository userPermissionRepository,
-        IRoleRepository roleRepository,
-        IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
-    {
-        _permissionConditionRepository = permissionConditionRepository;
-        _rolePermissionRepository = rolePermissionRepository;
-        _userPermissionRepository = userPermissionRepository;
-        _roleRepository = roleRepository;
-        _permissionRepository = permissionRepository;
-        _tenantUserRepository = tenantUserRepository;
-    }
-
-    /// <summary>
     /// 权限 ABAC 条件仓储
     /// </summary>
     private readonly IPermissionConditionRepository _permissionConditionRepository;
@@ -80,6 +61,25 @@ public sealed class PermissionConditionQueryService
     /// 租户成员仓储
     /// </summary>
     private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionConditionQueryService(
+        IPermissionConditionRepository permissionConditionRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _permissionConditionRepository = permissionConditionRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 获取角色权限绑定的 ABAC 条件

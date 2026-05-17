@@ -37,17 +37,17 @@ public sealed class ConfigQueryService
     : SaasApplicationService, IConfigQueryService
 {
     /// <summary>
+    /// 系统配置仓储
+    /// </summary>
+    private readonly IConfigRepository _configRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ConfigQueryService(IConfigRepository configRepository)
     {
         _configRepository = configRepository;
     }
-
-    /// <summary>
-    /// 系统配置仓储
-    /// </summary>
-    private readonly IConfigRepository _configRepository;
 
     /// <summary>
     /// 获取系统配置分页列表

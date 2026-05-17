@@ -40,6 +40,10 @@ public sealed class ReviewAppService
 {
     private readonly ISqlSugarClientResolver _clientResolver;
 
+    private readonly ICurrentUser _currentUser;
+
+    private readonly IReviewRepository _reviewRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -52,11 +56,42 @@ public sealed class ReviewAppService
         _clientResolver = clientResolver;
         _currentUser = currentUser;
     }
-
-    private readonly IReviewRepository _reviewRepository;
-    private readonly ICurrentUser _currentUser;
-
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
+
+    /// <summary>
+    /// 审核系统审查
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Review.Audit)]
+    public async Task<ReviewDetailDto> AuditReviewAsync(ReviewAuditDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ValidateAuditInput(input);
+        var review = await GetReviewOrThrowAsync(input.BasicId, cancellationToken);
+        EnsureReviewCanBeAudited(review);
+
+        var reviewTime = input.ReviewTime ?? DateTimeOffset.UtcNow;
+        var originalStatus = review.ReviewStatus;
+        var newStatus = ResolveNextAuditStatus(review, input.ReviewResult);
+
+        review.ReviewStartTime ??= reviewTime;
+        review.ReviewStatus = newStatus;
+        review.ReviewResult = input.ReviewResult;
+        review.CurrentLevel = ResolveNextCurrentLevel(review, input.ReviewResult);
+        review.CurrentReviewUserId = ResolveNextReviewUserId(review, input);
+        if (newStatus is AuditStatus.Approved or AuditStatus.Rejected)
+        {
+            review.ReviewEndTime = reviewTime;
+        }
+
+        review.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? review.Remark;
+
+        var savedReview = await _reviewRepository.UpdateAsync(review, cancellationToken);
+        await AddReviewLogAsync(savedReview, input, originalStatus, newStatus, reviewTime, cancellationToken);
+        return ReviewApplicationMapper.ToDetailDto(savedReview);
+    }
 
     /// <summary>
     /// 创建系统审查
@@ -107,6 +142,22 @@ public sealed class ReviewAppService
 
         var savedReview = await _reviewRepository.AddAsync(review, cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(savedReview);
+    }
+
+    /// <summary>
+    /// 删除系统审查
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Review.Delete)]
+    public async Task DeleteReviewAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var review = await GetReviewOrThrowAsync(id, cancellationToken);
+        if (!await _reviewRepository.DeleteAsync(review, cancellationToken))
+        {
+            throw new InvalidOperationException("系统审查删除失败。");
+        }
     }
 
     /// <summary>
@@ -172,41 +223,6 @@ public sealed class ReviewAppService
     }
 
     /// <summary>
-    /// 审核系统审查
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Review.Audit)]
-    public async Task<ReviewDetailDto> AuditReviewAsync(ReviewAuditDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        ValidateAuditInput(input);
-        var review = await GetReviewOrThrowAsync(input.BasicId, cancellationToken);
-        EnsureReviewCanBeAudited(review);
-
-        var reviewTime = input.ReviewTime ?? DateTimeOffset.UtcNow;
-        var originalStatus = review.ReviewStatus;
-        var newStatus = ResolveNextAuditStatus(review, input.ReviewResult);
-
-        review.ReviewStartTime ??= reviewTime;
-        review.ReviewStatus = newStatus;
-        review.ReviewResult = input.ReviewResult;
-        review.CurrentLevel = ResolveNextCurrentLevel(review, input.ReviewResult);
-        review.CurrentReviewUserId = ResolveNextReviewUserId(review, input);
-        if (newStatus is AuditStatus.Approved or AuditStatus.Rejected)
-        {
-            review.ReviewEndTime = reviewTime;
-        }
-
-        review.Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。") ?? review.Remark;
-
-        var savedReview = await _reviewRepository.UpdateAsync(review, cancellationToken);
-        await AddReviewLogAsync(savedReview, input, originalStatus, newStatus, reviewTime, cancellationToken);
-        return ReviewApplicationMapper.ToDetailDto(savedReview);
-    }
-
-    /// <summary>
     /// 撤回系统审查
     /// </summary>
     [UnitOfWork(true)]
@@ -232,57 +248,108 @@ public sealed class ReviewAppService
         return ReviewApplicationMapper.ToDetailDto(savedReview);
     }
 
-    /// <summary>
-    /// 删除系统审查
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Review.Delete)]
-    public async Task DeleteReviewAsync(long id, CancellationToken cancellationToken = default)
+    private static void EnsureCodeHasNoWhitespace(string value, string message)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var review = await GetReviewOrThrowAsync(id, cancellationToken);
-        if (!await _reviewRepository.DeleteAsync(review, cancellationToken))
+        if (value.Any(char.IsWhiteSpace))
         {
-            throw new InvalidOperationException("系统审查删除失败。");
+            throw new InvalidOperationException(message);
         }
     }
 
-    private async Task<SysReview> GetReviewOrThrowAsync(long id, CancellationToken cancellationToken)
+    private static void EnsureReviewCanBeAudited(SysReview review)
     {
-        EnsureId(id, "系统审查主键必须大于 0。");
-        return await _reviewRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统审查不存在。");
+        if (review.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用审查不能审核。");
+        }
+
+        if (review.ReviewStatus is AuditStatus.Approved or AuditStatus.Rejected or AuditStatus.Withdrawn)
+        {
+            throw new InvalidOperationException("已完结审查不能审核。");
+        }
     }
 
-    private async Task AddReviewLogAsync(
-        SysReview review,
-        ReviewAuditDto input,
-        AuditStatus originalStatus,
-        AuditStatus newStatus,
-        DateTimeOffset reviewTime,
-        CancellationToken cancellationToken)
+    private static AuditResult? NormalizeReviewResult(AuditResult? reviewResult, AuditStatus reviewStatus)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var reviewLog = new SysReviewLog
+        if (reviewResult.HasValue)
         {
-            ReviewId = review.BasicId,
-            ReviewLevel = review.CurrentLevel,
-            ReviewUserId = input.ReviewUserId ?? _currentUser.UserId,
-            OriginalStatus = originalStatus,
-            NewStatus = newStatus,
-            ReviewResult = input.ReviewResult,
-            ReviewComment = Optional(input.ReviewComment, 1000, nameof(input.ReviewComment), "审查意见不能超过 1000 个字符。"),
-            ReviewAction = Optional(input.ReviewAction, 50, nameof(input.ReviewAction), "审查动作不能超过 50 个字符。")
-                ?? ResolveDefaultReviewAction(input.ReviewResult),
-            Attachments = OptionalJson(input.Attachments, "审查日志附件信息必须是有效 JSON。"),
-            ReviewTime = reviewTime,
-            ExtendData = OptionalJson(input.ExtendData, "审查日志扩展数据必须是有效 JSON。"),
-            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
-        };
+            return reviewResult;
+        }
 
-        await DbClient.Insertable(reviewLog).SplitTable().ExecuteCommandAsync();
+        return reviewStatus switch
+        {
+            AuditStatus.Approved => AuditResult.Pass,
+            AuditStatus.Rejected => AuditResult.Reject,
+            _ => null
+        };
+    }
+
+    private static string ResolveDefaultReviewAction(AuditResult reviewResult)
+    {
+        return reviewResult switch
+        {
+            AuditResult.Pass => "Approve",
+            AuditResult.Reject => "Reject",
+            AuditResult.Return => "Return",
+            _ => "Audit"
+        };
+    }
+
+    private static AuditStatus ResolveNextAuditStatus(SysReview review, AuditResult reviewResult)
+    {
+        return reviewResult switch
+        {
+            AuditResult.Pass when review.CurrentLevel < review.ReviewLevel => AuditStatus.InProgress,
+            AuditResult.Pass => AuditStatus.Approved,
+            AuditResult.Reject => AuditStatus.Rejected,
+            AuditResult.Return => AuditStatus.Pending,
+            _ => throw new ArgumentOutOfRangeException(nameof(reviewResult), "审查结果无效。")
+        };
+    }
+
+    private static int ResolveNextCurrentLevel(SysReview review, AuditResult reviewResult)
+    {
+        return reviewResult switch
+        {
+            AuditResult.Pass when review.CurrentLevel < review.ReviewLevel => review.CurrentLevel + 1,
+            AuditResult.Return when review.CurrentLevel > 1 => review.CurrentLevel - 1,
+            _ => review.CurrentLevel
+        };
+    }
+
+    private static long? ResolveNextReviewUserId(SysReview review, ReviewAuditDto input)
+    {
+        return input.ReviewResult switch
+        {
+            AuditResult.Pass when review.CurrentLevel < review.ReviewLevel => input.NextReviewUserId ?? review.CurrentReviewUserId,
+            AuditResult.Pass => null,
+            AuditResult.Reject => null,
+            AuditResult.Return => input.NextReviewUserId ?? review.SubmitUserId ?? review.CurrentReviewUserId,
+            _ => review.CurrentReviewUserId
+        };
+    }
+
+    private static DateTimeOffset? ResolveReviewEndTime(DateTimeOffset? reviewEndTime, AuditStatus reviewStatus, DateTimeOffset now)
+    {
+        if (reviewEndTime.HasValue)
+        {
+            return reviewEndTime;
+        }
+
+        return reviewStatus is AuditStatus.Approved or AuditStatus.Rejected or AuditStatus.Withdrawn ? now : null;
+    }
+
+    private static void ValidateAuditInput(ReviewAuditDto input)
+    {
+        EnsureId(input.BasicId, "系统审查主键必须大于 0。");
+        EnsureEnum(input.ReviewResult, nameof(input.ReviewResult));
+        EnsureOptionalId(input.ReviewUserId, nameof(input.ReviewUserId), "审查人主键必须大于 0。");
+        EnsureOptionalId(input.NextReviewUserId, nameof(input.NextReviewUserId), "下一审查人主键必须大于 0。");
+        _ = Optional(input.ReviewComment, 1000, nameof(input.ReviewComment), "审查意见不能超过 1000 个字符。");
+        _ = Optional(input.ReviewAction, 50, nameof(input.ReviewAction), "审查动作不能超过 50 个字符。");
+        _ = OptionalJson(input.Attachments, "审查日志附件信息必须是有效 JSON。");
+        _ = OptionalJson(input.ExtendData, "审查日志扩展数据必须是有效 JSON。");
+        _ = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
     }
 
     private static void ValidateCreateInput(ReviewCreateDto input)
@@ -297,21 +364,6 @@ public sealed class ReviewAppService
             input.ReviewStartTime,
             input.ReviewEndTime,
             input.Status);
-    }
-
-    private static void ValidateUpdateInput(ReviewUpdateDto input)
-    {
-        EnsureId(input.BasicId, "系统审查主键必须大于 0。");
-        ValidateReviewInput(
-            null,
-            null,
-            input.SubmitUserId,
-            input.CurrentReviewUserId,
-            input.ReviewLevel,
-            input.CurrentLevel,
-            input.ReviewStartTime,
-            input.ReviewEndTime,
-            null);
     }
 
     private static void ValidateReviewInput(
@@ -363,107 +415,55 @@ public sealed class ReviewAppService
         }
     }
 
-    private static void ValidateAuditInput(ReviewAuditDto input)
+    private static void ValidateUpdateInput(ReviewUpdateDto input)
     {
         EnsureId(input.BasicId, "系统审查主键必须大于 0。");
-        EnsureEnum(input.ReviewResult, nameof(input.ReviewResult));
-        EnsureOptionalId(input.ReviewUserId, nameof(input.ReviewUserId), "审查人主键必须大于 0。");
-        EnsureOptionalId(input.NextReviewUserId, nameof(input.NextReviewUserId), "下一审查人主键必须大于 0。");
-        _ = Optional(input.ReviewComment, 1000, nameof(input.ReviewComment), "审查意见不能超过 1000 个字符。");
-        _ = Optional(input.ReviewAction, 50, nameof(input.ReviewAction), "审查动作不能超过 50 个字符。");
-        _ = OptionalJson(input.Attachments, "审查日志附件信息必须是有效 JSON。");
-        _ = OptionalJson(input.ExtendData, "审查日志扩展数据必须是有效 JSON。");
-        _ = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。");
+        ValidateReviewInput(
+            null,
+            null,
+            input.SubmitUserId,
+            input.CurrentReviewUserId,
+            input.ReviewLevel,
+            input.CurrentLevel,
+            input.ReviewStartTime,
+            input.ReviewEndTime,
+            null);
     }
 
-    private static AuditResult? NormalizeReviewResult(AuditResult? reviewResult, AuditStatus reviewStatus)
+    private async Task AddReviewLogAsync(
+        SysReview review,
+        ReviewAuditDto input,
+        AuditStatus originalStatus,
+        AuditStatus newStatus,
+        DateTimeOffset reviewTime,
+        CancellationToken cancellationToken)
     {
-        if (reviewResult.HasValue)
-        {
-            return reviewResult;
-        }
+        cancellationToken.ThrowIfCancellationRequested();
 
-        return reviewStatus switch
+        var reviewLog = new SysReviewLog
         {
-            AuditStatus.Approved => AuditResult.Pass,
-            AuditStatus.Rejected => AuditResult.Reject,
-            _ => null
+            ReviewId = review.BasicId,
+            ReviewLevel = review.CurrentLevel,
+            ReviewUserId = input.ReviewUserId ?? _currentUser.UserId,
+            OriginalStatus = originalStatus,
+            NewStatus = newStatus,
+            ReviewResult = input.ReviewResult,
+            ReviewComment = Optional(input.ReviewComment, 1000, nameof(input.ReviewComment), "审查意见不能超过 1000 个字符。"),
+            ReviewAction = Optional(input.ReviewAction, 50, nameof(input.ReviewAction), "审查动作不能超过 50 个字符。")
+                ?? ResolveDefaultReviewAction(input.ReviewResult),
+            Attachments = OptionalJson(input.Attachments, "审查日志附件信息必须是有效 JSON。"),
+            ReviewTime = reviewTime,
+            ExtendData = OptionalJson(input.ExtendData, "审查日志扩展数据必须是有效 JSON。"),
+            Remark = Optional(input.Remark, 500, nameof(input.Remark), "备注不能超过 500 个字符。")
         };
+
+        await DbClient.Insertable(reviewLog).SplitTable().ExecuteCommandAsync();
     }
 
-    private static DateTimeOffset? ResolveReviewEndTime(DateTimeOffset? reviewEndTime, AuditStatus reviewStatus, DateTimeOffset now)
+    private async Task<SysReview> GetReviewOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (reviewEndTime.HasValue)
-        {
-            return reviewEndTime;
-        }
-
-        return reviewStatus is AuditStatus.Approved or AuditStatus.Rejected or AuditStatus.Withdrawn ? now : null;
-    }
-
-    private static void EnsureReviewCanBeAudited(SysReview review)
-    {
-        if (review.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用审查不能审核。");
-        }
-
-        if (review.ReviewStatus is AuditStatus.Approved or AuditStatus.Rejected or AuditStatus.Withdrawn)
-        {
-            throw new InvalidOperationException("已完结审查不能审核。");
-        }
-    }
-
-    private static AuditStatus ResolveNextAuditStatus(SysReview review, AuditResult reviewResult)
-    {
-        return reviewResult switch
-        {
-            AuditResult.Pass when review.CurrentLevel < review.ReviewLevel => AuditStatus.InProgress,
-            AuditResult.Pass => AuditStatus.Approved,
-            AuditResult.Reject => AuditStatus.Rejected,
-            AuditResult.Return => AuditStatus.Pending,
-            _ => throw new ArgumentOutOfRangeException(nameof(reviewResult), "审查结果无效。")
-        };
-    }
-
-    private static int ResolveNextCurrentLevel(SysReview review, AuditResult reviewResult)
-    {
-        return reviewResult switch
-        {
-            AuditResult.Pass when review.CurrentLevel < review.ReviewLevel => review.CurrentLevel + 1,
-            AuditResult.Return when review.CurrentLevel > 1 => review.CurrentLevel - 1,
-            _ => review.CurrentLevel
-        };
-    }
-
-    private static long? ResolveNextReviewUserId(SysReview review, ReviewAuditDto input)
-    {
-        return input.ReviewResult switch
-        {
-            AuditResult.Pass when review.CurrentLevel < review.ReviewLevel => input.NextReviewUserId ?? review.CurrentReviewUserId,
-            AuditResult.Pass => null,
-            AuditResult.Reject => null,
-            AuditResult.Return => input.NextReviewUserId ?? review.SubmitUserId ?? review.CurrentReviewUserId,
-            _ => review.CurrentReviewUserId
-        };
-    }
-
-    private static string ResolveDefaultReviewAction(AuditResult reviewResult)
-    {
-        return reviewResult switch
-        {
-            AuditResult.Pass => "Approve",
-            AuditResult.Reject => "Reject",
-            AuditResult.Return => "Return",
-            _ => "Audit"
-        };
-    }
-
-    private static void EnsureCodeHasNoWhitespace(string value, string message)
-    {
-        if (value.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException(message);
-        }
+        EnsureId(id, "系统审查主键必须大于 0。");
+        return await _reviewRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统审查不存在。");
     }
 }

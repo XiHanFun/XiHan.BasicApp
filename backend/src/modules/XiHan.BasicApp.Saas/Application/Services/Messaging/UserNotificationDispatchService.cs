@@ -28,6 +28,12 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 public sealed class UserNotificationDispatchService
     : IUserNotificationDispatchService, IScopedDependency
 {
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,11 +45,32 @@ public sealed class UserNotificationDispatchService
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
         _realtimeNotificationService = realtimeNotificationService;
-    }
+    }
+    /// <summary>
+    /// 构造站内信 DTO
+    /// </summary>
+    public static UserInboxItemDto ToInboxItem(SysUserNotification userNotification, SysNotification notification)
+    {
+        ArgumentNullException.ThrowIfNull(userNotification);
+        ArgumentNullException.ThrowIfNull(notification);
 
-    private readonly INotificationRepository _notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository;
-    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
+        return new UserInboxItemDto
+        {
+            BasicId = userNotification.BasicId,
+            NotificationId = notification.BasicId,
+            Title = notification.Title,
+            Content = notification.Content,
+            NotificationType = (int)notification.NotificationType,
+            NotificationStatus = (int)userNotification.NotificationStatus,
+            SendTime = notification.SendTime,
+            ReadTime = userNotification.ReadTime,
+            ConfirmTime = userNotification.ConfirmTime,
+            IsGlobal = notification.TargetType == NotificationTargetType.All,
+            NeedConfirm = notification.NeedConfirm,
+            Icon = notification.Icon,
+            Link = notification.Link
+        };
+    }
 
     /// <inheritdoc />
     public async Task<UserInboxItemDto> DispatchToUserAsync(
@@ -99,30 +126,32 @@ public sealed class UserNotificationDispatchService
         return item;
     }
 
-    /// <summary>
-    /// 构造站内信 DTO
-    /// </summary>
-    public static UserInboxItemDto ToInboxItem(SysUserNotification userNotification, SysNotification notification)
+    private static string ToRealtimeType(int notificationType)
     {
-        ArgumentNullException.ThrowIfNull(userNotification);
-        ArgumentNullException.ThrowIfNull(notification);
-
-        return new UserInboxItemDto
+        return notificationType switch
         {
-            BasicId = userNotification.BasicId,
-            NotificationId = notification.BasicId,
-            Title = notification.Title,
-            Content = notification.Content,
-            NotificationType = (int)notification.NotificationType,
-            NotificationStatus = (int)userNotification.NotificationStatus,
-            SendTime = notification.SendTime,
-            ReadTime = userNotification.ReadTime,
-            ConfirmTime = userNotification.ConfirmTime,
-            IsGlobal = notification.TargetType == NotificationTargetType.All,
-            NeedConfirm = notification.NeedConfirm,
-            Icon = notification.Icon,
-            Link = notification.Link
+            (int)NotificationType.Warning => "Warning",
+            (int)NotificationType.Error => "Error",
+            (int)NotificationType.User => "Success",
+            _ => "Info"
         };
+    }
+
+    private static string NormalizeRequired(string value, int maxLength)
+    {
+        var normalized = value.Trim();
+        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
+    }
+
+    private static string? NormalizeNullable(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
     }
 
     /// <summary>
@@ -151,33 +180,5 @@ public sealed class UserNotificationDispatchService
         {
             // 实时推送失败不应影响通知持久化与业务流程。
         }
-    }
-
-    private static string ToRealtimeType(int notificationType)
-    {
-        return notificationType switch
-        {
-            (int)NotificationType.Warning => "Warning",
-            (int)NotificationType.Error => "Error",
-            (int)NotificationType.User => "Success",
-            _ => "Info"
-        };
-    }
-
-    private static string NormalizeRequired(string value, int maxLength)
-    {
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
-    }
-
-    private static string? NormalizeNullable(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
     }
 }

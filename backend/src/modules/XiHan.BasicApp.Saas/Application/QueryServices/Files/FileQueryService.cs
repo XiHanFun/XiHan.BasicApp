@@ -37,6 +37,16 @@ public sealed class FileQueryService
     : SaasApplicationService, IFileQueryService
 {
     /// <summary>
+    /// 系统文件仓储
+    /// </summary>
+    private readonly IFileRepository _fileRepository;
+
+    /// <summary>
+    /// 系统文件存储仓储
+    /// </summary>
+    private readonly IFileStorageRepository _fileStorageRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public FileQueryService(
@@ -46,16 +56,6 @@ public sealed class FileQueryService
         _fileRepository = fileRepository;
         _fileStorageRepository = fileStorageRepository;
     }
-
-    /// <summary>
-    /// 系统文件仓储
-    /// </summary>
-    private readonly IFileRepository _fileRepository;
-
-    /// <summary>
-    /// 系统文件存储仓储
-    /// </summary>
-    private readonly IFileStorageRepository _fileStorageRepository;
 
     /// <summary>
     /// 获取系统文件分页列表

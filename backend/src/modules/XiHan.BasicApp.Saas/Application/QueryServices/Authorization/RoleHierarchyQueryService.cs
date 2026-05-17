@@ -33,6 +33,16 @@ public sealed class RoleHierarchyQueryService
     : SaasApplicationService, IRoleHierarchyQueryService
 {
     /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
+    /// 角色层级仓储
+    /// </summary>
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public RoleHierarchyQueryService(
@@ -42,16 +52,6 @@ public sealed class RoleHierarchyQueryService
         _roleRepository = roleRepository;
         _roleHierarchyRepository = roleHierarchyRepository;
     }
-
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
-    private readonly IRoleRepository _roleRepository;
-
-    /// <summary>
-    /// 角色层级仓储
-    /// </summary>
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
     /// <summary>
     /// 获取角色祖先链

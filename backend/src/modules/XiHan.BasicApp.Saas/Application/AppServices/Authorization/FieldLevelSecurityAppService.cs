@@ -35,6 +35,36 @@ public sealed class FieldLevelSecurityAppService
     : SaasApplicationService, IFieldLevelSecurityAppService
 {
     /// <summary>
+    /// 部门仓储
+    /// </summary>
+    private readonly IDepartmentRepository _departmentRepository;
+
+    /// <summary>
+    /// 字段级安全仓储
+    /// </summary>
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
+    /// <summary>
+    /// 权限仓储
+    /// </summary>
+    private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
+    /// 资源仓储
+    /// </summary>
+    private readonly IResourceRepository _resourceRepository;
+
+    /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
+    /// 租户成员仓储
+    /// </summary>
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public FieldLevelSecurityAppService(
@@ -52,36 +82,6 @@ public sealed class FieldLevelSecurityAppService
         _departmentRepository = departmentRepository;
         _tenantUserRepository = tenantUserRepository;
     }
-
-    /// <summary>
-    /// 字段级安全仓储
-    /// </summary>
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-
-    /// <summary>
-    /// 资源仓储
-    /// </summary>
-    private readonly IResourceRepository _resourceRepository;
-
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
-    private readonly IRoleRepository _roleRepository;
-
-    /// <summary>
-    /// 权限仓储
-    /// </summary>
-    private readonly IPermissionRepository _permissionRepository;
-
-    /// <summary>
-    /// 部门仓储
-    /// </summary>
-    private readonly IDepartmentRepository _departmentRepository;
-
-    /// <summary>
-    /// 租户成员仓储
-    /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 创建字段级安全策略
@@ -121,6 +121,24 @@ public sealed class FieldLevelSecurityAppService
 
         var savedPolicy = await _fieldLevelSecurityRepository.AddAsync(policy, cancellationToken);
         return FieldLevelSecurityApplicationMapper.ToDetailDto(savedPolicy, resource, targetCode, targetName);
+    }
+
+    /// <summary>
+    /// 删除字段级安全策略
+    /// </summary>
+    /// <param name="id">字段级安全主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Delete)]
+    public async Task DeleteFieldLevelSecurityAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var policy = await GetFieldLevelSecurityOrThrowAsync(id, cancellationToken);
+        if (!await _fieldLevelSecurityRepository.DeleteAsync(policy, cancellationToken))
+        {
+            throw new InvalidOperationException("字段级安全策略删除失败。");
+        }
     }
 
     /// <summary>
@@ -196,293 +214,24 @@ public sealed class FieldLevelSecurityAppService
     }
 
     /// <summary>
-    /// 删除字段级安全策略
+    /// 规范化脱敏模式
     /// </summary>
-    /// <param name="id">字段级安全主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Delete)]
-    public async Task DeleteFieldLevelSecurityAsync(long id, CancellationToken cancellationToken = default)
+    /// <param name="maskStrategy">脱敏策略</param>
+    /// <param name="maskPattern">脱敏模式</param>
+    /// <returns>规范化后的脱敏模式</returns>
+    private static string? NormalizeMaskPattern(FieldMaskStrategy maskStrategy, string? maskPattern)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var policy = await GetFieldLevelSecurityOrThrowAsync(id, cancellationToken);
-        if (!await _fieldLevelSecurityRepository.DeleteAsync(policy, cancellationToken))
-        {
-            throw new InvalidOperationException("字段级安全策略删除失败。");
-        }
+        return maskStrategy == FieldMaskStrategy.None ? null : NormalizeNullable(maskPattern);
     }
 
     /// <summary>
-    /// 获取字段级安全策略，不存在时抛出异常
+    /// 规范化可空字符串
     /// </summary>
-    /// <param name="id">字段级安全主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>字段级安全策略</returns>
-    private async Task<SysFieldLevelSecurity> GetFieldLevelSecurityOrThrowAsync(long id, CancellationToken cancellationToken)
+    /// <param name="value">字符串值</param>
+    /// <returns>规范化后的字符串</returns>
+    private static string? NormalizeNullable(string? value)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "字段级安全主键必须大于 0。");
-        }
-
-        return await _fieldLevelSecurityRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("字段级安全策略不存在。");
-    }
-
-    /// <summary>
-    /// 获取已启用资源，不满足规则时抛出异常
-    /// </summary>
-    /// <param name="resourceId">资源主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>资源实体</returns>
-    private async Task<SysResource> GetEnabledResourceOrThrowAsync(long resourceId, CancellationToken cancellationToken)
-    {
-        var resource = await _resourceRepository.GetByIdAsync(resourceId, cancellationToken)
-            ?? throw new InvalidOperationException("资源不存在。");
-
-        if (resource.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用资源不能配置字段级安全策略。");
-        }
-
-        return resource;
-    }
-
-    /// <summary>
-    /// 获取可用目标摘要，不满足规则时抛出异常
-    /// </summary>
-    /// <param name="targetType">目标类型</param>
-    /// <param name="targetId">目标主键</param>
-    /// <param name="now">当前时间</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>目标摘要</returns>
-    private async Task<(string? Code, string? Name)> GetAvailableTargetSummaryOrThrowAsync(
-        FieldSecurityTargetType targetType,
-        long targetId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        return targetType switch
-        {
-            FieldSecurityTargetType.Role => await GetAvailableRoleTargetSummaryOrThrowAsync(targetId, cancellationToken),
-            FieldSecurityTargetType.User => await GetAvailableTenantMemberTargetSummaryOrThrowAsync(targetId, now, cancellationToken),
-            FieldSecurityTargetType.Permission => await GetAvailablePermissionTargetSummaryOrThrowAsync(targetId, cancellationToken),
-            FieldSecurityTargetType.Department => await GetAvailableDepartmentTargetSummaryOrThrowAsync(targetId, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(targetType), "字段级安全目标类型无效。")
-        };
-    }
-
-    /// <summary>
-    /// 获取可用角色目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetAvailableRoleTargetSummaryOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-
-        if (role.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用角色不能配置字段级安全策略。");
-        }
-
-        if (role.IsGlobal || role.RoleType == RoleType.System)
-        {
-            throw new InvalidOperationException("平台全局角色或系统角色字段级安全必须通过平台运维流程维护。");
-        }
-
-        return (role.RoleCode, role.RoleName);
-    }
-
-    /// <summary>
-    /// 获取可用租户成员目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetAvailableTenantMemberTargetSummaryOrThrowAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("当前租户成员不存在。");
-
-        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
-        {
-            throw new InvalidOperationException("未接受邀请的租户成员不能配置字段级安全策略。");
-        }
-
-        if (tenantMember.Status != ValidityStatus.Valid)
-        {
-            throw new InvalidOperationException("无效租户成员不能配置字段级安全策略。");
-        }
-
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
-        {
-            throw new InvalidOperationException("平台管理员成员字段级安全必须通过平台运维流程维护。");
-        }
-
-        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
-        {
-            throw new InvalidOperationException("未生效租户成员不能配置字段级安全策略。");
-        }
-
-        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("已过期租户成员不能配置字段级安全策略。");
-        }
-
-        return (null, tenantMember.DisplayName);
-    }
-
-    /// <summary>
-    /// 获取可用权限目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetAvailablePermissionTargetSummaryOrThrowAsync(long permissionId, CancellationToken cancellationToken)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
-            ?? throw new InvalidOperationException("权限不存在。");
-
-        if (permission.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用权限不能配置字段级安全策略。");
-        }
-
-        return (permission.PermissionCode, permission.PermissionName);
-    }
-
-    /// <summary>
-    /// 获取可用部门目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetAvailableDepartmentTargetSummaryOrThrowAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
-            ?? throw new InvalidOperationException("部门不存在。");
-
-        if (department.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用部门不能配置字段级安全策略。");
-        }
-
-        return (department.DepartmentCode, department.DepartmentName);
-    }
-
-    /// <summary>
-    /// 获取目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetTargetSummaryOrDefaultAsync(FieldSecurityTargetType targetType, long targetId, CancellationToken cancellationToken)
-    {
-        return targetType switch
-        {
-            FieldSecurityTargetType.Role => await GetRoleTargetSummaryOrDefaultAsync(targetId, cancellationToken),
-            FieldSecurityTargetType.User => await GetTenantMemberTargetSummaryOrDefaultAsync(targetId, cancellationToken),
-            FieldSecurityTargetType.Permission => await GetPermissionTargetSummaryOrDefaultAsync(targetId, cancellationToken),
-            FieldSecurityTargetType.Department => await GetDepartmentTargetSummaryOrDefaultAsync(targetId, cancellationToken),
-            _ => (null, null)
-        };
-    }
-
-    /// <summary>
-    /// 获取角色目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetRoleTargetSummaryOrDefaultAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
-        return role is null ? (null, null) : (role.RoleCode, role.RoleName);
-    }
-
-    /// <summary>
-    /// 获取租户成员目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetTenantMemberTargetSummaryOrDefaultAsync(long userId, CancellationToken cancellationToken)
-    {
-        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
-        return tenantMember is null ? (null, null) : (null, tenantMember.DisplayName);
-    }
-
-    /// <summary>
-    /// 获取权限目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetPermissionTargetSummaryOrDefaultAsync(long permissionId, CancellationToken cancellationToken)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken);
-        return permission is null ? (null, null) : (permission.PermissionCode, permission.PermissionName);
-    }
-
-    /// <summary>
-    /// 获取部门目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetDepartmentTargetSummaryOrDefaultAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken);
-        return department is null ? (null, null) : (department.DepartmentCode, department.DepartmentName);
-    }
-
-    /// <summary>
-    /// 校验字段级安全策略不存在
-    /// </summary>
-    private async Task EnsurePolicyNotExistsAsync(
-        FieldSecurityTargetType targetType,
-        long targetId,
-        long resourceId,
-        string fieldName,
-        long? excludeId,
-        CancellationToken cancellationToken)
-    {
-        var exists = excludeId.HasValue
-            ? await _fieldLevelSecurityRepository.AnyAsync(
-                policy => policy.TargetType == targetType
-                    && policy.TargetId == targetId
-                    && policy.ResourceId == resourceId
-                    && policy.FieldName == fieldName
-                    && policy.BasicId != excludeId.Value,
-                cancellationToken)
-            : await _fieldLevelSecurityRepository.AnyAsync(
-                policy => policy.TargetType == targetType
-                    && policy.TargetId == targetId
-                    && policy.ResourceId == resourceId
-                    && policy.FieldName == fieldName,
-                cancellationToken);
-
-        if (exists)
-        {
-            throw new InvalidOperationException("字段级安全策略已存在。");
-        }
-    }
-
-    /// <summary>
-    /// 校验创建参数
-    /// </summary>
-    /// <param name="input">创建参数</param>
-    private static void ValidateCreateInput(FieldLevelSecurityCreateDto input)
-    {
-        ValidateCommonInput(
-            input.TargetType,
-            input.TargetId,
-            input.ResourceId,
-            input.FieldName,
-            input.IsReadable,
-            input.IsEditable,
-            input.MaskStrategy,
-            input.Priority);
-        ValidateEnum(input.Status, nameof(input.Status));
-    }
-
-    /// <summary>
-    /// 校验更新参数
-    /// </summary>
-    /// <param name="input">更新参数</param>
-    private static void ValidateUpdateInput(FieldLevelSecurityUpdateDto input)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "字段级安全主键必须大于 0。");
-        }
-
-        ValidateCommonInput(
-            input.TargetType,
-            input.TargetId,
-            input.ResourceId,
-            input.FieldName,
-            input.IsReadable,
-            input.IsEditable,
-            input.MaskStrategy,
-            input.Priority);
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     /// <summary>
@@ -529,6 +278,24 @@ public sealed class FieldLevelSecurityAppService
     }
 
     /// <summary>
+    /// 校验创建参数
+    /// </summary>
+    /// <param name="input">创建参数</param>
+    private static void ValidateCreateInput(FieldLevelSecurityCreateDto input)
+    {
+        ValidateCommonInput(
+            input.TargetType,
+            input.TargetId,
+            input.ResourceId,
+            input.FieldName,
+            input.IsReadable,
+            input.IsEditable,
+            input.MaskStrategy,
+            input.Priority);
+        ValidateEnum(input.Status, nameof(input.Status));
+    }
+
+    /// <summary>
     /// 校验枚举值
     /// </summary>
     /// <typeparam name="TEnum">枚举类型</typeparam>
@@ -544,23 +311,256 @@ public sealed class FieldLevelSecurityAppService
     }
 
     /// <summary>
-    /// 规范化脱敏模式
+    /// 校验更新参数
     /// </summary>
-    /// <param name="maskStrategy">脱敏策略</param>
-    /// <param name="maskPattern">脱敏模式</param>
-    /// <returns>规范化后的脱敏模式</returns>
-    private static string? NormalizeMaskPattern(FieldMaskStrategy maskStrategy, string? maskPattern)
+    /// <param name="input">更新参数</param>
+    private static void ValidateUpdateInput(FieldLevelSecurityUpdateDto input)
     {
-        return maskStrategy == FieldMaskStrategy.None ? null : NormalizeNullable(maskPattern);
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "字段级安全主键必须大于 0。");
+        }
+
+        ValidateCommonInput(
+            input.TargetType,
+            input.TargetId,
+            input.ResourceId,
+            input.FieldName,
+            input.IsReadable,
+            input.IsEditable,
+            input.MaskStrategy,
+            input.Priority);
     }
 
     /// <summary>
-    /// 规范化可空字符串
+    /// 校验字段级安全策略不存在
     /// </summary>
-    /// <param name="value">字符串值</param>
-    /// <returns>规范化后的字符串</returns>
-    private static string? NormalizeNullable(string? value)
+    private async Task EnsurePolicyNotExistsAsync(
+        FieldSecurityTargetType targetType,
+        long targetId,
+        long resourceId,
+        string fieldName,
+        long? excludeId,
+        CancellationToken cancellationToken)
     {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        var exists = excludeId.HasValue
+            ? await _fieldLevelSecurityRepository.AnyAsync(
+                policy => policy.TargetType == targetType
+                    && policy.TargetId == targetId
+                    && policy.ResourceId == resourceId
+                    && policy.FieldName == fieldName
+                    && policy.BasicId != excludeId.Value,
+                cancellationToken)
+            : await _fieldLevelSecurityRepository.AnyAsync(
+                policy => policy.TargetType == targetType
+                    && policy.TargetId == targetId
+                    && policy.ResourceId == resourceId
+                    && policy.FieldName == fieldName,
+                cancellationToken);
+
+        if (exists)
+        {
+            throw new InvalidOperationException("字段级安全策略已存在。");
+        }
+    }
+
+    /// <summary>
+    /// 获取可用部门目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetAvailableDepartmentTargetSummaryOrThrowAsync(long departmentId, CancellationToken cancellationToken)
+    {
+        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken)
+            ?? throw new InvalidOperationException("部门不存在。");
+
+        if (department.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用部门不能配置字段级安全策略。");
+        }
+
+        return (department.DepartmentCode, department.DepartmentName);
+    }
+
+    /// <summary>
+    /// 获取可用权限目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetAvailablePermissionTargetSummaryOrThrowAsync(long permissionId, CancellationToken cancellationToken)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
+            ?? throw new InvalidOperationException("权限不存在。");
+
+        if (permission.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用权限不能配置字段级安全策略。");
+        }
+
+        return (permission.PermissionCode, permission.PermissionName);
+    }
+
+    /// <summary>
+    /// 获取可用角色目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetAvailableRoleTargetSummaryOrThrowAsync(long roleId, CancellationToken cancellationToken)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+
+        if (role.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用角色不能配置字段级安全策略。");
+        }
+
+        if (role.IsGlobal || role.RoleType == RoleType.System)
+        {
+            throw new InvalidOperationException("平台全局角色或系统角色字段级安全必须通过平台运维流程维护。");
+        }
+
+        return (role.RoleCode, role.RoleName);
+    }
+
+    /// <summary>
+    /// 获取可用目标摘要，不满足规则时抛出异常
+    /// </summary>
+    /// <param name="targetType">目标类型</param>
+    /// <param name="targetId">目标主键</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>目标摘要</returns>
+    private async Task<(string? Code, string? Name)> GetAvailableTargetSummaryOrThrowAsync(
+        FieldSecurityTargetType targetType,
+        long targetId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        return targetType switch
+        {
+            FieldSecurityTargetType.Role => await GetAvailableRoleTargetSummaryOrThrowAsync(targetId, cancellationToken),
+            FieldSecurityTargetType.User => await GetAvailableTenantMemberTargetSummaryOrThrowAsync(targetId, now, cancellationToken),
+            FieldSecurityTargetType.Permission => await GetAvailablePermissionTargetSummaryOrThrowAsync(targetId, cancellationToken),
+            FieldSecurityTargetType.Department => await GetAvailableDepartmentTargetSummaryOrThrowAsync(targetId, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(targetType), "字段级安全目标类型无效。")
+        };
+    }
+
+    /// <summary>
+    /// 获取可用租户成员目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetAvailableTenantMemberTargetSummaryOrThrowAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前租户成员不存在。");
+
+        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
+        {
+            throw new InvalidOperationException("未接受邀请的租户成员不能配置字段级安全策略。");
+        }
+
+        if (tenantMember.Status != ValidityStatus.Valid)
+        {
+            throw new InvalidOperationException("无效租户成员不能配置字段级安全策略。");
+        }
+
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("平台管理员成员字段级安全必须通过平台运维流程维护。");
+        }
+
+        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
+        {
+            throw new InvalidOperationException("未生效租户成员不能配置字段级安全策略。");
+        }
+
+        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("已过期租户成员不能配置字段级安全策略。");
+        }
+
+        return (null, tenantMember.DisplayName);
+    }
+
+    /// <summary>
+    /// 获取部门目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetDepartmentTargetSummaryOrDefaultAsync(long departmentId, CancellationToken cancellationToken)
+    {
+        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken);
+        return department is null ? (null, null) : (department.DepartmentCode, department.DepartmentName);
+    }
+
+    /// <summary>
+    /// 获取已启用资源，不满足规则时抛出异常
+    /// </summary>
+    /// <param name="resourceId">资源主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>资源实体</returns>
+    private async Task<SysResource> GetEnabledResourceOrThrowAsync(long resourceId, CancellationToken cancellationToken)
+    {
+        var resource = await _resourceRepository.GetByIdAsync(resourceId, cancellationToken)
+            ?? throw new InvalidOperationException("资源不存在。");
+
+        if (resource.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用资源不能配置字段级安全策略。");
+        }
+
+        return resource;
+    }
+
+    /// <summary>
+    /// 获取字段级安全策略，不存在时抛出异常
+    /// </summary>
+    /// <param name="id">字段级安全主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>字段级安全策略</returns>
+    private async Task<SysFieldLevelSecurity> GetFieldLevelSecurityOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "字段级安全主键必须大于 0。");
+        }
+
+        return await _fieldLevelSecurityRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("字段级安全策略不存在。");
+    }
+
+    /// <summary>
+    /// 获取权限目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetPermissionTargetSummaryOrDefaultAsync(long permissionId, CancellationToken cancellationToken)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken);
+        return permission is null ? (null, null) : (permission.PermissionCode, permission.PermissionName);
+    }
+
+    /// <summary>
+    /// 获取角色目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetRoleTargetSummaryOrDefaultAsync(long roleId, CancellationToken cancellationToken)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
+        return role is null ? (null, null) : (role.RoleCode, role.RoleName);
+    }
+
+    /// <summary>
+    /// 获取目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetTargetSummaryOrDefaultAsync(FieldSecurityTargetType targetType, long targetId, CancellationToken cancellationToken)
+    {
+        return targetType switch
+        {
+            FieldSecurityTargetType.Role => await GetRoleTargetSummaryOrDefaultAsync(targetId, cancellationToken),
+            FieldSecurityTargetType.User => await GetTenantMemberTargetSummaryOrDefaultAsync(targetId, cancellationToken),
+            FieldSecurityTargetType.Permission => await GetPermissionTargetSummaryOrDefaultAsync(targetId, cancellationToken),
+            FieldSecurityTargetType.Department => await GetDepartmentTargetSummaryOrDefaultAsync(targetId, cancellationToken),
+            _ => (null, null)
+        };
+    }
+
+    /// <summary>
+    /// 获取租户成员目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetTenantMemberTargetSummaryOrDefaultAsync(long userId, CancellationToken cancellationToken)
+    {
+        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
+        return tenantMember is null ? (null, null) : (null, tenantMember.DisplayName);
     }
 }

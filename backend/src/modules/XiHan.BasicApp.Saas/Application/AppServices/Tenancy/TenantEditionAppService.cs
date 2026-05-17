@@ -35,6 +35,21 @@ public sealed class TenantEditionAppService
     : SaasApplicationService, ITenantEditionAppService
 {
     /// <summary>
+    /// 权限仓储
+    /// </summary>
+    private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
+    /// 租户版本权限仓储
+    /// </summary>
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
+
+    /// <summary>
+    /// 租户版本仓储
+    /// </summary>
+    private readonly ITenantEditionRepository _tenantEditionRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public TenantEditionAppService(
@@ -46,21 +61,6 @@ public sealed class TenantEditionAppService
         _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
         _permissionRepository = permissionRepository;
     }
-
-    /// <summary>
-    /// 租户版本仓储
-    /// </summary>
-    private readonly ITenantEditionRepository _tenantEditionRepository;
-
-    /// <summary>
-    /// 租户版本权限仓储
-    /// </summary>
-    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
-
-    /// <summary>
-    /// 权限仓储
-    /// </summary>
-    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 创建租户版本
@@ -106,6 +106,34 @@ public sealed class TenantEditionAppService
         };
 
         var savedEdition = await _tenantEditionRepository.AddAsync(edition, cancellationToken);
+        return TenantEditionApplicationMapper.ToDetailDto(savedEdition);
+    }
+
+    /// <summary>
+    /// 设置默认租户版本
+    /// </summary>
+    /// <param name="input">默认版本更新参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户版本详情</returns>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEdition.Default)]
+    public async Task<TenantEditionDetailDto> UpdateDefaultTenantEditionAsync(TenantEditionDefaultUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
+        }
+
+        var edition = await GetTenantEditionOrThrowAsync(input.BasicId, cancellationToken);
+        EnsureEnabledDefault(edition.Status);
+
+        await ClearDefaultEditionsAsync(edition.BasicId, cancellationToken);
+        edition.IsDefault = true;
+
+        var savedEdition = await _tenantEditionRepository.UpdateAsync(edition, cancellationToken);
         return TenantEditionApplicationMapper.ToDetailDto(savedEdition);
     }
 
@@ -184,93 +212,35 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
-    /// 设置默认租户版本
+    /// 校验默认版本必须启用
     /// </summary>
-    /// <param name="input">默认版本更新参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>租户版本详情</returns>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantEdition.Default)]
-    public async Task<TenantEditionDetailDto> UpdateDefaultTenantEditionAsync(TenantEditionDefaultUpdateDto input, CancellationToken cancellationToken = default)
+    /// <param name="status">状态</param>
+    private static void EnsureEnabledDefault(EnableStatus status)
     {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (input.BasicId <= 0)
+        if (status != EnableStatus.Enabled)
         {
-            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
+            throw new InvalidOperationException("默认租户版本必须处于启用状态。");
         }
-
-        var edition = await GetTenantEditionOrThrowAsync(input.BasicId, cancellationToken);
-        EnsureEnabledDefault(edition.Status);
-
-        await ClearDefaultEditionsAsync(edition.BasicId, cancellationToken);
-        edition.IsDefault = true;
-
-        var savedEdition = await _tenantEditionRepository.UpdateAsync(edition, cancellationToken);
-        return TenantEditionApplicationMapper.ToDetailDto(savedEdition);
     }
 
     /// <summary>
-    /// 获取租户版本，不存在时抛出异常
+    /// 规范化可空字符串
     /// </summary>
-    /// <param name="id">租户版本主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>租户版本实体</returns>
-    private async Task<SysTenantEdition> GetTenantEditionOrThrowAsync(long id, CancellationToken cancellationToken)
+    /// <param name="value">字符串值</param>
+    /// <returns>规范化后的字符串</returns>
+    private static string? NormalizeNullable(string? value)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "租户版本主键必须大于 0。");
-        }
-
-        return await _tenantEditionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("租户版本不存在。");
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     /// <summary>
-    /// 清理其他默认租户版本
+    /// 规范化价格
     /// </summary>
-    /// <param name="excludeId">需要排除的租户版本主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    private Task<bool> ClearDefaultEditionsAsync(long? excludeId, CancellationToken cancellationToken)
+    /// <param name="price">价格</param>
+    /// <returns>规范化后的价格</returns>
+    private static decimal? NormalizePrice(decimal? price)
     {
-        return excludeId.HasValue
-            ? _tenantEditionRepository.UpdateAsync(
-                edition => new SysTenantEdition { IsDefault = false },
-                edition => edition.IsDefault && edition.BasicId != excludeId.Value,
-                cancellationToken)
-            : _tenantEditionRepository.UpdateAsync(
-                edition => new SysTenantEdition { IsDefault = false },
-                edition => edition.IsDefault,
-                cancellationToken);
-    }
-
-    /// <summary>
-    /// 校验创建参数
-    /// </summary>
-    /// <param name="input">创建参数</param>
-    private static void ValidateCreateInput(TenantEditionCreateDto input)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.EditionCode);
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.EditionName);
-        ValidateCommonInput(input.UserLimit, input.StorageLimit, input.Price, input.BillingPeriodMonths, input.IsFree);
-        ValidateEnum(input.Status, nameof(input.Status));
-    }
-
-    /// <summary>
-    /// 校验更新参数
-    /// </summary>
-    /// <param name="input">更新参数</param>
-    private static void ValidateUpdateInput(TenantEditionUpdateDto input)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
-        }
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.EditionName);
-        ValidateCommonInput(input.UserLimit, input.StorageLimit, input.Price, input.BillingPeriodMonths, input.IsFree);
+        return price is null ? null : decimal.Round(price.Value, 2, MidpointRounding.AwayFromZero);
     }
 
     /// <summary>
@@ -310,15 +280,15 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
-    /// 校验默认版本必须启用
+    /// 校验创建参数
     /// </summary>
-    /// <param name="status">状态</param>
-    private static void EnsureEnabledDefault(EnableStatus status)
+    /// <param name="input">创建参数</param>
+    private static void ValidateCreateInput(TenantEditionCreateDto input)
     {
-        if (status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("默认租户版本必须处于启用状态。");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.EditionCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.EditionName);
+        ValidateCommonInput(input.UserLimit, input.StorageLimit, input.Price, input.BillingPeriodMonths, input.IsFree);
+        ValidateEnum(input.Status, nameof(input.Status));
     }
 
     /// <summary>
@@ -337,23 +307,53 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
-    /// 规范化价格
+    /// 校验更新参数
     /// </summary>
-    /// <param name="price">价格</param>
-    /// <returns>规范化后的价格</returns>
-    private static decimal? NormalizePrice(decimal? price)
+    /// <param name="input">更新参数</param>
+    private static void ValidateUpdateInput(TenantEditionUpdateDto input)
     {
-        return price is null ? null : decimal.Round(price.Value, 2, MidpointRounding.AwayFromZero);
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.EditionName);
+        ValidateCommonInput(input.UserLimit, input.StorageLimit, input.Price, input.BillingPeriodMonths, input.IsFree);
     }
 
     /// <summary>
-    /// 规范化可空字符串
+    /// 清理其他默认租户版本
     /// </summary>
-    /// <param name="value">字符串值</param>
-    /// <returns>规范化后的字符串</returns>
-    private static string? NormalizeNullable(string? value)
+    /// <param name="excludeId">需要排除的租户版本主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    private Task<bool> ClearDefaultEditionsAsync(long? excludeId, CancellationToken cancellationToken)
     {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        return excludeId.HasValue
+            ? _tenantEditionRepository.UpdateAsync(
+                edition => new SysTenantEdition { IsDefault = false },
+                edition => edition.IsDefault && edition.BasicId != excludeId.Value,
+                cancellationToken)
+            : _tenantEditionRepository.UpdateAsync(
+                edition => new SysTenantEdition { IsDefault = false },
+                edition => edition.IsDefault,
+                cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取租户版本，不存在时抛出异常
+    /// </summary>
+    /// <param name="id">租户版本主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户版本实体</returns>
+    private async Task<SysTenantEdition> GetTenantEditionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "租户版本主键必须大于 0。");
+        }
+
+        return await _tenantEditionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("租户版本不存在。");
     }
 
     #region EditionPermissions
@@ -397,6 +397,24 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
+    /// 撤销租户版本权限
+    /// </summary>
+    /// <param name="id">租户版本权限绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Revoke)]
+    public async Task RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var editionPermission = await GetTenantEditionPermissionOrThrowAsync(id, cancellationToken);
+        if (!await _tenantEditionPermissionRepository.DeleteAsync(editionPermission, cancellationToken))
+        {
+            throw new InvalidOperationException("租户版本权限撤销失败。");
+        }
+    }
+
+    /// <summary>
     /// 更新租户版本权限状态
     /// </summary>
     /// <param name="input">状态更新参数</param>
@@ -429,38 +447,20 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
-    /// 撤销租户版本权限
+    /// 校验授权参数
     /// </summary>
-    /// <param name="id">租户版本权限绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Revoke)]
-    public async Task RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
+    /// <param name="input">授权参数</param>
+    private static void ValidateGrantInput(TenantEditionPermissionGrantDto input)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var editionPermission = await GetTenantEditionPermissionOrThrowAsync(id, cancellationToken);
-        if (!await _tenantEditionPermissionRepository.DeleteAsync(editionPermission, cancellationToken))
+        if (input.EditionId <= 0)
         {
-            throw new InvalidOperationException("租户版本权限撤销失败。");
-        }
-    }
-
-    /// <summary>
-    /// 获取租户版本权限绑定，不存在时抛出异常
-    /// </summary>
-    /// <param name="id">租户版本权限绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>租户版本权限绑定实体</returns>
-    private async Task<SysTenantEditionPermission> GetTenantEditionPermissionOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "租户版本权限绑定主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
         }
 
-        return await _tenantEditionPermissionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("租户版本权限绑定不存在。");
+        if (input.PermissionId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "权限主键必须大于 0。");
+        }
     }
 
     /// <summary>
@@ -488,20 +488,20 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
-    /// 校验授权参数
+    /// 获取租户版本权限绑定，不存在时抛出异常
     /// </summary>
-    /// <param name="input">授权参数</param>
-    private static void ValidateGrantInput(TenantEditionPermissionGrantDto input)
+    /// <param name="id">租户版本权限绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户版本权限绑定实体</returns>
+    private async Task<SysTenantEditionPermission> GetTenantEditionPermissionOrThrowAsync(long id, CancellationToken cancellationToken)
     {
-        if (input.EditionId <= 0)
+        if (id <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(input), "租户版本主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(id), "租户版本权限绑定主键必须大于 0。");
         }
 
-        if (input.PermissionId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "权限主键必须大于 0。");
-        }
+        return await _tenantEditionPermissionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("租户版本权限绑定不存在。");
     }
 
     #endregion EditionPermissions

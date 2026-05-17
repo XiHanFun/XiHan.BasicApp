@@ -37,17 +37,17 @@ public sealed class TenantMemberQueryService
     : SaasApplicationService, ITenantMemberQueryService
 {
     /// <summary>
+    /// 租户成员仓储
+    /// </summary>
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public TenantMemberQueryService(ITenantUserRepository tenantUserRepository)
     {
         _tenantUserRepository = tenantUserRepository;
     }
-
-    /// <summary>
-    /// 租户成员仓储
-    /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取租户成员分页列表

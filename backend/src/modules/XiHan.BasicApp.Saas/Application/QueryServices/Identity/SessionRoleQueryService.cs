@@ -37,21 +37,6 @@ public sealed class SessionRoleQueryService
     : SaasApplicationService, ISessionRoleQueryService
 {
     /// <summary>
-    /// 构造函数
-    /// </summary>
-    public SessionRoleQueryService(
-        ISessionRoleRepository sessionRoleRepository,
-        IUserSessionRepository userSessionRepository,
-        IRoleRepository roleRepository,
-        IUserRepository userRepository)
-    {
-        _sessionRoleRepository = sessionRoleRepository;
-        _userSessionRepository = userSessionRepository;
-        _roleRepository = roleRepository;
-        _userRepository = userRepository;
-    }
-
-    /// <summary>
     /// 会话角色仓储
     /// </summary>
     private readonly ISessionRoleRepository _sessionRoleRepository;
@@ -70,6 +55,21 @@ public sealed class SessionRoleQueryService
     /// 用户仓储
     /// </summary>
     private readonly IUserRepository _userRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public SessionRoleQueryService(
+        ISessionRoleRepository sessionRoleRepository,
+        IUserSessionRepository userSessionRepository,
+        IRoleRepository roleRepository,
+        IUserRepository userRepository)
+    {
+        _sessionRoleRepository = sessionRoleRepository;
+        _userSessionRepository = userSessionRepository;
+        _roleRepository = roleRepository;
+        _userRepository = userRepository;
+    }
 
     /// <summary>
     /// 获取会话角色分页列表
@@ -196,6 +196,57 @@ public sealed class SessionRoleQueryService
     }
 
     /// <summary>
+    /// 校验分页参数
+    /// </summary>
+    /// <param name="input">查询参数</param>
+    private static void ValidatePageInput(SessionRolePageQueryDto input)
+    {
+        ValidateOptionalId(input.SessionId, nameof(input.SessionId), "会话主键必须大于 0。");
+        ValidateOptionalId(input.RoleId, nameof(input.RoleId), "角色主键必须大于 0。");
+        if (input.Status.HasValue)
+        {
+            ValidateEnum(input.Status.Value, nameof(input.Status));
+        }
+
+        ValidateRange(input.ActivatedAtStart, input.ActivatedAtEnd, nameof(input.ActivatedAtStart), "激活开始时间不能晚于结束时间。");
+        ValidateRange(input.ExpiresAtStart, input.ExpiresAtEnd, nameof(input.ExpiresAtStart), "过期开始时间不能晚于结束时间。");
+    }
+
+    /// <summary>
+    /// 校验可空主键
+    /// </summary>
+    private static void ValidateOptionalId(long? id, string paramName, string message)
+    {
+        if (id is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    /// <summary>
+    /// 校验枚举值
+    /// </summary>
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, value, "枚举值无效。");
+        }
+    }
+
+    /// <summary>
+    /// 校验时间范围
+    /// </summary>
+    private static void ValidateRange(DateTimeOffset? start, DateTimeOffset? end, string paramName, string message)
+    {
+        if (start.HasValue && end.HasValue && start.Value > end.Value)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    /// <summary>
     /// 构建会话映射
     /// </summary>
     private async Task<IReadOnlyDictionary<long, SysUserSession>> BuildSessionMapAsync(IEnumerable<long> sessionIds, CancellationToken cancellationToken)
@@ -250,56 +301,5 @@ public sealed class SessionRoleQueryService
 
         var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
-    }
-
-    /// <summary>
-    /// 校验分页参数
-    /// </summary>
-    /// <param name="input">查询参数</param>
-    private static void ValidatePageInput(SessionRolePageQueryDto input)
-    {
-        ValidateOptionalId(input.SessionId, nameof(input.SessionId), "会话主键必须大于 0。");
-        ValidateOptionalId(input.RoleId, nameof(input.RoleId), "角色主键必须大于 0。");
-        if (input.Status.HasValue)
-        {
-            ValidateEnum(input.Status.Value, nameof(input.Status));
-        }
-
-        ValidateRange(input.ActivatedAtStart, input.ActivatedAtEnd, nameof(input.ActivatedAtStart), "激活开始时间不能晚于结束时间。");
-        ValidateRange(input.ExpiresAtStart, input.ExpiresAtEnd, nameof(input.ExpiresAtStart), "过期开始时间不能晚于结束时间。");
-    }
-
-    /// <summary>
-    /// 校验可空主键
-    /// </summary>
-    private static void ValidateOptionalId(long? id, string paramName, string message)
-    {
-        if (id is <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    /// <summary>
-    /// 校验枚举值
-    /// </summary>
-    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, value, "枚举值无效。");
-        }
-    }
-
-    /// <summary>
-    /// 校验时间范围
-    /// </summary>
-    private static void ValidateRange(DateTimeOffset? start, DateTimeOffset? end, string paramName, string message)
-    {
-        if (start.HasValue && end.HasValue && start.Value > end.Value)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
     }
 }

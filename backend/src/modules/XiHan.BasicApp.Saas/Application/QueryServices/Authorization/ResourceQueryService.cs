@@ -38,17 +38,17 @@ public sealed class ResourceQueryService
     : SaasApplicationService, IResourceQueryService
 {
     /// <summary>
+    /// 资源仓储
+    /// </summary>
+    private readonly IResourceRepository _resourceRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ResourceQueryService(IResourceRepository resourceRepository)
     {
         _resourceRepository = resourceRepository;
     }
-
-    /// <summary>
-    /// 资源仓储
-    /// </summary>
-    private readonly IResourceRepository _resourceRepository;
 
     /// <summary>
     /// 获取资源分页列表

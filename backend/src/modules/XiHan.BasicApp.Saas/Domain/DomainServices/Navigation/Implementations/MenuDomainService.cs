@@ -25,6 +25,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class MenuDomainService
     : IMenuDomainService
 {
+    private readonly IMenuRepository _menuRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -35,9 +39,6 @@ public sealed class MenuDomainService
         _menuRepository = menuRepository;
         _permissionRepository = permissionRepository;
     }
-
-    private readonly IMenuRepository _menuRepository;
-    private readonly IPermissionRepository _permissionRepository;
 
     /// <inheritdoc />
     public async Task<MenuCommandResult> CreateAsync(MenuCreateCommand command, CancellationToken cancellationToken = default)
@@ -173,110 +174,6 @@ public sealed class MenuDomainService
         {
             throw new InvalidOperationException("菜单删除失败。");
         }
-    }
-
-    private async Task<SysMenu> GetEditableMenuOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "菜单主键必须大于 0。");
-        }
-
-        var menu = await _menuRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("菜单不存在。");
-
-        if (menu.IsGlobal)
-        {
-            throw new InvalidOperationException("平台级全局菜单必须通过平台运维流程维护。");
-        }
-
-        return menu;
-    }
-
-    private async Task<SysMenu?> ValidateParentAsync(long? parentId, long? currentMenuId, CancellationToken cancellationToken)
-    {
-        if (!parentId.HasValue)
-        {
-            return null;
-        }
-
-        if (parentId.Value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(parentId), "父级菜单主键必须大于 0。");
-        }
-
-        if (currentMenuId.HasValue && parentId.Value == currentMenuId.Value)
-        {
-            throw new InvalidOperationException("菜单不能选择自身作为父级。");
-        }
-
-        var parent = await _menuRepository.GetByIdAsync(parentId.Value, cancellationToken)
-            ?? throw new InvalidOperationException("父级菜单不存在。");
-        if (parent.MenuType == MenuType.Button)
-        {
-            throw new InvalidOperationException("按钮不能作为父级菜单。");
-        }
-
-        await EnsureNoParentCycleAsync(parent, currentMenuId, cancellationToken);
-        return parent;
-    }
-
-    private async Task EnsureNoParentCycleAsync(SysMenu parent, long? currentMenuId, CancellationToken cancellationToken)
-    {
-        if (!currentMenuId.HasValue)
-        {
-            return;
-        }
-
-        var visited = new HashSet<long> { currentMenuId.Value };
-        var cursor = parent;
-        while (cursor.ParentId.HasValue)
-        {
-            if (cursor.ParentId.Value == currentMenuId.Value)
-            {
-                throw new InvalidOperationException("菜单父子关系不能形成环路。");
-            }
-
-            if (!visited.Add(cursor.BasicId))
-            {
-                throw new InvalidOperationException("菜单父子关系存在环路。");
-            }
-
-            var next = await _menuRepository.GetByIdAsync(cursor.ParentId.Value, cancellationToken);
-            if (next is null)
-            {
-                return;
-            }
-
-            cursor = next;
-        }
-    }
-
-    private async Task<SysPermission?> ValidatePermissionAsync(long? permissionId, MenuType menuType, CancellationToken cancellationToken)
-    {
-        if (menuType == MenuType.Button && (!permissionId.HasValue || permissionId.Value <= 0))
-        {
-            throw new InvalidOperationException("按钮菜单必须绑定权限。");
-        }
-
-        if (!permissionId.HasValue)
-        {
-            return null;
-        }
-
-        if (permissionId.Value <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(permissionId), "权限主键必须大于 0。");
-        }
-
-        var permission = await _permissionRepository.GetByIdAsync(permissionId.Value, cancellationToken)
-            ?? throw new InvalidOperationException("权限定义不存在。");
-        if (permission.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("权限定义未启用。");
-        }
-
-        return permission;
     }
 
     private static void ValidateCreateCommand(MenuCreateCommand command)
@@ -437,5 +334,109 @@ public sealed class MenuDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private async Task<SysMenu> GetEditableMenuOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "菜单主键必须大于 0。");
+        }
+
+        var menu = await _menuRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("菜单不存在。");
+
+        if (menu.IsGlobal)
+        {
+            throw new InvalidOperationException("平台级全局菜单必须通过平台运维流程维护。");
+        }
+
+        return menu;
+    }
+
+    private async Task<SysMenu?> ValidateParentAsync(long? parentId, long? currentMenuId, CancellationToken cancellationToken)
+    {
+        if (!parentId.HasValue)
+        {
+            return null;
+        }
+
+        if (parentId.Value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(parentId), "父级菜单主键必须大于 0。");
+        }
+
+        if (currentMenuId.HasValue && parentId.Value == currentMenuId.Value)
+        {
+            throw new InvalidOperationException("菜单不能选择自身作为父级。");
+        }
+
+        var parent = await _menuRepository.GetByIdAsync(parentId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("父级菜单不存在。");
+        if (parent.MenuType == MenuType.Button)
+        {
+            throw new InvalidOperationException("按钮不能作为父级菜单。");
+        }
+
+        await EnsureNoParentCycleAsync(parent, currentMenuId, cancellationToken);
+        return parent;
+    }
+
+    private async Task EnsureNoParentCycleAsync(SysMenu parent, long? currentMenuId, CancellationToken cancellationToken)
+    {
+        if (!currentMenuId.HasValue)
+        {
+            return;
+        }
+
+        var visited = new HashSet<long> { currentMenuId.Value };
+        var cursor = parent;
+        while (cursor.ParentId.HasValue)
+        {
+            if (cursor.ParentId.Value == currentMenuId.Value)
+            {
+                throw new InvalidOperationException("菜单父子关系不能形成环路。");
+            }
+
+            if (!visited.Add(cursor.BasicId))
+            {
+                throw new InvalidOperationException("菜单父子关系存在环路。");
+            }
+
+            var next = await _menuRepository.GetByIdAsync(cursor.ParentId.Value, cancellationToken);
+            if (next is null)
+            {
+                return;
+            }
+
+            cursor = next;
+        }
+    }
+
+    private async Task<SysPermission?> ValidatePermissionAsync(long? permissionId, MenuType menuType, CancellationToken cancellationToken)
+    {
+        if (menuType == MenuType.Button && (!permissionId.HasValue || permissionId.Value <= 0))
+        {
+            throw new InvalidOperationException("按钮菜单必须绑定权限。");
+        }
+
+        if (!permissionId.HasValue)
+        {
+            return null;
+        }
+
+        if (permissionId.Value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(permissionId), "权限主键必须大于 0。");
+        }
+
+        var permission = await _permissionRepository.GetByIdAsync(permissionId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("权限定义不存在。");
+        if (permission.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("权限定义未启用。");
+        }
+
+        return permission;
     }
 }
