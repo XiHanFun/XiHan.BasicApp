@@ -31,43 +31,65 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限中心")]
-public sealed class PermissionCenterQueryService(
-    IPermissionRepository permissionRepository,
-    IResourceRepository resourceRepository,
-    IOperationRepository operationRepository,
-    IRolePermissionRepository rolePermissionRepository,
-    IUserPermissionRepository userPermissionRepository,
-    IPermissionConditionRepository permissionConditionRepository,
-    IPermissionDelegationRepository permissionDelegationRepository,
-    IPermissionRequestRepository permissionRequestRepository,
-    IFieldLevelSecurityRepository fieldLevelSecurityRepository,
-    IRoleRepository roleRepository,
-    IDepartmentRepository departmentRepository,
-    ITenantUserRepository tenantUserRepository,
-    IReviewRepository reviewRepository,
-    ISqlSugarClientResolver clientResolver)
+public sealed class PermissionCenterQueryService
     : SaasApplicationService, IPermissionCenterQueryService
 {
+    private readonly ISqlSugarClientResolver _clientResolver;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionCenterQueryService(
+        IPermissionRepository permissionRepository,
+        IResourceRepository resourceRepository,
+        IOperationRepository operationRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionConditionRepository permissionConditionRepository,
+        IPermissionDelegationRepository permissionDelegationRepository,
+        IPermissionRequestRepository permissionRequestRepository,
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
+        IRoleRepository roleRepository,
+        IDepartmentRepository departmentRepository,
+        ITenantUserRepository tenantUserRepository,
+        IReviewRepository reviewRepository,
+        ISqlSugarClientResolver clientResolver)
+    {
+        _permissionRepository = permissionRepository;
+        _resourceRepository = resourceRepository;
+        _operationRepository = operationRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _permissionConditionRepository = permissionConditionRepository;
+        _permissionDelegationRepository = permissionDelegationRepository;
+        _permissionRequestRepository = permissionRequestRepository;
+        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+        _roleRepository = roleRepository;
+        _departmentRepository = departmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _reviewRepository = reviewRepository;
+        _clientResolver = clientResolver;
+    }
+
     private const int MaxDelegationCount = 50;
     private const int MaxRequestCount = 50;
     private const int MaxFieldSecurityCount = 100;
     private const int MaxChangeLogCount = 20;
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IResourceRepository _resourceRepository;
+    private readonly IOperationRepository _operationRepository;
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IDepartmentRepository _departmentRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly IReviewRepository _reviewRepository;
 
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
-    private readonly IResourceRepository _resourceRepository = resourceRepository;
-    private readonly IOperationRepository _operationRepository = operationRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
-    private readonly IPermissionConditionRepository _permissionConditionRepository = permissionConditionRepository;
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository = permissionDelegationRepository;
-    private readonly IPermissionRequestRepository _permissionRequestRepository = permissionRequestRepository;
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
-    private readonly IRoleRepository _roleRepository = roleRepository;
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
-    private readonly IReviewRepository _reviewRepository = reviewRepository;
-
-    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.Permission.Read)]

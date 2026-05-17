@@ -32,26 +32,36 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户")]
-public sealed class TenantAppService(
-    ITenantRepository tenantRepository,
-    ITenantUserRepository tenantUserRepository,
-    ICurrentUser currentUser)
+public sealed class TenantAppService
     : SaasApplicationService, ITenantAppService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantAppService(
+        ITenantRepository tenantRepository,
+        ITenantUserRepository tenantUserRepository,
+        ICurrentUser currentUser)
+    {
+        _tenantRepository = tenantRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _currentUser = currentUser;
+    }
+
+    /// <summary>
     /// 租户仓储
     /// </summary>
-    private readonly ITenantRepository _tenantRepository = tenantRepository;
+    private readonly ITenantRepository _tenantRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 当前用户
     /// </summary>
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly ICurrentUser _currentUser;
 
     /// <summary>
     /// 创建租户
@@ -486,5 +496,4 @@ public sealed class TenantAppService(
     }
 
     #endregion TenantMembers
-
 }

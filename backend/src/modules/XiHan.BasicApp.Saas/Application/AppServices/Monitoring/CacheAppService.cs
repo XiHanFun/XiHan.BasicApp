@@ -14,7 +14,6 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Text.RegularExpressions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Caching.Distributed.Abstracts;

@@ -12,25 +12,24 @@
 
 #endregion <<版权版本注释>>
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Jwt;
-using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
-using XiHan.Framework.Web.Api.Logging;
-using XiHan.Framework.Web.Api.Logging.Pipelines;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -39,51 +38,71 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 认证应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "认证", RouteTemplate = "api/Auth")]
-public sealed class AuthAppService(
-    IUserRepository userRepository,
-    IUserSecurityRepository userSecurityRepository,
-    ITenantRepository tenantRepository,
-    ITenantUserRepository tenantUserRepository,
-    IUserRoleRepository userRoleRepository,
-    IRoleRepository roleRepository,
-    IRolePermissionRepository rolePermissionRepository,
-    IUserPermissionRepository userPermissionRepository,
-    IPermissionRepository permissionRepository,
-    IMenuRepository menuRepository,
-    IUserSessionRepository userSessionRepository,
-    IOAuthTokenRepository oauthTokenRepository,
-    ILoginLogPipeline loginLogPipeline,
-    IUserNotificationDispatchService notificationDispatchService,
-    IAuthenticationService authenticationService,
-    IJwtTokenService jwtTokenService,
-    ICurrentTenant currentTenant,
-    ICurrentUser currentUser,
-    IClientInfoProvider clientInfoProvider,
-    IHttpContextAccessor httpContextAccessor)
+public sealed class AuthAppService
     : SaasApplicationService, IAuthAppService
 {
-    private const string SuperAdminRoleCode = "super_admin";
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public AuthAppService(
+        IUserRepository userRepository,
+        ITenantRepository tenantRepository,
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionRepository permissionRepository,
+        IMenuRepository menuRepository,
+        IUserSessionRepository userSessionRepository,
+        IOAuthTokenRepository oauthTokenRepository,
+        IAuthenticationDomainService authenticationDomainService,
+        ILoginSessionDomainService loginSessionDomainService,
+        IJwtTokenService jwtTokenService,
+        ILocalEventBus localEventBus,
+        ICurrentTenant currentTenant,
+        ICurrentUser currentUser,
+        IClientInfoProvider clientInfoProvider,
+        IHttpContextAccessor httpContextAccessor)
+    {
+        _userRepository = userRepository;
+        _tenantRepository = tenantRepository;
+        _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _permissionRepository = permissionRepository;
+        _menuRepository = menuRepository;
+        _userSessionRepository = userSessionRepository;
+        _oauthTokenRepository = oauthTokenRepository;
+        _authenticationDomainService = authenticationDomainService;
+        _loginSessionDomainService = loginSessionDomainService;
+        _jwtTokenService = jwtTokenService;
+        _localEventBus = localEventBus;
+        _currentTenant = currentTenant;
+        _currentUser = currentUser;
+        _clientInfoProvider = clientInfoProvider;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
-    private readonly ITenantRepository _tenantRepository = tenantRepository;
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
-    private readonly IRoleRepository _roleRepository = roleRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
-    private readonly IMenuRepository _menuRepository = menuRepository;
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
-    private readonly ILoginLogPipeline _loginLogPipeline = loginLogPipeline;
-    private readonly IUserNotificationDispatchService _notificationDispatchService = notificationDispatchService;
-    private readonly IAuthenticationService _authService = authenticationService;
-    private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
-    private readonly ICurrentTenant _currentTenant = currentTenant;
-    private readonly ICurrentUser _currentUser = currentUser;
-    private readonly IClientInfoProvider _clientInfoProvider = clientInfoProvider;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private const string SuperAdminRoleCode = "super_admin";
+    private readonly IUserRepository _userRepository;
+    private readonly ITenantRepository _tenantRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IMenuRepository _menuRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
+    private readonly IAuthenticationDomainService _authenticationDomainService;
+    private readonly ILoginSessionDomainService _loginSessionDomainService;
+    private readonly IJwtTokenService _jwtTokenService;
+    private readonly ILocalEventBus _localEventBus;
+    private readonly ICurrentTenant _currentTenant;
+    private readonly ICurrentUser _currentUser;
+    private readonly IClientInfoProvider _clientInfoProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <inheritdoc />
     [AllowAnonymous]
@@ -108,86 +127,74 @@ public sealed class AuthAppService(
         using var tenantScope = _currentTenant.Change(effectiveTenantId, tenant?.TenantName);
 
         var now = DateTimeOffset.UtcNow;
-
-        // 阶段一：委托框架认证服务进行凭据校验（含锁定检查、密码验证、重哈希、失败次数管理、2FA 检测）
-        var authResult = await _authService.AuthenticateAsync(userName, password, cancellationToken);
-
-        if (!authResult.Succeeded)
-        {
-            await PublishLoginLogAsync(null, userName, null,
-                authResult.IsLockedOut ? LoginResult.AccountLocked : LoginResult.InvalidCredentials,
-                authResult.ErrorMessage, now);
-            throw new InvalidOperationException(authResult.ErrorMessage ?? "用户名或密码错误。");
-        }
+        var authResult = await _authenticationDomainService.AuthenticatePasswordLoginAsync(
+            userName,
+            password,
+            effectiveTenantId,
+            now,
+            cancellationToken);
 
         if (authResult.RequiresTwoFactor)
         {
-            if (!long.TryParse(authResult.UserId, out var twoFactorUserId))
-            {
-                throw new InvalidOperationException("用户标识无效。");
-            }
-
-            var twoFactorSecurity = await _userSecurityRepository.GetByUserIdAsync(twoFactorUserId, cancellationToken);
-            if (twoFactorSecurity is not null && twoFactorSecurity.TwoFactorMethod != TwoFactorMethod.None)
-            {
-                return BuildTwoFactorChallenge(twoFactorSecurity);
-            }
+            return BuildTwoFactorChallenge(authResult.Security ?? throw new InvalidOperationException("用户双因素配置不存在。"));
         }
 
-        // 阶段二：框架认证成功后，执行应用程序特有逻辑
-        if (!long.TryParse(authResult.UserId, out var userId))
+        if (!authResult.Succeeded)
         {
-            throw new InvalidOperationException("用户标识无效。");
+            var clientForFailure = _clientInfoProvider.GetCurrent();
+            await _localEventBus.PublishAsync(
+                new AuthLoginFailedDomainEvent(
+                    effectiveTenantId,
+                    authResult.User?.BasicId,
+                    userName,
+                    authResult.FailureResult,
+                    authResult.ErrorMessage,
+                    now,
+                    _httpContextAccessor.HttpContext?.TraceIdentifier,
+                    clientForFailure.IpAddress,
+                    clientForFailure.UserAgent));
+            throw new InvalidOperationException(authResult.ErrorMessage ?? "用户名或密码错误。");
         }
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("认证用户不存在。");
-
-        if (user.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("用户已被禁用。");
-        }
-
-        await EnsureTenantMembershipValidAsync(userId, effectiveTenantId, now, cancellationToken);
-
-        var security = await _userSecurityRepository.GetByUserIdAsync(userId, cancellationToken);
-        if (security is not null && security.PasswordExpiryTime.HasValue && security.PasswordExpiryTime.Value <= now)
-        {
-            throw new InvalidOperationException("密码已过期，请联系管理员重置密码。");
-        }
+        var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
+        var security = authResult.Security;
 
         // 构建授权快照（角色 + 权限）
-        var authSnapshot = await BuildAuthorizationSnapshotAsync(userId, now, cancellationToken);
-        var client = ResolveClientInfo();
+        var authSnapshot = await BuildAuthorizationSnapshotAsync(user.BasicId, now, cancellationToken);
+        var client = _clientInfoProvider.GetCurrent();
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
 
         // 生成包含应用级声明的 JWT
         var claims = BuildClaims(user, effectiveTenantId, sessionBusinessId, accessTokenJti, authSnapshot.Roles, authSnapshot.Permissions, input.DeviceId);
         var tokenResult = _jwtTokenService.GenerateAccessToken(claims);
-
-        // 更新应用特有字段（框架已通过 IUserStore 处理了 LastLoginTime 与安全状态重置）
-        user.LastLoginIp = client.IpAddress;
-        if (security is not null)
-        {
-            security.LastSecurityCheckTime = now;
-            _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-        }
-
-        var session = await CreateLoginSessionAsync(user, sessionBusinessId, accessTokenJti, tokenResult, input.DeviceId, client, now, cancellationToken);
-        await CreateOAuthTokenAsync(user, session, accessTokenJti, tokenResult, now, cancellationToken);
-        _ = await _userRepository.UpdateAsync(user, cancellationToken);
-        await TouchTenantMembershipAsync(userId, effectiveTenantId, now, cancellationToken);
-        await PublishLoginLogAsync(userId, userName, sessionBusinessId, LoginResult.Success, "登录成功", now);
-        await TryDispatchAuthNotificationAsync(
-            userId,
-            "登录成功",
-            BuildAuthNotificationContent("您的账号已成功登录。", client, now),
-            NotificationType.User,
-            "auth.login",
-            session.BasicId,
-            "lucide:log-in",
+        var sessionResult = await _loginSessionDomainService.IssuePasswordLoginAsync(
+            user,
+            security,
+            effectiveTenantId,
+            sessionBusinessId,
+            accessTokenJti,
+            tokenResult,
+            input.DeviceId,
+            client,
+            now,
             cancellationToken);
+
+        await _localEventBus.PublishAsync(
+            new AuthLoginSucceededDomainEvent(
+                effectiveTenantId,
+                user.BasicId,
+                userName,
+                sessionResult.Session.BasicId,
+                sessionBusinessId,
+                now,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent,
+                client.Location,
+                client.Browser,
+                client.OperatingSystem,
+                client.DeviceName));
 
         return new LoginResponseDto
         {
@@ -302,16 +309,18 @@ public sealed class AuthAppService(
         }
 
         var userName = _currentUser.FindClaim(XiHanClaimTypes.UserName)?.Value;
-        await PublishLoginLogAsync(userId.Value, userName, sessionBusinessId, LoginResult.Logout, "用户主动退出", now);
-        await TryDispatchAuthNotificationAsync(
-            userId.Value,
-            "退出登录",
-            "您已退出当前会话。",
-            NotificationType.User,
-            "auth.logout",
-            session.BasicId,
-            "lucide:log-out",
-            cancellationToken);
+        var client = _clientInfoProvider.GetCurrent();
+        await _localEventBus.PublishAsync(
+            new AuthLogoutDomainEvent(
+                _currentUser.TenantId,
+                userId.Value,
+                userName,
+                session.BasicId,
+                sessionBusinessId,
+                now,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent));
     }
 
     private static LoginResponseDto BuildTwoFactorChallenge(SysUserSecurity security)
@@ -442,11 +451,6 @@ public sealed class AuthAppService(
             : char.ToUpperInvariant(trimmed[0]) + trimmed[1..];
     }
 
-    private static DateTimeOffset ToDateTimeOffset(DateTime value)
-    {
-        return new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc));
-    }
-
     private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -474,34 +478,6 @@ public sealed class AuthAppService(
         return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
     }
 
-    private static string BuildAuthNotificationContent(string prefix, ClientInfo client, DateTimeOffset time)
-    {
-        var parts = new List<string> { prefix, $"时间：{time:yyyy-MM-dd HH:mm:ss} UTC" };
-
-        var location = FirstNotEmpty(client.Location, client.IpAddress);
-        if (!string.IsNullOrWhiteSpace(location))
-        {
-            parts.Add($"位置：{location}");
-        }
-
-        var device = string.Join(
-            " / ",
-            new[] { client.Browser, client.OperatingSystem, client.DeviceName }
-                .Where(static item => !string.IsNullOrWhiteSpace(item))
-                .Distinct(StringComparer.OrdinalIgnoreCase));
-        if (!string.IsNullOrWhiteSpace(device))
-        {
-            parts.Add($"设备：{device}");
-        }
-
-        return string.Join(" ", parts);
-    }
-
-    private static string? FirstNotEmpty(params string?[] values)
-    {
-        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
-    }
-
     private async Task<SysTenant?> GetLoginTenantOrThrowAsync(long? tenantId, CancellationToken cancellationToken)
     {
         if (!tenantId.HasValue || tenantId.Value <= 0)
@@ -527,31 +503,6 @@ public sealed class AuthAppService(
         }
 
         return tenant;
-    }
-
-    private async Task EnsureTenantMembershipValidAsync(long userId, long? tenantId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        if (!tenantId.HasValue)
-        {
-            return;
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("用户不是当前租户成员。");
-        if (membership.InviteStatus != TenantMemberInviteStatus.Accepted || membership.Status != ValidityStatus.Valid)
-        {
-            throw new InvalidOperationException("用户当前租户成员身份无效。");
-        }
-
-        if (membership.EffectiveTime.HasValue && membership.EffectiveTime.Value > now)
-        {
-            throw new InvalidOperationException("用户当前租户成员身份尚未生效。");
-        }
-
-        if (membership.ExpirationTime.HasValue && membership.ExpirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("用户当前租户成员身份已过期。");
-        }
     }
 
     private async Task<AuthorizationSnapshot> BuildAuthorizationSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
@@ -657,83 +608,6 @@ public sealed class AuthAppService(
         return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
     }
 
-    private async Task<SysUserSession> CreateLoginSessionAsync(
-        SysUser user,
-        string sessionBusinessId,
-        string accessTokenJti,
-        JwtTokenResult tokenResult,
-        string? deviceId,
-        ClientInfo client,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var session = new SysUserSession
-        {
-            UserId = user.BasicId,
-            CurrentAccessTokenJti = accessTokenJti,
-            UserSessionId = sessionBusinessId,
-            DeviceType = DeviceType.Web,
-            DeviceName = NormalizeNullable(client.DeviceName, 200) ?? "Web",
-            DeviceId = NormalizeNullable(deviceId, 200),
-            Browser = NormalizeNullable(client.Browser, 100),
-            OperatingSystem = NormalizeNullable(client.OperatingSystem, 100),
-            IpAddress = NormalizeNullable(client.IpAddress, 50),
-            Location = NormalizeNullable(client.Location, 200),
-            LoginTime = now,
-            LastActivityTime = now,
-            IsOnline = true,
-            IsRevoked = false,
-            ExpiresAt = ToDateTimeOffset(tokenResult.ExpiresAt)
-        };
-
-        return await _userSessionRepository.AddAsync(session, cancellationToken);
-    }
-
-    private async Task CreateOAuthTokenAsync(
-        SysUser user,
-        SysUserSession session,
-        string accessTokenJti,
-        JwtTokenResult tokenResult,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var oauthToken = new SysOAuthToken
-        {
-            SessionId = session.BasicId,
-            AccessTokenJti = accessTokenJti,
-            AccessToken = null,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ClientId = "basicapp-web",
-            UserId = user.BasicId,
-            GrantType = GrantType.Password,
-            Scopes = "basicapp",
-            Status = EnableStatus.Enabled,
-            AccessTokenExpiresTime = ToDateTimeOffset(tokenResult.ExpiresAt),
-            RefreshTokenExpiresTime = now.AddDays(7),
-            IsRevoked = false
-        };
-
-        _ = await _oauthTokenRepository.AddAsync(oauthToken, cancellationToken);
-    }
-
-    private async Task TouchTenantMembershipAsync(long userId, long? tenantId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        if (!tenantId.HasValue)
-        {
-            return;
-        }
-
-        var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
-        if (membership is null)
-        {
-            return;
-        }
-
-        membership.LastActiveTime = now;
-        _ = await _tenantUserRepository.UpdateAsync(membership, cancellationToken);
-    }
-
     private List<Claim> BuildClaims(
         SysUser user,
         long? tenantId,
@@ -800,68 +674,6 @@ public sealed class AuthAppService(
         }
 
         return claims;
-    }
-
-    private ClientInfo ResolveClientInfo()
-    {
-        return _clientInfoProvider.GetCurrent();
-    }
-
-    private async Task PublishLoginLogAsync(long? userId, string? userName, string? sessionId, LoginResult loginResult, string? message, DateTimeOffset loginTime)
-    {
-        try
-        {
-            var httpContext = _httpContextAccessor.HttpContext;
-            var client = ResolveClientInfo();
-
-            var record = new LoginLogRecord
-            {
-                TraceId = httpContext?.TraceIdentifier,
-                UserId = userId,
-                UserName = userName,
-                SessionId = sessionId,
-                LoginResult = (int)loginResult,
-                Message = message,
-                LoginIp = client.IpAddress,
-                UserAgent = client.UserAgent,
-                LoginTime = loginTime
-            };
-
-            await _loginLogPipeline.WriteAsync(record);
-        }
-        catch
-        {
-            // 日志事件发布失败不应影响业务流程
-        }
-    }
-
-    private async Task TryDispatchAuthNotificationAsync(
-        long userId,
-        string title,
-        string content,
-        NotificationType notificationType,
-        string businessType,
-        long businessId,
-        string icon,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _notificationDispatchService.DispatchToUserAsync(
-                userId,
-                title,
-                content,
-                notificationType,
-                businessType,
-                businessId,
-                link: "/workbench/profile",
-                icon: icon,
-                cancellationToken: cancellationToken);
-        }
-        catch
-        {
-            // 登录/登出通知失败不应影响认证主流程。
-        }
     }
 
     private sealed record AuthorizationSnapshot(

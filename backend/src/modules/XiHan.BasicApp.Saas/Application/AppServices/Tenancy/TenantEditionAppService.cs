@@ -31,26 +31,36 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户版本")]
-public sealed class TenantEditionAppService(
-    ITenantEditionRepository tenantEditionRepository,
-    ITenantEditionPermissionRepository tenantEditionPermissionRepository,
-    IPermissionRepository permissionRepository)
+public sealed class TenantEditionAppService
     : SaasApplicationService, ITenantEditionAppService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantEditionAppService(
+        ITenantEditionRepository tenantEditionRepository,
+        ITenantEditionPermissionRepository tenantEditionPermissionRepository,
+        IPermissionRepository permissionRepository)
+    {
+        _tenantEditionRepository = tenantEditionRepository;
+        _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
+        _permissionRepository = permissionRepository;
+    }
+
+    /// <summary>
     /// 租户版本仓储
     /// </summary>
-    private readonly ITenantEditionRepository _tenantEditionRepository = tenantEditionRepository;
+    private readonly ITenantEditionRepository _tenantEditionRepository;
 
     /// <summary>
     /// 租户版本权限仓储
     /// </summary>
-    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 创建租户版本
@@ -495,5 +505,4 @@ public sealed class TenantEditionAppService(
     }
 
     #endregion EditionPermissions
-
 }

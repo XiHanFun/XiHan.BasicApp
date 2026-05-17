@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using SqlSugar;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -29,12 +29,7 @@ namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 /// SaaS 领域事件处理器
 /// </summary>
 [UnitOfWork(true)]
-public sealed class SaasDomainEventHandler(
-    IUserSessionRepository userSessionRepository,
-    IOAuthTokenRepository oauthTokenRepository,
-    ISessionRoleRepository sessionRoleRepository,
-    ISqlSugarClientResolver clientResolver,
-    ICurrentTenant currentTenant)
+public sealed class SaasDomainEventHandler
     : ILocalEventHandler<AuthorizationChangedDomainEvent>,
       ILocalEventHandler<DataScopeChangedDomainEvent>,
       ILocalEventHandler<FieldLevelSecurityChangedDomainEvent>,
@@ -47,12 +42,31 @@ public sealed class SaasDomainEventHandler(
       ILocalEventHandler<UserSessionRevokedDomainEvent>,
       ITransientDependency
 {
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
-    private readonly ISessionRoleRepository _sessionRoleRepository = sessionRoleRepository;
-    private readonly ICurrentTenant _currentTenant = currentTenant;
+    private readonly ISqlSugarClientResolver _clientResolver;
 
-    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public SaasDomainEventHandler(
+        IUserSessionRepository userSessionRepository,
+        IOAuthTokenRepository oauthTokenRepository,
+        ISessionRoleRepository sessionRoleRepository,
+        ISqlSugarClientResolver clientResolver,
+        ICurrentTenant currentTenant)
+    {
+        _userSessionRepository = userSessionRepository;
+        _oauthTokenRepository = oauthTokenRepository;
+        _sessionRoleRepository = sessionRoleRepository;
+        _clientResolver = clientResolver;
+        _currentTenant = currentTenant;
+    }
+
+    private readonly IUserSessionRepository _userSessionRepository;
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
+    private readonly ISessionRoleRepository _sessionRoleRepository;
+    private readonly ICurrentTenant _currentTenant;
+
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <inheritdoc />
     public async Task HandleEventAsync(AuthorizationChangedDomainEvent eventData)

@@ -34,20 +34,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "菜单")]
-public sealed class MenuQueryService(
-    IMenuRepository menuRepository,
-    IPermissionRepository permissionRepository)
+public sealed class MenuQueryService
     : SaasApplicationService, IMenuQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public MenuQueryService(
+        IMenuRepository menuRepository,
+        IPermissionRepository permissionRepository)
+    {
+        _menuRepository = menuRepository;
+        _permissionRepository = permissionRepository;
+    }
+
+    /// <summary>
     /// 菜单仓储
     /// </summary>
-    private readonly IMenuRepository _menuRepository = menuRepository;
+    private readonly IMenuRepository _menuRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 获取菜单分页列表

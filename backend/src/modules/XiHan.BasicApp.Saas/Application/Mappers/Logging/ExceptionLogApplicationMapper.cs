@@ -136,5 +136,4 @@ public static class ExceptionLogApplicationMapper
             CreatedBy = exceptionLog.CreatedBy
         };
     }
-
 }

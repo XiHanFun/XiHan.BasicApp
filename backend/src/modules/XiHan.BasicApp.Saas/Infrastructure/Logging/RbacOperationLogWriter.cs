@@ -14,8 +14,8 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using System.Security.Claims;
 using SqlSugar;
+using System.Security.Claims;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;

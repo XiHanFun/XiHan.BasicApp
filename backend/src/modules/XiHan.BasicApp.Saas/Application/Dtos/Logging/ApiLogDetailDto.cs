@@ -28,5 +28,4 @@ public sealed class ApiLogDetailDto : ApiLogListItemDto
     /// 创建者
     /// </summary>
     public string? CreatedBy { get; set; }
-
 }

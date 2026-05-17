@@ -19,10 +19,18 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// <summary>
 /// 角色继承领域服务实现
 /// </summary>
-public sealed class RoleHierarchyDomainService(IRoleHierarchyRepository roleHierarchyRepository)
+public sealed class RoleHierarchyDomainService
     : IRoleHierarchyDomainService
 {
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository = roleHierarchyRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleHierarchyDomainService(IRoleHierarchyRepository roleHierarchyRepository)
+    {
+        _roleHierarchyRepository = roleHierarchyRepository;
+    }
+
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
     /// <inheritdoc />
     public async Task<bool> WouldCreateCycleAsync(long parentRoleId, long childRoleId, CancellationToken cancellationToken = default)

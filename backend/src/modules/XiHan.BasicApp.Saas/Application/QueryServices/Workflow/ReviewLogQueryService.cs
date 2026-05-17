@@ -12,14 +12,14 @@
 
 #endregion <<版权版本注释>>
 
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
+using SqlSugar;
+using System.Linq.Expressions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
-using SqlSugar;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Data.SqlSugar.Clients;
@@ -33,10 +33,20 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "审查日志")]
-public sealed class ReviewLogQueryService(ISqlSugarClientResolver clientResolver)
+public sealed class ReviewLogQueryService
     : SaasApplicationService, IReviewLogQueryService
 {
-    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
+    private readonly ISqlSugarClientResolver _clientResolver;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ReviewLogQueryService(ISqlSugarClientResolver clientResolver)
+    {
+        _clientResolver = clientResolver;
+    }
+
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 获取审查日志分页列表

@@ -19,10 +19,18 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// <summary>
 /// 部门层级领域服务实现
 /// </summary>
-public sealed class DepartmentHierarchyDomainService(IDepartmentHierarchyRepository departmentHierarchyRepository)
+public sealed class DepartmentHierarchyDomainService
     : IDepartmentHierarchyDomainService
 {
-    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository = departmentHierarchyRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public DepartmentHierarchyDomainService(IDepartmentHierarchyRepository departmentHierarchyRepository)
+    {
+        _departmentHierarchyRepository = departmentHierarchyRepository;
+    }
+
+    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
 
     /// <inheritdoc />
     public async Task<bool> WouldCreateCycleAsync(long departmentId, long? newParentId, CancellationToken cancellationToken = default)

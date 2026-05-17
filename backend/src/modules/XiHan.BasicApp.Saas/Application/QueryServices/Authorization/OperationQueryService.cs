@@ -34,13 +34,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "操作")]
-public sealed class OperationQueryService(IOperationRepository operationRepository)
+public sealed class OperationQueryService
     : SaasApplicationService, IOperationQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OperationQueryService(IOperationRepository operationRepository)
+    {
+        _operationRepository = operationRepository;
+    }
+
+    /// <summary>
     /// 操作仓储
     /// </summary>
-    private readonly IOperationRepository _operationRepository = operationRepository;
+    private readonly IOperationRepository _operationRepository;
 
     /// <summary>
     /// 获取操作分页列表

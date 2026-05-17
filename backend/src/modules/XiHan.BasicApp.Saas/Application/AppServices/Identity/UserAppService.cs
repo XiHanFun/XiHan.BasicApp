@@ -22,10 +22,10 @@ using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
-using XiHan.Framework.Security.Password;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 
@@ -33,29 +33,50 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 
 /// <summary>
 /// 用户命令应用服务
-/// 合并自：UserSecurityAppService / UserRoleAppService / UserPermissionAppService /
-///         UserDataScopeAppService / UserDepartmentAppService / UserSessionAppService
+/// 负责用户资料、安全、角色、权限、数据范围、部门归属与会话撤销等命令编排
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户")]
-public sealed class UserAppService(
-    IUserRepository userRepository,
-    IUserSecurityRepository userSecurityRepository,
-    ITenantUserRepository tenantUserRepository,
-    IPasswordHasher passwordHasher,
-    IAuthenticationService authenticationService,
-    ICurrentUser currentUser,
-    IUserRoleRepository userRoleRepository,
-    IRoleRepository roleRepository,
-    IUserPermissionRepository userPermissionRepository,
-    IPermissionRepository permissionRepository,
-    IUserDataScopeRepository userDataScopeRepository,
-    IDepartmentRepository departmentRepository,
-    IUserDepartmentRepository userDepartmentRepository,
-    IUserSessionRepository userSessionRepository,
-    ILocalEventBus localEventBus)
+public sealed class UserAppService
     : SaasApplicationService, IUserAppService
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserAppService(
+        IUserRepository userRepository,
+        IUserSecurityRepository userSecurityRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPasswordHasher passwordHasher,
+        IAuthenticationService authenticationService,
+        ICurrentUser currentUser,
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionRepository permissionRepository,
+        IUserDataScopeRepository userDataScopeRepository,
+        IDepartmentRepository departmentRepository,
+        IUserDepartmentRepository userDepartmentRepository,
+        IUserSessionRepository userSessionRepository,
+        ILocalEventBus localEventBus)
+    {
+        _userRepository = userRepository;
+        _userSecurityRepository = userSecurityRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _passwordHasher = passwordHasher;
+        _authenticationService = authenticationService;
+        _currentUser = currentUser;
+        _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _permissionRepository = permissionRepository;
+        _userDataScopeRepository = userDataScopeRepository;
+        _departmentRepository = departmentRepository;
+        _userDepartmentRepository = userDepartmentRepository;
+        _userSessionRepository = userSessionRepository;
+        _localEventBus = localEventBus;
+    }
+
     // ================================================================
     // 字段 — 用户核心
     // ================================================================
@@ -63,32 +84,32 @@ public sealed class UserAppService(
     /// <summary>
     /// 用户仓储
     /// </summary>
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 用户安全仓储
     /// </summary>
-    private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
+    private readonly IUserSecurityRepository _userSecurityRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 密码哈希服务
     /// </summary>
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IPasswordHasher _passwordHasher;
 
     /// <summary>
     /// 认证服务
     /// </summary>
-    private readonly IAuthenticationService _authenticationService = authenticationService;
+    private readonly IAuthenticationService _authenticationService;
 
     /// <summary>
     /// 当前用户
     /// </summary>
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly ICurrentUser _currentUser;
 
     // ================================================================
     // 字段 — 用户角色
@@ -97,12 +118,12 @@ public sealed class UserAppService(
     /// <summary>
     /// 用户角色仓储
     /// </summary>
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     // ================================================================
     // 字段 — 用户直授权限
@@ -111,12 +132,12 @@ public sealed class UserAppService(
     /// <summary>
     /// 用户直授权限仓储
     /// </summary>
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     // ================================================================
     // 字段 — 用户数据范围
@@ -125,12 +146,12 @@ public sealed class UserAppService(
     /// <summary>
     /// 用户数据范围仓储
     /// </summary>
-    private readonly IUserDataScopeRepository _userDataScopeRepository = userDataScopeRepository;
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
 
     /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     // ================================================================
     // 字段 — 用户部门归属
@@ -139,7 +160,7 @@ public sealed class UserAppService(
     /// <summary>
     /// 用户部门仓储
     /// </summary>
-    private readonly IUserDepartmentRepository _userDepartmentRepository = userDepartmentRepository;
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
 
     // ================================================================
     // 字段 — 用户会话
@@ -148,12 +169,12 @@ public sealed class UserAppService(
     /// <summary>
     /// 用户会话仓储
     /// </summary>
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
 
     /// <summary>
     /// 本地事件总线
     /// </summary>
-    private readonly ILocalEventBus _localEventBus = localEventBus;
+    private readonly ILocalEventBus _localEventBus;
 
     // ================================================================
     // #region 用户核心 (原始 UserAppService 方法)
@@ -319,10 +340,6 @@ public sealed class UserAppService(
 
     #endregion
 
-    // ================================================================
-    // #region 用户安全 (合并自 UserSecurityAppService)
-    // ================================================================
-
     #region 用户安全
 
     /// <summary>
@@ -426,10 +443,6 @@ public sealed class UserAppService(
     }
 
     #endregion
-
-    // ================================================================
-    // #region 用户角色 (合并自 UserRoleAppService)
-    // ================================================================
 
     #region 用户角色
 
@@ -556,10 +569,6 @@ public sealed class UserAppService(
     }
 
     #endregion
-
-    // ================================================================
-    // #region 用户直授权限 (合并自 UserPermissionAppService)
-    // ================================================================
 
     #region 用户直授权限
 
@@ -689,10 +698,6 @@ public sealed class UserAppService(
 
     #endregion
 
-    // ================================================================
-    // #region 用户数据范围 (合并自 UserDataScopeAppService)
-    // ================================================================
-
     #region 用户数据范围
 
     /// <summary>
@@ -817,10 +822,6 @@ public sealed class UserAppService(
     }
 
     #endregion
-
-    // ================================================================
-    // #region 用户部门 (合并自 UserDepartmentAppService)
-    // ================================================================
 
     #region 用户部门
 
@@ -987,10 +988,6 @@ public sealed class UserAppService(
     }
 
     #endregion
-
-    // ================================================================
-    // #region 用户会话 (合并自 UserSessionAppService)
-    // ================================================================
 
     #region 用户会话
 

@@ -22,17 +22,28 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// <summary>
 /// 权限合并领域服务实现
 /// </summary>
-public sealed class PermissionMergeDomainService(
-    IRolePermissionRepository rolePermissionRepository,
-    IUserPermissionRepository userPermissionRepository,
-    IPermissionDelegationRepository permissionDelegationRepository,
-    IPermissionRepository permissionRepository)
+public sealed class PermissionMergeDomainService
     : IPermissionMergeDomainService
 {
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository = permissionDelegationRepository;
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionMergeDomainService(
+        IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionDelegationRepository permissionDelegationRepository,
+        IPermissionRepository permissionRepository)
+    {
+        _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _permissionDelegationRepository = permissionDelegationRepository;
+        _permissionRepository = permissionRepository;
+    }
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<PermissionGrantSnapshot>> MergePermissionGrantsAsync(

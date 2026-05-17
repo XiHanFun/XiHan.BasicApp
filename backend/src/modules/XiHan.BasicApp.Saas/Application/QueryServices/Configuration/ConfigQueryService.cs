@@ -18,7 +18,6 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -34,13 +33,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统配置")]
-public sealed class ConfigQueryService(IConfigRepository configRepository)
+public sealed class ConfigQueryService
     : SaasApplicationService, IConfigQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ConfigQueryService(IConfigRepository configRepository)
+    {
+        _configRepository = configRepository;
+    }
+
+    /// <summary>
     /// 系统配置仓储
     /// </summary>
-    private readonly IConfigRepository _configRepository = configRepository;
+    private readonly IConfigRepository _configRepository;
 
     /// <summary>
     /// 获取系统配置分页列表

@@ -35,16 +35,28 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统审查")]
-public sealed class ReviewAppService(
-    IReviewRepository reviewRepository,
-    ISqlSugarClientResolver clientResolver,
-    ICurrentUser currentUser)
+public sealed class ReviewAppService
     : SaasApplicationService, IReviewAppService
 {
-    private readonly IReviewRepository _reviewRepository = reviewRepository;
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly ISqlSugarClientResolver _clientResolver;
 
-    private ISqlSugarClient DbClient => clientResolver.GetCurrentClient();
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ReviewAppService(
+        IReviewRepository reviewRepository,
+        ISqlSugarClientResolver clientResolver,
+        ICurrentUser currentUser)
+    {
+        _reviewRepository = reviewRepository;
+        _clientResolver = clientResolver;
+        _currentUser = currentUser;
+    }
+
+    private readonly IReviewRepository _reviewRepository;
+    private readonly ICurrentUser _currentUser;
+
+    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 创建系统审查

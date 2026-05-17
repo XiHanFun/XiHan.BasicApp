@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -33,101 +33,123 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限定义")]
-public sealed class PermissionAppService(
-    IPermissionRepository permissionRepository,
-    IResourceRepository resourceRepository,
-    IOperationRepository operationRepository,
-    IRolePermissionRepository rolePermissionRepository,
-    IUserPermissionRepository userPermissionRepository,
-    ITenantEditionPermissionRepository tenantEditionPermissionRepository,
-    IMenuRepository menuRepository,
-    IPermissionDelegationRepository permissionDelegationRepository,
-    IPermissionRequestRepository permissionRequestRepository,
-    IFieldLevelSecurityRepository fieldLevelSecurityRepository,
-    IPermissionConditionRepository permissionConditionRepository,
-    IRoleRepository roleRepository,
-    ITenantUserRepository tenantUserRepository,
-    IReviewRepository reviewRepository,
-    ICurrentUser currentUser)
+public sealed class PermissionAppService
     : SaasApplicationService, IPermissionAppService
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionAppService(
+        IPermissionRepository permissionRepository,
+        IResourceRepository resourceRepository,
+        IOperationRepository operationRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
+        ITenantEditionPermissionRepository tenantEditionPermissionRepository,
+        IMenuRepository menuRepository,
+        IPermissionDelegationRepository permissionDelegationRepository,
+        IPermissionRequestRepository permissionRequestRepository,
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
+        IPermissionConditionRepository permissionConditionRepository,
+        IRoleRepository roleRepository,
+        ITenantUserRepository tenantUserRepository,
+        IReviewRepository reviewRepository,
+        ICurrentUser currentUser)
+    {
+        _permissionRepository = permissionRepository;
+        _resourceRepository = resourceRepository;
+        _operationRepository = operationRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
+        _menuRepository = menuRepository;
+        _permissionDelegationRepository = permissionDelegationRepository;
+        _permissionRequestRepository = permissionRequestRepository;
+        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+        _permissionConditionRepository = permissionConditionRepository;
+        _roleRepository = roleRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _reviewRepository = reviewRepository;
+        _currentUser = currentUser;
+    }
+
     private const int MaxConditionGroups = 5;
     private const int MaxConditionsPerGroup = 10;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 资源仓储
     /// </summary>
-    private readonly IResourceRepository _resourceRepository = resourceRepository;
+    private readonly IResourceRepository _resourceRepository;
 
     /// <summary>
     /// 操作仓储
     /// </summary>
-    private readonly IOperationRepository _operationRepository = operationRepository;
+    private readonly IOperationRepository _operationRepository;
 
     /// <summary>
     /// 角色权限仓储
     /// </summary>
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
+    private readonly IRolePermissionRepository _rolePermissionRepository;
 
     /// <summary>
     /// 用户权限仓储
     /// </summary>
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
 
     /// <summary>
     /// 租户版本权限仓储
     /// </summary>
-    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
 
     /// <summary>
     /// 菜单仓储
     /// </summary>
-    private readonly IMenuRepository _menuRepository = menuRepository;
+    private readonly IMenuRepository _menuRepository;
 
     /// <summary>
     /// 权限委托仓储
     /// </summary>
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository = permissionDelegationRepository;
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
 
     /// <summary>
     /// 权限申请仓储
     /// </summary>
-    private readonly IPermissionRequestRepository _permissionRequestRepository = permissionRequestRepository;
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
 
     /// <summary>
     /// 字段级安全仓储
     /// </summary>
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
 
     /// <summary>
     /// 权限 ABAC 条件仓储
     /// </summary>
-    private readonly IPermissionConditionRepository _permissionConditionRepository = permissionConditionRepository;
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 审批仓储
     /// </summary>
-    private readonly IReviewRepository _reviewRepository = reviewRepository;
+    private readonly IReviewRepository _reviewRepository;
 
     /// <summary>
     /// 当前用户
     /// </summary>
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly ICurrentUser _currentUser;
 
     /// <summary>
     /// 创建权限定义

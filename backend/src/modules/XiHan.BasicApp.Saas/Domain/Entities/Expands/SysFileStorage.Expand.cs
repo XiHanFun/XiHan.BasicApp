@@ -145,7 +145,6 @@ public partial class SysFileStorage
         return DateTimeOffset.UtcNow - LastVerifiedAt.Value > TimeSpan.FromHours(verifyIntervalHours);
     }
 
-
     /// <summary>
     /// 设置为主存储
     /// </summary>

@@ -34,13 +34,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色")]
-public sealed class RoleQueryService(IRoleRepository roleRepository)
+public sealed class RoleQueryService
     : SaasApplicationService, IRoleQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleQueryService(IRoleRepository roleRepository)
+    {
+        _roleRepository = roleRepository;
+    }
+
+    /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 获取角色分页列表

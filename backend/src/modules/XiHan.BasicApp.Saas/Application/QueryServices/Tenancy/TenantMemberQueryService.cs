@@ -33,13 +33,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户成员")]
-public sealed class TenantMemberQueryService(ITenantUserRepository tenantUserRepository)
+public sealed class TenantMemberQueryService
     : SaasApplicationService, ITenantMemberQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantMemberQueryService(ITenantUserRepository tenantUserRepository)
+    {
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取租户成员分页列表

@@ -33,26 +33,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "OAuth授权码")]
-public sealed class OAuthCodeQueryService(
-    IOAuthCodeRepository oauthCodeRepository,
-    IOAuthAppRepository oauthAppRepository,
-    IUserRepository userRepository)
+public sealed class OAuthCodeQueryService
     : SaasApplicationService, IOAuthCodeQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OAuthCodeQueryService(
+        IOAuthCodeRepository oauthCodeRepository,
+        IOAuthAppRepository oauthAppRepository,
+        IUserRepository userRepository)
+    {
+        _oauthCodeRepository = oauthCodeRepository;
+        _oauthAppRepository = oauthAppRepository;
+        _userRepository = userRepository;
+    }
+
+    /// <summary>
     /// OAuth 授权码仓储
     /// </summary>
-    private readonly IOAuthCodeRepository _oauthCodeRepository = oauthCodeRepository;
+    private readonly IOAuthCodeRepository _oauthCodeRepository;
 
     /// <summary>
     /// OAuth 应用仓储
     /// </summary>
-    private readonly IOAuthAppRepository _oauthAppRepository = oauthAppRepository;
+    private readonly IOAuthAppRepository _oauthAppRepository;
 
     /// <summary>
     /// 用户仓储
     /// </summary>
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取 OAuth 授权码分页列表

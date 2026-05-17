@@ -30,17 +30,26 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户站内信")]
-public sealed class UserInboxAppService(
-    INotificationRepository notificationRepository,
-    IUserNotificationRepository userNotificationRepository,
-    ICurrentUser currentUser)
+public sealed class UserInboxAppService
     : SaasApplicationService, IUserInboxAppService
 {
-    private const int MaxInboxItems = 100;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserInboxAppService(
+        INotificationRepository notificationRepository,
+        IUserNotificationRepository userNotificationRepository,
+        ICurrentUser currentUser)
+    {
+        _notificationRepository = notificationRepository;
+        _userNotificationRepository = userNotificationRepository;
+        _currentUser = currentUser;
+    }
 
-    private readonly INotificationRepository _notificationRepository = notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository = userNotificationRepository;
-    private readonly ICurrentUser _currentUser = currentUser;
+    private const int MaxInboxItems = 100;
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IUserNotificationRepository _userNotificationRepository;
+    private readonly ICurrentUser _currentUser;
 
     /// <inheritdoc />
     public async Task<List<UserInboxItemDto>> GetListAsync(bool unreadOnly = false, CancellationToken cancellationToken = default)

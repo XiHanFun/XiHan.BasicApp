@@ -33,32 +33,43 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限委托")]
-public sealed class PermissionDelegationQueryService(
-    IPermissionDelegationRepository permissionDelegationRepository,
-    ITenantUserRepository tenantUserRepository,
-    IPermissionRepository permissionRepository,
-    IRoleRepository roleRepository)
+public sealed class PermissionDelegationQueryService
     : SaasApplicationService, IPermissionDelegationQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionDelegationQueryService(
+        IPermissionDelegationRepository permissionDelegationRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPermissionRepository permissionRepository,
+        IRoleRepository roleRepository)
+    {
+        _permissionDelegationRepository = permissionDelegationRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _permissionRepository = permissionRepository;
+        _roleRepository = roleRepository;
+    }
+
+    /// <summary>
     /// 权限委托仓储
     /// </summary>
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository = permissionDelegationRepository;
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 获取权限委托分页列表

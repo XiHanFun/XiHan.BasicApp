@@ -12,11 +12,11 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Authorization;
+using SqlSugar;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authorization;
-using SqlSugar;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Services;
@@ -26,11 +26,11 @@ using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Otp;
-using XiHan.Framework.Security.Password;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 

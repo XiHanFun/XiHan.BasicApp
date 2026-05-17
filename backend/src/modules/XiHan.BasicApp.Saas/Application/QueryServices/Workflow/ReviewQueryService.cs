@@ -33,13 +33,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统审查")]
-public sealed class ReviewQueryService(IReviewRepository reviewRepository)
+public sealed class ReviewQueryService
     : SaasApplicationService, IReviewQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ReviewQueryService(IReviewRepository reviewRepository)
+    {
+        _reviewRepository = reviewRepository;
+    }
+
+    /// <summary>
     /// 系统审查仓储
     /// </summary>
-    private readonly IReviewRepository _reviewRepository = reviewRepository;
+    private readonly IReviewRepository _reviewRepository;
 
     /// <summary>
     /// 获取系统审查分页列表

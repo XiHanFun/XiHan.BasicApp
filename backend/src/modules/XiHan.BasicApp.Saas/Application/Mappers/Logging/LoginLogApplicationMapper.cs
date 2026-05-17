@@ -86,5 +86,4 @@ public static class LoginLogApplicationMapper
             CreatedBy = loginLog.CreatedBy
         };
     }
-
 }

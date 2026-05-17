@@ -34,20 +34,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统字典")]
-public sealed class DictQueryService(
-    IDictRepository dictRepository,
-    IDictItemRepository dictItemRepository)
+public sealed class DictQueryService
     : SaasApplicationService, IDictQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public DictQueryService(
+        IDictRepository dictRepository,
+        IDictItemRepository dictItemRepository)
+    {
+        _dictRepository = dictRepository;
+        _dictItemRepository = dictItemRepository;
+    }
+
+    /// <summary>
     /// 系统字典仓储
     /// </summary>
-    private readonly IDictRepository _dictRepository = dictRepository;
+    private readonly IDictRepository _dictRepository;
 
     /// <summary>
     /// 系统字典项仓储
     /// </summary>
-    private readonly IDictItemRepository _dictItemRepository = dictItemRepository;
+    private readonly IDictItemRepository _dictItemRepository;
 
     /// <summary>
     /// 获取系统字典分页列表

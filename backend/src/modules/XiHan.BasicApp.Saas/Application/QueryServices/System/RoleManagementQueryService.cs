@@ -17,7 +17,6 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -30,27 +29,41 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色管理")]
-public sealed class RoleManagementQueryService(
-    IRoleRepository roleRepository,
-    IRoleHierarchyRepository roleHierarchyRepository,
-    IRolePermissionRepository rolePermissionRepository,
-    IPermissionRepository permissionRepository,
-    IRoleDataScopeRepository roleDataScopeRepository,
-    IDepartmentRepository departmentRepository,
-    IUserRoleRepository userRoleRepository,
-    IUserRepository userRepository)
+public sealed class RoleManagementQueryService
     : SaasApplicationService, IRoleManagementQueryService
 {
-    private const int MaxGrantedUserCount = 100;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleManagementQueryService(
+        IRoleRepository roleRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IPermissionRepository permissionRepository,
+        IRoleDataScopeRepository roleDataScopeRepository,
+        IDepartmentRepository departmentRepository,
+        IUserRoleRepository userRoleRepository,
+        IUserRepository userRepository)
+    {
+        _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _permissionRepository = permissionRepository;
+        _roleDataScopeRepository = roleDataScopeRepository;
+        _departmentRepository = departmentRepository;
+        _userRoleRepository = userRoleRepository;
+        _userRepository = userRepository;
+    }
 
-    private readonly IRoleRepository _roleRepository = roleRepository;
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository = roleHierarchyRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository = roleDataScopeRepository;
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
-    private readonly IUserRepository _userRepository = userRepository;
+    private const int MaxGrantedUserCount = 100;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
+    private readonly IDepartmentRepository _departmentRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.Role.Read)]

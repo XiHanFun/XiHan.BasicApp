@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -32,20 +32,29 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "菜单")]
-public sealed class MenuAppService(
-    IMenuRepository menuRepository,
-    IPermissionRepository permissionRepository)
+public sealed class MenuAppService
     : SaasApplicationService, IMenuAppService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public MenuAppService(
+        IMenuRepository menuRepository,
+        IPermissionRepository permissionRepository)
+    {
+        _menuRepository = menuRepository;
+        _permissionRepository = permissionRepository;
+    }
+
+    /// <summary>
     /// 菜单仓储
     /// </summary>
-    private readonly IMenuRepository _menuRepository = menuRepository;
+    private readonly IMenuRepository _menuRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 创建菜单

@@ -18,7 +18,6 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -34,32 +33,43 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "OAuthToken")]
-public sealed class OAuthTokenQueryService(
-    IOAuthTokenRepository oauthTokenRepository,
-    IOAuthAppRepository oauthAppRepository,
-    IUserSessionRepository userSessionRepository,
-    IUserRepository userRepository)
+public sealed class OAuthTokenQueryService
     : SaasApplicationService, IOAuthTokenQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OAuthTokenQueryService(
+        IOAuthTokenRepository oauthTokenRepository,
+        IOAuthAppRepository oauthAppRepository,
+        IUserSessionRepository userSessionRepository,
+        IUserRepository userRepository)
+    {
+        _oauthTokenRepository = oauthTokenRepository;
+        _oauthAppRepository = oauthAppRepository;
+        _userSessionRepository = userSessionRepository;
+        _userRepository = userRepository;
+    }
+
+    /// <summary>
     /// OAuth Token 仓储
     /// </summary>
-    private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
 
     /// <summary>
     /// OAuth 应用仓储
     /// </summary>
-    private readonly IOAuthAppRepository _oauthAppRepository = oauthAppRepository;
+    private readonly IOAuthAppRepository _oauthAppRepository;
 
     /// <summary>
     /// 用户会话仓储
     /// </summary>
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
 
     /// <summary>
     /// 用户仓储
     /// </summary>
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取 OAuth Token 分页列表

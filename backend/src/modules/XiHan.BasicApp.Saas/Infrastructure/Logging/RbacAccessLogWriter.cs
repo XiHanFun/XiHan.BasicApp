@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using SqlSugar;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;

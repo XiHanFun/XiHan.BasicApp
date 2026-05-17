@@ -57,6 +57,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFileStorageDomainService, FileStorageDomainService>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
+        services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();
+        services.AddScoped<ILoginSessionDomainService, LoginSessionDomainService>();
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
         services.AddScoped<IRoleHierarchyDomainService, RoleHierarchyDomainService>();
         services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
@@ -94,6 +96,9 @@ public static class ServiceCollectionExtensions
 
         // 用户会话事件
         services.AddTransient<UserSessionRevokedEventHandler>();
+
+        // 认证事件
+        services.AddTransient<AuthLoginEventHandler>();
 
         // 文件事件
         services.AddTransient<FileUploadedEventHandler>();

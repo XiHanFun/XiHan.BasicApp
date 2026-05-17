@@ -29,26 +29,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色数据范围")]
-public sealed class RoleDataScopeQueryService(
-    IRoleRepository roleRepository,
-    IRoleDataScopeRepository roleDataScopeRepository,
-    IDepartmentRepository departmentRepository)
+public sealed class RoleDataScopeQueryService
     : SaasApplicationService, IRoleDataScopeQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleDataScopeQueryService(
+        IRoleRepository roleRepository,
+        IRoleDataScopeRepository roleDataScopeRepository,
+        IDepartmentRepository departmentRepository)
+    {
+        _roleRepository = roleRepository;
+        _roleDataScopeRepository = roleDataScopeRepository;
+        _departmentRepository = departmentRepository;
+    }
+
+    /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 角色数据范围仓储
     /// </summary>
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository = roleDataScopeRepository;
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
 
     /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 获取角色数据范围列表

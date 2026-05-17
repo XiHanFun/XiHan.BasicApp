@@ -34,26 +34,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限")]
-public sealed class PermissionQueryService(
-    IPermissionRepository permissionRepository,
-    IResourceRepository resourceRepository,
-    IOperationRepository operationRepository)
+public sealed class PermissionQueryService
     : SaasApplicationService, IPermissionQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionQueryService(
+        IPermissionRepository permissionRepository,
+        IResourceRepository resourceRepository,
+        IOperationRepository operationRepository)
+    {
+        _permissionRepository = permissionRepository;
+        _resourceRepository = resourceRepository;
+        _operationRepository = operationRepository;
+    }
+
+    /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 资源仓储
     /// </summary>
-    private readonly IResourceRepository _resourceRepository = resourceRepository;
+    private readonly IResourceRepository _resourceRepository;
 
     /// <summary>
     /// 操作仓储
     /// </summary>
-    private readonly IOperationRepository _operationRepository = operationRepository;
+    private readonly IOperationRepository _operationRepository;
 
     /// <summary>
     /// 获取权限分页列表

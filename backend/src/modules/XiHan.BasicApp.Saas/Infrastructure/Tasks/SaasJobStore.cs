@@ -12,12 +12,11 @@
 
 #endregion <<版权版本注释>>
 
-using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
+using System.Collections.Concurrent;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;

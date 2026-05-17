@@ -33,13 +33,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统任务")]
-public sealed class TaskQueryService(ITaskRepository taskRepository)
+public sealed class TaskQueryService
     : SaasApplicationService, ITaskQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TaskQueryService(ITaskRepository taskRepository)
+    {
+        _taskRepository = taskRepository;
+    }
+
+    /// <summary>
     /// 系统任务仓储
     /// </summary>
-    private readonly ITaskRepository _taskRepository = taskRepository;
+    private readonly ITaskRepository _taskRepository;
 
     /// <summary>
     /// 获取系统任务分页列表

@@ -34,26 +34,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户")]
-public sealed class TenantQueryService(
-    ITenantUserRepository tenantUserRepository,
-    ITenantRepository tenantRepository,
-    ICurrentUser currentUser)
+public sealed class TenantQueryService
     : SaasApplicationService, ITenantQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantQueryService(
+        ITenantUserRepository tenantUserRepository,
+        ITenantRepository tenantRepository,
+        ICurrentUser currentUser)
+    {
+        _tenantUserRepository = tenantUserRepository;
+        _tenantRepository = tenantRepository;
+        _currentUser = currentUser;
+    }
+
+    /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 租户仓储
     /// </summary>
-    private readonly ITenantRepository _tenantRepository = tenantRepository;
+    private readonly ITenantRepository _tenantRepository;
 
     /// <summary>
     /// 当前用户
     /// </summary>
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly ICurrentUser _currentUser;
 
     /// <summary>
     /// 获取租户分页列表
@@ -184,5 +194,4 @@ public sealed class TenantQueryService(
         request.Conditions.AddSort(nameof(SysTenant.CreatedTime), SortDirection.Descending, 1);
         return request;
     }
-
 }
