@@ -18,11 +18,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -45,18 +46,12 @@ public sealed class AuthAppService
     /// 构造函数
     /// </summary>
     public AuthAppService(
-        IUserRepository userRepository,
-        ITenantRepository tenantRepository,
-        IUserRoleRepository userRoleRepository,
-        IRoleRepository roleRepository,
-        IRolePermissionRepository rolePermissionRepository,
-        IUserPermissionRepository userPermissionRepository,
-        IPermissionRepository permissionRepository,
-        IMenuRepository menuRepository,
-        IUserSessionRepository userSessionRepository,
-        IOAuthTokenRepository oauthTokenRepository,
         IAuthenticationDomainService authenticationDomainService,
         ILoginSessionDomainService loginSessionDomainService,
+        IAuthContextQueryService authContextQueryService,
+        IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
+        IMenuRouteQueryService menuRouteQueryService,
+        ISaasConfigurationService saasConfigurationService,
         IJwtTokenService jwtTokenService,
         ILocalEventBus localEventBus,
         ICurrentTenant currentTenant,
@@ -64,18 +59,12 @@ public sealed class AuthAppService
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
     {
-        _userRepository = userRepository;
-        _tenantRepository = tenantRepository;
-        _userRoleRepository = userRoleRepository;
-        _roleRepository = roleRepository;
-        _rolePermissionRepository = rolePermissionRepository;
-        _userPermissionRepository = userPermissionRepository;
-        _permissionRepository = permissionRepository;
-        _menuRepository = menuRepository;
-        _userSessionRepository = userSessionRepository;
-        _oauthTokenRepository = oauthTokenRepository;
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
+        _authContextQueryService = authContextQueryService;
+        _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
+        _menuRouteQueryService = menuRouteQueryService;
+        _saasConfigurationService = saasConfigurationService;
         _jwtTokenService = jwtTokenService;
         _localEventBus = localEventBus;
         _currentTenant = currentTenant;
@@ -84,19 +73,12 @@ public sealed class AuthAppService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private const string SuperAdminRoleCode = "super_admin";
-    private readonly IUserRepository _userRepository;
-    private readonly ITenantRepository _tenantRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IMenuRepository _menuRepository;
-    private readonly IUserSessionRepository _userSessionRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository;
     private readonly IAuthenticationDomainService _authenticationDomainService;
     private readonly ILoginSessionDomainService _loginSessionDomainService;
+    private readonly IAuthContextQueryService _authContextQueryService;
+    private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
+    private readonly IMenuRouteQueryService _menuRouteQueryService;
+    private readonly ISaasConfigurationService _saasConfigurationService;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ILocalEventBus _localEventBus;
     private readonly ICurrentTenant _currentTenant;
@@ -106,10 +88,10 @@ public sealed class AuthAppService
 
     /// <inheritdoc />
     [AllowAnonymous]
-    public Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
+    public async Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(new LoginConfigDto());
+        return await _saasConfigurationService.GetLoginConfigAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -122,11 +104,11 @@ public sealed class AuthAppService
 
         var userName = NormalizeRequired(input.Username, "用户名不能为空。", 50, "用户名不能超过 50 个字符。");
         var password = NormalizeRequired(input.Password, "密码不能为空。", 200, "密码不能超过 200 个字符。");
-        var tenant = await GetLoginTenantOrThrowAsync(input.TenantId, cancellationToken);
-        var effectiveTenantId = tenant?.BasicId;
+        var now = DateTimeOffset.UtcNow;
+        var tenant = await _authContextQueryService.GetLoginTenantOrThrowAsync(input.TenantId, now, cancellationToken);
+        var effectiveTenantId = tenant?.TenantId;
         using var tenantScope = _currentTenant.Change(effectiveTenantId, tenant?.TenantName);
 
-        var now = DateTimeOffset.UtcNow;
         var authResult = await _authenticationDomainService.AuthenticatePasswordLoginAsync(
             userName,
             password,
@@ -160,7 +142,7 @@ public sealed class AuthAppService
         var security = authResult.Security;
 
         // 构建授权快照（角色 + 权限）
-        var authSnapshot = await BuildAuthorizationSnapshotAsync(user.BasicId, now, cancellationToken);
+        var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
         var client = _clientInfoProvider.GetCurrent();
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
@@ -227,20 +209,11 @@ public sealed class AuthAppService
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
         using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("当前用户不存在。");
-
-        return new UserInfoDto
-        {
-            BasicId = user.BasicId,
-            UserName = user.UserName,
-            NickName = user.NickName ?? user.RealName,
-            Avatar = user.Avatar,
-            Email = user.Email,
-            Phone = user.Phone,
-            TenantId = _currentUser.TenantId,
-            Roles = [.. _currentUser.Roles]
-        };
+        return await _authContextQueryService.GetCurrentUserInfoAsync(
+            userId,
+            _currentUser.TenantId,
+            _currentUser.Roles,
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -251,8 +224,8 @@ public sealed class AuthAppService
         using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
 
         var now = DateTimeOffset.UtcNow;
-        var snapshot = await BuildAuthorizationSnapshotAsync(userId, now, cancellationToken);
-        var menus = await BuildMenuRoutesAsync(snapshot, cancellationToken);
+        var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, now, cancellationToken);
+        var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, cancellationToken);
 
         return new PermissionInfoDto
         {
@@ -281,31 +254,10 @@ public sealed class AuthAppService
         }
 
         var now = DateTimeOffset.UtcNow;
-        var session = await _userSessionRepository.GetFirstAsync(
-            item => item.UserId == userId.Value && item.UserSessionId == sessionBusinessId,
-            cancellationToken);
+        var session = await _loginSessionDomainService.LogoutAsync(userId.Value, sessionBusinessId, now, cancellationToken);
         if (session is null)
         {
             return;
-        }
-
-        session.IsOnline = false;
-        session.IsRevoked = true;
-        session.RevokedAt = now;
-        session.RevokedReason = "用户主动退出";
-        session.LogoutTime = now;
-        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
-
-        var tokens = await _oauthTokenRepository.GetListAsync(item => item.SessionId == session.BasicId && !item.IsRevoked, cancellationToken);
-        foreach (var token in tokens)
-        {
-            token.IsRevoked = true;
-            token.RevokedTime = now;
-        }
-
-        if (tokens.Count > 0)
-        {
-            _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
         }
 
         var userName = _currentUser.FindClaim(XiHanClaimTypes.UserName)?.Value;
@@ -349,53 +301,6 @@ public sealed class AuthAppService
         };
     }
 
-    private static MenuRouteDto ToMenuRoute(SysMenu menu, IReadOnlyDictionary<long, string> permissionCodeMap)
-    {
-        var permissionCodes = menu.PermissionId.HasValue && permissionCodeMap.TryGetValue(menu.PermissionId.Value, out var code)
-            ? new List<string> { code }
-            : null;
-
-        return new MenuRouteDto
-        {
-            BasicId = menu.BasicId.ToString(),
-            Path = string.IsNullOrWhiteSpace(menu.Path) ? $"/{menu.MenuCode}" : menu.Path.Trim(),
-            Name = string.IsNullOrWhiteSpace(menu.RouteName) ? ToRouteName(menu.MenuCode) : menu.RouteName.Trim(),
-            Component = menu.IsExternal ? null : NormalizeComponent(menu.Component),
-            Redirect = NormalizeNullable(menu.Redirect, 200),
-            Meta = new MenuMetaDto
-            {
-                Title = string.IsNullOrWhiteSpace(menu.Title) ? menu.MenuName : menu.Title.Trim(),
-                Icon = NormalizeNullable(menu.Icon, 100),
-                Hidden = !menu.IsVisible,
-                KeepAlive = menu.IsCache,
-                AffixTab = menu.IsAffix,
-                Permissions = permissionCodes,
-                Order = menu.Sort,
-                Badge = NormalizeNullable(menu.Badge, 50),
-                BadgeType = NormalizeNullable(menu.BadgeType, 20),
-                Dot = menu.BadgeDot,
-                Link = menu.IsExternal ? NormalizeNullable(menu.ExternalUrl, 500) : null
-            }
-        };
-    }
-
-    private static MenuRouteDto BuildFallbackDashboardRoute()
-    {
-        return new MenuRouteDto
-        {
-            Path = "/workbench/dashboard",
-            Name = "Dashboard",
-            Component = "workbench/dashboard/index",
-            Meta = new MenuMetaDto
-            {
-                Title = "menu.dashboard",
-                Icon = "lucide:layout-dashboard",
-                AffixTab = true,
-                Order = 1
-            }
-        };
-    }
-
     private static List<string> ResolveTwoFactorMethods(TwoFactorMethod method)
     {
         var methods = new List<string>();
@@ -415,40 +320,6 @@ public sealed class AuthAppService
         }
 
         return methods.Count == 0 ? ["totp"] : methods;
-    }
-
-    private static string? NormalizeComponent(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value)
-            ? null
-            : value.Trim().Replace('\\', '/').TrimStart('/').Replace(".vue", string.Empty, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string ToRouteName(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return "DynamicRoute";
-        }
-
-        var chars = value
-            .Split([':', '-', '_', '.', '/', '\\'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(ToPascalSegment);
-        var routeName = string.Concat(chars);
-        return string.IsNullOrWhiteSpace(routeName) ? "DynamicRoute" : routeName;
-    }
-
-    private static string ToPascalSegment(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return string.Empty;
-        }
-
-        var trimmed = value.Trim();
-        return trimmed.Length == 1
-            ? trimmed.ToUpperInvariant()
-            : char.ToUpperInvariant(trimmed[0]) + trimmed[1..];
     }
 
     private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
@@ -476,136 +347,6 @@ public sealed class AuthAppService
 
         var normalized = value.Trim();
         return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
-    }
-
-    private async Task<SysTenant?> GetLoginTenantOrThrowAsync(long? tenantId, CancellationToken cancellationToken)
-    {
-        if (!tenantId.HasValue || tenantId.Value <= 0)
-        {
-            return null;
-        }
-
-        var tenant = await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken)
-            ?? throw new InvalidOperationException("租户不存在。");
-        if (tenant.TenantStatus != TenantStatus.Normal)
-        {
-            throw new InvalidOperationException("租户当前不可登录。");
-        }
-
-        if (tenant.ConfigStatus is not TenantConfigStatus.Configured)
-        {
-            throw new InvalidOperationException("租户尚未完成初始化配置。");
-        }
-
-        if (tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= DateTimeOffset.UtcNow)
-        {
-            throw new InvalidOperationException("租户已过期。");
-        }
-
-        return tenant;
-    }
-
-    private async Task<AuthorizationSnapshot> BuildAuthorizationSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var userRoles = await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
-        var roles = await _roleRepository.GetEnabledByIdsAsync(userRoles.Select(item => item.RoleId), cancellationToken);
-        var roleCodes = roles
-            .Select(role => role.RoleCode)
-            .Where(code => !string.IsNullOrWhiteSpace(code))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var isSuperAdmin = roleCodes.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase);
-
-        if (isSuperAdmin)
-        {
-            var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
-            var permissionIds = allPermissions.Select(permission => permission.BasicId).ToHashSet();
-            var superAdminPermissionCodes = allPermissions
-                .Select(permission => permission.PermissionCode)
-                .Where(code => !string.IsNullOrWhiteSpace(code))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            superAdminPermissionCodes.Insert(0, "*");
-            return new AuthorizationSnapshot(roleCodes, superAdminPermissionCodes, permissionIds);
-        }
-
-        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
-        var roleGrantIds = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-        var roleDenyIds = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-
-        roleGrantIds.ExceptWith(roleDenyIds);
-
-        var userPermissions = await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
-        var userGrantIds = userPermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-        var userDenyIds = userPermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-
-        var finalPermissionIds = roleGrantIds;
-        finalPermissionIds.UnionWith(userGrantIds);
-        finalPermissionIds.ExceptWith(userDenyIds);
-
-        var permissions = await _permissionRepository.GetByIdsAsync(finalPermissionIds, cancellationToken);
-        var permissionCodes = permissions
-            .Where(permission => permission.Status == EnableStatus.Enabled)
-            .Select(permission => permission.PermissionCode)
-            .Where(code => !string.IsNullOrWhiteSpace(code))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        return new AuthorizationSnapshot(roleCodes, permissionCodes, finalPermissionIds);
-    }
-
-    private async Task<List<MenuRouteDto>> BuildMenuRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken)
-    {
-        var hasAllPermissions = snapshot.Permissions.Contains("*", StringComparer.OrdinalIgnoreCase);
-        var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
-        var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
-        var menus = await _menuRepository.GetListAsync(
-            menu => menu.Status == EnableStatus.Enabled && menu.MenuType != MenuType.Button,
-            cancellationToken);
-        var visibleMenus = menus
-            .Where(menu => menu.IsVisible)
-            .Where(menu => !menu.PermissionId.HasValue || hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value))
-            .OrderBy(menu => menu.Sort)
-            .ThenBy(menu => menu.BasicId)
-            .ToList();
-
-        if (visibleMenus.Count == 0)
-        {
-            return [BuildFallbackDashboardRoute()];
-        }
-
-        var routeMap = visibleMenus.ToDictionary(menu => menu.BasicId, menu => ToMenuRoute(menu, permissionCodeMap));
-        var roots = new List<MenuRouteDto>();
-        foreach (var menu in visibleMenus)
-        {
-            var route = routeMap[menu.BasicId];
-            if (menu.ParentId.HasValue && routeMap.TryGetValue(menu.ParentId.Value, out var parent))
-            {
-                parent.Children ??= [];
-                parent.Children.Add(route);
-            }
-            else
-            {
-                roots.Add(route);
-            }
-        }
-
-        return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
     }
 
     private List<Claim> BuildClaims(
@@ -676,8 +417,4 @@ public sealed class AuthAppService
         return claims;
     }
 
-    private sealed record AuthorizationSnapshot(
-        List<string> Roles,
-        List<string> Permissions,
-        HashSet<long> PermissionIds);
 }
