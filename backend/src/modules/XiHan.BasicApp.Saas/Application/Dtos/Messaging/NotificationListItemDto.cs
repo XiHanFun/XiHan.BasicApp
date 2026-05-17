@@ -73,9 +73,9 @@ public class NotificationListItemDto : BasicAppDto
     public DateTimeOffset? ExpireTime { get; set; }
 
     /// <summary>
-    /// 是否全员通知
+    /// 通知目标类型
     /// </summary>
-    public bool IsBroadcast { get; set; }
+    public NotificationTargetType TargetType { get; set; }
 
     /// <summary>
     /// 是否需要确认

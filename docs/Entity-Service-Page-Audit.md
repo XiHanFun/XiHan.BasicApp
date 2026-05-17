@@ -230,7 +230,7 @@
 // 添加字段
 public virtual NotificationTargetType TargetType { get; set; } = NotificationTargetType.All;
 public virtual string? TargetValue { get; set; } // JSON 数组：[101,102,103]
-// 移除 IsBroadcast，用 TargetType=All 替代
+// 使用 TargetType=All 表示全员通知
 ```
 
 ### 4.2 `SysFileStorage` — `StorageConfigId` 外键指向不存在的表

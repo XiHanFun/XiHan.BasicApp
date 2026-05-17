@@ -128,9 +128,8 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
                 SendUserId = eventData.OperatorUserId,
                 SendTime = now,
                 TargetType = NotificationTargetType.User,
-                TargetValue = eventData.UserId.ToString(),
+                TargetValue = $"[{eventData.UserId}]",
                 IsPublished = true,
-                IsBroadcast = false,
                 TenantId = eventData.TenantId
             };
 

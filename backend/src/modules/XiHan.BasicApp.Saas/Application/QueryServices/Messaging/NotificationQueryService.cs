@@ -181,9 +181,9 @@ public sealed class NotificationQueryService
             request.Conditions.AddFilter(nameof(SysNotification.NotificationType), input.NotificationType.Value);
         }
 
-        if (input.IsBroadcast.HasValue)
+        if (input.TargetType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.IsBroadcast), input.IsBroadcast.Value);
+            request.Conditions.AddFilter(nameof(SysNotification.TargetType), input.TargetType.Value);
         }
 
         if (input.NeedConfirm.HasValue)

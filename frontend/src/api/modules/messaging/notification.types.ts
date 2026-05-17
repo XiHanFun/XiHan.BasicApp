@@ -8,6 +8,13 @@ export enum NotificationType {
   Error = 4,
 }
 
+export enum NotificationTargetType {
+  All = 0,
+  Role = 1,
+  Department = 2,
+  User = 3,
+}
+
 export enum NotificationStatus {
   Unread = 0,
   Read = 1,
@@ -19,7 +26,6 @@ export interface NotificationPageQueryDto extends PageRequest {
   businessType?: string | null
   expireTimeEnd?: DateTimeString | null
   expireTimeStart?: DateTimeString | null
-  isBroadcast?: boolean | null
   isPublished?: boolean | null
   keyword?: string | null
   needConfirm?: boolean | null
@@ -27,6 +33,7 @@ export interface NotificationPageQueryDto extends PageRequest {
   sendTimeEnd?: DateTimeString | null
   sendTimeStart?: DateTimeString | null
   sendUserId?: ApiId | null
+  targetType?: NotificationTargetType | null
 }
 
 export interface NotificationListItemDto extends BasicDto {
@@ -36,7 +43,6 @@ export interface NotificationListItemDto extends BasicDto {
   createdTime: DateTimeString
   expireTime?: DateTimeString | null
   icon?: string | null
-  isBroadcast: boolean
   isPublished: boolean
   link?: string | null
   modifiedTime?: DateTimeString | null
@@ -45,6 +51,7 @@ export interface NotificationListItemDto extends BasicDto {
   remark?: string | null
   sendTime: DateTimeString
   sendUserId?: ApiId | null
+  targetType: NotificationTargetType
   title: string
 }
 
