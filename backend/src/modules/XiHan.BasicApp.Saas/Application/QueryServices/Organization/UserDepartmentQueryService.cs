@@ -30,32 +30,43 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户部门")]
-public sealed class UserDepartmentQueryService(
-    IUserDepartmentRepository userDepartmentRepository,
-    IDepartmentRepository departmentRepository,
-    IDepartmentHierarchyRepository departmentHierarchyRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class UserDepartmentQueryService
     : SaasApplicationService, IUserDepartmentQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserDepartmentQueryService(
+        IUserDepartmentRepository userDepartmentRepository,
+        IDepartmentRepository departmentRepository,
+        IDepartmentHierarchyRepository departmentHierarchyRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userDepartmentRepository = userDepartmentRepository;
+        _departmentRepository = departmentRepository;
+        _departmentHierarchyRepository = departmentHierarchyRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 用户部门仓储
     /// </summary>
-    private readonly IUserDepartmentRepository _userDepartmentRepository = userDepartmentRepository;
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
 
     /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 部门层级仓储
     /// </summary>
-    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository = departmentHierarchyRepository;
+    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取用户部门归属列表

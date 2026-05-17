@@ -33,38 +33,50 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限申请")]
-public sealed class PermissionRequestQueryService(
-    IPermissionRequestRepository permissionRequestRepository,
-    ITenantUserRepository tenantUserRepository,
-    IPermissionRepository permissionRepository,
-    IRoleRepository roleRepository,
-    IReviewRepository reviewRepository)
+public sealed class PermissionRequestQueryService
     : SaasApplicationService, IPermissionRequestQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionRequestQueryService(
+        IPermissionRequestRepository permissionRequestRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPermissionRepository permissionRepository,
+        IRoleRepository roleRepository,
+        IReviewRepository reviewRepository)
+    {
+        _permissionRequestRepository = permissionRequestRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _permissionRepository = permissionRepository;
+        _roleRepository = roleRepository;
+        _reviewRepository = reviewRepository;
+    }
+
+    /// <summary>
     /// 权限申请仓储
     /// </summary>
-    private readonly IPermissionRequestRepository _permissionRequestRepository = permissionRequestRepository;
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 审批仓储
     /// </summary>
-    private readonly IReviewRepository _reviewRepository = reviewRepository;
+    private readonly IReviewRepository _reviewRepository;
 
     /// <summary>
     /// 获取权限申请分页列表

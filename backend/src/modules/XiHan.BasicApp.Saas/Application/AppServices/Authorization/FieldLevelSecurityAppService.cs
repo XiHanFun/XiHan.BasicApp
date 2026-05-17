@@ -31,44 +31,57 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "字段级安全")]
-public sealed class FieldLevelSecurityAppService(
-    IFieldLevelSecurityRepository fieldLevelSecurityRepository,
-    IResourceRepository resourceRepository,
-    IRoleRepository roleRepository,
-    IPermissionRepository permissionRepository,
-    IDepartmentRepository departmentRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class FieldLevelSecurityAppService
     : SaasApplicationService, IFieldLevelSecurityAppService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public FieldLevelSecurityAppService(
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
+        IResourceRepository resourceRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        IDepartmentRepository departmentRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+        _resourceRepository = resourceRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _departmentRepository = departmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 字段级安全仓储
     /// </summary>
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
 
     /// <summary>
     /// 资源仓储
     /// </summary>
-    private readonly IResourceRepository _resourceRepository = resourceRepository;
+    private readonly IResourceRepository _resourceRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 创建字段级安全策略

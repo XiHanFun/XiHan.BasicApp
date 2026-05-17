@@ -28,17 +28,26 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// <summary>
 /// SaaS 运行时配置服务实现。
 /// </summary>
-public sealed class SaasConfigurationService(
-    IConfigRepository configRepository,
-    IDistributedCache<SaasConfigValueCacheItem, string> configValueCache,
-    ICurrentTenant currentTenant)
+public sealed class SaasConfigurationService
     : ISaasConfigurationService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public SaasConfigurationService(
+        IConfigRepository configRepository,
+        IDistributedCache<SaasConfigValueCacheItem, string> configValueCache,
+        ICurrentTenant currentTenant)
+    {
+        _configRepository = configRepository;
+        _configValueCache = configValueCache;
+        _currentTenant = currentTenant;
+    }
 
-    private readonly IConfigRepository _configRepository = configRepository;
-    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache = configValueCache;
-    private readonly ICurrentTenant _currentTenant = currentTenant;
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private readonly IConfigRepository _configRepository;
+    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache;
+    private readonly ICurrentTenant _currentTenant;
 
     /// <inheritdoc />
     public async Task<string?> GetStringAsync(string configKey, string? defaultValue = null, CancellationToken cancellationToken = default)

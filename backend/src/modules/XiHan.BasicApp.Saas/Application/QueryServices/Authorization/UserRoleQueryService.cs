@@ -29,26 +29,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户角色")]
-public sealed class UserRoleQueryService(
-    IUserRoleRepository userRoleRepository,
-    IRoleRepository roleRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class UserRoleQueryService
     : SaasApplicationService, IUserRoleQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserRoleQueryService(
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 用户角色仓储
     /// </summary>
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取用户角色列表

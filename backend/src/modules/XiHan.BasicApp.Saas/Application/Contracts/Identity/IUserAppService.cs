@@ -53,17 +53,7 @@ public interface IUserAppService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     Task DeleteUserAsync(long id, CancellationToken cancellationToken = default);
 
-    // ================================================================
-    // 以下方法合并自：
-    //   IUserSecurityAppService   (密码/MFA/锁定)
-    //   IUserRoleAppService       (用户角色绑定)
-    //   IUserPermissionAppService (用户直授权限)
-    //   IUserDataScopeAppService  (用户数据范围)
-    //   IUserDepartmentAppService (用户部门归属)
-    //   IUserSessionAppService    (会话撤销)
-    // ================================================================
-
-    #region 用户安全（合并自 IUserSecurityAppService）
+    #region 用户安全
 
     /// <summary>
     /// 重置用户密码
@@ -91,7 +81,7 @@ public interface IUserAppService : IApplicationService
 
     #endregion
 
-    #region 用户角色（合并自 IUserRoleAppService）
+    #region 用户角色
 
     /// <summary>
     /// 授予用户角色
@@ -126,7 +116,7 @@ public interface IUserAppService : IApplicationService
 
     #endregion
 
-    #region 用户直授权限（合并自 IUserPermissionAppService）
+    #region 用户直授权限
 
     /// <summary>
     /// 授予用户直授权限
@@ -161,7 +151,7 @@ public interface IUserAppService : IApplicationService
 
     #endregion
 
-    #region 用户数据范围（合并自 IUserDataScopeAppService）
+    #region 用户数据范围
 
     /// <summary>
     /// 授予用户数据范围
@@ -196,7 +186,7 @@ public interface IUserAppService : IApplicationService
 
     #endregion
 
-    #region 用户部门（合并自 IUserDepartmentAppService）
+    #region 用户部门
 
     /// <summary>
     /// 分配用户部门归属
@@ -231,7 +221,7 @@ public interface IUserAppService : IApplicationService
 
     #endregion
 
-    #region 用户会话（合并自 IUserSessionAppService）
+    #region 用户会话
 
     /// <summary>
     /// 撤销用户会话

@@ -18,7 +18,6 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -34,13 +33,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "OAuth应用")]
-public sealed class OAuthAppQueryService(IOAuthAppRepository oauthAppRepository)
+public sealed class OAuthAppQueryService
     : SaasApplicationService, IOAuthAppQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OAuthAppQueryService(IOAuthAppRepository oauthAppRepository)
+    {
+        _oauthAppRepository = oauthAppRepository;
+    }
+
+    /// <summary>
     /// OAuth 应用仓储
     /// </summary>
-    private readonly IOAuthAppRepository _oauthAppRepository = oauthAppRepository;
+    private readonly IOAuthAppRepository _oauthAppRepository;
 
     /// <summary>
     /// 获取 OAuth 应用分页列表

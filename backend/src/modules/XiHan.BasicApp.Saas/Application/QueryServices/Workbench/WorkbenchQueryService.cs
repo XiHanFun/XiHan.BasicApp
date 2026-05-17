@@ -29,17 +29,26 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "工作台")]
-public sealed class WorkbenchQueryService(
-    IUserStatisticsRepository userStatisticsRepository,
-    IUserInboxAppService userInboxAppService,
-    ICurrentUser currentUser)
+public sealed class WorkbenchQueryService
     : SaasApplicationService, IWorkbenchQueryService
 {
-    private const int LatestInboxCount = 5;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public WorkbenchQueryService(
+        IUserStatisticsRepository userStatisticsRepository,
+        IUserInboxAppService userInboxAppService,
+        ICurrentUser currentUser)
+    {
+        _userStatisticsRepository = userStatisticsRepository;
+        _userInboxAppService = userInboxAppService;
+        _currentUser = currentUser;
+    }
 
-    private readonly IUserStatisticsRepository _userStatisticsRepository = userStatisticsRepository;
-    private readonly IUserInboxAppService _userInboxAppService = userInboxAppService;
-    private readonly ICurrentUser _currentUser = currentUser;
+    private const int LatestInboxCount = 5;
+    private readonly IUserStatisticsRepository _userStatisticsRepository;
+    private readonly IUserInboxAppService _userInboxAppService;
+    private readonly ICurrentUser _currentUser;
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.UserStatistics.Read)]

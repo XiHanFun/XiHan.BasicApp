@@ -32,15 +32,25 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统通知")]
-public sealed class NotificationAppService(
-    INotificationRepository notificationRepository,
-    IUserNotificationRepository userNotificationRepository,
-    IUserRepository userRepository)
+public sealed class NotificationAppService
     : SaasApplicationService, INotificationAppService
 {
-    private readonly INotificationRepository _notificationRepository = notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository = userNotificationRepository;
-    private readonly IUserRepository _userRepository = userRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public NotificationAppService(
+        INotificationRepository notificationRepository,
+        IUserNotificationRepository userNotificationRepository,
+        IUserRepository userRepository)
+    {
+        _notificationRepository = notificationRepository;
+        _userNotificationRepository = userNotificationRepository;
+        _userRepository = userRepository;
+    }
+
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IUserNotificationRepository _userNotificationRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 创建系统通知

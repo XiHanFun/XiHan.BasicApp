@@ -31,10 +31,18 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统配置")]
-public sealed class ConfigAppService(IConfigRepository configRepository)
+public sealed class ConfigAppService
     : SaasApplicationService, IConfigAppService
 {
-    private readonly IConfigRepository _configRepository = configRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ConfigAppService(IConfigRepository configRepository)
+    {
+        _configRepository = configRepository;
+    }
+
+    private readonly IConfigRepository _configRepository;
 
     /// <summary>
     /// 创建系统配置

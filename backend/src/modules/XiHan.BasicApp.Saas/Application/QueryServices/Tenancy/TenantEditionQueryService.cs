@@ -34,13 +34,21 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "租户版本")]
-public sealed class TenantEditionQueryService(ITenantEditionRepository tenantEditionRepository)
+public sealed class TenantEditionQueryService
     : SaasApplicationService, ITenantEditionQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantEditionQueryService(ITenantEditionRepository tenantEditionRepository)
+    {
+        _tenantEditionRepository = tenantEditionRepository;
+    }
+
+    /// <summary>
     /// 租户版本仓储
     /// </summary>
-    private readonly ITenantEditionRepository _tenantEditionRepository = tenantEditionRepository;
+    private readonly ITenantEditionRepository _tenantEditionRepository;
 
     /// <summary>
     /// 获取租户版本分页列表

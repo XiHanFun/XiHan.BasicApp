@@ -33,20 +33,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "密码历史")]
-public sealed class PasswordHistoryQueryService(
-    IPasswordHistoryRepository passwordHistoryRepository,
-    IUserRepository userRepository)
+public sealed class PasswordHistoryQueryService
     : SaasApplicationService, IPasswordHistoryQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PasswordHistoryQueryService(
+        IPasswordHistoryRepository passwordHistoryRepository,
+        IUserRepository userRepository)
+    {
+        _passwordHistoryRepository = passwordHistoryRepository;
+        _userRepository = userRepository;
+    }
+
+    /// <summary>
     /// 密码历史仓储
     /// </summary>
-    private readonly IPasswordHistoryRepository _passwordHistoryRepository = passwordHistoryRepository;
+    private readonly IPasswordHistoryRepository _passwordHistoryRepository;
 
     /// <summary>
     /// 用户仓储
     /// </summary>
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取密码历史分页列表

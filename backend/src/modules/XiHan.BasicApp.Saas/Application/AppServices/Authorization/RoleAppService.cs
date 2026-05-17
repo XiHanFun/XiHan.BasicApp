@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -32,50 +31,64 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色")]
-public sealed class RoleAppService(
-    IRoleRepository roleRepository,
-    IUserRoleRepository userRoleRepository,
-    IRolePermissionRepository rolePermissionRepository,
-    IRoleHierarchyRepository roleHierarchyRepository,
-    IRoleDataScopeRepository roleDataScopeRepository,
-    IPermissionRepository permissionRepository,
-    IDepartmentRepository departmentRepository)
+public sealed class RoleAppService
     : SaasApplicationService, IRoleAppService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleAppService(
+        IRoleRepository roleRepository,
+        IUserRoleRepository userRoleRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
+        IRoleDataScopeRepository roleDataScopeRepository,
+        IPermissionRepository permissionRepository,
+        IDepartmentRepository departmentRepository)
+    {
+        _roleRepository = roleRepository;
+        _userRoleRepository = userRoleRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
+        _roleDataScopeRepository = roleDataScopeRepository;
+        _permissionRepository = permissionRepository;
+        _departmentRepository = departmentRepository;
+    }
+
+    /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 用户角色仓储
     /// </summary>
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
 
     /// <summary>
     /// 角色权限仓储
     /// </summary>
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
+    private readonly IRolePermissionRepository _rolePermissionRepository;
 
     /// <summary>
     /// 角色层级仓储
     /// </summary>
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository = roleHierarchyRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
     /// <summary>
     /// 角色数据范围仓储
     /// </summary>
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository = roleDataScopeRepository;
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 创建角色

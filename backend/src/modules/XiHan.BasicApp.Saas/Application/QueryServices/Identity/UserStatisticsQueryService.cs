@@ -33,20 +33,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户统计")]
-public sealed class UserStatisticsQueryService(
-    IUserStatisticsRepository userStatisticsRepository,
-    IUserRepository userRepository)
+public sealed class UserStatisticsQueryService
     : SaasApplicationService, IUserStatisticsQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserStatisticsQueryService(
+        IUserStatisticsRepository userStatisticsRepository,
+        IUserRepository userRepository)
+    {
+        _userStatisticsRepository = userStatisticsRepository;
+        _userRepository = userRepository;
+    }
+
+    /// <summary>
     /// 用户统计仓储
     /// </summary>
-    private readonly IUserStatisticsRepository _userStatisticsRepository = userStatisticsRepository;
+    private readonly IUserStatisticsRepository _userStatisticsRepository;
 
     /// <summary>
     /// 用户仓储
     /// </summary>
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取用户统计分页列表

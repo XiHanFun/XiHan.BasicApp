@@ -21,19 +21,31 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// <summary>
 /// 租户开通领域服务实现
 /// </summary>
-public sealed class TenantProvisionDomainService(
-    IUserRepository userRepository,
-    IUserSecurityRepository userSecurityRepository,
-    IUserRoleRepository userRoleRepository,
-    ITenantUserRepository tenantUserRepository,
-    ITenantEditionRepository tenantEditionRepository)
+public sealed class TenantProvisionDomainService
     : ITenantProvisionDomainService
 {
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
-    private readonly ITenantEditionRepository _tenantEditionRepository = tenantEditionRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public TenantProvisionDomainService(
+        IUserRepository userRepository,
+        IUserSecurityRepository userSecurityRepository,
+        IUserRoleRepository userRoleRepository,
+        ITenantUserRepository tenantUserRepository,
+        ITenantEditionRepository tenantEditionRepository)
+    {
+        _userRepository = userRepository;
+        _userSecurityRepository = userSecurityRepository;
+        _userRoleRepository = userRoleRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _tenantEditionRepository = tenantEditionRepository;
+    }
+
+    private readonly IUserRepository _userRepository;
+    private readonly IUserSecurityRepository _userSecurityRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly ITenantEditionRepository _tenantEditionRepository;
 
     /// <inheritdoc />
     public async Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string passwordHash, CancellationToken cancellationToken = default)

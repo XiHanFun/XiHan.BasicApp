@@ -33,20 +33,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统消息")]
-public sealed class MessageQueryService(
-    IEmailRepository emailRepository,
-    ISmsRepository smsRepository)
+public sealed class MessageQueryService
     : SaasApplicationService, IMessageQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public MessageQueryService(
+        IEmailRepository emailRepository,
+        ISmsRepository smsRepository)
+    {
+        _emailRepository = emailRepository;
+        _smsRepository = smsRepository;
+    }
+
+    /// <summary>
     /// 系统邮件仓储
     /// </summary>
-    private readonly IEmailRepository _emailRepository = emailRepository;
+    private readonly IEmailRepository _emailRepository;
 
     /// <summary>
     /// 系统短信仓储
     /// </summary>
-    private readonly ISmsRepository _smsRepository = smsRepository;
+    private readonly ISmsRepository _smsRepository;
 
     /// <summary>
     /// 获取系统邮件分页列表

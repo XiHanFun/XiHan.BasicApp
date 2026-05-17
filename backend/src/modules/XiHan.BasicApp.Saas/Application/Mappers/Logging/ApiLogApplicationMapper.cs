@@ -128,5 +128,4 @@ public static class ApiLogApplicationMapper
             CreatedBy = apiLog.CreatedBy
         };
     }
-
 }

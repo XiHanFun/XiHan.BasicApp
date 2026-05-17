@@ -96,5 +96,4 @@ public static class OperationLogApplicationMapper
             CreatedBy = operationLog.CreatedBy
         };
     }
-
 }

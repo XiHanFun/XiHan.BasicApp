@@ -33,32 +33,43 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "会话角色")]
-public sealed class SessionRoleQueryService(
-    ISessionRoleRepository sessionRoleRepository,
-    IUserSessionRepository userSessionRepository,
-    IRoleRepository roleRepository,
-    IUserRepository userRepository)
+public sealed class SessionRoleQueryService
     : SaasApplicationService, ISessionRoleQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public SessionRoleQueryService(
+        ISessionRoleRepository sessionRoleRepository,
+        IUserSessionRepository userSessionRepository,
+        IRoleRepository roleRepository,
+        IUserRepository userRepository)
+    {
+        _sessionRoleRepository = sessionRoleRepository;
+        _userSessionRepository = userSessionRepository;
+        _roleRepository = roleRepository;
+        _userRepository = userRepository;
+    }
+
+    /// <summary>
     /// 会话角色仓储
     /// </summary>
-    private readonly ISessionRoleRepository _sessionRoleRepository = sessionRoleRepository;
+    private readonly ISessionRoleRepository _sessionRoleRepository;
 
     /// <summary>
     /// 用户会话仓储
     /// </summary>
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 用户仓储
     /// </summary>
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 获取会话角色分页列表

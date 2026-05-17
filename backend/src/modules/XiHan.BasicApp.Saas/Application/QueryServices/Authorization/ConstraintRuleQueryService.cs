@@ -33,38 +33,50 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "约束规则")]
-public sealed class ConstraintRuleQueryService(
-    IConstraintRuleRepository constraintRuleRepository,
-    IConstraintRuleItemRepository constraintRuleItemRepository,
-    IRoleRepository roleRepository,
-    IPermissionRepository permissionRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class ConstraintRuleQueryService
     : SaasApplicationService, IConstraintRuleQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ConstraintRuleQueryService(
+        IConstraintRuleRepository constraintRuleRepository,
+        IConstraintRuleItemRepository constraintRuleItemRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _constraintRuleRepository = constraintRuleRepository;
+        _constraintRuleItemRepository = constraintRuleItemRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 约束规则仓储
     /// </summary>
-    private readonly IConstraintRuleRepository _constraintRuleRepository = constraintRuleRepository;
+    private readonly IConstraintRuleRepository _constraintRuleRepository;
 
     /// <summary>
     /// 约束规则项仓储
     /// </summary>
-    private readonly IConstraintRuleItemRepository _constraintRuleItemRepository = constraintRuleItemRepository;
+    private readonly IConstraintRuleItemRepository _constraintRuleItemRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取约束规则分页列表

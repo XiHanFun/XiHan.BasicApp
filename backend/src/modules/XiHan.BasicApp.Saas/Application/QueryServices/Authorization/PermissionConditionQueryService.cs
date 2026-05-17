@@ -17,7 +17,6 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -30,44 +29,57 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限ABAC条件")]
-public sealed class PermissionConditionQueryService(
-    IPermissionConditionRepository permissionConditionRepository,
-    IRolePermissionRepository rolePermissionRepository,
-    IUserPermissionRepository userPermissionRepository,
-    IRoleRepository roleRepository,
-    IPermissionRepository permissionRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class PermissionConditionQueryService
     : SaasApplicationService, IPermissionConditionQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionConditionQueryService(
+        IPermissionConditionRepository permissionConditionRepository,
+        IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _permissionConditionRepository = permissionConditionRepository;
+        _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 权限 ABAC 条件仓储
     /// </summary>
-    private readonly IPermissionConditionRepository _permissionConditionRepository = permissionConditionRepository;
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
 
     /// <summary>
     /// 角色权限仓储
     /// </summary>
-    private readonly IRolePermissionRepository _rolePermissionRepository = rolePermissionRepository;
+    private readonly IRolePermissionRepository _rolePermissionRepository;
 
     /// <summary>
     /// 用户直授权限仓储
     /// </summary>
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
 
     /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取角色权限绑定的 ABAC 条件

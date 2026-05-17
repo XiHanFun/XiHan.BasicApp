@@ -31,10 +31,18 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统版本")]
-public sealed class VersionAppService(IVersionRepository versionRepository)
+public sealed class VersionAppService
     : SaasApplicationService, IVersionAppService
 {
-    private readonly IVersionRepository _versionRepository = versionRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public VersionAppService(IVersionRepository versionRepository)
+    {
+        _versionRepository = versionRepository;
+    }
+
+    private readonly IVersionRepository _versionRepository;
 
     /// <summary>
     /// 创建系统版本

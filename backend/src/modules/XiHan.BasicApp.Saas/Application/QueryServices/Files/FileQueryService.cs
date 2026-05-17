@@ -33,20 +33,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统文件")]
-public sealed class FileQueryService(
-    IFileRepository fileRepository,
-    IFileStorageRepository fileStorageRepository)
+public sealed class FileQueryService
     : SaasApplicationService, IFileQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public FileQueryService(
+        IFileRepository fileRepository,
+        IFileStorageRepository fileStorageRepository)
+    {
+        _fileRepository = fileRepository;
+        _fileStorageRepository = fileStorageRepository;
+    }
+
+    /// <summary>
     /// 系统文件仓储
     /// </summary>
-    private readonly IFileRepository _fileRepository = fileRepository;
+    private readonly IFileRepository _fileRepository;
 
     /// <summary>
     /// 系统文件存储仓储
     /// </summary>
-    private readonly IFileStorageRepository _fileStorageRepository = fileStorageRepository;
+    private readonly IFileStorageRepository _fileStorageRepository;
 
     /// <summary>
     /// 获取系统文件分页列表

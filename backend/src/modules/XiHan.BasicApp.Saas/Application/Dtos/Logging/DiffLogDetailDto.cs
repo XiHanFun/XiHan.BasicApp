@@ -28,5 +28,4 @@ public sealed class DiffLogDetailDto : DiffLogListItemDto
     /// 创建者
     /// </summary>
     public string? CreatedBy { get; set; }
-
 }

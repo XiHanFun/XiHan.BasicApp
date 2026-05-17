@@ -29,26 +29,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户直授权限")]
-public sealed class UserPermissionQueryService(
-    IUserPermissionRepository userPermissionRepository,
-    IPermissionRepository permissionRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class UserPermissionQueryService
     : SaasApplicationService, IUserPermissionQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserPermissionQueryService(
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userPermissionRepository = userPermissionRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 用户直授权限仓储
     /// </summary>
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取用户直授权限列表

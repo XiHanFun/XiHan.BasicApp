@@ -29,41 +29,61 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "账号管理")]
-public sealed class UserManagementQueryService(
-    IUserRepository userRepository,
-    ITenantUserRepository tenantUserRepository,
-    IUserDepartmentRepository userDepartmentRepository,
-    IDepartmentRepository departmentRepository,
-    IUserRoleRepository userRoleRepository,
-    IRoleRepository roleRepository,
-    IUserPermissionRepository userPermissionRepository,
-    IPermissionRepository permissionRepository,
-    IUserDataScopeRepository userDataScopeRepository,
-    IUserSecurityRepository userSecurityRepository,
-    IUserSessionRepository userSessionRepository,
-    IUserStatisticsRepository userStatisticsRepository,
-    IExternalLoginRepository externalLoginRepository,
-    IPasswordHistoryRepository passwordHistoryRepository)
+public sealed class UserManagementQueryService
     : SaasApplicationService, IUserManagementQueryService
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserManagementQueryService(
+        IUserRepository userRepository,
+        ITenantUserRepository tenantUserRepository,
+        IUserDepartmentRepository userDepartmentRepository,
+        IDepartmentRepository departmentRepository,
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository,
+        IUserPermissionRepository userPermissionRepository,
+        IPermissionRepository permissionRepository,
+        IUserDataScopeRepository userDataScopeRepository,
+        IUserSecurityRepository userSecurityRepository,
+        IUserSessionRepository userSessionRepository,
+        IUserStatisticsRepository userStatisticsRepository,
+        IExternalLoginRepository externalLoginRepository,
+        IPasswordHistoryRepository passwordHistoryRepository)
+    {
+        _userRepository = userRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _userDepartmentRepository = userDepartmentRepository;
+        _departmentRepository = departmentRepository;
+        _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
+        _userPermissionRepository = userPermissionRepository;
+        _permissionRepository = permissionRepository;
+        _userDataScopeRepository = userDataScopeRepository;
+        _userSecurityRepository = userSecurityRepository;
+        _userSessionRepository = userSessionRepository;
+        _userStatisticsRepository = userStatisticsRepository;
+        _externalLoginRepository = externalLoginRepository;
+        _passwordHistoryRepository = passwordHistoryRepository;
+    }
+
     private const int MaxSessionCount = 20;
     private const int MaxStatisticsCount = 8;
     private const int MaxPasswordHistoryCount = 10;
-
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
-    private readonly IUserDepartmentRepository _userDepartmentRepository = userDepartmentRepository;
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
-    private readonly IUserRoleRepository _userRoleRepository = userRoleRepository;
-    private readonly IRoleRepository _roleRepository = roleRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository = userPermissionRepository;
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
-    private readonly IUserDataScopeRepository _userDataScopeRepository = userDataScopeRepository;
-    private readonly IUserSecurityRepository _userSecurityRepository = userSecurityRepository;
-    private readonly IUserSessionRepository _userSessionRepository = userSessionRepository;
-    private readonly IUserStatisticsRepository _userStatisticsRepository = userStatisticsRepository;
-    private readonly IExternalLoginRepository _externalLoginRepository = externalLoginRepository;
-    private readonly IPasswordHistoryRepository _passwordHistoryRepository = passwordHistoryRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
+    private readonly IUserSecurityRepository _userSecurityRepository;
+    private readonly IUserSessionRepository _userSessionRepository;
+    private readonly IUserStatisticsRepository _userStatisticsRepository;
+    private readonly IExternalLoginRepository _externalLoginRepository;
+    private readonly IPasswordHistoryRepository _passwordHistoryRepository;
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.User.Read)]

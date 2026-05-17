@@ -29,26 +29,36 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "用户数据范围")]
-public sealed class UserDataScopeQueryService(
-    IUserDataScopeRepository userDataScopeRepository,
-    IDepartmentRepository departmentRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class UserDataScopeQueryService
     : SaasApplicationService, IUserDataScopeQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserDataScopeQueryService(
+        IUserDataScopeRepository userDataScopeRepository,
+        IDepartmentRepository departmentRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _userDataScopeRepository = userDataScopeRepository;
+        _departmentRepository = departmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
+
+    /// <summary>
     /// 用户数据范围仓储
     /// </summary>
-    private readonly IUserDataScopeRepository _userDataScopeRepository = userDataScopeRepository;
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
 
     /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 获取用户数据范围列表

@@ -33,20 +33,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统版本")]
-public sealed class VersionQueryService(
-    IVersionRepository versionRepository,
-    IMigrationHistoryRepository migrationHistoryRepository)
+public sealed class VersionQueryService
     : SaasApplicationService, IVersionQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public VersionQueryService(
+        IVersionRepository versionRepository,
+        IMigrationHistoryRepository migrationHistoryRepository)
+    {
+        _versionRepository = versionRepository;
+        _migrationHistoryRepository = migrationHistoryRepository;
+    }
+
+    /// <summary>
     /// 系统版本仓储
     /// </summary>
-    private readonly IVersionRepository _versionRepository = versionRepository;
+    private readonly IVersionRepository _versionRepository;
 
     /// <summary>
     /// 系统迁移历史仓储
     /// </summary>
-    private readonly IMigrationHistoryRepository _migrationHistoryRepository = migrationHistoryRepository;
+    private readonly IMigrationHistoryRepository _migrationHistoryRepository;
 
     /// <summary>
     /// 获取系统版本分页列表

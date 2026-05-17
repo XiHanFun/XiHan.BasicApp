@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Cryptography;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -39,27 +39,41 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "系统文件")]
-public sealed class FileAppService(
-    IFileRepository fileRepository,
-    IFileStorageRepository fileStorageRepository,
-    IFileStorageRouter fileStorageRouter,
-    IFileStorageProviderManager fileStorageProviderManager,
-    IFileStorageDomainService fileStorageDomainService,
-    IClientInfoProvider clientInfoProvider,
-    ILocalEventBus localEventBus,
-    ICurrentUser currentUser)
+public sealed class FileAppService
     : SaasApplicationService, IFileAppService
 {
-    private const string Sha256AlgorithmName = "SHA256";
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public FileAppService(
+        IFileRepository fileRepository,
+        IFileStorageRepository fileStorageRepository,
+        IFileStorageRouter fileStorageRouter,
+        IFileStorageProviderManager fileStorageProviderManager,
+        IFileStorageDomainService fileStorageDomainService,
+        IClientInfoProvider clientInfoProvider,
+        ILocalEventBus localEventBus,
+        ICurrentUser currentUser)
+    {
+        _fileRepository = fileRepository;
+        _fileStorageRepository = fileStorageRepository;
+        _fileStorageRouter = fileStorageRouter;
+        _fileStorageProviderManager = fileStorageProviderManager;
+        _fileStorageDomainService = fileStorageDomainService;
+        _clientInfoProvider = clientInfoProvider;
+        _localEventBus = localEventBus;
+        _currentUser = currentUser;
+    }
 
-    private readonly IFileRepository _fileRepository = fileRepository;
-    private readonly IFileStorageRepository _fileStorageRepository = fileStorageRepository;
-    private readonly IFileStorageRouter _fileStorageRouter = fileStorageRouter;
-    private readonly IFileStorageProviderManager _fileStorageProviderManager = fileStorageProviderManager;
-    private readonly IFileStorageDomainService _fileStorageDomainService = fileStorageDomainService;
-    private readonly IClientInfoProvider _clientInfoProvider = clientInfoProvider;
-    private readonly ILocalEventBus _localEventBus = localEventBus;
-    private readonly ICurrentUser _currentUser = currentUser;
+    private const string Sha256AlgorithmName = "SHA256";
+    private readonly IFileRepository _fileRepository;
+    private readonly IFileStorageRepository _fileStorageRepository;
+    private readonly IFileStorageRouter _fileStorageRouter;
+    private readonly IFileStorageProviderManager _fileStorageProviderManager;
+    private readonly IFileStorageDomainService _fileStorageDomainService;
+    private readonly IClientInfoProvider _clientInfoProvider;
+    private readonly ILocalEventBus _localEventBus;
+    private readonly ICurrentUser _currentUser;
 
     /// <summary>
     /// 上传文件

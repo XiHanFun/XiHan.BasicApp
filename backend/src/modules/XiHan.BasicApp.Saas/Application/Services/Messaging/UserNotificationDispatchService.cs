@@ -25,15 +25,25 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// <summary>
 /// 当前用户通知投递服务
 /// </summary>
-public sealed class UserNotificationDispatchService(
-    INotificationRepository notificationRepository,
-    IUserNotificationRepository userNotificationRepository,
-    IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService)
+public sealed class UserNotificationDispatchService
     : IUserNotificationDispatchService, IScopedDependency
 {
-    private readonly INotificationRepository _notificationRepository = notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository = userNotificationRepository;
-    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService = realtimeNotificationService;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public UserNotificationDispatchService(
+        INotificationRepository notificationRepository,
+        IUserNotificationRepository userNotificationRepository,
+        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService)
+    {
+        _notificationRepository = notificationRepository;
+        _userNotificationRepository = userNotificationRepository;
+        _realtimeNotificationService = realtimeNotificationService;
+    }
+
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IUserNotificationRepository _userNotificationRepository;
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
 
     /// <inheritdoc />
     public async Task<UserInboxItemDto> DispatchToUserAsync(

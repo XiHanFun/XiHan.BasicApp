@@ -100,5 +100,4 @@ public static class AccessLogApplicationMapper
             CreatedBy = accessLog.CreatedBy
         };
     }
-
 }

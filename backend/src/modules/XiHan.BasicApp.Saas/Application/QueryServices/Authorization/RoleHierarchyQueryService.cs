@@ -29,20 +29,29 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "角色继承")]
-public sealed class RoleHierarchyQueryService(
-    IRoleRepository roleRepository,
-    IRoleHierarchyRepository roleHierarchyRepository)
+public sealed class RoleHierarchyQueryService
     : SaasApplicationService, IRoleHierarchyQueryService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public RoleHierarchyQueryService(
+        IRoleRepository roleRepository,
+        IRoleHierarchyRepository roleHierarchyRepository)
+    {
+        _roleRepository = roleRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
+    }
+
+    /// <summary>
     /// 角色仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 角色层级仓储
     /// </summary>
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository = roleHierarchyRepository;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
     /// <summary>
     /// 获取角色祖先链

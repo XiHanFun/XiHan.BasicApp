@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -32,38 +32,50 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "约束规则")]
-public sealed class ConstraintRuleAppService(
-    IConstraintRuleRepository constraintRuleRepository,
-    IConstraintRuleItemRepository constraintRuleItemRepository,
-    IRoleRepository roleRepository,
-    IPermissionRepository permissionRepository,
-    ITenantUserRepository tenantUserRepository)
+public sealed class ConstraintRuleAppService
     : SaasApplicationService, IConstraintRuleAppService
 {
     /// <summary>
-    /// 约束规则仓储
-    /// </summary>
-    private readonly IConstraintRuleRepository _constraintRuleRepository = constraintRuleRepository;
-
-    /// <summary>
     /// 约束规则项仓储
     /// </summary>
-    private readonly IConstraintRuleItemRepository _constraintRuleItemRepository = constraintRuleItemRepository;
+    private readonly IConstraintRuleItemRepository _constraintRuleItemRepository;
 
     /// <summary>
-    /// 角色仓储
+    /// 约束规则仓储
     /// </summary>
-    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IConstraintRuleRepository _constraintRuleRepository;
 
     /// <summary>
     /// 权限仓储
     /// </summary>
-    private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IPermissionRepository _permissionRepository;
+
+    /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ConstraintRuleAppService(
+        IConstraintRuleRepository constraintRuleRepository,
+        IConstraintRuleItemRepository constraintRuleItemRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
+        ITenantUserRepository tenantUserRepository)
+    {
+        _constraintRuleRepository = constraintRuleRepository;
+        _constraintRuleItemRepository = constraintRuleItemRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
+        _tenantUserRepository = tenantUserRepository;
+    }
 
     /// <summary>
     /// 创建约束规则
@@ -105,6 +117,25 @@ public sealed class ConstraintRuleAppService(
         var savedRule = await _constraintRuleRepository.AddAsync(rule, cancellationToken);
         var savedItems = await ReplaceRuleItemsAsync(savedRule.BasicId, input.Items, cancellationToken);
         return await BuildDetailDtoAsync(savedRule, savedItems, now, cancellationToken);
+    }
+
+    /// <summary>
+    /// 删除约束规则
+    /// </summary>
+    /// <param name="id">约束规则主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.ConstraintRule.Delete)]
+    public async Task DeleteConstraintRuleAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var rule = await GetEditableRuleOrThrowAsync(id, cancellationToken);
+        _ = await _constraintRuleItemRepository.DeleteAsync(item => item.ConstraintRuleId == rule.BasicId, cancellationToken);
+        if (!await _constraintRuleRepository.DeleteAsync(rule, cancellationToken))
+        {
+            throw new InvalidOperationException("约束规则删除失败。");
+        }
     }
 
     /// <summary>
@@ -183,42 +214,6 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
-    /// 删除约束规则
-    /// </summary>
-    /// <param name="id">约束规则主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.ConstraintRule.Delete)]
-    public async Task DeleteConstraintRuleAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var rule = await GetEditableRuleOrThrowAsync(id, cancellationToken);
-        _ = await _constraintRuleItemRepository.DeleteAsync(item => item.ConstraintRuleId == rule.BasicId, cancellationToken);
-        if (!await _constraintRuleRepository.DeleteAsync(rule, cancellationToken))
-        {
-            throw new InvalidOperationException("约束规则删除失败。");
-        }
-    }
-
-    /// <summary>
-    /// 获取可维护约束规则，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysConstraintRule> GetEditableRuleOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "约束规则主键必须大于 0。");
-        }
-
-        var rule = await _constraintRuleRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("约束规则不存在。");
-
-        EnsureRuleCanBeMaintained(rule);
-        return rule;
-    }
-
-    /// <summary>
     /// 校验约束规则可由当前服务维护
     /// </summary>
     private static void EnsureRuleCanBeMaintained(SysConstraintRule rule)
@@ -230,91 +225,164 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
-    /// 校验规则编码不存在
+    /// 规范化可空字符串
     /// </summary>
-    private async Task EnsureRuleCodeNotExistsAsync(string ruleCode, long? excludeId, CancellationToken cancellationToken)
+    /// <param name="value">字符串值</param>
+    /// <returns>规范化后的字符串</returns>
+    private static string? NormalizeNullable(string? value)
     {
-        var exists = excludeId.HasValue
-            ? await _constraintRuleRepository.AnyAsync(
-                rule => rule.RuleCode == ruleCode && rule.BasicId != excludeId.Value,
-                cancellationToken)
-            : await _constraintRuleRepository.AnyAsync(rule => rule.RuleCode == ruleCode, cancellationToken);
-
-        if (exists)
-        {
-            throw new InvalidOperationException("约束规则编码已存在。");
-        }
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     /// <summary>
-    /// 替换约束规则项
+    /// 规范化约束参数
     /// </summary>
-    private async Task<IReadOnlyList<SysConstraintRuleItem>> ReplaceRuleItemsAsync(
-        long ruleId,
-        IReadOnlyList<ConstraintRuleItemInputDto> inputs,
-        CancellationToken cancellationToken)
+    private static string? NormalizeParameters(string? parameters)
     {
-        _ = await _constraintRuleItemRepository.DeleteAsync(item => item.ConstraintRuleId == ruleId, cancellationToken);
+        var normalized = NormalizeNullable(parameters);
+        if (normalized is null)
+        {
+            return null;
+        }
 
-        var items = inputs
-            .Select(input => new SysConstraintRuleItem
+        try
+        {
+            using var _ = JsonDocument.Parse(normalized);
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("约束参数必须是合法 JSON。", exception);
+        }
+
+        return normalized;
+    }
+
+    /// <summary>
+    /// 转换为输入规则项
+    /// </summary>
+    private static IReadOnlyList<ConstraintRuleItemInputDto> ToInputItems(IReadOnlyList<SysConstraintRuleItem> items)
+    {
+        return items
+            .Select(item => new ConstraintRuleItemInputDto
             {
-                ConstraintRuleId = ruleId,
-                TargetType = input.TargetType,
-                TargetId = input.TargetId,
-                ConstraintGroup = input.ConstraintGroup,
-                Remark = NormalizeNullable(input.Remark)
+                TargetType = item.TargetType,
+                TargetId = item.TargetId,
+                ConstraintGroup = item.ConstraintGroup,
+                Remark = item.Remark
             })
             .ToArray();
-
-        return await _constraintRuleItemRepository.AddRangeAsync(items, cancellationToken);
     }
 
     /// <summary>
-    /// 获取规则项
+    /// 校验通用参数
     /// </summary>
-    private async Task<IReadOnlyList<SysConstraintRuleItem>> GetRuleItemsAsync(long ruleId, CancellationToken cancellationToken)
-    {
-        return await _constraintRuleItemRepository.GetListAsync(
-            item => item.ConstraintRuleId == ruleId,
-            item => item.ConstraintGroup,
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// 构建详情 DTO
-    /// </summary>
-    private async Task<ConstraintRuleDetailDto> BuildDetailDtoAsync(
-        SysConstraintRule rule,
-        IReadOnlyList<SysConstraintRuleItem> items,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var itemDtos = new List<ConstraintRuleItemDto>(items.Count);
-        foreach (var item in items.OrderBy(item => item.ConstraintGroup).ThenBy(item => item.TargetType).ThenBy(item => item.TargetId))
-        {
-            var summary = await GetTargetSummaryOrDefaultAsync(item.TargetType, item.TargetId, cancellationToken);
-            itemDtos.Add(ConstraintRuleApplicationMapper.ToItemDto(item, summary.Code, summary.Name));
-        }
-
-        return ConstraintRuleApplicationMapper.ToDetailDto(rule, itemDtos, now);
-    }
-
-    /// <summary>
-    /// 校验规则项并检查目标可用性
-    /// </summary>
-    private async Task ValidateRuleItemsAsync(
+    private static void ValidateCommonInput(
+        string ruleName,
         ConstraintType constraintType,
         ConstraintTargetType targetType,
-        IReadOnlyList<ConstraintRuleItemInputDto> items,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
+        string? parameters,
+        ViolationAction violationAction,
+        string? description,
+        int priority,
+        DateTimeOffset? effectiveTime,
+        DateTimeOffset? expirationTime,
+        string? remark,
+        DateTimeOffset now)
     {
-        ValidateRuleItems(constraintType, targetType, items);
+        ArgumentException.ThrowIfNullOrWhiteSpace(ruleName);
+        ValidateEnum(constraintType, nameof(constraintType));
+        ValidateEnum(targetType, nameof(targetType));
+        ValidateEnum(violationAction, nameof(violationAction));
+        ValidateLength(ruleName, 200, nameof(ruleName), "规则名称不能超过 200 个字符。");
+        ValidateOptionalLength(description, 1000, nameof(description), "规则描述不能超过 1000 个字符。");
+        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
+        _ = NormalizeParameters(parameters);
 
-        foreach (var item in items)
+        if (priority < 0)
         {
-            _ = await GetAvailableTargetSummaryOrThrowAsync(item.TargetType, item.TargetId, now, cancellationToken);
+            throw new ArgumentOutOfRangeException(nameof(priority), "优先级不能小于 0。");
+        }
+
+        if (expirationTime.HasValue && expirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("失效时间必须晚于当前时间。");
+        }
+
+        if (effectiveTime.HasValue && expirationTime.HasValue && effectiveTime.Value >= expirationTime.Value)
+        {
+            throw new InvalidOperationException("生效时间必须早于失效时间。");
+        }
+    }
+
+    /// <summary>
+    /// 校验创建参数
+    /// </summary>
+    private static void ValidateCreateInput(ConstraintRuleCreateDto input, DateTimeOffset now)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.RuleCode);
+        ValidateRuleCode(input.RuleCode);
+        ValidateCommonInput(
+            input.RuleName,
+            input.ConstraintType,
+            input.TargetType,
+            input.Parameters,
+            input.ViolationAction,
+            input.Description,
+            input.Priority,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.Remark,
+            now);
+        ValidateEnum(input.Status, nameof(input.Status));
+    }
+
+    /// <summary>
+    /// 校验枚举值
+    /// </summary>
+    /// <typeparam name="TEnum">枚举类型</typeparam>
+    /// <param name="value">枚举值</param>
+    /// <param name="paramName">参数名</param>
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    /// <summary>
+    /// 校验字符串长度
+    /// </summary>
+    private static void ValidateLength(string value, int maxLength, string paramName, string message)
+    {
+        if (value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    /// <summary>
+    /// 校验可空字符串长度
+    /// </summary>
+    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    /// <summary>
+    /// 校验规则编码
+    /// </summary>
+    private static void ValidateRuleCode(string ruleCode)
+    {
+        var normalizedRuleCode = ruleCode.Trim();
+        ValidateLength(normalizedRuleCode, 100, nameof(ruleCode), "规则编码不能超过 100 个字符。");
+        if (normalizedRuleCode.Any(char.IsWhiteSpace))
+        {
+            throw new InvalidOperationException("规则编码不能包含空白字符。");
         }
     }
 
@@ -373,6 +441,66 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
+    /// 校验更新参数
+    /// </summary>
+    private static void ValidateUpdateInput(ConstraintRuleUpdateDto input, DateTimeOffset now)
+    {
+        if (input.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "约束规则主键必须大于 0。");
+        }
+
+        ValidateCommonInput(
+            input.RuleName,
+            input.ConstraintType,
+            input.TargetType,
+            input.Parameters,
+            input.ViolationAction,
+            input.Description,
+            input.Priority,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.Remark,
+            now);
+    }
+
+    /// <summary>
+    /// 构建详情 DTO
+    /// </summary>
+    private async Task<ConstraintRuleDetailDto> BuildDetailDtoAsync(
+        SysConstraintRule rule,
+        IReadOnlyList<SysConstraintRuleItem> items,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var itemDtos = new List<ConstraintRuleItemDto>(items.Count);
+        foreach (var item in items.OrderBy(item => item.ConstraintGroup).ThenBy(item => item.TargetType).ThenBy(item => item.TargetId))
+        {
+            var summary = await GetTargetSummaryOrDefaultAsync(item.TargetType, item.TargetId, cancellationToken);
+            itemDtos.Add(ConstraintRuleApplicationMapper.ToItemDto(item, summary.Code, summary.Name));
+        }
+
+        return ConstraintRuleApplicationMapper.ToDetailDto(rule, itemDtos, now);
+    }
+
+    /// <summary>
+    /// 校验规则编码不存在
+    /// </summary>
+    private async Task EnsureRuleCodeNotExistsAsync(string ruleCode, long? excludeId, CancellationToken cancellationToken)
+    {
+        var exists = excludeId.HasValue
+            ? await _constraintRuleRepository.AnyAsync(
+                rule => rule.RuleCode == ruleCode && rule.BasicId != excludeId.Value,
+                cancellationToken)
+            : await _constraintRuleRepository.AnyAsync(rule => rule.RuleCode == ruleCode, cancellationToken);
+
+        if (exists)
+        {
+            throw new InvalidOperationException("约束规则编码已存在。");
+        }
+    }
+
+    /// <summary>
     /// 校验现有规则项目标可用
     /// </summary>
     private async Task EnsureTargetsUsableAsync(IReadOnlyList<SysConstraintRuleItem> items, DateTimeOffset now, CancellationToken cancellationToken)
@@ -384,21 +512,19 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
-    /// 获取可用目标摘要，不满足规则时抛出异常
+    /// 获取可用权限目标摘要
     /// </summary>
-    private async Task<(string? Code, string? Name)> GetAvailableTargetSummaryOrThrowAsync(
-        ConstraintTargetType targetType,
-        long targetId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
+    private async Task<(string? Code, string? Name)> GetAvailablePermissionTargetSummaryOrThrowAsync(long permissionId, CancellationToken cancellationToken)
     {
-        return targetType switch
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
+            ?? throw new InvalidOperationException("权限不存在。");
+
+        if (permission.Status != EnableStatus.Enabled)
         {
-            ConstraintTargetType.Role => await GetAvailableRoleTargetSummaryOrThrowAsync(targetId, cancellationToken),
-            ConstraintTargetType.Permission => await GetAvailablePermissionTargetSummaryOrThrowAsync(targetId, cancellationToken),
-            ConstraintTargetType.User => await GetAvailableTenantMemberTargetSummaryOrThrowAsync(targetId, now, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(targetType), "约束规则目标类型无效。")
-        };
+            throw new InvalidOperationException("停用权限不能配置约束规则。");
+        }
+
+        return (permission.PermissionCode, permission.PermissionName);
     }
 
     /// <summary>
@@ -423,19 +549,21 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
-    /// 获取可用权限目标摘要
+    /// 获取可用目标摘要，不满足规则时抛出异常
     /// </summary>
-    private async Task<(string? Code, string? Name)> GetAvailablePermissionTargetSummaryOrThrowAsync(long permissionId, CancellationToken cancellationToken)
+    private async Task<(string? Code, string? Name)> GetAvailableTargetSummaryOrThrowAsync(
+        ConstraintTargetType targetType,
+        long targetId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
     {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken)
-            ?? throw new InvalidOperationException("权限不存在。");
-
-        if (permission.Status != EnableStatus.Enabled)
+        return targetType switch
         {
-            throw new InvalidOperationException("停用权限不能配置约束规则。");
-        }
-
-        return (permission.PermissionCode, permission.PermissionName);
+            ConstraintTargetType.Role => await GetAvailableRoleTargetSummaryOrThrowAsync(targetId, cancellationToken),
+            ConstraintTargetType.Permission => await GetAvailablePermissionTargetSummaryOrThrowAsync(targetId, cancellationToken),
+            ConstraintTargetType.User => await GetAvailableTenantMemberTargetSummaryOrThrowAsync(targetId, now, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(targetType), "约束规则目标类型无效。")
+        };
     }
 
     /// <summary>
@@ -475,6 +603,52 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
+    /// 获取可维护约束规则，不满足规则时抛出异常
+    /// </summary>
+    private async Task<SysConstraintRule> GetEditableRuleOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "约束规则主键必须大于 0。");
+        }
+
+        var rule = await _constraintRuleRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("约束规则不存在。");
+
+        EnsureRuleCanBeMaintained(rule);
+        return rule;
+    }
+
+    /// <summary>
+    /// 获取权限目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetPermissionTargetSummaryOrDefaultAsync(long permissionId, CancellationToken cancellationToken)
+    {
+        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken);
+        return permission is null ? (null, null) : (permission.PermissionCode, permission.PermissionName);
+    }
+
+    /// <summary>
+    /// 获取角色目标摘要
+    /// </summary>
+    private async Task<(string? Code, string? Name)> GetRoleTargetSummaryOrDefaultAsync(long roleId, CancellationToken cancellationToken)
+    {
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
+        return role is null ? (null, null) : (role.RoleCode, role.RoleName);
+    }
+
+    /// <summary>
+    /// 获取规则项
+    /// </summary>
+    private async Task<IReadOnlyList<SysConstraintRuleItem>> GetRuleItemsAsync(long ruleId, CancellationToken cancellationToken)
+    {
+        return await _constraintRuleItemRepository.GetListAsync(
+            item => item.ConstraintRuleId == ruleId,
+            item => item.ConstraintGroup,
+            cancellationToken);
+    }
+
+    /// <summary>
     /// 获取目标摘要
     /// </summary>
     private async Task<(string? Code, string? Name)> GetTargetSummaryOrDefaultAsync(ConstraintTargetType targetType, long targetId, CancellationToken cancellationToken)
@@ -489,24 +663,6 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
-    /// 获取角色目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetRoleTargetSummaryOrDefaultAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
-        return role is null ? (null, null) : (role.RoleCode, role.RoleName);
-    }
-
-    /// <summary>
-    /// 获取权限目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> GetPermissionTargetSummaryOrDefaultAsync(long permissionId, CancellationToken cancellationToken)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken);
-        return permission is null ? (null, null) : (permission.PermissionCode, permission.PermissionName);
-    }
-
-    /// <summary>
     /// 获取租户成员目标摘要
     /// </summary>
     private async Task<(string? Code, string? Name)> GetTenantMemberTargetSummaryOrDefaultAsync(long userId, CancellationToken cancellationToken)
@@ -516,188 +672,44 @@ public sealed class ConstraintRuleAppService(
     }
 
     /// <summary>
-    /// 转换为输入规则项
+    /// 替换约束规则项
     /// </summary>
-    private static IReadOnlyList<ConstraintRuleItemInputDto> ToInputItems(IReadOnlyList<SysConstraintRuleItem> items)
+    private async Task<IReadOnlyList<SysConstraintRuleItem>> ReplaceRuleItemsAsync(
+        long ruleId,
+        IReadOnlyList<ConstraintRuleItemInputDto> inputs,
+        CancellationToken cancellationToken)
     {
-        return items
-            .Select(item => new ConstraintRuleItemInputDto
+        _ = await _constraintRuleItemRepository.DeleteAsync(item => item.ConstraintRuleId == ruleId, cancellationToken);
+
+        var items = inputs
+            .Select(input => new SysConstraintRuleItem
             {
-                TargetType = item.TargetType,
-                TargetId = item.TargetId,
-                ConstraintGroup = item.ConstraintGroup,
-                Remark = item.Remark
+                ConstraintRuleId = ruleId,
+                TargetType = input.TargetType,
+                TargetId = input.TargetId,
+                ConstraintGroup = input.ConstraintGroup,
+                Remark = NormalizeNullable(input.Remark)
             })
             .ToArray();
+
+        return await _constraintRuleItemRepository.AddRangeAsync(items, cancellationToken);
     }
 
     /// <summary>
-    /// 校验创建参数
+    /// 校验规则项并检查目标可用性
     /// </summary>
-    private static void ValidateCreateInput(ConstraintRuleCreateDto input, DateTimeOffset now)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.RuleCode);
-        ValidateRuleCode(input.RuleCode);
-        ValidateCommonInput(
-            input.RuleName,
-            input.ConstraintType,
-            input.TargetType,
-            input.Parameters,
-            input.ViolationAction,
-            input.Description,
-            input.Priority,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark,
-            now);
-        ValidateEnum(input.Status, nameof(input.Status));
-    }
-
-    /// <summary>
-    /// 校验更新参数
-    /// </summary>
-    private static void ValidateUpdateInput(ConstraintRuleUpdateDto input, DateTimeOffset now)
-    {
-        if (input.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(input), "约束规则主键必须大于 0。");
-        }
-
-        ValidateCommonInput(
-            input.RuleName,
-            input.ConstraintType,
-            input.TargetType,
-            input.Parameters,
-            input.ViolationAction,
-            input.Description,
-            input.Priority,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark,
-            now);
-    }
-
-    /// <summary>
-    /// 校验通用参数
-    /// </summary>
-    private static void ValidateCommonInput(
-        string ruleName,
+    private async Task ValidateRuleItemsAsync(
         ConstraintType constraintType,
         ConstraintTargetType targetType,
-        string? parameters,
-        ViolationAction violationAction,
-        string? description,
-        int priority,
-        DateTimeOffset? effectiveTime,
-        DateTimeOffset? expirationTime,
-        string? remark,
-        DateTimeOffset now)
+        IReadOnlyList<ConstraintRuleItemInputDto> items,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ruleName);
-        ValidateEnum(constraintType, nameof(constraintType));
-        ValidateEnum(targetType, nameof(targetType));
-        ValidateEnum(violationAction, nameof(violationAction));
-        ValidateLength(ruleName, 200, nameof(ruleName), "规则名称不能超过 200 个字符。");
-        ValidateOptionalLength(description, 1000, nameof(description), "规则描述不能超过 1000 个字符。");
-        ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
-        _ = NormalizeParameters(parameters);
+        ValidateRuleItems(constraintType, targetType, items);
 
-        if (priority < 0)
+        foreach (var item in items)
         {
-            throw new ArgumentOutOfRangeException(nameof(priority), "优先级不能小于 0。");
+            _ = await GetAvailableTargetSummaryOrThrowAsync(item.TargetType, item.TargetId, now, cancellationToken);
         }
-
-        if (expirationTime.HasValue && expirationTime.Value <= now)
-        {
-            throw new InvalidOperationException("失效时间必须晚于当前时间。");
-        }
-
-        if (effectiveTime.HasValue && expirationTime.HasValue && effectiveTime.Value >= expirationTime.Value)
-        {
-            throw new InvalidOperationException("生效时间必须早于失效时间。");
-        }
-    }
-
-    /// <summary>
-    /// 校验规则编码
-    /// </summary>
-    private static void ValidateRuleCode(string ruleCode)
-    {
-        var normalizedRuleCode = ruleCode.Trim();
-        ValidateLength(normalizedRuleCode, 100, nameof(ruleCode), "规则编码不能超过 100 个字符。");
-        if (normalizedRuleCode.Any(char.IsWhiteSpace))
-        {
-            throw new InvalidOperationException("规则编码不能包含空白字符。");
-        }
-    }
-
-    /// <summary>
-    /// 校验枚举值
-    /// </summary>
-    /// <typeparam name="TEnum">枚举类型</typeparam>
-    /// <param name="value">枚举值</param>
-    /// <param name="paramName">参数名</param>
-    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    /// <summary>
-    /// 校验字符串长度
-    /// </summary>
-    private static void ValidateLength(string value, int maxLength, string paramName, string message)
-    {
-        if (value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    /// <summary>
-    /// 校验可空字符串长度
-    /// </summary>
-    private static void ValidateOptionalLength(string? value, int maxLength, string paramName, string message)
-    {
-        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    /// <summary>
-    /// 规范化约束参数
-    /// </summary>
-    private static string? NormalizeParameters(string? parameters)
-    {
-        var normalized = NormalizeNullable(parameters);
-        if (normalized is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            using var _ = JsonDocument.Parse(normalized);
-        }
-        catch (JsonException exception)
-        {
-            throw new InvalidOperationException("约束参数必须是合法 JSON。", exception);
-        }
-
-        return normalized;
-    }
-
-    /// <summary>
-    /// 规范化可空字符串
-    /// </summary>
-    /// <param name="value">字符串值</param>
-    /// <returns>规范化后的字符串</returns>
-    private static string? NormalizeNullable(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }

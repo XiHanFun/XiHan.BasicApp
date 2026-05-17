@@ -12,8 +12,8 @@
 
 #endregion <<版权版本注释>>
 
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Cryptography;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -32,15 +32,25 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "OAuth 应用")]
-public sealed class OAuthAppAppService(
-    IOAuthAppRepository oauthAppRepository,
-    IOAuthCodeRepository oauthCodeRepository,
-    IOAuthTokenRepository oauthTokenRepository)
+public sealed class OAuthAppAppService
     : SaasApplicationService, IOAuthAppAppService
 {
-    private readonly IOAuthAppRepository _oauthAppRepository = oauthAppRepository;
-    private readonly IOAuthCodeRepository _oauthCodeRepository = oauthCodeRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository = oauthTokenRepository;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OAuthAppAppService(
+        IOAuthAppRepository oauthAppRepository,
+        IOAuthCodeRepository oauthCodeRepository,
+        IOAuthTokenRepository oauthTokenRepository)
+    {
+        _oauthAppRepository = oauthAppRepository;
+        _oauthCodeRepository = oauthCodeRepository;
+        _oauthTokenRepository = oauthTokenRepository;
+    }
+
+    private readonly IOAuthAppRepository _oauthAppRepository;
+    private readonly IOAuthCodeRepository _oauthCodeRepository;
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
 
     /// <summary>
     /// 创建 OAuth 应用

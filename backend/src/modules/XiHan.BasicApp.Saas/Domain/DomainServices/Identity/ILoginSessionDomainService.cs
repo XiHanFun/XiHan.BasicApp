@@ -1,0 +1,51 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:ILoginSessionDomainService
+// Guid:471e4977-4f2b-4fd7-89c0-03e57b6fc598
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/05/17 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Web.Core.Clients;
+
+namespace XiHan.BasicApp.Saas.Domain.DomainServices;
+
+/// <summary>
+/// 登录会话领域服务
+/// </summary>
+public interface ILoginSessionDomainService
+{
+    /// <summary>
+    /// 签发密码登录会话与 OAuth Token
+    /// </summary>
+    /// <param name="user">用户</param>
+    /// <param name="security">用户安全配置</param>
+    /// <param name="tenantId">租户标识</param>
+    /// <param name="sessionBusinessId">业务会话标识</param>
+    /// <param name="accessTokenJti">访问令牌 JTI</param>
+    /// <param name="tokenResult">令牌结果</param>
+    /// <param name="deviceId">设备标识</param>
+    /// <param name="client">客户端信息</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>登录会话签发结果</returns>
+    Task<LoginSessionIssueResult> IssuePasswordLoginAsync(
+        SysUser user,
+        SysUserSecurity? security,
+        long? tenantId,
+        string sessionBusinessId,
+        string accessTokenJti,
+        JwtTokenResult tokenResult,
+        string? deviceId,
+        ClientInfo client,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default);
+}

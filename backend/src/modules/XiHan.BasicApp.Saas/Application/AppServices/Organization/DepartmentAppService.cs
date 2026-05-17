@@ -31,50 +31,64 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "部门")]
-public sealed class DepartmentAppService(
-    IDepartmentRepository departmentRepository,
-    IDepartmentHierarchyRepository departmentHierarchyRepository,
-    ITenantUserRepository tenantUserRepository,
-    IUserDepartmentRepository userDepartmentRepository,
-    IRoleDataScopeRepository roleDataScopeRepository,
-    IUserDataScopeRepository userDataScopeRepository,
-    IFieldLevelSecurityRepository fieldLevelSecurityRepository)
+public sealed class DepartmentAppService
     : SaasApplicationService, IDepartmentAppService
 {
     /// <summary>
+    /// 构造函数
+    /// </summary>
+    public DepartmentAppService(
+        IDepartmentRepository departmentRepository,
+        IDepartmentHierarchyRepository departmentHierarchyRepository,
+        ITenantUserRepository tenantUserRepository,
+        IUserDepartmentRepository userDepartmentRepository,
+        IRoleDataScopeRepository roleDataScopeRepository,
+        IUserDataScopeRepository userDataScopeRepository,
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository)
+    {
+        _departmentRepository = departmentRepository;
+        _departmentHierarchyRepository = departmentHierarchyRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _userDepartmentRepository = userDepartmentRepository;
+        _roleDataScopeRepository = roleDataScopeRepository;
+        _userDataScopeRepository = userDataScopeRepository;
+        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+    }
+
+    /// <summary>
     /// 部门仓储
     /// </summary>
-    private readonly IDepartmentRepository _departmentRepository = departmentRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
     /// 部门层级仓储
     /// </summary>
-    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository = departmentHierarchyRepository;
+    private readonly IDepartmentHierarchyRepository _departmentHierarchyRepository;
 
     /// <summary>
     /// 租户成员仓储
     /// </summary>
-    private readonly ITenantUserRepository _tenantUserRepository = tenantUserRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 用户部门仓储
     /// </summary>
-    private readonly IUserDepartmentRepository _userDepartmentRepository = userDepartmentRepository;
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
 
     /// <summary>
     /// 角色数据范围仓储
     /// </summary>
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository = roleDataScopeRepository;
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
 
     /// <summary>
     /// 用户数据范围仓储
     /// </summary>
-    private readonly IUserDataScopeRepository _userDataScopeRepository = userDataScopeRepository;
+    private readonly IUserDataScopeRepository _userDataScopeRepository;
 
     /// <summary>
     /// 字段级安全仓储
     /// </summary>
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
 
     /// <summary>
     /// 创建部门
