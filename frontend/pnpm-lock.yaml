@@ -86,15 +86,6 @@ importers:
       vue3-ts-jsoneditor:
         specifier: ^3.4.0
         version: 3.4.0(@typescript-eslint/types@8.59.1)(vue@3.5.33(typescript@5.9.3))
-      vxe-pc-ui:
-        specifier: ^4.14.0
-        version: 4.14.0(vue@3.5.33(typescript@5.9.3))
-      vxe-table:
-        specifier: ^4.18.13
-        version: 4.18.13(vue@3.5.33(typescript@5.9.3))
-      xe-utils:
-        specifier: ^4.0.4
-        version: 4.0.4
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^4.19.0
@@ -257,6 +248,9 @@ importers:
       '@xihan/stores':
         specifier: workspace:*
         version: link:../stores
+      '@xihan/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/stores:
     dependencies:
@@ -1852,11 +1846,6 @@ packages:
   '@vueuse/shared@11.3.0':
     resolution: {integrity: sha512-P8gSSWQeucH5821ek2mn/ciCk+MS/zoRKqdQIM3bHq6p7GXDAJLmnRRKmF5F65sAVJIfzQlwR3aDzwCn10s8hA==}
 
-  '@vxe-ui/core@4.4.9':
-    resolution: {integrity: sha512-fOFMNspbkceKk14Mzm8EqEuNNW4bMdDrKseLKs3YiY8xqOnMUUUi6K/AjoKa0hL5Y/q1RA63/smsGP7YvNHm4g==}
-    peerDependencies:
-      vue: ^3.2.0
-
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
     engines: {node: '>=6.5'}
@@ -2189,9 +2178,6 @@ packages:
 
   dlv@1.1.3:
     resolution: {integrity: sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==}
-
-  dom-zindex@1.0.6:
-    resolution: {integrity: sha512-FKWIhiU96bi3xpP9ewRMgANsoVmMUBnMnmpCT6dPMZOunVYJQmJhSRruoI0XSPoHeIif3kyEuiHbFrOJwEJaEA==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -3821,12 +3807,6 @@ packages:
     peerDependencies:
       vue: ^3.0.11
 
-  vxe-pc-ui@4.14.0:
-    resolution: {integrity: sha512-VVIMMHPT9GFTHu+KSqp7ezigrnBkEdFuhmoAb18/RQugXKq9g9FJR8LMFnuYV+mcrVuVhcqQe1zhhDsoUnwImA==}
-
-  vxe-table@4.18.13:
-    resolution: {integrity: sha512-aSq+Gl8cbRbDfja5G40ZOmr+uS9aaQ5pMyzsLX2e0gI2ybcUM20ARspX+U0ZMPaidFwt8FRLDJsKoeGxdy470Q==}
-
   w3c-keyname@2.2.8:
     resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==}
 
@@ -3863,9 +3843,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-
-  xe-utils@4.0.4:
-    resolution: {integrity: sha512-1IUuTZRHa5w88Y3kEf0O4Y/99O0hIdh5o8EXqmgqyhY3MaT1xWZgS5iuD7pys6v+9JrJOzECb07+6gxRahDsyw==}
 
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
@@ -5326,8 +5303,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.57.0(typescript@5.9.3)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.57.0(typescript@5.9.3)
-      '@typescript-eslint/types': 8.57.0
+      '@typescript-eslint/tsconfig-utils': 8.59.1(typescript@5.9.3)
+      '@typescript-eslint/types': 8.59.1
       debug: 4.4.3
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -5617,12 +5594,6 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vxe-ui/core@4.4.9(vue@3.5.33(typescript@5.9.3))':
-    dependencies:
-      dom-zindex: 1.0.6
-      vue: 3.5.33(typescript@5.9.3)
-      xe-utils: 4.0.4
-
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
@@ -5908,8 +5879,6 @@ snapshots:
   diff-sequences@29.6.3: {}
 
   dlv@1.1.3: {}
-
-  dom-zindex@1.0.6: {}
 
   dunder-proto@1.0.1:
     dependencies:
@@ -7893,18 +7862,6 @@ snapshots:
       vooks: 0.2.12(vue@3.5.33(typescript@5.9.3))
       vue: 3.5.33(typescript@5.9.3)
 
-  vxe-pc-ui@4.14.0(vue@3.5.33(typescript@5.9.3)):
-    dependencies:
-      '@vxe-ui/core': 4.4.9(vue@3.5.33(typescript@5.9.3))
-    transitivePeerDependencies:
-      - vue
-
-  vxe-table@4.18.13(vue@3.5.33(typescript@5.9.3)):
-    dependencies:
-      vxe-pc-ui: 4.14.0(vue@3.5.33(typescript@5.9.3))
-    transitivePeerDependencies:
-      - vue
-
   w3c-keyname@2.2.8: {}
 
   webidl-conversions@3.0.1: {}
@@ -7929,8 +7886,6 @@ snapshots:
       strip-ansi: 7.2.0
 
   ws@7.5.10: {}
-
-  xe-utils@4.0.4: {}
 
   xml-name-validator@4.0.0: {}
 

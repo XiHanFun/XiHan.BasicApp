@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type {
   ConfigCreateDto,
   ConfigDetailDto,
@@ -8,6 +8,8 @@ import type {
 } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -19,6 +21,7 @@ import {
   NInput,
   NInputNumber,
   NModal,
+  NPagination,
   NPopconfirm,
   NScrollbar,
   NSelect,
@@ -27,9 +30,10 @@ import {
   NSpin,
   NSwitch,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   ConfigDataType,
   configManagementApi,
@@ -37,17 +41,11 @@ import {
   createPageRequest,
   EnableStatus,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformConfigPage' })
-
-interface ConfigGridResult {
-  items: ConfigListItemDto[]
-  total: number
-}
 
 interface ConfigFormModel {
   basicId?: string
@@ -68,8 +66,11 @@ interface ConfigFormModel {
 }
 
 const message = useMessage()
-const loading = ref(true)
-const xGrid = ref<VxeGridInstance<ConfigListItemDto>>()
+const tableLoading = ref(false)
+const dataList = ref<ConfigListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const queryParams = reactive({
   configType: undefined as ConfigType | undefined,
@@ -138,13 +139,14 @@ function canMaintainConfig(row: ConfigListItemDto) {
   return !row.isBuiltIn
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<ConfigGridResult> {
-  return configManagementApi
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await configManagementApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: currentPage.value,
+          pageSize: pageSize.value,
         },
       }),
       configType: queryParams.configType,
@@ -153,94 +155,184 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       keyword: queryParams.keyword?.trim() || undefined,
       status: queryParams.status,
     })
-    .then(result => {
-      loading.value = false
-      return {
-        items: result.items,
-        total: result.page.totalCount,
-      }
-    })
-    .catch(() => {
-      loading.value = false
-      message.error('查询配置失败')
-      return { items: [], total: 0 }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询配置失败')
+    dataList.value = []
+    totalCount.value = 0
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<ConfigListItemDto>(
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
+}
+
+const tableColumns = computed<DataTableColumns<ConfigListItemDto>>(() => [
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'configName', minWidth: 160, showOverflow: 'tooltip', sortable: true, title: '配置名称' },
-      { field: 'configKey', minWidth: 180, showOverflow: 'tooltip', title: '配置键' },
-      { field: 'configGroup', minWidth: 100, showOverflow: 'tooltip', title: '分组' },
-      {
-        field: 'configType',
-        formatter: ({ cellValue }) => getOptionLabel(configTypeOptions, cellValue),
-        title: '配置类型',
-        width: 100,
-      },
-      {
-        field: 'dataType',
-        formatter: ({ cellValue }) => getOptionLabel(dataTypeOptions, cellValue),
-        title: '数据类型',
-        width: 90,
-      },
-      {
-        field: 'isGlobal',
-        slots: { default: 'col_global' },
-        title: '全局',
-        width: 70,
-      },
-      {
-        field: 'isBuiltIn',
-        slots: { default: 'col_builtin' },
-        title: '内置',
-        width: 70,
-      },
-      {
-        field: 'isEncrypted',
-        slots: { default: 'col_encrypted' },
-        title: '加密',
-        width: 70,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '状态',
-        width: 80,
-      },
-      { field: 'sort', sortable: true, title: '排序', width: 70 },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 160,
-      },
-    ],
-    id: 'sys_config',
-    name: '配置管理',
+    key: 'configName',
+    title: '配置名称',
+    minWidth: 160,
+    ellipsis: { tooltip: true },
+    sorter: true,
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'configKey',
+    title: '配置键',
+    minWidth: 180,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'configGroup',
+    title: '分组',
+    minWidth: 100,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'configType',
+    title: '配置类型',
+    width: 100,
+    render(row) {
+      return h('span', { style: 'font-size:13px;' }, getOptionLabel(configTypeOptions, row.configType))
     },
   },
-)
+  {
+    key: 'dataType',
+    title: '数据类型',
+    width: 90,
+    render(row) {
+      return h('span', { style: 'font-size:13px;' }, getOptionLabel(dataTypeOptions, row.dataType))
+    },
+  },
+  {
+    key: 'isGlobal',
+    title: '全局',
+    width: 70,
+    render(row) {
+      return h(NTag, { type: row.isGlobal ? 'info' : 'default', round: true, size: 'small' }, () => row.isGlobal ? '是' : '否')
+    },
+  },
+  {
+    key: 'isBuiltIn',
+    title: '内置',
+    width: 70,
+    render(row) {
+      return h(NTag, { type: row.isBuiltIn ? 'warning' : 'default', round: true, size: 'small' }, () => row.isBuiltIn ? '是' : '否')
+    },
+  },
+  {
+    key: 'isEncrypted',
+    title: '加密',
+    width: 70,
+    render(row) {
+      return h(NTag, { type: row.isEncrypted ? 'error' : 'default', round: true, size: 'small' }, () => row.isEncrypted ? '是' : '否')
+    },
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 80,
+    render(row) {
+      return h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status))
+    },
+  },
+  {
+    key: 'sort',
+    title: '排序',
+    width: 70,
+    sorter: true,
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 160,
+    fixed: 'right',
+    render(row) {
+      return h(NSpace, { size: 'small' }, () => [
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, {
+              ariaLabel: '查看详情',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              onClick: () => handleView(row),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '查看详情',
+        }),
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, {
+              disabled: !canMaintainConfig(row),
+              ariaLabel: '编辑',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'primary',
+              onClick: () => handleEdit(row),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+          default: () => '编辑',
+        }),
+        h(NPopconfirm, {
+          disabled: !canMaintainConfig(row),
+          onPositiveClick: () => handleToggleStatus(row),
+        }, {
+          trigger: () =>
+            h(NButton, {
+              disabled: !canMaintainConfig(row),
+              ariaLabel: '停用或启用',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'warning',
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => '确认更新配置状态？',
+        }),
+        h(NPopconfirm, {
+          disabled: !canMaintainConfig(row),
+          onPositiveClick: () => handleDelete(row),
+        }, {
+          trigger: () =>
+            h(NButton, {
+              disabled: !canMaintainConfig(row),
+              ariaLabel: '删除',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'error',
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '确认删除该配置？',
+        }),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
@@ -249,7 +341,8 @@ function handleReset() {
   queryParams.dataType = undefined
   queryParams.isGlobal = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleAdd() {
@@ -368,7 +461,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    xGrid.value?.commitProxy('query')
+    fetchData()
   }
   catch {
     message.error('保存失败')
@@ -381,7 +474,7 @@ async function handleSubmit() {
 async function handleDelete(row: ConfigListItemDto) {
   await configManagementApi.delete(row.basicId)
   message.success('删除成功')
-  xGrid.value?.commitProxy('query')
+  fetchData()
 }
 
 async function handleToggleStatus(row: ConfigListItemDto) {
@@ -391,16 +484,18 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  xGrid.value?.commitProxy('query')
+  fetchData()
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索配置名称/键/分组"
           style="width: 250px"
@@ -447,96 +542,45 @@ async function handleToggleStatus(row: ConfigListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <NSkeleton v-if="loading" :height="48" :repeat="5" text style="padding: 16px" />
-      <vxe-grid v-show="!loading" ref="xGrid" v-bind="tableOptions">
-        <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>
-            新增配置
-          </NButton>
-        </template>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <div style="padding:10px 16px;">
+        <NButton size="small" type="primary" @click="handleAdd">
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
+          </template>
+          新增配置
+        </NButton>
+      </div>
 
-        <template #col_global="{ row }">
-          <NTag :type="row.isGlobal ? 'info' : 'default'" round size="small">
-            {{ row.isGlobal ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_builtin="{ row }">
-          <NTag :type="row.isBuiltIn ? 'warning' : 'default'" round size="small">
-            {{ row.isBuiltIn ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_encrypted="{ row }">
-          <NTag :type="row.isEncrypted ? 'error' : 'default'" round size="small">
-            {{ row.isEncrypted ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ getOptionLabel(statusOptions, row.status) }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace size="small">
-            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-
-            <NButton
-              :disabled="!canMaintainConfig(row)"
-              aria-label="编辑"
-              circle
-              quaternary
-              size="small"
-              type="primary"
-              @click="handleEdit(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:pencil" /></NIcon>
-              </template>
-            </NButton>
-
-            <NPopconfirm
-              :disabled="!canMaintainConfig(row)"
-              @positive-click="handleToggleStatus(row)"
-            >
-              <template #trigger>
-                <NButton :disabled="!canMaintainConfig(row)" aria-label="停用或启用" circle quaternary size="small" type="warning">
-                  <template #icon>
-                    <NIcon>
-                      <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check'" />
-                    </NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确认更新配置状态？
-            </NPopconfirm>
-
-            <NPopconfirm :disabled="!canMaintainConfig(row)" @positive-click="handleDelete(row)">
-              <template #trigger>
-                <NButton :disabled="!canMaintainConfig(row)" aria-label="删除" circle quaternary size="small" type="error">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确认删除该配置？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+      <NSkeleton v-if="tableLoading && dataList.length === 0" :height="48" :repeat="5" text style="padding: 16px" />
+      <NDataTable
+        v-else
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row: ConfigListItemDto) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="padding:10px 16px;display:flex;justify-content:flex-end;align-items:center;">
+        <NPagination
+          :page="currentPage"
+          :page-size="pageSize"
+          :page-count="totalPages"
+          :page-sizes="[10, 20, 50, 100]"
+          show-size-picker
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="720">
       <NDrawerContent closable title="配置详情">

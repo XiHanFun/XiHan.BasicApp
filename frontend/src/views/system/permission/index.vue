@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type {
   ApiId,
   OperationSelectItemDto,
@@ -11,6 +11,8 @@ import type {
 } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -22,6 +24,7 @@ import {
   NInput,
   NInputNumber,
   NModal,
+  NPagination,
   NPopconfirm,
   NScrollbar,
   NSelect,
@@ -31,9 +34,10 @@ import {
   NTabPane,
   NTabs,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, h, onMounted, reactive, ref, watch } from 'vue'
 import {
   createPageRequest,
   EnableStatus,
@@ -41,7 +45,7 @@ import {
   PermissionType,
   ValidityStatus,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import {
   CONDITION_OPERATOR_OPTIONS,
   CONFIG_DATA_TYPE_OPTIONS,
@@ -59,15 +63,9 @@ import {
   STATUS_OPTIONS,
   VALIDITY_STATUS_OPTIONS,
 } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
-
-interface PermissionGridResult {
-  items: PermissionListItemDto[]
-  total: number
-}
 
 interface PermissionFormModel extends PermissionCreateDto {
   basicId?: ApiId
@@ -79,7 +77,13 @@ interface NumericSelectOption {
 }
 
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<PermissionListItemDto>>()
+
+const tableLoading = ref(false)
+const dataList = ref<PermissionListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
+
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const resourceLoading = ref(false)
@@ -140,6 +144,8 @@ const changeTypeOptions = PERMISSION_CHANGE_TYPE_OPTIONS
 
 const modalTitle = computed(() => (permissionForm.value.basicId ? '编辑权限' : '新增权限'))
 const isResourceBasedForm = computed(() => permissionForm.value.permissionType === PermissionType.ResourceBased)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 watch(
   () => permissionForm.value.permissionType,
@@ -210,13 +216,14 @@ function canMaintainPermission(row: PermissionListItemDto) {
   return !row.isGlobal
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<PermissionGridResult> {
-  return permissionCenterApi
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await permissionCenterApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: currentPage.value,
+          pageSize: pageSize.value,
         },
       }),
       isGlobal: toOptionalBoolean(queryParams.isGlobal),
@@ -226,84 +233,110 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       permissionType: queryParams.permissionType,
       status: queryParams.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询权限失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询权限失败')
+    dataList.value = []
+    totalCount.value = 0
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<PermissionListItemDto>(
+const tableColumns = computed<DataTableColumns<PermissionListItemDto>>(() => [
+  { key: 'permissionName', title: '权限名称', minWidth: 160, ellipsis: { tooltip: true }, sorter: true },
+  { key: 'permissionCode', title: '权限编码', minWidth: 220, ellipsis: { tooltip: true } },
+  { key: 'moduleCode', title: '模块', minWidth: 110, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'permissionName', minWidth: 160, showOverflow: 'tooltip', sortable: true, title: '权限名称' },
-      { field: 'permissionCode', minWidth: 220, showOverflow: 'tooltip', title: '权限编码' },
-      { field: 'moduleCode', minWidth: 110, showOverflow: 'tooltip', title: '模块' },
-      {
-        field: 'permissionType',
-        formatter: ({ cellValue }) => getOptionLabel(permissionTypeOptions, cellValue),
-        minWidth: 110,
-        title: '权限类型',
-      },
-      { field: 'resourceName', minWidth: 150, showOverflow: 'tooltip', title: '资源' },
-      { field: 'operationName', minWidth: 130, showOverflow: 'tooltip', title: '操作' },
-      {
-        field: 'isGlobal',
-        slots: { default: 'col_global' },
-        title: '全局',
-        width: 82,
-      },
-      {
-        field: 'isRequireAudit',
-        slots: { default: 'col_audit' },
-        title: '审计',
-        width: 82,
-      },
-      { field: 'priority', minWidth: 80, sortable: true, title: '优先级' },
-      { field: 'sort', minWidth: 80, sortable: true, title: '排序' },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '状态',
-        width: 82,
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 156,
-      },
-    ],
-    id: 'sys_permission',
-    name: '权限管理',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'permissionType',
+    title: '权限类型',
+    minWidth: 110,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(permissionTypeOptions, row.permissionType))
     },
   },
-)
+  { key: 'resourceName', title: '资源', minWidth: 150, ellipsis: { tooltip: true } },
+  { key: 'operationName', title: '操作', minWidth: 130, ellipsis: { tooltip: true } },
+  {
+    key: 'isGlobal',
+    title: '全局',
+    width: 82,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.isGlobal ? 'warning' : 'default', bordered: false }, () => row.isGlobal ? '是' : '否')
+    },
+  },
+  {
+    key: 'isRequireAudit',
+    title: '审计',
+    width: 82,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.isRequireAudit ? 'warning' : 'default', bordered: false }, () => row.isRequireAudit ? '是' : '否')
+    },
+  },
+  { key: 'priority', title: '优先级', minWidth: 80, sorter: true },
+  { key: 'sort', title: '排序', minWidth: 80, sorter: true },
+  {
+    key: 'status',
+    title: '状态',
+    width: 82,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => row.status === EnableStatus.Enabled ? '启用' : '禁用')
+    },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 156,
+    render(row) {
+      return h(NSpace, { size: 'small' }, () => [
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
+            }),
+          default: () => '查看详情',
+        }),
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, { disabled: !canMaintainPermission(row), ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })),
+            }),
+          default: () => '编辑',
+        }),
+        h(NPopconfirm, { disabled: !canMaintainPermission(row), onPositiveClick: () => handleToggleStatus(row) }, {
+          trigger: () =>
+            h(NButton, { disabled: !canMaintainPermission(row), ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
+            }),
+          default: () => '确认更新权限状态？',
+        }),
+        h(NPopconfirm, { disabled: !canMaintainPermission(row), onPositiveClick: () => handleDelete(row) }, {
+          trigger: () =>
+            h(NButton, { disabled: !canMaintainPermission(row), ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
+            }),
+          default: () => '确认删除该权限？',
+        }),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
@@ -313,7 +346,19 @@ function handleReset() {
   queryParams.isGlobal = undefined
   queryParams.isRequireAudit = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleAdd() {
@@ -549,7 +594,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    xGrid.value?.commitProxy('query')
+    fetchData()
   }
   catch {
     message.error('保存失败')
@@ -562,7 +607,7 @@ async function handleSubmit() {
 async function handleDelete(row: PermissionListItemDto) {
   await permissionCenterApi.delete(row.basicId)
   message.success('删除成功')
-  xGrid.value?.commitProxy('query')
+  fetchData()
 }
 
 async function handleToggleStatus(row: PermissionListItemDto) {
@@ -572,152 +617,100 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  xGrid.value?.commitProxy('query')
+  fetchData()
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
-      <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
-          clearable
-          placeholder="搜索权限名称/编码"
-          style="width: 240px"
-          @keyup.enter="handleSearch"
-        />
-        <vxe-input
-          v-model="queryParams.moduleCode"
-          clearable
-          placeholder="模块编码"
-          style="width: 140px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.permissionType"
-          :options="permissionTypeOptions"
-          clearable
-          placeholder="权限类型"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.isRequireAudit"
-          :options="auditOptions"
-          clearable
-          placeholder="审计"
-          style="width: 120px"
-        />
-        <NSelect
-          v-model:value="queryParams.isGlobal"
-          :options="globalOptions"
-          clearable
-          placeholder="全局"
-          style="width: 110px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="STATUS_OPTIONS"
-          clearable
-          placeholder="状态"
-          style="width: 110px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+      <NInput
+        v-model:value="queryParams.keyword"
+        clearable
+        placeholder="搜索权限名称/编码"
+        style="width: 240px"
+        @keyup.enter="handleSearch"
+      />
+      <NInput
+        v-model:value="queryParams.moduleCode"
+        clearable
+        placeholder="模块编码"
+        style="width: 140px"
+        @keyup.enter="handleSearch"
+      />
+      <NSelect
+        v-model:value="queryParams.permissionType"
+        :options="permissionTypeOptions"
+        clearable
+        placeholder="权限类型"
+        style="width: 130px"
+      />
+      <NSelect
+        v-model:value="queryParams.isRequireAudit"
+        :options="auditOptions"
+        clearable
+        placeholder="审计"
+        style="width: 120px"
+      />
+      <NSelect
+        v-model:value="queryParams.isGlobal"
+        :options="globalOptions"
+        clearable
+        placeholder="全局"
+        style="width: 110px"
+      />
+      <NSelect
+        v-model:value="queryParams.status"
+        :options="STATUS_OPTIONS"
+        clearable
+        placeholder="状态"
+        style="width: 110px"
+      />
+      <NButton size="small" type="primary" @click="handleSearch">
+        <template #icon>
+          <NIcon><Icon icon="lucide:search" /></NIcon>
+        </template>
+        查询
+      </NButton>
+      <NButton size="small" @click="handleReset">
+        <template #icon>
+          <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+        </template>
+        重置
+      </NButton>
+    </div>
+
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <div style="padding:12px 16px;flex-shrink:0;">
+        <NButton size="small" type="primary" @click="handleAdd">
           <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
           </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
+          新增权限
         </NButton>
       </div>
-    </XSystemQueryPanel>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>
-            新增权限
-          </NButton>
-        </template>
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row: PermissionListItemDto) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
 
-        <template #col_global="{ row }">
-          <NTag :type="row.isGlobal ? 'warning' : 'default'" round size="small">
-            {{ row.isGlobal ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_audit="{ row }">
-          <NTag :type="row.isRequireAudit ? 'warning' : 'default'" round size="small">
-            {{ row.isRequireAudit ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ row.status === EnableStatus.Enabled ? '启用' : '禁用' }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace size="small">
-            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-
-            <NButton
-              :disabled="!canMaintainPermission(row)"
-              aria-label="编辑"
-              circle
-              quaternary
-              size="small"
-              type="primary"
-              @click="handleEdit(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:pencil" /></NIcon>
-              </template>
-            </NButton>
-
-            <NPopconfirm
-              :disabled="!canMaintainPermission(row)"
-              @positive-click="handleToggleStatus(row)"
-            >
-              <template #trigger>
-                <NButton :disabled="!canMaintainPermission(row)" aria-label="停用或启用" circle quaternary size="small" type="warning">
-                  <template #icon>
-                    <NIcon>
-                      <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check'" />
-                    </NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确认更新权限状态？
-            </NPopconfirm>
-
-            <NPopconfirm :disabled="!canMaintainPermission(row)" @positive-click="handleDelete(row)">
-              <template #trigger>
-                <NButton :disabled="!canMaintainPermission(row)" aria-label="删除" circle quaternary size="small" type="error">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确认删除该权限？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="980">
       <NDrawerContent closable title="权限详情">

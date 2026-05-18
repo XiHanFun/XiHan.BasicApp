@@ -60,17 +60,6 @@ function createManualChunks(id: string) {
   }
 
   if (
-    normalizedId.includes('/vxe-table/')
-    || normalizedId.includes('/vxe-pc-ui/')
-    || normalizedId.includes('/xe-utils/')
-    || normalizedId.includes('/@vxe-ui/')
-    || normalizedId.includes('/dom-zindex/')
-    || normalizedId.includes('/sortablejs/')
-  ) {
-    return 'vendor-table'
-  }
-
-  if (
     normalizedId.includes('/@codemirror/')
     || normalizedId.includes('/codemirror/')
     || normalizedId.includes('/@marijn/')

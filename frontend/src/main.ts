@@ -1,6 +1,5 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { setupVxeTable } from '~/hooks'
 import { setupIconifyOffline } from '~/iconify'
 import { setupI18n } from '~/locales'
 import { bindLogoutHook, bindRouter } from '~/request'
@@ -22,7 +21,6 @@ import './styles/index.css'
 
   app.use(pinia)
   setupI18n(app)
-  setupVxeTable(app)
 
   bindRouter(router)
   bindLogoutHook(() => {

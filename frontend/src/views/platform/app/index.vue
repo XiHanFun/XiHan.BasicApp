@@ -1,41 +1,44 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type { OAuthAppDetailDto, OAuthAppListItemDto, OAuthAppSecretDto } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
   NIcon,
+  NInput,
+  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { appManagementApi, createPageRequest, EnableStatus } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformAppPage' })
 
-interface OAuthAppGridResult {
-  items: OAuthAppListItemDto[]
-  total: number
-}
-
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<OAuthAppListItemDto>>()
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<OAuthAppDetailDto | null>(null)
 const actionLoading = ref(false)
 const secretVisible = ref(false)
 const currentSecret = ref<OAuthAppSecretDto | null>(null)
+const tableLoading = ref(false)
+const dataList = ref<OAuthAppListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const queryParams = reactive({
   appType: undefined as OAuthAppListItemDto['appType'] | undefined,
@@ -48,6 +51,8 @@ const consentOptions = [
   { label: '跳过确认', value: 1 },
   { label: '需要确认', value: 0 },
 ]
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 function toOptionalBoolean(value: number | undefined) {
   if (value === undefined) {
@@ -73,13 +78,14 @@ function formatSeconds(seconds: number) {
   return `${Math.floor(seconds / 86400)} 天`
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<OAuthAppGridResult> {
-  return appManagementApi
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await appManagementApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: currentPage.value,
+          pageSize: pageSize.value,
         },
       }),
       appType: queryParams.appType,
@@ -87,85 +93,107 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       skipConsent: toOptionalBoolean(queryParams.skipConsent),
       status: queryParams.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询 OAuth 应用失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询 OAuth 应用失败')
+    dataList.value = []
+    totalCount.value = 0
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<OAuthAppListItemDto>(
+const tableColumns = computed<DataTableColumns<OAuthAppListItemDto>>(() => [
+  { key: 'appName', title: '应用名称', minWidth: 160, ellipsis: { tooltip: true }, sorter: true },
+  { key: 'clientId', title: 'Client ID', minWidth: 220, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'appName', minWidth: 160, showOverflow: 'tooltip', sortable: true, title: '应用名称' },
-      { field: 'clientId', minWidth: 220, showOverflow: 'tooltip', title: 'Client ID' },
-      {
-        field: 'appType',
-        formatter: ({ cellValue }) => getOptionLabel(OAUTH_APP_TYPE_OPTIONS, cellValue),
-        minWidth: 110,
-        title: '应用类型',
-      },
-      { field: 'grantTypes', minWidth: 180, showOverflow: 'tooltip', title: '授权类型' },
-      { field: 'scopes', minWidth: 160, showOverflow: 'tooltip', title: '权限范围' },
-      {
-        field: 'accessTokenLifetime',
-        formatter: ({ cellValue }) => formatSeconds(Number(cellValue || 0)),
-        minWidth: 130,
-        title: '访问令牌',
-      },
-      {
-        field: 'skipConsent',
-        slots: { default: 'col_skip_consent' },
-        title: '授权确认',
-        width: 110,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '状态',
-        width: 82,
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 170,
-      },
-    ],
-    id: 'sys_oauth_app',
-    name: 'OAuth 应用',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'appType',
+    title: '应用类型',
+    minWidth: 110,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(OAUTH_APP_TYPE_OPTIONS, row.appType))
     },
   },
-)
-
-function reload() {
-  xGrid.value?.commitProxy('reload')
-}
+  { key: 'grantTypes', title: '授权类型', minWidth: 180, ellipsis: { tooltip: true } },
+  { key: 'scopes', title: '权限范围', minWidth: 160, ellipsis: { tooltip: true } },
+  {
+    key: 'accessTokenLifetime',
+    title: '访问令牌',
+    minWidth: 130,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatSeconds(Number(row.accessTokenLifetime || 0)))
+    },
+  },
+  {
+    key: 'skipConsent',
+    title: '授权确认',
+    width: 110,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.skipConsent ? 'warning' : 'default', bordered: false }, () => row.skipConsent ? '跳过' : '确认')
+    },
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 82,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => row.status === EnableStatus.Enabled ? '启用' : '禁用')
+    },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 170,
+    render(row) {
+      return h(NSpace, { size: 4 }, () => [
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleDetail(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
+            }),
+          default: () => '详情',
+        }),
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, {
+              ariaLabel: '启停',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
+              onClick: () => handleToggleStatus(row),
+            }, {
+              icon: () => h(NIcon, { icon: row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play' }),
+            }),
+          default: () => row.status === EnableStatus.Enabled ? '停用' : '启用',
+        }),
+        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
+            }),
+          default: () => '确定删除该 OAuth 应用？删除后不可恢复。',
+        }),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
-  reload()
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
@@ -173,7 +201,19 @@ function handleReset() {
   queryParams.appType = undefined
   queryParams.skipConsent = undefined
   queryParams.status = undefined
-  reload()
+  currentPage.value = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
 }
 
 async function handleDetail(row: OAuthAppListItemDto) {
@@ -227,7 +267,7 @@ async function handleToggleStatus(row: OAuthAppListItemDto) {
       status: newStatus,
     })
     message.success(newStatus === EnableStatus.Enabled ? '应用已启用' : '应用已停用')
-    reload()
+    fetchData()
   }
   catch {
     message.error('更新状态失败')
@@ -242,7 +282,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
   try {
     await appManagementApi.delete(row.basicId)
     message.success('应用已删除')
-    reload()
+    fetchData()
   }
   catch {
     message.error('删除应用失败')
@@ -251,14 +291,16 @@ async function handleDelete(row: OAuthAppListItemDto) {
     actionLoading.value = false
   }
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索应用名称/Client ID"
           style="width: 260px"
@@ -298,69 +340,27 @@ async function handleDelete(row: OAuthAppListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #toolbar_buttons />
-        <template #empty>
-          <div class="py-12 text-center text-gray-400">
-            暂无 OAuth 应用数据
-          </div>
-        </template>
-
-        <template #col_skip_consent="{ row }">
-          <NTag :type="row.skipConsent ? 'warning' : 'default'" round size="small">
-            {{ row.skipConsent ? '跳过' : '确认' }}
-          </NTag>
-        </template>
-
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ row.status === EnableStatus.Enabled ? '启用' : '禁用' }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace :size="4">
-            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              aria-label="启停"
-              circle
-              quaternary
-              size="small"
-              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              @click="handleToggleStatus(row)"
-            >
-              <template #icon>
-                <NIcon :icon="row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" />
-              </template>
-            </NButton>
-            <NPopconfirm @positive-click="handleDelete(row)">
-              <template #trigger>
-                <NButton
-                  aria-label="删除"
-                  circle
-                  quaternary
-                  size="small"
-                  type="error"
-                  :loading="actionLoading"
-                >
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确定删除该 OAuth 应用？删除后不可恢复。
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="560">
       <NDrawerContent closable title="OAuth 应用详情">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type {
   DictCreateDto,
   DictDetailDto,
@@ -11,6 +11,8 @@ import type {
 } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -22,6 +24,7 @@ import {
   NInput,
   NInputNumber,
   NModal,
+  NPagination,
   NPopconfirm,
   NScrollbar,
   NSelect,
@@ -32,24 +35,13 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { computed, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformDictPage' })
-
-interface DictGridResult {
-  items: DictListItemDto[]
-  total: number
-}
-
-interface DictItemGridResult {
-  items: DictItemListItemDto[]
-  total: number
-}
 
 interface DictFormModel {
   basicId?: string
@@ -76,8 +68,18 @@ interface DictItemFormModel {
 
 const message = useMessage()
 const loading = ref(true)
-const xGrid = ref<VxeGridInstance<DictListItemDto>>()
-const xItemGrid = ref<VxeGridInstance<DictItemListItemDto>>()
+
+const dictLoading = ref(false)
+const dictList = ref<DictListItemDto[]>([])
+const dictTotal = ref(0)
+const dictPage = ref(1)
+const dictPageSize = ref(20)
+
+const itemLoading = ref(false)
+const itemList = ref<DictItemListItemDto[]>([])
+const itemTotal = ref(0)
+const itemPage = ref(1)
+const itemPageSize = ref(20)
 
 const queryParams = reactive({
   isBuiltIn: undefined as number | undefined,
@@ -96,7 +98,6 @@ const builtInOptions = [
   { label: '非内置', value: 0 },
 ]
 
-// Dict modal state
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
@@ -104,13 +105,11 @@ const dictForm = ref<DictFormModel>(createDefaultDictForm())
 
 const modalTitle = computed(() => (dictForm.value.basicId ? '编辑字典' : '新增字典'))
 
-// Dict detail drawer state
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<DictDetailDto | null>(null)
 const currentDict = ref<DictListItemDto | null>(null)
 
-// Dict item modal state
 const itemModalVisible = ref(false)
 const itemSubmitLoading = ref(false)
 const itemEditingStatus = ref<EnableStatus | null>(null)
@@ -162,159 +161,229 @@ function canMaintainDict(row: DictListItemDto) {
   return !row.isBuiltIn
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<DictGridResult> {
-  return dictManagementApi
-    .page({
+async function fetchDictData() {
+  dictLoading.value = true
+  try {
+    const result = await dictManagementApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: dictPage.value,
+          pageSize: dictPageSize.value,
         },
       }),
       isBuiltIn: queryParams.isBuiltIn === undefined ? undefined : Boolean(queryParams.isBuiltIn),
       keyword: queryParams.keyword?.trim() || undefined,
       status: queryParams.status,
     })
-    .then(result => {
-      loading.value = false
-      return {
-        items: result.items,
-        total: result.page.totalCount,
-      }
-    })
-    .catch(() => {
-      loading.value = false
-      message.error('查询字典失败')
-      return { items: [], total: 0 }
-    })
+    dictList.value = result.items
+    dictTotal.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询字典失败')
+    dictList.value = []
+    dictTotal.value = 0
+  }
+  finally {
+    dictLoading.value = false
+    loading.value = false
+  }
 }
 
-function handleItemQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<DictItemGridResult> {
-  if (!currentDict.value)
-    return Promise.resolve({ items: [], total: 0 })
-  return dictManagementApi
-    .itemPage({
+async function fetchItemData() {
+  if (!currentDict.value) {
+    itemList.value = []
+    itemTotal.value = 0
+    return
+  }
+  itemLoading.value = true
+  try {
+    const result = await dictManagementApi.itemPage({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: itemPage.value,
+          pageSize: itemPageSize.value,
         },
       }),
       dictId: currentDict.value.basicId,
       keyword: itemQueryParams.keyword?.trim() || undefined,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询字典项失败')
-      return { items: [], total: 0 }
-    })
+    itemList.value = result.items
+    itemTotal.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询字典项失败')
+    itemList.value = []
+    itemTotal.value = 0
+  }
+  finally {
+    itemLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<DictListItemDto>(
+const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'dictName', minWidth: 140, showOverflow: 'tooltip', sortable: true, title: '字典名称' },
-      { field: 'dictCode', minWidth: 140, showOverflow: 'tooltip', title: '字典编码' },
-      { field: 'dictType', minWidth: 120, showOverflow: 'tooltip', title: '字典类型' },
-      {
-        field: 'isBuiltIn',
-        slots: { default: 'col_builtin' },
-        title: '内置',
-        width: 70,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '状态',
-        width: 80,
-      },
-      { field: 'sort', sortable: true, title: '排序', width: 80 },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 160,
-      },
-    ],
-    id: 'sys_dict',
-    name: '字典管理',
+    key: 'dictName',
+    title: '字典名称',
+    minWidth: 140,
+    ellipsis: { tooltip: true },
+    sorter: true,
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
-    },
+    key: 'dictCode',
+    title: '字典编码',
+    minWidth: 140,
+    ellipsis: { tooltip: true },
   },
-)
+  {
+    key: 'dictType',
+    title: '字典类型',
+    minWidth: 120,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'isBuiltIn',
+    title: '内置',
+    width: 70,
+    render: row =>
+      h(NTag, { type: row.isBuiltIn ? 'warning' : 'default', round: true, size: 'small' }, () => row.isBuiltIn ? '是' : '否'),
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 80,
+    render: row =>
+      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
+  },
+  {
+    key: 'sort',
+    title: '排序',
+    width: 80,
+    sorter: true,
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => formatDate(row.createdTime),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 160,
+    render: row =>
+      h(NSpace, { size: 'small' }, () => [
+        h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+        h(NButton, { disabled: !canMaintainDict(row), ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NPopconfirm, { disabled: !canMaintainDict(row), onPositiveClick: () => handleToggleStatus(row) }, {
+          trigger: () => h(NButton, { disabled: !canMaintainDict(row), ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => '确认更新字典状态？',
+        }),
+        h(NPopconfirm, { disabled: !canMaintainDict(row), onPositiveClick: () => handleDelete(row) }, {
+          trigger: () => h(NButton, { disabled: !canMaintainDict(row), ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '确认删除该字典？',
+        }),
+      ]),
+  },
+])
 
-const itemTableOptions = useVxeTable<DictItemListItemDto>(
+const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
   {
-    columns: [
-      { title: '序号', type: 'seq', width: 60 },
-      { field: 'itemName', minWidth: 130, showOverflow: 'tooltip', sortable: true, title: '字典项名称' },
-      { field: 'itemCode', minWidth: 130, showOverflow: 'tooltip', title: '编码' },
-      { field: 'itemValue', minWidth: 100, showOverflow: 'tooltip', title: '值' },
-      {
-        field: 'isDefault',
-        slots: { default: 'col_item_default' },
-        title: '默认',
-        width: 70,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_item_status' },
-        title: '状态',
-        width: 80,
-      },
-      { field: 'sort', title: '排序', width: 70 },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_item_actions' },
-        title: '操作',
-        width: 128,
-      },
-    ],
-    id: 'sys_dict_item',
-    name: '字典项列表',
+    key: 'itemName',
+    title: '字典项名称',
+    minWidth: 130,
+    ellipsis: { tooltip: true },
+    sorter: true,
   },
   {
-    proxyConfig: {
-      autoLoad: false,
-      ajax: {
-        query: ({ page }) => handleItemQueryApi(page),
-      },
-    },
+    key: 'itemCode',
+    title: '编码',
+    minWidth: 130,
+    ellipsis: { tooltip: true },
   },
-)
+  {
+    key: 'itemValue',
+    title: '值',
+    minWidth: 100,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'isDefault',
+    title: '默认',
+    width: 70,
+    render: row =>
+      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => row.isDefault ? '是' : '否'),
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 80,
+    render: row =>
+      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
+  },
+  {
+    key: 'sort',
+    title: '排序',
+    width: 70,
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 128,
+    render: row =>
+      h(NSpace, { size: 'small' }, () => [
+        h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NPopconfirm, { onPositiveClick: () => handleItemToggleStatus(row) }, {
+          trigger: () => h(NButton, { ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => '确认更新字典项状态？',
+        }),
+        h(NPopconfirm, { onPositiveClick: () => handleItemDelete(row) }, {
+          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '确认删除该字典项？',
+        }),
+      ]),
+  },
+])
 
-// Dict grid search
+const dictTotalPages = computed(() => Math.max(1, Math.ceil(dictTotal.value / dictPageSize.value)))
+
+function handleDictPageChange(page: number) {
+  dictPage.value = page
+  fetchDictData()
+}
+
+function handleDictPageSizeChange(pageSize: number) {
+  dictPageSize.value = pageSize
+  dictPage.value = 1
+  fetchDictData()
+}
+
+const itemTotalPages = computed(() => Math.max(1, Math.ceil(itemTotal.value / itemPageSize.value)))
+
+function handleItemPageChange(page: number) {
+  itemPage.value = page
+  fetchItemData()
+}
+
+function handleItemPageSizeChange(pageSize: number) {
+  itemPageSize.value = pageSize
+  itemPage.value = 1
+  fetchItemData()
+}
+
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  dictPage.value = 1
+  fetchDictData()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.isBuiltIn = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  dictPage.value = 1
+  fetchDictData()
 }
 
-// Dict add/edit/view
 function handleAdd() {
   editingStatus.value = null
   dictForm.value = createDefaultDictForm()
@@ -355,9 +424,8 @@ async function handleView(row: DictListItemDto) {
   }
 
   itemQueryParams.keyword = ''
-  setTimeout(() => {
-    xItemGrid.value?.commitProxy('reload')
-  }, 200)
+  itemPage.value = 1
+  fetchItemData()
 }
 
 function validateDictForm() {
@@ -415,7 +483,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    xGrid.value?.commitProxy('query')
+    fetchDictData()
   }
   catch {
     message.error('保存失败')
@@ -428,7 +496,7 @@ async function handleSubmit() {
 async function handleDelete(row: DictListItemDto) {
   await dictManagementApi.delete(row.basicId)
   message.success('删除成功')
-  xGrid.value?.commitProxy('query')
+  fetchDictData()
 }
 
 async function handleToggleStatus(row: DictListItemDto) {
@@ -438,15 +506,14 @@ async function handleToggleStatus(row: DictListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  xGrid.value?.commitProxy('query')
+  fetchDictData()
 }
 
-// Dict item search
 function handleItemSearch() {
-  xItemGrid.value?.commitProxy('reload')
+  itemPage.value = 1
+  fetchItemData()
 }
 
-// Dict item add/edit
 function handleItemAdd() {
   itemEditingStatus.value = null
   itemForm.value = createDefaultDictItemForm()
@@ -531,7 +598,7 @@ async function handleItemSubmit() {
 
     message.success('保存成功')
     itemModalVisible.value = false
-    xItemGrid.value?.commitProxy('query')
+    fetchItemData()
   }
   catch {
     message.error('保存失败')
@@ -544,7 +611,7 @@ async function handleItemSubmit() {
 async function handleItemDelete(row: DictItemListItemDto) {
   await dictManagementApi.itemDelete(row.basicId)
   message.success('删除成功')
-  xItemGrid.value?.commitProxy('query')
+  fetchItemData()
 }
 
 async function handleItemToggleStatus(row: DictItemListItemDto) {
@@ -554,16 +621,20 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  xItemGrid.value?.commitProxy('query')
+  fetchItemData()
 }
+
+onMounted(() => {
+  fetchDictData()
+})
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索字典名称/编码/类型"
           style="width: 250px"
@@ -596,86 +667,44 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
+    <NCard class="flex-1" style="height: 0">
       <NSkeleton v-if="loading" :height="48" :repeat="5" text style="padding: 16px" />
-      <vxe-grid v-show="!loading" ref="xGrid" v-bind="tableOptions">
-        <template #toolbar_buttons>
+      <template v-if="!loading">
+        <div class="flex items-center mb-3">
           <NButton size="small" type="primary" @click="handleAdd">
             <template #icon>
               <NIcon><Icon icon="lucide:plus" /></NIcon>
             </template>
             新增字典
           </NButton>
-        </template>
+        </div>
+        <NDataTable
+          :columns="dictColumns"
+          :data="dictList"
+          :loading="dictLoading"
+          :max-height="500"
+          :row-key="(row: DictListItemDto) => row.basicId"
+          :scroll-x="1000"
+          size="small"
+          striped
+        />
+        <div class="flex justify-end p-2">
+          <NPagination
+            v-model:page="dictPage"
+            v-model:page-size="dictPageSize"
+            :item-count="dictTotal"
+            :page-count="dictTotalPages"
+            :page-sizes="[10, 20, 50, 100]"
+            show-size-picker
+            @update:page="handleDictPageChange"
+            @update:page-size="handleDictPageSizeChange"
+          />
+        </div>
+      </template>
+    </NCard>
 
-        <template #col_builtin="{ row }">
-          <NTag :type="row.isBuiltIn ? 'warning' : 'default'" round size="small">
-            {{ row.isBuiltIn ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ getOptionLabel(statusOptions, row.status) }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace size="small">
-            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-
-            <NButton
-              :disabled="!canMaintainDict(row)"
-              aria-label="编辑"
-              circle
-              quaternary
-              size="small"
-              type="primary"
-              @click="handleEdit(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:pencil" /></NIcon>
-              </template>
-            </NButton>
-
-            <NPopconfirm
-              :disabled="!canMaintainDict(row)"
-              @positive-click="handleToggleStatus(row)"
-            >
-              <template #trigger>
-                <NButton :disabled="!canMaintainDict(row)" aria-label="停用或启用" circle quaternary size="small" type="warning">
-                  <template #icon>
-                    <NIcon>
-                      <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check'" />
-                    </NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确认更新字典状态？
-            </NPopconfirm>
-
-            <NPopconfirm :disabled="!canMaintainDict(row)" @positive-click="handleDelete(row)">
-              <template #trigger>
-                <NButton :disabled="!canMaintainDict(row)" aria-label="删除" circle quaternary size="small" type="error">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确认删除该字典？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
-
-    <!-- Dict Detail Drawer -->
     <NDrawer v-model:show="detailVisible" :width="800">
       <NDrawerContent :title="`字典详情 - ${currentDict?.dictName ?? ''}`" closable>
         <NSpin :show="detailLoading">
@@ -723,8 +752,8 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
 
             <NSpace class="mb-3" vertical>
               <div class="flex gap-2 items-center">
-                <vxe-input
-                  v-model="itemQueryParams.keyword"
+                <NInput
+                  v-model:value="itemQueryParams.keyword"
                   clearable
                   placeholder="搜索字典项"
                   style="width: 220px"
@@ -742,64 +771,32 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
                 </NButton>
               </div>
             </NSpace>
-            <vxe-grid ref="xItemGrid" v-bind="itemTableOptions">
-              <template #col_item_default="{ row }">
-                <NTag :type="row.isDefault ? 'info' : 'default'" round size="small">
-                  {{ row.isDefault ? '是' : '否' }}
-                </NTag>
-              </template>
-              <template #col_item_status="{ row }">
-                <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-                  {{ getOptionLabel(statusOptions, row.status) }}
-                </NTag>
-              </template>
-              <template #col_item_actions="{ row }">
-                <NSpace size="small">
-                  <NButton
-                    aria-label="编辑"
-                    circle
-                    quaternary
-                    size="small"
-                    type="primary"
-                    @click="handleItemEdit(row)"
-                  >
-                    <template #icon>
-                      <NIcon><Icon icon="lucide:pencil" /></NIcon>
-                    </template>
-                  </NButton>
-
-                  <NPopconfirm @positive-click="handleItemToggleStatus(row)">
-                    <template #trigger>
-                      <NButton aria-label="停用或启用" circle quaternary size="small" type="warning">
-                        <template #icon>
-                          <NIcon>
-                            <Icon :icon="row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check'" />
-                          </NIcon>
-                        </template>
-                      </NButton>
-                    </template>
-                    确认更新字典项状态？
-                  </NPopconfirm>
-
-                  <NPopconfirm @positive-click="handleItemDelete(row)">
-                    <template #trigger>
-                      <NButton aria-label="删除" circle quaternary size="small" type="error">
-                        <template #icon>
-                          <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                        </template>
-                      </NButton>
-                    </template>
-                    确认删除该字典项？
-                  </NPopconfirm>
-                </NSpace>
-              </template>
-            </vxe-grid>
+            <NDataTable
+              :columns="itemColumns"
+              :data="itemList"
+              :loading="itemLoading"
+              :row-key="(row: DictItemListItemDto) => row.basicId"
+              :scroll-x="700"
+              size="small"
+              striped
+            />
+            <div class="flex justify-end p-2">
+              <NPagination
+                v-model:page="itemPage"
+                v-model:page-size="itemPageSize"
+                :item-count="itemTotal"
+                :page-count="itemTotalPages"
+                :page-sizes="[10, 20, 50, 100]"
+                show-size-picker
+                @update:page="handleItemPageChange"
+                @update:page-size="handleItemPageSizeChange"
+              />
+            </div>
           </NScrollbar>
         </NSpin>
       </NDrawerContent>
     </NDrawer>
 
-    <!-- Dict Edit/Create Modal -->
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -852,7 +849,6 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
       </template>
     </NModal>
 
-    <!-- Dict Item Edit/Create Modal -->
     <NModal
       v-model:show="itemModalVisible"
       :auto-focus="false"

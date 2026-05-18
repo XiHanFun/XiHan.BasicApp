@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type {
   ApiId,
   TenantCreateDto,
@@ -12,6 +12,8 @@ import type {
 } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDatePicker,
   NDescriptions,
   NDescriptionsItem,
@@ -24,6 +26,7 @@ import {
   NInput,
   NInputNumber,
   NModal,
+  NPagination,
   NScrollbar,
   NSelect,
   NSpace,
@@ -31,9 +34,10 @@ import {
   NTabPane,
   NTabs,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
@@ -45,7 +49,7 @@ import {
   TenantStatus,
   ValidityStatus,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import {
   MEMBER_INVITE_STATUS_OPTIONS,
   MEMBER_TYPE_OPTIONS,
@@ -54,15 +58,9 @@ import {
   TENANT_STATUS_OPTIONS,
   VALIDITY_STATUS_OPTIONS,
 } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformTenantPage' })
-
-interface TenantGridResult {
-  items: TenantListItemDto[]
-  total: number
-}
 
 interface TenantFormModel extends TenantCreateDto {
   basicId?: ApiId
@@ -70,7 +68,6 @@ interface TenantFormModel extends TenantCreateDto {
 }
 
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<TenantListItemDto>>()
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<TenantStatus | null>(null)
@@ -78,6 +75,11 @@ const tenantForm = ref<TenantFormModel>(createDefaultForm())
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<TenantDetailDto | null>(null)
+const tableLoading = ref(false)
+const dataList = ref<TenantListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const memberTypeOptions = MEMBER_TYPE_OPTIONS
 
@@ -112,6 +114,8 @@ const configStatusOptions = TENANT_CONFIG_STATUS_OPTIONS
 
 const isolationModeOptions = TENANT_ISOLATION_MODE_OPTIONS
 
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+
 const modalTitle = computed(() => (tenantForm.value.basicId ? '编辑租户' : '新增租户'))
 
 function createDefaultForm(): TenantFormModel {
@@ -137,13 +141,14 @@ function normalizeNullable(value?: string | null) {
   return normalized || null
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<TenantGridResult> {
-  return tenantManagementApi
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await tenantManagementApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: currentPage.value,
+          pageSize: pageSize.value,
         },
       }),
       configStatus: queryParams.configStatus,
@@ -153,88 +158,101 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       keyword: normalizeNullable(queryParams.keyword),
       tenantStatus: queryParams.tenantStatus,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询租户失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询租户失败')
+    dataList.value = []
+    totalCount.value = 0
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<TenantListItemDto>(
+const tableColumns = computed<DataTableColumns<TenantListItemDto>>(() => [
+  { key: 'tenantName', title: '租户名称', minWidth: 160, ellipsis: { tooltip: true }, sorter: true },
+  { key: 'tenantCode', title: '租户编码', minWidth: 150, ellipsis: { tooltip: true } },
+  { key: 'tenantShortName', title: '简称', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'domain', title: '域名', minWidth: 180, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'tenantName', minWidth: 160, showOverflow: 'tooltip', sortable: true, title: '租户名称' },
-      { field: 'tenantCode', minWidth: 150, showOverflow: 'tooltip', title: '租户编码' },
-      { field: 'tenantShortName', minWidth: 130, showOverflow: 'tooltip', title: '简称' },
-      { field: 'domain', minWidth: 180, showOverflow: 'tooltip', title: '域名' },
-      {
-        field: 'isolationMode',
-        formatter: ({ cellValue }) => getOptionLabel(isolationModeOptions, cellValue),
-        minWidth: 120,
-        title: '隔离模式',
-      },
-      { field: 'editionId', minWidth: 100, title: '版本' },
-      {
-        field: 'tenantStatus',
-        slots: { default: 'col_tenant_status' },
-        title: '租户状态',
-        width: 100,
-      },
-      {
-        field: 'configStatus',
-        formatter: ({ cellValue }) => getOptionLabel(configStatusOptions, cellValue),
-        minWidth: 110,
-        title: '配置状态',
-      },
-      {
-        field: 'isExpired',
-        slots: { default: 'col_expired' },
-        title: '过期',
-        width: 82,
-      },
-      { field: 'userLimit', minWidth: 100, title: '用户上限' },
-      { field: 'storageLimit', minWidth: 120, title: '存储上限' },
-      { field: 'sort', minWidth: 80, sortable: true, title: '排序' },
-      {
-        field: 'expireTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        title: '到期时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 106,
-      },
-    ],
-    id: 'sys_tenant',
-    name: '租户管理',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'isolationMode',
+    title: '隔离模式',
+    minWidth: 120,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(isolationModeOptions, row.isolationMode))
     },
   },
-)
+  { key: 'editionId', title: '版本', minWidth: 100 },
+  {
+    key: 'tenantStatus',
+    title: '租户状态',
+    width: 100,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: getTenantStatusTagType(row.tenantStatus), bordered: false }, () => getOptionLabel(tenantStatusOptions, row.tenantStatus))
+    },
+  },
+  {
+    key: 'configStatus',
+    title: '配置状态',
+    minWidth: 110,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(configStatusOptions, row.configStatus))
+    },
+  },
+  {
+    key: 'isExpired',
+    title: '过期',
+    width: 82,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.isExpired ? 'error' : 'success', bordered: false }, () => row.isExpired ? '是' : '否')
+    },
+  },
+  { key: 'userLimit', title: '用户上限', minWidth: 100 },
+  { key: 'storageLimit', title: '存储上限', minWidth: 120 },
+  { key: 'sort', title: '排序', minWidth: 80, sorter: true },
+  {
+    key: 'expireTime',
+    title: '到期时间',
+    minWidth: 170,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.expireTime ? formatDate(row.expireTime) : '-')
+    },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 106,
+    render(row) {
+      return h(NSpace, { size: 'small' }, () => [
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
+            }),
+          default: () => '查看详情',
+        }),
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })),
+            }),
+          default: () => '编辑',
+        }),
+      ])
+    },
+  },
+])
 
 function getTenantStatusTagType(status: TenantStatus) {
   if (status === TenantStatus.Normal) {
@@ -249,7 +267,8 @@ function getTenantStatusTagType(status: TenantStatus) {
 }
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
@@ -259,7 +278,19 @@ function handleReset() {
   queryParams.editionId = undefined
   queryParams.expireTimeStart = null
   queryParams.expireTimeEnd = null
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleAdd() {
@@ -479,7 +510,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    xGrid.value?.commitProxy('query')
+    fetchData()
   }
   catch {
     message.error('保存失败')
@@ -488,14 +519,16 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索租户名称/编码/域名"
           style="width: 250px"
@@ -550,47 +583,35 @@ async function handleSubmit() {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>
-            新增租户
-          </NButton>
-        </template>
-
-        <template #col_tenant_status="{ row }">
-          <NTag :type="getTenantStatusTagType(row.tenantStatus)" round size="small">
-            {{ getOptionLabel(tenantStatusOptions, row.tenantStatus) }}
-          </NTag>
-        </template>
-
-        <template #col_expired="{ row }">
-          <NTag :type="row.isExpired ? 'error' : 'success'" round size="small">
-            {{ row.isExpired ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace size="small">
-            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton aria-label="编辑" circle quaternary size="small" type="primary" @click="handleEdit(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:pencil" /></NIcon>
-              </template>
-            </NButton>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <div style="padding:10px 16px;flex-shrink:0;">
+        <NButton size="small" type="primary" @click="handleAdd">
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
+          </template>
+          新增租户
+        </NButton>
+      </div>
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="800">
       <NDrawerContent closable title="租户详情">
@@ -811,7 +832,6 @@ async function handleSubmit() {
       </template>
     </NModal>
 
-    <!-- 编辑成员资料 -->
     <NModal
       v-model:show="memberEditVisible"
       :auto-focus="false"
@@ -873,7 +893,6 @@ async function handleSubmit() {
       </template>
     </NModal>
 
-    <!-- 变更成员状态 -->
     <NModal
       v-model:show="memberStatusVisible"
       :auto-focus="false"

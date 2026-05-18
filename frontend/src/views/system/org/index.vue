@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { CascaderOption } from 'naive-ui'
-import type { VxeGridInstance } from 'vxe-table'
+import type { CascaderOption, DataTableColumns } from 'naive-ui'
 import type {
   ApiId,
   DepartmentCreateDto,
@@ -11,7 +10,9 @@ import type {
 } from '@/api'
 import {
   NButton,
+  NCard,
   NCascader,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -23,6 +24,7 @@ import {
   NInput,
   NInputNumber,
   NModal,
+  NPagination,
   NPopconfirm,
   NScrollbar,
   NSelect,
@@ -31,9 +33,10 @@ import {
   NTabPane,
   NTabs,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
@@ -41,9 +44,8 @@ import {
   EnableStatus,
   orgManagementApi,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemOrgPage' })
@@ -53,8 +55,11 @@ interface DeptFormModel extends DepartmentCreateDto {
 }
 
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<DepartmentListItemDto>>()
 const loading = ref(false)
+const dataList = ref<DepartmentListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const detailVisible = ref(false)
@@ -63,6 +68,7 @@ const currentDetail = ref<DepartmentDetailDto | null>(null)
 const deptForm = ref<DeptFormModel>(createDefaultForm())
 const tableData = ref<DepartmentListItemDto[]>([])
 const treeNodes = ref<DepartmentTreeNodeDto[]>([])
+const expandedKeys = ref<Set<ApiId>>(new Set())
 
 const queryParams = reactive({
   departmentType: undefined as DepartmentType | undefined,
@@ -76,7 +82,8 @@ const deptTypeOptions = DEPARTMENT_TYPE_OPTIONS
 
 const modalTitle = computed(() => (deptForm.value.basicId ? '编辑部门' : '新增部门'))
 
-/** 将树节点转换为 NCascader 选项 */
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+
 function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): CascaderOption[] {
   return nodes.map(node => ({
     children: node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
@@ -86,6 +93,34 @@ function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): CascaderOption[]
 }
 
 const cascaderOptions = computed(() => treeToCascaderOptions(treeNodes.value))
+
+interface DepartmentTreeItem extends DepartmentListItemDto {
+  children?: DepartmentTreeItem[]
+}
+
+function buildTree(items: DepartmentListItemDto[]): DepartmentTreeItem[] {
+  const map = new Map<ApiId, DepartmentTreeItem>()
+  const roots: DepartmentTreeItem[] = []
+
+  for (const item of items) {
+    map.set(item.basicId, { ...item, children: [] })
+  }
+
+  for (const item of items) {
+    const node = map.get(item.basicId)!
+    if (item.parentId && map.has(item.parentId)) {
+      const parent = map.get(item.parentId)!
+      parent.children!.push(node)
+    }
+    else {
+      roots.push(node)
+    }
+  }
+
+  return roots
+}
+
+const treeTableData = computed(() => buildTree(dataList.value))
 
 function createDefaultForm(): DeptFormModel {
   return {
@@ -157,70 +192,100 @@ async function loadTable() {
       status: queryParams.status,
     })
     tableData.value = result.items
+    dataList.value = result.items
+    totalCount.value = result.items.length
   }
   catch {
     message.error('查询部门失败')
     tableData.value = []
+    dataList.value = []
+    totalCount.value = 0
   }
   finally {
     loading.value = false
   }
 }
 
-onMounted(async () => {
-  await Promise.all([loadTree(), loadTable()])
-})
+function toggleExpand(key: ApiId) {
+  const set = new Set(expandedKeys.value)
+  if (set.has(key)) {
+    set.delete(key)
+  }
+  else {
+    set.add(key)
+  }
+  expandedKeys.value = set
+}
 
-const tableOptions = useVxeTable<DepartmentListItemDto>(
+const tableColumns = computed<DataTableColumns<DepartmentTreeItem>>(() => [
   {
-    data: [],
-    columns: [
-      { field: 'departmentName', minWidth: 200, showOverflow: 'tooltip', title: '部门名称', treeNode: true },
-      { field: 'departmentCode', minWidth: 130, showOverflow: 'tooltip', title: '部门编码' },
-      {
-        field: 'departmentType',
-        formatter: ({ cellValue }) => getOptionLabel(deptTypeOptions, cellValue),
-        minWidth: 100,
-        title: '类型',
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '状态',
-        width: 80,
-      },
-      { field: 'phone', minWidth: 130, showOverflow: 'tooltip', title: '电话' },
-      { field: 'email', minWidth: 180, showOverflow: 'tooltip', title: '邮箱' },
-      { field: 'sort', sortable: true, title: '排序', width: 80 },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 216,
-      },
-    ],
-    id: 'sys_department',
-    name: '部门管理',
-  },
-  {
-    pagerConfig: { enabled: false },
-    sortConfig: { remote: false },
-    treeConfig: {
-      expandAll: false,
-      parentField: 'parentId',
-      rowField: 'basicId',
-      transform: true,
+    key: 'departmentName',
+    title: '部门名称',
+    minWidth: 200,
+    ellipsis: { tooltip: true },
+    render(row) {
+      const hasChildren = row.children && row.children.length > 0
+      const isExpanded = expandedKeys.value.has(row.basicId)
+      const indent = h('span', { style: 'display:inline-block;width:16px;' })
+      const arrow = hasChildren
+        ? h(NIcon, { size: 14, style: 'cursor:pointer;vertical-align:middle;margin-right:4px;', onClick: () => toggleExpand(row.basicId) }, () => h(Icon, { icon: isExpanded ? 'lucide:chevron-down' : 'lucide:chevron-right' }))
+        : h('span', { style: 'display:inline-block;width:18px;' })
+      return h('span', {}, [indent, arrow, row.departmentName])
     },
   },
-)
+  { key: 'departmentCode', title: '部门编码', minWidth: 130, ellipsis: { tooltip: true } },
+  {
+    key: 'departmentType',
+    title: '类型',
+    minWidth: 100,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(deptTypeOptions, row.departmentType))
+    },
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 80,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => getOptionLabel(statusOptions, row.status))
+    },
+  },
+  { key: 'phone', title: '电话', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'email', title: '邮箱', minWidth: 180, ellipsis: { tooltip: true } },
+  { key: 'sort', title: '排序', width: 80, sorter: true },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 216,
+    render(row) {
+      return h(NSpace, { size: 'small' }, () => [
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
+            }),
+          default: () => '查看详情',
+        }),
+        h(NButton, { size: 'small', text: true, type: 'info', onClick: () => handleAdd(row.basicId) }, () => '新增子部门'),
+        h(NButton, { size: 'small', text: true, type: 'primary', onClick: () => handleEdit(row) }, () => '编辑'),
+        h(NPopconfirm, { onPositiveClick: () => handleToggleStatus(row) }, {
+          trigger: () =>
+            h(NButton, { type: row.status === EnableStatus.Enabled ? 'warning' : 'success', size: 'small', text: true }, () => row.status === EnableStatus.Enabled ? '禁用' : '启用'),
+          default: () => `确认${row.status === EnableStatus.Enabled ? '禁用' : '启用'}？`,
+        }),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
   void loadTable()
@@ -231,6 +296,15 @@ function handleReset() {
   queryParams.departmentType = undefined
   queryParams.status = undefined
   void loadTable()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
 }
 
 function handleAdd(parentId?: ApiId) {
@@ -363,101 +437,85 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
+
+onMounted(async () => {
+  await Promise.all([loadTree(), loadTable()])
+})
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
-      <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
-          clearable
-          placeholder="搜索部门名称/编码"
-          style="width: 220px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.departmentType"
-          :options="deptTypeOptions"
-          clearable
-          placeholder="部门类型"
-          style="width: 120px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="statusOptions"
-          clearable
-          placeholder="状态"
-          style="width: 100px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+      <NInput
+        v-model:value="queryParams.keyword"
+        clearable
+        placeholder="搜索部门名称/编码"
+        style="width: 220px"
+        @keyup.enter="handleSearch"
+      />
+      <NSelect
+        v-model:value="queryParams.departmentType"
+        :options="deptTypeOptions"
+        clearable
+        placeholder="部门类型"
+        style="width: 120px"
+      />
+      <NSelect
+        v-model:value="queryParams.status"
+        :options="statusOptions"
+        clearable
+        placeholder="状态"
+        style="width: 100px"
+      />
+      <NButton size="small" type="primary" @click="handleSearch">
+        <template #icon>
+          <NIcon><Icon icon="lucide:search" /></NIcon>
+        </template>
+        查询
+      </NButton>
+      <NButton size="small" @click="handleReset">
+        <template #icon>
+          <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+        </template>
+        重置
+      </NButton>
+    </div>
+
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <div style="padding:12px 16px;flex-shrink:0;">
+        <NButton size="small" type="primary" @click="handleAdd()">
           <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
           </template>
-          查询
+          新增部门
         </NButton>
-        <NButton size="small" @click="handleReset">
+        <NButton size="small" @click="loadTable">
           <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+            <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
           </template>
-          重置
+          刷新
         </NButton>
       </div>
-    </XSystemQueryPanel>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions" :data="tableData" :loading="loading">
-        <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd()">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>
-            新增部门
-          </NButton>
-          <NButton size="small" @click="loadTable">
-            <template #icon>
-              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-            </template>
-            刷新
-          </NButton>
-        </template>
+      <NDataTable
+        :columns="tableColumns"
+        :data="treeTableData"
+        :loading="loading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row: DepartmentListItemDto) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
 
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ getOptionLabel(statusOptions, row.status) }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace size="small">
-            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-
-            <NButton size="small" text type="info" @click="handleAdd(row.basicId)">
-              新增子部门
-            </NButton>
-            <NButton size="small" text type="primary" @click="handleEdit(row)">
-              编辑
-            </NButton>
-            <NPopconfirm @positive-click="handleToggleStatus(row)">
-              <template #trigger>
-                <NButton
-                  :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-                  size="small"
-                  text
-                >
-                  {{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}
-                </NButton>
-              </template>
-              确认{{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="820">
       <NDrawerContent closable title="部门详情">
