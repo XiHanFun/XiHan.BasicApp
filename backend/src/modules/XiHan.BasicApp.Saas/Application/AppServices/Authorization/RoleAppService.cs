@@ -52,7 +52,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.CreateRoleAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _roleDomainService.CreateRoleAsync(RoleApplicationMapper.ToCreateCommand(input), cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
@@ -66,7 +66,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.CreateRoleDataScopeAsync(ToGrantDataScopeCommand(input), cancellationToken);
+        var result = await _roleDomainService.CreateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToGrantCommand(input), cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
@@ -80,7 +80,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.CreateRoleHierarchyAsync(ToHierarchyCreateCommand(input), cancellationToken);
+        var result = await _roleDomainService.CreateRoleHierarchyAsync(RoleHierarchyApplicationMapper.ToCreateCommand(input), cancellationToken);
         return RoleHierarchyApplicationMapper.ToDetailDto(result.Hierarchy, result.Ancestor, result.Descendant);
     }
 
@@ -94,7 +94,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.CreateRolePermissionAsync(ToGrantPermissionCommand(input), cancellationToken);
+        var result = await _roleDomainService.CreateRolePermissionAsync(RolePermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -152,7 +152,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRoleAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _roleDomainService.UpdateRoleAsync(RoleApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
@@ -166,7 +166,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRoleDataScopeAsync(ToUpdateDataScopeCommand(input), cancellationToken);
+        var result = await _roleDomainService.UpdateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
@@ -180,7 +180,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRoleDataScopeStatusAsync(ToDataScopeStatusCommand(input), cancellationToken);
+        var result = await _roleDomainService.UpdateRoleDataScopeStatusAsync(RoleDataScopeApplicationMapper.ToStatusCommand(input), cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
@@ -194,7 +194,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRolePermissionAsync(ToUpdatePermissionCommand(input), cancellationToken);
+        var result = await _roleDomainService.UpdateRolePermissionAsync(RolePermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -208,7 +208,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRolePermissionStatusAsync(ToPermissionStatusCommand(input), cancellationToken);
+        var result = await _roleDomainService.UpdateRolePermissionStatusAsync(RolePermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -222,98 +222,8 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _roleDomainService.UpdateRoleStatusAsync(ToStatusCommand(input), cancellationToken);
+        var result = await _roleDomainService.UpdateRoleStatusAsync(RoleApplicationMapper.ToStatusCommand(input), cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
-    private static RoleCreateCommand ToCreateCommand(RoleCreateDto input)
-    {
-        return new RoleCreateCommand(
-            input.RoleCode,
-            input.RoleName,
-            input.RoleDescription,
-            input.RoleType,
-            input.DataScope,
-            input.MaxMembers,
-            input.Status,
-            input.Sort,
-            input.Remark);
-    }
-
-    private static RoleDataScopeStatusChangeCommand ToDataScopeStatusCommand(RoleDataScopeStatusUpdateDto input)
-    {
-        return new RoleDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static RoleDataScopeGrantCommand ToGrantDataScopeCommand(RoleDataScopeGrantDto input)
-    {
-        return new RoleDataScopeGrantCommand(
-            input.RoleId,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark);
-    }
-
-    private static RolePermissionGrantCommand ToGrantPermissionCommand(RolePermissionGrantDto input)
-    {
-        return new RolePermissionGrantCommand(
-            input.RoleId,
-            input.PermissionId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static RoleHierarchyCreateCommand ToHierarchyCreateCommand(RoleHierarchyCreateDto input)
-    {
-        return new RoleHierarchyCreateCommand(input.AncestorId, input.DescendantId, input.Remark);
-    }
-
-    private static RolePermissionStatusChangeCommand ToPermissionStatusCommand(RolePermissionStatusUpdateDto input)
-    {
-        return new RolePermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static RoleStatusChangeCommand ToStatusCommand(RoleStatusUpdateDto input)
-    {
-        return new RoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static RoleUpdateCommand ToUpdateCommand(RoleUpdateDto input)
-    {
-        return new RoleUpdateCommand(
-            input.BasicId,
-            input.RoleName,
-            input.RoleDescription,
-            input.RoleType,
-            input.DataScope,
-            input.MaxMembers,
-            input.Sort,
-            input.Remark);
-    }
-
-    private static RoleDataScopeUpdateCommand ToUpdateDataScopeCommand(RoleDataScopeUpdateDto input)
-    {
-        return new RoleDataScopeUpdateCommand(
-            input.BasicId,
-            input.IncludeChildren,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark);
-    }
-
-    private static RolePermissionUpdateCommand ToUpdatePermissionCommand(RolePermissionUpdateDto input)
-    {
-        return new RolePermissionUpdateCommand(
-            input.BasicId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
 }

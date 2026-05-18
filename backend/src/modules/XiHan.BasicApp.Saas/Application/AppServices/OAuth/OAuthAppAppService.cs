@@ -17,7 +17,6 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -53,8 +52,8 @@ public sealed class OAuthAppAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _oauthAppDomainService.CreateOAuthAppAsync(ToCreateCommand(input), cancellationToken);
-        return ToSecretDto(result.App);
+        var result = await _oauthAppDomainService.CreateOAuthAppAsync(OAuthAppApplicationMapper.ToCreateCommand(input), cancellationToken);
+        return OAuthAppApplicationMapper.ToSecretDto(result.App);
     }
 
     /// <summary>
@@ -78,7 +77,7 @@ public sealed class OAuthAppAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _oauthAppDomainService.RegenerateOAuthAppSecretAsync(id, cancellationToken);
-        return ToSecretDto(result.App);
+        return OAuthAppApplicationMapper.ToSecretDto(result.App);
     }
 
     /// <summary>
@@ -91,7 +90,7 @@ public sealed class OAuthAppAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _oauthAppDomainService.UpdateOAuthAppAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _oauthAppDomainService.UpdateOAuthAppAsync(OAuthAppApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return OAuthAppApplicationMapper.ToDetailDto(result.App);
     }
 
@@ -106,58 +105,8 @@ public sealed class OAuthAppAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _oauthAppDomainService.UpdateOAuthAppStatusAsync(
-            new OAuthAppStatusChangeCommand(input.BasicId, input.Status, input.Remark),
+            OAuthAppApplicationMapper.ToStatusCommand(input),
             cancellationToken);
         return OAuthAppApplicationMapper.ToDetailDto(result.App);
-    }
-
-    private static OAuthAppCreateCommand ToCreateCommand(OAuthAppCreateDto input)
-    {
-        return new OAuthAppCreateCommand(
-            input.AppName,
-            input.AppDescription,
-            input.ClientId,
-            input.ClientSecret,
-            input.AppType,
-            input.GrantTypes,
-            input.RedirectUris,
-            input.Scopes,
-            input.AccessTokenLifetime,
-            input.RefreshTokenLifetime,
-            input.AuthorizationCodeLifetime,
-            input.Logo,
-            input.Homepage,
-            input.SkipConsent,
-            input.Status,
-            input.Remark);
-    }
-
-    private static OAuthAppUpdateCommand ToUpdateCommand(OAuthAppUpdateDto input)
-    {
-        return new OAuthAppUpdateCommand(
-            input.BasicId,
-            input.AppName,
-            input.AppDescription,
-            input.AppType,
-            input.GrantTypes,
-            input.RedirectUris,
-            input.Scopes,
-            input.AccessTokenLifetime,
-            input.RefreshTokenLifetime,
-            input.AuthorizationCodeLifetime,
-            input.Logo,
-            input.Homepage,
-            input.SkipConsent,
-            input.Remark);
-    }
-
-    private static OAuthAppSecretDto ToSecretDto(SysOAuthApp app)
-    {
-        return new OAuthAppSecretDto
-        {
-            BasicId = app.BasicId,
-            ClientId = app.ClientId,
-            ClientSecret = app.ClientSecret
-        };
     }
 }

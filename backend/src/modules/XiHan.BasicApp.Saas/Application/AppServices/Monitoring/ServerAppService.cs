@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Dtos.Monitoring;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
 using XiHan.Framework.Utils.Diagnostics.HardwareInfos;
@@ -29,87 +30,85 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Monitoring;
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
 public class ServerAppService : ApplicationServiceBase
 {
+    private readonly IServerInfoQueryService _serverInfoQueryService;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ServerAppService(IServerInfoQueryService serverInfoQueryService)
+    {
+        _serverInfoQueryService = serverInfoQueryService;
+    }
+
     /// <summary>
     /// 获取主板信息
     /// </summary>
-    public Task<BoardInfo> GetBoardInfoAsync()
+    public async Task<BoardInfo> GetBoardInfoAsync()
     {
-        return Task.FromResult(BoardHelper.BoardInfos);
+        return await _serverInfoQueryService.GetBoardInfoAsync();
     }
 
     /// <summary>
     /// 获取 CPU 信息
     /// </summary>
-    public Task<CpuInfo> GetCpuInfoAsync()
+    public async Task<CpuInfo> GetCpuInfoAsync()
     {
-        return Task.FromResult(CpuHelper.CpuInfos);
+        return await _serverInfoQueryService.GetCpuInfoAsync();
     }
 
     /// <summary>
     /// 获取磁盘信息
     /// </summary>
-    public Task<List<DiskInfo>> GetDiskInfoAsync()
+    public async Task<List<DiskInfo>> GetDiskInfoAsync()
     {
-        return Task.FromResult(DiskHelper.DiskInfos);
+        return await _serverInfoQueryService.GetDiskInfoAsync();
     }
 
     /// <summary>
     /// 获取 GPU 信息
     /// </summary>
-    public Task<List<GpuInfo>> GetGpuInfoAsync()
+    public async Task<List<GpuInfo>> GetGpuInfoAsync()
     {
-        return Task.FromResult(GpuHelper.GpuInfos);
+        return await _serverInfoQueryService.GetGpuInfoAsync();
     }
 
     /// <summary>
     /// 获取内存信息
     /// </summary>
-    public Task<RamInfo> GetMemoryInfoAsync()
+    public async Task<RamInfo> GetMemoryInfoAsync()
     {
-        return Task.FromResult(RamHelper.RamInfos);
+        return await _serverInfoQueryService.GetMemoryInfoAsync();
     }
 
     /// <summary>
     /// 获取网卡信息
     /// </summary>
-    public Task<List<NetworkInfo>> GetNetworkInfoAsync()
+    public async Task<List<NetworkInfo>> GetNetworkInfoAsync()
     {
-        return Task.FromResult(NetworkHelper.NetworkInfos);
+        return await _serverInfoQueryService.GetNetworkInfoAsync();
     }
 
     /// <summary>
     /// 获取 NuGet 包信息
     /// </summary>
-    public Task<List<NuGetPackage>> GetNuGetPackagesAsync()
+    public async Task<List<NuGetPackage>> GetNuGetPackagesAsync()
     {
-        return Task.FromResult(ReflectionHelper.GetNuGetPackages("XiHan"));
+        return await _serverInfoQueryService.GetNuGetPackagesAsync();
     }
 
     /// <summary>
     /// 获取运行时信息
     /// </summary>
-    public Task<RuntimeInfo> GetRuntimeInfoAsync()
+    public async Task<RuntimeInfo> GetRuntimeInfoAsync()
     {
-        return Task.FromResult(OsPlatformHelper.RuntimeInfos);
+        return await _serverInfoQueryService.GetRuntimeInfoAsync();
     }
 
     /// <summary>
     /// 获取服务器综合信息
     /// </summary>
-    public Task<ServerInfoDto> GetServerInfoAsync(bool includeDisk = true, bool includeNetwork = true)
+    public async Task<ServerInfoDto> GetServerInfoAsync(bool includeDisk = true, bool includeNetwork = true)
     {
-        var result = new ServerInfoDto
-        {
-            RuntimeInfo = OsPlatformHelper.RuntimeInfos,
-            CpuInfo = CpuHelper.CpuInfos,
-            MemoryInfo = RamHelper.RamInfos,
-            DiskInfos = includeDisk ? [.. DiskHelper.DiskInfos] : [],
-            NetworkInfos = includeNetwork ? [.. NetworkHelper.NetworkInfos] : [],
-            BoardInfo = BoardHelper.BoardInfos,
-            GpuInfos = [.. GpuHelper.GpuInfos],
-            CollectedAt = DateTimeOffset.UtcNow
-        };
-
-        return Task.FromResult(result);
+        return await _serverInfoQueryService.GetServerInfoAsync(includeDisk, includeNetwork);
     }
 }

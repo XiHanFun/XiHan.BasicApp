@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,15 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class RoleHierarchyApplicationMapper
 {
+    /// <summary>
+    /// 映射角色继承创建命令
+    /// </summary>
+    public static RoleHierarchyCreateCommand ToCreateCommand(RoleHierarchyCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new RoleHierarchyCreateCommand(input.AncestorId, input.DescendantId, input.Remark);
+    }
+
     /// <summary>
     /// 映射角色继承列表项
     /// </summary>

@@ -77,6 +77,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPermissionConditionDomainService, PermissionConditionDomainService>();
         services.AddScoped<IPermissionDelegationDomainService, PermissionDelegationDomainService>();
         services.AddScoped<IPermissionRequestDomainService, PermissionRequestDomainService>();
+        services.AddScoped<IProfileDomainService, ProfileDomainService>();
         services.AddScoped<IDepartmentDomainService, DepartmentDomainService>();
         services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
         services.AddScoped<ITaskDomainService, TaskDomainService>();
@@ -106,6 +107,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageRecordQueryService, MessageRecordQueryService>();
         services.AddScoped<IUserInboxQueryService, UserInboxQueryService>();
         services.AddScoped<ISaasConfigValueQueryService, SaasConfigValueQueryService>();
+        services.AddScoped<IProfileQueryService, ProfileQueryService>();
+        services.AddScoped<IEnumMetadataQueryService, EnumMetadataQueryService>();
+        services.AddScoped<IServerInfoQueryService, ServerInfoQueryService>();
+        services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
+        services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
+        services.AddScoped<IFileTransferService, FileTransferService>();
+        services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
+        services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
+        services.AddScoped<ICacheManagementService, CacheManagementService>();
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
         return services;

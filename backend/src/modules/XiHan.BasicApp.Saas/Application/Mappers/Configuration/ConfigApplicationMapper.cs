@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,60 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class ConfigApplicationMapper
 {
+    /// <summary>
+    /// 映射系统配置创建命令
+    /// </summary>
+    public static ConfigCreateCommand ToCreateCommand(ConfigCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ConfigCreateCommand(
+            input.IsGlobal,
+            input.ConfigName,
+            input.ConfigGroup,
+            input.ConfigKey,
+            input.ConfigValue,
+            input.DefaultValue,
+            input.ConfigType,
+            input.DataType,
+            input.ConfigDescription,
+            input.IsEncrypted,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统配置更新命令
+    /// </summary>
+    public static ConfigUpdateCommand ToUpdateCommand(ConfigUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ConfigUpdateCommand(
+            input.BasicId,
+            input.ConfigName,
+            input.ConfigGroup,
+            input.ConfigValue,
+            input.DefaultValue,
+            input.ConfigType,
+            input.DataType,
+            input.ConfigDescription,
+            input.IsEncrypted,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统配置状态命令
+    /// </summary>
+    public static ConfigStatusChangeCommand ToStatusCommand(ConfigStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ConfigStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射系统配置列表项
     /// </summary>

@@ -52,7 +52,7 @@ public sealed class FieldLevelSecurityAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _fieldLevelSecurityDomainService.CreateAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _fieldLevelSecurityDomainService.CreateAsync(FieldLevelSecurityApplicationMapper.ToCreateCommand(input), cancellationToken);
         return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, result.Resource, result.TargetCode, result.TargetName);
     }
 
@@ -77,7 +77,7 @@ public sealed class FieldLevelSecurityAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _fieldLevelSecurityDomainService.UpdateAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _fieldLevelSecurityDomainService.UpdateAsync(FieldLevelSecurityApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, result.Resource, result.TargetCode, result.TargetName);
     }
 
@@ -91,46 +91,7 @@ public sealed class FieldLevelSecurityAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _fieldLevelSecurityDomainService.UpdateStatusAsync(ToStatusCommand(input), cancellationToken);
+        var result = await _fieldLevelSecurityDomainService.UpdateStatusAsync(FieldLevelSecurityApplicationMapper.ToStatusCommand(input), cancellationToken);
         return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, result.Resource, result.TargetCode, result.TargetName);
-    }
-
-    private static FieldLevelSecurityCreateCommand ToCreateCommand(FieldLevelSecurityCreateDto input)
-    {
-        return new FieldLevelSecurityCreateCommand(
-            input.TargetType,
-            input.TargetId,
-            input.ResourceId,
-            input.FieldName,
-            input.IsReadable,
-            input.IsEditable,
-            input.MaskStrategy,
-            input.MaskPattern,
-            input.Priority,
-            input.Description,
-            input.Status,
-            input.Remark);
-    }
-
-    private static FieldLevelSecurityUpdateCommand ToUpdateCommand(FieldLevelSecurityUpdateDto input)
-    {
-        return new FieldLevelSecurityUpdateCommand(
-            input.BasicId,
-            input.TargetType,
-            input.TargetId,
-            input.ResourceId,
-            input.FieldName,
-            input.IsReadable,
-            input.IsEditable,
-            input.MaskStrategy,
-            input.MaskPattern,
-            input.Priority,
-            input.Description,
-            input.Remark);
-    }
-
-    private static FieldLevelSecurityStatusChangeCommand ToStatusCommand(FieldLevelSecurityStatusUpdateDto input)
-    {
-        return new FieldLevelSecurityStatusChangeCommand(input.BasicId, input.Status, input.Remark);
     }
 }

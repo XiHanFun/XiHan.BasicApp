@@ -14,8 +14,6 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
@@ -24,7 +22,6 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Application.Attributes;
-using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
@@ -47,6 +44,8 @@ public sealed class AuthAppService
 
     private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
 
+    private readonly IAuthTokenIssueService _authTokenIssueService;
+
     private readonly IClientInfoProvider _clientInfoProvider;
 
     private readonly ICurrentTenant _currentTenant;
@@ -54,8 +53,6 @@ public sealed class AuthAppService
     private readonly ICurrentUser _currentUser;
 
     private readonly IHttpContextAccessor _httpContextAccessor;
-
-    private readonly IJwtTokenService _jwtTokenService;
 
     private readonly ILocalEventBus _localEventBus;
 
@@ -75,7 +72,7 @@ public sealed class AuthAppService
         IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
         IMenuRouteQueryService menuRouteQueryService,
         ISaasConfigurationService saasConfigurationService,
-        IJwtTokenService jwtTokenService,
+        IAuthTokenIssueService authTokenIssueService,
         ILocalEventBus localEventBus,
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
@@ -88,7 +85,7 @@ public sealed class AuthAppService
         _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
         _menuRouteQueryService = menuRouteQueryService;
         _saasConfigurationService = saasConfigurationService;
-        _jwtTokenService = jwtTokenService;
+        _authTokenIssueService = authTokenIssueService;
         _localEventBus = localEventBus;
         _currentTenant = currentTenant;
         _currentUser = currentUser;
@@ -190,16 +187,22 @@ public sealed class AuthAppService
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
 
-        // 生成包含应用级声明的 JWT
-        var claims = BuildClaims(user, effectiveTenantId, sessionBusinessId, accessTokenJti, authSnapshot.Roles, authSnapshot.Permissions, input.DeviceId);
-        var tokenResult = _jwtTokenService.GenerateAccessToken(claims);
+        var tokenIssue = _authTokenIssueService.IssueAccessToken(
+            new AuthAccessTokenIssueCommand(
+                user,
+                effectiveTenantId,
+                sessionBusinessId,
+                accessTokenJti,
+                authSnapshot.Roles,
+                authSnapshot.Permissions,
+                input.DeviceId));
         var sessionResult = await _loginSessionDomainService.IssuePasswordLoginAsync(
             user,
             security,
             effectiveTenantId,
             sessionBusinessId,
             accessTokenJti,
-            tokenResult,
+            tokenIssue.TokenResult,
             input.DeviceId,
             client,
             now,
@@ -224,7 +227,7 @@ public sealed class AuthAppService
         return new LoginResponseDto
         {
             RequiresTwoFactor = false,
-            Token = ToLoginTokenDto(tokenResult)
+            Token = tokenIssue.Token
         };
     }
 
@@ -280,9 +283,7 @@ public sealed class AuthAppService
             throw new InvalidOperationException("刷新令牌参数不完整。");
         }
 
-        var tokenResult = _jwtTokenService.RefreshAccessToken(input.AccessToken.Trim(), input.RefreshToken.Trim())
-            ?? throw new InvalidOperationException("刷新令牌无效或已过期。");
-        return Task.FromResult(ToLoginTokenDto(tokenResult));
+        return Task.FromResult(_authTokenIssueService.RefreshAccessToken(input.AccessToken, input.RefreshToken));
     }
 
     private static LoginResponseDto BuildTwoFactorChallenge(SysUserSecurity security)
@@ -296,17 +297,6 @@ public sealed class AuthAppService
             CodeSent = false,
             Token = null
         };
-    }
-
-    private static string? NormalizeNullable(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
     }
 
     private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
@@ -346,84 +336,4 @@ public sealed class AuthAppService
         return methods.Count == 0 ? ["totp"] : methods;
     }
 
-    private static LoginTokenDto ToLoginTokenDto(JwtTokenResult tokenResult)
-    {
-        return new LoginTokenDto
-        {
-            AccessToken = tokenResult.AccessToken,
-            RefreshToken = tokenResult.RefreshToken,
-            TokenType = tokenResult.TokenType,
-            ExpiresIn = tokenResult.ExpiresIn,
-            IssuedAt = tokenResult.IssuedAt,
-            ExpiresAt = tokenResult.ExpiresAt
-        };
-    }
-
-    private List<Claim> BuildClaims(
-        SysUser user,
-        long? tenantId,
-        string sessionBusinessId,
-        string accessTokenJti,
-        IReadOnlyCollection<string> roles,
-        IReadOnlyCollection<string> permissions,
-        string? deviceId)
-    {
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.BasicId.ToString()),
-            new(JwtRegisteredClaimNames.Jti, accessTokenJti),
-            new(XiHanClaimTypes.UserId, user.BasicId.ToString()),
-            new(XiHanClaimTypes.UserName, user.UserName),
-            new(XiHanClaimTypes.SessionId, sessionBusinessId)
-        };
-
-        if (tenantId.HasValue)
-        {
-            claims.Add(new Claim(XiHanClaimTypes.TenantId, tenantId.Value.ToString()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Email))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Email, user.Email));
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Phone))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.PhoneNumber, user.Phone));
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Avatar))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Picture, user.Avatar));
-        }
-
-        var normalizedDeviceId = NormalizeNullable(deviceId, 200);
-        if (!string.IsNullOrWhiteSpace(normalizedDeviceId))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.DeviceFingerprint, normalizedDeviceId));
-        }
-
-        foreach (var role in roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Role, role));
-        }
-
-        var permissionClaims = permissions
-            .Where(permission => !string.IsNullOrWhiteSpace(permission))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        if (permissionClaims.Contains("*", StringComparer.OrdinalIgnoreCase))
-        {
-            claims.Add(new Claim(XiHanClaimTypes.Permission, "*"));
-        }
-        else
-        {
-            foreach (var permission in permissionClaims)
-            {
-                claims.Add(new Claim(XiHanClaimTypes.Permission, permission));
-            }
-        }
-
-        return claims;
-    }
 }

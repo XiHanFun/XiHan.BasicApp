@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,83 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class OAuthAppApplicationMapper
 {
+    /// <summary>
+    /// 映射 OAuth 应用创建命令
+    /// </summary>
+    public static OAuthAppCreateCommand ToCreateCommand(OAuthAppCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new OAuthAppCreateCommand(
+            input.AppName,
+            input.AppDescription,
+            input.ClientId,
+            input.ClientSecret,
+            input.AppType,
+            input.GrantTypes,
+            input.RedirectUris,
+            input.Scopes,
+            input.AccessTokenLifetime,
+            input.RefreshTokenLifetime,
+            input.AuthorizationCodeLifetime,
+            input.Logo,
+            input.Homepage,
+            input.SkipConsent,
+            input.Status,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射 OAuth 应用更新命令
+    /// </summary>
+    public static OAuthAppUpdateCommand ToUpdateCommand(OAuthAppUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new OAuthAppUpdateCommand(
+            input.BasicId,
+            input.AppName,
+            input.AppDescription,
+            input.AppType,
+            input.GrantTypes,
+            input.RedirectUris,
+            input.Scopes,
+            input.AccessTokenLifetime,
+            input.RefreshTokenLifetime,
+            input.AuthorizationCodeLifetime,
+            input.Logo,
+            input.Homepage,
+            input.SkipConsent,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射 OAuth 应用状态命令
+    /// </summary>
+    public static OAuthAppStatusChangeCommand ToStatusCommand(OAuthAppStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new OAuthAppStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射 OAuth 应用密钥响应
+    /// </summary>
+    /// <param name="app">OAuth 应用实体</param>
+    /// <returns>OAuth 应用密钥 DTO</returns>
+    public static OAuthAppSecretDto ToSecretDto(SysOAuthApp app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        return new OAuthAppSecretDto
+        {
+            BasicId = app.BasicId,
+            ClientId = app.ClientId,
+            ClientSecret = app.ClientSecret
+        };
+    }
+
     /// <summary>
     /// 映射 OAuth 应用列表项
     /// </summary>

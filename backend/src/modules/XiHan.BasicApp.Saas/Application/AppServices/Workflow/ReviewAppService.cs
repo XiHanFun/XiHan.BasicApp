@@ -57,7 +57,9 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _reviewDomainService.AuditReviewAsync(ToAuditCommand(input), cancellationToken);
+        var result = await _reviewDomainService.AuditReviewAsync(
+            ReviewApplicationMapper.ToAuditCommand(input, _currentUser.UserId),
+            cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);
     }
 
@@ -71,7 +73,9 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _reviewDomainService.CreateReviewAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _reviewDomainService.CreateReviewAsync(
+            ReviewApplicationMapper.ToCreateCommand(input, _currentUser.UserId),
+            cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);
     }
 
@@ -96,7 +100,7 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _reviewDomainService.UpdateReviewAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _reviewDomainService.UpdateReviewAsync(ReviewApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);
     }
 
@@ -110,9 +114,7 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _reviewDomainService.UpdateReviewStatusAsync(
-            new ReviewStatusChangeCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _reviewDomainService.UpdateReviewStatusAsync(ReviewApplicationMapper.ToStatusCommand(input), cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);
     }
 
@@ -126,79 +128,7 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _reviewDomainService.WithdrawReviewAsync(
-            new ReviewWithdrawCommand(input.BasicId, input.Reason, input.WithdrawTime),
-            cancellationToken);
+        var result = await _reviewDomainService.WithdrawReviewAsync(ReviewApplicationMapper.ToWithdrawCommand(input), cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);
-    }
-
-    private ReviewAuditCommand ToAuditCommand(ReviewAuditDto input)
-    {
-        return new ReviewAuditCommand(
-            input.BasicId,
-            input.ReviewResult,
-            input.ReviewUserId,
-            input.NextReviewUserId,
-            input.ReviewComment,
-            input.ReviewAction,
-            input.ReviewTime,
-            input.Attachments,
-            input.ExtendData,
-            input.Remark,
-            _currentUser.UserId);
-    }
-
-    private ReviewCreateCommand ToCreateCommand(ReviewCreateDto input)
-    {
-        return new ReviewCreateCommand(
-            input.ReviewCode,
-            input.ReviewTitle,
-            input.ReviewType,
-            input.ReviewContent,
-            input.ReviewDescription,
-            input.EntityType,
-            input.EntityId,
-            input.BusinessData,
-            input.ReviewStatus,
-            input.ReviewResult,
-            input.Priority,
-            input.SubmitUserId,
-            input.SubmitTime,
-            input.CurrentReviewUserId,
-            input.ReviewUserIds,
-            input.ReviewLevel,
-            input.CurrentLevel,
-            input.ReviewStartTime,
-            input.ReviewEndTime,
-            input.Attachments,
-            input.ExtendData,
-            input.Status,
-            input.Remark,
-            _currentUser.UserId);
-    }
-
-    private static ReviewUpdateCommand ToUpdateCommand(ReviewUpdateDto input)
-    {
-        return new ReviewUpdateCommand(
-            input.BasicId,
-            input.ReviewTitle,
-            input.ReviewType,
-            input.ReviewContent,
-            input.ReviewDescription,
-            input.EntityType,
-            input.EntityId,
-            input.BusinessData,
-            input.Priority,
-            input.SubmitUserId,
-            input.SubmitTime,
-            input.CurrentReviewUserId,
-            input.ReviewUserIds,
-            input.ReviewLevel,
-            input.CurrentLevel,
-            input.ReviewStartTime,
-            input.ReviewEndTime,
-            input.Attachments,
-            input.ExtendData,
-            input.Remark);
     }
 }

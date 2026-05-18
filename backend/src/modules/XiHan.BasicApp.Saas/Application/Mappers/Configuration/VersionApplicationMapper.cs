@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,59 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class VersionApplicationMapper
 {
+    /// <summary>
+    /// 映射系统版本创建命令
+    /// </summary>
+    public static VersionCreateCommand ToCreateCommand(VersionCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new VersionCreateCommand(
+            input.AppVersion,
+            input.DbVersion,
+            input.MinSupportVersion,
+            input.IsUpgrading,
+            input.UpgradeNode,
+            input.UpgradeStartTime);
+    }
+
+    /// <summary>
+    /// 映射系统版本更新命令
+    /// </summary>
+    public static VersionUpdateCommand ToUpdateCommand(VersionUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new VersionUpdateCommand(
+            input.BasicId,
+            input.AppVersion,
+            input.DbVersion,
+            input.MinSupportVersion,
+            input.IsUpgrading,
+            input.UpgradeNode,
+            input.UpgradeStartTime);
+    }
+
+    /// <summary>
+    /// 映射系统升级开始命令
+    /// </summary>
+    public static VersionUpgradeStartCommand ToUpgradeStartCommand(VersionUpgradeStartDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new VersionUpgradeStartCommand(input.BasicId, input.UpgradeNode, input.UpgradeStartTime);
+    }
+
+    /// <summary>
+    /// 映射系统升级完成命令
+    /// </summary>
+    public static VersionUpgradeFinishCommand ToUpgradeFinishCommand(VersionUpgradeFinishDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new VersionUpgradeFinishCommand(input.BasicId, input.AppVersion, input.DbVersion, input.MinSupportVersion);
+    }
+
     /// <summary>
     /// 映射系统版本列表项
     /// </summary>

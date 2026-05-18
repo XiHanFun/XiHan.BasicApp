@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,40 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class TaskApplicationMapper
 {
+    /// <summary>
+    /// 映射系统任务创建命令
+    /// </summary>
+    public static TaskCreateCommand ToCreateCommand(TaskCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TaskCreateCommand(
+            input.TaskCode,
+            input.TaskName,
+            input.TaskDescription,
+            input.TaskGroup,
+            input.TaskClass,
+            input.TaskMethod,
+            input.TaskParams,
+            input.TriggerType,
+            input.CronExpression,
+            input.StartTime,
+            input.EndTime,
+            input.NextRunTime,
+            input.LastRunTime,
+            input.IntervalSeconds,
+            input.RepeatCount,
+            input.ExecutedCount,
+            input.TimeoutSeconds,
+            input.RunTaskStatus,
+            input.Priority,
+            input.AllowConcurrent,
+            input.RetryCount,
+            input.MaxRetryCount,
+            input.Status,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射系统任务列表项
     /// </summary>
@@ -103,5 +138,63 @@ public static class TaskApplicationMapper
             ModifiedBy = task.ModifiedBy,
             Remark = task.Remark
         };
+    }
+
+    /// <summary>
+    /// 映射系统任务运行状态变更命令
+    /// </summary>
+    public static TaskRunStatusChangeCommand ToRunStatusCommand(TaskRunStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TaskRunStatusChangeCommand(
+            input.BasicId,
+            input.RunTaskStatus,
+            input.NextRunTime,
+            input.LastRunTime,
+            input.ExecutedCount,
+            input.RetryCount,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统任务启停状态变更命令
+    /// </summary>
+    public static TaskStatusChangeCommand ToStatusCommand(TaskStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new TaskStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统任务更新命令
+    /// </summary>
+    public static TaskUpdateCommand ToUpdateCommand(TaskUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TaskUpdateCommand(
+            input.BasicId,
+            input.TaskName,
+            input.TaskDescription,
+            input.TaskGroup,
+            input.TaskClass,
+            input.TaskMethod,
+            input.TaskParams,
+            input.TriggerType,
+            input.CronExpression,
+            input.StartTime,
+            input.EndTime,
+            input.NextRunTime,
+            input.LastRunTime,
+            input.IntervalSeconds,
+            input.RepeatCount,
+            input.ExecutedCount,
+            input.TimeoutSeconds,
+            input.Priority,
+            input.AllowConcurrent,
+            input.RetryCount,
+            input.MaxRetryCount,
+            input.Remark);
     }
 }

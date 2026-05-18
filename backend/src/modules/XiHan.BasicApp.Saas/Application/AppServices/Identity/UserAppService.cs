@@ -66,7 +66,9 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.CreateUserAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _userDomainService.CreateUserAsync(
+            UserApplicationMapper.ToCreateCommand(input, _currentUser.UserId),
+            cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
     }
 
@@ -91,7 +93,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserAsync(UserApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
     }
 
@@ -105,7 +107,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserStatusAsync(ToStatusCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserStatusAsync(UserApplicationMapper.ToStatusCommand(input), cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
     }
 
@@ -123,7 +125,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.ResetUserPasswordAsync(ToPasswordResetCommand(input), cancellationToken);
+        var result = await _userDomainService.ResetUserPasswordAsync(UserSecurityApplicationMapper.ToPasswordResetCommand(input), cancellationToken);
         return UserSecurityApplicationMapper.ToDetailDto(result.Security, result.User, result.Now);
     }
 
@@ -137,7 +139,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserLockAsync(ToLockCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserLockAsync(UserSecurityApplicationMapper.ToLockCommand(input), cancellationToken);
         return UserSecurityApplicationMapper.ToDetailDto(result.Security, result.User, result.Now);
     }
 
@@ -151,7 +153,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserLoginPolicyAsync(ToLoginPolicyCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserLoginPolicyAsync(UserSecurityApplicationMapper.ToLoginPolicyCommand(input), cancellationToken);
         return UserSecurityApplicationMapper.ToDetailDto(result.Security, result.User, result.Now);
     }
 
@@ -169,7 +171,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.CreateUserRoleAsync(ToRoleGrantCommand(input), cancellationToken);
+        var result = await _userDomainService.CreateUserRoleAsync(UserRoleApplicationMapper.ToGrantCommand(input), cancellationToken);
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 
@@ -194,7 +196,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserRoleAsync(ToRoleUpdateCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserRoleAsync(UserRoleApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 
@@ -208,7 +210,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserRoleStatusAsync(ToRoleStatusCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserRoleStatusAsync(UserRoleApplicationMapper.ToStatusCommand(input), cancellationToken);
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 
@@ -226,7 +228,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.CreateUserPermissionAsync(ToPermissionGrantCommand(input), cancellationToken);
+        var result = await _userDomainService.CreateUserPermissionAsync(UserPermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
@@ -251,7 +253,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserPermissionAsync(ToPermissionUpdateCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserPermissionAsync(UserPermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
@@ -265,7 +267,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserPermissionStatusAsync(ToPermissionStatusCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserPermissionStatusAsync(UserPermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
@@ -283,7 +285,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.CreateUserDataScopeAsync(ToDataScopeGrantCommand(input), cancellationToken);
+        var result = await _userDomainService.CreateUserDataScopeAsync(UserDataScopeApplicationMapper.ToGrantCommand(input), cancellationToken);
         return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
     }
 
@@ -308,7 +310,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserDataScopeAsync(ToDataScopeUpdateCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserDataScopeAsync(UserDataScopeApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
     }
 
@@ -322,7 +324,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserDataScopeStatusAsync(ToDataScopeStatusCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserDataScopeStatusAsync(UserDataScopeApplicationMapper.ToStatusCommand(input), cancellationToken);
         return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
     }
 
@@ -340,7 +342,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.CreateUserDepartmentAsync(ToDepartmentAssignCommand(input), cancellationToken);
+        var result = await _userDomainService.CreateUserDepartmentAsync(UserDepartmentApplicationMapper.ToAssignCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
     }
 
@@ -365,7 +367,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserDepartmentAsync(ToDepartmentUpdateCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserDepartmentAsync(UserDepartmentApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
     }
 
@@ -379,7 +381,7 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.UpdateUserDepartmentStatusAsync(ToDepartmentStatusCommand(input), cancellationToken);
+        var result = await _userDomainService.UpdateUserDepartmentStatusAsync(UserDepartmentApplicationMapper.ToStatusCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
     }
 
@@ -397,7 +399,9 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.RevokeUserSessionAsync(ToSessionRevokeCommand(input), cancellationToken);
+        var result = await _userDomainService.RevokeUserSessionAsync(
+            UserSessionApplicationMapper.ToRevokeCommand(input, _currentUser.UserId),
+            cancellationToken);
         await PublishDomainEventAsync(result.DomainEvent, cancellationToken);
         return UserSessionApplicationMapper.ToDetailDto(result.Session, result.User, result.Now);
     }
@@ -412,143 +416,14 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userDomainService.RevokeUserSessionsAsync(ToSessionsRevokeCommand(input), cancellationToken);
+        var result = await _userDomainService.RevokeUserSessionsAsync(
+            UserSessionApplicationMapper.ToRevokeAllCommand(input, _currentUser.UserId),
+            cancellationToken);
         await PublishDomainEventAsync(result.DomainEvent, cancellationToken);
         return result.Count;
     }
 
     #endregion
-
-    private static UserDataScopeGrantCommand ToDataScopeGrantCommand(UserDataScopeGrantDto input)
-    {
-        return new UserDataScopeGrantCommand(
-            input.UserId,
-            input.DataScope,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.Remark);
-    }
-
-    private static UserDataScopeStatusChangeCommand ToDataScopeStatusCommand(UserDataScopeStatusUpdateDto input)
-    {
-        return new UserDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserDataScopeUpdateCommand ToDataScopeUpdateCommand(UserDataScopeUpdateDto input)
-    {
-        return new UserDataScopeUpdateCommand(
-            input.BasicId,
-            input.DataScope,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.Remark);
-    }
-
-    private static UserDepartmentAssignCommand ToDepartmentAssignCommand(UserDepartmentAssignDto input)
-    {
-        return new UserDepartmentAssignCommand(input.UserId, input.DepartmentId, input.IsMain, input.Remark);
-    }
-
-    private static UserDepartmentStatusChangeCommand ToDepartmentStatusCommand(UserDepartmentStatusUpdateDto input)
-    {
-        return new UserDepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserDepartmentUpdateCommand ToDepartmentUpdateCommand(UserDepartmentUpdateDto input)
-    {
-        return new UserDepartmentUpdateCommand(input.BasicId, input.IsMain, input.Remark);
-    }
-
-    private static UserLockChangeCommand ToLockCommand(UserLockUpdateDto input)
-    {
-        return new UserLockChangeCommand(input.UserId, input.IsLocked, input.LockoutEndTime, input.Remark);
-    }
-
-    private static UserLoginPolicyUpdateCommand ToLoginPolicyCommand(UserLoginPolicyUpdateDto input)
-    {
-        return new UserLoginPolicyUpdateCommand(input.UserId, input.AllowMultiLogin, input.MaxLoginDevices, input.Remark);
-    }
-
-    private static UserPasswordResetCommand ToPasswordResetCommand(UserPasswordResetDto input)
-    {
-        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpiryTime, input.Remark);
-    }
-
-    private static UserPermissionGrantCommand ToPermissionGrantCommand(UserPermissionGrantDto input)
-    {
-        return new UserPermissionGrantCommand(
-            input.UserId,
-            input.PermissionId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserPermissionStatusChangeCommand ToPermissionStatusCommand(UserPermissionStatusUpdateDto input)
-    {
-        return new UserPermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserPermissionUpdateCommand ToPermissionUpdateCommand(UserPermissionUpdateDto input)
-    {
-        return new UserPermissionUpdateCommand(
-            input.BasicId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserRoleGrantCommand ToRoleGrantCommand(UserRoleGrantDto input)
-    {
-        return new UserRoleGrantCommand(
-            input.UserId,
-            input.RoleId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserRoleStatusChangeCommand ToRoleStatusCommand(UserRoleStatusUpdateDto input)
-    {
-        return new UserRoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserRoleUpdateCommand ToRoleUpdateCommand(UserRoleUpdateDto input)
-    {
-        return new UserRoleUpdateCommand(
-            input.BasicId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    private static UserStatusChangeCommand ToStatusCommand(UserStatusUpdateDto input)
-    {
-        return new UserStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static UserUpdateCommand ToUpdateCommand(UserUpdateDto input)
-    {
-        return new UserUpdateCommand(
-            input.BasicId,
-            input.RealName,
-            input.NickName,
-            input.Avatar,
-            input.Email,
-            input.Phone,
-            input.Gender,
-            input.Birthday,
-            input.TimeZone,
-            input.Language,
-            input.Country,
-            input.Remark);
-    }
 
     private async Task PublishDomainEventAsync(UserSessionRevokedDomainEvent? domainEvent, CancellationToken cancellationToken)
     {
@@ -561,38 +436,4 @@ public sealed class UserAppService
         await _localEventBus.PublishAsync(domainEvent);
     }
 
-    private UserCreateCommand ToCreateCommand(UserCreateDto input)
-    {
-        return new UserCreateCommand(
-            input.UserName,
-            input.InitialPassword,
-            input.RealName,
-            input.NickName,
-            input.Avatar,
-            input.Email,
-            input.Phone,
-            input.Gender,
-            input.Birthday,
-            input.Status,
-            input.TimeZone,
-            input.Language,
-            input.Country,
-            input.MemberType,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.DisplayName,
-            input.InviteRemark,
-            input.Remark,
-            _currentUser.UserId);
-    }
-
-    private UserSessionRevokeCommand ToSessionRevokeCommand(UserSessionRevokeDto input)
-    {
-        return new UserSessionRevokeCommand(input.BasicId, input.Reason, _currentUser.UserId);
-    }
-
-    private UserSessionsRevokeCommand ToSessionsRevokeCommand(UserSessionsRevokeDto input)
-    {
-        return new UserSessionsRevokeCommand(input.UserId, input.Reason, _currentUser.UserId);
-    }
 }

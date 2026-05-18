@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,43 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class TenantMemberApplicationMapper
 {
+    /// <summary>
+    /// 映射租户成员更新命令
+    /// </summary>
+    public static TenantMemberUpdateCommand ToUpdateCommand(TenantMemberUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantMemberUpdateCommand(
+            input.BasicId,
+            input.MemberType,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.DisplayName,
+            input.InviteRemark,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射租户成员邀请状态命令
+    /// </summary>
+    public static TenantMemberInviteStatusChangeCommand ToInviteStatusCommand(TenantMemberInviteStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantMemberInviteStatusChangeCommand(input.BasicId, input.InviteStatus, input.InviteRemark);
+    }
+
+    /// <summary>
+    /// 映射租户成员状态命令
+    /// </summary>
+    public static TenantMemberStatusChangeCommand ToStatusCommand(TenantMemberStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantMemberStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射租户成员列表项
     /// </summary>

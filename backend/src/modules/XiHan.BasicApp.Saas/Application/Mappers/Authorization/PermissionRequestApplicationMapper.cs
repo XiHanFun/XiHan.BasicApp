@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,23 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class PermissionRequestApplicationMapper
 {
+    /// <summary>
+    /// 映射权限申请创建命令
+    /// </summary>
+    public static PermissionRequestCreateCommand ToCreateCommand(PermissionRequestCreateDto input, long requestUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionRequestCreateCommand(
+            requestUserId,
+            input.PermissionId,
+            input.RoleId,
+            input.RequestReason,
+            input.ExpectedEffectiveTime,
+            input.ExpectedExpirationTime,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射权限申请列表项
     /// </summary>
@@ -108,5 +126,38 @@ public static class PermissionRequestApplicationMapper
             ModifiedId = request.ModifiedId,
             ModifiedBy = request.ModifiedBy
         };
+    }
+
+    /// <summary>
+    /// 映射权限申请状态变更命令
+    /// </summary>
+    public static PermissionRequestStatusCommand ToStatusCommand(PermissionRequestStatusUpdateDto input, long reviewUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionRequestStatusCommand(
+            input.BasicId,
+            reviewUserId,
+            input.RequestStatus,
+            input.ReviewId,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射权限申请更新命令
+    /// </summary>
+    public static PermissionRequestUpdateCommand ToUpdateCommand(PermissionRequestUpdateDto input, long requestUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionRequestUpdateCommand(
+            input.BasicId,
+            requestUserId,
+            input.PermissionId,
+            input.RoleId,
+            input.RequestReason,
+            input.ExpectedEffectiveTime,
+            input.ExpectedExpirationTime,
+            input.Remark);
     }
 }

@@ -55,7 +55,7 @@ public sealed class MenuAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _menuDomainService.CreateAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _menuDomainService.CreateAsync(MenuApplicationMapper.ToCreateCommand(input), cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
     }
 
@@ -85,7 +85,7 @@ public sealed class MenuAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _menuDomainService.UpdateAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _menuDomainService.UpdateAsync(MenuApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
     }
 
@@ -102,67 +102,7 @@ public sealed class MenuAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _menuDomainService.UpdateStatusAsync(ToStatusCommand(input), cancellationToken);
+        var result = await _menuDomainService.UpdateStatusAsync(MenuApplicationMapper.ToStatusCommand(input), cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
-    }
-
-    private static MenuCreateCommand ToCreateCommand(MenuCreateDto input)
-    {
-        return new MenuCreateCommand(
-            input.ParentId,
-            input.PermissionId,
-            input.MenuName,
-            input.MenuCode,
-            input.MenuType,
-            input.Path,
-            input.Component,
-            input.RouteName,
-            input.Redirect,
-            input.Icon,
-            input.Title,
-            input.IsExternal,
-            input.ExternalUrl,
-            input.IsCache,
-            input.IsVisible,
-            input.IsAffix,
-            input.Badge,
-            input.BadgeType,
-            input.BadgeDot,
-            input.Metadata,
-            input.Status,
-            input.Sort,
-            input.Remark);
-    }
-
-    private static MenuStatusChangeCommand ToStatusCommand(MenuStatusUpdateDto input)
-    {
-        return new MenuStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static MenuUpdateCommand ToUpdateCommand(MenuUpdateDto input)
-    {
-        return new MenuUpdateCommand(
-            input.BasicId,
-            input.ParentId,
-            input.PermissionId,
-            input.MenuName,
-            input.MenuType,
-            input.Path,
-            input.Component,
-            input.RouteName,
-            input.Redirect,
-            input.Icon,
-            input.Title,
-            input.IsExternal,
-            input.ExternalUrl,
-            input.IsCache,
-            input.IsVisible,
-            input.IsAffix,
-            input.Badge,
-            input.BadgeType,
-            input.BadgeDot,
-            input.Metadata,
-            input.Sort,
-            input.Remark);
     }
 }

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,15 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class UserDepartmentApplicationMapper
 {
+    /// <summary>
+    /// 映射用户部门归属分配命令
+    /// </summary>
+    public static UserDepartmentAssignCommand ToAssignCommand(UserDepartmentAssignDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserDepartmentAssignCommand(input.UserId, input.DepartmentId, input.IsMain, input.Remark);
+    }
+
     /// <summary>
     /// 映射用户部门归属列表项
     /// </summary>
@@ -76,5 +86,23 @@ public static class UserDepartmentApplicationMapper
             CreatedId = userDepartment.CreatedId,
             CreatedBy = userDepartment.CreatedBy
         };
+    }
+
+    /// <summary>
+    /// 映射用户部门归属状态变更命令
+    /// </summary>
+    public static UserDepartmentStatusChangeCommand ToStatusCommand(UserDepartmentStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserDepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射用户部门归属更新命令
+    /// </summary>
+    public static UserDepartmentUpdateCommand ToUpdateCommand(UserDepartmentUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserDepartmentUpdateCommand(input.BasicId, input.IsMain, input.Remark);
     }
 }

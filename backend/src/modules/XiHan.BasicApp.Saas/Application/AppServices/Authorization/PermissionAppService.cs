@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
@@ -129,22 +130,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.CreatePermissionAsync(
-            new PermissionCreateCommand(
-                input.PermissionType,
-                input.ResourceId,
-                input.OperationId,
-                input.ModuleCode,
-                input.PermissionCode,
-                input.PermissionName,
-                input.PermissionDescription,
-                input.Tags,
-                input.IsRequireAudit,
-                input.Priority,
-                input.Status,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.CreatePermissionAsync(PermissionApplicationMapper.ToCreateCommand(input), cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
@@ -177,17 +163,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.UpdatePermissionAsync(
-            new PermissionUpdateCommand(
-                input.BasicId,
-                input.PermissionName,
-                input.PermissionDescription,
-                input.Tags,
-                input.IsRequireAudit,
-                input.Priority,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.UpdatePermissionAsync(PermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
@@ -206,9 +182,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.UpdatePermissionStatusAsync(
-            new PermissionStatusCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.UpdatePermissionStatusAsync(PermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
@@ -226,19 +200,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.CreateResourceAsync(
-            new ResourceCreateCommand(
-                input.ResourceCode,
-                input.ResourceName,
-                input.ResourceType,
-                input.ResourcePath,
-                input.Description,
-                input.Metadata,
-                input.AccessLevel,
-                input.Status,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.CreateResourceAsync(ResourceApplicationMapper.ToCreateCommand(input), cancellationToken);
 
         return await _resourceQueryService.GetResourceDetailAsync(result.ResourceId, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");
@@ -266,18 +228,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.UpdateResourceAsync(
-            new ResourceUpdateCommand(
-                input.BasicId,
-                input.ResourceName,
-                input.ResourceType,
-                input.ResourcePath,
-                input.Description,
-                input.Metadata,
-                input.AccessLevel,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.UpdateResourceAsync(ResourceApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         return await _resourceQueryService.GetResourceDetailAsync(result.ResourceId, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");
@@ -293,9 +244,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.UpdateResourceStatusAsync(
-            new ResourceStatusCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.UpdateResourceStatusAsync(ResourceApplicationMapper.ToStatusCommand(input), cancellationToken);
 
         return await _resourceQueryService.GetResourceDetailAsync(result.ResourceId, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");
@@ -315,22 +264,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.CreateOperationAsync(
-            new OperationCreateCommand(
-                input.OperationCode,
-                input.OperationName,
-                input.OperationTypeCode,
-                input.Category,
-                input.HttpMethod,
-                input.Description,
-                input.Icon,
-                input.Color,
-                input.IsDangerous,
-                input.IsRequireAudit,
-                input.Status,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.CreateOperationAsync(OperationApplicationMapper.ToCreateCommand(input), cancellationToken);
 
         return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");
@@ -358,21 +292,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.UpdateOperationAsync(
-            new OperationUpdateCommand(
-                input.BasicId,
-                input.OperationName,
-                input.OperationTypeCode,
-                input.Category,
-                input.HttpMethod,
-                input.Description,
-                input.Icon,
-                input.Color,
-                input.IsDangerous,
-                input.IsRequireAudit,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.UpdateOperationAsync(OperationApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");
@@ -388,9 +308,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionCatalogDomainService.UpdateOperationStatusAsync(
-            new OperationStatusCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _permissionCatalogDomainService.UpdateOperationStatusAsync(OperationApplicationMapper.ToStatusCommand(input), cancellationToken);
 
         return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");
@@ -410,20 +328,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionConditionDomainService.CreatePermissionConditionAsync(
-            new PermissionConditionCreateCommand(
-                input.RolePermissionId,
-                input.UserPermissionId,
-                input.ConditionGroup,
-                input.AttributeName,
-                input.Operator,
-                input.IsNegated,
-                input.ValueType,
-                input.ConditionValue,
-                input.Description,
-                input.Status,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionConditionDomainService.CreatePermissionConditionAsync(PermissionConditionApplicationMapper.ToCreateCommand(input), cancellationToken);
 
         return await _permissionConditionQueryService.GetPermissionConditionDetailAsync(result.ConditionId, cancellationToken)
             ?? throw new InvalidOperationException("权限 ABAC 条件不存在。");
@@ -451,20 +356,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionConditionDomainService.UpdatePermissionConditionAsync(
-            new PermissionConditionUpdateCommand(
-                input.BasicId,
-                input.RolePermissionId,
-                input.UserPermissionId,
-                input.ConditionGroup,
-                input.AttributeName,
-                input.Operator,
-                input.IsNegated,
-                input.ValueType,
-                input.ConditionValue,
-                input.Description,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionConditionDomainService.UpdatePermissionConditionAsync(PermissionConditionApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         return await _permissionConditionQueryService.GetPermissionConditionDetailAsync(result.ConditionId, cancellationToken)
             ?? throw new InvalidOperationException("权限 ABAC 条件不存在。");
@@ -480,9 +372,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionConditionDomainService.UpdatePermissionConditionStatusAsync(
-            new PermissionConditionStatusCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _permissionConditionDomainService.UpdatePermissionConditionStatusAsync(PermissionConditionApplicationMapper.ToStatusCommand(input), cancellationToken);
 
         return await _permissionConditionQueryService.GetPermissionConditionDetailAsync(result.ConditionId, cancellationToken)
             ?? throw new InvalidOperationException("权限 ABAC 条件不存在。");
@@ -502,17 +392,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionDelegationDomainService.CreatePermissionDelegationAsync(
-            new PermissionDelegationCreateCommand(
-                input.DelegatorUserId,
-                input.DelegateeUserId,
-                input.PermissionId,
-                input.RoleId,
-                input.EffectiveTime,
-                input.ExpirationTime,
-                input.DelegationReason,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionDelegationDomainService.CreatePermissionDelegationAsync(PermissionDelegationApplicationMapper.ToCreateCommand(input), cancellationToken);
 
         return await _permissionDelegationQueryService.GetPermissionDelegationDetailAsync(result.DelegationId, cancellationToken)
             ?? throw new InvalidOperationException("权限委托不存在。");
@@ -540,18 +420,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionDelegationDomainService.UpdatePermissionDelegationAsync(
-            new PermissionDelegationUpdateCommand(
-                input.BasicId,
-                input.DelegatorUserId,
-                input.DelegateeUserId,
-                input.PermissionId,
-                input.RoleId,
-                input.EffectiveTime,
-                input.ExpirationTime,
-                input.DelegationReason,
-                input.Remark),
-            cancellationToken);
+        var result = await _permissionDelegationDomainService.UpdatePermissionDelegationAsync(PermissionDelegationApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         return await _permissionDelegationQueryService.GetPermissionDelegationDetailAsync(result.DelegationId, cancellationToken)
             ?? throw new InvalidOperationException("权限委托不存在。");
@@ -567,9 +436,7 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _permissionDelegationDomainService.UpdatePermissionDelegationStatusAsync(
-            new PermissionDelegationStatusCommand(input.BasicId, input.DelegationStatus, input.Remark),
-            cancellationToken);
+        var result = await _permissionDelegationDomainService.UpdatePermissionDelegationStatusAsync(PermissionDelegationApplicationMapper.ToStatusCommand(input), cancellationToken);
 
         return await _permissionDelegationQueryService.GetPermissionDelegationDetailAsync(result.DelegationId, cancellationToken)
             ?? throw new InvalidOperationException("权限委托不存在。");
@@ -591,14 +458,7 @@ public sealed class PermissionAppService
 
         var requestUserId = GetCurrentUserIdOrThrow();
         var result = await _permissionRequestDomainService.CreatePermissionRequestAsync(
-            new PermissionRequestCreateCommand(
-                requestUserId,
-                input.PermissionId,
-                input.RoleId,
-                input.RequestReason,
-                input.ExpectedEffectiveTime,
-                input.ExpectedExpirationTime,
-                input.Remark),
+            PermissionRequestApplicationMapper.ToCreateCommand(input, requestUserId),
             cancellationToken);
 
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
@@ -630,15 +490,7 @@ public sealed class PermissionAppService
 
         var requestUserId = GetCurrentUserIdOrThrow();
         var result = await _permissionRequestDomainService.UpdatePermissionRequestAsync(
-            new PermissionRequestUpdateCommand(
-                input.BasicId,
-                requestUserId,
-                input.PermissionId,
-                input.RoleId,
-                input.RequestReason,
-                input.ExpectedEffectiveTime,
-                input.ExpectedExpirationTime,
-                input.Remark),
+            PermissionRequestApplicationMapper.ToUpdateCommand(input, requestUserId),
             cancellationToken);
 
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
@@ -656,12 +508,7 @@ public sealed class PermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionRequestDomainService.UpdatePermissionRequestStatusAsync(
-            new PermissionRequestStatusCommand(
-                input.BasicId,
-                GetCurrentUserIdOrThrow(),
-                input.RequestStatus,
-                input.ReviewId,
-                input.Remark),
+            PermissionRequestApplicationMapper.ToStatusCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
 
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)

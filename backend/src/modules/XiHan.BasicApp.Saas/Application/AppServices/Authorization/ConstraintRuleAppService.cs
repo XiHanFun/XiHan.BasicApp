@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
@@ -55,7 +56,7 @@ public sealed class ConstraintRuleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _constraintRuleDomainService.CreateConstraintRuleAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _constraintRuleDomainService.CreateConstraintRuleAsync(ConstraintRuleApplicationMapper.ToCreateCommand(input), cancellationToken);
         return await GetDetailOrThrowAsync(result.RuleId, cancellationToken);
     }
 
@@ -80,7 +81,7 @@ public sealed class ConstraintRuleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _constraintRuleDomainService.UpdateConstraintRuleAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _constraintRuleDomainService.UpdateConstraintRuleAsync(ConstraintRuleApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return await GetDetailOrThrowAsync(result.RuleId, cancellationToken);
     }
 
@@ -94,9 +95,7 @@ public sealed class ConstraintRuleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _constraintRuleDomainService.UpdateConstraintRuleStatusAsync(
-            new ConstraintRuleStatusCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _constraintRuleDomainService.UpdateConstraintRuleStatusAsync(ConstraintRuleApplicationMapper.ToStatusCommand(input), cancellationToken);
         return await GetDetailOrThrowAsync(result.RuleId, cancellationToken);
     }
 
@@ -104,47 +103,5 @@ public sealed class ConstraintRuleAppService
     {
         return await _constraintRuleQueryService.GetConstraintRuleDetailAsync(ruleId, cancellationToken)
             ?? throw new InvalidOperationException("约束规则不存在。");
-    }
-
-    private static ConstraintRuleCreateCommand ToCreateCommand(ConstraintRuleCreateDto input)
-    {
-        return new ConstraintRuleCreateCommand(
-            input.RuleCode,
-            input.RuleName,
-            input.ConstraintType,
-            input.TargetType,
-            input.Parameters,
-            input.Status,
-            input.ViolationAction,
-            input.Description,
-            input.Priority,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark,
-            ToItemCommands(input.Items));
-    }
-
-    private static ConstraintRuleUpdateCommand ToUpdateCommand(ConstraintRuleUpdateDto input)
-    {
-        return new ConstraintRuleUpdateCommand(
-            input.BasicId,
-            input.RuleName,
-            input.ConstraintType,
-            input.TargetType,
-            input.Parameters,
-            input.ViolationAction,
-            input.Description,
-            input.Priority,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark,
-            ToItemCommands(input.Items));
-    }
-
-    private static IReadOnlyList<ConstraintRuleItemCommand> ToItemCommands(IReadOnlyList<ConstraintRuleItemInputDto> items)
-    {
-        return items
-            .Select(item => new ConstraintRuleItemCommand(item.TargetType, item.TargetId, item.ConstraintGroup, item.Remark))
-            .ToArray();
     }
 }

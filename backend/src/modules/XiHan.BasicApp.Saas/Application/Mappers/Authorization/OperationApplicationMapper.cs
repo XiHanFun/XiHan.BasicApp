@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,29 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class OperationApplicationMapper
 {
+    /// <summary>
+    /// 映射操作创建命令
+    /// </summary>
+    public static OperationCreateCommand ToCreateCommand(OperationCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new OperationCreateCommand(
+            input.OperationCode,
+            input.OperationName,
+            input.OperationTypeCode,
+            input.Category,
+            input.HttpMethod,
+            input.Description,
+            input.Icon,
+            input.Color,
+            input.IsDangerous,
+            input.IsRequireAudit,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射操作列表项
     /// </summary>
@@ -107,5 +131,36 @@ public static class OperationApplicationMapper
             IsDangerous = operation.IsDangerous,
             IsRequireAudit = operation.IsRequireAudit
         };
+    }
+
+    /// <summary>
+    /// 映射操作状态变更命令
+    /// </summary>
+    public static OperationStatusCommand ToStatusCommand(OperationStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new OperationStatusCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射操作更新命令
+    /// </summary>
+    public static OperationUpdateCommand ToUpdateCommand(OperationUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new OperationUpdateCommand(
+            input.BasicId,
+            input.OperationName,
+            input.OperationTypeCode,
+            input.Category,
+            input.HttpMethod,
+            input.Description,
+            input.Icon,
+            input.Color,
+            input.IsDangerous,
+            input.IsRequireAudit,
+            input.Sort,
+            input.Remark);
     }
 }

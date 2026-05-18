@@ -52,7 +52,7 @@ public sealed class DepartmentAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _departmentDomainService.CreateAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _departmentDomainService.CreateAsync(DepartmentApplicationMapper.ToCreateCommand(input), cancellationToken);
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
     }
 
@@ -77,7 +77,7 @@ public sealed class DepartmentAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _departmentDomainService.UpdateAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _departmentDomainService.UpdateAsync(DepartmentApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
     }
 
@@ -91,43 +91,7 @@ public sealed class DepartmentAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _departmentDomainService.UpdateStatusAsync(ToStatusCommand(input), cancellationToken);
+        var result = await _departmentDomainService.UpdateStatusAsync(DepartmentApplicationMapper.ToStatusCommand(input), cancellationToken);
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
-    }
-
-    private static DepartmentCreateCommand ToCreateCommand(DepartmentCreateDto input)
-    {
-        return new DepartmentCreateCommand(
-            input.ParentId,
-            input.DepartmentName,
-            input.DepartmentCode,
-            input.DepartmentType,
-            input.LeaderId,
-            input.Phone,
-            input.Email,
-            input.Address,
-            input.Status,
-            input.Sort,
-            input.Remark);
-    }
-
-    private static DepartmentStatusChangeCommand ToStatusCommand(DepartmentStatusUpdateDto input)
-    {
-        return new DepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    private static DepartmentUpdateCommand ToUpdateCommand(DepartmentUpdateDto input)
-    {
-        return new DepartmentUpdateCommand(
-            input.BasicId,
-            input.ParentId,
-            input.DepartmentName,
-            input.DepartmentType,
-            input.LeaderId,
-            input.Phone,
-            input.Email,
-            input.Address,
-            input.Sort,
-            input.Remark);
     }
 }

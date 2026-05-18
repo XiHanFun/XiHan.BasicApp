@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,80 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class NotificationApplicationMapper
 {
+    /// <summary>
+    /// 映射系统通知创建命令
+    /// </summary>
+    public static NotificationCreateCommand ToCreateCommand(NotificationCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new NotificationCreateCommand(
+            input.SendUserId,
+            input.NotificationType,
+            input.Title,
+            input.Content,
+            input.Icon,
+            input.Link,
+            input.BusinessType,
+            input.BusinessId,
+            input.SendTime,
+            input.ExpireTime,
+            input.TargetType,
+            input.UserIds,
+            input.NeedConfirm,
+            input.PublishImmediately,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统通知更新命令
+    /// </summary>
+    public static NotificationUpdateCommand ToUpdateCommand(NotificationUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new NotificationUpdateCommand(
+            input.BasicId,
+            input.NotificationType,
+            input.Title,
+            input.Content,
+            input.Icon,
+            input.Link,
+            input.BusinessType,
+            input.BusinessId,
+            input.SendTime,
+            input.ExpireTime,
+            input.TargetType,
+            input.UserIds,
+            input.NeedConfirm,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统通知发布命令
+    /// </summary>
+    public static NotificationPublishCommand ToPublishCommand(NotificationPublishDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new NotificationPublishCommand(input.BasicId, input.TargetType, input.UserIds);
+    }
+
+    /// <summary>
+    /// 映射系统通知发布结果
+    /// </summary>
+    public static NotificationPublishResultDto ToPublishResultDto(NotificationPublishCommandResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return new NotificationPublishResultDto
+        {
+            BasicId = result.Notification.BasicId,
+            RecipientCount = result.RecipientCount,
+            SendTime = result.Notification.SendTime
+        };
+    }
+
     /// <summary>
     /// 映射系统通知列表项
     /// </summary>

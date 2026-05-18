@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,35 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class MessageApplicationMapper
 {
+    /// <summary>
+    /// 映射邮件创建命令
+    /// </summary>
+    public static EmailCreateCommand ToCreateCommand(EmailCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new EmailCreateCommand(
+            input.SendUserId,
+            input.ReceiveUserId,
+            input.EmailType,
+            input.FromEmail,
+            input.FromName,
+            input.ToEmail,
+            input.CcEmail,
+            input.BccEmail,
+            input.Subject,
+            input.Content,
+            input.IsHtml,
+            input.Attachments,
+            input.TemplateId,
+            input.TemplateParams,
+            input.ScheduledTime,
+            input.MaxRetryCount,
+            input.BusinessType,
+            input.BusinessId,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射系统邮件列表项
     /// </summary>
@@ -88,6 +118,74 @@ public static class MessageApplicationMapper
     }
 
     /// <summary>
+    /// 映射邮件更新命令
+    /// </summary>
+    public static EmailUpdateCommand ToUpdateCommand(EmailUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new EmailUpdateCommand(
+            input.BasicId,
+            input.ReceiveUserId,
+            input.EmailType,
+            input.FromEmail,
+            input.FromName,
+            input.ToEmail,
+            input.CcEmail,
+            input.BccEmail,
+            input.Subject,
+            input.Content,
+            input.IsHtml,
+            input.Attachments,
+            input.TemplateId,
+            input.TemplateParams,
+            input.ScheduledTime,
+            input.MaxRetryCount,
+            input.BusinessType,
+            input.BusinessId,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射邮件状态更新命令
+    /// </summary>
+    public static EmailStatusUpdateCommand ToStatusCommand(EmailStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new EmailStatusUpdateCommand(
+            input.BasicId,
+            input.EmailStatus,
+            input.SendTime,
+            input.RetryCount,
+            input.ErrorMessage,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射短信创建命令
+    /// </summary>
+    public static SmsCreateCommand ToCreateCommand(SmsCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new SmsCreateCommand(
+            input.SenderId,
+            input.ReceiverId,
+            input.SmsType,
+            input.ToPhone,
+            input.Content,
+            input.TemplateId,
+            input.TemplateParams,
+            input.Provider,
+            input.ScheduledTime,
+            input.MaxRetryCount,
+            input.BusinessType,
+            input.BusinessId,
+            input.Remark);
+    }
+
+    /// <summary>
     /// 映射系统短信列表项
     /// </summary>
     /// <param name="sms">系统短信实体</param>
@@ -150,5 +248,46 @@ public static class MessageApplicationMapper
             ModifiedId = sms.ModifiedId,
             ModifiedBy = sms.ModifiedBy
         };
+    }
+
+    /// <summary>
+    /// 映射短信更新命令
+    /// </summary>
+    public static SmsUpdateCommand ToUpdateCommand(SmsUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new SmsUpdateCommand(
+            input.BasicId,
+            input.ReceiverId,
+            input.SmsType,
+            input.ToPhone,
+            input.Content,
+            input.TemplateId,
+            input.TemplateParams,
+            input.Provider,
+            input.ScheduledTime,
+            input.MaxRetryCount,
+            input.BusinessType,
+            input.BusinessId,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射短信状态更新命令
+    /// </summary>
+    public static SmsStatusUpdateCommand ToStatusCommand(SmsStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new SmsStatusUpdateCommand(
+            input.BasicId,
+            input.SmsStatus,
+            input.SendTime,
+            input.ProviderMessageId,
+            input.RetryCount,
+            input.Cost,
+            input.ErrorMessage,
+            input.Remark);
     }
 }

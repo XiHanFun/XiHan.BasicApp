@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,21 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class UserDataScopeApplicationMapper
 {
+    /// <summary>
+    /// 映射用户数据范围授权命令
+    /// </summary>
+    public static UserDataScopeGrantCommand ToGrantCommand(UserDataScopeGrantDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserDataScopeGrantCommand(
+            input.UserId,
+            input.DataScope,
+            input.DepartmentId,
+            input.IncludeChildren,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射用户数据范围列表项
     /// </summary>
@@ -90,5 +106,29 @@ public static class UserDataScopeApplicationMapper
             CreatedId = scope.CreatedId,
             CreatedBy = scope.CreatedBy
         };
+    }
+
+    /// <summary>
+    /// 映射用户数据范围状态变更命令
+    /// </summary>
+    public static UserDataScopeStatusChangeCommand ToStatusCommand(UserDataScopeStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射用户数据范围更新命令
+    /// </summary>
+    public static UserDataScopeUpdateCommand ToUpdateCommand(UserDataScopeUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserDataScopeUpdateCommand(
+            input.BasicId,
+            input.DataScope,
+            input.DepartmentId,
+            input.IncludeChildren,
+            input.Remark);
     }
 }

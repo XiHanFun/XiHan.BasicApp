@@ -52,7 +52,7 @@ public sealed class TenantEditionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _tenantEditionDomainService.CreateTenantEditionAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _tenantEditionDomainService.CreateTenantEditionAsync(TenantEditionApplicationMapper.ToCreateCommand(input), cancellationToken);
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
 
@@ -67,7 +67,7 @@ public sealed class TenantEditionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantEditionDomainService.UpdateDefaultTenantEditionAsync(
-            new TenantEditionDefaultChangeCommand(input.BasicId),
+            TenantEditionApplicationMapper.ToDefaultCommand(input),
             cancellationToken);
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
@@ -82,7 +82,7 @@ public sealed class TenantEditionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _tenantEditionDomainService.UpdateTenantEditionAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _tenantEditionDomainService.UpdateTenantEditionAsync(TenantEditionApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
 
@@ -97,7 +97,7 @@ public sealed class TenantEditionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantEditionDomainService.UpdateTenantEditionStatusAsync(
-            new TenantEditionStatusChangeCommand(input.BasicId, input.Status),
+            TenantEditionApplicationMapper.ToStatusCommand(input),
             cancellationToken);
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
@@ -113,7 +113,7 @@ public sealed class TenantEditionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantEditionDomainService.GrantTenantEditionPermissionAsync(
-            new TenantEditionPermissionGrantCommand(input.EditionId, input.PermissionId, input.Remark),
+            TenantEditionPermissionApplicationMapper.ToGrantCommand(input),
             cancellationToken);
         return TenantEditionPermissionApplicationMapper.ToDetailDto(result.EditionPermission, result.Permission);
     }
@@ -140,41 +140,8 @@ public sealed class TenantEditionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantEditionDomainService.UpdateTenantEditionPermissionStatusAsync(
-            new TenantEditionPermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark),
+            TenantEditionPermissionApplicationMapper.ToStatusCommand(input),
             cancellationToken);
         return TenantEditionPermissionApplicationMapper.ToDetailDto(result.EditionPermission, result.Permission);
-    }
-
-    private static TenantEditionCreateCommand ToCreateCommand(TenantEditionCreateDto input)
-    {
-        return new TenantEditionCreateCommand(
-            input.EditionCode,
-            input.EditionName,
-            input.Description,
-            input.UserLimit,
-            input.StorageLimit,
-            input.Price,
-            input.BillingPeriodMonths,
-            input.IsFree,
-            input.IsDefault,
-            input.Status,
-            input.Sort,
-            input.Remark);
-    }
-
-    private static TenantEditionUpdateCommand ToUpdateCommand(TenantEditionUpdateDto input)
-    {
-        return new TenantEditionUpdateCommand(
-            input.BasicId,
-            input.EditionName,
-            input.Description,
-            input.UserLimit,
-            input.StorageLimit,
-            input.Price,
-            input.BillingPeriodMonths,
-            input.IsFree,
-            input.IsDefault,
-            input.Sort,
-            input.Remark);
     }
 }

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,60 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class TenantApplicationMapper
 {
+    /// <summary>
+    /// 映射租户创建命令
+    /// </summary>
+    public static TenantCreateCommand ToCreateCommand(TenantCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantCreateCommand(
+            input.TenantCode,
+            input.TenantName,
+            input.TenantShortName,
+            input.Logo,
+            input.Domain,
+            input.EditionId,
+            input.IsolationMode,
+            input.ExpireTime,
+            input.UserLimit,
+            input.StorageLimit,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射租户更新命令
+    /// </summary>
+    public static TenantUpdateCommand ToUpdateCommand(TenantUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantUpdateCommand(
+            input.BasicId,
+            input.TenantName,
+            input.TenantShortName,
+            input.Logo,
+            input.Domain,
+            input.EditionId,
+            input.IsolationMode,
+            input.ExpireTime,
+            input.UserLimit,
+            input.StorageLimit,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射租户状态命令
+    /// </summary>
+    public static TenantStatusChangeCommand ToStatusCommand(TenantStatusUpdateDto input, long? currentUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantStatusChangeCommand(input.BasicId, input.TenantStatus, input.Reason, currentUserId);
+    }
+
     /// <summary>
     /// 映射租户切换项
     /// </summary>

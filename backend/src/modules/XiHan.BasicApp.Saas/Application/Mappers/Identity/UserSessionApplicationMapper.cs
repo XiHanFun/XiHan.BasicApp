@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -103,6 +104,24 @@ public static class UserSessionApplicationMapper
             ModifiedId = session.ModifiedId,
             ModifiedBy = session.ModifiedBy
         };
+    }
+
+    /// <summary>
+    /// 映射用户会话撤销命令
+    /// </summary>
+    public static UserSessionRevokeCommand ToRevokeCommand(UserSessionRevokeDto input, long? operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserSessionRevokeCommand(input.BasicId, input.Reason, operatorUserId);
+    }
+
+    /// <summary>
+    /// 映射用户全部会话撤销命令
+    /// </summary>
+    public static UserSessionsRevokeCommand ToRevokeAllCommand(UserSessionsRevokeDto input, long? operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserSessionsRevokeCommand(input.UserId, input.Reason, operatorUserId);
     }
 
     /// <summary>

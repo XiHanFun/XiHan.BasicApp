@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,60 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class FieldLevelSecurityApplicationMapper
 {
+    /// <summary>
+    /// 映射字段级安全创建命令
+    /// </summary>
+    public static FieldLevelSecurityCreateCommand ToCreateCommand(FieldLevelSecurityCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FieldLevelSecurityCreateCommand(
+            input.TargetType,
+            input.TargetId,
+            input.ResourceId,
+            input.FieldName,
+            input.IsReadable,
+            input.IsEditable,
+            input.MaskStrategy,
+            input.MaskPattern,
+            input.Priority,
+            input.Description,
+            input.Status,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射字段级安全更新命令
+    /// </summary>
+    public static FieldLevelSecurityUpdateCommand ToUpdateCommand(FieldLevelSecurityUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FieldLevelSecurityUpdateCommand(
+            input.BasicId,
+            input.TargetType,
+            input.TargetId,
+            input.ResourceId,
+            input.FieldName,
+            input.IsReadable,
+            input.IsEditable,
+            input.MaskStrategy,
+            input.MaskPattern,
+            input.Priority,
+            input.Description,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射字段级安全状态命令
+    /// </summary>
+    public static FieldLevelSecurityStatusChangeCommand ToStatusCommand(FieldLevelSecurityStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FieldLevelSecurityStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射字段级安全列表项
     /// </summary>

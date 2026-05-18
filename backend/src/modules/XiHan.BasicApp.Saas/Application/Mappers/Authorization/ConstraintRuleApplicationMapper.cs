@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
@@ -23,6 +24,61 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class ConstraintRuleApplicationMapper
 {
+    /// <summary>
+    /// 映射约束规则创建命令
+    /// </summary>
+    public static ConstraintRuleCreateCommand ToCreateCommand(ConstraintRuleCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ConstraintRuleCreateCommand(
+            input.RuleCode,
+            input.RuleName,
+            input.ConstraintType,
+            input.TargetType,
+            input.Parameters,
+            input.Status,
+            input.ViolationAction,
+            input.Description,
+            input.Priority,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.Remark,
+            ToItemCommands(input.Items));
+    }
+
+    /// <summary>
+    /// 映射约束规则更新命令
+    /// </summary>
+    public static ConstraintRuleUpdateCommand ToUpdateCommand(ConstraintRuleUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ConstraintRuleUpdateCommand(
+            input.BasicId,
+            input.RuleName,
+            input.ConstraintType,
+            input.TargetType,
+            input.Parameters,
+            input.ViolationAction,
+            input.Description,
+            input.Priority,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.Remark,
+            ToItemCommands(input.Items));
+    }
+
+    /// <summary>
+    /// 映射约束规则状态命令
+    /// </summary>
+    public static ConstraintRuleStatusCommand ToStatusCommand(ConstraintRuleStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ConstraintRuleStatusCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射约束规则列表项
     /// </summary>
@@ -113,5 +169,12 @@ public static class ConstraintRuleApplicationMapper
         return rule.Status == EnableStatus.Enabled
             && (!rule.EffectiveTime.HasValue || rule.EffectiveTime.Value <= now)
             && (!rule.ExpirationTime.HasValue || rule.ExpirationTime.Value > now);
+    }
+
+    private static IReadOnlyList<ConstraintRuleItemCommand> ToItemCommands(IReadOnlyList<ConstraintRuleItemInputDto> items)
+    {
+        return items
+            .Select(item => new ConstraintRuleItemCommand(item.TargetType, item.TargetId, item.ConstraintGroup, item.Remark))
+            .ToArray();
     }
 }
