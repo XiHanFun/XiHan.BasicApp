@@ -13,8 +13,8 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.Web.RealTime.Constants;
@@ -28,9 +28,7 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 public sealed class UserNotificationDispatchService
     : IUserNotificationDispatchService, IScopedDependency
 {
-    private readonly INotificationRepository _notificationRepository;
-
-    private readonly IUserNotificationRepository _userNotificationRepository;
+    private readonly IUserInboxDomainService _userInboxDomainService;
 
     private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
 
@@ -38,12 +36,10 @@ public sealed class UserNotificationDispatchService
     /// 构造函数
     /// </summary>
     public UserNotificationDispatchService(
-        INotificationRepository notificationRepository,
-        IUserNotificationRepository userNotificationRepository,
+        IUserInboxDomainService userInboxDomainService,
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService)
     {
-        _notificationRepository = notificationRepository;
-        _userNotificationRepository = userNotificationRepository;
+        _userInboxDomainService = userInboxDomainService;
         _realtimeNotificationService = realtimeNotificationService;
     }
     /// <summary>
@@ -93,35 +89,10 @@ public sealed class UserNotificationDispatchService
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var now = DateTimeOffset.UtcNow;
-        var notification = await _notificationRepository.AddAsync(new SysNotification
-        {
-            SendUserId = null,
-            NotificationType = notificationType,
-            Title = NormalizeRequired(title, 200),
-            Content = NormalizeNullable(content, 4000),
-            Icon = NormalizeNullable(icon, 100),
-            Link = NormalizeNullable(link, 500),
-            BusinessType = NormalizeNullable(businessType, 50),
-            BusinessId = businessId,
-            SendTime = now,
-            ExpireTime = null,
-            TargetType = NotificationTargetType.User,
-            TargetValue = $"[{userId}]",
-            NeedConfirm = needConfirm,
-            IsPublished = true
-        }, cancellationToken);
-
-        var userNotification = await _userNotificationRepository.AddAsync(new SysUserNotification
-        {
-            NotificationId = notification.BasicId,
-            UserId = userId,
-            NotificationStatus = NotificationStatus.Unread,
-            ReadTime = null,
-            ConfirmTime = null
-        }, cancellationToken);
-
-        var item = ToInboxItem(userNotification, notification);
+        var result = await _userInboxDomainService.DispatchToUserAsync(
+            new UserInboxDispatchCommand(userId, title, content, notificationType, businessType, businessId, needConfirm, link, icon),
+            cancellationToken);
+        var item = ToInboxItem(result.UserNotification, result.Notification);
         await TryPushRealtimeAsync(userId, item);
         return item;
     }
@@ -135,23 +106,6 @@ public sealed class UserNotificationDispatchService
             (int)NotificationType.User => "Success",
             _ => "Info"
         };
-    }
-
-    private static string NormalizeRequired(string value, int maxLength)
-    {
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
-    }
-
-    private static string? NormalizeNullable(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
     }
 
     /// <summary>
