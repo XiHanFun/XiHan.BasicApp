@@ -1,33 +1,36 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type { LogDetailField } from '../_components/log-detail.types'
 import type { LoginLogDetailDto, LoginLogListItemDto } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NIcon,
+  NInput,
+  NPagination,
   NSelect,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { createPageRequest, LoginResult, logManagementApi } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
-import { useVxeTable } from '~/hooks'
+import { Icon } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogLoginPage' })
 
-interface LogGridResult {
-  items: LoginLogListItemDto[]
-  total: number
-}
-
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<LoginLogListItemDto>>()
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<LoginLogDetailDto | null>(null)
+const tableLoading = ref(false)
+const dataList = ref<LoginLogListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const queryParams = reactive({
   keyword: '',
@@ -81,98 +84,112 @@ function loginResultType(result: LoginResult) {
   }
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return logManagementApi.login
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await logManagementApi.login.page({
       ...createPageRequest({
-        page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
-        },
+        page: { pageIndex: currentPage.value, pageSize: pageSize.value },
       }),
       keyword: queryParams.keyword?.trim() || undefined,
       loginResult: queryParams.loginResult,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询登录日志失败')
-      return { items: [], total: 0 }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询登录日志失败')
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<LoginLogListItemDto>(
+const tableColumns = computed<DataTableColumns<LoginLogListItemDto>>(() => [
+  { key: 'sessionId', title: '会话标识', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'traceId', title: '链路追踪 ID', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'userName', title: '用户名', minWidth: 100, ellipsis: { tooltip: true } },
+  { key: 'userId', title: '用户主键', minWidth: 80, ellipsis: { tooltip: true } },
+  { key: 'loginIp', title: '登录 IP', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'loginLocation', title: '登录位置', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'browser', title: '浏览器', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'os', title: '操作系统', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'device', title: '设备', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'deviceId', title: '设备标识', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'userAgent', title: 'User-Agent', minWidth: 260, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
-      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
-      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
-      { field: 'loginIp', minWidth: 130, showOverflow: 'tooltip', title: '登录 IP' },
-      { field: 'loginLocation', minWidth: 160, showOverflow: 'tooltip', title: '登录位置' },
-      { field: 'browser', minWidth: 120, showOverflow: 'tooltip', title: '浏览器' },
-      { field: 'os', minWidth: 120, showOverflow: 'tooltip', title: '操作系统' },
-      { field: 'device', minWidth: 120, showOverflow: 'tooltip', title: '设备' },
-      { field: 'deviceId', minWidth: 160, showOverflow: 'tooltip', title: '设备标识' },
-      { field: 'userAgent', minWidth: 260, showOverflow: 'tooltip', title: 'User-Agent' },
-      {
-        field: 'loginResult',
-        slots: { default: 'col_result' },
-        title: '登录/登出结果',
-        width: 120,
-      },
-      { field: 'message', minWidth: 220, showOverflow: 'tooltip', title: '消息' },
-      {
-        field: 'isRiskLogin',
-        slots: { default: 'col_risk' },
-        title: '是否风险登录',
-        width: 110,
-      },
-      {
-        field: 'loginTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '登录时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 86,
-      },
-    ],
-    id: 'sys_login_log',
-    name: '登录日志',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'loginResult',
+    title: '登录/登出结果',
+    width: 120,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: loginResultType(row.loginResult), bordered: false }, () => getOptionLabel(loginResultOptions, row.loginResult))
     },
   },
-)
+  { key: 'message', title: '消息', minWidth: 220, ellipsis: { tooltip: true } },
+  {
+    key: 'isRiskLogin',
+    title: '是否风险登录',
+    width: 110,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.isRiskLogin ? 'error' : 'info', bordered: false }, () => row.isRiskLogin ? '是' : '否')
+    },
+  },
+  {
+    key: 'loginTime',
+    title: '登录时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.loginTime))
+    },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 86,
+    fixed: 'right',
+    render(row) {
+      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
+        h(NTooltip, {}, {
+          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '详情',
+        }),
+      ])
+    },
+  },
+])
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.loginResult = undefined
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
 }
 
 async function handleDetail(row: LoginLogListItemDto) {
@@ -189,17 +206,19 @@ async function handleDetail(row: LoginLogListItemDto) {
     detailLoading.value = false
   }
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索用户/会话/链路"
-          style="width: 220px"
+          style="width:220px"
           @keyup.enter="handleSearch"
         />
         <NSelect
@@ -222,29 +241,29 @@ async function handleDetail(row: LoginLogListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #col_result="{ row }">
-          <NTag :type="loginResultType(row.loginResult)" round size="small">
-            {{ getOptionLabel(loginResultOptions, row.loginResult) }}
-          </NTag>
-        </template>
-        <template #col_risk="{ row }">
-          <NTag :type="row.isRiskLogin ? 'error' : 'info'" round size="small">
-            {{ row.isRiskLogin ? '是' : '否' }}
-          </NTag>
-        </template>
-        <template #col_actions="{ row }">
-          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:eye" /></NIcon>
-            </template>
-          </NButton>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row) => row.basicId"
+        :scroll-x="2400"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+        </div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <LogDetailDrawer
       v-model:show="detailVisible"

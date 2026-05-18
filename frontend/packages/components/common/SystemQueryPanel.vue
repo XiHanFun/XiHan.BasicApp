@@ -7,7 +7,15 @@ const props = withDefaults(defineProps<{
 </script>
 
 <template>
-  <vxe-card class="xh-query-panel mb-2" :style="{ padding: props.padding }">
+  <div class="xh-query-panel mb-2" :style="{ padding: props.padding }">
     <slot />
-  </vxe-card>
+  </div>
 </template>
+
+<style scoped>
+.xh-query-panel {
+  background: var(--n-card-color);
+  border-radius: var(--n-border-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+</style>

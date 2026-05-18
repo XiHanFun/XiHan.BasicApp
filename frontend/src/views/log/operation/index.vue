@@ -1,38 +1,41 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type { LogDetailField } from '../_components/log-detail.types'
 import type { OperationLogDetailDto, OperationLogListItemDto } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NIcon,
+  NInput,
+  NPagination,
   NSelect,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   createPageRequest,
   EnableStatus,
   logManagementApi,
   OperationType,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
-import { useVxeTable } from '~/hooks'
+import { Icon } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogOperationPage' })
 
-interface LogGridResult {
-  items: OperationLogListItemDto[]
-  total: number
-}
-
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<OperationLogListItemDto>>()
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<OperationLogDetailDto | null>(null)
+const tableLoading = ref(false)
+const dataList = ref<OperationLogListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const queryParams = reactive({
   keyword: '',
@@ -84,111 +87,127 @@ const detailFields: LogDetailField[] = [
   { key: 'errorMessage', label: '错误消息', type: 'code' },
 ]
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return logManagementApi.operation
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await logManagementApi.operation.page({
       ...createPageRequest({
-        page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
-        },
+        page: { pageIndex: currentPage.value, pageSize: pageSize.value },
       }),
       keyword: queryParams.keyword?.trim() || undefined,
       operationType: queryParams.operationType,
       status: queryParams.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询操作日志失败')
-      return { items: [], total: 0 }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询操作日志失败')
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<OperationLogListItemDto>(
+const tableColumns = computed<DataTableColumns<OperationLogListItemDto>>(() => [
+  { key: 'sessionId', title: '会话标识', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'traceId', title: '链路追踪 ID', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'userName', title: '用户名', minWidth: 100, ellipsis: { tooltip: true } },
+  { key: 'userId', title: '用户主键', minWidth: 80, ellipsis: { tooltip: true } },
+  { key: 'title', title: '操作标题', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'description', title: '操作描述', minWidth: 220, ellipsis: { tooltip: true } },
+  { key: 'module', title: '操作模块', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'function', title: '操作功能', minWidth: 120, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
-      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
-      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
-      { field: 'title', minWidth: 160, showOverflow: 'tooltip', title: '操作标题' },
-      { field: 'description', minWidth: 220, showOverflow: 'tooltip', title: '操作描述' },
-      { field: 'module', minWidth: 120, showOverflow: 'tooltip', title: '操作模块' },
-      { field: 'function', minWidth: 120, showOverflow: 'tooltip', title: '操作功能' },
-      {
-        field: 'operationType',
-        formatter: ({ cellValue }) => getOptionLabel(operationTypeOptions, cellValue),
-        title: '操作类型',
-        width: 90,
-      },
-      { field: 'method', title: '请求方法', width: 90 },
-      { field: 'requestUrl', minWidth: 240, showOverflow: 'tooltip', title: '请求地址' },
-      { field: 'operationIp', minWidth: 130, showOverflow: 'tooltip', title: '操作 IP' },
-      { field: 'operationLocation', minWidth: 160, showOverflow: 'tooltip', title: '操作位置' },
-      { field: 'browser', minWidth: 120, showOverflow: 'tooltip', title: '浏览器' },
-      { field: 'os', minWidth: 120, showOverflow: 'tooltip', title: '操作系统' },
-      { field: 'userAgent', minWidth: 260, showOverflow: 'tooltip', title: 'User-Agent' },
-      {
-        field: 'executionTime',
-        formatter: ({ cellValue }) => `${cellValue}ms`,
-        sortable: true,
-        title: '执行耗时（毫秒）',
-        width: 130,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '操作状态',
-        width: 90,
-      },
-      { field: 'errorMessage', minWidth: 220, showOverflow: 'tooltip', title: '错误消息' },
-      {
-        field: 'operationTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '操作时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 86,
-      },
-    ],
-    id: 'sys_operation_log',
-    name: '操作日志',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'operationType',
+    title: '操作类型',
+    width: 90,
+    render(row) {
+      return h('span', {}, getOptionLabel(operationTypeOptions, row.operationType))
     },
   },
-)
+  { key: 'method', title: '请求方法', width: 90 },
+  { key: 'requestUrl', title: '请求地址', minWidth: 240, ellipsis: { tooltip: true } },
+  { key: 'operationIp', title: '操作 IP', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'operationLocation', title: '操作位置', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'browser', title: '浏览器', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'os', title: '操作系统', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'userAgent', title: 'User-Agent', minWidth: 260, ellipsis: { tooltip: true } },
+  {
+    key: 'executionTime',
+    title: '执行耗时（毫秒）',
+    width: 130,
+    sorter: true,
+    render(row) {
+      return h('span', {}, `${row.executionTime}ms`)
+    },
+  },
+  {
+    key: 'status',
+    title: '操作状态',
+    width: 90,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => row.status === EnableStatus.Enabled ? '成功' : '失败')
+    },
+  },
+  { key: 'errorMessage', title: '错误消息', minWidth: 220, ellipsis: { tooltip: true } },
+  {
+    key: 'operationTime',
+    title: '操作时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.operationTime))
+    },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 86,
+    fixed: 'right',
+    render(row) {
+      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
+        h(NTooltip, {}, {
+          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '详情',
+        }),
+      ])
+    },
+  },
+])
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.operationType = undefined
   queryParams.status = undefined
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
 }
 
 async function handleDetail(row: OperationLogListItemDto) {
@@ -205,17 +224,19 @@ async function handleDetail(row: OperationLogListItemDto) {
     detailLoading.value = false
   }
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索标题/模块/用户"
-          style="width: 220px"
+          style="width:220px"
           @keyup.enter="handleSearch"
         />
         <NSelect
@@ -245,24 +266,29 @@ async function handleDetail(row: OperationLogListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ row.status === EnableStatus.Enabled ? '成功' : '失败' }}
-          </NTag>
-        </template>
-        <template #col_actions="{ row }">
-          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:eye" /></NIcon>
-            </template>
-          </NButton>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row) => row.basicId"
+        :scroll-x="2400"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+        </div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <LogDetailDrawer
       v-model:show="detailVisible"

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { UploadCustomRequestOptions } from 'naive-ui'
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns, UploadCustomRequestOptions } from 'naive-ui'
 import type {
   ApiId,
   FileDetailDto,
@@ -10,6 +9,8 @@ import type {
 } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -17,6 +18,7 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
@@ -25,7 +27,7 @@ import {
   NUpload,
   useMessage,
 } from 'naive-ui'
-import { computed, nextTick, reactive, ref } from 'vue'
+import { computed, h, nextTick, onMounted, reactive, ref } from 'vue'
 import {
   createPageRequest,
   fileManagementApi,
@@ -35,8 +37,7 @@ import {
   FileType,
   ResourceAccessLevel,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
-import { useVxeTable } from '~/hooks'
+import { Icon } from '~/components'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformFilePage' })
@@ -45,20 +46,8 @@ type FileTab = 'file' | 'storage'
 type DetailKind = 'file' | 'storage'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
-interface FileGridResult {
-  items: FileListItemDto[]
-  total: number
-}
-
-interface StorageGridResult {
-  items: FileStorageListItemDto[]
-  total: number
-}
-
 const message = useMessage()
 const activeTab = ref<FileTab>('file')
-const fileGrid = ref<VxeGridInstance<FileListItemDto>>()
-const storageGrid = ref<VxeGridInstance<FileStorageListItemDto>>()
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailKind = ref<DetailKind>('file')
@@ -69,6 +58,18 @@ const uploadLoading = ref(false)
 const metadataVisible = ref(false)
 const metadataLoading = ref(false)
 const actionLoading = ref(false)
+
+const fileLoading = ref(false)
+const fileList = ref<FileListItemDto[]>([])
+const fileTotal = ref(0)
+const filePage = ref(1)
+const filePageSize = ref(20)
+
+const storageLoading = ref(false)
+const storageList = ref<FileStorageListItemDto[]>([])
+const storageTotal = ref(0)
+const storagePage = ref(1)
+const storagePageSize = ref(20)
 
 const fileQuery = reactive({
   accessLevel: null as ResourceAccessLevel | null,
@@ -250,13 +251,14 @@ function getStorageStatusTagType(status: FileStorageStatus): TagType {
   return 'default'
 }
 
-function handleFileQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<FileGridResult> {
-  return fileManagementApi
-    .page({
+async function fetchFileData() {
+  fileLoading.value = true
+  try {
+    const result = await fileManagementApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: filePage.value,
+          pageSize: filePageSize.value,
         },
       }),
       accessLevel: fileQuery.accessLevel,
@@ -268,26 +270,27 @@ function handleFileQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Pr
       mimeType: normalizeNullable(fileQuery.mimeType),
       status: fileQuery.status,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询文件列表失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    fileList.value = result.items
+    fileTotal.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询文件列表失败')
+    fileList.value = []
+    fileTotal.value = 0
+  }
+  finally {
+    fileLoading.value = false
+  }
 }
 
-function handleStorageQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<StorageGridResult> {
-  return fileManagementApi
-    .storagePage({
+async function fetchStorageData() {
+  storageLoading.value = true
+  try {
+    const result = await fileManagementApi.storagePage({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: storagePage.value,
+          pageSize: storagePageSize.value,
         },
       }),
       fileId: normalizeId(storageQuery.fileId),
@@ -298,185 +301,252 @@ function handleStorageQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams):
       status: storageQuery.status,
       storageType: storageQuery.storageType,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询存储副本失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    storageList.value = result.items
+    storageTotal.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询存储副本失败')
+    storageList.value = []
+    storageTotal.value = 0
+  }
+  finally {
+    storageLoading.value = false
+  }
 }
 
-const fileTableOptions = useVxeTable<FileListItemDto>(
+const fileColumns = computed<DataTableColumns<FileListItemDto>>(() => [
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'originalName', fixed: 'left', minWidth: 220, showOverflow: 'tooltip', title: '原始文件名' },
-      { field: 'fileName', minWidth: 220, showOverflow: 'tooltip', title: '存储文件名' },
-      {
-        field: 'fileType',
-        slots: { default: 'col_file_type' },
-        title: '文件类型',
-        width: 110,
-      },
-      {
-        field: 'fileSize',
-        formatter: ({ cellValue }) => formatFileSize(Number(cellValue || 0)),
-        minWidth: 110,
-        title: '文件大小',
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_file_status' },
-        title: '状态',
-        width: 110,
-      },
-      {
-        field: 'accessLevel',
-        formatter: ({ cellValue }) => getOptionLabel(accessLevelOptions, cellValue),
-        minWidth: 110,
-        title: '访问级别',
-      },
-      { field: 'fileExtension', minWidth: 90, title: '扩展名' },
-      { field: 'mimeType', minWidth: 160, showOverflow: 'tooltip', title: 'MIME' },
-      {
-        field: 'isTemporary',
-        slots: { default: 'col_file_temporary' },
-        title: '临时',
-        width: 82,
-      },
-      {
-        field: 'isEncrypted',
-        slots: { default: 'col_file_encrypted' },
-        title: '加密',
-        width: 82,
-      },
-      { field: 'downloadCount', minWidth: 90, title: '下载' },
-      { field: 'viewCount', minWidth: 90, title: '访问' },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDateTime(cellValue as string | null),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_file_actions' },
-        title: '操作',
-        width: 200,
-      },
-    ],
-    id: 'sys_file',
-    name: '文件管理',
+    key: 'originalName',
+    title: '原始文件名',
+    minWidth: 220,
+    ellipsis: { tooltip: true },
+    fixed: 'left',
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleFileQueryApi(page),
-      },
-    },
+    key: 'fileName',
+    title: '存储文件名',
+    minWidth: 220,
+    ellipsis: { tooltip: true },
   },
-)
+  {
+    key: 'fileType',
+    title: '文件类型',
+    width: 110,
+    render: row =>
+      h(NTag, { round: true, size: 'small' }, () => getOptionLabel(fileTypeOptions, row.fileType)),
+  },
+  {
+    key: 'fileSize',
+    title: '文件大小',
+    minWidth: 110,
+    render: row => formatFileSize(Number(row.fileSize || 0)),
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 110,
+    render: row =>
+      h(NTag, { type: getFileStatusTagType(row.status), round: true, size: 'small' }, () => getOptionLabel(fileStatusOptions, row.status)),
+  },
+  {
+    key: 'accessLevel',
+    title: '访问级别',
+    minWidth: 110,
+    render: row => getOptionLabel(accessLevelOptions, row.accessLevel),
+  },
+  {
+    key: 'fileExtension',
+    title: '扩展名',
+    minWidth: 90,
+  },
+  {
+    key: 'mimeType',
+    title: 'MIME',
+    minWidth: 160,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'isTemporary',
+    title: '临时',
+    width: 82,
+    render: row =>
+      h(NTag, { type: row.isTemporary ? 'warning' : 'default', round: true, size: 'small' }, () => row.isTemporary ? '是' : '否'),
+  },
+  {
+    key: 'isEncrypted',
+    title: '加密',
+    width: 82,
+    render: row =>
+      h(NTag, { type: row.isEncrypted ? 'info' : 'default', round: true, size: 'small' }, () => row.isEncrypted ? '是' : '否'),
+  },
+  {
+    key: 'downloadCount',
+    title: '下载',
+    minWidth: 90,
+  },
+  {
+    key: 'viewCount',
+    title: '访问',
+    minWidth: 90,
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => formatDateTime(row.createdTime),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 200,
+    render: row =>
+      h(NSpace, { size: 4 }, () => [
+        h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleFileDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+        h(NButton, { ariaLabel: '元数据', circle: true, quaternary: true, size: 'small', onClick: () => openMetadataDrawer(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: '存储副本', circle: true, quaternary: true, size: 'small', onClick: () => handleFileStorages(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:database' })) }),
+        row.status !== FileStatus.Archived
+          ? h(NButton, { ariaLabel: '归档', circle: true, quaternary: true, size: 'small', type: 'warning', onClick: () => handleUpdateFileStatus(row, FileStatus.Archived) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:archive' })) })
+          : null,
+        row.status !== FileStatus.Deleted
+          ? h(NPopconfirm, { onPositiveClick: () => handleDeleteFile(row) }, {
+              trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+              default: () => '确定删除该文件？',
+            })
+          : null,
+      ]),
+  },
+])
 
-const storageTableOptions = useVxeTable<FileStorageListItemDto>(
+const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => [
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'fileId', fixed: 'left', minWidth: 140, title: '文件主键' },
-      { field: 'storageProvider', minWidth: 130, showOverflow: 'tooltip', title: '提供商' },
-      {
-        field: 'storageType',
-        formatter: ({ cellValue }) => getOptionLabel(storageTypeOptions, cellValue),
-        minWidth: 120,
-        title: '存储类型',
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_storage_status' },
-        title: '状态',
-        width: 110,
-      },
-      {
-        field: 'isPrimary',
-        slots: { default: 'col_storage_primary' },
-        title: '主存储',
-        width: 92,
-      },
-      {
-        field: 'isBackup',
-        slots: { default: 'col_storage_backup' },
-        title: '备份',
-        width: 82,
-      },
-      {
-        field: 'isVerified',
-        slots: { default: 'col_storage_verified' },
-        title: '已验证',
-        width: 92,
-      },
-      {
-        field: 'isSynced',
-        slots: { default: 'col_storage_synced' },
-        title: '已同步',
-        width: 92,
-      },
-      { field: 'accessControl', minWidth: 120, showOverflow: 'tooltip', title: '访问控制' },
-      {
-        field: 'uploadedAt',
-        formatter: ({ cellValue }) => formatDateTime(cellValue as string | null),
-        minWidth: 170,
-        title: '上传时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDateTime(cellValue as string | null),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_storage_actions' },
-        title: '操作',
-        width: 132,
-      },
-    ],
-    id: 'sys_file_storage',
-    name: '文件存储副本',
+    key: 'fileId',
+    title: '文件主键',
+    minWidth: 140,
+    fixed: 'left',
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleStorageQueryApi(page),
-      },
-    },
+    key: 'storageProvider',
+    title: '提供商',
+    minWidth: 130,
+    ellipsis: { tooltip: true },
   },
-)
+  {
+    key: 'storageType',
+    title: '存储类型',
+    minWidth: 120,
+    render: row => getOptionLabel(storageTypeOptions, row.storageType),
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 110,
+    render: row =>
+      h(NTag, { type: getStorageStatusTagType(row.status), round: true, size: 'small' }, () => getOptionLabel(storageStatusOptions, row.status)),
+  },
+  {
+    key: 'isPrimary',
+    title: '主存储',
+    width: 92,
+    render: row =>
+      h(NTag, { type: row.isPrimary ? 'success' : 'default', round: true, size: 'small' }, () => row.isPrimary ? '是' : '否'),
+  },
+  {
+    key: 'isBackup',
+    title: '备份',
+    width: 82,
+    render: row =>
+      h(NTag, { type: row.isBackup ? 'info' : 'default', round: true, size: 'small' }, () => row.isBackup ? '是' : '否'),
+  },
+  {
+    key: 'isVerified',
+    title: '已验证',
+    width: 92,
+    render: row =>
+      h(NTag, { type: row.isVerified ? 'success' : 'warning', round: true, size: 'small' }, () => row.isVerified ? '是' : '否'),
+  },
+  {
+    key: 'isSynced',
+    title: '已同步',
+    width: 92,
+    render: row =>
+      h(NTag, { type: row.isSynced ? 'success' : 'default', round: true, size: 'small' }, () => row.isSynced ? '是' : '否'),
+  },
+  {
+    key: 'accessControl',
+    title: '访问控制',
+    minWidth: 120,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'uploadedAt',
+    title: '上传时间',
+    minWidth: 170,
+    render: row => formatDateTime(row.uploadedAt),
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => formatDateTime(row.createdTime),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 132,
+    render: row =>
+      h(NSpace, { size: 4 }, () => [
+        h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleStorageDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+        h(NButton, { ariaLabel: '校验', circle: true, quaternary: true, size: 'small', onClick: () => handleVerifyStorage(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:shield-check' })) }),
+        h(NButton, { ariaLabel: '设为主存储', circle: true, disabled: row.isPrimary, quaternary: true, size: 'small', type: 'primary', onClick: () => handleSwitchPrimary(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:star' })) }),
+      ]),
+  },
+])
 
-function reloadActiveGrid() {
+const fileTotalPages = computed(() => Math.max(1, Math.ceil(fileTotal.value / filePageSize.value)))
+
+function handleFilePageChange(page: number) {
+  filePage.value = page
+  fetchFileData()
+}
+
+function handleFilePageSizeChange(pageSize: number) {
+  filePageSize.value = pageSize
+  filePage.value = 1
+  fetchFileData()
+}
+
+const storageTotalPages = computed(() => Math.max(1, Math.ceil(storageTotal.value / storagePageSize.value)))
+
+function handleStoragePageChange(page: number) {
+  storagePage.value = page
+  fetchStorageData()
+}
+
+function handleStoragePageSizeChange(pageSize: number) {
+  storagePageSize.value = pageSize
+  storagePage.value = 1
+  fetchStorageData()
+}
+
+function reloadActiveData() {
   if (activeTab.value === 'file') {
-    fileGrid.value?.commitProxy('reload')
+    filePage.value = 1
+    fetchFileData()
     return
   }
 
-  storageGrid.value?.commitProxy('reload')
+  storagePage.value = 1
+  fetchStorageData()
 }
 
 function handleSearch() {
-  reloadActiveGrid()
+  reloadActiveData()
 }
 
 function handleTabChanged() {
-  reloadActiveGrid()
+  reloadActiveData()
 }
 
 function handleReset() {
@@ -489,6 +559,8 @@ function handleReset() {
     fileQuery.keyword = ''
     fileQuery.mimeType = ''
     fileQuery.status = null
+    filePage.value = 1
+    fetchFileData()
   }
   else {
     storageQuery.fileId = null
@@ -498,9 +570,9 @@ function handleReset() {
     storageQuery.keyword = ''
     storageQuery.status = null
     storageQuery.storageType = null
+    storagePage.value = 1
+    fetchStorageData()
   }
-
-  reloadActiveGrid()
 }
 
 function openUploadDrawer() {
@@ -516,7 +588,6 @@ function openMetadataDrawer(row: FileListItemDto) {
   metadataForm.tags = ''
   metadataForm.remark = ''
   metadataVisible.value = true
-  // store the row for later use
   ;(metadataForm as any)._row = row
 }
 
@@ -537,7 +608,7 @@ async function handleSaveMetadata() {
     })
     message.success('元数据已更新')
     metadataVisible.value = false
-    reloadActiveGrid()
+    reloadActiveData()
   }
   catch {
     message.error('更新元数据失败')
@@ -555,7 +626,7 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus) 
       status,
     })
     message.success('文件状态已更新')
-    reloadActiveGrid()
+    reloadActiveData()
   }
   catch {
     message.error('更新文件状态失败')
@@ -573,7 +644,7 @@ async function handleDeleteFile(row: FileListItemDto) {
       status: FileStatus.Deleted,
     })
     message.success('文件已删除')
-    reloadActiveGrid()
+    reloadActiveData()
   }
   catch {
     message.error('删除文件失败')
@@ -613,7 +684,8 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
     uploadVisible.value = false
     activeTab.value = 'file'
     await nextTick()
-    fileGrid.value?.commitProxy('reload')
+    filePage.value = 1
+    fetchFileData()
     message.success('上传成功')
   }
   catch {
@@ -665,13 +737,14 @@ async function handleFileStorages(row: FileListItemDto) {
   activeTab.value = 'storage'
   storageQuery.fileId = row.basicId
   await nextTick()
-  storageGrid.value?.commitProxy('reload')
+  storagePage.value = 1
+  fetchStorageData()
 }
 
 async function handleVerifyStorage(row: FileStorageListItemDto) {
   try {
     await fileManagementApi.verifyStorage({ basicId: row.basicId })
-    storageGrid.value?.commitProxy('reload')
+    fetchStorageData()
     message.success('校验完成')
   }
   catch {
@@ -689,18 +762,22 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
       basicId: row.fileId,
       storageId: row.basicId,
     })
-    storageGrid.value?.commitProxy('reload')
+    fetchStorageData()
     message.success('主存储已切换')
   }
   catch {
     message.error('切换主存储失败')
   }
 }
+
+onMounted(() => {
+  fetchFileData()
+})
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel">
       <div class="xh-query-panel__content">
         <NSelect
           v-model:value="activeTab"
@@ -710,8 +787,8 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
         />
 
         <template v-if="activeTab === 'file'">
-          <vxe-input
-            v-model="fileQuery.keyword"
+          <NInput
+            v-model:value="fileQuery.keyword"
             clearable
             placeholder="搜索文件名/哈希"
             style="width: 220px"
@@ -752,15 +829,15 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
             placeholder="加密"
             style="width: 100px"
           />
-          <vxe-input
-            v-model="fileQuery.fileExtension"
+          <NInput
+            v-model:value="fileQuery.fileExtension"
             clearable
             placeholder="扩展名"
             style="width: 100px"
             @keyup.enter="handleSearch"
           />
-          <vxe-input
-            v-model="fileQuery.mimeType"
+          <NInput
+            v-model:value="fileQuery.mimeType"
             clearable
             placeholder="MIME"
             style="width: 140px"
@@ -769,15 +846,15 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
         </template>
 
         <template v-else>
-          <vxe-input
-            v-model="storageQuery.keyword"
+          <NInput
+            v-model:value="storageQuery.keyword"
             clearable
             placeholder="搜索提供商/路径"
             style="width: 220px"
             @keyup.enter="handleSearch"
           />
-          <vxe-input
-            v-model="storageQuery.fileId"
+          <NInput
+            v-model:value="storageQuery.fileId"
             clearable
             placeholder="文件主键"
             style="width: 140px"
@@ -839,162 +916,57 @@ async function handleSwitchPrimary(row: FileStorageListItemDto) {
           上传
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card v-show="activeTab === 'file'" class="flex-1" style="height: 0">
-      <vxe-grid ref="fileGrid" v-bind="fileTableOptions">
-        <template #toolbar_buttons />
-        <template #empty>
-          <div class="py-12 text-center text-gray-400">
-            暂无文件数据
-          </div>
-        </template>
+    <NCard v-show="activeTab === 'file'" class="flex-1" style="height: 0">
+      <NDataTable
+        :columns="fileColumns"
+        :data="fileList"
+        :loading="fileLoading"
+        :max-height="500"
+        :row-key="(row: FileListItemDto) => row.basicId"
+        :scroll-x="1800"
+        size="small"
+        striped
+      />
+      <div class="flex justify-end p-2">
+        <NPagination
+          v-model:page="filePage"
+          v-model:page-size="filePageSize"
+          :item-count="fileTotal"
+          :page-count="fileTotalPages"
+          :page-sizes="[10, 20, 50, 100]"
+          show-size-picker
+          @update:page="handleFilePageChange"
+          @update:page-size="handleFilePageSizeChange"
+        />
+      </div>
+    </NCard>
 
-        <template #col_file_type="{ row }">
-          <NTag round size="small">
-            {{ getOptionLabel(fileTypeOptions, row.fileType) }}
-          </NTag>
-        </template>
-
-        <template #col_file_status="{ row }">
-          <NTag :type="getFileStatusTagType(row.status)" round size="small">
-            {{ getOptionLabel(fileStatusOptions, row.status) }}
-          </NTag>
-        </template>
-
-        <template #col_file_temporary="{ row }">
-          <NTag :type="row.isTemporary ? 'warning' : 'default'" round size="small">
-            {{ row.isTemporary ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_file_encrypted="{ row }">
-          <NTag :type="row.isEncrypted ? 'info' : 'default'" round size="small">
-            {{ row.isEncrypted ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_file_actions="{ row }">
-          <NSpace :size="4">
-            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleFileDetail(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton aria-label="元数据" circle quaternary size="small" @click="openMetadataDrawer(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:pencil" /></NIcon>
-              </template>
-            </NButton>
-            <NButton aria-label="存储副本" circle quaternary size="small" @click="handleFileStorages(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:database" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              v-if="row.status !== FileStatus.Archived"
-              aria-label="归档"
-              circle
-              quaternary
-              size="small"
-              type="warning"
-              @click="handleUpdateFileStatus(row, FileStatus.Archived)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:archive" /></NIcon>
-              </template>
-            </NButton>
-            <NPopconfirm @positive-click="handleDeleteFile(row)">
-              <template #trigger>
-                <NButton
-                  v-if="row.status !== FileStatus.Deleted"
-                  aria-label="删除"
-                  circle
-                  quaternary
-                  size="small"
-                  type="error"
-                  :loading="actionLoading"
-                >
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确定删除该文件？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
-
-    <vxe-card v-show="activeTab === 'storage'" class="flex-1" style="height: 0">
-      <vxe-grid ref="storageGrid" v-bind="storageTableOptions">
-        <template #toolbar_buttons />
-        <template #empty>
-          <div class="py-12 text-center text-gray-400">
-            暂无存储副本数据
-          </div>
-        </template>
-
-        <template #col_storage_status="{ row }">
-          <NTag :type="getStorageStatusTagType(row.status)" round size="small">
-            {{ getOptionLabel(storageStatusOptions, row.status) }}
-          </NTag>
-        </template>
-
-        <template #col_storage_primary="{ row }">
-          <NTag :type="row.isPrimary ? 'success' : 'default'" round size="small">
-            {{ row.isPrimary ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_storage_backup="{ row }">
-          <NTag :type="row.isBackup ? 'info' : 'default'" round size="small">
-            {{ row.isBackup ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_storage_verified="{ row }">
-          <NTag :type="row.isVerified ? 'success' : 'warning'" round size="small">
-            {{ row.isVerified ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_storage_synced="{ row }">
-          <NTag :type="row.isSynced ? 'success' : 'default'" round size="small">
-            {{ row.isSynced ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_storage_actions="{ row }">
-          <NSpace :size="4">
-            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleStorageDetail(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton aria-label="校验" circle quaternary size="small" @click="handleVerifyStorage(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:shield-check" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              aria-label="设为主存储"
-              circle
-              :disabled="row.isPrimary"
-              quaternary
-              size="small"
-              type="primary"
-              @click="handleSwitchPrimary(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:star" /></NIcon>
-              </template>
-            </NButton>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard v-show="activeTab === 'storage'" class="flex-1" style="height: 0">
+      <NDataTable
+        :columns="storageColumns"
+        :data="storageList"
+        :loading="storageLoading"
+        :max-height="500"
+        :row-key="(row: FileStorageListItemDto) => row.basicId"
+        :scroll-x="1500"
+        size="small"
+        striped
+      />
+      <div class="flex justify-end p-2">
+        <NPagination
+          v-model:page="storagePage"
+          v-model:page-size="storagePageSize"
+          :item-count="storageTotal"
+          :page-count="storageTotalPages"
+          :page-sizes="[10, 20, 50, 100]"
+          show-size-picker
+          @update:page="handleStoragePageChange"
+          @update:page-size="handleStoragePageSizeChange"
+        />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="uploadVisible" :width="520">
       <NDrawerContent closable title="上传文件">

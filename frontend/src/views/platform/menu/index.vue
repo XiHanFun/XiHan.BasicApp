@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { CascaderOption } from 'naive-ui'
-import type { VxeGridInstance } from 'vxe-table'
+import type { CascaderOption, DataTableColumns } from 'naive-ui'
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import {
   NButton,
+  NCard,
   NCascader,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -16,6 +17,7 @@ import {
   NInput,
   NInputNumber,
   NModal,
+  NPagination,
   NScrollbar,
   NSelect,
   NSpace,
@@ -24,9 +26,10 @@ import {
   NTabPane,
   NTabs,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
@@ -34,8 +37,7 @@ import {
   menuManagementApi,
   MenuType,
 } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
-import { useVxeTable } from '~/hooks'
+import { Icon } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
@@ -45,15 +47,17 @@ interface MenuFormModel extends MenuCreateDto {
 }
 
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<MenuListItemDto>>()
-const loading = ref(false)
+const tableLoading = ref(false)
+const dataList = ref<MenuListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<MenuDetailDto | null>(null)
 const menuForm = ref<MenuFormModel>(createDefaultForm())
-const tableData = ref<MenuListItemDto[]>([])
 const treeNodes = ref<MenuTreeNodeDto[]>([])
 
 const queryParams = reactive({
@@ -141,7 +145,7 @@ function formatStatus(value?: EnableStatus | null) {
 
 const childMenus = computed(() => {
   if (!currentDetail.value) return []
-  return tableData.value.filter(item => item.parentId === currentDetail.value!.basicId)
+  return dataList.value.filter(item => item.parentId === currentDetail.value!.basicId)
 })
 
 async function loadTree() {
@@ -153,8 +157,8 @@ async function loadTree() {
   }
 }
 
-async function loadTable() {
-  loading.value = true
+async function fetchData() {
+  tableLoading.value = true
   try {
     const result = await menuManagementApi.page({
       ...createPageRequest({
@@ -170,87 +174,136 @@ async function loadTable() {
       menuType: queryParams.menuType,
       status: queryParams.status,
     })
-    tableData.value = result.items
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
   }
   catch {
     message.error('查询菜单失败')
-    tableData.value = []
+    dataList.value = []
+    totalCount.value = 0
   }
   finally {
-    loading.value = false
+    tableLoading.value = false
   }
 }
 
-onMounted(async () => {
-  await Promise.all([loadTree(), loadTable()])
-})
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
-const tableOptions = useVxeTable<MenuListItemDto>(
+function handlePageChange(page: number) {
+  currentPage.value = page
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
+const tableColumns = computed<DataTableColumns<MenuListItemDto>>(() => [
   {
-    data: [],
-    columns: [
-      { field: 'menuName', minWidth: 180, showOverflow: 'tooltip', title: '菜单名称', treeNode: true },
-      { field: 'menuCode', minWidth: 150, showOverflow: 'tooltip', title: '菜单编码' },
-      {
-        field: 'menuType',
-        formatter: ({ cellValue }) => getOptionLabel(menuTypeOptions, cellValue),
-        title: '类型',
-        width: 80,
-      },
-      { field: 'path', minWidth: 200, showOverflow: 'tooltip', title: '路径' },
-      { field: 'icon', minWidth: 160, showOverflow: 'tooltip', title: '图标' },
-      {
-        field: 'isVisible',
-        slots: { default: 'col_visible' },
-        title: '可见',
-        width: 70,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '状态',
-        width: 80,
-      },
-      { field: 'sort', sortable: true, title: '排序', width: 80 },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 216,
-      },
-    ],
-    id: 'sys_menu',
-    name: '菜单管理',
+    key: 'menuName',
+    title: '菜单名称',
+    minWidth: 180,
+    ellipsis: { tooltip: true },
   },
   {
-    pagerConfig: { enabled: false },
-    sortConfig: { remote: false },
-    treeConfig: {
-      expandAll: false,
-      parentField: 'parentId',
-      rowField: 'basicId',
-      transform: true,
+    key: 'menuCode',
+    title: '菜单编码',
+    minWidth: 150,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'menuType',
+    title: '类型',
+    width: 80,
+    render(row) {
+      return h('span', { style: 'font-size:13px;' }, getOptionLabel(menuTypeOptions, row.menuType))
     },
   },
-)
+  {
+    key: 'path',
+    title: '路径',
+    minWidth: 200,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'icon',
+    title: '图标',
+    minWidth: 160,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'isVisible',
+    title: '可见',
+    width: 70,
+    render(row) {
+      return h(NTag, { type: row.isVisible ? 'success' : 'default', round: true, size: 'small' }, () => row.isVisible ? '是' : '否')
+    },
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 80,
+    render(row) {
+      return h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status))
+    },
+  },
+  {
+    key: 'sort',
+    title: '排序',
+    width: 80,
+    sorter: true,
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 216,
+    fixed: 'right',
+    render(row) {
+      return h(NSpace, { size: 'small' }, () => [
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, {
+              ariaLabel: '查看详情',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              onClick: () => handleView(row),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '查看详情',
+        }),
+        row.menuType !== MenuType.Button
+          ? h(NButton, { size: 'small', text: true, type: 'info', onClick: () => handleAdd(row.basicId) }, () => '新增子项')
+          : null,
+        h(NButton, { size: 'small', text: true, type: 'primary', onClick: () => handleEdit(row) }, () => '编辑'),
+        h(NButton, {
+          type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
+          size: 'small',
+          text: true,
+          onClick: () => handleToggleStatus(row),
+        }, () => row.status === EnableStatus.Enabled ? '禁用' : '启用'),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
-  void loadTable()
+  void fetchData()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.menuType = undefined
   queryParams.status = undefined
-  void loadTable()
+  void fetchData()
 }
 
 function handleAdd(parentId?: ApiId) {
@@ -325,7 +378,7 @@ async function handleToggleStatus(row: MenuListItemDto) {
   try {
     await menuManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
     message.success('状态更新成功')
-    await loadTable()
+    await fetchData()
     await loadTree()
   }
   catch {
@@ -413,7 +466,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    await loadTable()
+    await fetchData()
     await loadTree()
   }
   catch {
@@ -423,14 +476,18 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
+
+onMounted(async () => {
+  await Promise.all([loadTree(), fetchData()])
+})
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索菜单名称/编码/路径"
           style="width: 250px"
@@ -463,63 +520,49 @@ async function handleSubmit() {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions" :data="tableData" :loading="loading">
-        <template #toolbar_buttons>
-          <NButton size="small" type="primary" @click="handleAdd()">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>
-            新增菜单
-          </NButton>
-          <NButton size="small" @click="loadTable">
-            <template #icon>
-              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-            </template>
-            刷新
-          </NButton>
-        </template>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <div style="padding:10px 16px;">
+        <NButton size="small" type="primary" @click="handleAdd()">
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
+          </template>
+          新增菜单
+        </NButton>
+        <NButton size="small" @click="fetchData" style="margin-left:8px;">
+          <template #icon>
+            <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+          </template>
+          刷新
+        </NButton>
+      </div>
 
-        <template #col_visible="{ row }">
-          <NTag :type="row.isVisible ? 'success' : 'default'" round size="small">
-            {{ row.isVisible ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_status="{ row }">
-          <NTag :type="row.status === EnableStatus.Enabled ? 'success' : 'error'" round size="small">
-            {{ getOptionLabel(statusOptions, row.status) }}
-          </NTag>
-        </template>
-
-        <template #col_actions="{ row }">
-          <NSpace size="small">
-            <NButton aria-label="查看详情" circle quaternary size="small" @click="handleView(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-
-            <NButton v-if="row.menuType !== MenuType.Button" size="small" text type="info" @click="handleAdd(row.basicId)">
-              新增子项
-            </NButton>
-            <NButton size="small" text type="primary" @click="handleEdit(row)">
-              编辑
-            </NButton>
-            <NButton
-              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              size="small"
-              text
-              @click="handleToggleStatus(row)"
-            >
-              {{ row.status === EnableStatus.Enabled ? '禁用' : '启用' }}
-            </NButton>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row: MenuListItemDto) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="padding:10px 16px;display:flex;justify-content:flex-end;align-items:center;">
+        <NPagination
+          :page="currentPage"
+          :page-size="pageSize"
+          :page-count="totalPages"
+          :page-sizes="[10, 20, 50, 100]"
+          show-size-picker
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="820">
       <NDrawerContent closable title="菜单详情">

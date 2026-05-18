@@ -1,40 +1,43 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type { TaskDetailDto, TaskListItemDto } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
   NIcon,
+  NInput,
+  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, TriggerType } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
-import { useVxeTable } from '~/hooks'
+import { Icon } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformJobPage' })
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
-interface TaskGridResult {
-  items: TaskListItemDto[]
-  total: number
-}
-
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<TaskListItemDto>>()
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<TaskDetailDto | null>(null)
 const actionLoading = ref(false)
+const tableLoading = ref(false)
+const dataList = ref<TaskListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const queryParams = reactive({
   keyword: '',
@@ -63,6 +66,8 @@ const statusOptions = [
   { label: '启用', value: EnableStatus.Enabled },
   { label: '禁用', value: EnableStatus.Disabled },
 ]
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 const canTrigger = computed(() => {
   if (!detailData.value) return false
@@ -108,13 +113,14 @@ function statusTag(status: EnableStatus): TagType {
   return status === EnableStatus.Enabled ? 'success' : 'default'
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<TaskGridResult> {
-  return jobManagementApi
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await jobManagementApi.page({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: currentPage.value,
+          pageSize: pageSize.value,
         },
       }),
       keyword: normalizeNullable(queryParams.keyword),
@@ -122,96 +128,140 @@ function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promis
       status: queryParams.status,
       triggerType: queryParams.triggerType,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询任务调度失败')
-      return { items: [], total: 0 }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询任务调度失败')
+    dataList.value = []
+    totalCount.value = 0
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<TaskListItemDto>(
+const tableColumns = computed<DataTableColumns<TaskListItemDto>>(() => [
+  { key: 'taskName', title: '任务名称', minWidth: 180, ellipsis: { tooltip: true } },
+  { key: 'taskCode', title: '任务编码', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'taskGroup', title: '任务分组', minWidth: 120, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'taskName', minWidth: 180, showOverflow: 'tooltip', title: '任务名称' },
-      { field: 'taskCode', minWidth: 160, showOverflow: 'tooltip', title: '任务编码' },
-      { field: 'taskGroup', minWidth: 120, showOverflow: 'tooltip', title: '任务分组' },
-      {
-        field: 'triggerType',
-        formatter: ({ cellValue }) => getOptionLabel(triggerTypeOptions, cellValue),
-        minWidth: 120,
-        title: '触发类型',
-      },
-      {
-        field: 'runTaskStatus',
-        slots: { default: 'col_run_status' },
-        title: '运行状态',
-        width: 120,
-      },
-      {
-        field: 'status',
-        slots: { default: 'col_status' },
-        title: '启停状态',
-        width: 100,
-      },
-      {
-        field: 'allowConcurrent',
-        slots: { default: 'col_allow_concurrent' },
-        title: '并发',
-        width: 86,
-      },
-      { field: 'executedCount', minWidth: 100, title: '已执行' },
-      { field: 'retryCount', minWidth: 100, title: '重试次数' },
-      { field: 'priority', minWidth: 86, sortable: true, title: '优先级' },
-      {
-        field: 'nextRunTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '下次执行',
-      },
-      {
-        field: 'lastRunTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        title: '上次执行',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 160,
-      },
-    ],
-    id: 'sys_task',
-    name: '任务调度',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'triggerType',
+    title: '触发类型',
+    minWidth: 120,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(triggerTypeOptions, row.triggerType))
     },
   },
-)
-
-function reload() {
-  xGrid.value?.commitProxy('reload')
-}
+  {
+    key: 'runTaskStatus',
+    title: '运行状态',
+    width: 120,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: runStatusTag(row.runTaskStatus), bordered: false }, () => getOptionLabel(runTaskStatusOptions, row.runTaskStatus))
+    },
+  },
+  {
+    key: 'status',
+    title: '启停状态',
+    width: 100,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: statusTag(row.status), bordered: false }, () => getOptionLabel(statusOptions, row.status))
+    },
+  },
+  {
+    key: 'allowConcurrent',
+    title: '并发',
+    width: 86,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: row.allowConcurrent ? 'warning' : 'info', bordered: false }, () => row.allowConcurrent ? '允许' : '禁止')
+    },
+  },
+  { key: 'executedCount', title: '已执行', minWidth: 100 },
+  { key: 'retryCount', title: '重试次数', minWidth: 100 },
+  { key: 'priority', title: '优先级', minWidth: 86, sorter: true },
+  {
+    key: 'nextRunTime',
+    title: '下次执行',
+    minWidth: 170,
+    sorter: true,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.nextRunTime ? formatDate(row.nextRunTime) : '-')
+    },
+  },
+  {
+    key: 'lastRunTime',
+    title: '上次执行',
+    minWidth: 170,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.lastRunTime ? formatDate(row.lastRunTime) : '-')
+    },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    render(row) {
+      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 160,
+    render(row) {
+      return h(NSpace, { size: 4 }, () => [
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleDetail(row) }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
+            }),
+          default: () => '详情',
+        }),
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, {
+              ariaLabel: '启动',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'info',
+              disabled: row.runTaskStatus === RunTaskStatus.Running || row.status !== EnableStatus.Enabled,
+              onClick: () => handleTriggerViaRow(row),
+            }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:play' })),
+            }),
+          default: () => '触发执行',
+        }),
+        h(NTooltip, null, {
+          trigger: () =>
+            h(NButton, {
+              ariaLabel: '启停',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
+              onClick: () => handleToggleStatus(row),
+            }, {
+              icon: () => h(NIcon, { icon: row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play' }),
+            }),
+          default: () => row.status === EnableStatus.Enabled ? '停用' : '启用',
+        }),
+        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
+          trigger: () =>
+            h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
+            }),
+          default: () => '确定删除该任务？删除后不可恢复。',
+        }),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
-  reload()
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
@@ -219,7 +269,19 @@ function handleReset() {
   queryParams.runTaskStatus = undefined
   queryParams.status = undefined
   queryParams.triggerType = undefined
-  reload()
+  currentPage.value = 1
+  fetchData()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
 }
 
 async function handleDetail(row: TaskListItemDto) {
@@ -249,7 +311,7 @@ async function handleTriggerViaRow(row: TaskListItemDto) {
       runTaskStatus: RunTaskStatus.Running,
     })
     message.success('任务已触发')
-    reload()
+    fetchData()
   }
   catch {
     message.error('触发任务失败')
@@ -269,7 +331,7 @@ async function handleTrigger() {
     })
     message.success('任务已触发')
     detailVisible.value = false
-    reload()
+    fetchData()
   }
   catch {
     message.error('触发任务失败')
@@ -292,7 +354,7 @@ async function handleToggleStatus(row: TaskListItemDto) {
       status: newStatus,
     })
     message.success(newStatus === EnableStatus.Enabled ? '任务已启用' : '任务已停用')
-    reload()
+    fetchData()
   }
   catch {
     message.error('更新任务状态失败')
@@ -311,7 +373,7 @@ async function handleDelete(row: TaskListItemDto) {
   try {
     await jobManagementApi.delete(row.basicId)
     message.success('任务已删除')
-    reload()
+    fetchData()
   }
   catch {
     message.error('删除任务失败')
@@ -320,14 +382,16 @@ async function handleDelete(row: TaskListItemDto) {
     actionLoading.value = false
   }
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索任务名称/编码/分组"
           style="width: 240px"
@@ -367,83 +431,27 @@ async function handleDelete(row: TaskListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #empty>
-          <div class="py-12 text-center text-gray-400">
-            暂无任务数据
-          </div>
-        </template>
-        <template #col_run_status="{ row }">
-          <NTag :type="runStatusTag(row.runTaskStatus)" round size="small">
-            {{ getOptionLabel(runTaskStatusOptions, row.runTaskStatus) }}
-          </NTag>
-        </template>
-        <template #col_status="{ row }">
-          <NTag :type="statusTag(row.status)" round size="small">
-            {{ getOptionLabel(statusOptions, row.status) }}
-          </NTag>
-        </template>
-        <template #col_allow_concurrent="{ row }">
-          <NTag :type="row.allowConcurrent ? 'warning' : 'info'" round size="small">
-            {{ row.allowConcurrent ? '允许' : '禁止' }}
-          </NTag>
-        </template>
-        <template #col_actions="{ row }">
-          <NSpace :size="4">
-            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              aria-label="启动"
-              circle
-              quaternary
-              size="small"
-              type="info"
-              :disabled="row.runTaskStatus === RunTaskStatus.Running || row.status !== EnableStatus.Enabled"
-              @click="handleTriggerViaRow(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:play" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              aria-label="启停"
-              circle
-              quaternary
-              size="small"
-              :type="row.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              @click="handleToggleStatus(row)"
-            >
-              <template #icon>
-                <NIcon :icon="row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" />
-              </template>
-            </NButton>
-            <NPopconfirm @positive-click="handleDelete(row)">
-              <template #trigger>
-                <NButton
-                  aria-label="删除"
-                  circle
-                  quaternary
-                  size="small"
-                  type="error"
-                  :loading="actionLoading"
-                >
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确定删除该任务？删除后不可恢复。
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="640">
       <NDrawerContent closable title="任务详情">

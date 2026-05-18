@@ -1,30 +1,33 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type { LogDetailField } from '../_components/log-detail.types'
 import type { AccessLogDetailDto, AccessLogListItemDto } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NIcon,
+  NInput,
+  NPagination,
   NSelect,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { AccessResult, createPageRequest, logManagementApi } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
-import { useVxeTable } from '~/hooks'
+import { Icon } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogAccessPage' })
 
-interface LogGridResult {
-  items: AccessLogListItemDto[]
-  total: number
-}
-
 const message = useMessage()
-const xGrid = ref<VxeGridInstance<AccessLogListItemDto>>()
+const tableLoading = ref(false)
+const dataList = ref<AccessLogListItemDto[]>([])
+const totalCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<AccessLogDetailDto | null>(null)
@@ -91,109 +94,117 @@ function accessResultType(result: AccessResult) {
   }
 }
 
-function handleQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<LogGridResult> {
-  return logManagementApi.access
-    .page({
+async function fetchData() {
+  tableLoading.value = true
+  try {
+    const result = await logManagementApi.access.page({
       ...createPageRequest({
-        page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
-        },
+        page: { pageIndex: currentPage.value, pageSize: pageSize.value },
       }),
       accessResult: queryParams.accessResult,
       keyword: queryParams.keyword?.trim() || undefined,
       method: queryParams.method,
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询访问日志失败')
-      return { items: [], total: 0 }
-    })
+    dataList.value = result.items
+    totalCount.value = result.page.totalCount
+  }
+  catch {
+    message.error('查询访问日志失败')
+  }
+  finally {
+    tableLoading.value = false
+  }
 }
 
-const tableOptions = useVxeTable<AccessLogListItemDto>(
+const tableColumns = computed<DataTableColumns<AccessLogListItemDto>>(() => [
+  { key: 'sessionId', title: '会话标识', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'traceId', title: '链路追踪 ID', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'userName', title: '用户名', minWidth: 100, ellipsis: { tooltip: true } },
+  { key: 'userId', title: '用户主键', minWidth: 80, ellipsis: { tooltip: true } },
+  { key: 'resourcePath', title: '资源路径', minWidth: 240, ellipsis: { tooltip: true } },
+  { key: 'resourceName', title: '资源名称', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'resourceType', title: '资源类型', minWidth: 100, ellipsis: { tooltip: true } },
+  { key: 'method', title: '请求方法', width: 90 },
+  { key: 'statusCode', title: '响应状态码', width: 100 },
+  { key: 'accessIp', title: '访问 IP', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'accessLocation', title: '访问位置', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'browser', title: '浏览器', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'os', title: '操作系统', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'device', title: '设备', minWidth: 120, ellipsis: { tooltip: true } },
+  { key: 'referer', title: '来源地址', minWidth: 220, ellipsis: { tooltip: true } },
+  { key: 'userAgent', title: 'User-Agent', minWidth: 260, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'sessionId', minWidth: 160, showOverflow: 'tooltip', title: '会话标识' },
-      { field: 'traceId', minWidth: 160, showOverflow: 'tooltip', title: '链路追踪 ID' },
-      { field: 'userName', minWidth: 100, showOverflow: 'tooltip', title: '用户名' },
-      { field: 'userId', minWidth: 80, showOverflow: 'tooltip', title: '用户主键' },
-      { field: 'resourcePath', minWidth: 240, showOverflow: 'tooltip', title: '资源路径' },
-      { field: 'resourceName', minWidth: 120, showOverflow: 'tooltip', title: '资源名称' },
-      { field: 'resourceType', minWidth: 100, showOverflow: 'tooltip', title: '资源类型' },
-      { field: 'method', title: '请求方法', width: 90 },
-      { field: 'statusCode', title: '响应状态码', width: 100 },
-      { field: 'accessIp', minWidth: 130, showOverflow: 'tooltip', title: '访问 IP' },
-      { field: 'accessLocation', minWidth: 160, showOverflow: 'tooltip', title: '访问位置' },
-      { field: 'browser', minWidth: 120, showOverflow: 'tooltip', title: '浏览器' },
-      { field: 'os', minWidth: 120, showOverflow: 'tooltip', title: '操作系统' },
-      { field: 'device', minWidth: 120, showOverflow: 'tooltip', title: '设备' },
-      { field: 'referer', minWidth: 220, showOverflow: 'tooltip', title: '来源地址' },
-      { field: 'userAgent', minWidth: 260, showOverflow: 'tooltip', title: 'User-Agent' },
-      {
-        field: 'accessResult',
-        slots: { default: 'col_result' },
-        title: '访问结果',
-        width: 100,
-      },
-      { field: 'errorMessage', minWidth: 220, showOverflow: 'tooltip', title: '错误消息' },
-      { field: 'extendData', minWidth: 240, showOverflow: 'tooltip', title: '扩展数据' },
-      { field: 'remark', minWidth: 180, showOverflow: 'tooltip', title: '备注' },
-      {
-        field: 'executionTime',
-        formatter: ({ cellValue }) => `${cellValue}ms`,
-        sortable: true,
-        title: '执行耗时（毫秒）',
-        width: 130,
-      },
-      {
-        field: 'accessTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '访问时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_actions' },
-        title: '操作',
-        width: 86,
-      },
-    ],
-    id: 'sys_access_log',
-    name: '访问日志',
-  },
-  {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleQueryApi(page),
-      },
+    key: 'accessResult',
+    title: '访问结果',
+    width: 100,
+    render(row) {
+      return h(NTag, { size: 'small', round: true, type: accessResultType(row.accessResult), bordered: false }, () => getOptionLabel(accessResultOptions, row.accessResult))
     },
   },
-)
+  { key: 'errorMessage', title: '错误消息', minWidth: 220, ellipsis: { tooltip: true } },
+  { key: 'extendData', title: '扩展数据', minWidth: 240, ellipsis: { tooltip: true } },
+  { key: 'remark', title: '备注', minWidth: 180, ellipsis: { tooltip: true } },
+  {
+    key: 'executionTime',
+    title: '执行耗时（毫秒）',
+    width: 130,
+    sorter: true,
+    render(row) { return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, `${row.executionTime}ms`) },
+  },
+  {
+    key: 'accessTime',
+    title: '访问时间',
+    minWidth: 170,
+    sorter: true,
+    render(row) { return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.accessTime)) },
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    render(row) { return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime)) },
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 86,
+    fixed: 'right',
+    render(row) {
+      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
+        h(NTooltip, {}, {
+          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '详情',
+        }),
+      ])
+    },
+  },
+])
 
 function handleSearch() {
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
 
 function handleReset() {
   queryParams.keyword = ''
   queryParams.accessResult = undefined
   queryParams.method = undefined
-  xGrid.value?.commitProxy('reload')
+  currentPage.value = 1
+  fetchData()
 }
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchData()
+}
+
+function handlePageSizeChange(size: number) {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
+}
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 async function handleDetail(row: AccessLogListItemDto) {
   detailVisible.value = true
@@ -209,17 +220,19 @@ async function handleDetail(row: AccessLogListItemDto) {
     detailLoading.value = false
   }
 }
+
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
-        <vxe-input
-          v-model="queryParams.keyword"
+        <NInput
+          v-model:value="queryParams.keyword"
           clearable
           placeholder="搜索路径/用户"
-          style="width: 220px"
+          style="width:220px"
           @keyup.enter="handleSearch"
         />
         <NSelect
@@ -249,24 +262,29 @@ async function handleDetail(row: AccessLogListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card class="flex-1" style="height: 0">
-      <vxe-grid ref="xGrid" v-bind="tableOptions">
-        <template #col_result="{ row }">
-          <NTag :type="accessResultType(row.accessResult)" round size="small">
-            {{ getOptionLabel(accessResultOptions, row.accessResult) }}
-          </NTag>
-        </template>
-        <template #col_actions="{ row }">
-          <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleDetail(row)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:eye" /></NIcon>
-            </template>
-          </NButton>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="tableColumns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+        </div>
+        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </NCard>
 
     <LogDetailDrawer
       v-model:show="detailVisible"

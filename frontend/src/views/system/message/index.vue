@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import type { VxeGridInstance, VxeGridPropTypes } from 'vxe-table'
+import type { DataTableColumns } from 'naive-ui'
 import type { ApiId, EmailDetailDto, EmailListItemDto, EmailType, SmsDetailDto, SmsListItemDto, SmsType } from '@/api'
 import {
   NButton,
+  NCard,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
   NIcon,
+  NInput,
+  NPagination,
   NPopconfirm,
   NSelect,
   NSpace,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { createPageRequest, EmailStatus, messageCenterApi, SmsStatus } from '@/api'
-import { Icon, XSystemQueryPanel } from '~/components'
+import { Icon } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
-import { useVxeTable } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemMessagePage' })
@@ -26,26 +30,28 @@ defineOptions({ name: 'SystemMessagePage' })
 type MessageTab = 'email' | 'sms'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
-interface EmailGridResult {
-  items: EmailListItemDto[]
-  total: number
-}
-
-interface SmsGridResult {
-  items: SmsListItemDto[]
-  total: number
-}
-
 const message = useMessage()
 const activeTab = ref<MessageTab>('email')
-const emailGrid = ref<VxeGridInstance<EmailListItemDto>>()
-const smsGrid = ref<VxeGridInstance<SmsListItemDto>>()
+const emailLoaded = ref(false)
+const smsLoaded = ref(false)
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailTab = ref<MessageTab>('email')
 const currentEmailDetail = ref<EmailDetailDto | null>(null)
 const currentSmsDetail = ref<SmsDetailDto | null>(null)
 const actionLoading = ref(false)
+
+const emailLoading = ref(false)
+const emailList = ref<EmailListItemDto[]>([])
+const emailTotal = ref(0)
+const emailPage = ref(1)
+const emailPageSize = ref(20)
+
+const smsLoading = ref(false)
+const smsList = ref<SmsListItemDto[]>([])
+const smsTotal = ref(0)
+const smsPage = ref(1)
+const smsPageSize = ref(20)
 
 const emailQuery = reactive({
   businessId: null as ApiId | null,
@@ -116,13 +122,14 @@ function canResend(status: EmailStatus | SmsStatus) {
   return status === EmailStatus.Failed || status === EmailStatus.Pending || status === EmailStatus.Cancelled
 }
 
-function handleEmailQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<EmailGridResult> {
-  return messageCenterApi
-    .emailPage({
+async function fetchEmailData() {
+  emailLoading.value = true
+  try {
+    const result = await messageCenterApi.emailPage({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: emailPage.value,
+          pageSize: emailPageSize.value,
         },
       }),
       businessId: normalizeId(emailQuery.businessId),
@@ -134,26 +141,28 @@ function handleEmailQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): P
       sendUserId: normalizeId(emailQuery.sendUserId),
       templateId: normalizeId(emailQuery.templateId),
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询系统邮件失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    emailList.value = result.items
+    emailTotal.value = result.page.totalCount
+    emailLoaded.value = true
+  }
+  catch {
+    message.error('查询系统邮件失败')
+    emailList.value = []
+    emailTotal.value = 0
+  }
+  finally {
+    emailLoading.value = false
+  }
 }
 
-function handleSmsQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Promise<SmsGridResult> {
-  return messageCenterApi
-    .smsPage({
+async function fetchSmsData() {
+  smsLoading.value = true
+  try {
+    const result = await messageCenterApi.smsPage({
       ...createPageRequest({
         page: {
-          pageIndex: page.currentPage,
-          pageSize: page.pageSize,
+          pageIndex: smsPage.value,
+          pageSize: smsPageSize.value,
         },
       }),
       businessId: normalizeId(smsQuery.businessId),
@@ -166,165 +175,186 @@ function handleSmsQueryApi(page: VxeGridPropTypes.ProxyAjaxQueryPageParams): Pro
       smsType: smsQuery.smsType,
       templateId: normalizeId(smsQuery.templateId),
     })
-    .then(result => ({
-      items: result.items,
-      total: result.page.totalCount,
-    }))
-    .catch(() => {
-      message.error('查询系统短信失败')
-      return {
-        items: [],
-        total: 0,
-      }
-    })
+    smsList.value = result.items
+    smsTotal.value = result.page.totalCount
+    smsLoaded.value = true
+  }
+  catch {
+    message.error('查询系统短信失败')
+    smsList.value = []
+    smsTotal.value = 0
+  }
+  finally {
+    smsLoading.value = false
+  }
 }
 
-const emailTableOptions = useVxeTable<EmailListItemDto>(
+const emailColumns = computed<DataTableColumns<EmailListItemDto>>(() => [
+  { key: 'subject', title: '邮件主题', minWidth: 220, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'subject', minWidth: 220, showOverflow: 'tooltip', title: '邮件主题' },
-      {
-        field: 'emailType',
-        formatter: ({ cellValue }) => getOptionLabel(EMAIL_TYPE_OPTIONS, cellValue),
-        minWidth: 110,
-        title: '邮件类型',
-      },
-      {
-        field: 'emailStatus',
-        slots: { default: 'col_email_status' },
-        title: '发送状态',
-        width: 100,
-      },
-      {
-        field: 'isHtml',
-        slots: { default: 'col_email_html' },
-        title: 'HTML',
-        width: 82,
-      },
-      { field: 'businessType', minWidth: 130, showOverflow: 'tooltip', title: '业务类型' },
-      { field: 'sendUserId', minWidth: 110, title: '发送用户' },
-      { field: 'receiveUserId', minWidth: 110, title: '接收用户' },
-      { field: 'templateId', minWidth: 110, title: '模板' },
-      {
-        field: 'retryCount',
-        formatter: ({ row }) => formatRetry(row),
-        minWidth: 90,
-        title: '重试',
-      },
-      {
-        field: 'sendTime',
-        formatter: ({ cellValue }) => (cellValue ? formatDate(cellValue) : '-'),
-        minWidth: 170,
-        sortable: true,
-        title: '发送时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_email_actions' },
-        title: '操作',
-        width: 160,
-      },
-    ],
-    id: 'sys_email_message',
-    name: '系统邮件',
+    key: 'emailType',
+    title: '邮件类型',
+    minWidth: 110,
+    render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, row.emailType),
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleEmailQueryApi(page),
-      },
-    },
+    key: 'emailStatus',
+    title: '发送状态',
+    width: 100,
+    render: row =>
+      h(NTag, { type: getMessageStatusTagType(row.emailStatus), round: true, size: 'small' }, () => getOptionLabel(EMAIL_STATUS_OPTIONS, row.emailStatus)),
   },
-)
+  {
+    key: 'isHtml',
+    title: 'HTML',
+    width: 82,
+    render: row =>
+      h(NTag, { type: row.isHtml ? 'info' : 'default', round: true, size: 'small' }, () => row.isHtml ? '是' : '否'),
+  },
+  { key: 'businessType', title: '业务类型', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'sendUserId', title: '发送用户', minWidth: 110 },
+  { key: 'receiveUserId', title: '接收用户', minWidth: 110 },
+  { key: 'templateId', title: '模板', minWidth: 110 },
+  {
+    key: 'retryCount',
+    title: '重试',
+    minWidth: 90,
+    render: row => formatRetry(row),
+  },
+  {
+    key: 'sendTime',
+    title: '发送时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => row.sendTime ? formatDate(row.sendTime) : '-',
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => formatDate(row.createdTime),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 160,
+    fixed: 'right',
+    render: row =>
+      h(NSpace, { size: 4 }, () => [
+        h(NTooltip, {}, {
+          trigger: () => h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEmailDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '详情',
+        }),
+        canResend(row.emailStatus)
+          ? h(NTooltip, {}, {
+              trigger: () => h(NButton, { ariaLabel: '重发', circle: true, quaternary: true, size: 'small', type: 'warning', loading: actionLoading.value, onClick: () => handleResendEmail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:refresh-cw' })) }),
+              default: () => '重发',
+            })
+          : null,
+        h(NPopconfirm, { onPositiveClick: () => handleDeleteEmail(row) }, {
+          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '确定删除该邮件？',
+        }),
+      ]),
+  },
+])
 
-const smsTableOptions = useVxeTable<SmsListItemDto>(
+const smsColumns = computed<DataTableColumns<SmsListItemDto>>(() => [
+  { key: 'provider', title: '服务商', minWidth: 140, ellipsis: { tooltip: true } },
   {
-    columns: [
-      { fixed: 'left', title: '序号', type: 'seq', width: 60 },
-      { field: 'provider', minWidth: 140, showOverflow: 'tooltip', title: '服务商' },
-      {
-        field: 'smsType',
-        formatter: ({ cellValue }) => getOptionLabel(SMS_TYPE_OPTIONS, cellValue),
-        minWidth: 110,
-        title: '短信类型',
-      },
-      {
-        field: 'smsStatus',
-        slots: { default: 'col_sms_status' },
-        title: '发送状态',
-        width: 100,
-      },
-      { field: 'businessType', minWidth: 130, showOverflow: 'tooltip', title: '业务类型' },
-      { field: 'senderId', minWidth: 110, title: '发送用户' },
-      { field: 'receiverId', minWidth: 110, title: '接收用户' },
-      { field: 'templateId', minWidth: 110, title: '模板' },
-      { field: 'cost', minWidth: 90, title: '费用' },
-      {
-        field: 'retryCount',
-        formatter: ({ row }) => formatRetry(row),
-        minWidth: 90,
-        title: '重试',
-      },
-      {
-        field: 'sendTime',
-        formatter: ({ cellValue }) => (cellValue ? formatDate(cellValue) : '-'),
-        minWidth: 170,
-        sortable: true,
-        title: '发送时间',
-      },
-      {
-        field: 'createdTime',
-        formatter: ({ cellValue }) => formatDate(cellValue),
-        minWidth: 170,
-        sortable: true,
-        title: '创建时间',
-      },
-      {
-        field: 'actions',
-        fixed: 'right',
-        slots: { default: 'col_sms_actions' },
-        title: '操作',
-        width: 160,
-      },
-    ],
-    id: 'sys_sms_message',
-    name: '系统短信',
+    key: 'smsType',
+    title: '短信类型',
+    minWidth: 110,
+    render: row => getOptionLabel(SMS_TYPE_OPTIONS, row.smsType),
   },
   {
-    proxyConfig: {
-      autoLoad: true,
-      ajax: {
-        query: ({ page }) => handleSmsQueryApi(page),
-      },
-    },
+    key: 'smsStatus',
+    title: '发送状态',
+    width: 100,
+    render: row =>
+      h(NTag, { type: getMessageStatusTagType(row.smsStatus), round: true, size: 'small' }, () => getOptionLabel(SMS_STATUS_OPTIONS, row.smsStatus)),
   },
-)
+  { key: 'businessType', title: '业务类型', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'senderId', title: '发送用户', minWidth: 110 },
+  { key: 'receiverId', title: '接收用户', minWidth: 110 },
+  { key: 'templateId', title: '模板', minWidth: 110 },
+  { key: 'cost', title: '费用', minWidth: 90 },
+  {
+    key: 'retryCount',
+    title: '重试',
+    minWidth: 90,
+    render: row => formatRetry(row),
+  },
+  {
+    key: 'sendTime',
+    title: '发送时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => row.sendTime ? formatDate(row.sendTime) : '-',
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    minWidth: 170,
+    sorter: true,
+    render: row => formatDate(row.createdTime),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 160,
+    fixed: 'right',
+    render: row =>
+      h(NSpace, { size: 4 }, () => [
+        h(NTooltip, {}, {
+          trigger: () => h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleSmsDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '详情',
+        }),
+        canResend(row.smsStatus)
+          ? h(NTooltip, {}, {
+              trigger: () => h(NButton, { ariaLabel: '重发', circle: true, quaternary: true, size: 'small', type: 'warning', loading: actionLoading.value, onClick: () => handleResendSms(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:refresh-cw' })) }),
+              default: () => '重发',
+            })
+          : null,
+        h(NPopconfirm, { onPositiveClick: () => handleDeleteSms(row) }, {
+          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '确定删除该短信？',
+        }),
+      ]),
+  },
+])
+
+const emailTotalPages = computed(() => Math.max(1, Math.ceil(emailTotal.value / emailPageSize.value)))
+const smsTotalPages = computed(() => Math.max(1, Math.ceil(smsTotal.value / smsPageSize.value)))
 
 function reloadActiveGrid() {
   if (activeTab.value === 'email') {
-    emailGrid.value?.commitProxy('reload')
+    fetchEmailData()
     return
   }
 
-  smsGrid.value?.commitProxy('reload')
+  fetchSmsData()
 }
 
 function handleSearch() {
-  reloadActiveGrid()
+  if (activeTab.value === 'email') {
+    emailPage.value = 1
+    fetchEmailData()
+  }
+  else {
+    smsPage.value = 1
+    fetchSmsData()
+  }
 }
 
 function handleTabChanged() {
-  reloadActiveGrid()
+  if (activeTab.value === 'email' && !emailLoaded.value) {
+    fetchEmailData()
+  }
+  else if (activeTab.value === 'sms' && !smsLoaded.value) {
+    fetchSmsData()
+  }
 }
 
 function handleReset() {
@@ -337,6 +367,8 @@ function handleReset() {
     emailQuery.receiveUserId = null
     emailQuery.sendUserId = null
     emailQuery.templateId = null
+    emailPage.value = 1
+    fetchEmailData()
   }
   else {
     smsQuery.businessId = null
@@ -348,15 +380,36 @@ function handleReset() {
     smsQuery.smsStatus = null
     smsQuery.smsType = null
     smsQuery.templateId = null
+    smsPage.value = 1
+    fetchSmsData()
   }
+}
 
-  reloadActiveGrid()
+function handleEmailPageChange(page: number) {
+  emailPage.value = page
+  fetchEmailData()
+}
+
+function handleEmailPageSizeChange(size: number) {
+  emailPageSize.value = size
+  emailPage.value = 1
+  fetchEmailData()
+}
+
+function handleSmsPageChange(page: number) {
+  smsPage.value = page
+  fetchSmsData()
+}
+
+function handleSmsPageSizeChange(size: number) {
+  smsPageSize.value = size
+  smsPage.value = 1
+  fetchSmsData()
 }
 
 async function handleResendEmail(row: EmailListItemDto) {
   actionLoading.value = true
   try {
-    // Mark as pending to trigger a retry through status update
     await messageCenterApi.updateEmailStatus({
       basicId: row.basicId,
       emailStatus: EmailStatus.Pending,
@@ -455,11 +508,13 @@ async function handleSmsDetail(row: SmsListItemDto) {
     detailLoading.value = false
   }
 }
+
+onMounted(() => fetchEmailData())
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <XSystemQueryPanel>
+    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
       <div class="xh-query-panel__content">
         <NSelect
           v-model:value="activeTab"
@@ -469,8 +524,8 @@ async function handleSmsDetail(row: SmsListItemDto) {
         />
 
         <template v-if="activeTab === 'email'">
-          <vxe-input
-            v-model="emailQuery.keyword"
+          <NInput
+            v-model:value="emailQuery.keyword"
             clearable
             placeholder="搜索主题/业务类型"
             style="width: 220px"
@@ -490,17 +545,17 @@ async function handleSmsDetail(row: SmsListItemDto) {
             placeholder="发送状态"
             style="width: 120px"
           />
-          <vxe-input
-            v-model="emailQuery.businessType"
+          <NInput
+            v-model:value="emailQuery.businessType"
             clearable
             placeholder="业务类型"
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <vxe-input v-model="emailQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
-          <vxe-input v-model="emailQuery.sendUserId" clearable placeholder="发送用户" style="width: 120px" />
-          <vxe-input
-            v-model="emailQuery.receiveUserId"
+          <NInput v-model:value="emailQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
+          <NInput v-model:value="emailQuery.sendUserId" clearable placeholder="发送用户" style="width: 120px" />
+          <NInput
+            v-model:value="emailQuery.receiveUserId"
             clearable
             placeholder="接收用户"
             style="width: 120px"
@@ -508,8 +563,8 @@ async function handleSmsDetail(row: SmsListItemDto) {
         </template>
 
         <template v-else>
-          <vxe-input
-            v-model="smsQuery.keyword"
+          <NInput
+            v-model:value="smsQuery.keyword"
             clearable
             placeholder="搜索服务商/业务类型"
             style="width: 220px"
@@ -529,23 +584,23 @@ async function handleSmsDetail(row: SmsListItemDto) {
             placeholder="发送状态"
             style="width: 120px"
           />
-          <vxe-input
-            v-model="smsQuery.provider"
+          <NInput
+            v-model:value="smsQuery.provider"
             clearable
             placeholder="服务商"
             style="width: 120px"
             @keyup.enter="handleSearch"
           />
-          <vxe-input
-            v-model="smsQuery.businessType"
+          <NInput
+            v-model:value="smsQuery.businessType"
             clearable
             placeholder="业务类型"
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <vxe-input v-model="smsQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
-          <vxe-input v-model="smsQuery.senderId" clearable placeholder="发送用户" style="width: 120px" />
-          <vxe-input v-model="smsQuery.receiverId" clearable placeholder="接收用户" style="width: 120px" />
+          <NInput v-model:value="smsQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
+          <NInput v-model:value="smsQuery.senderId" clearable placeholder="发送用户" style="width: 120px" />
+          <NInput v-model:value="smsQuery.receiverId" clearable placeholder="接收用户" style="width: 120px" />
         </template>
 
         <NButton size="small" type="primary" @click="handleSearch">
@@ -561,129 +616,51 @@ async function handleSmsDetail(row: SmsListItemDto) {
           重置
         </NButton>
       </div>
-    </XSystemQueryPanel>
+    </div>
 
-    <vxe-card v-show="activeTab === 'email'" class="flex-1" style="height: 0">
-      <vxe-grid ref="emailGrid" v-bind="emailTableOptions">
-        <template #toolbar_buttons />
-        <template #empty>
-          <div class="py-12 text-center text-gray-400">
-            暂无邮件数据
-          </div>
-        </template>
+    <NCard v-show="activeTab === 'email'" content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="emailColumns"
+        :data="emailList"
+        :loading="emailLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row: EmailListItemDto) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ emailTotal }}</strong> 条，第 <strong>{{ emailPage }}</strong> / {{ emailTotalPages }} 页
+        </div>
+        <NPagination :page="emailPage" :page-count="emailTotalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="emailPageSize" show-size-picker @update:page="handleEmailPageChange" @update:page-size="handleEmailPageSizeChange" />
+      </div>
+    </NCard>
 
-        <template #col_email_status="{ row }">
-          <NTag :type="getMessageStatusTagType(row.emailStatus)" round size="small">
-            {{ getOptionLabel(EMAIL_STATUS_OPTIONS, row.emailStatus) }}
-          </NTag>
-        </template>
-
-        <template #col_email_html="{ row }">
-          <NTag :type="row.isHtml ? 'info' : 'default'" round size="small">
-            {{ row.isHtml ? '是' : '否' }}
-          </NTag>
-        </template>
-
-        <template #col_email_actions="{ row }">
-          <NSpace :size="4">
-            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleEmailDetail(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              v-if="canResend(row.emailStatus)"
-              aria-label="重发"
-              circle
-              quaternary
-              size="small"
-              type="warning"
-              :loading="actionLoading"
-              @click="handleResendEmail(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-              </template>
-            </NButton>
-            <NPopconfirm @positive-click="handleDeleteEmail(row)">
-              <template #trigger>
-                <NButton
-                  aria-label="删除"
-                  circle
-                  quaternary
-                  size="small"
-                  type="error"
-                  :loading="actionLoading"
-                >
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确定删除该邮件？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
-
-    <vxe-card v-show="activeTab === 'sms'" class="flex-1" style="height: 0">
-      <vxe-grid ref="smsGrid" v-bind="smsTableOptions">
-        <template #toolbar_buttons />
-        <template #empty>
-          <div class="py-12 text-center text-gray-400">
-            暂无短信数据
-          </div>
-        </template>
-
-        <template #col_sms_status="{ row }">
-          <NTag :type="getMessageStatusTagType(row.smsStatus)" round size="small">
-            {{ getOptionLabel(SMS_STATUS_OPTIONS, row.smsStatus) }}
-          </NTag>
-        </template>
-
-        <template #col_sms_actions="{ row }">
-          <NSpace :size="4">
-            <NButton aria-label="详情" circle quaternary size="small" type="primary" @click="handleSmsDetail(row)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eye" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
-              v-if="canResend(row.smsStatus)"
-              aria-label="重发"
-              circle
-              quaternary
-              size="small"
-              type="warning"
-              :loading="actionLoading"
-              @click="handleResendSms(row)"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-              </template>
-            </NButton>
-            <NPopconfirm @positive-click="handleDeleteSms(row)">
-              <template #trigger>
-                <NButton
-                  aria-label="删除"
-                  circle
-                  quaternary
-                  size="small"
-                  type="error"
-                  :loading="actionLoading"
-                >
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              确定删除该短信？
-            </NPopconfirm>
-          </NSpace>
-        </template>
-      </vxe-grid>
-    </vxe-card>
+    <NCard v-show="activeTab === 'sms'" content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
+      <NDataTable
+        :columns="smsColumns"
+        :data="smsList"
+        :loading="smsLoading"
+        :bordered="false"
+        :single-line="false"
+        :row-key="(row: SmsListItemDto) => row.basicId"
+        :scroll-x="2000"
+        size="small"
+        striped
+        flex-height
+        style="flex:1;"
+      />
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ smsTotal }}</strong> 条，第 <strong>{{ smsPage }}</strong> / {{ smsTotalPages }} 页
+        </div>
+        <NPagination :page="smsPage" :page-count="smsTotalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="smsPageSize" show-size-picker @update:page="handleSmsPageChange" @update:page-size="handleSmsPageSizeChange" />
+      </div>
+    </NCard>
 
     <NDrawer v-model:show="detailVisible" :width="620">
       <NDrawerContent closable :title="detailTab === 'email' ? '系统邮件详情' : '系统短信详情'">
