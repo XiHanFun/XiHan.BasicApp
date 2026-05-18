@@ -20,6 +20,11 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public interface IUserInboxDomainService
 {
     /// <summary>
+    /// 投递用户站内信
+    /// </summary>
+    Task<UserInboxDispatchResult> DispatchToUserAsync(UserInboxDispatchCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 确认通知
     /// </summary>
     Task ConfirmAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default);
