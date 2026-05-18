@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,23 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class UserPermissionApplicationMapper
 {
+    /// <summary>
+    /// 映射用户直授权限授权命令
+    /// </summary>
+    public static UserPermissionGrantCommand ToGrantCommand(UserPermissionGrantDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserPermissionGrantCommand(
+            input.UserId,
+            input.PermissionId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射用户直授权限列表项
     /// </summary>
@@ -105,5 +123,30 @@ public static class UserPermissionApplicationMapper
             CreatedId = userPermission.CreatedId,
             CreatedBy = userPermission.CreatedBy
         };
+    }
+
+    /// <summary>
+    /// 映射用户直授权限状态变更命令
+    /// </summary>
+    public static UserPermissionStatusChangeCommand ToStatusCommand(UserPermissionStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserPermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射用户直授权限更新命令
+    /// </summary>
+    public static UserPermissionUpdateCommand ToUpdateCommand(UserPermissionUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserPermissionUpdateCommand(
+            input.BasicId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
     }
 }

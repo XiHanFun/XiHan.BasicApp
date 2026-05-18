@@ -13,11 +13,11 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Cryptography;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
@@ -25,11 +25,8 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.EventBus.Abstractions.Local;
-using XiHan.Framework.ObjectStorage;
-using XiHan.Framework.ObjectStorage.Models;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
-using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -41,21 +38,13 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class FileAppService
     : SaasApplicationService, IFileAppService
 {
-    private const string Sha256AlgorithmName = "SHA256";
-
-    private readonly IClientInfoProvider _clientInfoProvider;
-
     private readonly ICurrentUser _currentUser;
 
     private readonly IFileDomainService _fileDomainService;
 
     private readonly IFileRecordQueryService _fileRecordQueryService;
 
-    private readonly IFileStorageDomainService _fileStorageDomainService;
-
-    private readonly IFileStorageProviderManager _fileStorageProviderManager;
-
-    private readonly IFileStorageRouter _fileStorageRouter;
+    private readonly IFileTransferService _fileTransferService;
 
     private readonly ILocalEventBus _localEventBus;
 
@@ -65,19 +54,13 @@ public sealed class FileAppService
     public FileAppService(
         IFileDomainService fileDomainService,
         IFileRecordQueryService fileRecordQueryService,
-        IFileStorageRouter fileStorageRouter,
-        IFileStorageProviderManager fileStorageProviderManager,
-        IFileStorageDomainService fileStorageDomainService,
-        IClientInfoProvider clientInfoProvider,
+        IFileTransferService fileTransferService,
         ILocalEventBus localEventBus,
         ICurrentUser currentUser)
     {
         _fileDomainService = fileDomainService;
         _fileRecordQueryService = fileRecordQueryService;
-        _fileStorageRouter = fileStorageRouter;
-        _fileStorageProviderManager = fileStorageProviderManager;
-        _fileStorageDomainService = fileStorageDomainService;
-        _clientInfoProvider = clientInfoProvider;
+        _fileTransferService = fileTransferService;
         _localEventBus = localEventBus;
         _currentUser = currentUser;
     }
@@ -97,14 +80,10 @@ public sealed class FileAppService
 
         if (input.DeletePhysical)
         {
-            foreach (var storage in storages)
-            {
-                var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-                await provider.DeleteAsync(storage.StoragePath, storage.BucketName, cancellationToken);
-            }
+            await _fileTransferService.DeletePhysicalAsync(storages, cancellationToken);
         }
 
-        var result = await _fileDomainService.DeleteFileAsync(new FileDeleteCommand(input.BasicId, input.Reason), cancellationToken);
+        var result = await _fileDomainService.DeleteFileAsync(FileApplicationMapper.ToDeleteCommand(input), cancellationToken);
 
         await _localEventBus.PublishAsync(
             new FileDeletedDomainEvent(
@@ -127,8 +106,7 @@ public sealed class FileAppService
 
         var storage = await _fileRecordQueryService.GetPrimaryStorageOrThrowAsync(fileId, "文件缺少可用主存储，无法下载。", cancellationToken);
 
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-        return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
+        return await _fileTransferService.DownloadAsync(storage, cancellationToken);
     }
 
     /// <summary>
@@ -141,7 +119,7 @@ public sealed class FileAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _fileDomainService.FastUploadFileAsync(ToFastUploadCommand(input), cancellationToken);
+        var result = await _fileDomainService.FastUploadFileAsync(FileApplicationMapper.ToFastUploadCommand(input), cancellationToken);
         return FileApplicationMapper.ToDetailDto(result.File);
     }
 
@@ -156,9 +134,7 @@ public sealed class FileAppService
 
         var storage = await _fileRecordQueryService.GetPrimaryStorageOrThrowAsync(fileId, "文件缺少可用主存储，无法生成访问链接。", cancellationToken);
 
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-        var effectiveExpiresIn = expiresIn ?? TimeSpan.FromMinutes(30);
-        return await provider.GeneratePresignedUrlAsync(storage.StoragePath, effectiveExpiresIn, cancellationToken);
+        return await _fileTransferService.GeneratePresignedUrlAsync(storage, expiresIn, cancellationToken);
     }
 
     /// <summary>
@@ -172,7 +148,7 @@ public sealed class FileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fileDomainService.SwitchPrimaryStorageAsync(
-            new FilePrimaryStorageSwitchCommand(input.BasicId, input.StorageId, input.Remark),
+            FileApplicationMapper.ToPrimaryStorageSwitchCommand(input),
             cancellationToken);
 
         await _localEventBus.PublishAsync(
@@ -197,7 +173,7 @@ public sealed class FileAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _fileDomainService.UpdateFileMetadataAsync(ToMetadataUpdateCommand(input), cancellationToken);
+        var result = await _fileDomainService.UpdateFileMetadataAsync(FileApplicationMapper.ToMetadataUpdateCommand(input), cancellationToken);
         return FileApplicationMapper.ToDetailDto(result.File);
     }
 
@@ -212,7 +188,7 @@ public sealed class FileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fileDomainService.UpdateFileStatusAsync(
-            new FileStatusUpdateCommand(input.BasicId, input.Status, input.Remark),
+            FileApplicationMapper.ToStatusCommand(input),
             cancellationToken);
         return FileApplicationMapper.ToDetailDto(result.File);
     }
@@ -228,7 +204,7 @@ public sealed class FileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fileDomainService.UpdateFileStorageStatusAsync(
-            new FileStorageStatusUpdateCommand(input.BasicId, input.Status, input.UploadFailureReason, input.Remark),
+            FileApplicationMapper.ToStorageStatusCommand(input),
             cancellationToken);
         return FileApplicationMapper.ToStorageDetailDto(result.Storage);
     }
@@ -241,103 +217,15 @@ public sealed class FileAppService
     public async Task<FileDetailDto> UploadFileAsync(FileUploadDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
-        ArgumentNullException.ThrowIfNull(input.File);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var originalName = _fileStorageDomainService.NormalizeOriginalName(input.File.FileName);
-        var fileHash = await ComputeSha256Async(input.File, cancellationToken);
-        var existing = await _fileRecordQueryService.GetNormalFileByHashAsync(fileHash, cancellationToken);
-        if (existing is not null)
+        var result = await _fileTransferService.UploadAsync(input, cancellationToken);
+        if (result.Uploaded && result.Storage is not null)
         {
-            return FileApplicationMapper.ToDetailDto(existing);
+            await PublishUploadedAsync(result.File, result.Storage, result.Reason, cancellationToken);
         }
 
-        var now = DateTimeOffset.UtcNow;
-        var resolvedProviderName = _fileStorageRouter.ResolveProviderName(input.RouteKey, input.ProviderName);
-        var provider = _fileStorageRouter.Route(input.RouteKey, resolvedProviderName);
-        var storedFileName = _fileStorageDomainService.BuildStoredFileName(originalName, fileHash);
-        var storagePath = _fileStorageDomainService.BuildStoragePath(storedFileName, input.Directory, now);
-        var accessControl = _fileStorageDomainService.ResolveAccessControl(input.AccessLevel, input.AccessControl);
-        var clientInfo = _clientInfoProvider.GetCurrent();
-
-        var fileResult = await _fileDomainService.CreateUploadingFileAsync(
-            new FileCreateUploadingCommand(
-                storedFileName,
-                originalName,
-                Path.GetExtension(originalName),
-                _fileStorageDomainService.ResolveFileType(Path.GetExtension(originalName), input.File.ContentType),
-                input.File.ContentType,
-                input.File.Length,
-                fileHash,
-                Sha256AlgorithmName,
-                input.Width,
-                input.Height,
-                input.Duration,
-                input.ThumbnailFileId,
-                clientInfo.IpAddress,
-                ResolveUploadSource(clientInfo),
-                input.AccessLevel,
-                input.AccessPermissions,
-                input.IsEncrypted,
-                input.EncryptionKeyId,
-                input.ExpiresAt,
-                input.IsTemporary,
-                input.RetentionDays,
-                input.Tags,
-                input.Remark,
-                input.ExtendData),
-            cancellationToken);
-        var file = fileResult.File;
-
-        FileUploadResult uploadResult;
-        await using (var stream = input.File.OpenReadStream())
-        {
-            uploadResult = await provider.UploadAsync(
-                new FileUploadRequest
-                {
-                    FileStream = stream,
-                    FileName = storedFileName,
-                    StoragePath = storagePath,
-                    ContentType = input.File.ContentType,
-                    BucketName = NormalizeText(input.BucketName, 100),
-                    Overwrite = input.Overwrite,
-                    AccessControl = accessControl,
-                    CacheControl = NormalizeText(input.CacheControl, 100),
-                    Metadata = new Dictionary<string, string>
-                    {
-                        ["file-id"] = file.BasicId.ToString(),
-                        ["file-hash"] = fileHash,
-                        ["hash-algorithm"] = Sha256AlgorithmName
-                    }
-                },
-                cancellationToken);
-        }
-
-        if (!uploadResult.Success)
-        {
-            _ = await _fileDomainService.MarkUploadFailedAsync(new FileUploadFailedCommand(file.BasicId, uploadResult.ErrorMessage), cancellationToken);
-            throw new InvalidOperationException(uploadResult.ErrorMessage ?? "文件上传失败。");
-        }
-
-        var uploadCommandResult = await _fileDomainService.CompleteUploadAsync(
-            new FileUploadCompleteCommand(
-                file.BasicId,
-                uploadResult.FileSize,
-                _fileStorageDomainService.ResolveStorageType(provider.ProviderName),
-                provider.ProviderName,
-                input.BucketName,
-                uploadResult.Path ?? storagePath,
-                uploadResult.FullPath,
-                uploadResult.Url,
-                uploadResult.Url,
-                now,
-                uploadResult.DurationMs,
-                accessControl,
-                input.CacheControl,
-                input.Remark),
-            cancellationToken);
-        await PublishUploadedAsync(uploadCommandResult.File, uploadCommandResult.Storage, input.Remark, cancellationToken);
-        return FileApplicationMapper.ToDetailDto(uploadCommandResult.File);
+        return FileApplicationMapper.ToDetailDto(result.File);
     }
 
     /// <summary>
@@ -351,87 +239,12 @@ public sealed class FileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var storage = await _fileRecordQueryService.GetStorageOrThrowAsync(input.BasicId, cancellationToken);
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
-        var exists = await provider.ExistsAsync(storage.StoragePath, storage.BucketName, cancellationToken);
-        FileMetadata? metadata = null;
-
-        if (exists)
-        {
-            metadata = await provider.GetMetadataAsync(storage.StoragePath, storage.BucketName, cancellationToken);
-        }
+        var probe = await _fileTransferService.ProbeStorageAsync(storage, cancellationToken);
 
         var result = await _fileDomainService.VerifyFileStorageAsync(
-            new FileStorageVerifyCommand(input.BasicId, exists, metadata?.Size ?? 0, metadata?.Url, input.Remark),
+            FileApplicationMapper.ToStorageVerifyCommand(input, probe),
             cancellationToken);
         return FileApplicationMapper.ToStorageDetailDto(result.Storage);
-    }
-
-    private static FileFastUploadCommand ToFastUploadCommand(FileFastUploadDto input)
-    {
-        return new FileFastUploadCommand(
-            input.FileHash,
-            input.OriginalName,
-            input.FileSize,
-            input.MimeType,
-            input.FileExtension,
-            input.AccessLevel,
-            input.AccessPermissions,
-            input.ExpiresAt,
-            input.IsTemporary,
-            input.RetentionDays,
-            input.Tags,
-            input.Remark,
-            input.ExtendData);
-    }
-
-    private static FileMetadataUpdateCommand ToMetadataUpdateCommand(FileMetadataUpdateDto input)
-    {
-        return new FileMetadataUpdateCommand(
-            input.BasicId,
-            input.Width,
-            input.Height,
-            input.Duration,
-            input.ThumbnailFileId,
-            input.AccessLevel,
-            input.AccessPermissions,
-            input.IsEncrypted,
-            input.EncryptionKeyId,
-            input.ExpiresAt,
-            input.IsTemporary,
-            input.RetentionDays,
-            input.Tags,
-            input.Remark,
-            input.ExtendData);
-    }
-
-    private static async Task<string> ComputeSha256Async(Microsoft.AspNetCore.Http.IFormFile file, CancellationToken cancellationToken)
-    {
-        await using var stream = file.OpenReadStream();
-        var hash = await SHA256.HashDataAsync(stream, cancellationToken);
-        return Convert.ToHexString(hash).ToLowerInvariant();
-    }
-
-    private static string? NormalizeText(string? value, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var trimmed = value.Trim();
-        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
-    }
-
-    private static string? ResolveUploadSource(ClientInfo clientInfo)
-    {
-        var parts = new[]
-        {
-            NormalizeText(clientInfo.DeviceName, 20),
-            NormalizeText(clientInfo.OperatingSystem, 20),
-            NormalizeText(clientInfo.Browser, 20)
-        }.Where(part => !string.IsNullOrWhiteSpace(part));
-
-        return NormalizeText(string.Join("/", parts), 50);
     }
 
     private async Task PublishUploadedAsync(SysFile file, SysFileStorage storage, string? reason, CancellationToken cancellationToken)

@@ -51,15 +51,7 @@ public sealed class VersionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _versionDomainService.CreateVersionAsync(
-            new VersionCreateCommand(
-                input.AppVersion,
-                input.DbVersion,
-                input.MinSupportVersion,
-                input.IsUpgrading,
-                input.UpgradeNode,
-                input.UpgradeStartTime),
-            cancellationToken);
+        var result = await _versionDomainService.CreateVersionAsync(VersionApplicationMapper.ToCreateCommand(input), cancellationToken);
         return VersionApplicationMapper.ToDetailDto(result.Version);
     }
 
@@ -84,9 +76,7 @@ public sealed class VersionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _versionDomainService.FinishVersionUpgradeAsync(
-            new VersionUpgradeFinishCommand(input.BasicId, input.AppVersion, input.DbVersion, input.MinSupportVersion),
-            cancellationToken);
+        var result = await _versionDomainService.FinishVersionUpgradeAsync(VersionApplicationMapper.ToUpgradeFinishCommand(input), cancellationToken);
         return VersionApplicationMapper.ToDetailDto(result.Version);
     }
 
@@ -100,9 +90,7 @@ public sealed class VersionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _versionDomainService.StartVersionUpgradeAsync(
-            new VersionUpgradeStartCommand(input.BasicId, input.UpgradeNode, input.UpgradeStartTime),
-            cancellationToken);
+        var result = await _versionDomainService.StartVersionUpgradeAsync(VersionApplicationMapper.ToUpgradeStartCommand(input), cancellationToken);
         return VersionApplicationMapper.ToDetailDto(result.Version);
     }
 
@@ -116,16 +104,7 @@ public sealed class VersionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _versionDomainService.UpdateVersionAsync(
-            new VersionUpdateCommand(
-                input.BasicId,
-                input.AppVersion,
-                input.DbVersion,
-                input.MinSupportVersion,
-                input.IsUpgrading,
-                input.UpgradeNode,
-                input.UpgradeStartTime),
-            cancellationToken);
+        var result = await _versionDomainService.UpdateVersionAsync(VersionApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return VersionApplicationMapper.ToDetailDto(result.Version);
     }
 }

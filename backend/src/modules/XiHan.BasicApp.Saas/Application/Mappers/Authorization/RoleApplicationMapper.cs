@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,25 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class RoleApplicationMapper
 {
+    /// <summary>
+    /// 映射角色创建命令
+    /// </summary>
+    public static RoleCreateCommand ToCreateCommand(RoleCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new RoleCreateCommand(
+            input.RoleCode,
+            input.RoleName,
+            input.RoleDescription,
+            input.RoleType,
+            input.DataScope,
+            input.MaxMembers,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射角色列表项
     /// </summary>
@@ -96,5 +116,32 @@ public static class RoleApplicationMapper
             RoleType = role.RoleType,
             IsGlobal = role.IsGlobal
         };
+    }
+
+    /// <summary>
+    /// 映射角色状态变更命令
+    /// </summary>
+    public static RoleStatusChangeCommand ToStatusCommand(RoleStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new RoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射角色更新命令
+    /// </summary>
+    public static RoleUpdateCommand ToUpdateCommand(RoleUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new RoleUpdateCommand(
+            input.BasicId,
+            input.RoleName,
+            input.RoleDescription,
+            input.RoleType,
+            input.DataScope,
+            input.MaxMembers,
+            input.Sort,
+            input.Remark);
     }
 }

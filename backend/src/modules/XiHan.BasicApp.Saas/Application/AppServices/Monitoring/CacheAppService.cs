@@ -13,10 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Caching.Distributed;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
-using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices.Monitoring;
 
@@ -27,14 +26,14 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Monitoring;
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
 public class CacheAppService : ApplicationServiceBase
 {
-    private readonly IDistributedCache _distributedCache;
+    private readonly ICacheManagementService _cacheManagementService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CacheAppService(IDistributedCache distributedCache)
+    public CacheAppService(ICacheManagementService cacheManagementService)
     {
-        _distributedCache = distributedCache;
+        _cacheManagementService = cacheManagementService;
     }
 
     /// <summary>
@@ -42,8 +41,7 @@ public class CacheAppService : ApplicationServiceBase
     /// </summary>
     public bool Exists(string key)
     {
-        ValidateKey(key);
-        return _distributedCache.Get(key) is not null;
+        return _cacheManagementService.Exists(key);
     }
 
     /// <summary>
@@ -51,13 +49,7 @@ public class CacheAppService : ApplicationServiceBase
     /// </summary>
     public IReadOnlyCollection<string> GetKeys(string pattern = "*")
     {
-        var normalizedPattern = NormalizePattern(pattern);
-        if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
-        {
-            return keyPatternCache.GetKeys(normalizedPattern);
-        }
-
-        return [];
+        return _cacheManagementService.GetKeys(pattern);
     }
 
     /// <summary>
@@ -65,8 +57,7 @@ public class CacheAppService : ApplicationServiceBase
     /// </summary>
     public string? GetString(string key)
     {
-        ValidateKey(key);
-        return _distributedCache.GetString(key);
+        return _cacheManagementService.GetString(key);
     }
 
     /// <summary>
@@ -74,8 +65,7 @@ public class CacheAppService : ApplicationServiceBase
     /// </summary>
     public void Remove(string key)
     {
-        ValidateKey(key);
-        _distributedCache.Remove(key);
+        _cacheManagementService.Remove(key);
     }
 
     /// <summary>
@@ -83,37 +73,6 @@ public class CacheAppService : ApplicationServiceBase
     /// </summary>
     public long RemoveByPattern(string pattern = "*")
     {
-        var normalizedPattern = NormalizePattern(pattern);
-        if (_distributedCache is ICacheSupportsKeyPattern keyPatternCache)
-        {
-            return keyPatternCache.RemoveByPattern(normalizedPattern);
-        }
-
-        // 不支持 pattern 查询时回退
-        var matchedKeys = GetKeys(normalizedPattern);
-        if (matchedKeys.Count == 0)
-        {
-            return 0;
-        }
-
-        foreach (var key in matchedKeys)
-        {
-            _distributedCache.Remove(key);
-        }
-
-        return matchedKeys.Count;
-    }
-
-    private static string NormalizePattern(string pattern)
-    {
-        return string.IsNullOrWhiteSpace(pattern) ? "*" : pattern.Trim();
-    }
-
-    private static void ValidateKey(string key)
-    {
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            throw new ArgumentException("缓存键不能为空", nameof(key));
-        }
+        return _cacheManagementService.RemoveByPattern(pattern);
     }
 }

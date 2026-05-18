@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,24 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class UserSecurityApplicationMapper
 {
+    /// <summary>
+    /// 映射用户锁定状态变更命令
+    /// </summary>
+    public static UserLockChangeCommand ToLockCommand(UserLockUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserLockChangeCommand(input.UserId, input.IsLocked, input.LockoutEndTime, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射用户登录策略更新命令
+    /// </summary>
+    public static UserLoginPolicyUpdateCommand ToLoginPolicyCommand(UserLoginPolicyUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserLoginPolicyUpdateCommand(input.UserId, input.AllowMultiLogin, input.MaxLoginDevices, input.Remark);
+    }
+
     /// <summary>
     /// 映射用户安全列表项
     /// </summary>
@@ -56,6 +75,15 @@ public static class UserSecurityApplicationMapper
             CreatedTime = security.CreatedTime,
             ModifiedTime = security.ModifiedTime
         };
+    }
+
+    /// <summary>
+    /// 映射用户密码重置命令
+    /// </summary>
+    public static UserPasswordResetCommand ToPasswordResetCommand(UserPasswordResetDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpiryTime, input.Remark);
     }
 
     /// <summary>

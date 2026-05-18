@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,23 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class RolePermissionApplicationMapper
 {
+    /// <summary>
+    /// 映射角色权限授权命令
+    /// </summary>
+    public static RolePermissionGrantCommand ToGrantCommand(RolePermissionGrantDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new RolePermissionGrantCommand(
+            input.RoleId,
+            input.PermissionId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射角色权限列表项
     /// </summary>
@@ -89,5 +107,30 @@ public static class RolePermissionApplicationMapper
             CreatedId = rolePermission.CreatedId,
             CreatedBy = rolePermission.CreatedBy
         };
+    }
+
+    /// <summary>
+    /// 映射角色权限状态变更命令
+    /// </summary>
+    public static RolePermissionStatusChangeCommand ToStatusCommand(RolePermissionStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new RolePermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射角色权限更新命令
+    /// </summary>
+    public static RolePermissionUpdateCommand ToUpdateCommand(RolePermissionUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new RolePermissionUpdateCommand(
+            input.BasicId,
+            input.PermissionAction,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
     }
 }

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,24 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class PermissionDelegationApplicationMapper
 {
+    /// <summary>
+    /// 映射权限委托创建命令
+    /// </summary>
+    public static PermissionDelegationCreateCommand ToCreateCommand(PermissionDelegationCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionDelegationCreateCommand(
+            input.DelegatorUserId,
+            input.DelegateeUserId,
+            input.PermissionId,
+            input.RoleId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.DelegationReason,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射权限委托列表项
     /// </summary>
@@ -103,5 +122,33 @@ public static class PermissionDelegationApplicationMapper
             ModifiedId = delegation.ModifiedId,
             ModifiedBy = delegation.ModifiedBy
         };
+    }
+
+    /// <summary>
+    /// 映射权限委托状态变更命令
+    /// </summary>
+    public static PermissionDelegationStatusCommand ToStatusCommand(PermissionDelegationStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new PermissionDelegationStatusCommand(input.BasicId, input.DelegationStatus, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射权限委托更新命令
+    /// </summary>
+    public static PermissionDelegationUpdateCommand ToUpdateCommand(PermissionDelegationUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionDelegationUpdateCommand(
+            input.BasicId,
+            input.DelegatorUserId,
+            input.DelegateeUserId,
+            input.PermissionId,
+            input.RoleId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.DelegationReason,
+            input.Remark);
     }
 }

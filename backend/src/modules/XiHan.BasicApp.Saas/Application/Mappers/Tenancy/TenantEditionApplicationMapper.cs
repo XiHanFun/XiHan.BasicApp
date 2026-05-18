@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,69 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class TenantEditionApplicationMapper
 {
+    /// <summary>
+    /// 映射租户版本创建命令
+    /// </summary>
+    public static TenantEditionCreateCommand ToCreateCommand(TenantEditionCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantEditionCreateCommand(
+            input.EditionCode,
+            input.EditionName,
+            input.Description,
+            input.UserLimit,
+            input.StorageLimit,
+            input.Price,
+            input.BillingPeriodMonths,
+            input.IsFree,
+            input.IsDefault,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射租户版本更新命令
+    /// </summary>
+    public static TenantEditionUpdateCommand ToUpdateCommand(TenantEditionUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantEditionUpdateCommand(
+            input.BasicId,
+            input.EditionName,
+            input.Description,
+            input.UserLimit,
+            input.StorageLimit,
+            input.Price,
+            input.BillingPeriodMonths,
+            input.IsFree,
+            input.IsDefault,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射租户版本默认变更命令
+    /// </summary>
+    public static TenantEditionDefaultChangeCommand ToDefaultCommand(TenantEditionDefaultUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantEditionDefaultChangeCommand(input.BasicId);
+    }
+
+    /// <summary>
+    /// 映射租户版本状态命令
+    /// </summary>
+    public static TenantEditionStatusChangeCommand ToStatusCommand(TenantEditionStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantEditionStatusChangeCommand(input.BasicId, input.Status);
+    }
+
     /// <summary>
     /// 映射租户版本列表项
     /// </summary>

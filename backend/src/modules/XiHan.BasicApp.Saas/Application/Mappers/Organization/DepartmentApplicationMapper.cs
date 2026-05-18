@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,57 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class DepartmentApplicationMapper
 {
+    /// <summary>
+    /// 映射部门创建命令
+    /// </summary>
+    public static DepartmentCreateCommand ToCreateCommand(DepartmentCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DepartmentCreateCommand(
+            input.ParentId,
+            input.DepartmentName,
+            input.DepartmentCode,
+            input.DepartmentType,
+            input.LeaderId,
+            input.Phone,
+            input.Email,
+            input.Address,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射部门更新命令
+    /// </summary>
+    public static DepartmentUpdateCommand ToUpdateCommand(DepartmentUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DepartmentUpdateCommand(
+            input.BasicId,
+            input.ParentId,
+            input.DepartmentName,
+            input.DepartmentType,
+            input.LeaderId,
+            input.Phone,
+            input.Email,
+            input.Address,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射部门状态命令
+    /// </summary>
+    public static DepartmentStatusChangeCommand ToStatusCommand(DepartmentStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DepartmentStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射部门列表项
     /// </summary>

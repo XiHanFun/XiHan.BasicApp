@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,29 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class PermissionApplicationMapper
 {
+    /// <summary>
+    /// 映射权限创建命令
+    /// </summary>
+    public static PermissionCreateCommand ToCreateCommand(PermissionCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionCreateCommand(
+            input.PermissionType,
+            input.ResourceId,
+            input.OperationId,
+            input.ModuleCode,
+            input.PermissionCode,
+            input.PermissionName,
+            input.PermissionDescription,
+            input.Tags,
+            input.IsRequireAudit,
+            input.Priority,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射权限列表项
     /// </summary>
@@ -117,5 +141,32 @@ public static class PermissionApplicationMapper
             IsRequireAudit = permission.IsRequireAudit,
             Priority = permission.Priority
         };
+    }
+
+    /// <summary>
+    /// 映射权限状态变更命令
+    /// </summary>
+    public static PermissionStatusCommand ToStatusCommand(PermissionStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new PermissionStatusCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射权限更新命令
+    /// </summary>
+    public static PermissionUpdateCommand ToUpdateCommand(PermissionUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionUpdateCommand(
+            input.BasicId,
+            input.PermissionName,
+            input.PermissionDescription,
+            input.Tags,
+            input.IsRequireAudit,
+            input.Priority,
+            input.Sort,
+            input.Remark);
     }
 }

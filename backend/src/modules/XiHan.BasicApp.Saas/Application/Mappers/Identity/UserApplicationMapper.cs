@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,36 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class UserApplicationMapper
 {
+    /// <summary>
+    /// 映射用户创建命令
+    /// </summary>
+    public static UserCreateCommand ToCreateCommand(UserCreateDto input, long? operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserCreateCommand(
+            input.UserName,
+            input.InitialPassword,
+            input.RealName,
+            input.NickName,
+            input.Avatar,
+            input.Email,
+            input.Phone,
+            input.Gender,
+            input.Birthday,
+            input.Status,
+            input.TimeZone,
+            input.Language,
+            input.Country,
+            input.MemberType,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.DisplayName,
+            input.InviteRemark,
+            input.Remark,
+            operatorUserId);
+    }
+
     /// <summary>
     /// 映射用户列表项
     /// </summary>
@@ -102,5 +133,36 @@ public static class UserApplicationMapper
             Gender = user.Gender,
             IsSystemAccount = user.IsSystemAccount
         };
+    }
+
+    /// <summary>
+    /// 映射用户状态变更命令
+    /// </summary>
+    public static UserStatusChangeCommand ToStatusCommand(UserStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射用户更新命令
+    /// </summary>
+    public static UserUpdateCommand ToUpdateCommand(UserUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserUpdateCommand(
+            input.BasicId,
+            input.RealName,
+            input.NickName,
+            input.Avatar,
+            input.Email,
+            input.Phone,
+            input.Gender,
+            input.Birthday,
+            input.TimeZone,
+            input.Language,
+            input.Country,
+            input.Remark);
     }
 }

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,99 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class DictApplicationMapper
 {
+    /// <summary>
+    /// 映射系统字典创建命令
+    /// </summary>
+    public static DictCreateCommand ToCreateCommand(DictCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DictCreateCommand(
+            input.DictCode,
+            input.DictName,
+            input.DictType,
+            input.DictDescription,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统字典更新命令
+    /// </summary>
+    public static DictUpdateCommand ToUpdateCommand(DictUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DictUpdateCommand(
+            input.BasicId,
+            input.DictName,
+            input.DictType,
+            input.DictDescription,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统字典状态命令
+    /// </summary>
+    public static DictStatusChangeCommand ToStatusCommand(DictStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DictStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统字典项创建命令
+    /// </summary>
+    public static DictItemCreateCommand ToItemCreateCommand(DictItemCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DictItemCreateCommand(
+            input.DictId,
+            input.ParentId,
+            input.ItemCode,
+            input.ItemName,
+            input.ItemValue,
+            input.ItemDescription,
+            input.Metadata,
+            input.IsDefault,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统字典项更新命令
+    /// </summary>
+    public static DictItemUpdateCommand ToItemUpdateCommand(DictItemUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DictItemUpdateCommand(
+            input.BasicId,
+            input.ParentId,
+            input.ItemName,
+            input.ItemValue,
+            input.ItemDescription,
+            input.Metadata,
+            input.IsDefault,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射系统字典项状态命令
+    /// </summary>
+    public static DictItemStatusChangeCommand ToItemStatusCommand(DictItemStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new DictItemStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射系统字典列表项
     /// </summary>

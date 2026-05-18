@@ -52,7 +52,7 @@ public sealed class NotificationAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _notificationDomainService.CreateNotificationAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _notificationDomainService.CreateNotificationAsync(NotificationApplicationMapper.ToCreateCommand(input), cancellationToken);
         return NotificationApplicationMapper.ToDetailDto(result.Notification);
     }
 
@@ -77,15 +77,8 @@ public sealed class NotificationAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _notificationDomainService.PublishNotificationAsync(
-            new NotificationPublishCommand(input.BasicId, input.TargetType, input.UserIds),
-            cancellationToken);
-        return new NotificationPublishResultDto
-        {
-            BasicId = result.Notification.BasicId,
-            RecipientCount = result.RecipientCount,
-            SendTime = result.Notification.SendTime
-        };
+        var result = await _notificationDomainService.PublishNotificationAsync(NotificationApplicationMapper.ToPublishCommand(input), cancellationToken);
+        return NotificationApplicationMapper.ToPublishResultDto(result);
     }
 
     /// <summary>
@@ -98,46 +91,7 @@ public sealed class NotificationAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _notificationDomainService.UpdateNotificationAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _notificationDomainService.UpdateNotificationAsync(NotificationApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return NotificationApplicationMapper.ToDetailDto(result.Notification);
-    }
-
-    private static NotificationCreateCommand ToCreateCommand(NotificationCreateDto input)
-    {
-        return new NotificationCreateCommand(
-            input.SendUserId,
-            input.NotificationType,
-            input.Title,
-            input.Content,
-            input.Icon,
-            input.Link,
-            input.BusinessType,
-            input.BusinessId,
-            input.SendTime,
-            input.ExpireTime,
-            input.TargetType,
-            input.UserIds,
-            input.NeedConfirm,
-            input.PublishImmediately,
-            input.Remark);
-    }
-
-    private static NotificationUpdateCommand ToUpdateCommand(NotificationUpdateDto input)
-    {
-        return new NotificationUpdateCommand(
-            input.BasicId,
-            input.NotificationType,
-            input.Title,
-            input.Content,
-            input.Icon,
-            input.Link,
-            input.BusinessType,
-            input.BusinessId,
-            input.SendTime,
-            input.ExpireTime,
-            input.TargetType,
-            input.UserIds,
-            input.NeedConfirm,
-            input.Remark);
     }
 }

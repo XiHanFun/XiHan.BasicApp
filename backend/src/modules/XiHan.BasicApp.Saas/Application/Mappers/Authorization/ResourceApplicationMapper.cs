@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,26 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class ResourceApplicationMapper
 {
+    /// <summary>
+    /// 映射资源创建命令
+    /// </summary>
+    public static ResourceCreateCommand ToCreateCommand(ResourceCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ResourceCreateCommand(
+            input.ResourceCode,
+            input.ResourceName,
+            input.ResourceType,
+            input.ResourcePath,
+            input.Description,
+            input.Metadata,
+            input.AccessLevel,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射资源列表项
     /// </summary>
@@ -97,5 +118,33 @@ public static class ResourceApplicationMapper
             ResourceType = resource.ResourceType,
             ResourcePath = resource.ResourcePath
         };
+    }
+
+    /// <summary>
+    /// 映射资源状态变更命令
+    /// </summary>
+    public static ResourceStatusCommand ToStatusCommand(ResourceStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new ResourceStatusCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射资源更新命令
+    /// </summary>
+    public static ResourceUpdateCommand ToUpdateCommand(ResourceUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ResourceUpdateCommand(
+            input.BasicId,
+            input.ResourceName,
+            input.ResourceType,
+            input.ResourcePath,
+            input.Description,
+            input.Metadata,
+            input.AccessLevel,
+            input.Sort,
+            input.Remark);
     }
 }

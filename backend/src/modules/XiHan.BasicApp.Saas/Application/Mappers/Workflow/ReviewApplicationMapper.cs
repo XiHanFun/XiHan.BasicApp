@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,123 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class ReviewApplicationMapper
 {
+    /// <summary>
+    /// 映射审查审核命令
+    /// </summary>
+    /// <param name="input">审查审核 DTO</param>
+    /// <param name="currentUserId">当前用户标识</param>
+    /// <returns>审查审核命令</returns>
+    public static ReviewAuditCommand ToAuditCommand(ReviewAuditDto input, long? currentUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ReviewAuditCommand(
+            input.BasicId,
+            input.ReviewResult,
+            input.ReviewUserId,
+            input.NextReviewUserId,
+            input.ReviewComment,
+            input.ReviewAction,
+            input.ReviewTime,
+            input.Attachments,
+            input.ExtendData,
+            input.Remark,
+            currentUserId);
+    }
+
+    /// <summary>
+    /// 映射审查创建命令
+    /// </summary>
+    /// <param name="input">审查创建 DTO</param>
+    /// <param name="currentUserId">当前用户标识</param>
+    /// <returns>审查创建命令</returns>
+    public static ReviewCreateCommand ToCreateCommand(ReviewCreateDto input, long? currentUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ReviewCreateCommand(
+            input.ReviewCode,
+            input.ReviewTitle,
+            input.ReviewType,
+            input.ReviewContent,
+            input.ReviewDescription,
+            input.EntityType,
+            input.EntityId,
+            input.BusinessData,
+            input.ReviewStatus,
+            input.ReviewResult,
+            input.Priority,
+            input.SubmitUserId,
+            input.SubmitTime,
+            input.CurrentReviewUserId,
+            input.ReviewUserIds,
+            input.ReviewLevel,
+            input.CurrentLevel,
+            input.ReviewStartTime,
+            input.ReviewEndTime,
+            input.Attachments,
+            input.ExtendData,
+            input.Status,
+            input.Remark,
+            currentUserId);
+    }
+
+    /// <summary>
+    /// 映射审查更新命令
+    /// </summary>
+    /// <param name="input">审查更新 DTO</param>
+    /// <returns>审查更新命令</returns>
+    public static ReviewUpdateCommand ToUpdateCommand(ReviewUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ReviewUpdateCommand(
+            input.BasicId,
+            input.ReviewTitle,
+            input.ReviewType,
+            input.ReviewContent,
+            input.ReviewDescription,
+            input.EntityType,
+            input.EntityId,
+            input.BusinessData,
+            input.Priority,
+            input.SubmitUserId,
+            input.SubmitTime,
+            input.CurrentReviewUserId,
+            input.ReviewUserIds,
+            input.ReviewLevel,
+            input.CurrentLevel,
+            input.ReviewStartTime,
+            input.ReviewEndTime,
+            input.Attachments,
+            input.ExtendData,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射审查状态变更命令
+    /// </summary>
+    /// <param name="input">审查状态变更 DTO</param>
+    /// <returns>审查状态变更命令</returns>
+    public static ReviewStatusChangeCommand ToStatusCommand(ReviewStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ReviewStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射审查撤回命令
+    /// </summary>
+    /// <param name="input">审查撤回 DTO</param>
+    /// <returns>审查撤回命令</returns>
+    public static ReviewWithdrawCommand ToWithdrawCommand(ReviewWithdrawDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new ReviewWithdrawCommand(input.BasicId, input.Reason, input.WithdrawTime);
+    }
+
     /// <summary>
     /// 映射系统审查列表项
     /// </summary>

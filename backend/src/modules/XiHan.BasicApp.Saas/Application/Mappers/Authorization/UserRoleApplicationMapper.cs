@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,22 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class UserRoleApplicationMapper
 {
+    /// <summary>
+    /// 映射用户角色授权命令
+    /// </summary>
+    public static UserRoleGrantCommand ToGrantCommand(UserRoleGrantDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserRoleGrantCommand(
+            input.UserId,
+            input.RoleId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
+    }
+
     /// <summary>
     /// 映射用户角色列表项
     /// </summary>
@@ -99,5 +116,29 @@ public static class UserRoleApplicationMapper
             CreatedId = userRole.CreatedId,
             CreatedBy = userRole.CreatedBy
         };
+    }
+
+    /// <summary>
+    /// 映射用户角色状态变更命令
+    /// </summary>
+    public static UserRoleStatusChangeCommand ToStatusCommand(UserRoleStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserRoleStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射用户角色更新命令
+    /// </summary>
+    public static UserRoleUpdateCommand ToUpdateCommand(UserRoleUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new UserRoleUpdateCommand(
+            input.BasicId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.GrantReason,
+            input.Remark);
     }
 }

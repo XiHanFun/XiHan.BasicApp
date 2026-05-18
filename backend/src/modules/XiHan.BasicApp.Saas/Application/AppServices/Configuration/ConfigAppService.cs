@@ -51,22 +51,7 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _configDomainService.CreateConfigAsync(
-            new ConfigCreateCommand(
-                input.IsGlobal,
-                input.ConfigName,
-                input.ConfigGroup,
-                input.ConfigKey,
-                input.ConfigValue,
-                input.DefaultValue,
-                input.ConfigType,
-                input.DataType,
-                input.ConfigDescription,
-                input.IsEncrypted,
-                input.Status,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _configDomainService.CreateConfigAsync(ConfigApplicationMapper.ToCreateCommand(input), cancellationToken);
         return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 
@@ -91,20 +76,7 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _configDomainService.UpdateConfigAsync(
-            new ConfigUpdateCommand(
-                input.BasicId,
-                input.ConfigName,
-                input.ConfigGroup,
-                input.ConfigValue,
-                input.DefaultValue,
-                input.ConfigType,
-                input.DataType,
-                input.ConfigDescription,
-                input.IsEncrypted,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _configDomainService.UpdateConfigAsync(ConfigApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 
@@ -118,9 +90,7 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _configDomainService.UpdateConfigStatusAsync(
-            new ConfigStatusChangeCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _configDomainService.UpdateConfigStatusAsync(ConfigApplicationMapper.ToStatusCommand(input), cancellationToken);
         return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 }

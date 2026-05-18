@@ -57,7 +57,7 @@ public sealed class TenantAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _tenantDomainService.CreateTenantAsync(ToCreateCommand(input), cancellationToken);
+        var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
 
@@ -71,7 +71,7 @@ public sealed class TenantAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _tenantDomainService.UpdateTenantAsync(ToUpdateCommand(input), cancellationToken);
+        var result = await _tenantDomainService.UpdateTenantAsync(TenantApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
 
@@ -86,7 +86,7 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantDomainService.UpdateTenantStatusAsync(
-            new TenantStatusChangeCommand(input.BasicId, input.TenantStatus, input.Reason, _currentUser.UserId),
+            TenantApplicationMapper.ToStatusCommand(input, _currentUser.UserId),
             cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
@@ -112,7 +112,7 @@ public sealed class TenantAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _tenantDomainService.UpdateTenantMemberAsync(ToMemberUpdateCommand(input), cancellationToken);
+        var result = await _tenantDomainService.UpdateTenantMemberAsync(TenantMemberApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return TenantMemberApplicationMapper.ToDetailDto(result.Member, result.Now);
     }
 
@@ -127,7 +127,7 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantDomainService.UpdateTenantMemberInviteStatusAsync(
-            new TenantMemberInviteStatusChangeCommand(input.BasicId, input.InviteStatus, input.InviteRemark),
+            TenantMemberApplicationMapper.ToInviteStatusCommand(input),
             cancellationToken);
         return TenantMemberApplicationMapper.ToDetailDto(result.Member, result.Now);
     }
@@ -143,54 +143,8 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantDomainService.UpdateTenantMemberStatusAsync(
-            new TenantMemberStatusChangeCommand(input.BasicId, input.Status, input.Remark),
+            TenantMemberApplicationMapper.ToStatusCommand(input),
             cancellationToken);
         return TenantMemberApplicationMapper.ToDetailDto(result.Member, result.Now);
-    }
-
-    private static TenantCreateCommand ToCreateCommand(TenantCreateDto input)
-    {
-        return new TenantCreateCommand(
-            input.TenantCode,
-            input.TenantName,
-            input.TenantShortName,
-            input.Logo,
-            input.Domain,
-            input.EditionId,
-            input.IsolationMode,
-            input.ExpireTime,
-            input.UserLimit,
-            input.StorageLimit,
-            input.Sort,
-            input.Remark);
-    }
-
-    private static TenantMemberUpdateCommand ToMemberUpdateCommand(TenantMemberUpdateDto input)
-    {
-        return new TenantMemberUpdateCommand(
-            input.BasicId,
-            input.MemberType,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.DisplayName,
-            input.InviteRemark,
-            input.Remark);
-    }
-
-    private static TenantUpdateCommand ToUpdateCommand(TenantUpdateDto input)
-    {
-        return new TenantUpdateCommand(
-            input.BasicId,
-            input.TenantName,
-            input.TenantShortName,
-            input.Logo,
-            input.Domain,
-            input.EditionId,
-            input.IsolationMode,
-            input.ExpireTime,
-            input.UserLimit,
-            input.StorageLimit,
-            input.Sort,
-            input.Remark);
     }
 }

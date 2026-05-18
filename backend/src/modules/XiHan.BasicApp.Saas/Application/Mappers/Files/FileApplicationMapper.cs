@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +24,69 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class FileApplicationMapper
 {
+    /// <summary>
+    /// 映射文件秒传命令
+    /// </summary>
+    public static FileFastUploadCommand ToFastUploadCommand(FileFastUploadDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FileFastUploadCommand(
+            input.FileHash,
+            input.OriginalName,
+            input.FileSize,
+            input.MimeType,
+            input.FileExtension,
+            input.AccessLevel,
+            input.AccessPermissions,
+            input.ExpiresAt,
+            input.IsTemporary,
+            input.RetentionDays,
+            input.Tags,
+            input.Remark,
+            input.ExtendData);
+    }
+
+    /// <summary>
+    /// 映射文件删除命令
+    /// </summary>
+    public static FileDeleteCommand ToDeleteCommand(FileDeleteDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FileDeleteCommand(input.BasicId, input.Reason);
+    }
+
+    /// <summary>
+    /// 映射主存储切换命令
+    /// </summary>
+    public static FilePrimaryStorageSwitchCommand ToPrimaryStorageSwitchCommand(FilePrimaryStorageSwitchDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FilePrimaryStorageSwitchCommand(input.BasicId, input.StorageId, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射文件状态命令
+    /// </summary>
+    public static FileStatusUpdateCommand ToStatusCommand(FileStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FileStatusUpdateCommand(input.BasicId, input.Status, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射文件存储状态命令
+    /// </summary>
+    public static FileStorageStatusUpdateCommand ToStorageStatusCommand(FileStorageStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FileStorageStatusUpdateCommand(input.BasicId, input.Status, input.UploadFailureReason, input.Remark);
+    }
+
     /// <summary>
     /// 映射系统文件列表项
     /// </summary>
@@ -201,5 +266,41 @@ public static class FileApplicationMapper
             ModifiedId = storage.ModifiedId,
             ModifiedBy = storage.ModifiedBy
         };
+    }
+
+    /// <summary>
+    /// 映射文件元数据更新命令
+    /// </summary>
+    public static FileMetadataUpdateCommand ToMetadataUpdateCommand(FileMetadataUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new FileMetadataUpdateCommand(
+            input.BasicId,
+            input.Width,
+            input.Height,
+            input.Duration,
+            input.ThumbnailFileId,
+            input.AccessLevel,
+            input.AccessPermissions,
+            input.IsEncrypted,
+            input.EncryptionKeyId,
+            input.ExpiresAt,
+            input.IsTemporary,
+            input.RetentionDays,
+            input.Tags,
+            input.Remark,
+            input.ExtendData);
+    }
+
+    /// <summary>
+    /// 映射文件存储校验命令
+    /// </summary>
+    public static FileStorageVerifyCommand ToStorageVerifyCommand(FileStorageVerifyDto input, FileStorageProbeResult probe)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(probe);
+
+        return new FileStorageVerifyCommand(input.BasicId, probe.Exists, probe.MetadataSize, probe.ExternalUrl, input.Remark);
     }
 }

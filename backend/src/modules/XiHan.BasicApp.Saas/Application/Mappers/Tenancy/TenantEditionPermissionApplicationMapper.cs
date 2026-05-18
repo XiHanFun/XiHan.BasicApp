@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,26 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class TenantEditionPermissionApplicationMapper
 {
+    /// <summary>
+    /// 映射租户版本权限授权命令
+    /// </summary>
+    public static TenantEditionPermissionGrantCommand ToGrantCommand(TenantEditionPermissionGrantDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantEditionPermissionGrantCommand(input.EditionId, input.PermissionId, input.Remark);
+    }
+
+    /// <summary>
+    /// 映射租户版本权限状态命令
+    /// </summary>
+    public static TenantEditionPermissionStatusChangeCommand ToStatusCommand(TenantEditionPermissionStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantEditionPermissionStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射租户版本权限列表项
     /// </summary>

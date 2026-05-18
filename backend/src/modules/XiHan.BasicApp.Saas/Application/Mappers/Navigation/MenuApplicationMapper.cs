@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,6 +23,81 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 /// </summary>
 public static class MenuApplicationMapper
 {
+    /// <summary>
+    /// 映射菜单创建命令
+    /// </summary>
+    public static MenuCreateCommand ToCreateCommand(MenuCreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new MenuCreateCommand(
+            input.ParentId,
+            input.PermissionId,
+            input.MenuName,
+            input.MenuCode,
+            input.MenuType,
+            input.Path,
+            input.Component,
+            input.RouteName,
+            input.Redirect,
+            input.Icon,
+            input.Title,
+            input.IsExternal,
+            input.ExternalUrl,
+            input.IsCache,
+            input.IsVisible,
+            input.IsAffix,
+            input.Badge,
+            input.BadgeType,
+            input.BadgeDot,
+            input.Metadata,
+            input.Status,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射菜单更新命令
+    /// </summary>
+    public static MenuUpdateCommand ToUpdateCommand(MenuUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new MenuUpdateCommand(
+            input.BasicId,
+            input.ParentId,
+            input.PermissionId,
+            input.MenuName,
+            input.MenuType,
+            input.Path,
+            input.Component,
+            input.RouteName,
+            input.Redirect,
+            input.Icon,
+            input.Title,
+            input.IsExternal,
+            input.ExternalUrl,
+            input.IsCache,
+            input.IsVisible,
+            input.IsAffix,
+            input.Badge,
+            input.BadgeType,
+            input.BadgeDot,
+            input.Metadata,
+            input.Sort,
+            input.Remark);
+    }
+
+    /// <summary>
+    /// 映射菜单状态命令
+    /// </summary>
+    public static MenuStatusChangeCommand ToStatusCommand(MenuStatusUpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new MenuStatusChangeCommand(input.BasicId, input.Status, input.Remark);
+    }
+
     /// <summary>
     /// 映射菜单列表项
     /// </summary>

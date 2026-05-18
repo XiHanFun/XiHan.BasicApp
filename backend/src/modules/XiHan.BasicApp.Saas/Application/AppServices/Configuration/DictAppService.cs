@@ -51,16 +51,7 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _dictDomainService.CreateDictAsync(
-            new DictCreateCommand(
-                input.DictCode,
-                input.DictName,
-                input.DictType,
-                input.DictDescription,
-                input.Status,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _dictDomainService.CreateDictAsync(DictApplicationMapper.ToCreateCommand(input), cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
     }
 
@@ -74,20 +65,7 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _dictDomainService.CreateDictItemAsync(
-            new DictItemCreateCommand(
-                input.DictId,
-                input.ParentId,
-                input.ItemCode,
-                input.ItemName,
-                input.ItemValue,
-                input.ItemDescription,
-                input.Metadata,
-                input.IsDefault,
-                input.Status,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _dictDomainService.CreateDictItemAsync(DictApplicationMapper.ToItemCreateCommand(input), cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
     }
 
@@ -123,15 +101,7 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _dictDomainService.UpdateDictAsync(
-            new DictUpdateCommand(
-                input.BasicId,
-                input.DictName,
-                input.DictType,
-                input.DictDescription,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _dictDomainService.UpdateDictAsync(DictApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
     }
 
@@ -145,18 +115,7 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _dictDomainService.UpdateDictItemAsync(
-            new DictItemUpdateCommand(
-                input.BasicId,
-                input.ParentId,
-                input.ItemName,
-                input.ItemValue,
-                input.ItemDescription,
-                input.Metadata,
-                input.IsDefault,
-                input.Sort,
-                input.Remark),
-            cancellationToken);
+        var result = await _dictDomainService.UpdateDictItemAsync(DictApplicationMapper.ToItemUpdateCommand(input), cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
     }
 
@@ -170,9 +129,7 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _dictDomainService.UpdateDictItemStatusAsync(
-            new DictItemStatusChangeCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _dictDomainService.UpdateDictItemStatusAsync(DictApplicationMapper.ToItemStatusCommand(input), cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
     }
 
@@ -186,9 +143,7 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _dictDomainService.UpdateDictStatusAsync(
-            new DictStatusChangeCommand(input.BasicId, input.Status, input.Remark),
-            cancellationToken);
+        var result = await _dictDomainService.UpdateDictStatusAsync(DictApplicationMapper.ToStatusCommand(input), cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
     }
 }
