@@ -1,0 +1,374 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:PermissionRequestDomainService
+// Guid:cae77906-e146-4fae-a90d-e03499cc8081
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/05/18 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Repositories;
+
+namespace XiHan.BasicApp.Saas.Domain.DomainServices;
+
+/// <summary>
+/// 权限申请领域服务实现
+/// </summary>
+public sealed class PermissionRequestDomainService
+    : IPermissionRequestDomainService
+{
+    private readonly IPermissionRepository _permissionRepository;
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
+    private readonly IReviewRepository _reviewRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public PermissionRequestDomainService(
+        IPermissionRequestRepository permissionRequestRepository,
+        ITenantUserRepository tenantUserRepository,
+        IPermissionRepository permissionRepository,
+        IRoleRepository roleRepository,
+        IReviewRepository reviewRepository)
+    {
+        _permissionRequestRepository = permissionRequestRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _permissionRepository = permissionRepository;
+        _roleRepository = roleRepository;
+        _reviewRepository = reviewRepository;
+    }
+
+    /// <inheritdoc />
+    public async Task<PermissionRequestCommandResult> CreatePermissionRequestAsync(PermissionRequestCreateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var now = DateTimeOffset.UtcNow;
+        ValidateRequestCommonInput(
+            command.PermissionId,
+            command.RoleId,
+            command.RequestReason,
+            command.ExpectedEffectiveTime,
+            command.ExpectedExpirationTime,
+            now);
+
+        _ = await GetAvailableTenantMemberForRequestOrThrowAsync(command.RequestUserId, now, cancellationToken);
+        _ = await GetRequestablePermissionOrDefaultAsync(command.PermissionId, cancellationToken);
+        _ = await GetRequestableRoleOrDefaultAsync(command.RoleId, cancellationToken);
+        await EnsurePendingRequestNotExistsAsync(command.RequestUserId, command.PermissionId, command.RoleId, null, cancellationToken);
+
+        var permissionRequest = new SysPermissionRequest
+        {
+            RequestUserId = command.RequestUserId,
+            PermissionId = command.PermissionId,
+            RoleId = command.RoleId,
+            RequestReason = command.RequestReason.Trim(),
+            ExpectedEffectiveTime = command.ExpectedEffectiveTime,
+            ExpectedExpirationTime = command.ExpectedExpirationTime,
+            RequestStatus = PermissionRequestStatus.Pending,
+            Remark = NormalizeNullable(command.Remark)
+        };
+
+        var savedRequest = await _permissionRequestRepository.AddAsync(permissionRequest, cancellationToken);
+        return new PermissionRequestCommandResult(savedRequest.BasicId);
+    }
+
+    /// <inheritdoc />
+    public async Task WithdrawPermissionRequestAsync(long id, long requestUserId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var permissionRequest = await GetPermissionRequestOrThrowAsync(id, cancellationToken);
+        EnsurePendingOwnerRequest(permissionRequest, requestUserId);
+
+        permissionRequest.RequestStatus = PermissionRequestStatus.Withdrawn;
+        _ = await _permissionRequestRepository.UpdateAsync(permissionRequest, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<PermissionRequestCommandResult> UpdatePermissionRequestAsync(PermissionRequestUpdateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var now = DateTimeOffset.UtcNow;
+        if (command.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "权限申请主键必须大于 0。");
+        }
+
+        ValidateRequestCommonInput(
+            command.PermissionId,
+            command.RoleId,
+            command.RequestReason,
+            command.ExpectedEffectiveTime,
+            command.ExpectedExpirationTime,
+            now);
+
+        var permissionRequest = await GetPermissionRequestOrThrowAsync(command.BasicId, cancellationToken);
+        EnsurePendingOwnerRequest(permissionRequest, command.RequestUserId);
+
+        _ = await GetAvailableTenantMemberForRequestOrThrowAsync(command.RequestUserId, now, cancellationToken);
+        _ = await GetRequestablePermissionOrDefaultAsync(command.PermissionId, cancellationToken);
+        _ = await GetRequestableRoleOrDefaultAsync(command.RoleId, cancellationToken);
+        await EnsurePendingRequestNotExistsAsync(command.RequestUserId, command.PermissionId, command.RoleId, permissionRequest.BasicId, cancellationToken);
+
+        permissionRequest.PermissionId = command.PermissionId;
+        permissionRequest.RoleId = command.RoleId;
+        permissionRequest.RequestReason = command.RequestReason.Trim();
+        permissionRequest.ExpectedEffectiveTime = command.ExpectedEffectiveTime;
+        permissionRequest.ExpectedExpirationTime = command.ExpectedExpirationTime;
+        permissionRequest.Remark = NormalizeNullable(command.Remark);
+
+        var savedRequest = await _permissionRequestRepository.UpdateAsync(permissionRequest, cancellationToken);
+        return new PermissionRequestCommandResult(savedRequest.BasicId);
+    }
+
+    /// <inheritdoc />
+    public async Task<PermissionRequestCommandResult> UpdatePermissionRequestStatusAsync(PermissionRequestStatusCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "权限申请主键必须大于 0。");
+        }
+
+        ValidateEnum(command.RequestStatus, nameof(command.RequestStatus));
+        ValidateOptionalId(command.ReviewId, nameof(command.ReviewId), "审批单主键必须大于 0。");
+
+        _ = await GetAvailableTenantMemberForRequestOrThrowAsync(command.OperatorUserId, DateTimeOffset.UtcNow, cancellationToken);
+        var permissionRequest = await GetPermissionRequestOrThrowAsync(command.BasicId, cancellationToken);
+        EnsureStatusCanBeChanged(permissionRequest, command.RequestStatus);
+
+        if (command.ReviewId.HasValue)
+        {
+            _ = await GetEnabledReviewOrThrowAsync(command.ReviewId.Value, cancellationToken);
+        }
+
+        permissionRequest.RequestStatus = command.RequestStatus;
+        permissionRequest.ReviewId = command.ReviewId ?? permissionRequest.ReviewId;
+        permissionRequest.Remark = NormalizeNullable(command.Remark);
+
+        var savedRequest = await _permissionRequestRepository.UpdateAsync(permissionRequest, cancellationToken);
+        return new PermissionRequestCommandResult(savedRequest.BasicId);
+    }
+
+    private static void EnsurePendingOwnerRequest(SysPermissionRequest permissionRequest, long currentUserId)
+    {
+        if (permissionRequest.RequestUserId != currentUserId)
+        {
+            throw new InvalidOperationException("只能维护自己的权限申请。");
+        }
+
+        if (permissionRequest.RequestStatus != PermissionRequestStatus.Pending)
+        {
+            throw new InvalidOperationException("只有待审批权限申请可以维护。");
+        }
+    }
+
+    private static void EnsureStatusCanBeChanged(SysPermissionRequest permissionRequest, PermissionRequestStatus nextStatus)
+    {
+        if (nextStatus == PermissionRequestStatus.Approved)
+        {
+            throw new InvalidOperationException("权限申请审批通过必须走审批流并自动授权，不能直接更新为已批准。");
+        }
+
+        if (permissionRequest.RequestStatus != PermissionRequestStatus.Pending && permissionRequest.RequestStatus != nextStatus)
+        {
+            throw new InvalidOperationException("已完结权限申请不能变更状态。");
+        }
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    private static void ValidateOptionalId(long? id, string paramName, string message)
+    {
+        if (id.HasValue && id.Value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static void ValidateRequestCommonInput(
+        long? permissionId,
+        long? roleId,
+        string requestReason,
+        DateTimeOffset? expectedEffectiveTime,
+        DateTimeOffset? expectedExpirationTime,
+        DateTimeOffset now)
+    {
+        if (!permissionId.HasValue && !roleId.HasValue)
+        {
+            throw new InvalidOperationException("权限申请必须指定权限或角色。");
+        }
+
+        ValidateOptionalId(permissionId, nameof(permissionId), "权限主键必须大于 0。");
+        ValidateOptionalId(roleId, nameof(roleId), "角色主键必须大于 0。");
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestReason);
+
+        if (requestReason.Trim().Length > 1000)
+        {
+            throw new ArgumentOutOfRangeException(nameof(requestReason), "申请原因不能超过 1000 个字符。");
+        }
+
+        if (expectedExpirationTime.HasValue && expectedExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("期望失效时间必须晚于当前时间。");
+        }
+
+        if (expectedEffectiveTime.HasValue && expectedExpirationTime.HasValue && expectedExpirationTime.Value <= expectedEffectiveTime.Value)
+        {
+            throw new InvalidOperationException("期望失效时间必须晚于期望生效时间。");
+        }
+    }
+
+    private async Task EnsurePendingRequestNotExistsAsync(
+        long requestUserId,
+        long? permissionId,
+        long? roleId,
+        long? excludeId,
+        CancellationToken cancellationToken)
+    {
+        var exists = excludeId.HasValue
+            ? await _permissionRequestRepository.AnyAsync(
+                request => request.RequestUserId == requestUserId
+                    && request.PermissionId == permissionId
+                    && request.RoleId == roleId
+                    && request.RequestStatus == PermissionRequestStatus.Pending
+                    && request.BasicId != excludeId.Value,
+                cancellationToken)
+            : await _permissionRequestRepository.AnyAsync(
+                request => request.RequestUserId == requestUserId
+                    && request.PermissionId == permissionId
+                    && request.RoleId == roleId
+                    && request.RequestStatus == PermissionRequestStatus.Pending,
+                cancellationToken);
+
+        if (exists)
+        {
+            throw new InvalidOperationException("相同权限或角色的待审批申请已存在。");
+        }
+    }
+
+    private async Task<SysTenantUser> GetAvailableTenantMemberForRequestOrThrowAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前租户成员不存在。");
+
+        if (tenantMember.InviteStatus != TenantMemberInviteStatus.Accepted)
+        {
+            throw new InvalidOperationException("未接受邀请的租户成员不能提交权限申请。");
+        }
+
+        if (tenantMember.Status != ValidityStatus.Valid)
+        {
+            throw new InvalidOperationException("无效租户成员不能提交权限申请。");
+        }
+
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("平台管理员成员权限申请必须通过平台运维流程维护。");
+        }
+
+        if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
+        {
+            throw new InvalidOperationException("未生效租户成员不能提交权限申请。");
+        }
+
+        if (tenantMember.ExpirationTime.HasValue && tenantMember.ExpirationTime.Value <= now)
+        {
+            throw new InvalidOperationException("已过期租户成员不能提交权限申请。");
+        }
+
+        return tenantMember;
+    }
+
+    private async Task<SysReview> GetEnabledReviewOrThrowAsync(long reviewId, CancellationToken cancellationToken)
+    {
+        var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken)
+            ?? throw new InvalidOperationException("审批单不存在。");
+
+        if (review.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用审批单不能关联权限申请。");
+        }
+
+        return review;
+    }
+
+    private async Task<SysPermissionRequest> GetPermissionRequestOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "权限申请主键必须大于 0。");
+        }
+
+        return await _permissionRequestRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("权限申请不存在。");
+    }
+
+    private async Task<SysPermission?> GetRequestablePermissionOrDefaultAsync(long? permissionId, CancellationToken cancellationToken)
+    {
+        if (!permissionId.HasValue)
+        {
+            return null;
+        }
+
+        var permission = await _permissionRepository.GetByIdAsync(permissionId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("权限不存在。");
+
+        if (permission.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用权限不能申请。");
+        }
+
+        return permission;
+    }
+
+    private async Task<SysRole?> GetRequestableRoleOrDefaultAsync(long? roleId, CancellationToken cancellationToken)
+    {
+        if (!roleId.HasValue)
+        {
+            return null;
+        }
+
+        var role = await _roleRepository.GetByIdAsync(roleId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+
+        if (role.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException("停用角色不能申请。");
+        }
+
+        if (role.IsGlobal || role.RoleType == RoleType.System)
+        {
+            throw new InvalidOperationException("平台全局角色或系统角色权限申请必须通过平台运维流程维护。");
+        }
+
+        return role;
+    }
+}

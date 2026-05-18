@@ -12,16 +12,12 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.Caching.Distributed;
 using System.Globalization;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.Configurations;
-using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.Framework.Caching.Distributed.Abstracts;
-using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
@@ -33,23 +29,15 @@ public sealed class SaasConfigurationService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    private readonly IConfigRepository _configRepository;
-
-    private readonly IDistributedCache<SaasConfigValueCacheItem, string> _configValueCache;
-
-    private readonly ICurrentTenant _currentTenant;
+    private readonly ISaasConfigValueQueryService _configValueQueryService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public SaasConfigurationService(
-        IConfigRepository configRepository,
-        IDistributedCache<SaasConfigValueCacheItem, string> configValueCache,
-        ICurrentTenant currentTenant)
+        ISaasConfigValueQueryService configValueQueryService)
     {
-        _configRepository = configRepository;
-        _configValueCache = configValueCache;
-        _currentTenant = currentTenant;
+        _configValueQueryService = configValueQueryService;
     }
 
     /// <inheritdoc />
@@ -128,26 +116,6 @@ public sealed class SaasConfigurationService
         };
     }
 
-    private static DistributedCacheEntryOptions CreateCacheOptions()
-    {
-        return new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-        };
-    }
-
-    private static string? ResolveValue(SysConfig? config)
-    {
-        if (config is null)
-        {
-            return null;
-        }
-
-        return string.IsNullOrWhiteSpace(config.ConfigValue)
-            ? config.DefaultValue
-            : config.ConfigValue;
-    }
-
     private async Task<List<OAuthProviderItemDto>> GetOAuthProvidersAsync(CancellationToken cancellationToken)
     {
         var value = await GetStringAsync(SaasConfigKeys.Auth.OAuthProviders, "[]", cancellationToken);
@@ -175,30 +143,6 @@ public sealed class SaasConfigurationService
 
     private async Task<SaasConfigValueCacheItem> GetValueItemAsync(string configKey, CancellationToken cancellationToken)
     {
-        var normalizedKey = SaasConfigKeys.Normalize(configKey);
-        var cacheKey = SaasCacheKeys.ConfigValue(_currentTenant.Id, normalizedKey);
-        return await _configValueCache.GetOrAddAsync(
-                cacheKey,
-                async () =>
-                {
-                    var config = await _configRepository.GetEffectiveByKeyAsync(normalizedKey, _currentTenant.Id, cancellationToken);
-                    return new SaasConfigValueCacheItem
-                    {
-                        ConfigKey = normalizedKey,
-                        Value = ResolveValue(config),
-                        DataType = config?.DataType ?? ConfigDataType.String,
-                        Exists = config is not null,
-                        CachedAt = DateTimeOffset.UtcNow
-                    };
-                },
-                CreateCacheOptions,
-                hideErrors: true,
-                token: cancellationToken)
-            ?? new SaasConfigValueCacheItem
-            {
-                ConfigKey = normalizedKey,
-                Exists = false,
-                CachedAt = DateTimeOffset.UtcNow
-            };
+        return await _configValueQueryService.GetValueItemAsync(configKey, cancellationToken);
     }
 }
