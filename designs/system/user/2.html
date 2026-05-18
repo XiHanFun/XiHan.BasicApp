@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户管理 - XiHan SaaS Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{colors:{brand:{50:'#e6fff7',100:'#b3ffe6',200:'#80ffd4',300:'#4dffc3',400:'#1affb1',500:'#00d4aa',600:'#00a885',700:'#007d60',800:'#00523b',900:'#002616'},sf:{0:'#080d18',50:'#0c1222',100:'#0f1724',200:'#151d2e',300:'#1e2d45',400:'#2d4263',500:'#5a6f8f',600:'#8899b4',700:'#c5cfde',800:'#e8edf5'}},fontFamily:{display:['Sora','Noto Sans SC','sans-serif'],body:['Noto Sans SC','sans-serif']}}}}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC','Sora',sans-serif;background:#080d18;color:#e8edf5;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#0f1724}
+::-webkit-scrollbar-thumb{background:#2d4263;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#3d5680}
+
+.bg-grid{background-image:linear-gradient(rgba(0,212,170,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.03) 1px,transparent 1px);background-size:48px 48px}
+.glow-orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.glass{background:rgba(15,23,36,0.75);backdrop-filter:blur(16px);border:1px solid rgba(0,212,170,0.08)}
+.glass-hover:hover{background:rgba(21,29,46,0.9);border-color:rgba(0,212,170,0.2)}
+
+.fade-enter-active,.fade-leave-active{transition:opacity .25s ease}
+.fade-enter-from,.fade-leave-to{opacity:0}
+.slide-r-enter-active,.slide-r-leave-active{transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s}
+.slide-r-enter-from,.slide-r-leave-to{transform:translateX(100%);opacity:0}
+.modal-enter-active,.modal-leave-active{transition:all .25s cubic-bezier(.4,0,.2,1)}
+.modal-enter-from,.modal-leave-to{opacity:0;transform:scale(.95) translateY(10px)}
+
+.stat-card{position:relative;overflow:hidden;transition:all .3s}
+.stat-card::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;border-radius:50%;opacity:0;transition:opacity .3s}
+.stat-card:hover::before{opacity:1}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,170,0.1)}
+
+.table-row{transition:all .15s ease}
+.table-row:hover{background:rgba(0,212,170,0.04)!important}
+
+.avatar-ring{position:relative}
+.avatar-ring::after{content:'';position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;border:2px solid #151d2e}
+.avatar-ring.online::after{background:#00d4aa;box-shadow:0 0 8px rgba(0,212,170,0.6)}
+.avatar-ring.offline::after{background:#5a6f8f}
+
+.tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:500;line-height:20px;white-space:nowrap}
+.tag-sm{font-size:11px;padding:1px 8px;line-height:18px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 18px;border-radius:10px;font-size:14px;font-weight:500;transition:all .2s;cursor:pointer;border:none;outline:none}
+.btn-primary{background:linear-gradient(135deg,#00d4aa,#00a885);color:#080d18;box-shadow:0 2px 12px rgba(0,212,170,0.25)}
+.btn-primary:hover{box-shadow:0 4px 20px rgba(0,212,170,0.4);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:#8899b4;border:1px solid #2d4263}
+.btn-ghost:hover{color:#e8edf5;border-color:#00d4aa;background:rgba(0,212,170,0.05)}
+.btn-danger{background:rgba(255,71,87,0.15);color:#ff4757;border:1px solid rgba(255,71,87,0.2)}
+.btn-danger:hover{background:rgba(255,71,87,0.25);border-color:rgba(255,71,87,0.4)}
+.btn-sm{padding:5px 12px;font-size:13px;border-radius:8px}
+
+.input{background:#0f1724;border:1px solid #1e2d45;border-radius:10px;padding:9px 14px;color:#e8edf5;font-size:14px;outline:none;transition:all .2s;width:100%}
+.input:focus{border-color:#00d4aa;box-shadow:0 0 0 3px rgba(0,212,170,0.1)}
+.input::placeholder{color:#5a6f8f}
+
+.select{appearance:none;background:#0f1724 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238899b4' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid #1e2d45;border-radius:10px;padding:9px 36px 9px 14px;color:#e8edf5;font-size:14px;outline:none;transition:all .2s;cursor:pointer}
+.select:focus{border-color:#00d4aa;box-shadow:0 0 0 3px rgba(0,212,170,0.1)}
+
+.toast{position:fixed;top:24px;right:24px;z-index:9999;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:500;animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;pointer-events:auto}
+@keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+.toast-success{background:rgba(0,212,170,0.15);border:1px solid rgba(0,212,170,0.3);color:#00d4aa}
+.toast-error{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:#ff4757}
+.toast-warning{background:rgba(255,176,32,0.15);border:1px solid rgba(255,176,32,0.3);color:#ffb020}
+
+.pulse-dot{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.float-anim{animation:float 4s ease-in-out infinite}
+
+.progress-bar{height:6px;border-radius:3px;background:#1e2d45;overflow:hidden;position:relative}
+.progress-bar-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+</style>
+</head>
+<body class="bg-grid min-h-screen">
+
+<div class="glow-orb" style="width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(0,212,170,0.08),transparent 70%)"></div>
+<div class="glow-orb" style="width:600px;height:600px;bottom:-200px;right:-150px;background:radial-gradient(circle,rgba(0,168,133,0.06),transparent 70%)"></div>
+<div class="glow-orb" style="width:300px;height:300px;top:40%;left:50%;background:radial-gradient(circle,rgba(0,212,170,0.04),transparent 70%)"></div>
+
+<div id="app" class="relative z-10 min-h-screen flex flex-col">
+
+<!-- Toast 通知 -->
+<div v-for="(t,i) in toasts" :key="t.id" class="toast" :class="'toast-'+t.type" :style="{top:(24+i*60)+'px'}">
+  <i :class="t.type==='success'?'fa-solid fa-circle-check':t.type==='error'?'fa-solid fa-circle-xmark':'fa-solid fa-triangle-exclamation'" class="mr-2"></i>
+  {{t.message}}
+</div>
+
+<!-- 顶部导航 -->
+<header class="glass sticky top-0 z-50 border-b border-sf-300/50">
+  <div class="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+        <i class="fa-solid fa-shield-halved text-sf-0 text-sm"></i>
+      </div>
+      <span class="font-display font-700 text-lg tracking-tight">XiHan SaaS</span>
+      <span class="text-sf-500 mx-2">/</span>
+      <span class="text-sf-600">系统管理</span>
+      <span class="text-sf-500 mx-2">/</span>
+      <span class="text-brand-500 font-500">用户管理</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="relative">
+        <i class="fa-regular fa-bell text-sf-600 hover:text-brand-500 cursor-pointer transition"></i>
+        <span class="absolute -top-1 -right-1 w-2 h-2 bg-brand-500 rounded-full pulse-dot"></span>
+      </div>
+      <div class="flex items-center gap-2 pl-4 border-l border-sf-300">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-xs font-600 text-sf-0">管</div>
+        <span class="text-sm text-sf-700">管理员</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 max-w-[1600px] mx-auto w-full px-6 py-6">
+
+  <!-- 页面标题 -->
+  <div class="mb-6 flex items-end justify-between">
+    <div>
+      <h1 class="font-display text-3xl font-800 tracking-tight">
+        用户管理
+        <span class="text-brand-500">.</span>
+      </h1>
+      <p class="text-sf-500 mt-1 text-sm">管理系统用户账户、角色分配与安全状态</p>
+    </div>
+    <div class="flex gap-3">
+      <button class="btn btn-ghost btn-sm" @click="exportData">
+        <i class="fa-solid fa-file-export"></i> 导出
+      </button>
+      <button class="btn btn-primary" @click="openCreate">
+        <i class="fa-solid fa-plus"></i> 新建用户
+      </button>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="stat-card glass rounded-2xl p-5 hover:cursor-pointer" @click="filterByStatus('all')">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
+          <i class="fa-solid fa-users text-brand-500"></i>
+        </div>
+        <span class="tag tag-sm" style="background:rgba(0,212,170,0.1);color:#00d4aa">全部</span>
+      </div>
+      <div class="font-display text-2xl font-700">{{stats.total}}</div>
+      <div class="text-sf-500 text-xs mt-1">系统用户总数</div>
+      <div class="progress-bar mt-3"><div class="progress-bar-fill bg-brand-500" style="width:100%"></div></div>
+    </div>
+    <div class="stat-card glass rounded-2xl p-5 hover:cursor-pointer" @click="filterByStatus('active')">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+          <i class="fa-solid fa-user-check text-green-400"></i>
+        </div>
+        <span class="tag tag-sm" style="background:rgba(74,222,128,0.1);color:#4ade80">活跃</span>
+      </div>
+      <div class="font-display text-2xl font-700">{{stats.active}}</div>
+      <div class="text-sf-500 text-xs mt-1">已激活用户</div>
+      <div class="progress-bar mt-3"><div class="progress-bar-fill bg-green-400" :style="{width:stats.total?(stats.active/stats.total*100)+'%':'0%'}"></div></div>
+    </div>
+    <div class="stat-card glass rounded-2xl p-5 hover:cursor-pointer" @click="filterByStatus('today')">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+          <i class="fa-solid fa-user-plus text-cyan-400"></i>
+        </div>
+        <span class="tag tag-sm" style="background:rgba(34,211,238,0.1);color:#22d3ee">今日</span>
+      </div>
+      <div class="font-display text-2xl font-700">{{stats.todayLogin}}</div>
+      <div class="text-sf-500 text-xs mt-1">今日登录</div>
+      <div class="progress-bar mt-3"><div class="progress-bar-fill bg-cyan-400" :style="{width:stats.total?(stats.todayLogin/stats.total*100)+'%':'0%'}"></div></div>
+    </div>
+    <div class="stat-card glass rounded-2xl p-5 hover:cursor-pointer" @click="filterByStatus('locked')">
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+          <i class="fa-solid fa-lock text-red-400"></i>
+        </div>
+        <span class="tag tag-sm" style="background:rgba(248,113,113,0.1);color:#f87171">锁定</span>
+      </div>
+      <div class="font-display text-2xl font-700">{{stats.locked}}</div>
+      <div class="text-sf-500 text-xs mt-1">账户已锁定</div>
+      <div class="progress-bar mt-3"><div class="progress-bar-fill bg-red-400" :style="{width:stats.total?(stats.locked/stats.total*100)+'%':'0%'}"></div></div>
+    </div>
+  </div>
+
+  <!-- 工具栏 -->
+  <div class="glass rounded-2xl p-4 mb-4 flex flex-wrap items-center gap-3">
+    <div class="relative flex-1 min-w-[240px]">
+      <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sf-500 text-sm"></i>
+      <input class="input pl-10" v-model="search.keyword" placeholder="搜索用户名、姓名、邮箱、手机号..." @input="onSearch">
+    </div>
+    <select class="select min-w-[120px]" v-model="search.status" @change="onSearch">
+      <option value="">全部状态</option>
+      <option value="0">启用</option>
+      <option value="1">禁用</option>
+    </select>
+    <select class="select min-w-[120px]" v-model="search.gender" @change="onSearch">
+      <option value="">全部性别</option>
+      <option value="0">未知</option>
+      <option value="1">男</option>
+      <option value="2">女</option>
+    </select>
+    <select class="select min-w-[140px]" v-model="search.department" @change="onSearch">
+      <option value="">全部部门</option>
+      <option v-for="d in flatDepts" :key="d.id" :value="d.id">{{d.indent}}{{d.name}}</option>
+    </select>
+    <select class="select min-w-[140px]" v-model="search.role" @change="onSearch">
+      <option value="">全部角色</option>
+      <option v-for="r in roles" :key="r.id" :value="r.id">{{r.name}}</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" @click="resetSearch" v-if="hasFilter">
+      <i class="fa-solid fa-rotate-left"></i> 重置
+    </button>
+    <div class="ml-auto text-sf-500 text-sm">
+      共 <span class="text-brand-500 font-600">{{filteredUsers.length}}</span> 条记录
+    </div>
+  </div>
+
+  <!-- 用户表格 -->
+  <div class="glass rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-sf-300/50">
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider">
+              <input type="checkbox" class="accent-brand-500" :checked="allSelected" @change="toggleSelectAll">
+            </th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider cursor-pointer hover:text-brand-500 transition" @click="sortBy('userName')">
+              用户 <i :class="sortIcon('userName')" class="ml-1 text-xs"></i>
+            </th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider">邮箱</th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider">手机号</th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider">部门</th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider">角色</th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider cursor-pointer hover:text-brand-500 transition" @click="sortBy('status')">
+              状态 <i :class="sortIcon('status')" class="ml-1 text-xs"></i>
+            </th>
+            <th class="text-left px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider cursor-pointer hover:text-brand-500 transition" @click="sortBy('lastLoginTime')">
+              最后登录 <i :class="sortIcon('lastLoginTime')" class="ml-1 text-xs"></i>
+            </th>
+            <th class="text-right px-5 py-4 text-sf-500 font-500 text-xs uppercase tracking-wider">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="u in pagedUsers" :key="u.id" class="table-row border-b border-sf-300/30" :class="{'bg-brand-500/[0.03]':selectedIds.includes(u.id)}">
+            <td class="px-5 py-3.5">
+              <input type="checkbox" class="accent-brand-500" :checked="selectedIds.includes(u.id)" @change="toggleSelect(u.id)">
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="avatar-ring w-9 h-9 rounded-full overflow-hidden flex-shrink-0" :class="u.isOnline?'online':'offline'">
+                  <img :src="u.avatar" :alt="u.realName" class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <div>
+                  <div class="font-500 text-sf-800">{{u.realName||'-'}}</div>
+                  <div class="text-xs text-sf-500 font-mono">@{{u.userName}}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-3.5 text-sf-600">{{u.email||'-'}}</td>
+            <td class="px-5 py-3.5 text-sf-600 font-mono text-xs">{{u.phone||'-'}}</td>
+            <td class="px-5 py-3.5">
+              <div class="flex flex-wrap gap-1">
+                <span v-for="d in u.departments" :key="d.id" class="tag tag-sm" style="background:rgba(34,211,238,0.1);color:#22d3ee">{{d.name}}</span>
+                <span v-if="!u.departments.length" class="text-sf-500">-</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex flex-wrap gap-1">
+                <span v-for="r in u.roles" :key="r.id" class="tag tag-sm" :style="{background:r.color+'18',color:r.color}">{{r.name}}</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full" :class="u.status===0?'bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]':u.status===1?'bg-sf-500':'bg-yellow-400'"></span>
+                <span :class="u.status===0?'text-green-400':u.status===1?'text-sf-500':'text-yellow-400'" class="text-xs font-500">{{u.status===0?'启用':u.status===1?'禁用':'锁定'}}</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5 text-sf-500 text-xs">{{formatTime(u.lastLoginTime)}}</td>
+            <td class="px-5 py-3.5 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <button class="btn btn-ghost btn-sm !px-2 !py-1.5" @click="viewDetail(u)" title="查看详情">
+                  <i class="fa-solid fa-eye text-xs"></i>
+                </button>
+                <button class="btn btn-ghost btn-sm !px-2 !py-1.5" @click="openEdit(u)" title="编辑">
+                  <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button class="btn btn-ghost btn-sm !px-2 !py-1.5" @click="toggleUserStatus(u)" :title="u.status===0?'禁用':'启用'">
+                  <i :class="u.status===0?'fa-solid fa-ban text-red-400':'fa-solid fa-circle-check text-green-400'" class="text-xs"></i>
+                </button>
+                <button class="btn btn-danger btn-sm !px-2 !py-1.5" @click="confirmDelete(u)" title="删除">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="!pagedUsers.length">
+            <td colspan="9" class="px-5 py-16 text-center">
+              <i class="fa-regular fa-folder-open text-4xl text-sf-400 mb-3 block"></i>
+              <div class="text-sf-500">暂无匹配的用户数据</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-5 py-4 border-t border-sf-300/30" v-if="filteredUsers.length">
+      <div class="flex items-center gap-2 text-sm text-sf-500">
+        每页
+        <select class="select !py-1 !px-2 !text-xs !w-auto" v-model="pagination.size" @change="pagination.page=1">
+          <option :value="10">10</option>
+          <option :value="20">20</option>
+          <option :value="50">50</option>
+        </select>
+        条
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="btn btn-ghost btn-sm !px-2.5" :disabled="pagination.page<=1" @click="pagination.page--"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+        <template v-for="p in displayPages" :key="p">
+          <button v-if="p!=='...'" class="btn btn-sm !px-3" :class="p===pagination.page?'btn-primary':'btn-ghost'" @click="pagination.page=p">{{p}}</button>
+          <span v-else class="text-sf-500 px-1">...</span>
+        </template>
+        <button class="btn btn-ghost btn-sm !px-2.5" :disabled="pagination.page>=totalPages" @click="pagination.page++"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- 详情抽屉 -->
+<transition name="slide-r">
+<div v-if="detailDrawer" class="fixed inset-0 z-50 flex justify-end" @click.self="detailDrawer=false">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="detailDrawer=false"></div>
+  <div class="relative w-full max-w-[520px] bg-sf-100 border-l border-sf-300/50 overflow-y-auto">
+    <div class="sticky top-0 z-10 glass border-b border-sf-300/30 px-6 py-4 flex items-center justify-between">
+      <h3 class="font-display font-600 text-lg">用户详情</h3>
+      <button class="btn btn-ghost btn-sm !px-2" @click="detailDrawer=false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-6 space-y-6" v-if="detailUser">
+      <!-- 基本信息 -->
+      <div class="flex items-center gap-4">
+        <div class="avatar-ring w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0" :class="detailUser.isOnline?'online':'offline'">
+          <img :src="detailUser.avatar" :alt="detailUser.realName" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-display text-xl font-700">{{detailUser.realName||'-'}}</div>
+          <div class="text-sf-500 text-sm font-mono">@{{detailUser.userName}}</div>
+          <div class="flex gap-2 mt-2">
+            <span class="tag tag-sm" :class="detailUser.status===0?'bg-green-400/10 text-green-400':'bg-sf-400/20 text-sf-500'">{{detailUser.status===0?'启用':'禁用'}}</span>
+            <span class="tag tag-sm bg-brand-500/10 text-brand-500" v-if="detailUser.isActive">已激活</span>
+            <span class="tag tag-sm bg-yellow-400/10 text-yellow-400" v-else>未激活</span>
+            <span class="tag tag-sm bg-sf-400/10 text-sf-600" v-if="detailUser.isSystemAccount">系统账号</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 联系信息 -->
+      <div class="glass rounded-xl p-4 space-y-3">
+        <div class="text-xs text-sf-500 font-500 uppercase tracking-wider mb-2">联系信息</div>
+        <div class="flex items-center gap-3 text-sm" v-if="detailUser.email">
+          <i class="fa-regular fa-envelope text-sf-500 w-5 text-center"></i>
+          <span class="text-sf-700">{{detailUser.email}}</span>
+          <span class="tag tag-sm bg-green-400/10 text-green-400" v-if="detailUser.security?.emailVerified">已验证</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm" v-if="detailUser.phone">
+          <i class="fa-solid fa-phone text-sf-500 w-5 text-center"></i>
+          <span class="text-sf-700 font-mono">{{detailUser.phone}}</span>
+          <span class="tag tag-sm bg-green-400/10 text-green-400" v-if="detailUser.security?.phoneVerified">已验证</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm" v-if="detailUser.gender!==undefined">
+          <i class="fa-solid fa-venus-mars text-sf-500 w-5 text-center"></i>
+          <span class="text-sf-700">{{['未知','男','女','其他'][detailUser.gender]||'-'}}</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm" v-if="detailUser.birthday">
+          <i class="fa-regular fa-calendar text-sf-500 w-5 text-center"></i>
+          <span class="text-sf-700">{{detailUser.birthday}}</span>
+        </div>
+      </div>
+
+      <!-- 安全状态 -->
+      <div class="glass rounded-xl p-4 space-y-3">
+        <div class="text-xs text-sf-500 font-500 uppercase tracking-wider mb-2">安全状态</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex items-center gap-2">
+            <i :class="detailUser.security?.isLocked?'fa-solid fa-lock text-red-400':'fa-solid fa-lock-open text-green-400'" class="w-5 text-center"></i>
+            <span class="text-sm" :class="detailUser.security?.isLocked?'text-red-400':'text-sf-700'">{{detailUser.security?.isLocked?'已锁定':'未锁定'}}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i :class="detailUser.security?.twoFactorEnabled?'fa-solid fa-shield-halved text-brand-500':'fa-solid fa-shield text-sf-500'" class="w-5 text-center"></i>
+            <span class="text-sm" :class="detailUser.security?.twoFactorEnabled?'text-brand-500':'text-sf-600'">MFA {{detailUser.security?.twoFactorEnabled?'已启用':'未启用'}}</span>
+          </div>
+        </div>
+        <div class="text-xs text-sf-500" v-if="detailUser.security?.failedLoginAttempts>0">
+          <i class="fa-solid fa-triangle-exclamation text-yellow-400 mr-1"></i>
+          连续登录失败 {{detailUser.security.failedLoginAttempts}} 次
+        </div>
+        <div class="text-xs text-sf-500" v-if="detailUser.security?.lastPasswordChangeTime">
+          上次修改密码：{{formatTime(detailUser.security.lastPasswordChangeTime)}}
+        </div>
+      </div>
+
+      <!-- 部门 -->
+      <div class="glass rounded-xl p-4">
+        <div class="text-xs text-sf-500 font-500 uppercase tracking-wider mb-3">部门归属</div>
+        <div class="space-y-2">
+          <div v-for="d in detailUser.departments" :key="d.id" class="flex items-center gap-2 text-sm">
+            <i class="fa-regular fa-building text-sf-500 w-5 text-center"></i>
+            <span class="text-sf-700">{{d.name}}</span>
+            <span class="tag tag-sm bg-brand-500/10 text-brand-500" v-if="d.isMain">主部门</span>
+          </div>
+          <div v-if="!detailUser.departments?.length" class="text-sf-500 text-sm">暂无部门</div>
+        </div>
+      </div>
+
+      <!-- 角色 -->
+      <div class="glass rounded-xl p-4">
+        <div class="text-xs text-sf-500 font-500 uppercase tracking-wider mb-3">角色列表</div>
+        <div class="flex flex-wrap gap-2">
+          <span v-for="r in detailUser.roles" :key="r.id" class="tag" :style="{background:r.color+'18',color:r.color}">
+            <i class="fa-solid fa-user-tag mr-1 text-xs"></i>{{r.name}}
+          </span>
+          <div v-if="!detailUser.roles?.length" class="text-sf-500 text-sm">暂无角色</div>
+        </div>
+      </div>
+
+      <!-- 在线会话 -->
+      <div class="glass rounded-xl p-4">
+        <div class="text-xs text-sf-500 font-500 uppercase tracking-wider mb-3">在线会话</div>
+        <div class="space-y-2">
+          <div v-for="s in detailUser.sessions" :key="s.id" class="flex items-center gap-3 text-sm p-2 rounded-lg" :class="s.isOnline?'bg-green-400/5':'bg-sf-200/50'">
+            <i :class="s.deviceType===1?'fa-solid fa-desktop':s.deviceType===2?'fa-solid fa-mobile-screen':'fa-solid fa-globe'" class="text-sf-500 w-5 text-center"></i>
+            <span class="text-sf-700 flex-1">{{s.deviceName||'未知设备'}}</span>
+            <span class="text-xs text-sf-500 font-mono">{{s.ipAddress}}</span>
+            <span class="w-2 h-2 rounded-full" :class="s.isOnline?'bg-green-400':'bg-sf-400'"></span>
+          </div>
+          <div v-if="!detailUser.sessions?.length" class="text-sf-500 text-sm">暂无会话</div>
+        </div>
+      </div>
+
+      <!-- 时间信息 -->
+      <div class="glass rounded-xl p-4">
+        <div class="text-xs text-sf-500 font-500 uppercase tracking-wider mb-3">时间信息</div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-sf-500">创建时间</span><span class="text-sf-700">{{formatTime(detailUser.createdTime)}}</span></div>
+          <div class="flex justify-between"><span class="text-sf-500">最后登录</span><span class="text-sf-700">{{formatTime(detailUser.lastLoginTime)||'-'}}</span></div>
+          <div class="flex justify-between"><span class="text-sf-500">登录 IP</span><span class="text-sf-700 font-mono">{{detailUser.lastLoginIp||'-'}}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- 新建/编辑弹窗 -->
+<transition name="modal">
+<div v-if="formModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="formModal=false">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="formModal=false"></div>
+  <div class="relative w-full max-w-[600px] bg-sf-100 rounded-2xl border border-sf-300/50 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="px-6 py-5 border-b border-sf-300/30 flex items-center justify-between flex-shrink-0">
+      <h3 class="font-display font-600 text-lg">{{isEdit?'编辑用户':'新建用户'}}</h3>
+      <button class="btn btn-ghost btn-sm !px-2" @click="formModal=false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-6 overflow-y-auto space-y-5 flex-1">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">用户名 <span class="text-red-400">*</span></label>
+          <input class="input" v-model="form.userName" placeholder="登录用户名" :disabled="isEdit">
+        </div>
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">真实姓名 <span class="text-red-400">*</span></label>
+          <input class="input" v-model="form.realName" placeholder="姓名">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">邮箱</label>
+          <input class="input" type="email" v-model="form.email" placeholder="email@example.com">
+        </div>
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">手机号</label>
+          <input class="input" v-model="form.phone" placeholder="手机号码">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4" v-if="!isEdit">
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">初始密码 <span class="text-red-400">*</span></label>
+          <input class="input" type="password" v-model="form.password" placeholder="至少8位">
+        </div>
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">确认密码 <span class="text-red-400">*</span></label>
+          <input class="input" type="password" v-model="form.confirmPassword" placeholder="再次输入密码">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">性别</label>
+          <select class="select w-full" v-model="form.gender">
+            <option :value="0">未知</option>
+            <option :value="1">男</option>
+            <option :value="2">女</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-sf-500 mb-1.5 font-500">生日</label>
+          <input class="input" type="date" v-model="form.birthday">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-sf-500 mb-1.5 font-500">所属部门</label>
+        <div class="flex flex-wrap gap-2">
+          <label v-for="d in selectableDepts" :key="d.id" class="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition" :class="form.deptIds.includes(d.id)?'bg-brand-500/15 border border-brand-500/30 text-brand-500':'bg-sf-200 border border-sf-300 text-sf-600 hover:border-sf-400'">
+            <input type="checkbox" class="accent-brand-500 hidden" :value="d.id" v-model="form.deptIds">
+            <i class="fa-regular fa-building text-xs"></i>
+            <span class="text-sm">{{d.indent}}{{d.name}}</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-sf-500 mb-1.5 font-500">分配角色</label>
+        <div class="flex flex-wrap gap-2">
+          <label v-for="r in roles" :key="r.id" class="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition" :class="form.roleIds.includes(r.id)?'border':'border border-sf-300 text-sf-600 hover:border-sf-400'" :style="form.roleIds.includes(r.id)?{background:r.color+'18',borderColor:r.color+'50',color:r.color}:{}">
+            <input type="checkbox" class="hidden" :value="r.id" v-model="form.roleIds">
+            <i class="fa-solid fa-user-tag text-xs"></i>
+            <span class="text-sm">{{r.name}}</span>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-sf-500 mb-1.5 font-500">备注</label>
+        <textarea class="input resize-none" rows="2" v-model="form.remark" placeholder="可选"></textarea>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-sf-300/30 flex justify-end gap-3 flex-shrink-0">
+      <button class="btn btn-ghost" @click="formModal=false">取消</button>
+      <button class="btn btn-primary" @click="submitForm">{{isEdit?'保存修改':'创建用户'}}</button>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- 删除确认弹窗 -->
+<transition name="modal">
+<div v-if="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="deleteModal=false">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="deleteModal=false"></div>
+  <div class="relative w-full max-w-[420px] bg-sf-100 rounded-2xl border border-sf-300/50 shadow-2xl p-6">
+    <div class="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+      <i class="fa-solid fa-triangle-exclamation text-red-400 text-2xl"></i>
+    </div>
+    <h3 class="font-display font-600 text-lg text-center mb-2">确认删除用户</h3>
+    <p class="text-sf-500 text-sm text-center mb-1">此操作将软删除以下用户，删除后用户无法登录系统：</p>
+    <p class="text-center font-500 text-sf-800 mb-6">{{deleteTarget?.realName}}（@{{deleteTarget?.userName}}）</p>
+    <div class="flex gap-3">
+      <button class="btn btn-ghost flex-1" @click="deleteModal=false">取消</button>
+      <button class="btn btn-danger flex-1" @click="doDelete"><i class="fa-solid fa-trash-can"></i> 确认删除</button>
+    </div>
+  </div>
+</div>
+</transition>
+
+</div>
+
+<script>
+const { createApp, ref, computed, reactive, onMounted, nextTick, watch } = Vue
+
+// ========== Mock 数据 ==========
+
+const DEPARTMENTS = [
+  { id: 1, name: '技术研发中心', parentId: null },
+  { id: 2, name: '前端开发组', parentId: 1 },
+  { id: 3, name: '后端开发组', parentId: 1 },
+  { id: 4, name: '测试组', parentId: 1 },
+  { id: 5, name: '产品设计部', parentId: null },
+  { id: 6, name: '产品策划组', parentId: 5 },
+  { id: 7, name: 'UI设计组', parentId: 5 },
+  { id: 8, name: '运营部', parentId: null },
+  { id: 9, name: '市场推广组', parentId: 8 },
+  { id: 10, name: '客户服务组', parentId: 8 },
+  { id: 11, name: '人力资源部', parentId: null },
+  { id: 12, name: '财务部', parentId: null },
+]
+
+const ROLES = [
+  { id: 1, code: 'super-admin', name: '超级管理员', color: '#ff4757' },
+  { id: 2, code: 'admin', name: '管理员', color: '#ffb020' },
+  { id: 3, code: 'dept-manager', name: '部门经理', color: '#00d4aa' },
+  { id: 4, code: 'developer', name: '开发工程师', color: '#3b82f6' },
+  { id: 5, code: 'designer', name: '设计师', color: '#a855f7' },
+  { id: 6, code: 'operator', name: '运营专员', color: '#f97316' },
+  { id: 7, code: 'hr-specialist', name: '人事专员', color: '#ec4899' },
+  { id: 8, code: 'finance-specialist', name: '财务专员', color: '#14b8a6' },
+  { id: 9, code: 'viewer', name: '只读用户', color: '#6b7280' },
+]
+
+const NAMES = [
+  { userName: 'zhaifanhua', realName: '翟繁华', gender: 1, dept: [1], roles: [1,3], online: true },
+  { userName: 'liwei', realName: '李伟', gender: 1, dept: [3], roles: [4], online: true },
+  { userName: 'wangxiaomei', realName: '王小美', gender: 2, dept: [7], roles: [5], online: false },
+  { userName: 'zhangqiang', realName: '张强', gender: 1, dept: [2], roles: [4,3], online: true },
+  { userName: 'chenlihua', realName: '陈丽华', gender: 2, dept: [11], roles: [7,3], online: false },
+  { userName: 'liuyang', realName: '刘洋', gender: 1, dept: [9], roles: [6], online: true },
+  { userName: 'zhaomin', realName: '赵敏', gender: 2, dept: [6], roles: [3], online: false },
+  { userName: 'sunhao', realName: '孙浩', gender: 1, dept: [3], roles: [4], online: true },
+  { userName: 'zhoujie', realName: '周洁', gender: 2, dept: [10], roles: [6], online: true },
+  { userName: 'wugang', realName: '吴刚', gender: 1, dept: [4], roles: [4], online: false },
+  { userName: 'huangyan', realName: '黄燕', gender: 2, dept: [12], roles: [8,3], online: false },
+  { userName: 'xujun', realName: '徐军', gender: 1, dept: [2], roles: [4], online: true },
+  { userName: 'heyimei', realName: '何一梅', gender: 2, dept: [7], roles: [5], online: false },
+  { userName: 'malin', realName: '马林', gender: 1, dept: [9], roles: [6], online: false },
+  { userName: 'guoqian', realName: '郭倩', gender: 2, dept: [11], roles: [7], online: true },
+  { userName: 'linzhiyuan', realName: '林致远', gender: 1, dept: [3], roles: [4,3], online: true },
+  { userName: 'songwei', realName: '宋伟', gender: 1, dept: [4], roles: [4], online: false },
+  { userName: 'tangxue', realName: '唐雪', gender: 2, dept: [6], roles: [3], online: true },
+  { userName: 'dengke', realName: '邓柯', gender: 1, dept: [1], roles: [2,3], online: true },
+  { userName: 'fangyuan', realName: '方圆', gender: 0, dept: [10], roles: [9], online: false },
+]
+
+function genId() { return Math.floor(Math.random() * 9000000000000000000) + 1000000000000000000 }
+function randDate(daysAgo) { const d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * daysAgo)); return d.toISOString() }
+function randPhone() { const p = ['138','139','158','159','186','187','199','176']; return p[Math.floor(Math.random()*p.length)] + String(Math.floor(Math.random()*100000000)).padStart(8,'0') }
+
+const mockUsers = NAMES.map((n, i) => {
+  const status = i === 6 ? 1 : (Math.random() > 0.92 ? 1 : 0) // 个别禁用
+  const locked = i === 17 // 一个锁定
+  const active = status === 0 && Math.random() > 0.15
+  return {
+    id: genId(),
+    tenantId: 1,
+    userName: n.userName,
+    realName: n.realName,
+    nickName: n.realName.length > 1 ? n.realName.substring(0,1) + '哥' : null,
+    avatar: `https://picsum.photos/seed/user${i+1}/100/100.jpg`,
+    email: `${n.userName}@zhaifanhua.com`,
+    phone: randPhone(),
+    gender: n.gender,
+    birthday: `${1985 + Math.floor(Math.random()*15)}-${String(1+Math.floor(Math.random()*12)).padStart(2,'0')}-${String(1+Math.floor(Math.random()*28)).padStart(2,'0')}`,
+    status: locked ? 2 : status,
+    isActive: active,
+    lastLoginTime: n.online ? randDate(1) : randDate(30),
+    lastLoginIp: `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`,
+    timeZone: 'Asia/Shanghai',
+    language: 'zh-CN',
+    country: 'CN',
+    isSystemAccount: i === 0,
+    remark: '',
+    createdTime: randDate(365),
+    isOnline: n.online,
+    departments: n.dept.map((did,di) => {
+      const dept = DEPARTMENTS.find(d => d.id === did)
+      return dept ? { id: dept.id, name: dept.name, isMain: di === 0 } : null
+    }).filter(Boolean),
+    roles: n.roles.map(rid => ROLES.find(r => r.id === rid)).filter(Boolean),
+    security: {
+      isLocked: locked,
+      failedLoginAttempts: locked ? 5 : Math.floor(Math.random() * 3),
+      twoFactorEnabled: i < 3,
+      twoFactorMethod: i < 3 ? 1 : 0,
+      emailVerified: Math.random() > 0.2,
+      phoneVerified: Math.random() > 0.3,
+      lastPasswordChangeTime: randDate(60),
+      passwordExpiryTime: null,
+      allowMultiLogin: true,
+      maxLoginDevices: 0,
+    },
+    sessions: n.online ? [{
+      id: genId(),
+      deviceType: [1,2,3][Math.floor(Math.random()*3)],
+      deviceName: ['Chrome/MacOS','Safari/iPhone','Edge/Windows'][Math.floor(Math.random()*3)],
+      ipAddress: `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`,
+      isOnline: true,
+      loginTime: randDate(1),
+    }] : [],
+  }
+})
+
+// ========== Vue 应用 ==========
+
+createApp({
+  setup() {
+    const users = ref(JSON.parse(JSON.stringify(mockUsers)))
+    const toasts = ref([])
+    let toastId = 0
+
+    // 搜索/筛选
+    const search = reactive({ keyword: '', status: '', gender: '', department: '', role: '' })
+    const sort = reactive({ field: 'createdTime', order: 'desc' })
+    const pagination = reactive({ page: 1, size: 10 })
+
+    // 弹窗状态
+    const detailDrawer = ref(false)
+    const detailUser = ref(null)
+    const formModal = ref(false)
+    const isEdit = ref(false)
+    const form = reactive({
+      id: null, userName: '', realName: '', email: '', phone: '',
+      gender: 0, birthday: '', password: '', confirmPassword: '',
+      deptIds: [], roleIds: [], remark: '',
+    })
+    const deleteModal = ref(false)
+    const deleteTarget = ref(null)
+    const selectedIds = ref([])
+
+    // 扁平化部门（带缩进）
+    const flatDepts = computed(() => {
+      const result = []
+      function walk(list, depth) {
+        list.forEach(d => {
+          result.push({ id: d.id, name: d.name, indent: '\u00A0\u00A0'.repeat(depth) })
+          walk(DEPARTMENTS.filter(x => x.parentId === d.id), depth + 1)
+        })
+      }
+      walk(DEPARTMENTS.filter(d => !d.parentId), 0)
+      return result
+    })
+
+    const selectableDepts = computed(() => flatDepts.value)
+
+    // 统计
+    const stats = computed(() => {
+      const all = users.value
+      return {
+        total: all.length,
+        active: all.filter(u => u.isActive && u.status === 0).length,
+        todayLogin: all.filter(u => {
+          if (!u.lastLoginTime) return false
+          const d = new Date(u.lastLoginTime); const now = new Date()
+          return d.toDateString() === now.toDateString()
+        }).length,
+        locked: all.filter(u => u.security?.isLocked).length,
+      }
+    })
+
+    // 筛选
+    const hasFilter = computed(() => search.keyword || search.status !== '' || search.gender !== '' || search.department !== '' || search.role !== '')
+
+    const filteredUsers = computed(() => {
+      let list = [...users.value]
+      if (search.keyword) {
+        const kw = search.keyword.toLowerCase()
+        list = list.filter(u => (u.userName||'').toLowerCase().includes(kw) || (u.realName||'').toLowerCase().includes(kw) || (u.email||'').toLowerCase().includes(kw) || (u.phone||'').includes(kw))
+      }
+      if (search.status !== '') list = list.filter(u => u.status === Number(search.status))
+      if (search.gender !== '') list = list.filter(u => u.gender === Number(search.gender))
+      if (search.department) list = list.filter(u => u.departments.some(d => d.id === Number(search.department)))
+      if (search.role) list = list.filter(u => u.roles.some(r => r.id === Number(search.role)))
+
+      // 排序
+      list.sort((a, b) => {
+        let va = a[sort.field], vb = b[sort.field]
+        if (typeof va === 'string') va = va || ''
+        if (typeof vb === 'string') vb = vb || ''
+        if (va < vb) return sort.order === 'asc' ? -1 : 1
+        if (va > vb) return sort.order === 'asc' ? 1 : -1
+        return 0
+      })
+      return list
+    })
+
+    // 分页
+    const totalPages = computed(() => Math.max(1, Math.ceil(filteredUsers.value.length / pagination.size)))
+    const pagedUsers = computed(() => {
+      const start = (pagination.page - 1) * pagination.size
+      return filteredUsers.value.slice(start, start + pagination.size)
+    })
+    const displayPages = computed(() => {
+      const t = totalPages.value; const c = pagination.page
+      if (t <= 7) return Array.from({length:t},(_,i)=>i+1)
+      const pages = [1]
+      if (c > 3) pages.push('...')
+      for (let i = Math.max(2,c-1); i <= Math.min(t-1,c+1); i++) pages.push(i)
+      if (c < t-2) pages.push('...')
+      pages.push(t)
+      return pages
+    })
+
+    const allSelected = computed(() => pagedUsers.value.length > 0 && pagedUsers.value.every(u => selectedIds.value.includes(u.id)))
+
+    // 方法
+    function showToast(message, type='success') {
+      const id = ++toastId
+      toasts.value.push({ id, message, type })
+      setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id) }, 3000)
+    }
+
+    function formatTime(v) {
+      if (!v) return ''
+      const d = new Date(v)
+      const now = new Date()
+      const diff = now - d
+      if (diff < 60000) return '刚刚'
+      if (diff < 3600000) return Math.floor(diff/60000) + '分钟前'
+      if (diff < 86400000) return Math.floor(diff/3600000) + '小时前'
+      if (diff < 172800000) return '昨天'
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+    }
+
+    function sortBy(field) {
+      if (sort.field === field) { sort.order = sort.order === 'asc' ? 'desc' : 'asc' }
+      else { sort.field = field; sort.order = 'asc' }
+    }
+    function sortIcon(field) {
+      if (sort.field !== field) return 'fa-solid fa-sort text-sf-400'
+      return sort.order === 'asc' ? 'fa-solid fa-sort-up text-brand-500' : 'fa-solid fa-sort-down text-brand-500'
+    }
+
+    function onSearch() { pagination.page = 1 }
+    function resetSearch() {
+      search.keyword = ''; search.status = ''; search.gender = ''; search.department = ''; search.role = ''
+      pagination.page = 1
+    }
+    function filterByStatus(type) {
+      resetSearch()
+      if (type === 'active') search.status = '0'
+      else if (type === 'locked') { /* 锁定状态特殊处理 */ }
+    }
+
+    function toggleSelectAll() {
+      if (allSelected.value) { selectedIds.value = [] }
+      else { selectedIds.value = pagedUsers.value.map(u => u.id) }
+    }
+    function toggleSelect(id) {
+      const idx = selectedIds.value.indexOf(id)
+      if (idx >= 0) selectedIds.value.splice(idx, 1)
+      else selectedIds.value.push(id)
+    }
+
+    function viewDetail(u) { detailUser.value = u; detailDrawer.value = true }
+    function openCreate() {
+      isEdit.value = false
+      Object.assign(form, { id:null, userName:'', realName:'', email:'', phone:'', gender:0, birthday:'', password:'', confirmPassword:'', deptIds:[], roleIds:[], remark:'' })
+      formModal.value = true
+    }
+    function openEdit(u) {
+      isEdit.value = true
+      Object.assign(form, {
+        id: u.id, userName: u.userName, realName: u.realName||'', email: u.email||'', phone: u.phone||'',
+        gender: u.gender, birthday: u.birthday||'', password:'', confirmPassword:'',
+        deptIds: u.departments.map(d=>d.id), roleIds: u.roles.map(r=>r.id), remark: u.remark||''
+      })
+      formModal.value = true
+    }
+    function submitForm() {
+      if (!form.userName.trim()) { showToast('请输入用户名', 'error'); return }
+      if (!isEdit.value && (!form.password || form.password.length < 8)) { showToast('密码至少8位', 'error'); return }
+      if (!isEdit.value && form.password !== form.confirmPassword) { showToast('两次密码不一致', 'error'); return }
+      if (!form.realName.trim()) { showToast('请输入真实姓名', 'error'); return }
+
+      if (isEdit.value) {
+        const idx = users.value.findIndex(u => u.id === form.id)
+        if (idx >= 0) {
+          const u = users.value[idx]
+          u.realName = form.realName; u.email = form.email; u.phone = form.phone
+          u.gender = form.gender; u.birthday = form.birthday; u.remark = form.remark
+          u.departments = form.deptIds.map((did,di) => { const d = DEPARTMENTS.find(x=>x.id===did); return d?{id:d.id,name:d.name,isMain:di===0}:null }).filter(Boolean)
+          u.roles = form.roleIds.map(rid => ROLES.find(r=>r.id===rid)).filter(Boolean)
+          showToast('用户信息已更新')
+        }
+      } else {
+        const newUser = {
+          id: genId(), tenantId: 1, userName: form.userName, realName: form.realName,
+          nickName: '', avatar: `https://picsum.photos/seed/new${Date.now()}/100/100.jpg`,
+          email: form.email, phone: form.phone, gender: form.gender, birthday: form.birthday,
+          status: 0, isActive: false, lastLoginTime: null, lastLoginIp: '', timeZone: 'Asia/Shanghai',
+          language: 'zh-CN', country: 'CN', isSystemAccount: false, remark: form.remark,
+          createdTime: new Date().toISOString(), isOnline: false,
+          departments: form.deptIds.map((did,di) => { const d = DEPARTMENTS.find(x=>x.id===did); return d?{id:d.id,name:d.name,isMain:di===0}:null }).filter(Boolean),
+          roles: form.roleIds.map(rid => ROLES.find(r=>r.id===rid)).filter(Boolean),
+          security: { isLocked: false, failedLoginAttempts: 0, twoFactorEnabled: false, twoFactorMethod: 0, emailVerified: false, phoneVerified: false, lastPasswordChangeTime: new Date().toISOString(), passwordExpiryTime: null, allowMultiLogin: true, maxLoginDevices: 0 },
+          sessions: [],
+        }
+        users.value.unshift(newUser)
+        showToast('用户创建成功')
+      }
+      formModal.value = false
+    }
+
+    function toggleUserStatus(u) {
+      u.status = u.status === 0 ? 1 : 0
+      showToast(u.status === 0 ? '用户已启用' : '用户已禁用')
+    }
+
+    function confirmDelete(u) { deleteTarget.value = u; deleteModal.value = true }
+    function doDelete() {
+      if (deleteTarget.value) {
+        users.value = users.value.filter(u => u.id !== deleteTarget.value.id)
+        showToast('用户已删除')
+      }
+      deleteModal.value = false; deleteTarget.value = null
+    }
+
+    function exportData() { showToast('用户数据导出中...', 'warning') }
+
+    return {
+      users, toasts, search, sort, pagination, stats,
+      flatDepts, selectableDepts, roles: ROLES,
+      hasFilter, filteredUsers, pagedUsers, totalPages, displayPages, allSelected, selectedIds,
+      detailDrawer, detailUser, formModal, isEdit, form, deleteModal, deleteTarget,
+      formatTime, sortBy, sortIcon, onSearch, resetSearch, filterByStatus,
+      toggleSelectAll, toggleSelect, viewDetail, openCreate, openEdit, submitForm,
+      toggleUserStatus, confirmDelete, doDelete, exportData, showToast,
+    }
+  }
+}).mount('#app')
+</script>
+</body>
+</html>

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>星汉SaaS · 用户管理中心</title>
+    <!-- 优雅字体与基础样式 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (轻量级工具) 开发/演示可使用 CDN，生产建议自行构建，但不影响功能 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 额外微调样式 -->
+    <style>
+        * { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background: #f5f7fb; }
+        /* 自定义卡片柔雾效果 */
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
+        }
+        .vxe-table--row:hover td { background-color: rgba(59, 130, 246, 0.04) !important; }
+        .scrollbar-custom::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-custom::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .scrollbar-custom::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+    <!-- 第三方库 CDN (按顺序加载，确保全局依赖) -->
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/naive-ui@2.42.0/dist/index.iife.js"></script>
+    <!-- xe-utils 是 vxe-table 核心依赖 -->
+    <script src="https://cdn.jsdelivr.net/npm/xe-utils@3.5.14/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vxe-table@4.5.10/lib/vxe-table.min.js"></script>
+    <!-- dayjs 处理时间格式化 -->
+    <script src="https://unpkg.com/dayjs@1.11.13/dayjs.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vxe-table@4.5.10/lib/style.css">
+</head>
+<body>
+    <div id="app" class="min-h-screen p-5 md:p-8 bg-gradient-to-br from-slate-50 to-gray-100/50"></div>
+
+    <script>
+        // 解构 Vue 和 NaiveUI 全局变量
+        const { createApp, ref, computed, reactive, onMounted } = Vue;
+        // Naive UI 在全局命名为 "naive" (通过 UMD 导出)
+        const naive = window.naive;
+        // VXETable 全局
+        const VXETable = window.VXETable;
+        
+        // --------------------------------------------------------------
+        // 1. Mock 数据依据实体 SysUser, SysTenant, SysRole 扩展 (完全模拟)
+        // --------------------------------------------------------------
+        const tenants = [
+            { id: 1, name: '星汉科技', code: 'xhtech', industry: 'AI+SaaS' },
+            { id: 2, name: '智云集团', code: 'zhiyun', industry: '云计算' },
+            { id: 3, name: '未来工厂', code: 'futureworks', industry: '智能制造' },
+            { id: 4, name: '智汇咨询', code: 'zhihuic', industry: '管理咨询' },
+            { id: 5, name: '蓝海商贸', code: 'lanhai', industry: '跨境电商' }
+        ];
+        
+        const roles = [
+            { id: 1, name: '超级管理员', type: 'system', color: 'error', level: 100 },
+            { id: 2, name: '租户管理员', type: 'tenant', color: 'warning', level: 80 },
+            { id: 3, name: '部门经理', type: 'business', color: 'primary', level: 60 },
+            { id: 4, name: '普通成员', type: 'custom', color: 'info', level: 40 },
+            { id: 5, name: '外部协作者', type: 'custom', color: 'default', level: 20 }
+        ];
+        
+        // 生成丰富仿真用户列表 (48 + 内置管理员)
+        const generateMockUsers = () => {
+            const first = ['张', '李', '王', '刘', '陈', '赵', '周', '吴', '郑', '林', '郭', '唐', '沈', '宋', '苏'];
+            const last = ['明', '华', '伟', '芳', '娜', '静', '涛', '军', '强', '鹏', '宇', '欣', '怡', '晨', '曦'];
+            const domains = ['xihan.com', 'zhiyun-inc.com', 'future.cn', 'zhihui.cn', 'lanhai.com'];
+            const users = [];
+            // 生成50个常规用户
+            for (let i = 1; i <= 48; i++) {
+                const firstName = first[i % first.length];
+                const lastName = last[(i * 3) % last.length];
+                const realName = firstName + lastName;
+                const userName = `${firstName.toLowerCase()}${lastName}${Math.floor(10 + i)}`;
+                const tenant = tenants[i % tenants.length];
+                const role = roles[(i % roles.length)];
+                const gender = i % 3;
+                const status = (i % 7 === 0) ? 1 : 0;      // 部分停用
+                const isActive = (i % 5 !== 0);            // 大部分激活
+                const lastLogin = new Date(Date.now() - Math.random() * 30 * 86400000);
+                const created = new Date(Date.now() - Math.random() * 180 * 86400000);
+                users.push({
+                    id: 2000 + i,
+                    userName: userName,
+                    realName: realName,
+                    nickName: `${realName}_${Math.floor(Math.random() * 99)}`,
+                    email: `${userName}@${domains[i % domains.length]}`,
+                    phone: `1${Math.floor(30 + Math.random() * 70)}${String(10000000 + i).slice(0, 8)}`,
+                    gender: gender,
+                    status: status,
+                    isActive: isActive,
+                    lastLoginTime: lastLogin.toISOString(),
+                    createdTime: created.toISOString(),
+                    tenantId: tenant.id,
+                    tenantName: tenant.name,
+                    roleId: role.id,
+                    roleName: role.name,
+                    roleColor: role.color,
+                    remark: i % 10 === 0 ? '高价值客户' : (i % 7 === 0 ? '试用期账号' : '')
+                });
+            }
+            // 置顶超级管理员
+            users.unshift({
+                id: 1,
+                userName: 'admin_saas',
+                realName: '赵天宇',
+                nickName: 'SysAdmin',
+                email: 'admin@xihan.com',
+                phone: '13900008888',
+                gender: 1,
+                status: 0,
+                isActive: true,
+                lastLoginTime: new Date().toISOString(),
+                createdTime: '2024-01-01T00:00:00Z',
+                tenantId: 1,
+                tenantName: '星汉科技',
+                roleId: 1,
+                roleName: '超级管理员',
+                roleColor: 'error',
+                remark: '平台内置超级管理员'
+            });
+            // 额外添加一个外部测试用户
+            users.push({
+                id: 999,
+                userName: 'guest_collab',
+                realName: '林小夕',
+                nickName: 'collab',
+                email: 'guest@partner.com',
+                phone: '18812345678',
+                gender: 2,
+                status: 0,
+                isActive: true,
+                lastLoginTime: '2026-05-10T09:23:00Z',
+                createdTime: '2026-04-20T00:00:00Z',
+                tenantId: 5,
+                tenantName: '蓝海商贸',
+                roleId: 5,
+                roleName: '外部协作者',
+                roleColor: 'default',
+                remark: '供应链协作账号'
+            });
+            return users;
+        };
+        
+        let mockUsers = generateMockUsers();
+        
+        // --------------------------------------------------------------
+        // 2. Vue 应用主组件
+        // --------------------------------------------------------------
+        const App = {
+            setup() {
+                // 响应式数据
+                const users = ref([...mockUsers]);
+                // 搜索条件
+                const searchKeyword = ref('');
+                const filterStatus = ref(null);      // 0启用 1停用
+                const filterActive = ref(null);      // true/false
+                const filterTenantId = ref(null);
+                const filterRoleId = ref(null);
+                
+                // 分页
+                const currentPage = ref(1);
+                const pageSize = ref(10);
+                
+                // 模态框控制
+                const modalVisible = ref(false);
+                const modalTitle = ref('新增用户');
+                const isEditMode = ref(false);
+                const editUserId = ref(null);
+                
+                // 表单模型 (对应 SysUser + 租户/角色)
+                const formData = reactive({
+                    userName: '',
+                    realName: '',
+                    nickName: '',
+                    email: '',
+                    phone: '',
+                    gender: 0,
+                    status: 0,
+                    isActive: true,
+                    tenantId: 1,
+                    roleId: 2,
+                    remark: ''
+                });
+                
+                // 简单校验规则
+                const validateForm = () => {
+                    if (!formData.userName.trim()) return '用户名不能为空';
+                    if (!formData.realName.trim()) return '真实姓名不能为空';
+                    if (!formData.email.trim()) return '邮箱不能为空';
+                    if (!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(formData.email)) return '邮箱格式无效';
+                    if (!formData.phone.trim()) return '手机号不能为空';
+                    if (!/^1[3-9]\d{9}$/.test(formData.phone)) return '手机号格式不正确 (1开头的11位数字)';
+                    return null;
+                };
+                
+                // 过滤后列表
+                const filteredList = computed(() => {
+                    let list = users.value;
+                    if (searchKeyword.value) {
+                        const kw = searchKeyword.value.toLowerCase();
+                        list = list.filter(u => 
+                            u.userName.toLowerCase().includes(kw) ||
+                            u.realName.toLowerCase().includes(kw) ||
+                            u.email.toLowerCase().includes(kw) ||
+                            u.phone.includes(kw)
+                        );
+                    }
+                    if (filterStatus.value !== null && filterStatus.value !== undefined) {
+                        list = list.filter(u => u.status === filterStatus.value);
+                    }
+                    if (filterActive.value !== null && filterActive.value !== undefined) {
+                        list = list.filter(u => u.isActive === filterActive.value);
+                    }
+                    if (filterTenantId.value) {
+                        list = list.filter(u => u.tenantId === filterTenantId.value);
+                    }
+                    if (filterRoleId.value) {
+                        list = list.filter(u => u.roleId === filterRoleId.value);
+                    }
+                    return list;
+                });
+                
+                const totalCount = computed(() => filteredList.value.length);
+                const paginatedList = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value;
+                    return filteredList.value.slice(start, start + pageSize.value);
+                });
+                
+                // 重置搜索
+                const resetFilters = () => {
+                    searchKeyword.value = '';
+                    filterStatus.value = null;
+                    filterActive.value = null;
+                    filterTenantId.value = null;
+                    filterRoleId.value = null;
+                    currentPage.value = 1;
+                };
+                
+                // 当筛选条件变化重置页码
+                const onFilterChange = () => { currentPage.value = 1; };
+                
+                // 打开新增弹窗
+                const openCreate = () => {
+                    isEditMode.value = false;
+                    modalTitle.value = '✨ 创建新用户';
+                    editUserId.value = null;
+                    Object.assign(formData, {
+                        userName: '',
+                        realName: '',
+                        nickName: '',
+                        email: '',
+                        phone: '',
+                        gender: 0,
+                        status: 0,
+                        isActive: true,
+                        tenantId: tenants[0]?.id || 1,
+                        roleId: 2,
+                        remark: ''
+                    });
+                    modalVisible.value = true;
+                };
+                
+                // 编辑用户
+                const openEdit = (row) => {
+                    isEditMode.value = true;
+                    modalTitle.value = '✏️ 编辑用户';
+                    editUserId.value = row.id;
+                    Object.assign(formData, {
+                        userName: row.userName,
+                        realName: row.realName,
+                        nickName: row.nickName || '',
+                        email: row.email,
+                        phone: row.phone,
+                        gender: row.gender,
+                        status: row.status,
+                        isActive: row.isActive,
+                        tenantId: row.tenantId,
+                        roleId: row.roleId,
+                        remark: row.remark || ''
+                    });
+                    modalVisible.value = true;
+                };
+                
+                // 保存用户 (新增/更新)
+                const handleSave = () => {
+                    const errMsg = validateForm();
+                    if (errMsg) {
+                        window.$message?.error(errMsg);
+                        return;
+                    }
+                    const targetTenant = tenants.find(t => t.id === formData.tenantId);
+                    const targetRole = roles.find(r => r.id === formData.roleId);
+                    if (!targetTenant || !targetRole) {
+                        window.$message?.error('租户或角色配置无效');
+                        return;
+                    }
+                    
+                    if (isEditMode.value) {
+                        // 更新
+                        const idx = users.value.findIndex(u => u.id === editUserId.value);
+                        if (idx !== -1) {
+                            const updated = {
+                                ...users.value[idx],
+                                userName: formData.userName,
+                                realName: formData.realName,
+                                nickName: formData.nickName,
+                                email: formData.email,
+                                phone: formData.phone,
+                                gender: formData.gender,
+                                status: formData.status,
+                                isActive: formData.isActive,
+                                tenantId: formData.tenantId,
+                                tenantName: targetTenant.name,
+                                roleId: formData.roleId,
+                                roleName: targetRole.name,
+                                roleColor: targetRole.color,
+                                remark: formData.remark
+                            };
+                            users.value[idx] = updated;
+                            window.$message?.success('用户信息更新成功');
+                        } else {
+                            window.$message?.error('用户不存在');
+                        }
+                    } else {
+                        // 新增唯一ID (雪花风格模拟)
+                        const newId = Date.now() + Math.floor(Math.random() * 10000);
+                        const newUser = {
+                            id: newId,
+                            userName: formData.userName,
+                            realName: formData.realName,
+                            nickName: formData.nickName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            gender: formData.gender,
+                            status: formData.status,
+                            isActive: formData.isActive,
+                            lastLoginTime: null,
+                            createdTime: new Date().toISOString(),
+                            tenantId: formData.tenantId,
+                            tenantName: targetTenant.name,
+                            roleId: formData.roleId,
+                            roleName: targetRole.name,
+                            roleColor: targetRole.color,
+                            remark: formData.remark
+                        };
+                        users.value.unshift(newUser);
+                        window.$message?.success(`用户 ${newUser.userName} 创建成功`);
+                    }
+                    modalVisible.value = false;
+                    // 重置页码并刷新
+                    if (currentPage.value > Math.ceil(filteredList.value.length / pageSize.value) && currentPage.value > 1) {
+                        currentPage.value = 1;
+                    }
+                };
+                
+                // 删除用户 (软删除效果)
+                const handleDelete = (row) => {
+                    const idx = users.value.findIndex(u => u.id === row.id);
+                    if (idx !== -1) {
+                        users.value.splice(idx, 1);
+                        window.$message?.success(`已删除用户 ${row.userName}`);
+                        if (users.value.length === 0 && currentPage.value > 1) currentPage.value = 1;
+                    }
+                };
+                
+                // 切换账号状态 (status)
+                const toggleAccountStatus = (row) => {
+                    const target = users.value.find(u => u.id === row.id);
+                    if (target) {
+                        target.status = target.status === 0 ? 1 : 0;
+                        window.$message?.info(`用户 ${target.userName} 已${target.status === 0 ? '启用' : '停用'}`);
+                    }
+                };
+                
+                // 切换激活标志 (isActive)
+                const toggleActivation = (row) => {
+                    const target = users.value.find(u => u.id === row.id);
+                    if (target) {
+                        target.isActive = !target.isActive;
+                        window.$message?.info(`激活状态变更为: ${target.isActive ? '已激活' : '未激活'}`);
+                    }
+                };
+                
+                // 下拉选项
+                const tenantOptions = computed(() => tenants.map(t => ({ label: t.name, value: t.id })));
+                const roleOptions = computed(() => roles.map(r => ({ label: r.name, value: r.id })));
+                const genderOptions = [
+                    { label: '未知', value: 0 },
+                    { label: '男性', value: 1 },
+                    { label: '女性', value: 2 }
+                ];
+                const statusOptions = [
+                    { label: '启用', value: 0 },
+                    { label: '停用', value: 1 }
+                ];
+                const activeBoolOptions = [
+                    { label: '已激活', value: true },
+                    { label: '未激活', value: false }
+                ];
+                
+                // 时间格式化
+                const formatDateTime = (dateStr) => {
+                    if (!dateStr) return '—';
+                    return dayjs(dateStr).format('YYYY-MM-DD HH:mm');
+                };
+                
+                // 性别展示
+                const genderText = (gender) => ['未知', '男', '女'][gender] || '未知';
+                
+                // 监听分页变化保留
+                return {
+                    users,
+                    searchKeyword,
+                    filterStatus,
+                    filterActive,
+                    filterTenantId,
+                    filterRoleId,
+                    currentPage,
+                    pageSize,
+                    modalVisible,
+                    modalTitle,
+                    formData,
+                    filteredList,
+                    paginatedList,
+                    totalCount,
+                    tenantOptions,
+                    roleOptions,
+                    genderOptions,
+                    statusOptions,
+                    activeBoolOptions,
+                    formatDateTime,
+                    genderText,
+                    resetFilters,
+                    onFilterChange,
+                    openCreate,
+                    openEdit,
+                    handleSave,
+                    handleDelete,
+                    toggleAccountStatus,
+                    toggleActivation
+                };
+            },
+            template: `
+                <div class="max-w-[1600px] mx-auto">
+                    <!-- 主卡片容器 -->
+                    <div class="glass-morphism rounded-2xl bg-white/90 shadow-xl border border-white/50 overflow-hidden">
+                        <!-- 头部操作栏 -->
+                        <div class="px-7 pt-7 pb-5 border-b border-gray-100">
+                            <div class="flex flex-wrap justify-between items-center gap-4">
+                                <div>
+                                    <h1 class="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">用户管理</h1>
+                                    <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                        <span class="inline-block w-1 h-1 rounded-full bg-blue-500"></span>
+                                        基于 RBAC 的企业级用户目录
+                                    </p>
+                                </div>
+                                <n-button type="primary" strong secondary @click="openCreate" class="shadow-sm hover:shadow transition">
+                                    <template #icon><span class="text-lg leading-5">+</span></template>
+                                    新建用户
+                                </n-button>
+                            </div>
+                            <!-- 筛选区 -->
+                            <div class="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-6">
+                                <n-input v-model:value="searchKeyword" placeholder="搜索用户名/姓名/邮箱/手机" clearable @update:value="onFilterChange">
+                                    <template #prefix>🔍</template>
+                                </n-input>
+                                <n-select v-model:value="filterStatus" placeholder="账号状态" clearable :options="statusOptions" @update:value="onFilterChange" />
+                                <n-select v-model:value="filterActive" placeholder="激活状态" clearable :options="activeBoolOptions" @update:value="onFilterChange" />
+                                <n-select v-model:value="filterTenantId" placeholder="所属租户" clearable :options="tenantOptions" @update:value="onFilterChange" />
+                                <n-select v-model:value="filterRoleId" placeholder="角色筛选" clearable :options="roleOptions" @update:value="onFilterChange" />
+                                <n-button quaternary @click="resetFilters" class="border border-gray-200">重置全部</n-button>
+                            </div>
+                        </div>
+                        
+                        <!-- 表格区 VxeTable 核心展示 -->
+                        <div class="px-7 pb-6 pt-2">
+                            <vxe-table 
+                                :data="paginatedList" 
+                                border="none" 
+                                stripe 
+                                show-overflow
+                                auto-resize
+                                highlight-hover-row
+                                class="rounded-xl overflow-hidden"
+                                :row-config="{ isHover: true }"
+                            >
+                                <vxe-column type="seq" title="#" width="55" align="center"></vxe-column>
+                                <vxe-column field="userName" title="用户信息" min-width="210">
+                                    <template #default="{ row }">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center font-semibold text-sm shadow-sm">
+                                                {{ (row.realName?.charAt(0) || row.userName?.charAt(0) || 'U').toUpperCase() }}
+                                            </div>
+                                            <div>
+                                                <div class="font-semibold text-gray-800">{{ row.userName }}</div>
+                                                <div class="text-xs text-gray-500">{{ row.realName }} · {{ row.nickName || '无昵称' }}</div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </vxe-column>
+                                <vxe-column field="email" title="邮箱" min-width="180" show-overflow="tooltip"></vxe-column>
+                                <vxe-column field="phone" title="手机号" width="130"></vxe-column>
+                                <vxe-column field="tenantName" title="租户" width="130" show-overflow="tooltip">
+                                    <template #default="{ row }">
+                                        <n-tag :bordered="false" size="small" type="info" class="bg-indigo-50 text-indigo-700">{{ row.tenantName }}</n-tag>
+                                    </template>
+                                </vxe-column>
+                                <vxe-column field="roleName" title="角色" width="120">
+                                    <template #default="{ row }">
+                                        <n-tag :type="row.roleColor" size="small" round effect="light">{{ row.roleName }}</n-tag>
+                                    </template>
+                                </vxe-column>
+                                <vxe-column field="gender" title="性别" width="70" align="center">
+                                    <template #default="{ row }">{{ genderText(row.gender) }}</template>
+                                </vxe-column>
+                                <vxe-column field="status" title="账号状态" width="95" align="center">
+                                    <template #default="{ row }">
+                                        <n-tag :type="row.status === 0 ? 'success' : 'error'" size="small" :bordered="false">
+                                            {{ row.status === 0 ? '启用' : '停用' }}
+                                        </n-tag>
+                                    </template>
+                                </vxe-column>
+                                <vxe-column field="isActive" title="激活状态" width="95" align="center">
+                                    <template #default="{ row }">
+                                        <span :class="row.isActive ? 'text-green-600 bg-green-50 px-2 py-0.5 rounded-full text-xs font-medium' : 'text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full text-xs'">
+                                            {{ row.isActive ? '已激活' : '未激活' }}
+                                        </span>
+                                    </template>
+                                </vxe-column>
+                                <vxe-column field="lastLoginTime" title="最后登录" width="170">
+                                    <template #default="{ row }">{{ formatDateTime(row.lastLoginTime) }}</template>
+                                </vxe-column>
+                                <vxe-column title="操作" width="230" align="center" fixed="right">
+                                    <template #default="{ row }">
+                                        <div class="flex gap-1 justify-center flex-wrap">
+                                            <n-button size="small" quaternary type="primary" @click="openEdit(row)">
+                                                <template #icon>✏️</template> 编辑
+                                            </n-button>
+                                            <n-button size="small" quaternary :type="row.status === 0 ? 'warning' : 'success'" @click="toggleAccountStatus(row)">
+                                                {{ row.status === 0 ? '停用' : '启用' }}
+                                            </n-button>
+                                            <n-button size="small" quaternary type="info" @click="toggleActivation(row)">
+                                                {{ row.isActive ? '标记未激活' : '标记激活' }}
+                                            </n-button>
+                                            <n-popconfirm @positive-click="handleDelete(row)" placement="bottom">
+                                                <template #trigger>
+                                                    <n-button size="small" quaternary type="error">删除</n-button>
+                                                </template>
+                                                确认删除用户 “{{ row.realName }}” 吗？数据不可恢复。
+                                            </n-popconfirm>
+                                        </div>
+                                    </template>
+                                </vxe-column>
+                            </vxe-table>
+                            
+                            <!-- 分页器 + 统计 -->
+                            <div class="flex flex-wrap justify-between items-center mt-6">
+                                <div class="text-sm text-gray-500">共 <span class="font-semibold">{{ totalCount }}</span> 条记录</div>
+                                <n-pagination 
+                                    v-model:page="currentPage" 
+                                    :page-count="Math.ceil(totalCount / pageSize)" 
+                                    :page-size="pageSize"
+                                    :item-count="totalCount"
+                                    show-size-picker
+                                    :page-sizes="[8, 12, 20, 30]"
+                                    @update:page-size="pageSize = $event; currentPage = 1"
+                                />
+                            </div>
+                            <div v-if="totalCount === 0" class="py-16 text-center">
+                                <n-empty description="没有找到匹配的用户" size="large" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 新增/编辑模态框 大气设计 -->
+                    <n-modal v-model:show="modalVisible" preset="card" :title="modalTitle" style="width: 700px" :mask-closable="false">
+                        <n-form label-placement="left" label-width="100px" class="pt-2">
+                            <div class="grid grid-cols-2 gap-x-5 gap-y-3">
+                                <n-form-item label="用户名" required>
+                                    <n-input v-model:value="formData.userName" placeholder="唯一登录名" />
+                                </n-form-item>
+                                <n-form-item label="真实姓名" required>
+                                    <n-input v-model:value="formData.realName" placeholder="张三" />
+                                </n-form-item>
+                                <n-form-item label="昵称">
+                                    <n-input v-model:value="formData.nickName" placeholder="选填" />
+                                </n-form-item>
+                                <n-form-item label="邮箱" required>
+                                    <n-input v-model:value="formData.email" placeholder="user@company.com" />
+                                </n-form-item>
+                                <n-form-item label="手机号" required>
+                                    <n-input v-model:value="formData.phone" placeholder="1xxxxxxxxxx" />
+                                </n-form-item>
+                                <n-form-item label="性别">
+                                    <n-radio-group v-model:value="formData.gender">
+                                        <n-radio :value="0">未知</n-radio>
+                                        <n-radio :value="1">男</n-radio>
+                                        <n-radio :value="2">女</n-radio>
+                                    </n-radio-group>
+                                </n-form-item>
+                                <n-form-item label="账号状态">
+                                    <n-select v-model:value="formData.status" :options="statusOptions" />
+                                </n-form-item>
+                                <n-form-item label="激活状态">
+                                    <n-switch v-model:value="formData.isActive" :checked-value="true" :unchecked-value="false" />
+                                </n-form-item>
+                                <n-form-item label="所属租户" required>
+                                    <n-select v-model:value="formData.tenantId" :options="tenantOptions" />
+                                </n-form-item>
+                                <n-form-item label="分配角色" required>
+                                    <n-select v-model:value="formData.roleId" :options="roleOptions" />
+                                </n-form-item>
+                                <div class="col-span-2">
+                                    <n-form-item label="备注">
+                                        <n-input v-model:value="formData.remark" type="textarea" placeholder="入职说明、权限备注等" rows="2" />
+                                    </n-form-item>
+                                </div>
+                            </div>
+                        </n-form>
+                        <template #footer>
+                            <div class="flex justify-end gap-3">
+                                <n-button @click="modalVisible = false">取消</n-button>
+                                <n-button type="primary" @click="handleSave">保存用户</n-button>
+                            </div>
+                        </template>
+                    </n-modal>
+                </div>
+            `
+        };
+        
+        // 创建 Vue 应用并注册 Naive UI 组件及 VxeTable
+        const app = createApp(App);
+        // 注册 Naive UI 全局组件 (使用 naive 插件方式)
+        app.use(naive);
+        // 注册 VxeTable 全局组件
+        app.component('VxeTable', VXETable.Table);
+        app.component('VxeColumn', VXETable.Column);
+        
+        // 全局挂载消息实例 (需要确保 naive 的 message 可用)
+        const { NMessage } = naive;
+        const message = NMessage;
+        window.$message = message;
+        app.provide('$message', message);
+        app.mount('#app');
+    </script>
+</body>
+</html>
