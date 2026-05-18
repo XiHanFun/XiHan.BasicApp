@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>用户管理 · XiHan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg-base:    #0d1117;
+  --bg-surface: #161b22;
+  --bg-elevated:#1c2230;
+  --bg-hover:   #21293a;
+  --border:     #2a3444;
+  --border-light:#3a4759;
+  --accent:     #3d8ef8;
+  --accent-dim: rgba(61,142,248,.15);
+  --accent-glow:rgba(61,142,248,.35);
+  --success:    #23c55e;
+  --success-dim:rgba(35,197,94,.15);
+  --warn:       #f59e0b;
+  --warn-dim:   rgba(245,158,11,.15);
+  --danger:     #f43f5e;
+  --danger-dim: rgba(244,63,94,.15);
+  --purple:     #a78bfa;
+  --purple-dim: rgba(167,139,250,.15);
+  --text-1:     #e6edf3;
+  --text-2:     #8b949e;
+  --text-3:     #6e7681;
+  --radius-sm:  6px;
+  --radius:     10px;
+  --radius-lg:  16px;
+  --shadow:     0 4px 20px rgba(0,0,0,.45);
+  --shadow-lg:  0 12px 40px rgba(0,0,0,.6);
+  --font-body:  'DM Sans', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--text-1);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+
+/* ── PAGE SHELL ── */
+.page {
+  padding: 24px 28px;
+  max-width: 1560px;
+  margin: 0 auto;
+  animation: fadeIn .4s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.page-title-icon {
+  width: 40px; height: 40px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-glow);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  font-size: 18px;
+}
+.page-title h1 { font-size: 20px; font-weight: 600; color: var(--text-1); }
+.page-title p  { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-3);
+}
+.breadcrumb span { color: var(--text-2); }
+.breadcrumb .sep { color: var(--text-3); }
+
+/* ── STAT CARDS ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, transform .2s;
+  cursor: default;
+}
+.stat-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+.stat-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  opacity: .04;
+}
+.stat-card.blue::before  { background: var(--accent); }
+.stat-card.green::before { background: var(--success); }
+.stat-card.warn::before  { background: var(--warn); }
+.stat-card.red::before   { background: var(--danger); }
+.stat-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.stat-label { font-size: 12px; color: var(--text-3); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.stat-icon  {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.stat-icon.blue  { background: var(--accent-dim);  color: var(--accent);  }
+.stat-icon.green { background: var(--success-dim); color: var(--success); }
+.stat-icon.warn  { background: var(--warn-dim);    color: var(--warn);    }
+.stat-icon.red   { background: var(--danger-dim);  color: var(--danger);  }
+.stat-value { font-size: 28px; font-weight: 600; color: var(--text-1); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.stat-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.stat-sub .up   { color: var(--success); }
+.stat-sub .down { color: var(--danger);  }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.toolbar-left  { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+/* ── INPUTS ── */
+.input-wrap {
+  position: relative;
+  display: flex; align-items: center;
+}
+.input-wrap .icon {
+  position: absolute; left: 10px;
+  color: var(--text-3); font-size: 13px;
+  pointer-events: none;
+}
+input, select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 7px 11px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.search-input { padding-left: 32px; width: 220px; }
+.select-sm    { width: 120px; cursor: pointer; padding-right: 28px; }
+.select-wrap  { position: relative; }
+.select-wrap::after {
+  content: '▾';
+  position: absolute; right: 9px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3); font-size: 10px;
+  pointer-events: none;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-primary:hover { background: #5a9ef9; box-shadow: 0 0 12px var(--accent-glow); }
+.btn-default {
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  border-color: var(--border);
+}
+.btn-default:hover { background: var(--bg-hover); color: var(--text-1); border-color: var(--border-light); }
+.btn-danger-outline {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn-danger-outline:hover { background: var(--danger-dim); }
+.btn-icon {
+  padding: 7px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-icon:hover { background: var(--bg-hover); color: var(--text-1); border-color: var(--border-light); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+/* ── TABLE ── */
+.table-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead tr {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+}
+th:hover { color: var(--text-2); }
+th.active { color: var(--accent); }
+th .sort-icon { font-size: 9px; margin-left: 4px; }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg-hover); }
+tbody tr.selected { background: var(--accent-dim); }
+
+td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--text-2);
+}
+td.text-1 { color: var(--text-1); font-weight: 500; }
+
+/* ── CHECKBOX ── */
+.checkbox-cell { width: 44px; padding: 0 14px; }
+.checkbox {
+  width: 15px; height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ── USER INFO CELL ── */
+.user-info { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.avatar-placeholder {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+}
+.user-name  { font-weight: 500; color: var(--text-1); font-size: 13px; }
+.user-extra { font-size: 11px; color: var(--text-3); margin-top: 1px; font-family: var(--font-mono); }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px; font-weight: 500;
+}
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+.badge-enabled  { background: var(--success-dim); color: var(--success); }
+.badge-disabled { background: var(--danger-dim);  color: var(--danger);  }
+.badge-inactive { background: var(--warn-dim);    color: var(--warn);    }
+.badge-active   { background: var(--accent-dim);  color: var(--accent);  }
+.badge-system   { background: var(--purple-dim);  color: var(--purple);  }
+
+.gender-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 12px; color: var(--text-3);
+}
+
+/* ── ACTION BUTTONS IN TABLE ── */
+.action-group { display: flex; align-items: center; gap: 6px; }
+.act-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer;
+  transition: all .12s;
+  font-family: var(--font-body);
+}
+.act-btn.edit  { color: var(--accent);   }
+.act-btn.edit:hover  { background: var(--accent-dim);  border-color: var(--accent);  }
+.act-btn.del   { color: var(--danger);   }
+.act-btn.del:hover   { background: var(--danger-dim);  border-color: var(--danger);  }
+.act-btn.reset { color: var(--warn);     }
+.act-btn.reset:hover { background: var(--warn-dim);    border-color: var(--warn);    }
+.act-btn.lock  { color: var(--text-3);  }
+.act-btn.lock:hover  { background: var(--bg-hover); color: var(--text-1); border-color: var(--border-light); }
+
+/* ── TOGGLE SWITCH ── */
+.toggle {
+  position: relative; display: inline-block;
+  width: 34px; height: 18px; cursor: pointer;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--bg-hover); border: 1px solid var(--border);
+  border-radius: 99px;
+  transition: background .2s, border-color .2s;
+}
+.toggle input:checked + .toggle-track {
+  background: var(--success); border-color: var(--success);
+}
+.toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #fff;
+  transition: transform .2s;
+  pointer-events: none;
+}
+.toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
+/* ── PAGINATION ── */
+.pagination-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.page-info { font-size: 12px; color: var(--text-3); }
+.page-btns { display: flex; align-items: center; gap: 4px; }
+.page-btn {
+  min-width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .12s;
+  padding: 0 8px;
+}
+.page-btn:hover { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-1); }
+.page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.page-btn.disabled { opacity: .35; pointer-events: none; }
+.page-size-select { width: 80px; margin-right: 8px; }
+
+/* ── MODAL / DRAWER ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.drawer {
+  position: fixed; top: 0; right: -520px; bottom: 0;
+  width: 500px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  z-index: 200;
+  transition: right .28s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,.5);
+}
+.drawer.open { right: 0; }
+
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.drawer-title { font-size: 16px; font-weight: 600; color: var(--text-1); }
+.drawer-body  { flex: 1; overflow-y: auto; padding: 24px; }
+.drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── FORM ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.form-full  { grid-column: 1/-1; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.form-label .req { color: var(--danger); margin-left: 2px; }
+.form-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.form-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.form-hint { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+.section-divider {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-3);
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-divider::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 12px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* ── CONFIRM MODAL ── */
+.confirm-modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 400px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  transform: scale(.94);
+  transition: transform .2s;
+}
+.overlay.open .confirm-modal { transform: scale(1); }
+.confirm-icon { font-size: 40px; margin-bottom: 16px; }
+.confirm-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; color: var(--text-1); }
+.confirm-desc  { font-size: 13px; color: var(--text-3); margin-bottom: 24px; line-height: 1.7; }
+.confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+/* ── CHIP FILTERS ── */
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .12s;
+  user-select: none;
+}
+.chip:hover { border-color: var(--border-light); color: var(--text-2); }
+.chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* ── MONO TEXT ── */
+.mono { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-3);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+
+/* ── TOAST ── */
+.toast-container {
+  position: fixed; top: 20px; right: 20px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  min-width: 260px;
+  box-shadow: var(--shadow);
+  animation: slideIn .25s ease;
+  font-size: 13px;
+}
+@keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+.toast.success { border-color: var(--success); }
+.toast.error   { border-color: var(--danger);  }
+.toast.warn    { border-color: var(--warn);     }
+.toast-ico { font-size: 16px; }
+
+/* ── LOADING ── */
+.loading-row td { text-align: center; padding: 40px; color: var(--text-3); }
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── DETAIL SIDE PANEL ── */
+.detail-panel {
+  position: fixed; top: 0; right: -420px; bottom: 0;
+  width: 400px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  z-index: 200;
+  transition: right .28s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,.5);
+}
+.detail-panel.open { right: 0; }
+.detail-avatar-section {
+  padding: 28px 24px 20px;
+  text-align: center;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+.detail-avatar-big {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700;
+  margin: 0 auto 14px;
+  border: 3px solid var(--border);
+}
+.detail-name { font-size: 17px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+.detail-username { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); }
+.detail-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.detail-row {
+  display: flex; align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-row-key   { font-size: 11px; color: var(--text-3); flex: 0 0 80px; padding-top: 2px; font-weight: 500; }
+.detail-row-val   { font-size: 13px; color: var(--text-1); flex: 1; }
+
+/* responsive */
+@media (max-width: 900px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .drawer, .detail-panel { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Confirm Overlay -->
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">确认删除用户</div>
+    <div class="confirm-desc" id="confirmDesc">此操作不可撤销，用户的所有关联数据将被软删除。</div>
+    <div class="confirm-actions">
+      <button class="btn btn-default" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger-outline" onclick="doDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit / Create Drawer -->
+<div class="drawer" id="editDrawer">
+  <div class="drawer-header">
+    <span class="drawer-title" id="drawerTitle">新建用户</span>
+    <button class="btn-icon" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="section-divider">基本信息</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">用户名 <span class="req">*</span></label>
+        <input class="form-input" id="f-username" placeholder="仅支持字母、数字、下划线" />
+        <span class="form-hint">长度 3-50 字符，唯一</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">真实姓名</label>
+        <input class="form-input" id="f-realname" placeholder="用户真实姓名" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">昵称</label>
+        <input class="form-input" id="f-nickname" placeholder="展示昵称" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">性别</label>
+        <div class="select-wrap">
+          <select class="form-select" id="f-gender">
+            <option value="0">未知</option>
+            <option value="1">男</option>
+            <option value="2">女</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">邮箱</label>
+        <input class="form-input" id="f-email" type="email" placeholder="user@example.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">手机号</label>
+        <input class="form-input" id="f-phone" placeholder="11 位手机号" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">生日</label>
+        <input class="form-input" id="f-birthday" type="date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">状态</label>
+        <div class="select-wrap">
+          <select class="form-select" id="f-status">
+            <option value="1">启用</option>
+            <option value="0">禁用</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider" style="margin-top:24px;">地区与偏好</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">国家/地区</label>
+        <div class="select-wrap">
+          <select class="form-select" id="f-country">
+            <option value="">请选择</option>
+            <option value="CN">中国大陆</option>
+            <option value="HK">中国香港</option>
+            <option value="TW">中国台湾</option>
+            <option value="US">美国</option>
+            <option value="JP">日本</option>
+            <option value="KR">韩国</option>
+            <option value="SG">新加坡</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">语言</label>
+        <div class="select-wrap">
+          <select class="form-select" id="f-language">
+            <option value="zh-CN">简体中文</option>
+            <option value="zh-TW">繁体中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">时区</label>
+        <div class="select-wrap">
+          <select class="form-select" id="f-timezone">
+            <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+            <option value="UTC">UTC</option>
+            <option value="America/New_York">America/New_York (UTC-5)</option>
+            <option value="Europe/London">Europe/London (UTC+0)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">是否已激活</label>
+        <div class="select-wrap">
+          <select class="form-select" id="f-active">
+            <option value="1">已激活</option>
+            <option value="0">未激活</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider" style="margin-top:24px;">备注</div>
+    <div class="form-group">
+      <textarea class="form-input" id="f-remark" rows="3" placeholder="可选备注信息..." style="resize:vertical;"></textarea>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-default" onclick="closeDrawer()">取消</button>
+    <button class="btn btn-primary" onclick="saveUser()">💾 保存</button>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel" id="detailPanel">
+  <div class="drawer-header">
+    <span class="drawer-title">用户详情</span>
+    <button class="btn-icon" onclick="closeDetail()">✕</button>
+  </div>
+  <div id="detailContent" style="flex:1;overflow-y:auto;"></div>
+</div>
+
+<!-- Main Page -->
+<div class="page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <div class="page-title-icon">👥</div>
+      <div>
+        <h1>用户管理</h1>
+        <p>管理平台系统用户账号、角色与权限配置</p>
+      </div>
+    </div>
+    <div class="breadcrumb">
+      <span>首页</span><span class="sep">›</span>
+      <span>系统管理</span><span class="sep">›</span>
+      <span style="color:var(--accent)">用户管理</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card blue">
+      <div class="stat-card-top">
+        <span class="stat-label">用户总数</span>
+        <span class="stat-icon blue">👥</span>
+      </div>
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-sub"><span class="up">↑ 12</span> 较上月增加</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-card-top">
+        <span class="stat-label">已启用</span>
+        <span class="stat-icon green">✅</span>
+      </div>
+      <div class="stat-value" id="statEnabled">0</div>
+      <div class="stat-sub"><span class="up">↑ 5</span> 本周新增</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-card-top">
+        <span class="stat-label">未激活</span>
+        <span class="stat-icon warn">⏳</span>
+      </div>
+      <div class="stat-value" id="statInactive">0</div>
+      <div class="stat-sub">需邮箱/手机验证</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-card-top">
+        <span class="stat-label">已禁用</span>
+        <span class="stat-icon red">🚫</span>
+      </div>
+      <div class="stat-value" id="statDisabled">0</div>
+      <div class="stat-sub"><span class="down">↑ 2</span> 本周新增</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="input-wrap">
+        <span class="icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索用户名、姓名、邮箱…" oninput="filterTable()" />
+      </div>
+      <div class="select-wrap">
+        <select class="select-sm" id="filterStatus" onchange="filterTable()">
+          <option value="">全部状态</option>
+          <option value="enabled">已启用</option>
+          <option value="disabled">已禁用</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <select class="select-sm" id="filterGender" onchange="filterTable()">
+          <option value="">全部性别</option>
+          <option value="1">男</option>
+          <option value="2">女</option>
+          <option value="0">未知</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <select class="select-sm" id="filterActive" onchange="filterTable()">
+          <option value="">激活状态</option>
+          <option value="1">已激活</option>
+          <option value="0">未激活</option>
+        </select>
+      </div>
+      <button class="btn btn-default btn-sm" onclick="clearFilters()">↺ 重置</button>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-default btn-sm" id="batchDeleteBtn" onclick="batchDelete()" style="display:none">🗑️ 批量删除</button>
+      <button class="btn btn-default btn-sm" onclick="exportData()">⬇️ 导出</button>
+      <button class="btn btn-primary" onclick="openCreate()">＋ 新建用户</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="userTable">
+        <thead>
+          <tr>
+            <th class="checkbox-cell"><input type="checkbox" class="checkbox" id="checkAll" onchange="toggleAll(this)" /></th>
+            <th onclick="sortBy('userName')">用户 <span class="sort-icon" id="sort-userName">⇅</span></th>
+            <th onclick="sortBy('gender')">性别 <span class="sort-icon" id="sort-gender">⇅</span></th>
+            <th>邮箱 / 手机</th>
+            <th onclick="sortBy('status')">状态 <span class="sort-icon" id="sort-status">⇅</span></th>
+            <th>激活</th>
+            <th onclick="sortBy('lastLoginTime')">最后登录 <span class="sort-icon" id="sort-lastLoginTime">⇅</span></th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="loading-row">
+            <td colspan="9"><span class="spinner"></span> 加载中…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-row">
+      <div class="page-info" id="pageInfo">共 0 条</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="select-wrap">
+          <select class="select-sm page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+            <option value="10">10 条/页</option>
+            <option value="20">20 条/页</option>
+            <option value="50">50 条/页</option>
+          </select>
+        </div>
+        <div class="page-btns" id="pageBtns"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── MOCK DATA ── */
+const COLORS = [
+  ['#3d8ef8','#1a3a6e'],['#23c55e','#0e3d1e'],['#f59e0b','#3d2f00'],
+  ['#a78bfa','#2e1f5e'],['#f43f5e','#4a0f1e'],['#06b6d4','#0a2f3a'],
+  ['#ec4899','#4a0f2a'],['#84cc16','#1e3300'],
+];
+const colorFor = i => COLORS[i % COLORS.length];
+
+function rndDate(start, end) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'});
+}
+function fmtDateTime(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'})
+    +' '+dt.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtAgo(d) {
+  if (!d) return '从未登录';
+  const diff = Date.now() - new Date(d).getTime();
+  const min = Math.floor(diff/60000);
+  if (min < 2) return '刚刚';
+  if (min < 60) return `${min} 分钟前`;
+  const h = Math.floor(min/60);
+  if (h < 24) return `${h} 小时前`;
+  const day = Math.floor(h/24);
+  if (day < 7) return `${day} 天前`;
+  return fmtDate(d);
+}
+
+const NAMES = ['张伟','李娜','王芳','陈志强','刘洋','赵敏','孙建国','周晓静','吴宇','郑凯',
+  'Aria Chen','Marcus Liu','Sofia Wang','James Zhang','Elena Zhou','Ryan Wu',
+  '黄雪梅','林志远','徐婷婷','何俊杰','高晨','罗思远'];
+const NICKNAMES = ['极光','云端漫步','星河','代码诗人','夜雨声烦','风间','零度','曦光','晨曦','暮色'];
+const COUNTRIES = ['CN','HK','TW','US','JP','SG'];
+const LANGS = ['zh-CN','zh-TW','en-US','ja-JP'];
+const TIMEZONES = ['Asia/Shanghai','UTC','America/New_York','Europe/London'];
+const IPS = ['192.168.1','10.0.0','172.16.1','123.45.67'];
+
+let snowId = 1893456789012340000n;
+function nextId() { return String(snowId += BigInt(Math.floor(Math.random()*1000)+1)); }
+
+function genUsers() {
+  const users = [];
+  const now = new Date();
+  const start2024 = new Date('2024-01-01');
+  for (let i = 0; i < 87; i++) {
+    const isSystem = i < 2;
+    const gender = isSystem ? 1 : [0,1,2][Math.floor(Math.random()*3)];
+    const nameBase = NAMES[i % NAMES.length];
+    const status = Math.random() > 0.12 ? 'enabled' : 'disabled';
+    const isActive = Math.random() > 0.08;
+    const lastLogin = Math.random() > 0.05 ? rndDate(new Date('2025-01-01'), now) : null;
+    const octet = Math.floor(Math.random()*254)+1;
+    users.push({
+      id: nextId(),
+      userName: isSystem ? (i===0?'admin':'system') : `user_${nameBase.toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,8)}_${i}`.replace('__','_'),
+      realName: nameBase,
+      nickName: NICKNAMES[i % NICKNAMES.length],
+      avatar: null,
+      email: isSystem ? `${i===0?'admin':'system'}@xihan.com` : `user${i}@example.com`,
+      phone: isSystem ? `138${String(Math.floor(Math.random()*1e8)).padStart(8,'0')}` : `1${['3','5','7','8','9'][i%5]}${String(Math.floor(Math.random()*1e9)).padStart(9,'0')}`,
+      gender,
+      birthday: Math.random()>.3 ? rndDate(new Date('1980-01-01'), new Date('2003-12-31')) : null,
+      status,
+      isActive,
+      lastLoginTime: lastLogin,
+      lastLoginIp: lastLogin ? `${IPS[i%IPS.length]}.${octet}` : null,
+      timeZone: TIMEZONES[i%TIMEZONES.length],
+      language: LANGS[i%LANGS.length],
+      country: COUNTRIES[i%COUNTRIES.length],
+      isSystemAccount: isSystem,
+      remark: isSystem ? '系统内置账号，请勿删除' : (Math.random()>.7?'普通用户账号':''),
+      createdTime: rndDate(start2024, now),
+      colorIdx: i,
+    });
+  }
+  return users;
+}
+
+let allUsers = genUsers();
+let filteredUsers = [...allUsers];
+let currentPage = 1;
+let pageSize = 10;
+let selectedIds = new Set();
+let sortField = '';
+let sortDir = 1;
+let editingId = null;
+let deletingId = null;
+
+/* ── STATS ── */
+function updateStats() {
+  document.getElementById('statTotal').textContent = allUsers.length;
+  document.getElementById('statEnabled').textContent = allUsers.filter(u=>u.status==='enabled').length;
+  document.getElementById('statInactive').textContent = allUsers.filter(u=>!u.isActive).length;
+  document.getElementById('statDisabled').textContent = allUsers.filter(u=>u.status==='disabled').length;
+}
+
+/* ── FILTER & SORT ── */
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const st = document.getElementById('filterStatus').value;
+  const ge = document.getElementById('filterGender').value;
+  const ac = document.getElementById('filterActive').value;
+
+  filteredUsers = allUsers.filter(u => {
+    if (q && !u.userName.toLowerCase().includes(q) &&
+        !u.realName.toLowerCase().includes(q) &&
+        !(u.email||'').toLowerCase().includes(q) &&
+        !(u.nickName||'').toLowerCase().includes(q)) return false;
+    if (st && u.status !== st) return false;
+    if (ge && String(u.gender) !== ge) return false;
+    if (ac && String(+u.isActive) !== ac) return false;
+    return true;
+  });
+
+  if (sortField) {
+    filteredUsers.sort((a,b) => {
+      let av = a[sortField], bv = b[sortField];
+      if (av instanceof Date) av = av.getTime(); if (bv instanceof Date) bv = bv.getTime();
+      if (av == null) return 1; if (bv == null) return -1;
+      return (av > bv ? 1 : av < bv ? -1 : 0) * sortDir;
+    });
+  }
+
+  currentPage = 1;
+  renderTable();
+}
+
+function sortBy(field) {
+  if (sortField === field) sortDir *= -1;
+  else { sortField = field; sortDir = 1; }
+  document.querySelectorAll('.sort-icon').forEach(el => el.textContent = '⇅');
+  const el = document.getElementById('sort-'+field);
+  if (el) el.textContent = sortDir === 1 ? '↑' : '↓';
+  filterTable();
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterGender').value = '';
+  document.getElementById('filterActive').value = '';
+  sortField = ''; sortDir = 1;
+  document.querySelectorAll('.sort-icon').forEach(el => el.textContent = '⇅');
+  filterTable();
+}
+
+/* ── RENDER TABLE ── */
+function genderLabel(g) {
+  return [{label:'⚪ 未知',cls:''},{label:'♂ 男',cls:'color:#3d8ef8'},{label:'♀ 女',cls:'color:#ec4899'}][g] || {label:'—',cls:''};
+}
+function countryFlag(c) {
+  const flags = {CN:'🇨🇳',HK:'🇭🇰',TW:'🇹🇼',US:'🇺🇸',JP:'🇯🇵',KR:'🇰🇷',SG:'🇸🇬'};
+  return flags[c]||'🌐';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const total = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage-1)*pageSize;
+  const slice = filteredUsers.slice(start, start+pageSize);
+
+  document.getElementById('pageInfo').textContent = `共 ${total} 条${total !== allUsers.length ? `（已过滤，总 ${allUsers.length} 条）` : ''}`;
+
+  if (slice.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🔍</div><div>暂无匹配用户</div></div></td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(u => {
+      const [fg, bg] = colorFor(u.colorIdx);
+      const initials = u.realName ? u.realName.slice(-2) : u.userName.slice(0,2).toUpperCase();
+      const statusBadge = u.status === 'enabled'
+        ? `<span class="badge badge-enabled"><span class="badge-dot" style="background:var(--success)"></span>启用</span>`
+        : `<span class="badge badge-disabled"><span class="badge-dot" style="background:var(--danger)"></span>禁用</span>`;
+      const activeBadge = u.isActive
+        ? `<span class="badge badge-active">已激活</span>`
+        : `<span class="badge badge-inactive">待激活</span>`;
+      const sysBadge = u.isSystemAccount ? `<span class="badge badge-system">系统</span>` : '';
+      const ge = genderLabel(u.gender);
+      const isSelected = selectedIds.has(u.id);
+      return `<tr class="${isSelected?'selected':''}" id="row-${u.id}">
+        <td class="checkbox-cell"><input type="checkbox" class="checkbox" data-id="${u.id}" onchange="toggleRow(this)" ${isSelected?'checked':''}></td>
+        <td>
+          <div class="user-info" onclick="showDetail('${u.id}')" style="cursor:pointer">
+            <div class="avatar-placeholder" style="background:${bg};color:${fg};border-color:${fg}40">${initials}</div>
+            <div>
+              <div class="user-name">${u.realName||u.userName} ${sysBadge}</div>
+              <div class="user-extra mono">@${u.userName}</div>
+            </div>
+          </div>
+        </td>
+        <td style="${ge.cls};font-size:12px">${ge.label}</td>
+        <td>
+          <div style="font-size:12px;color:var(--text-2)">${u.email||'—'}</div>
+          <div class="mono" style="font-size:11px;margin-top:2px">${u.phone||'—'}</div>
+        </td>
+        <td>${statusBadge}</td>
+        <td>${activeBadge}</td>
+        <td>
+          <div style="font-size:12px;color:var(--text-2)">${fmtAgo(u.lastLoginTime)}</div>
+          ${u.lastLoginIp?`<div class="mono" style="font-size:11px;margin-top:2px">${u.lastLoginIp}</div>`:''}
+        </td>
+        <td class="mono" style="font-size:11px">${fmtDate(u.createdTime)}</td>
+        <td>
+          <div class="action-group">
+            <button class="act-btn edit" onclick="openEdit('${u.id}')">编辑</button>
+            <button class="act-btn reset" onclick="resetPwd('${u.id}')">重置密码</button>
+            <button class="act-btn del" onclick="confirmDelete('${u.id}')" ${u.isSystemAccount?'disabled style="opacity:.3;pointer-events:none"':''}>删除</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  renderPagination(total, totalPages);
+  syncCheckAll();
+}
+
+/* ── PAGINATION ── */
+function renderPagination(total, totalPages) {
+  const btns = document.getElementById('pageBtns');
+  let html = '';
+  html += `<button class="page-btn ${currentPage<=1?'disabled':''}" onclick="gotoPage(${currentPage-1})">‹</button>`;
+
+  const range = [];
+  for (let i=1;i<=totalPages;i++) {
+    if (i===1||i===totalPages||Math.abs(i-currentPage)<=2) range.push(i);
+    else if (range[range.length-1]!=='…') range.push('…');
+  }
+  for (const p of range) {
+    if (p==='…') html += `<span class="page-btn" style="cursor:default;border:none">…</span>`;
+    else html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+  }
+  html += `<button class="page-btn ${currentPage>=totalPages?'disabled':''}" onclick="gotoPage(${currentPage+1})">›</button>`;
+  btns.innerHTML = html;
+}
+
+function gotoPage(p) {
+  const total = Math.ceil(filteredUsers.length/pageSize);
+  if (p<1||p>total) return;
+  currentPage = p;
+  renderTable();
+}
+function changePageSize() {
+  pageSize = +document.getElementById('pageSizeSelect').value;
+  currentPage = 1;
+  renderTable();
+}
+
+/* ── SELECTION ── */
+function toggleRow(cb) {
+  const id = cb.dataset.id;
+  if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+  const row = document.getElementById('row-'+id);
+  if (row) row.classList.toggle('selected', cb.checked);
+  syncCheckAll();
+  updateBatchBtn();
+}
+function toggleAll(cb) {
+  const visible = filteredUsers.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  visible.forEach(u => {
+    if (cb.checked) selectedIds.add(u.id); else selectedIds.delete(u.id);
+  });
+  renderTable();
+  updateBatchBtn();
+}
+function syncCheckAll() {
+  const visible = filteredUsers.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  const allChecked = visible.length>0 && visible.every(u=>selectedIds.has(u.id));
+  document.getElementById('checkAll').checked = allChecked;
+}
+function updateBatchBtn() {
+  document.getElementById('batchDeleteBtn').style.display = selectedIds.size>0 ? 'flex' : 'none';
+}
+
+/* ── CREATE / EDIT DRAWER ── */
+function openCreate() {
+  editingId = null;
+  document.getElementById('drawerTitle').textContent = '新建用户';
+  clearForm();
+  document.getElementById('editDrawer').classList.add('open');
+}
+function openEdit(id) {
+  const u = allUsers.find(x=>x.id===id);
+  if (!u) return;
+  editingId = id;
+  document.getElementById('drawerTitle').textContent = '编辑用户';
+  document.getElementById('f-username').value = u.userName;
+  document.getElementById('f-realname').value = u.realName||'';
+  document.getElementById('f-nickname').value = u.nickName||'';
+  document.getElementById('f-gender').value = u.gender;
+  document.getElementById('f-email').value = u.email||'';
+  document.getElementById('f-phone').value = u.phone||'';
+  document.getElementById('f-birthday').value = u.birthday ? new Date(u.birthday).toISOString().split('T')[0] : '';
+  document.getElementById('f-status').value = u.status==='enabled'?'1':'0';
+  document.getElementById('f-active').value = u.isActive?'1':'0';
+  document.getElementById('f-country').value = u.country||'';
+  document.getElementById('f-language').value = u.language||'zh-CN';
+  document.getElementById('f-timezone').value = u.timeZone||'Asia/Shanghai';
+  document.getElementById('f-remark').value = u.remark||'';
+  document.getElementById('editDrawer').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('editDrawer').classList.remove('open');
+}
+function clearForm() {
+  ['f-username','f-realname','f-nickname','f-email','f-phone','f-birthday','f-remark'].forEach(id=>{
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-gender').value = '0';
+  document.getElementById('f-status').value = '1';
+  document.getElementById('f-active').value = '1';
+  document.getElementById('f-country').value = '';
+  document.getElementById('f-language').value = 'zh-CN';
+  document.getElementById('f-timezone').value = 'Asia/Shanghai';
+}
+function saveUser() {
+  const userName = document.getElementById('f-username').value.trim();
+  if (!userName) { showToast('warn','请填写用户名'); return; }
+
+  const data = {
+    userName,
+    realName: document.getElementById('f-realname').value.trim()||null,
+    nickName: document.getElementById('f-nickname').value.trim()||null,
+    gender: +document.getElementById('f-gender').value,
+    email: document.getElementById('f-email').value.trim()||null,
+    phone: document.getElementById('f-phone').value.trim()||null,
+    birthday: document.getElementById('f-birthday').value ? new Date(document.getElementById('f-birthday').value) : null,
+    status: document.getElementById('f-status').value==='1'?'enabled':'disabled',
+    isActive: document.getElementById('f-active').value==='1',
+    country: document.getElementById('f-country').value||null,
+    language: document.getElementById('f-language').value,
+    timeZone: document.getElementById('f-timezone').value,
+    remark: document.getElementById('f-remark').value.trim()||'',
+  };
+
+  if (editingId) {
+    const idx = allUsers.findIndex(u=>u.id===editingId);
+    if (idx>=0) Object.assign(allUsers[idx], data);
+    showToast('success','用户信息已更新');
+  } else {
+    allUsers.unshift({
+      id: nextId(),
+      ...data,
+      avatar: null,
+      isSystemAccount: false,
+      lastLoginTime: null,
+      lastLoginIp: null,
+      createdTime: new Date(),
+      colorIdx: allUsers.length,
+    });
+    showToast('success','用户创建成功');
+  }
+
+  closeDrawer();
+  updateStats();
+  filterTable();
+}
+
+/* ── DELETE ── */
+function confirmDelete(id) {
+  deletingId = id;
+  const u = allUsers.find(x=>x.id===id);
+  document.getElementById('confirmDesc').textContent =
+    `即将删除用户 "${u?.realName||u?.userName}"，此操作不可撤销，所有关联数据将被软删除。`;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() {
+  deletingId = null;
+  document.getElementById('confirmOverlay').classList.remove('open');
+}
+function doDelete() {
+  if (!deletingId) return;
+  allUsers = allUsers.filter(u=>u.id!==deletingId);
+  filteredUsers = filteredUsers.filter(u=>u.id!==deletingId);
+  selectedIds.delete(deletingId);
+  closeConfirm();
+  updateStats();
+  renderTable();
+  showToast('success','用户已删除');
+}
+function batchDelete() {
+  if (!selectedIds.size) return;
+  deletingId = '__batch__';
+  document.getElementById('confirmDesc').textContent =
+    `即将删除选中的 ${selectedIds.size} 位用户，此操作不可撤销。`;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm();
+});
+const origDoDelete = window.doDelete;
+window.doDelete = function() {
+  if (deletingId === '__batch__') {
+    const toDelete = new Set(selectedIds);
+    allUsers = allUsers.filter(u=>!toDelete.has(u.id));
+    filteredUsers = filteredUsers.filter(u=>!toDelete.has(u.id));
+    selectedIds.clear();
+    updateBatchBtn();
+    document.getElementById('confirmOverlay').classList.remove('open');
+    updateStats(); renderTable();
+    showToast('success',`已删除 ${toDelete.size} 位用户`);
+    deletingId = null;
+  } else {
+    origDoDelete();
+  }
+};
+
+function resetPwd(id) {
+  const u = allUsers.find(x=>x.id===id);
+  showToast('warn',`已发送密码重置邮件至 ${u?.email||'—'}`);
+}
+
+/* ── DETAIL PANEL ── */
+function showDetail(id) {
+  const u = allUsers.find(x=>x.id===id);
+  if (!u) return;
+  const [fg, bg] = colorFor(u.colorIdx);
+  const initials = u.realName ? u.realName.slice(-2) : u.userName.slice(0,2).toUpperCase();
+  const rows = [
+    ['用户 ID', `<span class="mono">${u.id}</span>`],
+    ['用户名', `@${u.userName}`],
+    ['邮箱', u.email||'—'],
+    ['手机号', u.phone||'—'],
+    ['性别', ['未知','♂ 男','♀ 女'][u.gender]||'—'],
+    ['生日', u.birthday ? fmtDate(u.birthday) : '—'],
+    ['状态', u.status==='enabled'?'<span class="badge badge-enabled">启用</span>':'<span class="badge badge-disabled">禁用</span>'],
+    ['激活', u.isActive?'<span class="badge badge-active">已激活</span>':'<span class="badge badge-inactive">待激活</span>'],
+    ['国家/地区', u.country ? `${countryFlag(u.country)} ${u.country}` : '—'],
+    ['语言', u.language||'—'],
+    ['时区', `<span class="mono">${u.timeZone||'—'}</span>`],
+    ['最后登录', fmtDateTime(u.lastLoginTime)],
+    ['登录 IP', u.lastLoginIp ? `<span class="mono">${u.lastLoginIp}</span>` : '—'],
+    ['创建时间', fmtDateTime(u.createdTime)],
+    ['系统账号', u.isSystemAccount?'<span class="badge badge-system">是</span>':'否'],
+    ['备注', u.remark||'—'],
+  ];
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-avatar-section">
+      <div class="detail-avatar-big" style="background:${bg};color:${fg};border-color:${fg}60">${initials}</div>
+      <div class="detail-name">${u.realName||u.userName}</div>
+      <div class="detail-username">@${u.userName}</div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-primary btn-sm" onclick="openEdit('${u.id}');closeDetail()">✏️ 编辑</button>
+        <button class="btn btn-default btn-sm" onclick="resetPwd('${u.id}')">🔑 重置密码</button>
+      </div>
+    </div>
+    <div class="detail-body">
+      ${rows.map(([k,v])=>`<div class="detail-row"><span class="detail-row-key">${k}</span><span class="detail-row-val">${v}</span></div>`).join('')}
+    </div>
+  `;
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+}
+
+/* ── EXPORT ── */
+function exportData() {
+  showToast('success','已生成导出任务，稍后可在下载中心获取');
+}
+
+/* ── TOAST ── */
+function showToast(type, msg) {
+  const icons = {success:'✅', error:'❌', warn:'⚠️', info:'ℹ️'};
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-ico">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(100%)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+/* ── INIT ── */
+updateStats();
+filterTable();
+</script>
+</body>
+</html>

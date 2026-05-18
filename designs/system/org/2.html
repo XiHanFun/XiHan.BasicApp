@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>组织管理 · 曦瀚科技</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sw:320px;--bg:#eef1f6;--card:#fff;--accent:#d4940a;--accent-h:#eab308;
+  --accent-bg:rgba(234,179,8,0.10);--dk:#070d1a;--dk2:#0c1527;--dk3:#111d33;
+  --dk-h:rgba(255,255,255,0.04);--dk-a:rgba(234,179,8,0.14);
+  --w:#f1f5f9;--wm:#7a8ba3;--dt:#1a2332;--dt2:#4a5568;--dt3:#8b95a5;
+  --bd:#e2e6ee;--r:14px;--rs:10px;
+  --sh:0 1px 3px rgba(0,0,0,.05);--shm:0 4px 16px rgba(0,0,0,.06);
+  --shl:0 8px 32px rgba(0,0,0,.08);
+  --c-corp:#8b5cf6;--c-hq:#6366f1;--c-ctr:#3b82f6;--c-div:#0ea5e9;
+  --c-dept:#10b981;--c-team:#14b8a6;--c-grp:#06b6d4;--c-prj:#84cc16;
+  --c-co:#f59e0b;--c-br:#ef4444;--c-sec:#ec4899;--c-oth:#6b7280;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--dt);overflow:hidden;height:100vh}
+h1,h2,h3,h4{font-family:'Noto Serif SC',serif;font-weight:600}
+
+.app{display:flex;height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sw);min-width:var(--sw);background:linear-gradient(175deg,var(--dk) 0%,var(--dk2) 50%,#0e1a30 100%);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.sidebar::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(234,179,8,.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(99,102,241,.04) 0%,transparent 50%);pointer-events:none}
+
+.sb-brand{padding:24px 22px 20px;position:relative;z-index:1;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.brand-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),#f59e0b);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--dk);font-family:'Noto Serif SC',serif;flex-shrink:0}
+.brand-txt h1{font-size:17px;color:var(--w);letter-spacing:.04em;line-height:1.3}
+.brand-txt span{font-size:11px;color:var(--wm);letter-spacing:.06em;text-transform:uppercase}
+
+.sb-search{padding:16px 18px;position:relative;z-index:1}
+.search-box{position:relative}
+.search-box input{width:100%;height:38px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--rs);padding:0 14px 0 38px;color:var(--w);font-size:13px;outline:none;transition:all .25s;font-family:inherit}
+.search-box input::placeholder{color:rgba(255,255,255,.28)}
+.search-box input:focus{border-color:rgba(234,179,8,.4);background:rgba(255,255,255,.09)}
+.search-box .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);font-size:14px;pointer-events:none}
+
+.sb-tree{flex:1;overflow-y:auto;padding:6px 10px;position:relative;z-index:1}
+.sb-tree::-webkit-scrollbar{width:4px}
+.sb-tree::-webkit-scrollbar-track{background:transparent}
+.sb-tree::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+
+.tree-root,.tree-list{list-style:none;padding:0;margin:0}
+.tree-list{overflow:hidden}
+.tree-row{display:flex;align-items:center;height:38px;padding:0 14px;cursor:pointer;border-radius:var(--rs);transition:all .2s;gap:6px;white-space:nowrap;position:relative}
+.tree-row:hover{background:var(--dk-h)}
+.tree-row.active{background:var(--dk-a)}
+.tree-row.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.tree-row.active .tree-name{color:var(--accent-h);font-weight:500}
+.tree-arrow{width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--wm);transition:transform .25s;flex-shrink:0;cursor:pointer}
+.tree-arrow.open{transform:rotate(90deg)}
+.tree-arrow-ph{width:16px;flex-shrink:0}
+.tree-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center}
+.tree-name{font-size:13px;color:var(--wm);overflow:hidden;text-overflow:ellipsis;flex:1;transition:color .2s}
+.tree-count{font-size:10px;color:rgba(255,255,255,.25);background:rgba(255,255,255,.06);padding:1px 7px;border-radius:10px;flex-shrink:0;letter-spacing:.02em}
+.tree-empty-msg{padding:40px 20px;text-align:center;color:var(--wm);font-size:13px}
+
+.sb-footer{padding:16px 18px;border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:1}
+.btn-add-root{width:100%;height:40px;border:1px dashed rgba(234,179,8,.35);background:rgba(234,179,8,.06);color:var(--accent-h);border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .25s}
+.btn-add-root:hover{background:rgba(234,179,8,.14);border-color:var(--accent-h)}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.main-head{padding:20px 32px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.bc{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dt3)}
+.bc-sep{color:var(--bd)}
+.bc-cur{color:var(--dt);font-weight:500}
+.head-actions{display:flex;gap:8px}
+
+.main-body{flex:1;overflow-y:auto;padding:24px 32px 40px}
+.main-body::-webkit-scrollbar{width:6px}
+.main-body::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:6px}
+
+/* buttons */
+.btn{height:36px;padding:0 18px;border-radius:var(--rs);border:1px solid var(--bd);background:var(--card);color:var(--dt2);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap}
+.btn:hover{border-color:#c0c5ce;background:#f8f9fb}
+.btn-accent{background:linear-gradient(135deg,var(--accent),#eab308);color:var(--dk);border-color:transparent;font-weight:500}
+.btn-accent:hover{filter:brightness(1.08)}
+.btn-danger{color:#dc2626;border-color:#fca5a5;background:#fff5f5}
+.btn-danger:hover{background:#fee2e2;border-color:#f87171}
+.btn-sm{height:30px;padding:0 12px;font-size:12px;border-radius:var(--rs)}
+.btn-ghost{background:transparent;border:none;color:var(--accent);padding:0 8px}
+.btn-ghost:hover{background:var(--accent-bg)}
+
+/* info card */
+.info-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden}
+.info-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),#f59e0b,#fbbf24)}
+.info-top{display:flex;align-items:flex-start;gap:20px}
+.info-icon{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.info-title h2{font-size:22px;color:var(--dt);line-height:1.3;margin-bottom:6px}
+.info-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:500;letter-spacing:.02em}
+.tag-corp{background:rgba(139,92,246,.1);color:#7c3aed}
+.tag-hq{background:rgba(99,102,241,.1);color:#4f46e5}
+.tag-ctr{background:rgba(59,130,246,.1);color:#2563eb}
+.tag-div{background:rgba(14,165,233,.1);color:#0284c7}
+.tag-dept{background:rgba(16,185,129,.1);color:#059669}
+.tag-team{background:rgba(20,184,166,.1);color:#0d9488}
+.tag-grp{background:rgba(6,182,212,.1);color:#0891b2}
+.tag-prj{background:rgba(132,204,22,.1);color:#65a30d}
+.tag-co{background:rgba(245,158,11,.1);color:#d97706}
+.tag-br{background:rgba(239,68,68,.1);color:#dc2626}
+.tag-sec{background:rgba(236,72,153,.1);color:#db2777}
+.tag-oth{background:rgba(107,114,128,.1);color:#4b5563}
+
+.code-lbl{font-size:12px;color:var(--dt3);font-family:'Courier New',monospace;background:var(--bg);padding:2px 8px;border-radius:4px}
+.status-dot{display:inline-flex;align-items:center;gap:5px;font-size:12px}
+.status-dot::before{content:'';width:7px;height:7px;border-radius:50%}
+.status-dot.on::before{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.4)}
+.status-dot.off::before{background:#ef4444}
+
+.info-contact{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.contact-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:var(--rs);font-size:13px;color:var(--dt2)}
+.contact-item .ci-ico{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.contact-item .ci-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.remark-box{margin-top:16px;padding:12px 16px;background:var(--bg);border-radius:var(--rs);font-size:13px;color:var(--dt2);line-height:1.7;border-left:3px solid var(--accent)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:20px 22px;display:flex;align-items:center;gap:16px;transition:transform .2s,box-shadow .2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shm)}
+.stat-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.stat-icon.blue{background:rgba(59,130,246,.1)}
+.stat-icon.green{background:rgba(16,185,129,.1)}
+.stat-icon.purple{background:rgba(139,92,246,.1)}
+.stat-icon.amber{background:rgba(245,158,11,.1)}
+.stat-val{font-size:26px;font-weight:700;font-family:'Noto Serif SC',serif;color:var(--dt);line-height:1.2}
+.stat-label{font-size:12px;color:var(--dt3);margin-top:2px}
+
+/* tabs */
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid var(--bd)}
+.tab{padding:10px 20px;font-size:13px;color:var(--dt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;font-weight:500}
+.tab:hover{color:var(--dt)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* table */
+.tbl-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.tbl-head{padding:14px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.tbl-head h3{font-size:15px}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:12px 16px;font-size:12px;color:var(--dt3);font-weight:500;background:#fafbfd;border-bottom:1px solid var(--bd);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+.tbl td{padding:12px 16px;font-size:13px;color:var(--dt2);border-bottom:1px solid #f1f3f7}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#f8f9fc}
+.tbl code{font-size:12px;background:var(--bg);padding:2px 8px;border-radius:4px;color:var(--dt3);font-family:'Courier New',monospace}
+.tbl-actions{display:flex;gap:2px}
+.tbl-empty{padding:60px 20px;text-align:center;color:var(--dt3);font-size:13px}
+
+/* detail view */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:22px 24px}
+.detail-card h3{font-size:14px;color:var(--dt);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.detail-card h3 .ico{font-size:16px}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f6f8;font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-row .dl{color:var(--dt3)}
+.detail-row .dv{color:var(--dt);font-weight:500}
+
+/* empty */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--dt3)}
+.empty-icon{font-size:64px;opacity:.3}
+.empty-text{font-size:15px}
+.empty-sub{font-size:12px;color:#b0b8c5}
+
+/* modal */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:900;animation:fadeIn .2s}
+.modal{background:var(--card);border-radius:18px;width:560px;max-height:80vh;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.2);animation:slideUp .25s ease}
+.modal-head{padding:22px 28px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:17px}
+.modal-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dt3);transition:all .2s}
+.modal-close:hover{background:#fee2e2;color:#dc2626}
+.modal-body{padding:24px 28px;overflow-y:auto;max-height:55vh}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-g{margin-bottom:18px}
+.form-g label{display:block;font-size:12px;color:var(--dt3);margin-bottom:6px;font-weight:500}
+.form-g input,.form-g select,.form-g textarea{width:100%;height:38px;border:1px solid var(--bd);border-radius:var(--rs);padding:0 12px;font-size:13px;font-family:inherit;color:var(--dt);outline:none;transition:border-color .2s}
+.form-g input:focus,.form-g select:focus,.form-g textarea:focus{border-color:var(--accent)}
+.form-g textarea{height:80px;padding:10px 12px;resize:vertical}
+.modal-foot{padding:16px 28px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:10px;background:#fafbfd}
+
+/* animations */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-enter{opacity:0;transform:translateY(8px)}
+.content-area{animation:slideUp .35s ease}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="app">
+  <!-- ═══ Sidebar ═══ -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="brand-icon">曦</div>
+      <div class="brand-txt">
+        <h1>组织架构</h1>
+        <span>Organization</span>
+      </div>
+    </div>
+    <div class="sb-search">
+      <div class="search-box">
+        <span class="ico">🔍</span>
+        <input v-model="searchQuery" placeholder="搜索部门名称或编码…" @input="onSearch">
+      </div>
+    </div>
+    <div class="sb-tree">
+      <ul class="tree-root">
+        <tree-node v-for="n in filteredTree" :key="n.id" :node="n"
+          :sid="selectedId" :eids="expandedIds" :lv="0"
+          @select="doSelect" @toggle="doToggle"/>
+      </ul>
+      <div v-if="filteredTree.length===0" class="tree-empty-msg">
+        <div style="font-size:28px;margin-bottom:8px">🔍</div>未找到匹配部门
+      </div>
+    </div>
+    <div class="sb-footer">
+      <button class="btn-add-root" @click="openModal(null,'add')">＋ 新增根部门</button>
+    </div>
+  </aside>
+
+  <!-- ═══ Main ═══ -->
+  <main class="main">
+    <template v-if="dept">
+      <div class="main-head">
+        <div class="bc">
+          <span>组织管理</span>
+          <template v-for="(b,i) in breadcrumb" :key="b.id">
+            <span class="bc-sep">/</span>
+            <span :class="{'bc-cur':i===breadcrumb.length-1}">{{ b.departmentName }}</span>
+          </template>
+        </div>
+        <div class="head-actions">
+          <button class="btn" @click="openModal(dept,'edit')">✏️ 编辑</button>
+          <button class="btn btn-accent" @click="openModal(dept,'add')">＋ 添加子部门</button>
+          <button class="btn btn-danger" @click="confirmDelete">🗑 删除</button>
+        </div>
+      </div>
+      <div class="main-body content-area">
+        <!-- Info Card -->
+        <div class="info-card">
+          <div class="info-top">
+            <div class="info-icon" :style="{background:typeBg(dept.departmentType)}">
+              {{ typeIco(dept.departmentType) }}
+            </div>
+            <div class="info-title" style="flex:1">
+              <h2>{{ dept.departmentName }}</h2>
+              <div class="info-meta">
+                <span class="tag" :class="'tag-'+typeKey(dept.departmentType)">{{ typeName(dept.departmentType) }}</span>
+                <span class="code-lbl">{{ dept.departmentCode }}</span>
+                <span :class="['status-dot',dept.status==='Enabled'?'on':'off']">
+                  {{ dept.status==='Enabled'?'已启用':'已停用' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="info-contact">
+            <div class="contact-item"><span class="ci-ico">👤</span><span>负责人：</span><span class="ci-val" style="font-weight:500;color:var(--dt)">{{ dept.leaderName||'—' }}</span></div>
+            <div class="contact-item"><span class="ci-ico">📱</span><span>电话：</span><span class="ci-val">{{ dept.phone||'—' }}</span></div>
+            <div class="contact-item"><span class="ci-ico">✉️</span><span>邮箱：</span><span class="ci-val">{{ dept.email||'—' }}</span></div>
+            <div class="contact-item"><span class="ci-ico">📍</span><span>地址：</span><span class="ci-val">{{ dept.address||'—' }}</span></div>
+          </div>
+          <div v-if="dept.remark" class="remark-box">{{ dept.remark }}</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-icon blue">📂</div>
+            <div><div class="stat-val">{{ dept.children?dept.children.length:0 }}</div><div class="stat-label">子部门数</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">👥</div>
+            <div><div class="stat-val">{{ dept.memberCount||0 }}</div><div class="stat-label">成员总数</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">📊</div>
+            <div><div class="stat-val">{{ getDepth(dept) }}</div><div class="stat-label">层级深度</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">📅</div>
+            <div><div class="stat-val" style="font-size:16px">{{ dept.createdTime }}</div><div class="stat-label">创建时间</div></div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div :class="['tab',tab==='sub'&&'active']" @click="tab='sub'">子部门列表</div>
+          <div :class="['tab',tab==='info'&&'active']" @click="tab='info'">详细信息</div>
+        </div>
+
+        <!-- Sub-departments table -->
+        <div v-show="tab==='sub'" class="tbl-wrap">
+          <div class="tbl-head">
+            <h3>子部门 <span style="font-size:13px;color:var(--dt3);font-weight:400">({{ subDepts.length }})</span></h3>
+            <button class="btn btn-sm btn-accent" @click="openModal(dept,'add')">＋ 添加</button>
+          </div>
+          <table class="tbl" v-if="subDepts.length">
+            <thead>
+              <tr>
+                <th>部门名称</th>
+                <th>部门编码</th>
+                <th>类型</th>
+                <th>负责人</th>
+                <th>成员</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="s in subDepts" :key="s.id" @click="doSelect(s.id)" style="cursor:pointer">
+                <td><span style="margin-right:6px">{{ typeIco(s.departmentType) }}</span>{{ s.departmentName }}</td>
+                <td><code>{{ s.departmentCode }}</code></td>
+                <td><span class="tag" :class="'tag-'+typeKey(s.departmentType)">{{ typeName(s.departmentType) }}</span></td>
+                <td>{{ s.leaderName||'—' }}</td>
+                <td style="font-weight:600">{{ s.memberCount||0 }}</td>
+                <td><span :class="['status-dot',s.status==='Enabled'?'on':'off']">{{ s.status==='Enabled'?'启用':'停用' }}</span></td>
+                <td>
+                  <div class="tbl-actions">
+                    <button class="btn-ghost" @click.stop="openModal(s,'edit')">编辑</button>
+                    <button class="btn-ghost" style="color:#dc2626" @click.stop="confirmDeleteOne(s)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else class="tbl-empty">
+            <div style="font-size:36px;margin-bottom:8px;opacity:.4">📋</div>
+            暂无子部门，点击上方按钮添加
+          </div>
+        </div>
+
+        <!-- Detail view -->
+        <div v-show="tab==='info'" class="detail-grid">
+          <div class="detail-card">
+            <h3><span class="ico">📋</span> 基本信息</h3>
+            <div class="detail-row"><span class="dl">部门ID</span><span class="dv">{{ dept.id }}</span></div>
+            <div class="detail-row"><span class="dl">部门名称</span><span class="dv">{{ dept.departmentName }}</span></div>
+            <div class="detail-row"><span class="dl">部门编码</span><span class="dv">{{ dept.departmentCode }}</span></div>
+            <div class="detail-row"><span class="dl">部门类型</span><span class="dv">{{ typeName(dept.departmentType) }}</span></div>
+            <div class="detail-row"><span class="dl">排序</span><span class="dv">{{ dept.sort }}</span></div>
+            <div class="detail-row"><span class="dl">状态</span><span class="dv">{{ dept.status==='Enabled'?'已启用':'已停用' }}</span></div>
+          </div>
+          <div class="detail-card">
+            <h3><span class="ico">👤</span> 联系信息</h3>
+            <div class="detail-row"><span class="dl">负责人</span><span class="dv">{{ dept.leaderName||'—' }}</span></div>
+            <div class="detail-row"><span class="dl">电话</span><span class="dv">{{ dept.phone||'—' }}</span></div>
+            <div class="detail-row"><span class="dl">邮箱</span><span class="dv">{{ dept.email||'—' }}</span></div>
+            <div class="detail-row"><span class="dl">地址</span><span class="dv">{{ dept.address||'—' }}</span></div>
+            <div class="detail-row"><span class="dl">成员数</span><span class="dv">{{ dept.memberCount||0 }}</span></div>
+            <div class="detail-row"><span class="dl">创建时间</span><span class="dv">{{ dept.createdTime }}</span></div>
+          </div>
+          <div class="detail-card" style="grid-column:1/-1">
+            <h3><span class="ico">📝</span> 备注</h3>
+            <div style="font-size:13px;color:var(--dt2);line-height:1.8">{{ dept.remark||'暂无备注信息' }}</div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Empty state -->
+    <template v-else>
+      <div class="empty-state">
+        <div class="empty-icon">🏛️</div>
+        <div class="empty-text">请从左侧选择一个部门</div>
+        <div class="empty-sub">点击组织架构树节点查看详情</div>
+      </div>
+    </template>
+  </main>
+</div>
+
+<!-- ═══ Modal ═══ -->
+<div v-if="showModal" class="modal-mask" @click.self="showModal=false">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>{{ modalMode==='add'?'新增部门':'编辑部门' }}</h3>
+      <button class="modal-close" @click="showModal=false">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-g"><label>部门名称 *</label><input v-model="form.departmentName" placeholder="请输入部门名称"></div>
+        <div class="form-g"><label>部门编码 *</label><input v-model="form.departmentCode" placeholder="如：XIHAN-FE"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-g"><label>部门类型</label>
+          <select v-model="form.departmentType">
+            <option v-for="t in typeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
+          </select>
+        </div>
+        <div class="form-g"><label>排序</label><input v-model.number="form.sort" type="number" placeholder="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-g"><label>负责人</label><input v-model="form.leaderName" placeholder="请输入负责人姓名"></div>
+        <div class="form-g"><label>状态</label>
+          <select v-model="form.status">
+            <option value="Enabled">启用</option>
+            <option value="Disabled">停用</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-g"><label>电话</label><input v-model="form.phone" placeholder="联系电话"></div>
+        <div class="form-g"><label>邮箱</label><input v-model="form.email" placeholder="电子邮箱"></div>
+      </div>
+      <div class="form-g"><label>地址</label><input v-model="form.address" placeholder="办公地址"></div>
+      <div class="form-g"><label>备注</label><textarea v-model="form.remark" placeholder="备注信息…"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" @click="showModal=false">取消</button>
+      <button class="btn btn-accent" @click="handleSave">保存</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const{createApp,ref,computed,watch,h,nextTick,onMounted}=Vue;
+
+/* ── Mock Data ── */
+const MOCK=[
+{id:1001,parentId:null,departmentName:'曦瀚科技集团',departmentCode:'XIHAN-GROUP',departmentType:'Corporation',leaderName:'翟繁华',phone:'138-0013-8000',email:'zhaifanhua@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 恒生银行大厦 48F',status:'Enabled',sort:1,remark:'曦瀚科技集团总部，专注企业数字化转型与智能化解决方案，业务覆盖华东、华南、华北三大区域。',memberCount:856,createdTime:'2021-01-01',children:[
+  {id:1002,parentId:1001,departmentName:'集团总部',departmentCode:'XIHAN-HQ',departmentType:'Headquarters',leaderName:'李明远',phone:'139-0013-9000',email:'hq@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 48F',status:'Enabled',sort:1,remark:'集团总部行政管理机构，下辖四个管理中心。',memberCount:320,createdTime:'2021-01-01',children:[
+    {id:1003,parentId:1002,departmentName:'技术研发中心',departmentCode:'XIHAN-TECH',departmentType:'Center',leaderName:'张伟',phone:'135-0013-5000',email:'tech@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 32F',status:'Enabled',sort:1,remark:'负责集团所有技术研发工作，包含前端、后端、移动端、测试及架构五大方向。',memberCount:180,createdTime:'2021-01-15',children:[
+      {id:1004,parentId:1003,departmentName:'前端开发部',departmentCode:'XIHAN-FE',departmentType:'Department',leaderName:'王小明',phone:'136-0013-6000',email:'frontend@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 32F-A区',status:'Enabled',sort:1,remark:'负责 Web 端、移动端前端开发，技术栈 Vue 3 + TypeScript + Tailwind CSS。',memberCount:45,createdTime:'2021-02-01',children:[]},
+      {id:1005,parentId:1003,departmentName:'后端开发部',departmentCode:'XIHAN-BE',departmentType:'Department',leaderName:'刘大伟',phone:'137-0013-7000',email:'backend@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 32F-B区',status:'Enabled',sort:2,remark:'负责服务端开发与 API 设计，技术栈 .NET 10 + SqlSugar + Redis。',memberCount:60,createdTime:'2021-02-01',children:[]},
+      {id:1006,parentId:1003,departmentName:'移动开发部',departmentCode:'XIHAN-MOBILE',departmentType:'Department',leaderName:'陈思远',phone:'131-0013-1000',email:'mobile@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 33F-A区',status:'Enabled',sort:3,remark:'负责 iOS / Android 原生应用及跨平台开发。',memberCount:35,createdTime:'2021-03-01',children:[]},
+      {id:1007,parentId:1003,departmentName:'测试质量部',departmentCode:'XIHAN-QA',departmentType:'Department',leaderName:'赵丽华',phone:'132-0013-2000',email:'qa@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 33F-B区',status:'Enabled',sort:4,remark:'负责产品质量保障、自动化测试与持续集成。',memberCount:25,createdTime:'2021-03-15',children:[]},
+      {id:1008,parentId:1003,departmentName:'架构设计组',departmentCode:'XIHAN-ARCH',departmentType:'Team',leaderName:'孙建国',phone:'133-0013-3000',email:'arch@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 32F-C区',status:'Enabled',sort:5,remark:'负责系统架构设计、技术选型与规范制定。',memberCount:15,createdTime:'2021-04-01',children:[]}
+    ]},
+    {id:1009,parentId:1002,departmentName:'产品设计中心',departmentCode:'XIHAN-PRODUCT',departmentType:'Center',leaderName:'周晓婷',phone:'134-0013-4000',email:'product@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 34F',status:'Enabled',sort:2,remark:'负责产品策划、UI/UX 设计与用户研究。',memberCount:80,createdTime:'2021-01-15',children:[
+      {id:1010,parentId:1009,departmentName:'产品策划部',departmentCode:'XIHAN-PLAN',departmentType:'Department',leaderName:'吴志强',phone:'150-0015-0000',email:'plan@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 34F-A区',status:'Enabled',sort:1,remark:'负责产品规划、需求分析与竞品研究。',memberCount:30,createdTime:'2021-02-01',children:[]},
+      {id:1011,parentId:1009,departmentName:'UI/UX 设计部',departmentCode:'XIHAN-DESIGN',departmentType:'Department',leaderName:'林雨欣',phone:'151-0015-1000',email:'design@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 34F-B区',status:'Enabled',sort:2,remark:'负责交互设计、视觉设计与设计系统维护。',memberCount:35,createdTime:'2021-02-01',children:[]},
+      {id:1012,parentId:1009,departmentName:'用户研究组',departmentCode:'XIHAN-UR',departmentType:'Team',leaderName:'黄思琪',phone:'152-0015-2000',email:'ur@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 34F-C区',status:'Enabled',sort:3,remark:'负责用户调研、可用性测试与数据分析。',memberCount:15,createdTime:'2021-04-01',children:[]}
+    ]},
+    {id:1013,parentId:1002,departmentName:'运营管理中心',departmentCode:'XIHAN-OPS',departmentType:'Center',leaderName:'郑浩然',phone:'153-0015-3000',email:'ops@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 35F',status:'Enabled',sort:3,remark:'负责市场运营与客户服务管理。',memberCount:60,createdTime:'2021-02-01',children:[
+      {id:1014,parentId:1013,departmentName:'市场营销部',departmentCode:'XIHAN-MKT',departmentType:'Department',leaderName:'马晓东',phone:'155-0015-5000',email:'marketing@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 35F-A区',status:'Enabled',sort:1,remark:'负责市场推广、品牌建设与渠道合作。',memberCount:25,createdTime:'2021-03-01',children:[]},
+      {id:1015,parentId:1013,departmentName:'客户服务部',departmentCode:'XIHAN-CS',departmentType:'Department',leaderName:'杨秀英',phone:'156-0015-6000',email:'cs@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 35F-B区',status:'Enabled',sort:2,remark:'负责客户支持、工单管理与满意度跟踪。',memberCount:35,createdTime:'2021-03-01',children:[]}
+    ]},
+    {id:1016,parentId:1002,departmentName:'行政管理中心',departmentCode:'XIHAN-ADMIN',departmentType:'Center',leaderName:'许雅琴',phone:'157-0015-7000',email:'admin@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 36F',status:'Enabled',sort:4,remark:'负责人事、财务及行政后勤管理。',memberCount:60,createdTime:'2021-02-15',children:[
+      {id:1017,parentId:1016,departmentName:'人力资源部',departmentCode:'XIHAN-HR',departmentType:'Department',leaderName:'徐建华',phone:'158-0015-8000',email:'hr@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 36F-A区',status:'Enabled',sort:1,remark:'负责人才招聘、培训发展、绩效管理。',memberCount:20,createdTime:'2021-03-01',children:[]},
+      {id:1018,parentId:1016,departmentName:'财务管理部',departmentCode:'XIHAN-FIN',departmentType:'Department',leaderName:'何志刚',phone:'159-0015-9000',email:'finance@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 36F-B区',status:'Enabled',sort:2,remark:'负责财务核算、预算管理与审计合规。',memberCount:20,createdTime:'2021-03-01',children:[]},
+      {id:1019,parentId:1016,departmentName:'行政后勤部',departmentCode:'XIHAN-LOGISTICS',departmentType:'Department',leaderName:'罗秀兰',phone:'180-0018-0000',email:'logistics@xihan.com',address:'上海市浦东新区陆家嘴环路1000号 36F-C区',status:'Enabled',sort:3,remark:'负责办公环境、物资采购与后勤保障。',memberCount:20,createdTime:'2021-04-01',children:[]}
+    ]}
+  ]},
+  {id:1020,parentId:1001,departmentName:'华东大区',departmentCode:'XIHAN-EAST',departmentType:'Branch',leaderName:'朱文斌',phone:'181-0018-1000',email:'east@xihan.com',address:'上海市浦东新区张江高科技园区',status:'Enabled',sort:2,remark:'华东区域业务管理，辖上海、南京、杭州三大分公司。',memberCount:280,createdTime:'2021-06-01',children:[
+    {id:1021,parentId:1020,departmentName:'上海分公司',departmentCode:'XIHAN-SH',departmentType:'Company',leaderName:'郭明辉',phone:'182-0018-2000',email:'sh@xihan.com',address:'上海市浦东新区张江高科技园区博云路2号',status:'Enabled',sort:1,remark:'上海地区业务运营与客户交付。',memberCount:120,createdTime:'2021-06-15',children:[]},
+    {id:1022,parentId:1020,departmentName:'南京分公司',departmentCode:'XIHAN-NJ',departmentType:'Company',leaderName:'曹志勇',phone:'183-0018-3000',email:'nj@xihan.com',address:'南京市建邺区河西大街198号',status:'Enabled',sort:2,remark:'南京地区业务运营，辐射苏皖市场。',memberCount:85,createdTime:'2022-01-01',children:[]},
+    {id:1023,parentId:1020,departmentName:'杭州分公司',departmentCode:'XIHAN-HZ',departmentType:'Company',leaderName:'谢志远',phone:'185-0018-5000',email:'hz@xihan.com',address:'杭州市西湖区文三路478号',status:'Enabled',sort:3,remark:'杭州地区业务运营，深耕互联网行业客户。',memberCount:75,createdTime:'2022-06-01',children:[]}
+  ]},
+  {id:1024,parentId:1001,departmentName:'华南大区',departmentCode:'XIHAN-SOUTH',departmentType:'Branch',leaderName:'彭建华',phone:'186-0018-6000',email:'south@xihan.com',address:'深圳市南山区科技园南区',status:'Enabled',sort:3,remark:'华南区域业务管理，辖深圳、广州两大分公司。',memberCount:156,createdTime:'2022-01-01',children:[
+    {id:1025,parentId:1024,departmentName:'深圳分公司',departmentCode:'XIHAN-SZ',departmentType:'Company',leaderName:'韩子轩',phone:'187-0018-7000',email:'sz@xihan.com',address:'深圳市南山区科技园南区 数字大厦 12F',status:'Enabled',sort:1,remark:'深圳地区业务运营，服务大湾区企业客户。',memberCount:90,createdTime:'2022-01-15',children:[]},
+    {id:1026,parentId:1024,departmentName:'广州分公司',departmentCode:'XIHAN-GZ',departmentType:'Company',leaderName:'蔡志伟',phone:'188-0018-8000',email:'gz@xihan.com',address:'广州市天河区珠江新城 华就路30号',status:'Enabled',sort:2,remark:'广州地区业务运营，辐射粤西市场。',memberCount:66,createdTime:'2022-06-01',children:[]}
+  ]},
+  {id:1027,parentId:1001,departmentName:'华北大区',departmentCode:'XIHAN-NORTH',departmentType:'Branch',leaderName:'邓永强',phone:'189-0018-9000',email:'north@xihan.com',address:'北京市海淀区中关村软件园',status:'Enabled',sort:4,remark:'华北区域业务管理，辖北京、天津两大分公司。',memberCount:100,createdTime:'2023-01-01',children:[
+    {id:1028,parentId:1027,departmentName:'北京分公司',departmentCode:'XIHAN-BJ',departmentType:'Company',leaderName:'田浩宇',phone:'190-0019-0000',email:'bj@xihan.com',address:'北京市海淀区中关村软件园二期 8号楼',status:'Enabled',sort:1,remark:'北京地区业务运营，服务政企及金融客户。',memberCount:65,createdTime:'2023-01-15',children:[]},
+    {id:1029,parentId:1027,departmentName:'天津分公司',departmentCode:'XIHAN-TJ',departmentType:'Company',leaderName:'范晓峰',phone:'191-0019-1000',email:'tj@xihan.com',address:'天津市滨海新区于家堡金融区',status:'Disabled',sort:2,remark:'天津地区业务运营（筹建中，预计2026年Q3正式运营）。',memberCount:35,createdTime:'2023-06-01',children:[]}
+  ]}
+]}
+];
+
+/* ── Dept Type Config ── */
+const TYPE_MAP={
+  Corporation:{icon:'🏢',label:'集团',color:'var(--c-corp)',key:'corp'},
+  Headquarters:{icon:'🏛️',label:'总部',color:'var(--c-hq)',key:'hq'},
+  Center:{icon:'🔷',label:'中心',color:'var(--c-ctr)',key:'ctr'},
+  Division:{icon:'📊',label:'事业部',color:'var(--c-div)',key:'div'},
+  Department:{icon:'📋',label:'部门',color:'var(--c-dept)',key:'dept'},
+  Team:{icon:'👥',label:'团队',color:'var(--c-team)',key:'team'},
+  Group:{icon:'👨‍👩‍👧‍👦',label:'小组',color:'var(--c-grp)',key:'grp'},
+  Project:{icon:'🚀',label:'项目组',color:'var(--c-prj)',key:'prj'},
+  Company:{icon:'🏗️',label:'公司',color:'var(--c-co)',key:'co'},
+  Branch:{icon:'🌐',label:'分公司',color:'var(--c-br)',key:'br'},
+  Section:{icon:'📁',label:'科室',color:'var(--c-sec)',key:'sec'},
+  Other:{icon:'📁',label:'其他',color:'var(--c-oth)',key:'oth'}
+};
+const TYPE_OPTIONS=Object.entries(TYPE_MAP).map(([v,c])=>({value:v,label:c.icon+' '+c.label}));
+
+/* ── Flat Map ── */
+const deptMap={};
+function flatten(arr){arr.forEach(d=>{deptMap[d.id]=d;if(d.children)flatten(d.children)})}
+flatten(MOCK);
+
+/* ── Tree Component ── */
+const TreeNodeComp={
+  name:'tree-node',
+  props:{node:Object,sid:Number,eids:Object,lv:Number},
+  emits:['select','toggle'],
+  template:`
+  <li>
+    <div class="tree-row" :class="{active:sid===node.id}" :style="{paddingLeft:(lv*20+16)+'px'}" @click="$emit('select',node.id)">
+      <span v-if="node.children&&node.children.length" class="tree-arrow" :class="{open:eids.has(node.id)}" @click.stop="$emit('toggle',node.id)">▸</span>
+      <span v-else class="tree-arrow-ph"></span>
+      <span class="tree-icon">{{ tc.icon }}</span>
+      <span class="tree-name">{{ node.departmentName }}</span>
+      <span v-if="node.memberCount" class="tree-count">{{ node.memberCount }}</span>
+    </div>
+    <ul v-show="node.children&&node.children.length&&eids.has(node.id)" class="tree-list">
+      <tree-node v-for="c in node.children" :key="c.id" :node="c" :sid="sid" :eids="eids" :lv="lv+1" @select="$emit('select',$event)" @toggle="$emit('toggle',$event)"/>
+    </ul>
+  </li>`,
+  computed:{tc(){return TYPE_MAP[this.node.departmentType]||TYPE_MAP.Other}}
+};
+
+/* ── App ── */
+const app=createApp({
+  components:{'tree-node':TreeNodeComp},
+  setup(){
+    const data=ref(JSON.parse(JSON.stringify(MOCK)));
+    const selectedId=ref(1001);
+    const expandedIds=ref(new Set([1001,1002,1003]));
+    const searchQuery=ref('');
+    const tab=ref('sub');
+    const showModal=ref(false);
+    const modalMode=ref('add');
+    const modalParent=ref(null);
+    const form=ref({});
+
+    const dept=computed(()=>selectedId.value?deptMap[selectedId.value]:null);
+    const subDepts=computed(()=>dept.value&&dept.value.children?dept.value.children:[]);
+
+    const breadcrumb=computed(()=>{
+      if(!dept.value)return[];
+      const p=[];let c=dept.value;
+      while(c){p.unshift(c);c=c.parentId?deptMap[c.parentId]:null}
+      return p;
+    });
+
+    const filteredTree=computed(()=>{
+      const q=searchQuery.value.trim().toLowerCase();
+      if(!q)return data.value;
+      function filter(nodes){
+        const r=[];
+        for(const n of nodes){
+          const match=n.departmentName.toLowerCase().includes(q)||n.departmentCode.toLowerCase().includes(q);
+          const fc=n.children?filter(n.children):[];
+          if(match||fc.length)r.push({...n,children:fc.length?fc:(match?n.children:undefined)});
+        }
+        return r;
+      }
+      return filter(data.value);
+    });
+
+    function doSelect(id){
+      selectedId.value=id;
+      // auto expand parents
+      let c=deptMap[id];
+      while(c){expandedIds.value.add(c.id);c=c.parentId?deptMap[c.parentId]:null}
+      tab.value='sub';
+    }
+    function doToggle(id){
+      const s=new Set(expandedIds.value);
+      s.has(id)?s.delete(id):s.add(id);
+      expandedIds.value=s;
+    }
+    function onSearch(){
+      if(searchQuery.value.trim()){
+        // expand all matching
+        const all=new Set();
+        function walk(nodes){nodes.forEach(n=>{all.add(n.id);if(n.children)walk(n.children)})}
+        walk(filteredTree.value);
+        expandedIds.value=all;
+      }
+    }
+
+    function getDepth(d){
+      let dep=0,c=d;
+      while(c.parentId){dep++;c=deptMap[c.parentId]||c;break}
+      return dep;
+    }
+
+    function typeIco(t){return(TYPE_MAP[t]||TYPE_MAP.Other).icon}
+    function typeName(t){return(TYPE_MAP[t]||TYPE_MAP.Other).label}
+    function typeKey(t){return(TYPE_MAP[t]||TYPE_MAP.Other).key}
+    function typeBg(t){return(TYPE_MAP[t]||TYPE_MAP.Other).color.replace('var(--c-','rgba(').replace(')',',.12)')||'rgba(107,114,128,.1)'}
+
+    function openModal(parentDept,mode){
+      modalMode.value=mode;
+      modalParent.value=parentDept;
+      if(mode==='edit'&&parentDept){
+        form.value={...parentDept};
+      }else{
+        form.value={departmentName:'',departmentCode:'',departmentType:'Department',leaderName:'',phone:'',email:'',address:'',status:'Enabled',sort:0,remark:''};
+      }
+      showModal.value=true;
+    }
+
+    function handleSave(){
+      const f=form.value;
+      if(!f.departmentName||!f.departmentCode){alert('请填写部门名称和编码');return}
+      if(modalMode.value==='add'){
+        const newDept={...f,id:Date.now(),parentId:modalParent.value?modalParent.value.id:null,memberCount:0,createdTime:new Date().toISOString().slice(0,10),children:[]};
+        deptMap[newDept.id]=newDept;
+        if(modalParent.value){
+          if(!modalParent.value.children)modalParent.value.children=[];
+          modalParent.value.children.push(newDept);
+          expandedIds.value=new Set([...expandedIds.value,modalParent.value.id]);
+        }else{
+          data.value.push(newDept);
+        }
+        selectedId.value=newDept.id;
+      }else{
+        const target=deptMap[f.id];
+        if(target)Object.assign(target,f);
+      }
+      showModal.value=false;
+    }
+
+    function confirmDelete(){
+      if(!dept.value)return;
+      if(dept.value.children&&dept.value.children.length){alert('该部门下有子部门，请先删除子部门');return}
+      if(!confirm(`确认删除「${dept.value.departmentName}」吗？`))return;
+      removeDept(dept.value.id);
+    }
+    function confirmDeleteOne(d){
+      if(d.children&&d.children.length){alert('该部门下有子部门，请先删除子部门');return}
+      if(!confirm(`确认删除「${d.departmentName}」吗？`))return;
+      removeDept(d.id);
+    }
+    function removeDept(id){
+      const d=deptMap[id];
+      if(!d)return;
+      const parent=d.parentId?deptMap[d.parentId]:null;
+      if(parent&&parent.children){
+        parent.children=parent.children.filter(c=>c.id!==id);
+      }else{
+        data.value=data.value.filter(c=>c.id!==id);
+      }
+      delete deptMap[id];
+      if(selectedId.value===id)selectedId.value=d.parentId||null;
+    }
+
+    return{
+      data,selectedId,expandedIds,searchQuery,tab,showModal,modalMode,form,
+      dept,subDepts,breadcrumb,filteredTree,typeOptions:TYPE_OPTIONS,
+      doSelect,doToggle,onSearch,getDepth,typeIco,typeName,typeKey,typeBg,
+      openModal,handleSave,confirmDelete,confirmDeleteOne
+    };
+  }
+});
+app.mount('#app');
+</script>
+</body>
+</html>
