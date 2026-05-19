@@ -99,7 +99,7 @@ public partial class SysConfig : BasicAppFullAuditedEntity
     /// 配置类型
     /// </summary>
     [SugarColumn(ColumnDescription = "配置类型")]
-    public virtual ConfigType ConfigType { get; set; } = ConfigType.System;
+    public virtual ConfigType ConfigType { get; set; } = ConfigType.Feature;
 
     /// <summary>
     /// 数据类型

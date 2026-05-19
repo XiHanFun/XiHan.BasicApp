@@ -58,26 +58,38 @@ public enum ConfigDataType
 public enum ConfigType
 {
     /// <summary>
-    /// 系统配置
+    /// 租户配置
     /// </summary>
-    [Description("系统配置")]
-    System = 0,
+    [Description("租户配置")]
+    Tenant = 0,
+
+    /// <summary>
+    /// 组织配置
+    /// </summary>
+    [Description("组织配置")]
+    Organization = 1,
 
     /// <summary>
     /// 用户配置
     /// </summary>
     [Description("用户配置")]
-    User = 1,
+    User = 2,
 
     /// <summary>
     /// 应用配置
     /// </summary>
     [Description("应用配置")]
-    Application = 2,
+    Application = 3,
 
     /// <summary>
-    /// 业务配置
+    /// 环境配置
     /// </summary>
-    [Description("业务配置")]
-    Business = 3,
+    [Description("环境配置")]
+    Environment = 4,
+
+    /// <summary>
+    /// 功能配置
+    /// </summary>
+    [Description("功能配置")]
+    Feature = 5
 }

@@ -31,7 +31,7 @@ public sealed class ConfigCreateDto
     public string ConfigKey { get; set; } = string.Empty;
     public string? ConfigValue { get; set; }
     public string? DefaultValue { get; set; }
-    public ConfigType ConfigType { get; set; } = ConfigType.System;
+    public ConfigType ConfigType { get; set; } = ConfigType.Feature;
     public ConfigDataType DataType { get; set; } = ConfigDataType.String;
     public string? ConfigDescription { get; set; }
     public bool IsEncrypted { get; set; }
@@ -49,7 +49,7 @@ public sealed class ConfigUpdateDto : BasicAppUDto
     public string? ConfigGroup { get; set; }
     public string? ConfigValue { get; set; }
     public string? DefaultValue { get; set; }
-    public ConfigType ConfigType { get; set; } = ConfigType.System;
+    public ConfigType ConfigType { get; set; } = ConfigType.Feature;
     public ConfigDataType DataType { get; set; } = ConfigDataType.String;
     public string? ConfigDescription { get; set; }
     public bool IsEncrypted { get; set; }
