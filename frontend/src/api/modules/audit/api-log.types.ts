@@ -1,15 +1,16 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum SignatureType {
-  None = 0,
-  HmacSha256 = 1,
-  HmacSha512 = 2,
-  RsaSha256 = 3,
-  RsaSha512 = 4,
-  Sm2 = 5,
-  Sm3 = 6,
-  Ed25519 = 7,
-  Md5 = 99,
+  None = 'None',
+  HmacSha256 = 'HmacSha256',
+  HmacSha512 = 'HmacSha512',
+  RsaSha256 = 'RsaSha256',
+  RsaSha512 = 'RsaSha512',
+  Sm2 = 'Sm2',
+  Sm3 = 'Sm3',
+  Ed25519 = 'Ed25519',
+  Md5 = 'Md5',
 }
 
 export interface ApiLogPageQueryDto extends PageRequest {

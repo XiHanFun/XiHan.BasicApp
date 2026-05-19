@@ -1,34 +1,38 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum EmailStatus {
-  Pending = 0,
-  Sending = 1,
-  Success = 2,
-  Failed = 3,
-  Cancelled = 4,
+  Pending = 'Pending',
+  Sending = 'Sending',
+  Success = 'Success',
+  Failed = 'Failed',
+  Cancelled = 'Cancelled',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum EmailType {
-  System = 0,
-  Verification = 1,
-  Notification = 2,
-  Marketing = 3,
-  Custom = 99,
+  System = 'System',
+  Verification = 'Verification',
+  Notification = 'Notification',
+  Marketing = 'Marketing',
+  Custom = 'Custom',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum SmsStatus {
-  Pending = 0,
-  Sending = 1,
-  Success = 2,
-  Failed = 3,
-  Cancelled = 4,
+  Pending = 'Pending',
+  Sending = 'Sending',
+  Success = 'Success',
+  Failed = 'Failed',
+  Cancelled = 'Cancelled',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum SmsType {
-  VerificationCode = 0,
-  Notification = 1,
-  Marketing = 2,
-  Custom = 99,
+  VerificationCode = 'VerificationCode',
+  Notification = 'Notification',
+  Marketing = 'Marketing',
+  Custom = 'Custom',
 }
 
 export interface EmailPageQueryDto extends PageRequest {

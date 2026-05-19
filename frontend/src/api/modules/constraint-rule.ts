@@ -8,28 +8,31 @@ import {
   formatDynamicApiRouteValue,
 } from '../base'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConstraintTargetType {
-  Role = 0,
-  Permission = 1,
-  User = 2,
+  Role = 'Role',
+  Permission = 'Permission',
+  User = 'User',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConstraintType {
-  Ssd = 0,
-  Dsd = 1,
-  MutualExclusion = 2,
-  Cardinality = 3,
-  Prerequisite = 4,
-  Temporal = 5,
-  Location = 6,
-  Custom = 99,
+  SSD = 'SSD',
+  DSD = 'DSD',
+  MutualExclusion = 'MutualExclusion',
+  Cardinality = 'Cardinality',
+  Prerequisite = 'Prerequisite',
+  Temporal = 'Temporal',
+  Location = 'Location',
+  Custom = 'Custom',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ViolationAction {
-  Deny = 0,
-  Warning = 1,
-  Log = 2,
-  RequireApproval = 3,
+  Deny = 'Deny',
+  Warning = 'Warning',
+  Log = 'Log',
+  RequireApproval = 'RequireApproval',
 }
 
 export interface ConstraintRulePageQueryDto extends PageRequest {

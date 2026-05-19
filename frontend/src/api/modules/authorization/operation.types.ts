@@ -1,44 +1,47 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum HttpMethodType {
-  GET = 0,
-  POST = 1,
-  PUT = 2,
-  DELETE = 3,
-  PATCH = 4,
-  HEAD = 5,
-  OPTIONS = 6,
-  ALL = 99,
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  DELETE = 'DELETE',
+  PATCH = 'PATCH',
+  HEAD = 'HEAD',
+  OPTIONS = 'OPTIONS',
+  ALL = 'ALL',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum OperationCategory {
-  Crud = 0,
-  Business = 1,
-  Admin = 2,
-  System = 3,
-  Custom = 99,
+  Crud = 'Crud',
+  Business = 'Business',
+  Admin = 'Admin',
+  System = 'System',
+  Custom = 'Custom',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum OperationTypeCode {
-  Create = 0,
-  Read = 1,
-  Update = 2,
-  Delete = 3,
-  View = 4,
-  Approve = 10,
-  Execute = 11,
-  Import = 20,
-  Export = 21,
-  Upload = 22,
-  Download = 23,
-  Print = 24,
-  Share = 25,
-  Grant = 30,
-  Revoke = 31,
-  Enable = 32,
-  Disable = 33,
-  Custom = 99,
+  Create = 'Create',
+  Read = 'Read',
+  Update = 'Update',
+  Delete = 'Delete',
+  View = 'View',
+  Approve = 'Approve',
+  Execute = 'Execute',
+  Import = 'Import',
+  Export = 'Export',
+  Upload = 'Upload',
+  Download = 'Download',
+  Print = 'Print',
+  Share = 'Share',
+  Grant = 'Grant',
+  Revoke = 'Revoke',
+  Enable = 'Enable',
+  Disable = 'Disable',
+  Custom = 'Custom',
 }
 
 export interface OperationPageQueryDto extends PageRequest {

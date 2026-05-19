@@ -4,6 +4,7 @@ import type { VNodeChild } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { NotificationStatus } from '@/api'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -357,7 +358,7 @@ async function handleNotificationMarkAllRead() {
   if (!userId)
     return
   const snapshot = notificationStore.items
-    .filter(n => n.notificationStatus === 0)
+    .filter(n => n.notificationStatus === NotificationStatus.Unread)
     .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
   notificationStore.markAllRead()
   try {

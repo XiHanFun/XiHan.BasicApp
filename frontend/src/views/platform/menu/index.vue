@@ -4,6 +4,7 @@ import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNode
 import {
   NButton,
   NCard,
+  NConfigProvider,
   NCascader,
   NDataTable,
   NDescriptions,
@@ -75,7 +76,6 @@ const menuTypeOptions = [
   { label: '目录', value: MenuType.Directory },
   { label: '菜单', value: MenuType.Menu },
   { label: '按钮', value: MenuType.Button },
-  { label: '外链', value: MenuType.ExternalLink },
 ]
 
 const modalTitle = computed(() => (menuForm.value.basicId ? '编辑菜单' : '新增菜单'))
@@ -484,8 +484,9 @@ onMounted(async () => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
+    <div class="xh-query-panel mb-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+      <NConfigProvider size="small" abstract>
+        <div class="xh-query-panel__content">
         <NInput
           v-model:value="queryParams.keyword"
           clearable
@@ -519,11 +520,12 @@ onMounted(async () => {
           </template>
           重置
         </NButton>
-      </div>
+        </div>
+      </NConfigProvider>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <div style="padding:10px 16px;">
+      <div style="padding:12px 16px;flex-shrink:0;">
         <NButton size="small" type="primary" @click="handleAdd()">
           <template #icon>
             <NIcon><Icon icon="lucide:plus" /></NIcon>
@@ -551,8 +553,12 @@ onMounted(async () => {
         flex-height
         style="flex:1;"
       />
-      <div style="padding:10px 16px;display:flex;justify-content:flex-end;align-items:center;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+        </div>
         <NPagination
+          size="small"
           :page="currentPage"
           :page-size="pageSize"
           :page-count="totalPages"
@@ -664,7 +670,8 @@ onMounted(async () => {
       preset="card"
       style="width: 800px; max-width: 92vw"
     >
-      <NForm :model="menuForm" class="xh-edit-form-grid" label-placement="top">
+      <NConfigProvider size="small" abstract>
+        <NForm :model="menuForm" size="small" class="xh-edit-form-grid" label-placement="top">
         <NFormItem label="菜单名称" path="menuName">
           <NInput v-model:value="menuForm.menuName" clearable placeholder="请输入菜单名称" />
         </NFormItem>
@@ -722,14 +729,15 @@ onMounted(async () => {
         <NFormItem label="备注" path="remark">
           <NInput v-model:value="menuForm.remark" clearable placeholder="请输入备注" :rows="3" type="textarea" />
         </NFormItem>
-      </NForm>
+        </NForm>
+      </NConfigProvider>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
+          <NButton size="small" @click="modalVisible = false">
             取消
           </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
             保存
           </NButton>
         </NSpace>

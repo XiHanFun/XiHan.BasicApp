@@ -1,38 +1,52 @@
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum TenantConfigStatus {
-  Pending = 0,
-  Configuring = 1,
-  Configured = 2,
-  Failed = 3,
-  Disabled = 4,
+  Pending = 'Pending',
+  Configuring = 'Configuring',
+  Configured = 'Configured',
+  Failed = 'Failed',
+  Disabled = 'Disabled',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
+export enum TenantDatabaseType {
+  SqlServer = 'SqlServer',
+  MySql = 'MySql',
+  PostgreSql = 'PostgreSql',
+  SQLite = 'SQLite',
+  Oracle = 'Oracle',
+}
+
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum TenantIsolationMode {
-  Field = 0,
-  Database = 1,
-  Schema = 2,
+  Field = 'Field',
+  Database = 'Database',
+  Schema = 'Schema',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum TenantStatus {
-  Normal = 0,
-  Suspended = 1,
-  Expired = 2,
-  Disabled = 3,
+  Normal = 'Normal',
+  Suspended = 'Suspended',
+  Expired = 'Expired',
+  Disabled = 'Disabled',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum TenantMemberInviteStatus {
-  Pending = 0,
-  Accepted = 1,
-  Rejected = 2,
-  Revoked = 3,
-  Expired = 4,
+  Pending = 'Pending',
+  Accepted = 'Accepted',
+  Rejected = 'Rejected',
+  Revoked = 'Revoked',
+  Expired = 'Expired',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum TenantMemberType {
-  Owner = 0,
-  Admin = 1,
-  Member = 2,
-  External = 3,
-  Guest = 4,
-  Consultant = 5,
-  PlatformAdmin = 99,
+  Owner = 'Owner',
+  Admin = 'Admin',
+  Member = 'Member',
+  External = 'External',
+  Guest = 'Guest',
+  Consultant = 'Consultant',
+  PlatformAdmin = 'PlatformAdmin',
 }

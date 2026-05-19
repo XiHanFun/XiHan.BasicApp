@@ -1,4 +1,6 @@
 export * from './user'
+export * from './user-security'
+export * from './user-security.types'
 export * from './user-session'
 export * from './user-session.types'
 export * from './user-statistics'

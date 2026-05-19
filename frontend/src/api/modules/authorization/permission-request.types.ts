@@ -1,12 +1,13 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type { AuditResult, AuditStatus } from '../workflow'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum PermissionRequestStatus {
-  Pending = 0,
-  Approved = 1,
-  Rejected = 2,
-  Withdrawn = 3,
-  Expired = 4,
+  Pending = 'Pending',
+  Approved = 'Approved',
+  Rejected = 'Rejected',
+  Withdrawn = 'Withdrawn',
+  Expired = 'Expired',
 }
 
 export interface PermissionRequestPageQueryDto extends PageRequest {

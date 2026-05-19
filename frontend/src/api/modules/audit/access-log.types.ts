@@ -1,12 +1,13 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum AccessResult {
-  Success = 0,
-  Failed = 1,
-  Forbidden = 2,
-  Unauthorized = 3,
-  NotFound = 4,
-  ServerError = 5,
+  Success = 'Success',
+  Failed = 'Failed',
+  Forbidden = 'Forbidden',
+  Unauthorized = 'Unauthorized',
+  NotFound = 'NotFound',
+  ServerError = 'ServerError',
 }
 
 export interface AccessLogPageQueryDto extends PageRequest {

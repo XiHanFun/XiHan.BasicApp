@@ -3,20 +3,22 @@ import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum RunTaskStatus {
-  Pending = 0,
-  Running = 1,
-  Success = 2,
-  Failed = 3,
-  Stopped = 4,
-  Paused = 5,
+  Pending = 'Pending',
+  Running = 'Running',
+  Success = 'Success',
+  Failed = 'Failed',
+  Stopped = 'Stopped',
+  Paused = 'Paused',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum TriggerType {
-  Immediate = 0,
-  Schedule = 1,
-  Recurring = 2,
-  Cron = 3,
+  Immediate = 'Immediate',
+  Schedule = 'Schedule',
+  Recurring = 'Recurring',
+  Cron = 'Cron',
 }
 
 export interface TaskPageQueryDto extends PageRequest {

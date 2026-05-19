@@ -2,6 +2,7 @@
 import type { NotificationItem } from '~/stores'
 import { NBadge, NButton, NEmpty, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { NotificationStatus, NotificationType } from '@/api'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
 
@@ -57,13 +58,28 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', updateDropdownPosition, true)
 })
 
-// 从 business.ts 构建类型映射，单一数据源
-const TAG_TYPE_LIST: Array<'default' | 'error' | 'info' | 'success' | 'warning'> = ['info', 'success', 'warning', 'warning', 'error']
-function getTypeInfo(type: number) {
+type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
+
+function getTypeTag(type: NotificationType): TagType {
+  switch (type) {
+    case NotificationType.Error:
+      return 'error'
+    case NotificationType.Warning:
+      return 'warning'
+    case NotificationType.Announcement:
+      return 'info'
+    case NotificationType.User:
+      return 'success'
+    default:
+      return 'default'
+  }
+}
+
+function getTypeInfo(type: NotificationType) {
   const opt = NOTIFICATION_TYPE_OPTIONS.find(o => o.value === type)
   return {
     label: opt?.label ?? '通知',
-    type: TAG_TYPE_LIST[type] ?? ('default' as const),
+    type: getTypeTag(type),
   }
 }
 
@@ -101,13 +117,13 @@ function formatTime(time: string) {
 
 /** 判断是否需要关注：未读 或 需确认但未确认 */
 function itemNeedsAttention(item: NotificationItem) {
-  if (item.notificationStatus === 0)
+  if (item.notificationStatus === NotificationStatus.Unread)
     return true
   return Boolean(item.needConfirm) && !item.confirmTime
 }
 
 function handleItemClick(item: NotificationItem) {
-  if (item.notificationStatus === 0) {
+  if (item.notificationStatus === NotificationStatus.Unread) {
     emit('markRead', item.basicId)
   }
 }

@@ -1,15 +1,18 @@
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum EnableStatus {
-  Disabled = 0,
-  Enabled = 1,
+  Disabled = 'Disabled',
+  Enabled = 'Enabled',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ValidityStatus {
-  Invalid = 0,
-  Valid = 1,
+  Invalid = 'Invalid',
+  Valid = 'Valid',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum PermissionType {
-  ResourceBased = 0,
-  Functional = 1,
-  DataScope = 2,
+  ResourceBased = 'ResourceBased',
+  Functional = 'Functional',
+  DataScope = 'DataScope',
 }

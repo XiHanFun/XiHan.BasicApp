@@ -21,6 +21,7 @@ import type { DepartmentType } from '../organization/department.types'
 import type { EnableStatus, ValidityStatus } from '../shared'
 import type { TenantMemberListItemDto } from '../tenant'
 
+/** 后端 [Flags] 枚举，组合值仍为数字序列化 */
 export enum TwoFactorMethod {
   None = 0,
   Totp = 1,

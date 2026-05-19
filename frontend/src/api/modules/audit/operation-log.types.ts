@@ -3,16 +3,17 @@ import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 
+/** 与后端 OperationType 一致 */
 export enum OperationType {
-  Login = 0,
-  Logout = 1,
-  Query = 2,
-  Create = 3,
-  Update = 4,
-  Delete = 5,
-  Import = 6,
-  Export = 7,
-  Other = 99,
+  Login = 'Login',
+  Logout = 'Logout',
+  Query = 'Query',
+  Create = 'Create',
+  Update = 'Update',
+  Delete = 'Delete',
+  Import = 'Import',
+  Export = 'Export',
+  Other = 'Other',
 }
 
 export interface OperationLogPageQueryDto extends PageRequest {

@@ -4,11 +4,14 @@ import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConfigType {
-  System = 0,
-  User = 1,
-  Application = 2,
-  Business = 3,
+  Tenant = 'Tenant',
+  Organization = 'Organization',
+  User = 'User',
+  Application = 'Application',
+  Environment = 'Environment',
+  Feature = 'Feature',
 }
 
 export interface ConfigPageQueryDto extends PageRequest {

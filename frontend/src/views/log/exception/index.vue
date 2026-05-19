@@ -5,6 +5,7 @@ import type { ExceptionLogDetailDto, ExceptionLogListItemDto } from '@/api'
 import {
   NButton,
   NCard,
+  NConfigProvider,
   NDataTable,
   NIcon,
   NInput,
@@ -54,10 +55,10 @@ const severityOptions = [
 const deviceTypeOptions = [
   { label: '未知', value: DeviceType.Unknown },
   { label: 'Web浏览器', value: DeviceType.Web },
-  { label: 'iOS', value: DeviceType.IOS },
+  { label: 'iOS', value: DeviceType.iOS },
   { label: 'Android', value: DeviceType.Android },
   { label: 'Windows', value: DeviceType.Windows },
-  { label: 'macOS', value: DeviceType.MacOS },
+  { label: 'macOS', value: DeviceType.macOS },
   { label: 'Linux', value: DeviceType.Linux },
   { label: '平板', value: DeviceType.Tablet },
   { label: '小程序', value: DeviceType.MiniProgram },
@@ -295,8 +296,9 @@ onMounted(() => fetchData())
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
+    <div class="xh-query-panel mb-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+      <NConfigProvider size="small" abstract>
+        <div class="xh-query-panel__content">
         <NInput
           v-model:value="queryParams.keyword"
           clearable
@@ -330,7 +332,8 @@ onMounted(() => fetchData())
           </template>
           重置
         </NButton>
-      </div>
+        </div>
+      </NConfigProvider>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
@@ -351,7 +354,7 @@ onMounted(() => fetchData())
         <div style="font-size:13px;color:var(--n-text-color-3);">
           共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
         </div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+        <NPagination size="small" :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </NCard>
 

@@ -3,11 +3,11 @@ import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum MenuType {
-  Directory = 0,
-  Menu = 1,
-  Button = 2,
-  ExternalLink = 3,
+  Directory = 'Directory',
+  Menu = 'Menu',
+  Button = 'Button',
 }
 
 export interface MenuPageQueryDto extends PageRequest {

@@ -48,7 +48,9 @@ export const departmentApi = {
   tree(input: DepartmentTreeQueryDto) {
     const params: DynamicApiParams = {
       Limit: input.limit,
-      OnlyEnabled: input.onlyEnabled,
+    }
+    if (input.onlyEnabled != null) {
+      params.OnlyEnabled = input.onlyEnabled
     }
     appendDynamicApiParam(params, 'Keyword', input.keyword)
     return departmentQueryApi.get<DepartmentTreeNodeDto[]>('DepartmentTree', params)

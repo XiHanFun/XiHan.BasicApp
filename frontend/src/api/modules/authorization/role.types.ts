@@ -1,18 +1,20 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum DataPermissionScope {
-  SelfOnly = 0,
-  DepartmentOnly = 1,
-  DepartmentAndChildren = 2,
-  All = 3,
-  Custom = 99,
+  SelfOnly = 'SelfOnly',
+  DepartmentOnly = 'DepartmentOnly',
+  DepartmentAndChildren = 'DepartmentAndChildren',
+  All = 'All',
+  Custom = 'Custom',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum RoleType {
-  System = 0,
-  Business = 1,
-  Custom = 2,
+  System = 'System',
+  Business = 'Business',
+  Custom = 'Custom',
 }
 
 export interface RolePageQueryDto extends PageRequest {

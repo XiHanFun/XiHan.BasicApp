@@ -1,14 +1,15 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum LoginResult {
-  Success = 0,
-  InvalidCredentials = 1,
-  AccountLocked = 2,
-  AccountDisabled = 3,
-  RequiresTwoFactor = 4,
-  TwoFactorFailed = 5,
-  Logout = 10,
-  Failed = 99,
+  Success = 'Success',
+  InvalidCredentials = 'InvalidCredentials',
+  AccountLocked = 'AccountLocked',
+  AccountDisabled = 'AccountDisabled',
+  RequiresTwoFactor = 'RequiresTwoFactor',
+  TwoFactorFailed = 'TwoFactorFailed',
+  Logout = 'Logout',
+  Failed = 'Failed',
 }
 
 export interface LoginLogPageQueryDto extends PageRequest {

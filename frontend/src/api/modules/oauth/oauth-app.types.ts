@@ -1,11 +1,12 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum OAuthAppType {
-  Web = 0,
-  Mobile = 1,
-  Desktop = 2,
-  Service = 3,
+  Web = 'Web',
+  Mobile = 'Mobile',
+  Desktop = 'Desktop',
+  Service = 'Service',
 }
 
 export interface OAuthAppPageQueryDto extends PageRequest {
