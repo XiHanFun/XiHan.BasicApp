@@ -172,6 +172,8 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasDictSeeder>();
         services.AddDataSeeder<SaasIdentityPermissionSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
+        services.AddDataSeeder<SaasDepartmentSeeder>();
+        services.AddDataSeeder<SaasDemoUserSeeder>();
         return services;
     }
 
