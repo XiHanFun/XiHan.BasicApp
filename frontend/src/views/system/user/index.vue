@@ -1,405 +1,472 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { ApiId, UserCreateDto, UserListItemDto, UserManagementDetailDto, UserUpdateDto } from '@/api'
+import type { DataTableColumns, DropdownOption } from 'naive-ui'
+import type {
+  ApiId,
+  RoleSelectItemDto,
+  UserCreateDto,
+  UserListItemDto,
+  UserManagementDetailDto,
+  UserUpdateDto,
+} from '@/api'
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
+import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
+import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import {
   NButton,
   NCard,
+  NConfigProvider,
   NDataTable,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
-  NForm,
+  NDatePicker,
+  NDropdown,
   NFormItem,
   NIcon,
   NInput,
+  NInputNumber,
   NModal,
   NPagination,
-  NPopconfirm,
-  NScrollbar,
   NSelect,
   NSpace,
-  NSpin,
-  NStatistic,
+  NSwitch,
   NTabPane,
   NTabs,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, ref } from 'vue'
 import {
   createPageRequest,
-  departmentApi,
   EnableStatus,
+  roleApi,
+  StatisticsPeriod,
+  TenantMemberInviteStatus,
   TenantMemberType,
-  UserGender,
+  TwoFactorMethod,
   userManagementApi,
+  UserGender,
 } from '@/api'
 import { Icon } from '~/components'
-import {
-  DATA_SCOPE_OPTIONS,
-  DEVICE_TYPE_OPTIONS,
-  GENDER_OPTIONS,
-  MEMBER_TYPE_OPTIONS,
-  PERMISSION_ACTION_OPTIONS,
-  ROLE_TYPE_OPTIONS,
-  STATISTICS_PERIOD_OPTIONS,
-  STATUS_OPTIONS,
-  TWO_FACTOR_METHOD_OPTIONS,
-  VALIDITY_STATUS_OPTIONS,
-} from '~/constants'
+import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
+
+const GENDER_TAG_TYPE: Record<UserGender, 'default' | 'info' | 'warning'> = {
+  [UserGender.Unknown]: 'default',
+  [UserGender.Male]: 'info',
+  [UserGender.Female]: 'warning',
+}
 
 defineOptions({ name: 'SystemUserPage' })
 
-interface UserFormModel extends UserCreateDto {
+/** 列表行扩展信息（由聚合详情填充） */
+interface UserRowMeta {
+  depts: string[]
+  emailMasked: string | null
+  emailVerified: boolean
+  failedLoginAttempts: number
+  isActive: boolean
+  isLocked: boolean
+  lastLoginIp: string | null
+  online: boolean
+  phoneVerified: boolean
+  roles: string[]
+  twoFactorEnabled: boolean
+}
+
+interface UserFormState {
   basicId?: ApiId
+  userName: string
+  realName: string
+  nickName: string
+  email: string
+  phone: string
+  gender: UserGender
+  birthday: number | null
+  language: string
+  country: string
+  timeZone: string
+  status: EnableStatus
+  remark: string
+  initialPassword: string
+  isLocked: boolean
+  multiLogin: boolean
+  maxDev: number
 }
 
 const message = useMessage()
-
-const tableLoading = ref(false)
-const dataList = ref<UserListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
 const pageSize = ref(20)
-const selectedRowKeys = ref<ApiId[]>([])
 
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const currentDetail = ref<UserManagementDetailDto | null>(null)
-const userForm = ref<UserFormModel>(createDefaultForm())
-
-const queryParams = reactive({
-  gender: undefined as UserGender | undefined,
-  keyword: '',
-  status: undefined as EnableStatus | undefined,
-})
-
-const departmentTree = ref<DepartmentTreeNodeDto[]>([])
-const selectedDeptId = ref<ApiId | null>(null)
-const deptExpandedKeys = ref<ApiId[]>([])
-
-const genderOptions = GENDER_OPTIONS
-const statusOptions = STATUS_OPTIONS
-const memberTypeOptions = MEMBER_TYPE_OPTIONS
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
-const roleTypeOptions = ROLE_TYPE_OPTIONS
-const dataScopeOptions = DATA_SCOPE_OPTIONS
-const permissionActionOptions = PERMISSION_ACTION_OPTIONS
-const twoFactorMethodOptions = TWO_FACTOR_METHOD_OPTIONS
-const deviceTypeOptions = DEVICE_TYPE_OPTIONS
-const statisticsPeriodOptions = STATISTICS_PERIOD_OPTIONS
+/** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
+const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
 
 const languageOptions = [
   { label: '简体中文', value: 'zh-CN' },
-  { label: '繁體中文', value: 'zh-TW' },
+  { label: '繁体中文', value: 'zh-TW' },
   { label: 'English', value: 'en-US' },
   { label: '日本語', value: 'ja-JP' },
-  { label: '한국어', value: 'ko-KR' },
 ]
 
-const modalTitle = computed(() => (userForm.value.basicId ? '编辑用户' : '新增用户'))
+const timezoneOptions = [
+  { label: 'Asia/Shanghai (UTC+8)', value: 'Asia/Shanghai' },
+  { label: 'Asia/Tokyo (UTC+9)', value: 'Asia/Tokyo' },
+  { label: 'America/New_York (UTC-5)', value: 'America/New_York' },
+  { label: 'Europe/London (UTC+0)', value: 'Europe/London' },
+]
+
+const tableLoading = ref(false)
+const dataList = ref<UserListItemDto[]>([])
+const rowMetaMap = ref<Record<string, UserRowMeta>>({})
+const totalCount = ref(0)
+const currentPage = ref(1)
+
+const filterSearch = ref('')
+const filterStatus = ref<EnableStatus | null>(null)
+const filterGender = ref<UserGender | null>(null)
+const filterDeptId = ref<ApiId | null>(null)
+const deptFilterOptions = ref<{ label: string, value: ApiId }[]>([])
+
+const checkedRowKeys = ref<ApiId[]>([])
+const showFormModal = ref(false)
+const showDetModal = ref(false)
+const showDelModal = ref(false)
+const formTab = ref('0')
+const submitLoading = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<UserManagementDetailDto | null>(null)
+const delTarget = ref<{ id: ApiId, name: string } | null>(null)
+
+const roleOptions = ref<RoleSelectItemDto[]>([])
+const selRoleIds = ref<ApiId[]>([])
+const existingRoles = ref<UserRoleListItemDto[]>([])
+const selDeptIds = ref<ApiId[]>([])
+const existingDepts = ref<UserDepartmentListItemDto[]>([])
+
+const userForm = ref<UserFormState>(createDefaultForm())
+
+const formTitle = computed(() =>
+  userForm.value.basicId
+    ? `编辑用户 · ${userForm.value.userName}`
+    : '新建用户',
+)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
-const statsTotal = computed(() => totalCount.value)
-const statsEnabled = computed(() => dataList.value.filter(u => u.status === EnableStatus.Enabled).length)
-const statsDisabled = computed(() => dataList.value.filter(u => u.status === EnableStatus.Disabled).length)
-const statsSystem = computed(() => dataList.value.filter(u => u.isSystemAccount).length)
+const statusFilterOptions = STATUS_OPTIONS.map(o => ({ label: o.label === '启用' ? '已启用' : '已禁用', value: o.value }))
+const genderFilterOptions = GENDER_OPTIONS
+const statusFormOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
 
-const avatarColors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6']
-
-function getAvatarColor(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+const detUser = computed(() => {
+  const d = currentDetail.value
+  if (!d) return null
+  const u = d.user
+  const sec = d.security
+  const todayStat = d.statistics.find(s => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
+  const onlineSession = d.sessions.find(s => s.isOnline)
+  const badges: { label: string, cls: string, icon: string }[] = []
+  if (sec) {
+    badges.push(sec.emailVerified
+      ? { label: '邮箱已验证', cls: 'bdg-ok', icon: 'tabler:mail' }
+      : { label: '邮箱未验证', cls: 'bdg-gray', icon: 'tabler:mail' })
+    badges.push(sec.phoneVerified
+      ? { label: '手机已验证', cls: 'bdg-ok', icon: 'tabler:phone' }
+      : { label: '手机未验证', cls: 'bdg-gray', icon: 'tabler:phone' })
+    if (sec.twoFactorEnabled) {
+      badges.push({ label: `2FA: ${formatTwoFa(sec.twoFactorMethod)}`, cls: 'bdg-info', icon: 'tabler:shield-check' })
+    }
+    if (sec.isLocked) badges.push({ label: '账号已锁定', cls: 'bdg-no', icon: 'tabler:lock' })
+    if (sec.failedLoginAttempts > 0) {
+      badges.push({ label: `失败登录 ${sec.failedLoginAttempts} 次`, cls: 'bdg-warn', icon: 'tabler:alert-triangle' })
+    }
   }
-  return avatarColors[Math.abs(hash) % avatarColors.length]
-}
-
-function getAvatarText(row: UserListItemDto) {
-  const name = row.realName || row.nickName || row.userName
-  return name ? name.charAt(0).toUpperCase() : '?'
-}
-
-function createDefaultForm(): UserFormModel {
+  const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
+  if (d.tenantMembership && !inviteAccepted) {
+    badges.push({ label: '未激活', cls: 'bdg-warn', icon: 'tabler:clock-pause' })
+  }
   return {
-    avatar: null,
-    birthday: null,
-    country: null,
-    displayName: null,
-    effectiveTime: null,
-    email: null,
-    expirationTime: null,
-    gender: UserGender.Unknown,
-    initialPassword: '',
-    inviteRemark: null,
-    language: 'zh-CN',
-    memberType: TenantMemberType.Member,
-    nickName: null,
-    phone: null,
-    realName: null,
-    remark: null,
-    status: EnableStatus.Enabled,
-    timeZone: null,
+    userName: u.userName,
+    displayName: u.realName || u.nickName || u.userName,
+    initials: getInitials(u),
+    avatar: getAvatarStyle(u.userName),
+    language: u.language ?? '—',
+    timeZone: u.timeZone ?? '—',
+    country: u.country ?? '—',
+    gender: getOptionLabel(GENDER_OPTIONS, u.gender),
+    roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
+    depts: d.departments.map(dep => dep.departmentName ?? '').filter(Boolean),
+    remark: u.remark,
+    badges,
+    metrics: [
+      { label: '登录次数', value: todayStat?.loginCount ?? 0, icon: 'tabler:login-2', cls: 'det-stat-primary' },
+      { label: '访问次数', value: todayStat?.accessCount ?? 0, icon: 'tabler:activity', cls: 'det-stat-info' },
+      {
+        label: '在线时长',
+        value: `${Math.round((todayStat?.onlineTime ?? 0) / 3600)}h`,
+        icon: 'tabler:clock',
+        cls: 'det-stat-warning',
+      },
+      {
+        label: '当前状态',
+        value: onlineSession ? '在线' : '离线',
+        icon: onlineSession ? 'tabler:wifi' : 'tabler:wifi-off',
+        cls: onlineSession ? 'det-stat-info' : 'det-stat-muted',
+      },
+    ],
+    online: !!onlineSession,
+    lastLoginIp: onlineSession?.ipAddressMasked ?? '—',
+    lastLoginTime: onlineSession ? formatDate(onlineSession.lastActivityTime) : formatNullableDate(u.lastLoginTime),
+    sessionLabel: onlineSession
+      ? `${onlineSession.deviceName || '设备'} · ${onlineSession.browser || ''}`
+      : '',
+  }
+})
+
+function createDefaultForm(): UserFormState {
+  return {
     userName: '',
+    realName: '',
+    nickName: '',
+    email: '',
+    phone: '',
+    gender: UserGender.Unknown,
+    birthday: null,
+    language: 'zh-CN',
+    country: '',
+    timeZone: 'Asia/Shanghai',
+    status: EnableStatus.Enabled,
+    remark: '',
+    initialPassword: '',
+    isLocked: false,
+    multiLogin: true,
+    maxDev: 0,
   }
 }
 
-function normalizeNullable(value?: string | null) {
-  const normalized = value?.trim()
-  return normalized || null
+function getAvatarStyle(name: string) {
+  const tone = AVATAR_TONES[name.charCodeAt(0) % AVATAR_TONES.length]!
+  return {
+    bg: `color-mix(in srgb, var(--n-${tone}-color) 16%, var(--n-card-color))`,
+    fg: `var(--n-${tone}-color)`,
+  }
 }
 
-function formatNullable(value: unknown) {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+function getInitials(row: { realName?: string | null, nickName?: string | null, userName: string }) {
+  const name = row.realName || row.nickName || row.userName
+  return name ? name.substring(0, 2) : '?'
+}
+
+function formatTwoFa(method: number) {
+  const parts: string[] = []
+  if (method & TwoFactorMethod.Totp) parts.push('TOTP')
+  if (method & TwoFactorMethod.Email) parts.push('邮箱')
+  if (method & TwoFactorMethod.Phone) parts.push('短信')
+  return parts.join('+') || '—'
 }
 
 function formatNullableDate(value?: string | null) {
-  return value ? formatDate(value) : '-'
+  return value ? formatDate(value) : '—'
 }
 
-function formatBoolean(value?: boolean | null) {
-  if (value === undefined || value === null) return '-'
-  return value ? '是' : '否'
+function normalizeStr(value?: string | null) {
+  const v = value?.trim()
+  return v || null
 }
 
-const tableColumns = computed<DataTableColumns<UserListItemDto>>(() => [
-  {
-    key: 'userName',
-    title: '用户信息',
-    minWidth: 220,
-    sorter: true,
-    render(row) {
-      return h('div', { style: 'display:flex;align-items:center;gap:12px;cursor:pointer;', onClick: () => handleView(row) }, [
-        h('div', {
-          style: `width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:#fff;flex-shrink:0;background:${getAvatarColor(row.userName)}`,
-        }, getAvatarText(row)),
-        h('div', { style: 'min-width:0;' }, [
-          h('div', { style: 'font-size:14px;font-weight:600;color:var(--n-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' }, row.userName),
-          h('div', { style: 'font-size:12px;color:var(--n-text-color-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' }, row.realName || row.nickName || '-'),
-        ]),
-      ])
-    },
-  },
-  {
-    key: 'gender',
-    title: '性别',
-    width: 80,
-    render(row) {
-      const label = getOptionLabel(genderOptions, row.gender)
-      const typeMap: Record<number, 'default' | 'info' | 'success'> = { 0: 'default', 1: 'info', 2: 'success' }
-      return h(NTag, { size: 'small', round: true, type: typeMap[row.gender] ?? 'default', bordered: false }, () => label)
-    },
-  },
-  {
-    key: 'status',
-    title: '状态',
-    width: 80,
-    render(row) {
-      return h(NTag, {
-        size: 'small',
-        round: true,
-        type: row.status === EnableStatus.Enabled ? 'success' : 'error',
-        bordered: false,
-      }, () => row.status === EnableStatus.Enabled ? '启用' : '禁用')
-    },
-  },
-  {
-    key: 'isSystemAccount',
-    title: '系统账号',
-    width: 90,
-    render(row) {
-      return row.isSystemAccount
-        ? h(NTag, { size: 'small', round: true, type: 'warning', bordered: false }, () => '是')
-        : h('span', { style: 'color:var(--n-text-color-3)' }, '否')
-    },
-  },
-  {
-    key: 'language',
-    title: '语言',
-    width: 90,
-    render(row) {
-      return h('span', {}, row.language || '-')
-    },
-  },
-  {
-    key: 'lastLoginTime',
-    title: '最后登录',
-    minWidth: 160,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatNullableDate(row.lastLoginTime))
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 160,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 130,
-    fixed: 'right',
-    render(row) {
-      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, onClick: () => handleView(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '查看详情',
-        }),
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
-          default: () => '编辑',
-        }),
-        h(NPopconfirm, { onPositiveClick: () => handleToggleStatus(row) }, {
-          trigger: () => h(NTooltip, {}, {
-            trigger: () => h(NButton, {
-              size: 'small',
-              quaternary: true,
-              circle: true,
-              type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
-            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:check' })) }),
-            default: () => row.status === EnableStatus.Enabled ? '禁用' : '启用',
-          }),
-          default: () => `确认${row.status === EnableStatus.Enabled ? '禁用' : '启用'}该用户？`,
-        }),
-      ])
-    },
-  },
-])
+function flattenDeptOptions(nodes: DepartmentTreeNodeDto[], depth = 0): { label: string, value: ApiId }[] {
+  const out: { label: string, value: ApiId }[] = []
+  for (const n of nodes) {
+    out.push({ label: `${'　'.repeat(depth)}${n.departmentName}`, value: n.basicId })
+    if (n.children?.length) out.push(...flattenDeptOptions(n.children, depth + 1))
+  }
+  return out
+}
 
-function buildPageRequest() {
-  return createPageRequest({
-    page: { pageIndex: currentPage.value, pageSize: pageSize.value },
-  })
+function buildMetaFromDetail(detail: UserManagementDetailDto): UserRowMeta {
+  const sec = detail.security
+  const inviteAccepted = detail.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
+  return {
+    isLocked: sec?.isLocked ?? false,
+    twoFactorEnabled: sec?.twoFactorEnabled ?? false,
+    failedLoginAttempts: sec?.failedLoginAttempts ?? 0,
+    isActive: inviteAccepted && detail.user.status === EnableStatus.Enabled,
+    online: detail.sessions.some(s => s.isOnline),
+    lastLoginIp: detail.sessions.find(s => s.isOnline)?.ipAddressMasked ?? null,
+    roles: detail.roles.map(r => r.roleName ?? '').filter(Boolean),
+    depts: detail.departments.map(d => d.departmentName ?? '').filter(Boolean),
+    emailMasked: detail.externalLogins[0]?.externalEmailMasked ?? null,
+    emailVerified: sec?.emailVerified ?? false,
+    phoneVerified: sec?.phoneVerified ?? false,
+  }
+}
+
+async function enrichRows(rows: UserListItemDto[]) {
+  const entries = await Promise.all(
+    rows.map(async (row) => {
+      try {
+        const detail = await userManagementApi.detailView(row.basicId)
+        if (!detail) return [String(row.basicId), null] as const
+        return [String(row.basicId), buildMetaFromDetail(detail)] as const
+      } catch {
+        return [String(row.basicId), null] as const
+      }
+    }),
+  )
+  const next = { ...rowMetaMap.value }
+  for (const [id, meta] of entries) {
+    if (meta) next[id] = meta
+  }
+  rowMetaMap.value = next
 }
 
 async function fetchData() {
   tableLoading.value = true
   try {
+    let deptUserIds: Set<ApiId> | null = null
+    if (filterDeptId.value) {
+      const bindings = await userManagementApi.userDepartments.departmentUsers(
+        filterDeptId.value,
+        true,
+        true,
+      )
+      deptUserIds = new Set(bindings.map(b => b.userId))
+    }
+
     const result = await userManagementApi.page({
-      ...buildPageRequest(),
-      gender: queryParams.gender,
-      keyword: normalizeNullable(queryParams.keyword),
-      status: queryParams.status,
+      ...createPageRequest({
+        page: { pageIndex: filterDeptId.value ? 1 : currentPage.value, pageSize: filterDeptId.value ? 500 : pageSize.value },
+      }),
+      gender: filterGender.value ?? undefined,
+      keyword: normalizeStr(filterSearch.value),
+      status: filterStatus.value ?? undefined,
     })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
+
+    let items = result.items ?? []
+    if (deptUserIds) {
+      items = items.filter(i => deptUserIds!.has(i.basicId))
+      totalCount.value = items.length
+      const start = (currentPage.value - 1) * pageSize.value
+      items = items.slice(start, start + pageSize.value)
+    } else {
+      totalCount.value = result.page.totalCount
+    }
+    dataList.value = items
+    // 元数据异步补充，不阻塞表格展示
+    void enrichRows(items)
   } catch {
-    message.error('查询用户失败')
+    message.error('加载用户列表失败')
   } finally {
     tableLoading.value = false
   }
 }
 
-async function fetchDepartmentTree() {
+async function loadOptions() {
   try {
-    departmentTree.value = await departmentApi.tree({ limit: 500, onlyEnabled: true })
-    const allIds: ApiId[] = []
-    function collectExpanded(nodes: DepartmentTreeNodeDto[]) {
-      for (const node of nodes) {
-        if (node.children?.length) {
-          allIds.push(node.basicId)
-          collectExpanded(node.children)
-        }
-      }
-    }
-    collectExpanded(departmentTree.value)
-    deptExpandedKeys.value = allIds
+    const [roles, tree] = await Promise.all([
+      roleApi.enabledList({ limit: 200 }),
+      userManagementApi.departments.tree({ limit: 500, onlyEnabled: true }),
+    ])
+    roleOptions.value = roles
+    deptFilterOptions.value = flattenDeptOptions(tree)
   } catch {
-    // department tree is optional, ignore failure
+    message.warning('加载角色或部门选项失败')
   }
 }
 
 onMounted(() => {
-  fetchData()
-  fetchDepartmentTree()
+  void loadOptions()
+  void fetchData()
 })
 
-function handleSearch() {
+function applyFilter() {
   currentPage.value = 1
-  fetchData()
+  void fetchData()
 }
 
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.gender = undefined
-  queryParams.status = undefined
-  selectedDeptId.value = null
+function resetFilter() {
+  filterSearch.value = ''
+  filterStatus.value = null
+  filterGender.value = null
+  filterDeptId.value = null
   currentPage.value = 1
-  fetchData()
+  void fetchData()
 }
 
 function handlePageChange(page: number) {
   currentPage.value = page
-  fetchData()
+  void fetchData()
 }
 
 function handlePageSizeChange(size: number) {
   pageSize.value = size
   currentPage.value = 1
-  fetchData()
+  void fetchData()
 }
 
-function handleSorterChange(params: { columnKey: string | number | undefined, order: 'ascend' | 'descend' | false }) {
-  // Remote sorting is handled by the backend default sort
-  // This hook is available for future enhancement
-  void params
+function clearChecked() {
+  checkedRowKeys.value = []
 }
 
-function handleSelectionChange(keys: Array<string | number>) {
-  selectedRowKeys.value = keys as ApiId[]
+function closeModals() {
+  showFormModal.value = false
+  showDetModal.value = false
+  showDelModal.value = false
 }
 
-function handleDeptSelect(deptId: ApiId | null) {
-  selectedDeptId.value = deptId
-  currentPage.value = 1
-  fetchData()
-}
-
-function getDeptUserCount(_deptId: ApiId): number {
-  // Backend does not return per-department user count in tree API
-  // This is a placeholder; actual count requires a dedicated API
-  return 0
-}
-
-function handleAdd() {
+function openCreate() {
   userForm.value = createDefaultForm()
-  modalVisible.value = true
+  selRoleIds.value = []
+  selDeptIds.value = []
+  existingRoles.value = []
+  existingDepts.value = []
+  formTab.value = '0'
+  showFormModal.value = true
 }
 
-function handleEdit(row: UserListItemDto) {
+async function fillFormFromDetail(detail: UserManagementDetailDto) {
+  const u = detail.user
+  const sec = detail.security
   userForm.value = {
-    ...createDefaultForm(),
-    avatar: row.avatar ?? null,
-    basicId: row.basicId,
-    gender: row.gender,
-    language: row.language ?? 'zh-CN',
-    nickName: row.nickName ?? null,
-    realName: row.realName ?? null,
-    status: row.status,
-    timeZone: row.timeZone ?? null,
-    userName: row.userName,
+    basicId: u.basicId,
+    userName: u.userName,
+    realName: u.realName ?? '',
+    nickName: u.nickName ?? '',
+    email: '',
+    phone: '',
+    gender: u.gender,
+    birthday: null,
+    language: u.language ?? 'zh-CN',
+    country: u.country ?? '',
+    timeZone: u.timeZone ?? 'Asia/Shanghai',
+    status: u.status,
+    remark: u.remark ?? '',
+    initialPassword: '',
+    isLocked: sec?.isLocked ?? false,
+    multiLogin: sec?.allowMultiLogin ?? true,
+    maxDev: sec?.maxLoginDevices ?? 0,
   }
-  modalVisible.value = true
+  existingRoles.value = detail.roles
+  existingDepts.value = detail.departments
+  selRoleIds.value = detail.roles.map(r => r.roleId)
+  selDeptIds.value = detail.departments.map(d => d.departmentId)
 }
 
-async function handleView(row: UserListItemDto) {
-  detailVisible.value = true
+async function openEdit(id: ApiId) {
+  try {
+    const detail = await userManagementApi.detailView(id)
+    if (!detail) {
+      message.warning('未找到用户')
+      return
+    }
+    await fillFormFromDetail(detail)
+    formTab.value = '0'
+    showFormModal.value = true
+  } catch {
+    message.error('加载用户信息失败')
+  }
+}
+
+async function openDetail(id: ApiId) {
+  showDetModal.value = true
   detailLoading.value = true
   currentDetail.value = null
   try {
-    currentDetail.value = await userManagementApi.detailView(row.basicId)
-    if (!currentDetail.value) {
-      message.warning('未查询到用户详情')
-    }
+    currentDetail.value = await userManagementApi.detailView(id)
   } catch {
     message.error('加载用户详情失败')
   } finally {
@@ -407,650 +474,827 @@ async function handleView(row: UserListItemDto) {
   }
 }
 
-async function handleToggleStatus(row: UserListItemDto) {
-  const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
-  try {
-    await userManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
-    message.success('状态更新成功')
-    fetchData()
-  } catch {
-    message.error('状态更新失败')
+function openDelete(row: UserListItemDto) {
+  if (row.isSystemAccount) return
+  delTarget.value = { id: row.basicId, name: row.userName }
+  showDelModal.value = true
+}
+
+function togglePick(arr: ApiId[], id: ApiId) {
+  const i = arr.indexOf(id)
+  if (i >= 0) arr.splice(i, 1)
+  else arr.push(id)
+}
+
+async function syncRoles(userId: ApiId) {
+  const current = existingRoles.value
+  const selected = new Set(selRoleIds.value)
+  for (const role of roleOptions.value) {
+    const bound = current.find(c => c.roleId === role.basicId)
+    const want = selected.has(role.basicId)
+    if (want && !bound) {
+      await userManagementApi.roles.grant({ userId, roleId: role.basicId })
+    } else if (!want && bound) {
+      await userManagementApi.roles.revoke(bound.basicId)
+    }
   }
 }
 
-function validateForm() {
-  if (!userForm.value.userName.trim()) {
-    message.warning('请输入用户名')
-    return false
+async function syncDepartments(userId: ApiId) {
+  const current = existingDepts.value
+  const selected = new Set(selDeptIds.value)
+  for (const depId of deptFilterOptions.value.map(d => d.value)) {
+    const bound = current.find(c => c.departmentId === depId)
+    const want = selected.has(depId)
+    if (want && !bound) {
+      await userManagementApi.userDepartments.assign({
+        userId,
+        departmentId: depId,
+        isMain: selected.size === 1 || !current.some(c => c.isMain),
+      })
+    } else if (!want && bound) {
+      await userManagementApi.userDepartments.revoke(bound.basicId)
+    }
   }
-  if (!userForm.value.basicId && !userForm.value.initialPassword.trim()) {
-    message.warning('请输入初始密码')
-    return false
-  }
-  return true
 }
 
-async function handleSubmit() {
-  if (!validateForm()) return
+async function saveUser() {
+  const form = userForm.value
+  if (!form.userName.trim()) {
+    message.warning('用户名不能为空')
+    formTab.value = '0'
+    return
+  }
+  if (!form.basicId && !form.initialPassword.trim()) {
+    message.warning('请设置初始密码')
+    formTab.value = '0'
+    return
+  }
   submitLoading.value = true
   try {
-    if (userForm.value.basicId) {
+    let userId = form.basicId
+    if (userId) {
       const updateInput: UserUpdateDto = {
-        avatar: normalizeNullable(userForm.value.avatar),
-        basicId: userForm.value.basicId,
-        birthday: userForm.value.birthday,
-        country: normalizeNullable(userForm.value.country),
-        email: normalizeNullable(userForm.value.email),
-        gender: userForm.value.gender,
-        language: userForm.value.language,
-        nickName: normalizeNullable(userForm.value.nickName),
-        phone: normalizeNullable(userForm.value.phone),
-        realName: normalizeNullable(userForm.value.realName),
-        remark: normalizeNullable(userForm.value.remark),
-        timeZone: normalizeNullable(userForm.value.timeZone),
+        basicId: userId,
+        avatar: null,
+        birthday: form.birthday ? new Date(form.birthday).toISOString() : null,
+        country: normalizeStr(form.country),
+        email: normalizeStr(form.email),
+        gender: form.gender,
+        language: form.language,
+        nickName: normalizeStr(form.nickName),
+        phone: normalizeStr(form.phone),
+        realName: normalizeStr(form.realName),
+        remark: normalizeStr(form.remark),
+        timeZone: normalizeStr(form.timeZone),
       }
       await userManagementApi.update(updateInput)
+      if (form.status !== undefined) {
+        await userManagementApi.updateStatus({ basicId: userId, status: form.status })
+      }
     } else {
       const createInput: UserCreateDto = {
-        avatar: normalizeNullable(userForm.value.avatar),
-        gender: userForm.value.gender,
-        initialPassword: userForm.value.initialPassword,
-        language: userForm.value.language,
-        memberType: userForm.value.memberType,
-        nickName: normalizeNullable(userForm.value.nickName),
-        phone: normalizeNullable(userForm.value.phone),
-        realName: normalizeNullable(userForm.value.realName),
-        remark: normalizeNullable(userForm.value.remark),
-        status: userForm.value.status,
-        userName: userForm.value.userName.trim(),
+        userName: form.userName.trim(),
+        initialPassword: form.initialPassword,
+        realName: normalizeStr(form.realName),
+        nickName: normalizeStr(form.nickName),
+        email: normalizeStr(form.email),
+        phone: normalizeStr(form.phone),
+        gender: form.gender,
+        birthday: form.birthday ? new Date(form.birthday).toISOString() : null,
+        status: form.status,
+        language: form.language,
+        country: normalizeStr(form.country),
+        timeZone: normalizeStr(form.timeZone),
+        memberType: TenantMemberType.Member,
+        remark: normalizeStr(form.remark),
+        avatar: null,
+        displayName: null,
+        effectiveTime: null,
+        expirationTime: null,
+        inviteRemark: null,
       }
-      await userManagementApi.create(createInput)
+      const created = await userManagementApi.create(createInput)
+      userId = created.basicId
     }
+
+    if (userId) {
+      await userManagementApi.security.updateLock({
+        userId,
+        isLocked: form.isLocked,
+        lockoutEndTime: null,
+      })
+      await userManagementApi.security.updateLoginPolicy({
+        userId,
+        allowMultiLogin: form.multiLogin,
+        maxLoginDevices: form.maxDev || 0,
+      })
+      await syncRoles(userId)
+      await syncDepartments(userId)
+    }
+
     message.success('保存成功')
-    modalVisible.value = false
-    fetchData()
+    closeModals()
+    void fetchData()
   } catch {
     message.error('保存失败')
   } finally {
     submitLoading.value = false
   }
 }
+
+async function toggleLock(row: UserListItemDto) {
+  const meta = rowMetaMap.value[String(row.basicId)]
+  const locked = meta?.isLocked ?? false
+  try {
+    await userManagementApi.security.updateLock({
+      userId: row.basicId,
+      isLocked: !locked,
+      lockoutEndTime: null,
+    })
+    message.success(locked ? '账号已解锁' : '账号已锁定')
+    void fetchData()
+  } catch {
+    message.error('操作失败')
+  }
+}
+
+async function forceLogout(row: UserListItemDto) {
+  try {
+    await userManagementApi.sessions.revokeUserSessions({
+      userId: row.basicId,
+      reason: '管理员强制下线',
+    })
+    message.success('已强制下线')
+    void fetchData()
+  } catch {
+    message.error('强制下线失败')
+  }
+}
+
+async function confirmDelete() {
+  if (!delTarget.value) return
+  try {
+    await userManagementApi.delete(delTarget.value.id)
+    message.success('用户已删除')
+    closeModals()
+    void fetchData()
+  } catch {
+    message.error('删除失败')
+  }
+}
+
+function buildRowMenu(row: UserListItemDto): DropdownOption[] {
+  const meta = rowMetaMap.value[String(row.basicId)]
+  return [
+    { label: '查看详情', key: 'view', icon: () => h(Icon, { icon: 'lucide:eye', size: 14 }) },
+    { label: '编辑用户', key: 'edit', icon: () => h(Icon, { icon: 'lucide:pencil', size: 14 }) },
+    { type: 'divider', key: 'd1' },
+    {
+      label: meta?.isLocked ? '解锁账号' : '锁定账号',
+      key: 'lock',
+      icon: () => h(Icon, { icon: meta?.isLocked ? 'lucide:lock-open' : 'lucide:lock', size: 14 }),
+    },
+    {
+      label: '强制下线',
+      key: 'logout',
+      disabled: !meta?.online,
+      icon: () => h(Icon, { icon: 'lucide:log-out', size: 14 }),
+    },
+    { type: 'divider', key: 'd2' },
+    {
+      label: '删除用户',
+      key: 'delete',
+      disabled: row.isSystemAccount,
+      icon: () => h(Icon, { icon: 'lucide:trash-2', size: 14 }),
+      props: { style: { color: 'var(--n-error-color)' } },
+    },
+  ]
+}
+
+function onRowMenu(key: string, row: UserListItemDto) {
+  if (key === 'view') void openDetail(row.basicId)
+  else if (key === 'edit') void openEdit(row.basicId)
+  else if (key === 'lock') void toggleLock(row)
+  else if (key === 'logout') void forceLogout(row)
+  else if (key === 'delete') openDelete(row)
+}
+
+function renderTag(label: string, type: 'default' | 'info' | 'success' | 'warning' | 'error') {
+  return h(NTag, { size: 'small', type, bordered: false, style: { fontSize: '11px', fontWeight: 500 } }, () => label)
+}
+
+/** 双行单元格：主行 + 次要行 */
+function renderTwoLine(primary: string, secondary?: string | null, primaryStrong = false) {
+  return h('div', { class: 'tbl-cell-2l' }, [
+    h('div', {
+      class: ['tbl-cell-2l__primary', primaryStrong ? 'tbl-cell-2l__primary--strong' : ''],
+    }, primary),
+    secondary
+      ? h('div', { class: 'tbl-cell-2l__secondary' }, secondary)
+      : null,
+  ])
+}
+
+function renderTextClamp2(text: string, title?: string) {
+  return h('span', {
+    class: 'tbl-text-2l',
+    title: title ?? (text === '—' ? undefined : text),
+  }, text)
+}
+
+function joinOrDash(items: string[]) {
+  const text = items.join('、')
+  return text || '—'
+}
+
+const columns = computed<DataTableColumns<UserListItemDto>>(() => [
+  { type: 'selection', fixed: 'left', width: 40 },
+  {
+    title: '头像',
+    key: 'avatar',
+    width: 52,
+    align: 'center',
+    render(row) {
+      const c = getAvatarStyle(row.userName)
+      return h('div', {
+        class: 'tbl-av',
+        style: { background: c.bg, color: c.fg },
+        title: row.realName || row.userName,
+      }, getInitials(row))
+    },
+  },
+  {
+    title: '用户信息',
+    key: 'user',
+    minWidth: 180,
+    render(row) {
+      const display = row.realName || row.nickName || row.userName
+      const nickLine = row.nickName && row.nickName !== display ? row.nickName : null
+      const subLine = nickLine ? `${nickLine} · @${row.userName}` : `@${row.userName}`
+      return h('div', { class: 'tbl-cell-2l' }, [
+        h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
+          display,
+          row.isSystemAccount ? h('span', { class: 'sys-tag' }, '系统') : null,
+        ]),
+        h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
+      ])
+    },
+  },
+  {
+    title: '联系信息',
+    key: 'contact',
+    minWidth: 150,
+    render(row) {
+      const meta = rowMetaMap.value[String(row.basicId)]
+      if (!meta) return h('span', { style: 'color:var(--n-text-color-3);font-size:12px' }, '—')
+      const emailLine = meta.emailMasked || (meta.emailVerified ? '邮箱已验证' : '邮箱未验证')
+      const phoneLine = meta.phoneVerified ? '手机已验证' : '手机未验证'
+      return renderTwoLine(emailLine, phoneLine)
+    },
+  },
+  {
+    title: '性别',
+    key: 'gender',
+    width: 58,
+    render(row) {
+      const label = getOptionLabel(GENDER_OPTIONS, row.gender)
+      return renderTag(label, GENDER_TAG_TYPE[row.gender] ?? 'default')
+    },
+  },
+  {
+    title: '角色',
+    key: 'roles',
+    minWidth: 120,
+    render(row) {
+      const meta = rowMetaMap.value[String(row.basicId)]
+      const text = joinOrDash(meta?.roles ?? [])
+      return renderTextClamp2(text)
+    },
+  },
+  {
+    title: '部门',
+    key: 'depts',
+    minWidth: 120,
+    render(row) {
+      const meta = rowMetaMap.value[String(row.basicId)]
+      const text = joinOrDash(meta?.depts ?? [])
+      return renderTextClamp2(text)
+    },
+  },
+  {
+    title: '地区/语言',
+    key: 'locale',
+    width: 130,
+    render(row) {
+      const region = [row.country, row.language].filter(Boolean).join(' · ') || '—'
+      return renderTwoLine(region, row.timeZone ?? null)
+    },
+  },
+  {
+    title: '账号状态',
+    key: 'status',
+    width: 100,
+    render(row) {
+      const meta = rowMetaMap.value[String(row.basicId)]
+      const tags = [
+        renderTag(
+          row.status === EnableStatus.Enabled ? '已启用' : '已禁用',
+          row.status === EnableStatus.Enabled ? 'success' : 'error',
+        ),
+      ]
+      if (meta && !meta.isActive) {
+        tags.push(renderTag('未激活', 'warning'))
+      }
+      return h('div', { class: 'tbl-cell-tags' }, tags)
+    },
+  },
+  {
+    title: '安全标记',
+    key: 'sec',
+    width: 100,
+    render(row) {
+      const meta = rowMetaMap.value[String(row.basicId)]
+      if (!meta) return h('span', { style: 'color:var(--n-text-color-3);font-size:12px' }, '—')
+      const icons: ReturnType<typeof h>[] = []
+      if (meta.isLocked) icons.push(h(Icon, { icon: 'tabler:lock', size: 15, style: { color: 'var(--n-warning-color)' } }))
+      if (!meta.isActive) icons.push(h(Icon, { icon: 'tabler:clock-pause', size: 15, style: { color: 'var(--n-text-color-3)' } }))
+      if (meta.twoFactorEnabled) icons.push(h(Icon, { icon: 'tabler:shield-check', size: 15, style: { color: 'var(--n-success-color)' } }))
+      if (meta.failedLoginAttempts > 0) icons.push(h(Icon, { icon: 'tabler:alert-triangle', size: 15, style: { color: 'var(--n-warning-color)' } }))
+      if (meta.online) icons.push(h(Icon, { icon: 'tabler:wifi', size: 15, style: { color: 'var(--n-info-color)' } }))
+      return h('div', { class: 'tbl-cell-tags flex gap-[5px]' }, icons.length ? icons : '—')
+    },
+  },
+  {
+    title: '最后登录',
+    key: 'login',
+    minWidth: 150,
+    render(row) {
+      const ip = rowMetaMap.value[String(row.basicId)]?.lastLoginIp ?? '—'
+      return renderTwoLine(formatNullableDate(row.lastLoginTime), ip)
+    },
+  },
+  {
+    title: '创建时间',
+    key: 'createdTime',
+    width: 158,
+    render(row) {
+      return h('span', { style: 'font-size:12px;color:var(--n-text-color-3)' }, formatDate(row.createdTime))
+    },
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 56,
+    align: 'center',
+    fixed: 'right',
+    render(row) {
+      return h(NDropdown, {
+        trigger: 'click',
+        options: buildRowMenu(row),
+        onSelect: (key: string) => onRowMenu(key, row),
+      }, {
+        // 与角色页一致：lucide 已离线预加载；勿用未加载的 tabler 图标
+        default: () => h(NButton, {
+          quaternary: true,
+          circle: true,
+          size: 'small',
+          'aria-label': '操作',
+        }, {
+          icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:ellipsis-vertical' })),
+        }),
+      })
+    },
+  },
+])
 </script>
 
 <template>
-  <div class="xh-user-page">
-    <!-- 页头 -->
-    <div class="xh-page-header">
-      <div class="xh-page-header__content">
-        <div>
-          <h1 class="xh-page-header__title">用户管理</h1>
-          <p class="xh-page-header__desc">管理系统用户信息、角色分配与账户状态</p>
-        </div>
-        <NButton type="primary" size="large" @click="handleAdd">
+  <div class="user-page flex overflow-hidden flex-col gap-2 p-3 h-full">
+    <!-- 筛选 -->
+    <div
+      class="xh-query-panel mb-2 flex flex-wrap items-center gap-2"
+      style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);"
+    >
+      <NInput
+        v-model:value="filterSearch"
+        placeholder="搜索用户名、姓名、邮箱…"
+        clearable
+        size="small"
+        style="flex:1;min-width:200px;max-width:360px"
+        @keyup.enter="applyFilter"
+      />
+      <NSelect
+        v-model:value="filterStatus"
+        :options="statusFilterOptions"
+        placeholder="全部状态"
+        clearable
+        size="small"
+        style="width:108px"
+        @update:value="applyFilter"
+      />
+      <NSelect
+        v-model:value="filterGender"
+        :options="genderFilterOptions"
+        placeholder="全部性别"
+        clearable
+        size="small"
+        style="width:96px"
+        @update:value="applyFilter"
+      />
+      <NSelect
+        v-model:value="filterDeptId"
+        :options="deptFilterOptions"
+        placeholder="全部部门"
+        clearable
+        size="small"
+        style="width:120px"
+        @update:value="applyFilter"
+      />
+      <NButton size="small" @click="resetFilter">
+        <template #icon>
+          <NIcon><Icon icon="tabler:rotate" /></NIcon>
+        </template>
+        重置
+      </NButton>
+    </div>
+
+    <!-- 列表 -->
+    <NCard
+      :bordered="false"
+      class="flex-1"
+      content-style="padding:0;display:flex;flex-direction:column;height:100%;"
+      style="height:0;"
+    >
+      <div class="list-hd">
+        <NButton type="primary" size="small" @click="openCreate">
           <template #icon>
-            <NIcon><Icon icon="lucide:user-plus" /></NIcon>
+            <NIcon><Icon icon="tabler:plus" /></NIcon>
           </template>
-          新增用户
+          新建用户
         </NButton>
       </div>
-    </div>
 
-    <!-- 统计卡片 -->
-    <div class="xh-stats-grid">
-      <div class="xh-stat-card xh-stat-card--total">
-        <div class="xh-stat-card__icon">
-          <Icon icon="lucide:users" />
-        </div>
-        <NStatistic label="总用户" :value="statsTotal" />
-      </div>
-      <div class="xh-stat-card xh-stat-card--enabled">
-        <div class="xh-stat-card__icon xh-stat-card__icon--green">
-          <Icon icon="lucide:user-check" />
-        </div>
-        <NStatistic label="已启用" :value="statsEnabled" />
-      </div>
-      <div class="xh-stat-card xh-stat-card--disabled">
-        <div class="xh-stat-card__icon xh-stat-card__icon--red">
-          <Icon icon="lucide:user-x" />
-        </div>
-        <NStatistic label="已禁用" :value="statsDisabled" />
-      </div>
-      <div class="xh-stat-card xh-stat-card--system">
-        <div class="xh-stat-card__icon xh-stat-card__icon--amber">
-          <Icon icon="lucide:shield" />
-        </div>
-        <NStatistic label="系统账号" :value="statsSystem" />
-      </div>
-    </div>
-
-    <!-- 主体区域 -->
-    <div class="xh-main-layout">
-      <!-- 部门树侧边栏 -->
-      <div class="xh-dept-sidebar">
-        <div class="xh-dept-sidebar__header">
-          <span class="xh-dept-sidebar__title">组织架构</span>
-        </div>
-        <NScrollbar style="max-height: calc(100vh - 380px)">
-          <div
-            :class="['xh-dept-node', { 'xh-dept-node--active': selectedDeptId === null }]"
-            @click="handleDeptSelect(null)"
-          >
-            <Icon icon="lucide:building-2" style="font-size:14px;" />
-            <span>全部人员</span>
-          </div>
-          <template v-for="dept in departmentTree" :key="dept.basicId">
-            <div
-              :class="['xh-dept-node', { 'xh-dept-node--active': selectedDeptId === dept.basicId }]"
-              @click="handleDeptSelect(dept.basicId)"
-            >
-              <span
-                class="xh-dept-node__arrow"
-                :class="{ 'xh-dept-node__arrow--expanded': deptExpandedKeys.includes(dept.basicId) }"
-                @click.stop="deptExpandedKeys.includes(dept.basicId) ? deptExpandedKeys.splice(deptExpandedKeys.indexOf(dept.basicId), 1) : deptExpandedKeys.push(dept.basicId)"
-              >
-                <Icon icon="lucide:chevron-right" style="font-size:12px;" />
-              </span>
-              <Icon icon="lucide:folder" style="font-size:14px;" />
-              <span>{{ dept.departmentName }}</span>
-              <span class="xh-dept-node__count">{{ getDeptUserCount(dept.basicId) }}</span>
-            </div>
-            <div v-if="dept.children?.length && deptExpandedKeys.includes(dept.basicId)" class="xh-dept-children">
-              <div
-                v-for="child in dept.children"
-                :key="child.basicId"
-                :class="['xh-dept-node xh-dept-node--small', { 'xh-dept-node--active': selectedDeptId === child.basicId }]"
-                @click="handleDeptSelect(child.basicId)"
-              >
-                <Icon icon="lucide:folder-open" style="font-size:12px;" />
-                <span>{{ child.departmentName }}</span>
-              </div>
-            </div>
-          </template>
-        </NScrollbar>
+      <div v-if="checkedRowKeys.length" class="batch-bar">
+        <span>已选 <strong>{{ checkedRowKeys.length }}</strong> 项</span>
+        <NButton text size="tiny" @click="clearChecked">
+          取消选择
+        </NButton>
       </div>
 
-      <!-- 右侧主内容 -->
-      <div class="xh-main-content">
-        <NCard content-style="padding:0;" :bordered="false" class="xh-content-card">
-          <!-- 筛选栏 -->
-          <div class="xh-filter-bar">
-            <div class="xh-filter-bar__fields">
-              <NInput
-                v-model:value="queryParams.keyword"
-                clearable
-                placeholder="搜索用户名、姓名、昵称"
-                style="flex:1;min-width:200px;"
-                @keyup.enter="handleSearch"
-              >
-                <template #prefix>
-                  <NIcon><Icon icon="lucide:search" /></NIcon>
-                </template>
-              </NInput>
-              <NSelect
-                v-model:value="queryParams.gender"
-                :options="genderOptions"
-                clearable
-                placeholder="性别"
-                style="width:110px;"
-              />
-              <NSelect
-                v-model:value="queryParams.status"
-                :options="statusOptions"
-                clearable
-                placeholder="状态"
-                style="width:110px;"
-              />
-              <NButton type="primary" @click="handleSearch">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:search" /></NIcon>
-                </template>
-                查询
-              </NButton>
-              <NButton @click="handleReset">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-                </template>
-                重置
-              </NButton>
-            </div>
-          </div>
-
-          <!-- 批量操作 -->
-          <div v-if="selectedRowKeys.length" class="xh-batch-bar">
-            <span class="xh-batch-bar__info">已选 {{ selectedRowKeys.length }} 项</span>
-            <NButton size="small" type="error" quaternary @click="selectedRowKeys = []">
-              取消选择
-            </NButton>
-          </div>
-
-          <!-- 数据表格 -->
-          <NDataTable
-            :columns="tableColumns"
-            :data="dataList"
-            :loading="tableLoading"
-            :bordered="false"
-            :single-line="false"
-            :row-key="(row: UserListItemDto) => row.basicId"
-            :checked-row-keys="selectedRowKeys"
-            :scroll-x="1100"
-            size="small"
-            striped
-            flex-height
-            style="flex:1;"
-            @update:checked-row-keys="handleSelectionChange"
-            @update:sorter="handleSorterChange"
-          />
-
-          <!-- 分页 -->
-          <div class="xh-pagination-bar">
-            <div class="xh-pagination-bar__info">
-              共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
-            </div>
-            <div class="xh-pagination-bar__controls">
-              <NPagination
-                :page="currentPage"
-                :page-count="totalPages"
-                :page-slot="7"
-                :page-sizes="[10, 20, 50, 100]"
-                :page-size="pageSize"
-                show-size-picker
-                @update:page="handlePageChange"
-                @update:page-size="handlePageSizeChange"
-              />
-            </div>
-          </div>
-        </NCard>
-      </div>
-    </div>
-
-    <!-- 用户详情抽屉 -->
-    <NDrawer v-model:show="detailVisible" :width="720">
-      <NDrawerContent closable>
-        <template #header>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div
-              v-if="currentDetail"
-              class="xh-detail-avatar"
-              :style="{ background: getAvatarColor(currentDetail.user.userName) }"
-            >
-              {{ getAvatarText(currentDetail.user) }}
-            </div>
-            <div>
-              <div style="font-size:16px;font-weight:600;">用户详情</div>
-              <div v-if="currentDetail" style="font-size:12px;color:var(--n-text-color-3);">
-                {{ currentDetail.user.userName }}
-              </div>
-            </div>
+      <NDataTable
+        v-model:checked-row-keys="checkedRowKeys"
+        class="user-table"
+        :columns="columns"
+        :data="dataList"
+        :loading="tableLoading"
+        :bordered="false"
+        :single-line="false"
+        size="small"
+        striped
+        flex-height
+        :row-key="(row: UserListItemDto) => row.basicId"
+        :scroll-x="2000"
+        style="flex:1;"
+      >
+        <template #empty>
+          <div class="empty-hint">
+            <Icon icon="tabler:users-group" :size="32" class="empty-hint__ico" />
+            暂无匹配用户
           </div>
         </template>
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" description="暂无用户详情" style="padding:48px 0;">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height:calc(100vh - 120px);">
-            <NTabs animated type="line">
-              <NTabPane name="overview" tab="概览">
-                <div class="xh-detail-section">
-                  <div class="xh-detail-section__title">基本信息</div>
-                  <div class="xh-detail-info-grid">
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">用户名</span>
-                      <span class="xh-detail-info-value">{{ currentDetail.user.userName }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">真实姓名</span>
-                      <span class="xh-detail-info-value">{{ formatNullable(currentDetail.user.realName) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">昵称</span>
-                      <span class="xh-detail-info-value">{{ formatNullable(currentDetail.user.nickName) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">性别</span>
-                      <span class="xh-detail-info-value">{{ getOptionLabel(genderOptions, currentDetail.user.gender) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">状态</span>
-                      <NTag :type="currentDetail.user.status === EnableStatus.Enabled ? 'success' : 'error'" size="small" round>
-                        {{ currentDetail.user.status === EnableStatus.Enabled ? '启用' : '禁用' }}
-                      </NTag>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">系统账号</span>
-                      <NTag :type="currentDetail.user.isSystemAccount ? 'warning' : 'default'" size="small" round>
-                        {{ currentDetail.user.isSystemAccount ? '是' : '否' }}
-                      </NTag>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">语言</span>
-                      <span class="xh-detail-info-value">{{ formatNullable(currentDetail.user.language) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">时区</span>
-                      <span class="xh-detail-info-value">{{ formatNullable(currentDetail.user.timeZone) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">最后登录</span>
-                      <span class="xh-detail-info-value">{{ formatNullableDate(currentDetail.user.lastLoginTime) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">创建时间</span>
-                      <span class="xh-detail-info-value">{{ formatNullableDate(currentDetail.user.createdTime) }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="xh-detail-section">
-                  <div class="xh-detail-section__title">租户信息</div>
-                  <div class="xh-detail-info-grid">
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">租户显示名</span>
-                      <span class="xh-detail-info-value">{{ formatNullable(currentDetail.tenantMembership?.displayName) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">成员类型</span>
-                      <span class="xh-detail-info-value">{{ getOptionLabel(memberTypeOptions, currentDetail.tenantMembership?.memberType) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">租户成员状态</span>
-                      <span class="xh-detail-info-value">{{ getOptionLabel(validityStatusOptions, currentDetail.tenantMembership?.status) }}</span>
-                    </div>
-                    <div class="xh-detail-info-item">
-                      <span class="xh-detail-info-label">聚合时间</span>
-                      <span class="xh-detail-info-value">{{ formatNullableDate(currentDetail.generatedTime) }}</span>
-                    </div>
-                  </div>
-                </div>
-              </NTabPane>
+      </NDataTable>
 
-              <NTabPane name="security" tab="安全设置">
-                <NEmpty v-if="!currentDetail.security" description="暂无安全设置" style="padding:40px 0;" />
-                <template v-else>
-                  <div class="xh-detail-section">
-                    <div class="xh-detail-section__title">登录安全</div>
-                    <div class="xh-detail-info-grid">
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">允许多端登录</span>
-                        <NTag :type="currentDetail.security.allowMultiLogin ? 'success' : 'default'" size="small" round>
-                          {{ formatBoolean(currentDetail.security.allowMultiLogin) }}
-                        </NTag>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">最大登录设备</span>
-                        <span class="xh-detail-info-value">{{ currentDetail.security.maxLoginDevices || '不限' }}</span>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">两步验证</span>
-                        <NTag :type="currentDetail.security.twoFactorEnabled ? 'success' : 'default'" size="small" round>
-                          {{ formatBoolean(currentDetail.security.twoFactorEnabled) }}
-                        </NTag>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">验证方式</span>
-                        <span class="xh-detail-info-value">{{ getOptionLabel(twoFactorMethodOptions, currentDetail.security.twoFactorMethod) }}</span>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">邮箱验证</span>
-                        <NTag :type="currentDetail.security.emailVerified ? 'success' : 'warning'" size="small" round>
-                          {{ currentDetail.security.emailVerified ? '已验证' : '未验证' }}
-                        </NTag>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">手机验证</span>
-                        <NTag :type="currentDetail.security.phoneVerified ? 'success' : 'warning'" size="small" round>
-                          {{ currentDetail.security.phoneVerified ? '已验证' : '未验证' }}
-                        </NTag>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="xh-detail-section">
-                    <div class="xh-detail-section__title">锁定与密码</div>
-                    <div class="xh-detail-info-grid">
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">账号锁定</span>
-                        <NTag :type="currentDetail.security.isLocked ? 'error' : 'success'" size="small" round>
-                          {{ currentDetail.security.isLocked ? '已锁定' : '正常' }}
-                        </NTag>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">密码过期</span>
-                        <NTag :type="currentDetail.security.isPasswordExpired ? 'error' : 'success'" size="small" round>
-                          {{ currentDetail.security.isPasswordExpired ? '已过期' : '正常' }}
-                        </NTag>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">失败次数</span>
-                        <span class="xh-detail-info-value">{{ currentDetail.security.failedLoginAttempts }}</span>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">密码过期时间</span>
-                        <span class="xh-detail-info-value">{{ formatNullableDate(currentDetail.security.passwordExpiryTime) }}</span>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">最后改密</span>
-                        <span class="xh-detail-info-value">{{ formatNullableDate(currentDetail.security.lastPasswordChangeTime) }}</span>
-                      </div>
-                      <div class="xh-detail-info-item">
-                        <span class="xh-detail-info-label">最后安全检查</span>
-                        <span class="xh-detail-info-value">{{ formatNullableDate(currentDetail.security.lastSecurityCheckTime) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </NTabPane>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+        </div>
+        <NPagination
+          :page="currentPage"
+          :page-count="totalPages"
+          :page-slot="7"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="pageSize"
+          show-size-picker
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </NCard>
 
-              <NTabPane name="departments" :tab="`部门 (${currentDetail.departments.length})`">
-                <NDataTable
-                  v-if="currentDetail.departments.length"
-                  :columns="[
-                    { title: '部门', key: 'departmentName', render: (row) => formatNullable(row.departmentName) },
-                    { title: '编码', key: 'departmentCode', render: (row) => formatNullable(row.departmentCode) },
-                    { title: '主部门', key: 'isMain', width: 80, render: (row) => formatBoolean(row.isMain) },
-                    { title: '状态', key: 'status', width: 80, render: (row) => getOptionLabel(validityStatusOptions, row.status) },
-                    { title: '创建时间', key: 'createdTime', render: (row) => formatNullableDate(row.createdTime) },
-                  ]"
-                  :data="currentDetail.departments"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无部门分配" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="roles" :tab="`角色 (${currentDetail.roles.length})`">
-                <NDataTable
-                  v-if="currentDetail.roles.length"
-                  :columns="[
-                    { title: '角色', key: 'roleName', render: (row) => formatNullable(row.roleName) },
-                    { title: '编码', key: 'roleCode', render: (row) => formatNullable(row.roleCode) },
-                    { title: '类型', key: 'roleType', width: 80, render: (row) => getOptionLabel(roleTypeOptions, row.roleType) },
-                    { title: '授权状态', key: 'status', width: 80, render: (row) => getOptionLabel(validityStatusOptions, row.status) },
-                    { title: '有效期', key: 'period', render: (row) => `${formatNullableDate(row.effectiveTime)} 至 ${formatNullableDate(row.expirationTime)}` },
-                  ]"
-                  :data="currentDetail.roles"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无角色分配" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="permissions" :tab="`额外权限 (${currentDetail.permissions.length})`">
-                <NDataTable
-                  v-if="currentDetail.permissions.length"
-                  :columns="[
-                    { title: '权限', key: 'permissionName', render: (row) => formatNullable(row.permissionName) },
-                    { title: '编码', key: 'permissionCode', render: (row) => formatNullable(row.permissionCode) },
-                    { title: '动作', key: 'permissionAction', width: 80, render: (row) => getOptionLabel(permissionActionOptions, row.permissionAction) },
-                    { title: '授权状态', key: 'status', width: 80, render: (row) => getOptionLabel(validityStatusOptions, row.status) },
-                    { title: '有效期', key: 'period', render: (row) => `${formatNullableDate(row.effectiveTime)} 至 ${formatNullableDate(row.expirationTime)}` },
-                  ]"
-                  :data="currentDetail.permissions"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无额外权限" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="dataScopes" :tab="`数据范围 (${currentDetail.dataScopes.length})`">
-                <NDataTable
-                  v-if="currentDetail.dataScopes.length"
-                  :columns="[
-                    { title: '范围', key: 'dataScope', render: (row) => getOptionLabel(dataScopeOptions, row.dataScope) },
-                    { title: '部门', key: 'departmentName', render: (row) => formatNullable(row.departmentName) },
-                    { title: '包含子部门', key: 'includeChildren', width: 100, render: (row) => formatBoolean(row.includeChildren) },
-                    { title: '状态', key: 'status', width: 80, render: (row) => getOptionLabel(validityStatusOptions, row.status) },
-                    { title: '创建时间', key: 'createdTime', render: (row) => formatNullableDate(row.createdTime) },
-                  ]"
-                  :data="currentDetail.dataScopes"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无自定义数据范围" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="sessions" :tab="`登录会话 (${currentDetail.sessions.length})`">
-                <NDataTable
-                  v-if="currentDetail.sessions.length"
-                  :columns="[
-                    { title: '会话', key: 'userSessionId', ellipsis: { tooltip: true } },
-                    { title: '设备', key: 'device', render: (row) => `${formatNullable(row.deviceName)} / ${getOptionLabel(deviceTypeOptions, row.deviceType)}` },
-                    { title: 'IP', key: 'ipAddressMasked', render: (row) => formatNullable(row.ipAddressMasked) },
-                    { title: '在线', key: 'isOnline', width: 70, render: (row) => formatBoolean(row.isOnline) },
-                    { title: '最后活跃', key: 'lastActivityTime', render: (row) => formatNullableDate(row.lastActivityTime) },
-                  ]"
-                  :data="currentDetail.sessions"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无登录会话" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="externalLogins" :tab="`第三方绑定 (${currentDetail.externalLogins.length})`">
-                <NDataTable
-                  v-if="currentDetail.externalLogins.length"
-                  :columns="[
-                    { title: '提供方', key: 'provider', render: (row) => formatNullable(row.providerDisplayName || row.provider) },
-                    { title: '账号', key: 'externalAccountMasked', render: (row) => formatNullable(row.externalAccountMasked) },
-                    { title: '邮箱', key: 'externalEmailMasked', render: (row) => formatNullable(row.externalEmailMasked) },
-                    { title: '最近登录', key: 'lastLoginTime', render: (row) => formatNullableDate(row.lastLoginTime) },
-                  ]"
-                  :data="currentDetail.externalLogins"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无第三方绑定" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="passwordHistories" :tab="`密码历史 (${currentDetail.passwordHistories.length})`">
-                <NDataTable
-                  v-if="currentDetail.passwordHistories.length"
-                  :columns="[
-                    { title: '用户', key: 'user', render: (row) => formatNullable(row.realName || row.nickName || row.userName) },
-                    { title: '变更时间', key: 'changedTime', render: (row) => formatNullableDate(row.changedTime) },
-                    { title: '创建时间', key: 'createdTime', render: (row) => formatNullableDate(row.createdTime) },
-                  ]"
-                  :data="currentDetail.passwordHistories"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无密码历史" style="padding:40px 0;" />
-              </NTabPane>
-
-              <NTabPane name="statistics" :tab="`统计 (${currentDetail.statistics.length})`">
-                <NDataTable
-                  v-if="currentDetail.statistics.length"
-                  :columns="[
-                    { title: '周期', key: 'period', render: (row) => getOptionLabel(statisticsPeriodOptions, row.period) },
-                    { title: '统计日期', key: 'statisticsDate', render: (row) => formatNullableDate(row.statisticsDate) },
-                    { title: '登录', key: 'loginCount', width: 70 },
-                    { title: '操作', key: 'operationCount', width: 70 },
-                    { title: 'API', key: 'apiCallCount', width: 70 },
-                    { title: '访问', key: 'accessCount', width: 70 },
-                  ]"
-                  :data="currentDetail.statistics"
-                  :bordered="true"
-                  size="small"
-                  :pagination="false"
-                />
-                <NEmpty v-else description="暂无统计数据" style="padding:40px 0;" />
-              </NTabPane>
-            </NTabs>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
-
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新建/编辑：preset=card 使用 Naive 主题卡片背景，避免暗色下透明 -->
     <NModal
-      v-model:show="modalVisible"
+      v-model:show="showFormModal"
+      :mask-closable="false"
       :auto-focus="false"
       :bordered="false"
-      :title="modalTitle"
+      :title="formTitle"
       preset="card"
-      style="width:720px;max-width:92vw;"
+      style="width: 640px; max-width: calc(100vw - 32px);"
     >
-      <NForm :model="userForm" label-placement="top">
-        <div class="xh-form-grid">
-          <NFormItem label="用户名" path="userName">
-            <NInput
-              v-model:value="userForm.userName"
-              :disabled="Boolean(userForm.basicId)"
-              clearable
-              placeholder="请输入用户名"
-            />
-          </NFormItem>
-          <NFormItem v-if="!userForm.basicId" label="初始密码" path="initialPassword">
-            <NInput
-              v-model:value="userForm.initialPassword"
-              clearable
-              placeholder="请输入初始密码"
-              show-password-on="click"
-              type="password"
-            />
-          </NFormItem>
-          <NFormItem label="真实姓名" path="realName">
-            <NInput v-model:value="userForm.realName" clearable placeholder="请输入真实姓名" />
-          </NFormItem>
-          <NFormItem label="昵称" path="nickName">
-            <NInput v-model:value="userForm.nickName" clearable placeholder="请输入昵称" />
-          </NFormItem>
-          <NFormItem label="性别" path="gender">
-            <NSelect v-model:value="userForm.gender" :options="genderOptions" />
-          </NFormItem>
-          <NFormItem label="手机号" path="phone">
-            <NInput v-model:value="userForm.phone" clearable placeholder="请输入手机号" />
-          </NFormItem>
-          <NFormItem label="邮箱" path="email">
-            <NInput v-model:value="userForm.email" clearable placeholder="请输入邮箱" />
-          </NFormItem>
-          <NFormItem label="语言" path="language">
-            <NSelect v-model:value="userForm.language" :options="languageOptions" clearable placeholder="选择语言" />
-          </NFormItem>
-          <NFormItem v-if="!userForm.basicId" label="成员类型" path="memberType">
-            <NSelect v-model:value="userForm.memberType" :options="memberTypeOptions" />
-          </NFormItem>
-          <NFormItem label="备注" path="remark" :span="2">
-            <NInput
-              v-model:value="userForm.remark"
-              clearable
-              placeholder="请输入备注"
-              :rows="3"
-              type="textarea"
-            />
-          </NFormItem>
-        </div>
-      </NForm>
+      <NTabs v-model:value="formTab" type="line" animated>
+            <NTabPane name="0" tab="基本信息" display-directive="show">
+              <div class="form-grid">
+                <NFormItem label="用户名 *" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NInput v-model:value="userForm.userName" placeholder="请输入用户名" :disabled="!!userForm.basicId" />
+                </NFormItem>
+                <NFormItem label="真实姓名" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NInput v-model:value="userForm.realName" placeholder="请输入真实姓名" />
+                </NFormItem>
+                <NFormItem label="昵称" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NInput v-model:value="userForm.nickName" placeholder="请输入昵称" />
+                </NFormItem>
+                <NFormItem label="邮箱" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NInput v-model:value="userForm.email" placeholder="请输入邮箱" />
+                </NFormItem>
+                <NFormItem label="手机号" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NInput v-model:value="userForm.phone" placeholder="请输入手机号" />
+                </NFormItem>
+                <NFormItem label="性别" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NSelect v-model:value="userForm.gender" :options="genderFilterOptions" />
+                </NFormItem>
+                <NFormItem label="生日" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NDatePicker v-model:value="userForm.birthday" type="date" class="w-full" />
+                </NFormItem>
+                <NFormItem label="语言" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NSelect v-model:value="userForm.language" :options="languageOptions" />
+                </NFormItem>
+                <NFormItem label="国家/地区" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NInput v-model:value="userForm.country" placeholder="如：CN" />
+                </NFormItem>
+                <NFormItem label="时区" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
+                </NFormItem>
+                <NFormItem label="账号状态" :show-feedback="false" label-style="font-size:11px;font-weight:500">
+                  <NSelect v-model:value="userForm.status" :options="statusFormOptions" />
+                </NFormItem>
+                <NFormItem
+                  v-if="!userForm.basicId"
+                  label="初始密码 *"
+                  :show-feedback="false"
+                  label-style="font-size:11px;font-weight:500"
+                >
+                  <NInput v-model:value="userForm.initialPassword" type="password" placeholder="请输入初始密码" />
+                </NFormItem>
+              </div>
+              <NFormItem label="备注" :show-feedback="false" label-style="font-size:11px;font-weight:500" class="mt-1">
+                <NInput v-model:value="userForm.remark" type="textarea" :rows="2" placeholder="请输入备注信息" />
+              </NFormItem>
+            </NTabPane>
+
+            <NTabPane name="1" tab="安全设置" display-directive="show">
+              <div class="sec-panel">
+                <div class="sec-block">
+                  <div class="sec-block-hd">
+                    <Icon icon="tabler:shield-lock" :size="14" />
+                    <span>账号安全</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-row-main">
+                      <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
+                      <div>
+                        <div class="lbl">
+                          账号锁定
+                        </div>
+                        <div class="sub">
+                          锁定后用户无法登录
+                        </div>
+                      </div>
+                    </div>
+                    <NSwitch v-model:value="userForm.isLocked" />
+                  </div>
+                </div>
+                <div class="sec-block">
+                  <div class="sec-block-hd">
+                    <Icon icon="tabler:devices" :size="14" />
+                    <span>登录会话</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-row-main">
+                      <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
+                      <div>
+                        <div class="lbl">
+                          允许多端登录
+                        </div>
+                        <div class="sub">
+                          关闭后新登录会踢出旧会话
+                        </div>
+                      </div>
+                    </div>
+                    <NSwitch v-model:value="userForm.multiLogin" />
+                  </div>
+                  <div class="form-row">
+                    <div class="form-row-main">
+                      <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
+                      <div>
+                        <div class="lbl">
+                          最大登录设备数
+                        </div>
+                        <div class="sub">
+                          0 = 不限
+                        </div>
+                      </div>
+                    </div>
+                    <NInputNumber
+                      v-model:value="userForm.maxDev"
+                      :min="0"
+                      :max="99"
+                      class="max-dev-input"
+                      size="small"
+                      :show-button="false"
+                    />
+                  </div>
+                </div>
+              </div>
+            </NTabPane>
+
+            <NTabPane name="2" tab="角色权限" display-directive="show">
+              <div class="pick-panel">
+                <p class="pick-desc">
+                  选择要分配的角色，可多选
+                </p>
+                <p v-if="selRoleIds.length" class="pick-summary">
+                  已选 <strong>{{ selRoleIds.length }}</strong> 个
+                </p>
+                <div class="pick-grid">
+                  <button
+                    v-for="r in roleOptions"
+                    :key="r.basicId"
+                    type="button"
+                    :class="['pick-chip', selRoleIds.includes(r.basicId) ? 'on' : '']"
+                    @click="togglePick(selRoleIds, r.basicId)"
+                  >
+                    <Icon icon="tabler:user-check" :size="13" />
+                    {{ r.roleName }}
+                  </button>
+                </div>
+              </div>
+            </NTabPane>
+
+            <NTabPane name="3" tab="所属部门" display-directive="show">
+              <div class="pick-panel">
+                <p class="pick-desc">
+                  选择所属部门，可多选
+                </p>
+                <p v-if="selDeptIds.length" class="pick-summary">
+                  已选 <strong>{{ selDeptIds.length }}</strong> 个
+                </p>
+                <div class="pick-grid">
+                  <button
+                    v-for="d in deptFilterOptions"
+                    :key="d.value"
+                    type="button"
+                    :class="['pick-chip', selDeptIds.includes(d.value) ? 'on' : '']"
+                    @click="togglePick(selDeptIds, d.value)"
+                  >
+                    <Icon icon="tabler:building" :size="13" />
+                    {{ d.label.trim() }}
+                  </button>
+                </div>
+              </div>
+            </NTabPane>
+      </NTabs>
+
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">取消</NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">保存</NButton>
+          <NButton @click="closeModals">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="submitLoading" @click="saveUser">
+            保存
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 详情 -->
+    <NModal
+      v-model:show="showDetModal"
+      :mask-closable="false"
+      :auto-focus="false"
+      :bordered="false"
+      preset="card"
+      title="用户详情"
+      style="width: 640px; max-width: calc(100vw - 32px);"
+    >
+      <template v-if="detUser" #header>
+        <div class="det-hd-user">
+          <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
+            {{ detUser.initials }}
+          </div>
+          <div class="min-w-0">
+            <div class="det-name">
+              {{ detUser.displayName }}
+            </div>
+            <div class="det-sub">
+              @{{ detUser.userName }}
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div v-if="detailLoading" class="modal-loading">
+        加载中…
+      </div>
+      <template v-else-if="detUser">
+        <div class="det-info-grid">
+            <div><span class="muted">语言/时区：</span>{{ detUser.language }} / {{ detUser.timeZone }}</div>
+            <div><span class="muted">国家：</span>{{ detUser.country }}</div>
+            <div><span class="muted">性别：</span>{{ detUser.gender }}</div>
+            <div><span class="muted">角色：</span>{{ detUser.roles.join('、') || '—' }}</div>
+            <div><span class="muted">部门：</span>{{ detUser.depts.join('、') || '—' }}</div>
+            <div v-if="detUser.remark" class="col-span-2">
+              <span class="muted">备注：</span>{{ detUser.remark }}
+            </div>
+          </div>
+          <div class="det-badges">
+            <span v-for="t in detUser.badges" :key="t.label" :class="['bdg', t.cls]">
+              <Icon :icon="t.icon" :size="12" />
+              {{ t.label }}
+            </span>
+          </div>
+          <div class="det-divider" />
+          <div class="det-sec">
+            <div class="det-sec-hd">
+              <Icon icon="tabler:chart-bar" :size="14" />
+              <span>行为统计（今日）</span>
+            </div>
+            <div class="det-stat-grid">
+              <div
+                v-for="m in detUser.metrics"
+                :key="m.label"
+                :class="['det-stat-card', m.cls]"
+              >
+                <div class="det-stat-top">
+                  <span class="det-stat-lbl">{{ m.label }}</span>
+                  <Icon :icon="m.icon" :size="13" />
+                </div>
+                <div class="det-stat-val">
+                  {{ m.value }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="det-sec-hd">
+            <Icon icon="tabler:device-desktop" :size="14" />
+            <span>登录会话</span>
+          </div>
+          <div v-if="detUser.online" class="s-row">
+            <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
+            <div class="flex-1 min-w-0">
+              <div class="session-title">
+                {{ detUser.sessionLabel }}
+              </div>
+              <div class="session-sub">
+                {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
+              </div>
+            </div>
+            <span class="bdg bdg-ok">在线</span>
+          </div>
+          <div v-else class="session-empty">
+            暂无活跃会话
+          </div>
+      </template>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="closeModals">
+            关闭
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 删除确认 -->
+    <NModal
+      v-model:show="showDelModal"
+      :mask-closable="false"
+      :auto-focus="false"
+      :bordered="false"
+      preset="card"
+      title="确认删除"
+      style="width: 420px; max-width: calc(100vw - 32px);"
+    >
+      <div class="del-body">
+        <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
+        <div>
+          <p class="del-title">
+            确定要删除用户 "<span class="name">{{ delTarget?.name }}</span>" 吗？
+          </p>
+          <p class="del-desc">
+            此操作为软删除，保留审计记录；删除前将吊销该用户全部会话。
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="closeModals">
+            取消
+          </NButton>
+          <NButton type="error" @click="confirmDelete">
+            确认删除
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -1058,325 +1302,516 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-.xh-user-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px 24px;
-  height: 100%;
+/* 表格单元格最多两行，避免行高过大 */
+.tbl-cell-2l {
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.tbl-cell-2l__primary,
+.tbl-cell-2l__secondary {
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.xh-page-header {
-  background: linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%);
-  border-radius: 14px;
-  padding: 24px 28px;
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-}
-
-.xh-page-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, rgba(255,255,255,.08) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-.xh-page-header::after {
-  content: '';
-  position: absolute;
-  bottom: -30%;
-  left: 20%;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(255,255,255,.05) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-.xh-page-header__content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.xh-page-header__title {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 4px;
-}
-
-.xh-page-header__desc {
-  font-size: 13px;
-  opacity: .75;
-  margin: 0;
-}
-
-.xh-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.xh-stat-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.04);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  transition: all .25s cubic-bezier(.16,1,.3,1);
-}
-
-.xh-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(0,0,0,.07);
-}
-
-.xh-stat-card__icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-  background: #eef2ff;
-  color: #6366f1;
-}
-
-.xh-stat-card__icon--green {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.xh-stat-card__icon--red {
-  background: #fef2f2;
-  color: #ef4444;
-}
-
-.xh-stat-card__icon--amber {
-  background: #fffbeb;
-  color: #d97706;
-}
-
-.xh-main-layout {
-  display: flex;
-  gap: 16px;
-  flex: 1;
-  min-height: 0;
-  align-items: flex-start;
-}
-
-.xh-dept-sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.04);
-  overflow: hidden;
-  position: sticky;
-  top: 20px;
-}
-
-.xh-dept-sidebar__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 16px 12px;
-  border-bottom: 1px solid var(--n-border-color);
-}
-
-.xh-dept-sidebar__title {
-  font-size: 14px;
-  font-weight: 700;
+.tbl-cell-2l__primary {
+  font-size: 12px;
   color: var(--n-text-color);
 }
 
-.xh-dept-node {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+.tbl-cell-2l__primary--strong {
   font-size: 13px;
-  color: var(--n-text-color-2);
-  cursor: pointer;
-  transition: all .15s ease;
-  border-radius: 0;
-}
-
-.xh-dept-node:hover {
-  background: var(--n-hover-color);
-  color: var(--n-text-color);
-}
-
-.xh-dept-node--active {
-  background: #eef2ff;
-  color: #4f46e5;
   font-weight: 600;
 }
 
-.xh-dept-node--small {
-  padding: 6px 16px 6px 24px;
-  font-size: 12px;
-}
-
-.xh-dept-node__arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  transition: transform .2s ease;
-}
-
-.xh-dept-node__arrow--expanded {
-  transform: rotate(90deg);
-}
-
-.xh-dept-node__count {
-  margin-left: auto;
+.tbl-cell-2l__secondary {
   font-size: 11px;
   color: var(--n-text-color-3);
 }
 
-.xh-dept-children {
-  border-left: 2px solid var(--n-border-color);
-  margin-left: 24px;
+.tbl-text-2l {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--n-text-color);
+  word-break: break-all;
 }
 
-.xh-main-content {
-  flex: 1;
-  min-width: 0;
+.tbl-cell-tags {
   display: flex;
-  flex-direction: column;
-  height: calc(100vh - 310px);
-}
-
-.xh-content-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.04);
-}
-
-.xh-filter-bar {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--n-border-color);
-}
-
-.xh-filter-bar__fields {
-  display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 4px;
   align-items: center;
+  max-height: calc(1.4em * 2 + 4px);
+  overflow: hidden;
 }
 
-.xh-batch-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
-  background: #eef2ff;
-  border-bottom: 1px solid #c7d2fe;
+.user-page :deep(.user-table .n-data-table-tbody .n-data-table-td) {
+  vertical-align: middle;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
-.xh-batch-bar__info {
-  font-size: 13px;
-  font-weight: 600;
-  color: #4f46e5;
+/* 区块标题、详情、空状态等图标语义色 */
+.user-page .sec-block-hd :deep(svg),
+.user-page .det-sec-hd :deep(svg) {
+  color: var(--n-primary-color);
 }
 
-.xh-pagination-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-top: 1px solid var(--n-border-color);
-  flex-shrink: 0;
+.user-page .det-stat-primary .det-stat-top :deep(svg) {
+  color: var(--n-primary-color);
 }
 
-.xh-pagination-bar__info {
-  font-size: 13px;
+.user-page .det-stat-info .det-stat-top :deep(svg) {
+  color: var(--n-info-color);
+}
+
+.user-page .det-stat-warning .det-stat-top :deep(svg) {
+  color: var(--n-warning-color);
+}
+
+.user-page .det-stat-muted .det-stat-top :deep(svg) {
   color: var(--n-text-color-3);
 }
 
-.xh-pagination-bar__info strong {
+.user-page .pick-chip :deep(svg) {
+  color: var(--n-text-color-3);
+}
+
+.user-page .pick-chip.on :deep(svg) {
+  color: var(--n-primary-color);
+}
+
+.user-page .empty-hint__ico {
+  color: var(--n-primary-color);
+}
+
+.user-page .session-ico {
+  color: var(--n-info-color);
+}
+
+.user-page .del-icon {
+  color: var(--n-warning-color);
+}
+
+.user-page .bdg :deep(svg) {
+  color: currentColor;
+}
+
+.list-hd {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  flex-shrink: 0;
+}
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin: 0 0 4px;
+  font-size: 12px;
   color: var(--n-text-color-2);
+  background: var(--n-info-color-suppl);
+  border-top: 1px solid var(--n-border-color);
+  border-bottom: 1px solid var(--n-border-color);
+}
+
+.batch-bar strong {
+  color: var(--n-info-color);
   font-weight: 600;
 }
 
-.xh-detail-avatar {
-  width: 36px;
-  height: 36px;
+.tbl-av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sys-tag {
+  font-size: 9px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  border-radius: 3px;
+  background: var(--n-warning-color-suppl);
+  color: var(--n-warning-color);
+}
+
+.empty-hint {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--n-text-color-3);
+}
+
+.empty-hint__ico {
+  display: block;
+  margin: 0 auto 8px;
+  opacity: 0.55;
+}
+
+/* 弹窗内容卡 */
+.modal-loading {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--n-text-color-3);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.sec-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sec-block-hd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--n-text-color-3);
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--n-border-color);
+  border-radius: var(--n-border-radius);
+  margin-bottom: 8px;
+  background: var(--n-action-color);
+}
+
+.form-row-block {
+  display: block;
+}
+
+.form-row-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.form-row-ico {
+  color: var(--n-primary-color);
+}
+
+.form-row-ico.warn {
+  color: var(--n-warning-color);
+}
+
+.form-row-ico.ok {
+  color: var(--n-success-color);
+}
+
+.lbl {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--n-text-color);
+}
+
+.sub {
+  font-size: 11px;
+  color: var(--n-text-color-3);
+  margin-top: 2px;
+}
+
+.pick-desc,
+.pick-summary {
+  font-size: 12px;
+  color: var(--n-text-color-3);
+  margin: 0 0 8px;
+}
+
+.pick-summary strong {
+  color: var(--n-primary-color);
+}
+
+.pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 12px;
+  background: var(--n-action-color);
+  border: 1px solid var(--n-border-color);
+  border-radius: var(--n-border-radius);
+  min-height: 48px;
+}
+
+.pick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--n-border-radius);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--n-border-color);
+  background: var(--n-card-color);
+  color: var(--n-text-color-2);
+  font-family: inherit;
+}
+
+.pick-chip.on {
+  background: var(--n-primary-color-suppl);
+  border-color: var(--n-primary-color);
+  color: var(--n-primary-color);
+}
+
+.max-dev-input {
+  width: 70px;
+}
+
+/* 详情 */
+.det-hd-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.av-lg {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
   flex-shrink: 0;
 }
 
-.xh-detail-section {
-  margin-bottom: 24px;
+.det-name {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--n-text-color);
 }
 
-.xh-detail-section__title {
-  font-size: 13px;
-  font-weight: 700;
+.det-sub {
+  font-size: 11px;
   color: var(--n-text-color-3);
-  text-transform: uppercase;
-  letter-spacing: .6px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--n-border-color);
 }
 
-.xh-detail-info-grid {
+.det-info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--n-text-color);
 }
 
-.xh-detail-info-item {
+.det-info-grid .col-span-2 {
+  grid-column: span 2;
+}
+
+.muted {
+  color: var(--n-text-color-3);
+}
+
+.det-badges {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 14px;
 }
 
-.xh-detail-info-label {
+.bdg {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--n-border-radius);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.bdg-ok {
+  color: var(--n-success-color);
+  background: var(--n-success-color-suppl);
+}
+
+.bdg-no {
+  color: var(--n-error-color);
+  background: var(--n-error-color-suppl);
+}
+
+.bdg-warn {
+  color: var(--n-warning-color);
+  background: var(--n-warning-color-suppl);
+}
+
+.bdg-info {
+  color: var(--n-info-color);
+  background: var(--n-info-color-suppl);
+}
+
+.bdg-gray {
+  color: var(--n-text-color-3);
+  background: var(--n-action-color);
+  border: 1px solid var(--n-border-color);
+}
+
+.det-divider {
+  height: 1px;
+  background: var(--n-border-color);
+  margin: 12px 0;
+}
+
+.det-sec-hd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--n-text-color-3);
+  margin-bottom: 8px;
+}
+
+.det-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.det-stat-card {
+  position: relative;
+  padding: 10px 11px;
+  background: var(--n-card-color);
+  border: 1px solid var(--n-border-color);
+  border-radius: var(--n-border-radius);
+  overflow: hidden;
+}
+
+.det-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--n-border-color);
+}
+
+.det-stat-primary::before {
+  background: var(--n-primary-color);
+}
+
+.det-stat-info::before {
+  background: var(--n-info-color);
+}
+
+.det-stat-warning::before {
+  background: var(--n-warning-color);
+}
+
+.det-stat-muted::before {
+  background: var(--n-text-color-3);
+}
+
+.det-stat-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--n-text-color-3);
+}
+
+.det-stat-lbl {
+  font-size: 10px;
+  color: var(--n-text-color-3);
+}
+
+.det-stat-val {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--n-text-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--n-border-color);
+  border-radius: var(--n-border-radius);
+  background: var(--n-action-color);
+}
+
+.session-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--n-text-color);
+}
+
+.session-sub {
+  font-size: 11px;
+  color: var(--n-text-color-3);
+}
+
+.session-empty {
   font-size: 12px;
   color: var(--n-text-color-3);
-  font-weight: 500;
+  padding: 8px 0;
 }
 
-.xh-detail-info-value {
+.session-ico {
+  color: var(--n-text-color-3);
+  flex-shrink: 0;
+}
+
+.del-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.del-icon {
+  color: var(--n-warning-color);
+  flex-shrink: 0;
+}
+
+.del-title {
+  margin: 0 0 8px;
+  font-weight: 500;
   font-size: 14px;
   color: var(--n-text-color);
-  font-weight: 500;
 }
 
-.xh-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 20px;
+.del-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--n-text-color-3);
+  line-height: 1.55;
 }
 
-.xh-form-grid [span="2"] {
-  grid-column: 1 / -1;
+.del-title .name {
+  color: var(--n-error-color);
 }
+
 </style>
+
