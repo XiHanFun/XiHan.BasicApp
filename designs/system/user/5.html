@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - XiHan Admin</title>
+    <style>
+        /* =========================================
+           CSS Reset & Variables (模拟 Naive UI 风格)
+           ========================================= */
+        :root {
+            --primary-color: #18a058;
+            /* Naive UI Green */
+            --primary-hover: #36ad6a;
+            --text-color: #333333;
+            --text-color-2: #666666;
+            --text-color-3: #999999;
+            --border-color: #eaeaea;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --danger-color: #d03050;
+            --warning-color: #f0a020;
+            --info-color: #2080f0;
+            --success-color: #18a058;
+            --radius: 6px;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* =========================================
+           Layout Components
+           ========================================= */
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--primary-color);
+        }
+
+        .nav-item {
+            padding: 10px 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--text-color-2);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(24, 160, 88, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            height: 60px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .breadcrumb {
+            color: var(--text-color-3);
+            font-size: 14px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* =========================================
+           UI Components (模拟 Naive UI)
+           ========================================= */
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            height: 32px;
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 6px;
+            color: #fff;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-default {
+            background-color: #fff;
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-default:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-text {
+            background: transparent;
+            color: var(--primary-color);
+            padding: 0 8px;
+        }
+
+        .btn-text:hover {
+            background: rgba(24, 160, 88, 0.1);
+        }
+
+        .btn-error {
+            background-color: var(--danger-color);
+        }
+
+        .btn-error:hover {
+            opacity: 0.8;
+        }
+
+        /* Inputs & Selects */
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .form-control {
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 14px;
+            min-width: 200px;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 160, 88, 0.2);
+        }
+
+        /* Table */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #fafafa;
+            color: var(--text-color-2);
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background-color: #fcfcfc;
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid;
+        }
+
+        .status-success {
+            background-color: rgba(24, 160, 88, 0.1);
+            border-color: rgba(24, 160, 88, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-error {
+            background-color: rgba(208, 48, 80, 0.1);
+            border-color: rgba(208, 48, 80, 0.2);
+            color: var(--danger-color);
+        }
+
+        .status-warning {
+            background-color: rgba(240, 160, 32, 0.1);
+            border-color: rgba(240, 160, 32, 0.2);
+            color: var(--warning-color);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 8px;
+        }
+
+        .page-item {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        .page-item.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .page-item:hover:not(.active) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* =========================================
+           Interactive Elements (Modal & Drawer)
+           ========================================= */
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-box {
+            background: #fff;
+            width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 12px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form Item */
+        .form-item {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .form-label::after {
+            content: "*";
+            color: var(--danger-color);
+            margin-left: 4px;
+            display: none;
+        }
+
+        .form-item.required .form-label::after {
+            display: inline;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        /* Drawer (Right Slide) */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 900;
+        }
+
+        .drawer-overlay.open {
+            display: block;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -600px;
+            width: 600px;
+            height: 100%;
+            background: #fff;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            z-index: 901;
+        }
+
+        .drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .drawer-body {
+            padding: 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Log Timeline Style */
+        .log-item {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .log-item::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 20px;
+            bottom: -20px;
+            width: 2px;
+            background: #f0f0f0;
+        }
+
+        .log-item:last-child::before {
+            display: none;
+        }
+
+        .log-item::after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 24px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 2px solid #fff;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .log-path {
+            font-family: monospace;
+            color: var(--info-color);
+            background: #f0f8ff;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .log-meta {
+            color: var(--text-color-3);
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            min-width: 300px;
+            padding: 12px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid var(--primary-color);
+            animation: slideIn 0.3s;
+        }
+
+        .toast-success {
+            border-left-color: var(--success-color);
+        }
+
+        .toast-error {
+            border-left-color: var(--danger-color);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <svg class="icon" viewBox="0 0 24 24" style="width:24px;height:24px;color:var(--primary-color)">
+                <path
+                    d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z" />
+            </svg>
+            XiHan<span>SaaS</span>
+        </div>
+        <nav>
+            <div class="nav-item">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                </svg>
+                仪表盘
+            </div>
+            <div class="nav-item active">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+                用户管理
+            </div>
+            <div class="nav-item">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                </svg>
+                部门架构
+            </div>
+            <div class="nav-item">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path
+                        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                </svg>
+                系统配置
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div class="breadcrumb">首页 / 系统管理 / <span style="color:var(--text-color)">用户管理</span></div>
+            <div class="user-profile">
+                <span>Admin</span>
+                <img src="https://picsum.photos/seed/admin/64/64" alt="Avatar" class="avatar">
+            </div>
+        </header>
+
+        <div class="content-area">
+            <div class="card">
+                <!-- Filters -->
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="输入用户名/姓名/手机号搜索...">
+                    <select id="deptFilter" class="form-control">
+                        <option value="">所有部门</option>
+                        <!-- Populated by JS -->
+                    </select>
+                    <select id="statusFilter" class="form-control">
+                        <option value="">所有状态</option>
+                        <option value="Enabled">启用</option>
+                        <option value="Disabled">停用</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="app.search()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path
+                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                        </svg>
+                        查询
+                    </button>
+                    <button class="btn btn-default" onclick="app.resetSearch()">重置</button>
+                    <div style="flex:1"></div>
+                    <button class="btn btn-primary" onclick="app.openModal()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                        新增用户
+                    </button>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th>用户信息</th>
+                                <th>所属部门</th>
+                                <th>手机/邮箱</th>
+                                <th>状态</th>
+                                <th>最后登录时间</th>
+                                <th style="text-align: right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Add/Edit User -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-box">
+            <div class="modal-header" id="modalTitle">新增用户</div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <div class="form-item required">
+                        <label class="form-label">用户名 (账号)</label>
+                        <input type="text" id="formUserName" class="form-control full-width" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-item required">
+                        <label class="form-label">真实姓名</label>
+                        <input type="text" id="formRealName" class="form-control full-width" placeholder="请输入真实姓名">
+                    </div>
+                    <div class="form-item required">
+                        <label class="form-label">所属部门</label>
+                        <select id="formDeptId" class="form-control full-width">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">手机号</label>
+                        <input type="text" id="formPhone" class="form-control full-width" placeholder="请输入手机号">
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label">邮箱</label>
+                        <input type="text" id="formEmail" class="form-control full-width" placeholder="请输入邮箱">
+                    </div>
+                    <div class="form-item required">
+                        <label class="form-label">状态</label>
+                        <select id="formStatus" class="form-control full-width">
+                            <option value="Enabled">启用</option>
+                            <option value="Disabled">停用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="app.closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="app.saveUser()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer: View Logs -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="app.closeDrawer()"></div>
+    <div class="drawer" id="logDrawer">
+        <div class="drawer-header">
+            <span>访问日志审计 (SysAccessLog)</span>
+            <button class="btn btn-text" onclick="app.closeDrawer()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+        <div class="drawer-body" id="logList">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        /**
+         * =========================================
+         * Mock Data & Helpers (Based on Entities)
+         * =========================================
+         */
+
+        // Enums from document
+        const DepartmentType = {
+            Corporation: 0, Headquarters: 1, Company: 2, Branch: 3, Division: 4,
+            Center: 5, Department: 6, Section: 7, Team: 8, Group: 9
+        };
+
+        const AccessResult = {
+            Success: 0, Failed: 1, Forbidden: 2, Unauthorized: 3, NotFound: 4, ServerError: 5
+        };
+
+        const EnableStatus = { Enabled: 'Enabled', Disabled: 'Disabled' };
+
+        // Helper to get enum key by value
+        function getEnumName(enumObj, value) {
+            return Object.keys(enumObj).find(key => enumObj[key] === value) || 'Unknown';
+        }
+
+        // Mock Departments (SysDepartment)
+        const departments = [
+            { id: 1, name: "XiHan 总部", code: "HQ001", type: DepartmentType.Headquarters },
+            { id: 2, name: "研发中心", code: "RD001", type: DepartmentType.Center, parentId: 1 },
+            { id: 3, name: "前端架构组", code: "FE001", type: DepartmentType.Group, parentId: 2 },
+            { id: 4, name: "后端服务组", code: "BE001", type: DepartmentType.Group, parentId: 2 },
+            { id: 5, name: "市场部", code: "MKT001", type: DepartmentType.Department, parentId: 1 },
+            { id: 6, name: "华东分公司", code: "BR_HD", type: DepartmentType.Branch, parentId: 1 }
+        ];
+
+        // Mock Users (SysUser - Inferred)
+        let users = Array.from({ length: 25 }, (_, i) => {
+            const dept = departments[Math.floor(Math.random() * departments.length)];
+            return {
+                id: i + 1,
+                userName: `user_${1000 + i}`,
+                realName: `用户 ${1000 + i}`,
+                deptId: dept.id,
+                deptName: dept.name,
+                phone: `13${Math.floor(Math.random() * 9)}0000${String(i).padStart(4, '0')}`,
+                email: `user${i}@xihan.com`,
+                status: Math.random() > 0.1 ? EnableStatus.Enabled : EnableStatus.Disabled,
+                lastLoginTime: new Date(Date.now() - Math.floor(Math.random() * 1000000000)),
+                avatarSeed: `user_${i}`
+            };
+        });
+
+        // Mock Logs Generator (SysAccessLog)
+        function generateLogs(userId, count = 5) {
+            const logs = [];
+            const methods = ['GET', 'POST', 'PUT', 'DELETE'];
+            const paths = ['/api/sys/user/list', '/api/sys/config/get', '/api/auth/login', '/api/sys/file/upload', '/api/sys/department/tree'];
+
+            for (let i = 0; i < count; i++) {
+                const resultKey = Object.keys(AccessResult)[Math.floor(Math.random() * Object.keys(AccessResult).length)];
+                const resultVal = AccessResult[resultKey];
+
+                logs.push({
+                    id: crypto.randomUUID(),
+                    userId: userId,
+                    traceId: crypto.randomUUID().split('-')[0].toUpperCase(),
+                    resourcePath: paths[Math.floor(Math.random() * paths.length)],
+                    method: methods[Math.floor(Math.random() * methods.length)],
+                    accessResult: resultVal,
+                    accessIp: `192.168.1.${Math.floor(Math.random() * 255)}`,
+                    accessTime: new Date(Date.now() - Math.floor(Math.random() * 100000000)),
+                    browser: "Chrome 120.0",
+                    os: "Windows 11"
+                });
+            }
+            return logs.sort((a, b) => b.accessTime - a.accessTime);
+        }
+
+        /**
+         * =========================================
+         * Application Logic
+         * =========================================
+         */
+        const app = {
+            state: {
+                currentPage: 1,
+                pageSize: 10,
+                filteredUsers: [],
+                currentUser: null, // For viewing logs
+                isEditing: false
+            },
+
+            init() {
+                this.state.filteredUsers = [...users];
+                this.populateDeptSelects();
+                this.renderTable();
+                this.renderPagination();
+
+                // Event Listeners
+                document.getElementById('searchInput').addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') this.search();
+                });
+            },
+
+            // --- Data Operations ---
+
+            search() {
+                const text = document.getElementById('searchInput').value.toLowerCase();
+                const deptId = document.getElementById('deptFilter').value;
+                const status = document.getElementById('statusFilter').value;
+
+                this.state.filteredUsers = users.filter(u => {
+                    const matchText = u.userName.toLowerCase().includes(text) ||
+                        u.realName.toLowerCase().includes(text) ||
+                        u.phone.includes(text);
+                    const matchDept = deptId ? u.deptId == deptId : true;
+                    const matchStatus = status ? u.status === status : true;
+                    return matchText && matchDept && matchStatus;
+                });
+
+                this.state.currentPage = 1;
+                this.renderTable();
+                this.renderPagination();
+                this.showToast('查询成功', 'success');
+            },
+
+            resetSearch() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('deptFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                this.state.filteredUsers = [...users];
+                this.state.currentPage = 1;
+                this.renderTable();
+                this.renderPagination();
+            },
+
+            saveUser() {
+                const id = document.getElementById('userId').value;
+                const userName = document.getElementById('formUserName').value;
+                const realName = document.getElementById('formRealName').value;
+                const deptId = parseInt(document.getElementById('formDeptId').value);
+                const phone = document.getElementById('formPhone').value;
+                const email = document.getElementById('formEmail').value;
+                const status = document.getElementById('formStatus').value;
+
+                if (!userName || !realName || !deptId) {
+                    this.showToast('请填写必填项', 'error');
+                    return;
+                }
+
+                const dept = departments.find(d => d.id === deptId);
+
+                if (this.state.isEditing && id) {
+                    // Update
+                    const index = users.findIndex(u => u.id == id);
+                    if (index > -1) {
+                        users[index] = { ...users[index], userName, realName, deptId, deptName: dept.name, phone, email, status };
+                        this.showToast('用户更新成功', 'success');
+                    }
+                } else {
+                    // Create
+                    const newUser = {
+                        id: users.length + 1,
+                        userName, realName, deptId, deptName: dept.name, phone, email, status,
+                        avatarSeed: `user_${Date.now()}`,
+                        lastLoginTime: new Date()
+                    };
+                    users.unshift(newUser);
+                    this.showToast('用户新增成功', 'success');
+                }
+
+                this.closeModal();
+                this.search(); // Refresh list
+            },
+
+            deleteUser(id) {
+                if (confirm('确认删除该用户吗？')) {
+                    users = users.filter(u => u.id !== id);
+                    this.search();
+                    this.showToast('用户已删除', 'success');
+                }
+            },
+
+            // --- Rendering ---
+
+            populateDeptSelects() {
+                const options = departments.map(d => `<option value="${d.id}">${d.name} (${getEnumName(DepartmentType, d.type)})</option>`).join('');
+                document.getElementById('deptFilter').innerHTML = `<option value="">所有部门</option>` + options;
+                document.getElementById('formDeptId').innerHTML = options;
+            },
+
+            renderTable() {
+                const tbody = document.getElementById('userTableBody');
+                const start = (this.state.currentPage - 1) * this.state.pageSize;
+                const end = start + this.state.pageSize;
+                const pageData = this.state.filteredUsers.slice(start, end);
+
+                if (pageData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#999;padding:40px;">暂无数据</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = pageData.map(u => {
+                    const statusClass = u.status === EnableStatus.Enabled ? 'status-success' : 'status-error';
+                    const statusText = u.status === EnableStatus.Enabled ? '启用' : '停用';
+                    const timeStr = u.lastLoginTime ? new Date(u.lastLoginTime).toLocaleString('zh-CN') : '-';
+
+                    return `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <img src="https://picsum.photos/seed/${u.avatarSeed}/40/40" class="avatar" style="width:32px;height:32px;">
+                                    <div>
+                                        <div style="font-weight:500;">${u.realName}</div>
+                                        <div style="font-size:12px;color:#999;">@${u.userName}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span style="background:#f0f2f5;padding:2px 6px;border-radius:4px;">${u.deptName}</span></td>
+                            <td>
+                                <div>${u.phone}</div>
+                                <div style="font-size:12px;color:#999;">${u.email}</div>
+                            </td>
+                            <td><span class="status-tag ${statusClass}">${statusText}</span></td>
+                            <td style="font-size:13px;color:#666;">${timeStr}</td>
+                            <td style="text-align: right;">
+                                <button class="btn btn-text" onclick="app.openDrawer(${u.id})">审计日志</button>
+                                <button class="btn btn-text" onclick="app.openModal(${u.id})">编辑</button>
+                                <button class="btn btn-text" style="color:var(--danger-color)" onclick="app.deleteUser(${u.id})">删除</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+
+            renderPagination() {
+                const total = Math.ceil(this.state.filteredUsers.length / this.state.pageSize);
+                const container = document.getElementById('pagination');
+                let html = '';
+
+                // Simple pagination logic
+                for (let i = 1; i <= total; i++) {
+                    if (i === 1 || i === total || (i >= this.state.currentPage - 1 && i <= this.state.currentPage + 1)) {
+                        const activeClass = i === this.state.currentPage ? 'active' : '';
+                        html += `<div class="page-item ${activeClass}" onclick="app.changePage(${i})">${i}</div>`;
+                    } else if (i === this.state.currentPage - 2 || i === this.state.currentPage + 2) {
+                        html += `<div class="page-item" style="border:none;cursor:default;">...</div>`;
+                    }
+                }
+                container.innerHTML = html;
+            },
+
+            changePage(page) {
+                this.state.currentPage = page;
+                this.renderTable();
+                this.renderPagination();
+            },
+
+            // --- Modals & Drawers ---
+
+            openModal(id = null) {
+                const modal = document.getElementById('userModal');
+                const title = document.getElementById('modalTitle');
+                const form = document.getElementById('userForm');
+
+                this.state.isEditing = !!id;
+
+                if (id) {
+                    title.innerText = '编辑用户';
+                    const user = users.find(u => u.id === id);
+                    document.getElementById('userId').value = user.id;
+                    document.getElementById('formUserName').value = user.userName;
+                    document.getElementById('formRealName').value = user.realName;
+                    document.getElementById('formDeptId').value = user.deptId;
+                    document.getElementById('formPhone').value = user.phone;
+                    document.getElementById('formEmail').value = user.email;
+                    document.getElementById('formStatus').value = user.status;
+                } else {
+                    title.innerText = '新增用户';
+                    form.reset();
+                    document.getElementById('userId').value = '';
+                    document.getElementById('formStatus').value = 'Enabled';
+                }
+
+                modal.classList.add('open');
+            },
+
+            closeModal() {
+                document.getElementById('userModal').classList.remove('open');
+            },
+
+            openDrawer(userId) {
+                const user = users.find(u => u.id === userId);
+                this.state.currentUser = user;
+
+                // Generate Mock Logs for this user based on SysAccessLog entity
+                const logs = generateLogs(userId, Math.floor(Math.random() * 5) + 3);
+
+                const list = document.getElementById('logList');
+                if (logs.length === 0) {
+                    list.innerHTML = '<div style="padding:24px;text-align:center;color:#999;">暂无日志记录</div>';
+                } else {
+                    list.innerHTML = logs.map(log => {
+                        let resultColor = 'var(--text-color-3)';
+                        let resultText = getEnumName(AccessResult, log.accessResult);
+
+                        if (log.accessResult === AccessResult.Success) { resultColor = 'var(--success-color)'; }
+                        else if (log.accessResult === AccessResult.Forbidden || log.accessResult === AccessResult.Unauthorized) { resultColor = 'var(--danger-color)'; }
+                        else { resultColor = 'var(--warning-color)'; }
+
+                        return `
+                            <div class="log-item">
+                                <div class="log-header">
+                                    <span class="log-path">${log.method} ${log.resourcePath}</span>
+                                    <span style="color:${resultColor};font-weight:bold;">${resultText}</span>
+                                </div>
+                                <div class="log-meta">
+                                    <span>时间: ${new Date(log.accessTime).toLocaleString('zh-CN')}</span>
+                                    <span>IP: ${log.accessIp}</span>
+                                    <span>Trace: ${log.traceId}</span>
+                                </div>
+                                <div class="log-meta">
+                                    <span>设备: ${log.os} / ${log.browser}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                document.getElementById('drawerOverlay').classList.add('open');
+                document.getElementById('logDrawer').classList.add('open');
+            },
+
+            closeDrawer() {
+                document.getElementById('drawerOverlay').classList.remove('open');
+                document.getElementById('logDrawer').classList.remove('open');
+            },
+
+            // --- Toast Notification ---
+
+            showToast(msg, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+
+                let icon = '';
+                if (type === 'success') icon = '<svg class="icon" style="color:var(--success-color)" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+                else if (type === 'error') icon = '<svg class="icon" style="color:var(--danger-color)" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+
+                toast.innerHTML = `${icon}<span>${msg}</span>`;
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100%)';
+                    toast.style.transition = 'all 0.3s';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+
+</html>
