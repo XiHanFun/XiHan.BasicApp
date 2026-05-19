@@ -11,6 +11,7 @@ import type {
 import {
   NButton,
   NCard,
+  NConfigProvider,
   NCascader,
   NDataTable,
   NDescriptions,
@@ -86,7 +87,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageS
 
 function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): CascaderOption[] {
   return nodes.map(node => ({
-    children: node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
+    children: node.children && node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
     label: node.departmentName,
     value: node.basicId,
   }))
@@ -321,10 +322,10 @@ function buildFormModel(row: DepartmentDetailDto | DepartmentListItemDto): DeptF
     departmentCode: row.departmentCode,
     departmentName: row.departmentName,
     departmentType: row.departmentType,
-    email: row.email ?? null,
+    email: 'email' in row ? row.email ?? null : null,
     leaderId: row.leaderId ?? null,
     parentId: row.parentId ?? null,
-    phone: row.phone ?? null,
+    phone: 'phone' in row ? row.phone ?? null : null,
     remark: 'remark' in row ? row.remark ?? null : null,
     sort: row.sort,
     status: row.status,
@@ -405,6 +406,7 @@ async function handleSubmit() {
         phone: normalizeNullable(deptForm.value.phone),
         remark: normalizeNullable(deptForm.value.remark),
         sort: deptForm.value.sort,
+        status: deptForm.value.status,
       }
       await orgManagementApi.update(updateInput)
     }
@@ -445,8 +447,9 @@ onMounted(async () => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <NInput
+    <div class="xh-query-panel mb-2 flex flex-wrap items-center gap-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+      <NConfigProvider size="small" abstract>
+        <NInput
         v-model:value="queryParams.keyword"
         clearable
         placeholder="搜索部门名称/编码"
@@ -479,6 +482,7 @@ onMounted(async () => {
         </template>
         重置
       </NButton>
+      </NConfigProvider>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
@@ -513,7 +517,7 @@ onMounted(async () => {
 
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
         <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+        <NPagination size="small" :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </NCard>
 
@@ -581,7 +585,7 @@ onMounted(async () => {
                       <td>{{ item.departmentName }}</td>
                       <td>{{ item.departmentCode }}</td>
                       <td>{{ getOptionLabel(deptTypeOptions, item.departmentType) }}</td>
-                      <td>{{ formatNullable(item.phone) }}</td>
+                      <td>{{ formatNullable('phone' in item ? item.phone : null) }}</td>
                       <td>{{ formatStatus(item.status) }}</td>
                     </tr>
                   </tbody>
@@ -606,7 +610,8 @@ onMounted(async () => {
       preset="card"
       style="width: 720px; max-width: 92vw"
     >
-      <NForm :model="deptForm" class="xh-edit-form-grid" label-placement="top">
+      <NConfigProvider size="small" abstract>
+        <NForm :model="deptForm" size="small" class="xh-edit-form-grid" label-placement="top">
         <NFormItem label="部门名称" path="departmentName">
           <NInput v-model:value="deptForm.departmentName" clearable placeholder="请输入部门名称" />
         </NFormItem>
@@ -646,14 +651,15 @@ onMounted(async () => {
         <NFormItem label="备注" path="remark">
           <NInput v-model:value="deptForm.remark" clearable placeholder="请输入备注" :rows="3" type="textarea" />
         </NFormItem>
-      </NForm>
+        </NForm>
+      </NConfigProvider>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
+          <NButton size="small" @click="modalVisible = false">
             取消
           </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
             保存
           </NButton>
         </NSpace>

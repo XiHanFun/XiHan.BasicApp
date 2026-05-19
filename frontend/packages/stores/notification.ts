@@ -1,3 +1,5 @@
+import type { NotificationStatus, NotificationType } from '../../src/api'
+import { NotificationStatus as NotificationStatusEnum } from '../../src/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -5,8 +7,8 @@ export interface NotificationItem {
   basicId: string
   title: string
   content?: string
-  notificationType: number
-  notificationStatus: number
+  notificationType: NotificationType
+  notificationStatus: NotificationStatus
   sendTime: string
   readTime?: string
   confirmTime?: string
@@ -21,7 +23,7 @@ export interface NotificationItem {
  * 未读 或 需要确认但尚未确认
  */
 function needsAttention(n: NotificationItem): boolean {
-  if (n.notificationStatus === 0)
+  if (n.notificationStatus === NotificationStatusEnum.Unread)
     return true
   return Boolean(n.needConfirm) && !n.confirmTime
 }
@@ -59,7 +61,7 @@ export const useNotificationStore = defineStore('notification', () => {
   function markItemRead(id: string) {
     const item = items.value.find(n => n.basicId === id)
     if (item) {
-      item.notificationStatus = 1
+      item.notificationStatus = NotificationStatusEnum.Read
       item.readTime = new Date().toISOString()
     }
   }
@@ -67,7 +69,7 @@ export const useNotificationStore = defineStore('notification', () => {
   function markItemConfirmed(id: string) {
     const item = items.value.find(n => n.basicId === id)
     if (item) {
-      item.notificationStatus = 1
+      item.notificationStatus = NotificationStatusEnum.Read
       item.readTime = item.readTime ?? new Date().toISOString()
       item.confirmTime = new Date().toISOString()
     }
@@ -75,8 +77,8 @@ export const useNotificationStore = defineStore('notification', () => {
 
   function markAllRead() {
     items.value.forEach((n) => {
-      if (n.notificationStatus === 0) {
-        n.notificationStatus = 1
+      if (n.notificationStatus === NotificationStatusEnum.Unread) {
+        n.notificationStatus = NotificationStatusEnum.Read
         n.readTime = new Date().toISOString()
       }
     })

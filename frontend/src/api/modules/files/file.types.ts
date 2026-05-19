@@ -1,49 +1,53 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { ResourceAccessLevel } from '../authorization'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FileStatus {
-  Normal = 0,
-  Uploading = 1,
-  UploadFailed = 2,
-  Processing = 3,
-  Deleted = 4,
-  Archived = 5,
-  Expired = 6,
-  Corrupted = 7,
-  Violation = 8,
+  Normal = 'Normal',
+  Uploading = 'Uploading',
+  UploadFailed = 'UploadFailed',
+  Processing = 'Processing',
+  Deleted = 'Deleted',
+  Archived = 'Archived',
+  Expired = 'Expired',
+  Corrupted = 'Corrupted',
+  Violation = 'Violation',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FileType {
-  Image = 0,
-  Document = 1,
-  Video = 2,
-  Audio = 3,
-  Archive = 4,
-  Other = 99,
+  Image = 'Image',
+  Document = 'Document',
+  Video = 'Video',
+  Audio = 'Audio',
+  Archive = 'Archive',
+  Other = 'Other',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FileStorageStatus {
-  Normal = 0,
-  Uploading = 1,
-  UploadFailed = 2,
-  Syncing = 3,
-  SyncFailed = 4,
-  PendingVerification = 5,
-  VerificationFailed = 6,
-  Expired = 7,
-  Deleted = 8,
-  Unavailable = 9,
+  Normal = 'Normal',
+  Uploading = 'Uploading',
+  UploadFailed = 'UploadFailed',
+  Syncing = 'Syncing',
+  SyncFailed = 'SyncFailed',
+  PendingVerification = 'PendingVerification',
+  VerificationFailed = 'VerificationFailed',
+  Expired = 'Expired',
+  Deleted = 'Deleted',
+  Unavailable = 'Unavailable',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FileStorageType {
-  Local = 0,
-  AliyunOss = 1,
-  TencentCos = 2,
-  Minio = 3,
-  Ftp = 10,
-  Sftp = 11,
-  WebDav = 12,
-  Custom = 99,
+  Local = 'Local',
+  AliyunOss = 'AliyunOss',
+  TencentCos = 'TencentCos',
+  Minio = 'Minio',
+  Ftp = 'Ftp',
+  Sftp = 'Sftp',
+  WebDav = 'WebDav',
+  Custom = 'Custom',
 }
 
 export interface FilePageQueryDto extends PageRequest {

@@ -970,6 +970,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
           共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
         </div>
         <NPagination
+          size="small"
           :page="currentPage"
           :page-count="totalPages"
           :page-slot="7"
@@ -992,7 +993,8 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       preset="card"
       style="width: 640px; max-width: calc(100vw - 32px);"
     >
-      <NTabs v-model:value="formTab" type="line" animated>
+      <NConfigProvider size="small" abstract>
+        <NTabs v-model:value="formTab" type="line" animated>
             <NTabPane name="0" tab="基本信息" display-directive="show">
               <div class="form-grid">
                 <NFormItem label="用户名 *" :show-feedback="false" label-style="font-size:11px;font-weight:500">
@@ -1153,14 +1155,15 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
                 </div>
               </div>
             </NTabPane>
-      </NTabs>
+        </NTabs>
+      </NConfigProvider>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="closeModals">
+          <NButton size="small" @click="closeModals">
             取消
           </NButton>
-          <NButton type="primary" :loading="submitLoading" @click="saveUser">
+          <NButton size="small" type="primary" :loading="submitLoading" @click="saveUser">
             保存
           </NButton>
         </NSpace>
@@ -1258,7 +1261,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="closeModals">
+          <NButton size="small" @click="closeModals">
             关闭
           </NButton>
         </NSpace>
@@ -1289,10 +1292,10 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="closeModals">
+          <NButton size="small" @click="closeModals">
             取消
           </NButton>
-          <NButton type="error" @click="confirmDelete">
+          <NButton size="small" type="error" @click="confirmDelete">
             确认删除
           </NButton>
         </NSpace>

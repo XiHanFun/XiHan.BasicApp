@@ -1,10 +1,11 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum DelegationStatus {
-  Pending = 0,
-  Active = 1,
-  Expired = 2,
-  Revoked = 3,
+  Pending = 'Pending',
+  Active = 'Active',
+  Expired = 'Expired',
+  Revoked = 'Revoked',
 }
 
 export interface PermissionDelegationPageQueryDto extends PageRequest {

@@ -3,18 +3,20 @@ import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum AuditResult {
-  Pass = 0,
-  Reject = 1,
-  Return = 2,
+  Pass = 'Pass',
+  Reject = 'Reject',
+  Return = 'Return',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum AuditStatus {
-  Pending = 0,
-  InProgress = 1,
-  Approved = 2,
-  Rejected = 3,
-  Withdrawn = 4,
+  Pending = 'Pending',
+  InProgress = 'InProgress',
+  Approved = 'Approved',
+  Rejected = 'Rejected',
+  Withdrawn = 'Withdrawn',
 }
 
 export interface ReviewPageQueryDto extends PageRequest {

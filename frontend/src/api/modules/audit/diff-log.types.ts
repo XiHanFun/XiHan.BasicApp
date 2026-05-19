@@ -1,23 +1,25 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum AuditRiskLevel {
-  Low = 1,
-  Medium = 2,
-  High = 3,
-  VeryHigh = 4,
-  Critical = 5,
+  Low = 'Low',
+  Medium = 'Medium',
+  High = 'High',
+  VeryHigh = 'VeryHigh',
+  Critical = 'Critical',
 }
 
+/** 与后端 OperationType 一致 */
 export enum AuditOperationType {
-  Login = 0,
-  Logout = 1,
-  Query = 2,
-  Create = 3,
-  Update = 4,
-  Delete = 5,
-  Import = 6,
-  Export = 7,
-  Other = 99,
+  Login = 'Login',
+  Logout = 'Logout',
+  Query = 'Query',
+  Create = 'Create',
+  Update = 'Update',
+  Delete = 'Delete',
+  Import = 'Import',
+  Export = 'Export',
+  Other = 'Other',
 }
 
 export interface DiffLogPageQueryDto extends PageRequest {

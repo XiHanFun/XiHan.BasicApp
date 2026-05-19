@@ -4,10 +4,11 @@ import type { TenantMemberType } from '../tenant'
 
 export { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum UserGender {
-  Unknown = 0,
-  Male = 1,
-  Female = 2,
+  Unknown = 'Unknown',
+  Male = 'Male',
+  Female = 'Female',
 }
 
 export interface UserPageQueryDto extends PageRequest {

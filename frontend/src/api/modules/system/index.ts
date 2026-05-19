@@ -18,9 +18,9 @@ import {
   userPermissionApi,
   userRoleApi,
 } from '../authorization'
-import { userApi, userSessionApi, userStatisticsApi } from '../identity'
+import { userApi, userSecurityApi, userSessionApi, userStatisticsApi } from '../identity'
 import { messageApi, notificationApi } from '../messaging'
-import { departmentApi } from '../organization'
+import { departmentApi, userDepartmentApi } from '../organization'
 
 const userManagementQueryApi = createDynamicApiClient('UserManagementQuery')
 const roleManagementQueryApi = createDynamicApiClient('RoleManagementQuery')
@@ -30,6 +30,8 @@ export const userManagementApi = {
   ...userApi,
   dataScopes: userDataScopeApi,
   departments: departmentApi,
+  security: userSecurityApi,
+  userDepartments: userDepartmentApi,
   detailView(id: ApiId) {
     return userManagementQueryApi.get<UserManagementDetailDto | null>(
       `UserManagementDetail/${formatDynamicApiRouteValue(id)}`,

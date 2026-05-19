@@ -1,9 +1,10 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString } from '../../types'
 import type { EnableStatus, PermissionType, ValidityStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum PermissionAction {
-  Grant = 0,
-  Deny = 1,
+  Grant = 'Grant',
+  Deny = 'Deny',
 }
 
 export interface RolePermissionListItemDto extends BasicDto {

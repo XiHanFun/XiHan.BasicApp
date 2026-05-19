@@ -1,0 +1,17 @@
+/* 管理页查询区布局（与用户页一致） */
+.xh-query-panel__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.xh-query-panel.flex {
+  flex-shrink: 0;
+}
+
+/* 编辑弹窗表单标签紧凑 */
+.xh-edit-form-grid .n-form-item-label {
+  font-size: 12px;
+  padding-bottom: 4px;
+}

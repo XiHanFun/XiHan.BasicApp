@@ -1,14 +1,15 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum PermissionChangeType {
-  RoleGrantPermission = 0,
-  RoleRevokePermission = 1,
-  UserGrantPermission = 2,
-  UserRevokePermission = 3,
-  UserAssignRole = 4,
-  UserRemoveRole = 5,
-  UserDenyPermission = 6,
-  RoleDenyPermission = 7,
+  RoleGrantPermission = 'RoleGrantPermission',
+  RoleRevokePermission = 'RoleRevokePermission',
+  UserGrantPermission = 'UserGrantPermission',
+  UserRevokePermission = 'UserRevokePermission',
+  UserAssignRole = 'UserAssignRole',
+  UserRemoveRole = 'UserRemoveRole',
+  UserDenyPermission = 'UserDenyPermission',
+  RoleDenyPermission = 'RoleDenyPermission',
 }
 
 export interface PermissionChangeLogPageQueryDto extends PageRequest {

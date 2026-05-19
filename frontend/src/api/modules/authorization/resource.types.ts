@@ -1,61 +1,67 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ResourceAccessLevel {
-  Public = 0,
-  Authenticated = 1,
-  Authorized = 2,
+  Public = 'Public',
+  Authenticated = 'Authenticated',
+  Authorized = 'Authorized',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ResourceType {
-  Api = 0,
-  File = 1,
-  DataTable = 2,
-  BusinessObject = 3,
-  Other = 99,
+  Api = 'Api',
+  File = 'File',
+  DataTable = 'DataTable',
+  BusinessObject = 'BusinessObject',
+  Other = 'Other',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FieldMaskStrategy {
-  None = 0,
-  Hidden = 1,
-  FullMask = 2,
-  PartialMask = 3,
-  Hash = 4,
-  Redact = 5,
-  Custom = 99,
+  None = 'None',
+  Hidden = 'Hidden',
+  FullMask = 'FullMask',
+  PartialMask = 'PartialMask',
+  Hash = 'Hash',
+  Redact = 'Redact',
+  Custom = 'Custom',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FieldSecurityTargetType {
-  Role = 0,
-  User = 1,
-  Permission = 2,
-  Department = 3,
+  Role = 'Role',
+  User = 'User',
+  Permission = 'Permission',
+  Department = 'Department',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConditionOperator {
-  Equals = 0,
-  NotEquals = 1,
-  GreaterThan = 2,
-  GreaterThanOrEquals = 3,
-  LessThan = 4,
-  LessThanOrEquals = 5,
-  Contains = 6,
-  NotContains = 7,
-  In = 8,
-  NotIn = 9,
-  Between = 10,
-  StartsWith = 11,
-  EndsWith = 12,
-  IsNull = 13,
-  IsNotNull = 14,
+  Equals = 'Equals',
+  NotEquals = 'NotEquals',
+  GreaterThan = 'GreaterThan',
+  GreaterThanOrEquals = 'GreaterThanOrEquals',
+  LessThan = 'LessThan',
+  LessThanOrEquals = 'LessThanOrEquals',
+  Contains = 'Contains',
+  NotContains = 'NotContains',
+  In = 'In',
+  NotIn = 'NotIn',
+  Between = 'Between',
+  StartsWith = 'StartsWith',
+  EndsWith = 'EndsWith',
+  IsNull = 'IsNull',
+  IsNotNull = 'IsNotNull',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConfigDataType {
-  String = 0,
-  Number = 1,
-  Boolean = 2,
-  Json = 3,
-  Array = 4,
+  String = 'String',
+  Number = 'Number',
+  Boolean = 'Boolean',
+  Json = 'Json',
+  Array = 'Array',
 }
 
 export interface ResourcePageQueryDto extends PageRequest {

@@ -1,24 +1,27 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum NotificationType {
-  System = 0,
-  User = 1,
-  Announcement = 2,
-  Warning = 3,
-  Error = 4,
+  System = 'System',
+  User = 'User',
+  Announcement = 'Announcement',
+  Warning = 'Warning',
+  Error = 'Error',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum NotificationTargetType {
-  All = 0,
-  Role = 1,
-  Department = 2,
-  User = 3,
+  All = 'All',
+  Role = 'Role',
+  Department = 'Department',
+  User = 'User',
 }
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum NotificationStatus {
-  Unread = 0,
-  Read = 1,
-  Deleted = 2,
+  Unread = 'Unread',
+  Read = 'Read',
+  Deleted = 'Deleted',
 }
 
 export interface NotificationPageQueryDto extends PageRequest {

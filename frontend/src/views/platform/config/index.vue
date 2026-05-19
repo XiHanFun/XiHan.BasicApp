@@ -9,6 +9,7 @@ import type {
 import {
   NButton,
   NCard,
+  NConfigProvider,
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
@@ -107,7 +108,7 @@ function createDefaultConfigForm(): ConfigFormModel {
     configGroup: null,
     configKey: '',
     configName: '',
-    configType: ConfigType.System,
+    configType: ConfigType.Application,
     configValue: null,
     dataType: ConfigDataType.String,
     defaultValue: null,
@@ -492,8 +493,9 @@ onMounted(() => fetchData())
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
+    <div class="xh-query-panel mb-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+      <NConfigProvider size="small" abstract>
+        <div class="xh-query-panel__content">
         <NInput
           v-model:value="queryParams.keyword"
           clearable
@@ -541,11 +543,12 @@ onMounted(() => fetchData())
           </template>
           重置
         </NButton>
-      </div>
+        </div>
+      </NConfigProvider>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <div style="padding:10px 16px;">
+      <div style="padding:12px 16px;flex-shrink:0;">
         <NButton size="small" type="primary" @click="handleAdd">
           <template #icon>
             <NIcon><Icon icon="lucide:plus" /></NIcon>
@@ -569,8 +572,12 @@ onMounted(() => fetchData())
         flex-height
         style="flex:1;"
       />
-      <div style="padding:10px 16px;display:flex;justify-content:flex-end;align-items:center;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
+        <div style="font-size:13px;color:var(--n-text-color-3);">
+          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+        </div>
         <NPagination
+          size="small"
           :page="currentPage"
           :page-size="pageSize"
           :page-count="totalPages"
@@ -651,7 +658,8 @@ onMounted(() => fetchData())
       preset="card"
       style="width: 720px; max-width: 92vw"
     >
-      <NForm :model="configForm" class="xh-edit-form-grid" label-placement="top">
+      <NConfigProvider size="small" abstract>
+        <NForm :model="configForm" size="small" class="xh-edit-form-grid" label-placement="top">
         <NFormItem label="配置名称" path="configName">
           <NInput v-model:value="configForm.configName" clearable placeholder="请输入配置名称" />
         </NFormItem>
@@ -702,14 +710,15 @@ onMounted(() => fetchData())
         <NFormItem v-if="!configForm.basicId" label="状态" path="status">
           <NSelect v-model:value="configForm.status" :options="statusOptions" />
         </NFormItem>
-      </NForm>
+        </NForm>
+      </NConfigProvider>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="modalVisible = false">
+          <NButton size="small" @click="modalVisible = false">
             取消
           </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
             保存
           </NButton>
         </NSpace>

@@ -1,16 +1,17 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 
+/** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum DeviceType {
-  Unknown = 0,
-  Web = 1,
-  IOS = 2,
-  Android = 3,
-  Windows = 4,
-  MacOS = 5,
-  Linux = 6,
-  Tablet = 7,
-  MiniProgram = 8,
-  Api = 9,
+  Unknown = 'Unknown',
+  Web = 'Web',
+  iOS = 'iOS',
+  Android = 'Android',
+  Windows = 'Windows',
+  macOS = 'macOS',
+  Linux = 'Linux',
+  Tablet = 'Tablet',
+  MiniProgram = 'MiniProgram',
+  Api = 'Api',
 }
 
 export interface UserSessionPageQueryDto extends PageRequest {

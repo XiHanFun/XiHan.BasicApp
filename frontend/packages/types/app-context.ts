@@ -9,6 +9,7 @@ import type {
   UserInfo,
   VerificationCodeResult,
 } from './auth'
+import type { NotificationStatus, NotificationType } from '../../src/api'
 import type {
   ChangeEmailParams,
   ChangePasswordParams,
@@ -80,8 +81,8 @@ export interface AppUserInboxItem {
   basicId: string
   title: string
   content?: null | string
-  notificationType: number
-  notificationStatus: number
+  notificationType: NotificationType
+  notificationStatus: NotificationStatus
   sendTime: string
   readTime?: null | string
   confirmTime?: null | string
