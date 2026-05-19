@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用户管理</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.0/dist/tabler-icons.min.css" />
+  <style>
+    /* 独立打开时的设计令牌回退（嵌入宿主页面时可被宿主变量覆盖） */
+    :root {
+      --color-text-primary: #0f172a;
+      --color-text-secondary: #64748b;
+      --color-text-success: #16a34a;
+      --color-text-danger: #dc2626;
+      --color-text-warning: #d97706;
+      --color-text-info: #2563eb;
+      --color-border-tertiary: #e2e8f0;
+      --color-border-secondary: #cbd5e1;
+      --color-border-danger: #fecaca;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f8fafc;
+      --color-background-success: #dcfce7;
+      --color-background-danger: #fee2e2;
+      --color-background-warning: #fef3c7;
+      --color-background-info: #dbeafe;
+      --border-radius-md: 6px;
+      --border-radius-lg: 10px;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text-primary);
+      background: var(--color-background-secondary)
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0
+    }
+
+    #ump * {
+      box-sizing: border-box
+    }
+
+    .u-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: fixed
+    }
+
+    .u-tbl th {
+      padding: 9px 10px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      border-bottom: .5px solid var(--color-border-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .04em
+    }
+
+    .u-tbl td {
+      padding: 9px 10px;
+      border-bottom: .5px solid var(--color-border-tertiary);
+      vertical-align: middle
+    }
+
+    .u-tbl tbody tr:hover td {
+      background: var(--color-background-secondary)
+    }
+
+    .bdg {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500
+    }
+
+    .bdg-ok {
+      background: var(--color-background-success);
+      color: var(--color-text-success)
+    }
+
+    .bdg-no {
+      background: var(--color-background-danger);
+      color: var(--color-text-danger)
+    }
+
+    .bdg-warn {
+      background: var(--color-background-warning);
+      color: var(--color-text-warning)
+    }
+
+    .bdg-info {
+      background: var(--color-background-info);
+      color: var(--color-text-info)
+    }
+
+    .bdg-gray {
+      background: var(--color-background-secondary);
+      color: var(--color-text-secondary);
+      border: .5px solid var(--color-border-tertiary)
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 13px;
+      border-radius: var(--border-radius-md);
+      font-size: 13px;
+      cursor: pointer;
+      border: .5px solid var(--color-border-secondary);
+      background: var(--color-background-primary);
+      color: var(--color-text-primary)
+    }
+
+    .btn:hover {
+      background: var(--color-background-secondary)
+    }
+
+    .btn-pri {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #fff
+    }
+
+    .btn-pri:hover {
+      background: #2563eb;
+      border-color: #2563eb
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 12px
+    }
+
+    .btn-red {
+      background: var(--color-background-danger);
+      border-color: var(--color-border-danger);
+      color: var(--color-text-danger)
+    }
+
+    .btn-red:hover {
+      opacity: .85
+    }
+
+    .av {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      flex-shrink: 0
+    }
+
+    .av-lg {
+      width: 40px;
+      height: 40px;
+      font-size: 13px
+    }
+
+    .fl {
+      display: flex;
+      align-items: center
+    }
+
+    .g2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .g4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px
+    }
+
+    .mc {
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 12px 14px
+    }
+
+    .mc-lbl {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 3px
+    }
+
+    .mc-val {
+      font-size: 21px;
+      font-weight: 500
+    }
+
+    .ibt {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--color-text-secondary)
+    }
+
+    .ibt:hover {
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary)
+    }
+
+    .fbl {
+      display: block;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 3px;
+      font-weight: 500
+    }
+
+    .fg {
+      margin-bottom: 12px
+    }
+
+    input[type=text],
+    input[type=email],
+    input[type=tel],
+    input[type=date],
+    input[type=number],
+    select,
+    textarea {
+      width: 100%;
+      font-size: 13px;
+      padding: 6px 10px;
+      border: .5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      background: var(--color-background-primary);
+      color: var(--color-text-primary)
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, .15)
+    }
+
+    .mo-card {
+      max-width: 640px
+    }
+
+    #mo-del.mo-card {
+      max-width: 420px
+    }
+
+    .tab-bar {
+      display: flex;
+      border-bottom: .5px solid var(--color-border-tertiary);
+      margin-bottom: 14px
+    }
+
+    .tbt {
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--color-text-secondary);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -.5px
+    }
+
+    .tbt.on {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+      font-weight: 500
+    }
+
+    .tpnl {
+      display: none
+    }
+
+    .tpnl.on {
+      display: block
+    }
+
+    .mo-card {
+      background: var(--color-background-primary);
+      border: .5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      width: 100%
+    }
+
+    .mo-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: .5px solid var(--color-border-tertiary)
+    }
+
+    .mo-bd {
+      padding: 18px;
+      max-height: 60vh;
+      overflow-y: auto
+    }
+
+    .mo-ft {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 18px;
+      border-top: .5px solid var(--color-border-tertiary)
+    }
+
+    .div {
+      height: .5px;
+      background: var(--color-border-tertiary);
+      margin: 12px 0
+    }
+
+    .tck {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      border: .5px solid var(--color-border-tertiary);
+      background: var(--color-background-primary);
+      color: var(--color-text-secondary)
+    }
+
+    .tck.on {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #1d4ed8
+    }
+
+    .pgbt {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--border-radius-md);
+      border: .5px solid var(--color-border-tertiary);
+      cursor: pointer;
+      font-size: 13px;
+      background: var(--color-background-primary);
+      color: var(--color-text-primary)
+    }
+
+    .pgbt:hover:not([disabled]) {
+      background: var(--color-background-secondary)
+    }
+
+    .pgbt.on {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #fff
+    }
+
+    .pgbt[disabled] {
+      opacity: .4;
+      cursor: default
+    }
+
+    .tgl {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 18px
+    }
+
+    .tgl input {
+      display: none
+    }
+
+    .tgl-s {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--color-border-secondary);
+      border-radius: 18px;
+      transition: .2s
+    }
+
+    .tgl-s:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: .2s
+    }
+
+    .tgl input:checked+.tgl-s {
+      background: #3b82f6
+    }
+
+    .tgl input:checked+.tgl-s:before {
+      transform: translateX(16px)
+    }
+
+    .sw-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border: .5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      margin-bottom: 10px
+    }
+
+    .sw-row .lbl {
+      font-weight: 500;
+      font-size: 13px
+    }
+
+    .sw-row .sub {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-top: 1px
+    }
+
+    .s-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border: .5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      margin-bottom: 7px
+    }
+
+    .trunc {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-size: 11px
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2 class="sr-only">系统用户管理页面，包含用户列表、新建/编辑弹窗、用户详情和删除确认功能</h2>
+
+  <div id="ump" style="position:relative;min-height:400px;padding:20px 24px;max-width:1200px;margin:0 auto">
+
+    <div id="v-main">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 14px">
+        <div>
+          <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px">系统管理 / 用户管理</div>
+          <div style="font-size:17px;font-weight:500">用户管理</div>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-sm" onclick="doRefresh()"><i class="ti ti-refresh" aria-hidden="true"></i> 刷新</button>
+          <button class="btn btn-pri btn-sm" onclick="openCreate()"><i class="ti ti-plus" aria-hidden="true"></i>
+            新建用户</button>
+        </div>
+      </div>
+
+      <div class="g4" style="margin-bottom:14px" id="stats-row"></div>
+
+      <div
+        style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:.5px solid var(--color-border-tertiary);margin-bottom:1px">
+        <input type="text" id="sch" placeholder="搜索用户名、姓名、邮箱…" oninput="applyF()" style="width:190px;font-size:13px" />
+        <select id="fs" onchange="applyF()" style="width:100px;font-size:13px">
+          <option value="">全部状态</option>
+          <option value="1">已启用</option>
+          <option value="0">已禁用</option>
+        </select>
+        <select id="fg" onchange="applyF()" style="width:90px;font-size:13px">
+          <option value="">全部性别</option>
+          <option value="1">男</option>
+          <option value="2">女</option>
+          <option value="0">未知</option>
+        </select>
+        <select id="fd" onchange="applyF()" style="width:100px;font-size:13px">
+          <option value="">全部部门</option>
+          <option>技术部</option>
+          <option>产品部</option>
+          <option>运营部</option>
+          <option>市场部</option>
+          <option>财务部</option>
+          <option>人事部</option>
+        </select>
+        <button class="btn btn-sm" onclick="resetF()"><i class="ti ti-x" aria-hidden="true"></i> 重置</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--color-text-secondary)" id="fcnt">共 15 条</span>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="u-tbl" aria-label="系统用户列表">
+          <thead>
+            <tr>
+              <th style="width:200px">用户信息</th>
+              <th style="width:165px">联系方式</th>
+              <th style="width:58px">性别</th>
+              <th style="width:88px">账号状态</th>
+              <th style="width:100px">安全标记</th>
+              <th style="width:130px">最后登录</th>
+              <th style="width:82px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="utbody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <span style="font-size:12px;color:var(--color-text-secondary)" id="pginfo"></span>
+        <div id="pgctrls" style="display:flex;gap:4px"></div>
+      </div>
+    </div>
+
+    <div id="ovl"
+      style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto">
+      <div id="mo-form" style="display:none" class="mo-card">
+        <div class="mo-hd">
+          <span style="font-weight:500;font-size:14px" id="mo-title">新建用户</span>
+          <button class="ibt" onclick="closeMo()" aria-label="关闭"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="mo-bd">
+          <div class="tab-bar">
+            <button class="tbt on" onclick="swTab(0)">基本信息</button>
+            <button class="tbt" onclick="swTab(1)">安全设置</button>
+            <button class="tbt" onclick="swTab(2)">角色权限</button>
+            <button class="tbt" onclick="swTab(3)">所属部门</button>
+          </div>
+          <div class="tpnl on" id="tp0">
+            <div class="g2">
+              <div class="fg"><label class="fbl">用户名 *</label><input type="text" id="f-un" placeholder="请输入用户名" /></div>
+              <div class="fg"><label class="fbl">真实姓名</label><input type="text" id="f-rn" placeholder="请输入真实姓名" /></div>
+              <div class="fg"><label class="fbl">昵称</label><input type="text" id="f-nn" placeholder="请输入昵称" /></div>
+              <div class="fg"><label class="fbl">邮箱</label><input type="email" id="f-em" placeholder="请输入邮箱" /></div>
+              <div class="fg"><label class="fbl">手机号</label><input type="tel" id="f-ph" placeholder="请输入手机号" /></div>
+              <div class="fg"><label class="fbl">性别</label><select id="f-gd">
+                  <option value="0">未知</option>
+                  <option value="1">男</option>
+                  <option value="2">女</option>
+                </select></div>
+              <div class="fg"><label class="fbl">生日</label><input type="date" id="f-bd" /></div>
+              <div class="fg"><label class="fbl">语言</label><select id="f-lg">
+                  <option value="zh-CN">简体中文</option>
+                  <option value="zh-TW">繁体中文</option>
+                  <option value="en-US">English</option>
+                  <option value="ja-JP">日本語</option>
+                </select></div>
+              <div class="fg"><label class="fbl">国家/地区</label><input type="text" id="f-co" placeholder="如：CN" /></div>
+              <div class="fg"><label class="fbl">时区</label><select id="f-tz">
+                  <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                  <option value="America/New_York">America/New_York (UTC-5)</option>
+                  <option value="Europe/London">Europe/London (UTC+0)</option>
+                </select></div>
+              <div class="fg"><label class="fbl">账号状态</label><select id="f-st">
+                  <option value="1">启用</option>
+                  <option value="0">禁用</option>
+                </select></div>
+            </div>
+            <div class="fg"><label class="fbl">备注</label><textarea id="f-rm" rows="2" placeholder="请输入备注信息"
+                style="resize:vertical"></textarea></div>
+          </div>
+          <div class="tpnl" id="tp1">
+            <div class="sw-row">
+              <div>
+                <div class="lbl">账号锁定</div>
+                <div class="sub">锁定后用户无法登录，需手动解锁或等待过期</div>
+              </div><label class="tgl"><input type="checkbox" id="f-lk" /><span class="tgl-s"></span></label>
+            </div>
+            <div class="sw-row">
+              <div>
+                <div class="lbl">双因素认证 (2FA)</div>
+                <div class="sub">启用后登录时需验证第二因素</div>
+              </div><label class="tgl"><input type="checkbox" id="f-2f" onchange="upd2fa()" /><span
+                  class="tgl-s"></span></label>
+            </div>
+            <div id="meth-box"
+              style="display:none;padding:10px 12px;border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:10px">
+              <div style="font-size:12px;font-weight:500;margin-bottom:7px">认证方式（可叠加）</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <label class="tck" id="tk-totp" onclick="togTck(this,'tk-totp')"><i class="ti ti-shield-check"
+                    aria-hidden="true"></i> TOTP</label>
+                <label class="tck" id="tk-email" onclick="togTck(this,'tk-email')"><i class="ti ti-mail"
+                    aria-hidden="true"></i> 邮箱验证码</label>
+                <label class="tck" id="tk-phone" onclick="togTck(this,'tk-phone')"><i class="ti ti-device-mobile"
+                    aria-hidden="true"></i> 短信验证码</label>
+              </div>
+            </div>
+            <div class="sw-row">
+              <div>
+                <div class="lbl">允许多端登录</div>
+                <div class="sub">关闭后新登录会踢出旧会话 (SysUserSession)</div>
+              </div><label class="tgl"><input type="checkbox" id="f-ml" checked /><span class="tgl-s"></span></label>
+            </div>
+            <div class="sw-row">
+              <div>
+                <div class="lbl">最大登录设备数</div>
+                <div class="sub">0 = 不限，超出则踢最旧会话</div>
+              </div><input type="number" id="f-md" value="0" min="0" max="99" style="width:70px;text-align:right" />
+            </div>
+          </div>
+          <div class="tpnl" id="tp2">
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">
+              选择要分配的角色（SysUserRole），可多选，权限取并集</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px" id="rl-list"></div>
+            <div class="div"></div>
+            <div style="font-size:11px;color:var(--color-text-secondary)"><i class="ti ti-info-circle"
+                aria-hidden="true"></i> EffectiveTime 为空立即生效，ExpirationTime 为空永不过期</div>
+          </div>
+          <div class="tpnl" id="tp3">
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">
+              选择所属部门（SysUserDepartment），可多选，影响数据权限范围</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px" id="dp-list"></div>
+            <div class="div"></div>
+            <div style="font-size:11px;color:var(--color-text-secondary)"><i class="ti ti-info-circle"
+                aria-hidden="true"></i> 用户级 DataScope (SysUserDataScope) 优先于角色级数据权限</div>
+          </div>
+        </div>
+        <div class="mo-ft">
+          <button class="btn btn-sm" onclick="closeMo()">取消</button>
+          <button class="btn btn-pri btn-sm" onclick="saveUser()"><i class="ti ti-check" aria-hidden="true"></i>
+            保存</button>
+        </div>
+      </div>
+
+      <div id="mo-det" style="display:none" class="mo-card">
+        <div class="mo-hd">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="det-av" class="av av-lg"></div>
+            <div>
+              <div style="font-weight:500;font-size:14px" id="det-nm"></div>
+              <div style="font-size:11px;color:var(--color-text-secondary)" id="det-un"></div>
+            </div>
+          </div>
+          <button class="ibt" onclick="closeMo()" aria-label="关闭"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="mo-bd" id="det-body"></div>
+        <div class="mo-ft">
+          <button class="btn btn-sm" id="det-lkbtn" onclick="doTogLock()"></button>
+          <button class="btn btn-sm btn-red" onclick="doForceLogout()"><i class="ti ti-logout" aria-hidden="true"></i>
+            强制下线</button>
+          <button class="btn btn-sm" onclick="openEditFromDet()"><i class="ti ti-edit" aria-hidden="true"></i>
+            编辑</button>
+          <button class="btn btn-sm" onclick="closeMo()">关闭</button>
+        </div>
+      </div>
+
+      <div id="mo-del" style="display:none" class="mo-card">
+        <div class="mo-hd">
+          <span style="font-weight:500;font-size:14px">确认删除</span>
+          <button class="ibt" onclick="closeMo()" aria-label="关闭"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="mo-bd">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="color:#f97316;font-size:26px;flex-shrink:0"><i class="ti ti-alert-triangle"
+                aria-hidden="true"></i></div>
+            <div>
+              <p style="margin:0 0 7px;font-weight:500;font-size:14px">确定要删除用户 "<span id="del-un"
+                  style="color:#ef4444"></span>" 吗？</p>
+              <p style="margin:0;font-size:12px;color:var(--color-text-secondary)">
+                此操作为软删除（IsDeleted=1），保留审计记录。删除前系统将自动吊销所有 SysUserSession 及 Token，SysTenantUser 全部置为 Revoked。</p>
+            </div>
+          </div>
+        </div>
+        <div class="mo-ft">
+          <button class="btn btn-sm" onclick="closeMo()">取消</button>
+          <button class="btn btn-sm btn-red" onclick="confirmDel()"><i class="ti ti-trash" aria-hidden="true"></i>
+            确认删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ROLES = ['超级管理员', '租户管理员', '普通用户', '访客', '数据分析师', '运营专员', '财务专员'];
+    const DEPTS = ['技术部', '产品部', '运营部', '市场部', '财务部', '人事部'];
+    const GMAP = { 0: { l: '未知', c: 'bdg-gray' }, 1: { l: '男', c: 'bdg-info' }, 2: { l: '女', c: 'bdg-warn' } };
+    const SMAP = { 1: { l: '已启用', c: 'bdg-ok' }, 0: { l: '已禁用', c: 'bdg-no' } };
+    const ACS = [{ bg: '#dbeafe', fg: '#1d4ed8' }, { bg: '#dcfce7', fg: '#16a34a' }, { bg: '#fef3c7', fg: '#d97706' }, { bg: '#fce7f3', fg: '#db2777' }, { bg: '#e0e7ff', fg: '#6366f1' }, { bg: '#ccfbf1', fg: '#0d9488' }, { bg: '#fee2e2', fg: '#dc2626' }];
+    function ac(n) { return ACS[n.charCodeAt(0) % ACS.length] }
+    function ini(u) { return (u.realName || u.userName).substring(0, 2) }
+    function fmtM(m) { const r = []; if (m & 1) r.push('TOTP'); if (m & 2) r.push('邮箱'); if (m & 4) r.push('短信'); return r.join('+') || '—' }
+
+    const D = [
+      { id: 1, userName: 'admin', realName: '翟凡华', nickName: '超管', email: 'me@zhaifanhua.com', phone: '138-0013-8000', gender: 1, birthday: '1990-01-15', status: 1, isActive: true, lastLoginTime: '2026-05-19 10:30', lastLoginIp: '192.168.1.100', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: true, remark: '系统内置超级管理员', isLocked: false, twoFa: true, twoFaMeth: 3, failCnt: 0, emailV: true, phoneV: true, multiLogin: true, maxDev: 0, roles: ['超级管理员'], depts: ['技术部'], loginCnt: 248, accCnt: 1520, onlineT: 86400, online: true },
+      { id: 2, userName: 'zhang.san', realName: '张三', nickName: '小张', email: 'zhang@example.com', phone: '139-0023-9001', gender: 1, birthday: '1992-06-20', status: 1, isActive: true, lastLoginTime: '2026-05-19 09:15', lastLoginIp: '10.0.0.15', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: false, twoFa: true, twoFaMeth: 2, failCnt: 0, emailV: true, phoneV: false, multiLogin: true, maxDev: 3, roles: ['租户管理员'], depts: ['技术部'], loginCnt: 156, accCnt: 890, onlineT: 43200, online: true },
+      { id: 3, userName: 'li.si', realName: '李四', nickName: null, email: 'lisi@example.com', phone: '137-0034-7002', gender: 1, birthday: '1995-03-08', status: 1, isActive: true, lastLoginTime: '2026-05-18 17:45', lastLoginIp: '10.0.0.22', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '产品组长', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 0, emailV: true, phoneV: true, multiLogin: false, maxDev: 1, roles: ['普通用户', '数据分析师'], depts: ['产品部'], loginCnt: 92, accCnt: 540, onlineT: 28800, online: false },
+      { id: 4, userName: 'wang.wu', realName: '王五', nickName: '阿五', email: 'wangwu@example.com', phone: '136-0045-6003', gender: 1, birthday: '1988-11-25', status: 1, isActive: true, lastLoginTime: '2026-05-19 08:00', lastLoginIp: '10.0.1.5', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: true, twoFa: true, twoFaMeth: 7, failCnt: 5, emailV: true, phoneV: true, multiLogin: true, maxDev: 0, roles: ['运营专员'], depts: ['运营部'], loginCnt: 204, accCnt: 1100, onlineT: 57600, online: false },
+      { id: 5, userName: 'zhao.liu', realName: '赵六', nickName: '小赵', email: 'zhaoliu@example.com', phone: '135-0056-5004', gender: 2, birthday: '1993-07-12', status: 1, isActive: true, lastLoginTime: '2026-05-19 11:20', lastLoginIp: '10.0.0.88', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 0, emailV: true, phoneV: false, multiLogin: true, maxDev: 2, roles: ['普通用户'], depts: ['市场部'], loginCnt: 78, accCnt: 320, onlineT: 14400, online: true },
+      { id: 6, userName: 'chen.qi', realName: '陈七', nickName: null, email: 'chenqi@example.com', phone: '134-0067-4005', gender: 2, birthday: '1996-01-30', status: 0, isActive: true, lastLoginTime: '2026-05-10 14:30', lastLoginIp: '10.0.0.45', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '账号已停用', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 0, emailV: false, phoneV: true, multiLogin: false, maxDev: 1, roles: ['财务专员'], depts: ['财务部'], loginCnt: 45, accCnt: 210, onlineT: 7200, online: false },
+      { id: 7, userName: 'liu.ba', realName: '刘八', nickName: '老刘', email: 'liuba@example.com', phone: '133-0078-3006', gender: 1, birthday: '1985-09-18', status: 1, isActive: false, lastLoginTime: '2026-04-28 09:00', lastLoginIp: '10.0.2.11', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '邮箱待验证', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 2, emailV: false, phoneV: false, multiLogin: true, maxDev: 0, roles: ['访客'], depts: ['人事部'], loginCnt: 12, accCnt: 50, onlineT: 3600, online: false },
+      { id: 8, userName: 'sun.jiu', realName: '孙九', nickName: '小孙', email: 'sunjiu@example.com', phone: '132-0089-2007', gender: 2, birthday: '1997-04-05', status: 1, isActive: true, lastLoginTime: '2026-05-19 07:30', lastLoginIp: '10.0.0.99', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: false, twoFa: true, twoFaMeth: 1, failCnt: 0, emailV: true, phoneV: true, multiLogin: true, maxDev: 5, roles: ['数据分析师'], depts: ['技术部', '产品部'], loginCnt: 134, accCnt: 780, onlineT: 36000, online: true },
+      { id: 9, userName: 'zhou.shi', realName: '周十', nickName: null, email: 'zhoushi@example.com', phone: '131-0090-1008', gender: 1, birthday: '1991-12-22', status: 1, isActive: true, lastLoginTime: '2026-05-16 16:00', lastLoginIp: '10.0.1.77', timeZone: 'Asia/Tokyo', language: 'ja-JP', country: 'JP', isSystem: false, remark: '海外员工', isLocked: false, twoFa: true, twoFaMeth: 6, failCnt: 1, emailV: true, phoneV: false, multiLogin: false, maxDev: 2, roles: ['普通用户'], depts: ['技术部'], loginCnt: 67, accCnt: 340, onlineT: 18000, online: false },
+      { id: 10, userName: 'wu.shi1', realName: '吴十一', nickName: '小吴', email: 'wushi1@example.com', phone: '130-0101-0009', gender: 2, birthday: '1994-08-09', status: 1, isActive: true, lastLoginTime: '2026-05-19 12:00', lastLoginIp: '10.0.0.200', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: true, twoFa: false, twoFaMeth: 0, failCnt: 10, emailV: true, phoneV: true, multiLogin: true, maxDev: 0, roles: ['运营专员'], depts: ['运营部', '市场部'], loginCnt: 89, accCnt: 430, onlineT: 21600, online: false },
+      { id: 11, userName: 'zheng.shi2', realName: '郑十二', nickName: null, email: 'zhengshi2@example.com', phone: '189-1112-0010', gender: 1, birthday: '1989-02-14', status: 0, isActive: true, lastLoginTime: '2026-03-15 10:00', lastLoginIp: '10.0.3.55', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '已离职', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 0, emailV: true, phoneV: false, multiLogin: false, maxDev: 1, roles: ['普通用户'], depts: ['财务部'], loginCnt: 231, accCnt: 1200, onlineT: 72000, online: false },
+      { id: 12, userName: 'wei.shi3', realName: '魏十三', nickName: '阿伟', email: 'weishi3@example.com', phone: '188-1213-0011', gender: 1, birthday: '1998-05-16', status: 1, isActive: true, lastLoginTime: '2026-05-18 20:00', lastLoginIp: '10.0.0.150', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: false, twoFa: true, twoFaMeth: 2, failCnt: 0, emailV: true, phoneV: true, multiLogin: true, maxDev: 3, roles: ['租户管理员', '数据分析师'], depts: ['技术部'], loginCnt: 185, accCnt: 950, onlineT: 48000, online: true },
+      { id: 13, userName: 'xie.shi4', realName: '谢十四', nickName: null, email: 'xieshi4@example.com', phone: '187-1314-0012', gender: 2, birthday: '1993-10-03', status: 1, isActive: true, lastLoginTime: '2026-05-17 14:45', lastLoginIp: '10.0.0.175', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 0, emailV: false, phoneV: true, multiLogin: true, maxDev: 0, roles: ['普通用户'], depts: ['人事部'], loginCnt: 43, accCnt: 180, onlineT: 9000, online: false },
+      { id: 14, userName: 'han.shi5', realName: '韩十五', nickName: '大韩', email: 'hanshi5@example.com', phone: '186-1415-0013', gender: 1, birthday: '1987-07-28', status: 1, isActive: true, lastLoginTime: '2026-05-19 09:50', lastLoginIp: '10.0.1.200', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '财务总监', isLocked: true, twoFa: true, twoFaMeth: 3, failCnt: 3, emailV: true, phoneV: true, multiLogin: false, maxDev: 2, roles: ['财务专员', '租户管理员'], depts: ['财务部'], loginCnt: 112, accCnt: 620, onlineT: 30000, online: false },
+      { id: 15, userName: 'tang.shi6', realName: '唐十六', nickName: '小唐', email: 'tangshi6@example.com', phone: '185-1516-0014', gender: 2, birthday: '1999-12-01', status: 1, isActive: false, lastLoginTime: '2026-05-01 11:00', lastLoginIp: '10.0.0.50', timeZone: 'Asia/Shanghai', language: 'zh-CN', country: 'CN', isSystem: false, remark: '新员工待激活', isLocked: false, twoFa: false, twoFaMeth: 0, failCnt: 0, emailV: false, phoneV: false, multiLogin: true, maxDev: 0, roles: ['访客'], depts: ['市场部'], loginCnt: 3, accCnt: 15, onlineT: 1800, online: false },
+    ];
+
+    let filtered = [...D]; let page = 1; const PS = 10; let editId = null; let delId = null; let detId = null;
+    let selRoles = []; let selDepts = [];
+
+    function rStats() {
+      const r = `<div class="mc"><div class="mc-lbl"><i class="ti ti-users" aria-hidden="true"></i> 总用户数</div><div class="mc-val">${D.length}</div></div>
+  <div class="mc"><div class="mc-lbl"><i class="ti ti-circle-check" aria-hidden="true"></i> 已激活</div><div class="mc-val" style="color:#22c55e">${D.filter(u => u.isActive && u.status === 1).length}</div></div>
+  <div class="mc"><div class="mc-lbl"><i class="ti ti-lock" aria-hidden="true"></i> 已锁定</div><div class="mc-val" style="color:#f97316">${D.filter(u => u.isLocked).length}</div></div>
+  <div class="mc"><div class="mc-lbl"><i class="ti ti-wifi" aria-hidden="true"></i> 在线用户</div><div class="mc-val" style="color:#3b82f6">${D.filter(u => u.online).length}</div></div>`;
+      document.getElementById('stats-row').innerHTML = r;
+    }
+
+    function rTable() {
+      const sl = filtered.slice((page - 1) * PS, page * PS);
+      const tb = document.getElementById('utbody');
+      if (!sl.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--color-text-secondary)"><i class="ti ti-users-group" style="font-size:28px;display:block;margin-bottom:6px" aria-hidden="true"></i>暂无匹配用户</td></tr>`; return; }
+      tb.innerHTML = sl.map(u => {
+        const c = ac(u.userName);
+        const si = SMAP[u.status]; const gi = GMAP[u.gender];
+        const sec = [];
+        if (u.isLocked) sec.push(`<span title="账号已锁定" style="color:#f97316"><i class="ti ti-lock" aria-hidden="true"></i></span>`);
+        if (!u.isActive) sec.push(`<span title="未激活(邮箱/手机未验证)" style="color:#94a3b8"><i class="ti ti-clock-pause" aria-hidden="true"></i></span>`);
+        if (u.twoFa) sec.push(`<span title="2FA: ${fmtM(u.twoFaMeth)}" style="color:#22c55e"><i class="ti ti-shield-check" aria-hidden="true"></i></span>`);
+        if (u.failCnt > 0) sec.push(`<span title="失败登录${u.failCnt}次" style="color:#f59e0b"><i class="ti ti-alert-triangle" aria-hidden="true"></i></span>`);
+        if (u.online) sec.push(`<span title="当前在线" style="color:#3b82f6"><i class="ti ti-wifi" aria-hidden="true"></i></span>`);
+        return `<tr>
+<td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${c.bg};color:${c.fg}">${ini(u)}</div><div><div style="font-weight:500;font-size:13px" class="trunc">${u.realName || u.userName}${u.isSystem ? ` <span style="font-size:9px;padding:1px 4px;background:#fef9c3;color:#a16207;border-radius:3px">系统</span>` : ''}</div><div class="mono" style="color:var(--color-text-secondary)">@${u.userName}</div></div></div></td>
+<td><div style="font-size:12px" class="trunc">${u.email || '<span style="color:var(--color-text-secondary)">—</span>'}</div><div style="font-size:11px;color:var(--color-text-secondary)">${u.phone || '—'}</div></td>
+<td><span class="bdg ${gi.c}">${gi.l}</span></td>
+<td><span class="bdg ${si.c}">${si.l}</span>${!u.isActive ? `<div style="font-size:10px;color:#94a3b8;margin-top:2px">未激活</div>` : ''}</td>
+<td><div style="display:flex;gap:5px;font-size:15px">${sec.join('') || '<span style="color:var(--color-text-secondary)">—</span>'}</div></td>
+<td><div style="font-size:12px">${u.lastLoginTime || '<span style="color:var(--color-text-secondary)">从未登录</span>'}</div><div style="font-size:11px;color:var(--color-text-secondary)">${u.lastLoginIp || ''}</div></td>
+<td><div style="display:flex;gap:3px"><button class="ibt" title="查看详情" onclick="openDet(${u.id})"><i class="ti ti-eye" aria-hidden="true"></i></button><button class="ibt" title="编辑用户" onclick="openEdit(${u.id})"><i class="ti ti-edit" aria-hidden="true"></i></button><button class="ibt" title="删除用户" onclick="openDel(${u.id})" ${u.isSystem ? 'disabled style="opacity:.3;cursor:not-allowed"' : ''} style="color:var(--color-text-danger)"><i class="ti ti-trash" aria-hidden="true"></i></button></div></td>
+</tr>`;
+      }).join('');
+    }
+
+    function rPage() {
+      const total = filtered.length; const tp = Math.max(1, Math.ceil(total / PS));
+      const s = Math.min((page - 1) * PS + 1, total); const e = Math.min(page * PS, total);
+      document.getElementById('pginfo').textContent = `第 ${s}–${e} 条，共 ${total} 条`;
+      let h = `<button class="pgbt" onclick="goP(${page - 1})" ${page <= 1 ? 'disabled' : ''} aria-label="上一页"><i class="ti ti-chevron-left"></i></button>`;
+      for (let i = 1; i <= tp; i++) {
+        if (tp <= 7 || i === 1 || i === tp || Math.abs(i - page) <= 1) h += `<button class="pgbt ${i === page ? 'on' : ''}" onclick="goP(${i})">${i}</button>`;
+        else if (Math.abs(i - page) === 2) h += `<span style="padding:0 3px;color:var(--color-text-secondary)">…</span>`;
+      }
+      h += `<button class="pgbt" onclick="goP(${page + 1})" ${page >= tp ? 'disabled' : ''} aria-label="下一页"><i class="ti ti-chevron-right"></i></button>`;
+      document.getElementById('pgctrls').innerHTML = h;
+    }
+
+    function applyF() {
+      const s = (document.getElementById('sch').value || '').toLowerCase();
+      const st = document.getElementById('fs').value;
+      const gd = document.getElementById('fg').value;
+      const dp = document.getElementById('fd').value;
+      filtered = D.filter(u => {
+        if (s && !u.userName.toLowerCase().includes(s) && !(u.realName && u.realName.toLowerCase().includes(s)) && !(u.email && u.email.toLowerCase().includes(s))) return false;
+        if (st !== '' && u.status !== parseInt(st)) return false;
+        if (gd !== '' && u.gender !== parseInt(gd)) return false;
+        if (dp && !u.depts.includes(dp)) return false;
+        return true;
+      });
+      page = 1; rTable(); rPage(); document.getElementById('fcnt').textContent = `共 ${filtered.length} 条`;
+    }
+    function resetF() { document.getElementById('sch').value = ''; document.getElementById('fs').value = ''; document.getElementById('fg').value = ''; document.getElementById('fd').value = ''; applyF(); }
+    function goP(p) { const tp = Math.ceil(filtered.length / PS); if (p < 1 || p > tp) return; page = p; rTable(); rPage(); }
+    function doRefresh() { resetF(); rStats(); }
+
+    function showOvl(id) {
+      const ovl = document.getElementById('ovl'); ovl.style.display = 'flex';
+      ['mo-form', 'mo-det', 'mo-del'].forEach(x => document.getElementById(x).style.display = x === id ? 'block' : 'none');
+      document.getElementById('ump').style.minHeight = '800px';
+    }
+    function closeMo() { document.getElementById('ovl').style.display = 'none'; document.getElementById('ump').style.minHeight = '400px'; }
+
+    function rRoles() { document.getElementById('rl-list').innerHTML = ROLES.map(r => `<label class="tck ${selRoles.includes(r) ? 'on' : ''}" id="rl-${r}" onclick="togRole('${r}')"><i class="ti ti-user-check" aria-hidden="true"></i> ${r}</label>`).join(''); }
+    function rDepts() { document.getElementById('dp-list').innerHTML = DEPTS.map(d => `<label class="tck ${selDepts.includes(d) ? 'on' : ''}" id="dp-${d}" onclick="togDept('${d}')"><i class="ti ti-building" aria-hidden="true"></i> ${d}</label>`).join(''); }
+    function togRole(r) { const i = selRoles.indexOf(r); if (i >= 0) selRoles.splice(i, 1); else selRoles.push(r); document.getElementById(`rl-${r}`).className = 'tck ' + (selRoles.includes(r) ? 'on' : ''); }
+    function togDept(d) { const i = selDepts.indexOf(d); if (i >= 0) selDepts.splice(i, 1); else selDepts.push(d); document.getElementById(`dp-${d}`).className = 'tck ' + (selDepts.includes(d) ? 'on' : ''); }
+    function togTck(el) { el.classList.toggle('on'); }
+    function upd2fa() { document.getElementById('meth-box').style.display = document.getElementById('f-2f').checked ? 'block' : 'none'; }
+    function swTab(n) { document.querySelectorAll('.tbt').forEach((b, i) => b.classList.toggle('on', i === n)); document.querySelectorAll('.tpnl').forEach((p, i) => p.classList.toggle('on', i === n)); }
+
+    function resetForm() {
+      ['f-un', 'f-rn', 'f-nn', 'f-em', 'f-ph', 'f-co', 'f-rm'].forEach(x => { const e = document.getElementById(x); if (e) e.value = ''; });
+      document.getElementById('f-gd').value = '0'; document.getElementById('f-lg').value = 'zh-CN';
+      document.getElementById('f-tz').value = 'Asia/Shanghai'; document.getElementById('f-st').value = '1';
+      document.getElementById('f-bd').value = ''; document.getElementById('f-lk').checked = false;
+      document.getElementById('f-2f').checked = false; document.getElementById('f-ml').checked = true;
+      document.getElementById('f-md').value = '0'; document.getElementById('meth-box').style.display = 'none';
+      ['tk-totp', 'tk-email', 'tk-phone'].forEach(x => document.getElementById(x).className = 'tck');
+      selRoles = []; selDepts = []; rRoles(); rDepts();
+    }
+    function fillForm(u) {
+      document.getElementById('f-un').value = u.userName; document.getElementById('f-rn').value = u.realName || '';
+      document.getElementById('f-nn').value = u.nickName || ''; document.getElementById('f-em').value = u.email || '';
+      document.getElementById('f-ph').value = u.phone || ''; document.getElementById('f-gd').value = String(u.gender);
+      document.getElementById('f-bd').value = u.birthday || ''; document.getElementById('f-lg').value = u.language || 'zh-CN';
+      document.getElementById('f-tz').value = u.timeZone || 'Asia/Shanghai'; document.getElementById('f-st').value = String(u.status);
+      document.getElementById('f-co').value = u.country || ''; document.getElementById('f-rm').value = u.remark || '';
+      document.getElementById('f-lk').checked = u.isLocked; document.getElementById('f-2f').checked = u.twoFa;
+      document.getElementById('f-ml').checked = u.multiLogin; document.getElementById('f-md').value = u.maxDev;
+      document.getElementById('meth-box').style.display = u.twoFa ? 'block' : 'none';
+      document.getElementById('tk-totp').className = 'tck ' + (u.twoFaMeth & 1 ? 'on' : '');
+      document.getElementById('tk-email').className = 'tck ' + (u.twoFaMeth & 2 ? 'on' : '');
+      document.getElementById('tk-phone').className = 'tck ' + (u.twoFaMeth & 4 ? 'on' : '');
+      selRoles = [...u.roles]; selDepts = [...u.depts]; rRoles(); rDepts();
+    }
+
+    function openCreate() { editId = null; document.getElementById('mo-title').textContent = '新建用户'; resetForm(); swTab(0); showOvl('mo-form'); }
+    function openEdit(id) { const u = D.find(x => x.id === id); if (!u) return; editId = id; document.getElementById('mo-title').textContent = `编辑用户 · ${u.userName}`; fillForm(u); swTab(0); showOvl('mo-form'); }
+    function openEditFromDet() { if (detId) { closeMo(); setTimeout(() => openEdit(detId), 60); } }
+
+    function saveUser() {
+      const un = document.getElementById('f-un').value.trim(); if (!un) { alert('用户名不能为空'); swTab(0); return; }
+      const m = (document.getElementById('tk-totp').classList.contains('on') ? 1 : 0) | (document.getElementById('tk-email').classList.contains('on') ? 2 : 0) | (document.getElementById('tk-phone').classList.contains('on') ? 4 : 0);
+      if (editId) {
+        const u = D.find(x => x.id === editId); if (!u) return;
+        u.userName = un; u.realName = document.getElementById('f-rn').value || null; u.nickName = document.getElementById('f-nn').value || null;
+        u.email = document.getElementById('f-em').value || null; u.phone = document.getElementById('f-ph').value || null;
+        u.gender = parseInt(document.getElementById('f-gd').value); u.status = parseInt(document.getElementById('f-st').value);
+        u.country = document.getElementById('f-co').value || null; u.remark = document.getElementById('f-rm').value || null;
+        u.isLocked = document.getElementById('f-lk').checked; u.twoFa = document.getElementById('f-2f').checked;
+        u.twoFaMeth = m; u.multiLogin = document.getElementById('f-ml').checked; u.maxDev = parseInt(document.getElementById('f-md').value) || 0;
+        u.roles = [...selRoles]; u.depts = [...selDepts];
+      } else {
+        D.push({ id: Date.now() % 100000, userName: un, realName: document.getElementById('f-rn').value || null, nickName: document.getElementById('f-nn').value || null, email: document.getElementById('f-em').value || null, phone: document.getElementById('f-ph').value || null, gender: parseInt(document.getElementById('f-gd').value), birthday: document.getElementById('f-bd').value || null, status: parseInt(document.getElementById('f-st').value), isActive: true, lastLoginTime: null, lastLoginIp: null, timeZone: document.getElementById('f-tz').value, language: document.getElementById('f-lg').value, country: document.getElementById('f-co').value || null, isSystem: false, remark: document.getElementById('f-rm').value || null, isLocked: document.getElementById('f-lk').checked, twoFa: document.getElementById('f-2f').checked, twoFaMeth: m, failCnt: 0, emailV: false, phoneV: false, multiLogin: document.getElementById('f-ml').checked, maxDev: parseInt(document.getElementById('f-md').value) || 0, roles: [...selRoles], depts: [...selDepts], loginCnt: 0, accCnt: 0, onlineT: 0, online: false });
+      }
+      closeMo(); applyF(); rStats();
+    }
+
+    function openDet(id) {
+      const u = D.find(x => x.id === id); if (!u) return; detId = id;
+      const c = ac(u.userName);
+      const av = document.getElementById('det-av'); av.style.background = c.bg; av.style.color = c.fg; av.textContent = ini(u);
+      document.getElementById('det-nm').textContent = u.realName || u.userName;
+      document.getElementById('det-un').textContent = '@' + u.userName;
+      const lb = document.getElementById('det-lkbtn'); lb.dataset.id = id;
+      lb.innerHTML = u.isLocked ? '<i class="ti ti-lock-open" aria-hidden="true"></i> 解锁账号' : '<i class="ti ti-lock" aria-hidden="true"></i> 锁定账号';
+      lb.style.color = u.isLocked ? 'var(--color-text-success)' : 'var(--color-text-warning)';
+      const sec = [];
+      if (u.emailV) sec.push('<span class="bdg bdg-ok"><i class="ti ti-mail" aria-hidden="true"></i> 邮箱已验证</span>'); else sec.push('<span class="bdg bdg-gray"><i class="ti ti-mail" aria-hidden="true"></i> 邮箱未验证</span>');
+      if (u.phoneV) sec.push('<span class="bdg bdg-ok"><i class="ti ti-phone" aria-hidden="true"></i> 手机已验证</span>'); else sec.push('<span class="bdg bdg-gray"><i class="ti ti-phone" aria-hidden="true"></i> 手机未验证</span>');
+      if (u.twoFa) sec.push(`<span class="bdg bdg-info"><i class="ti ti-shield-check" aria-hidden="true"></i> 2FA: ${fmtM(u.twoFaMeth)}</span>`);
+      if (u.isLocked) sec.push('<span class="bdg bdg-no"><i class="ti ti-lock" aria-hidden="true"></i> 账号已锁定</span>');
+      if (!u.isActive) sec.push('<span class="bdg bdg-warn"><i class="ti ti-clock-pause" aria-hidden="true"></i> 未激活</span>');
+      if (u.failCnt > 0) sec.push(`<span class="bdg bdg-warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i> 失败登录 ${u.failCnt} 次</span>`);
+      const sess = u.online ? `<div class="s-row"><div style="font-size:18px;color:var(--color-text-secondary)"><i class="ti ti-device-desktop" aria-hidden="true"></i></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Web浏览器 · Chrome 124</div><div style="font-size:11px;color:var(--color-text-secondary)">Windows 11 · ${u.lastLoginIp} · 上海 · ${u.lastLoginTime}</div></div><span class="bdg bdg-ok">在线</span></div>` : `<div style="font-size:12px;color:var(--color-text-secondary);padding:8px 0">暂无活跃会话</div>`;
+      document.getElementById('det-body').innerHTML = `
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;font-size:12px">
+<div><span style="color:var(--color-text-secondary)">邮箱：</span>${u.email || '—'}</div>
+<div><span style="color:var(--color-text-secondary)">手机：</span>${u.phone || '—'}</div>
+<div><span style="color:var(--color-text-secondary)">语言/时区：</span>${u.language} / ${u.timeZone}</div>
+<div><span style="color:var(--color-text-secondary)">国家：</span>${u.country || '—'}</div>
+<div><span style="color:var(--color-text-secondary)">角色：</span>${u.roles.join('、') || '—'}</div>
+<div><span style="color:var(--color-text-secondary)">部门：</span>${u.depts.join('、') || '—'}</div>
+${u.remark ? `<div style="grid-column:span 2"><span style="color:var(--color-text-secondary)">备注：</span>${u.remark}</div>` : ''}
+</div>
+<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">${sec.join('')}</div>
+<div class="div"></div>
+<div style="font-size:12px;font-weight:500;margin-bottom:9px;color:var(--color-text-secondary)">行为统计（今日）</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px">
+<div class="mc" style="padding:9px 11px"><div class="mc-lbl" style="font-size:10px">登录次数</div><div class="mc-val" style="font-size:17px">${u.loginCnt}</div></div>
+<div class="mc" style="padding:9px 11px"><div class="mc-lbl" style="font-size:10px">访问次数</div><div class="mc-val" style="font-size:17px">${u.accCnt}</div></div>
+<div class="mc" style="padding:9px 11px"><div class="mc-lbl" style="font-size:10px">在线时长</div><div class="mc-val" style="font-size:17px">${Math.round(u.onlineT / 3600)}h</div></div>
+<div class="mc" style="padding:9px 11px"><div class="mc-lbl" style="font-size:10px">当前状态</div><div class="mc-val" style="font-size:17px;color:${u.online ? '#3b82f6' : 'var(--color-text-secondary)'}">${u.online ? '在线' : '离线'}</div></div>
+</div>
+<div style="font-size:12px;font-weight:500;margin-bottom:9px;color:var(--color-text-secondary)">登录会话 (SysUserSession)</div>
+${sess}`;
+      showOvl('mo-det');
+    }
+    function doTogLock() { const id = parseInt(document.getElementById('det-lkbtn').dataset.id); const u = D.find(x => x.id === id); if (!u) return; u.isLocked = !u.isLocked; if (u.isLocked) u.online = false; closeMo(); applyF(); rStats(); }
+    function doForceLogout() { const u = D.find(x => x.id === detId); if (u) { u.online = false; closeMo(); rStats(); } }
+
+    function openDel(id) { const u = D.find(x => x.id === id); if (!u || u.isSystem) return; delId = id; document.getElementById('del-un').textContent = u.userName; showOvl('mo-del'); }
+    function confirmDel() { const i = D.findIndex(x => x.id === delId); if (i >= 0) D.splice(i, 1); closeMo(); applyF(); rStats(); }
+
+    rStats(); rTable(); rPage(); rRoles(); rDepts();
+  </script>
+
+</body>
+
+</html>
