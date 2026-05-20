@@ -625,17 +625,17 @@ onMounted(() => fetchData())
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+    <div class="xh-query-panel mb-2">
       <NInput
         v-model:value="queryParams.keyword"
-        clearable
+        clearable size="small"
         placeholder="搜索权限名称/编码"
         style="width: 240px"
         @keyup.enter="handleSearch"
       />
       <NInput
         v-model:value="queryParams.moduleCode"
-        clearable
+        clearable size="small"
         placeholder="模块编码"
         style="width: 140px"
         @keyup.enter="handleSearch"
@@ -643,28 +643,28 @@ onMounted(() => fetchData())
       <NSelect
         v-model:value="queryParams.permissionType"
         :options="permissionTypeOptions"
-        clearable
+        clearable size="small"
         placeholder="权限类型"
         style="width: 130px"
       />
       <NSelect
         v-model:value="queryParams.isRequireAudit"
         :options="auditOptions"
-        clearable
+        clearable size="small"
         placeholder="审计"
         style="width: 120px"
       />
       <NSelect
         v-model:value="queryParams.isGlobal"
         :options="globalOptions"
-        clearable
+        clearable size="small"
         placeholder="全局"
         style="width: 110px"
       />
       <NSelect
         v-model:value="queryParams.status"
         :options="STATUS_OPTIONS"
-        clearable
+        clearable size="small"
         placeholder="状态"
         style="width: 110px"
       />
@@ -942,13 +942,13 @@ onMounted(() => fetchData())
     >
       <NForm :model="permissionForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem label="权限名称" path="permissionName">
-          <NInput v-model:value="permissionForm.permissionName" clearable placeholder="请输入权限名称" />
+          <NInput v-model:value="permissionForm.permissionName" clearable size="small" placeholder="请输入权限名称" />
         </NFormItem>
         <NFormItem label="权限编码" path="permissionCode">
           <NInput
             v-model:value="permissionForm.permissionCode"
             :disabled="Boolean(permissionForm.basicId)"
-            clearable
+            clearable size="small"
             placeholder="如: saas:user:read"
           />
         </NFormItem>
@@ -956,7 +956,7 @@ onMounted(() => fetchData())
           <NInput
             v-model:value="permissionForm.moduleCode"
             :disabled="Boolean(permissionForm.basicId)"
-            clearable
+            clearable size="small"
             placeholder="默认取权限编码第一段"
           />
         </NFormItem>
@@ -973,7 +973,7 @@ onMounted(() => fetchData())
             :disabled="Boolean(permissionForm.basicId)"
             :loading="resourceLoading"
             :options="resourceOptions"
-            clearable
+            clearable size="small"
             filterable
             placeholder="搜索并选择资源"
             remote
@@ -987,7 +987,7 @@ onMounted(() => fetchData())
             :disabled="Boolean(permissionForm.basicId)"
             :loading="operationLoading"
             :options="operationOptions"
-            clearable
+            clearable size="small"
             filterable
             placeholder="搜索并选择操作"
             remote
@@ -1010,19 +1010,19 @@ onMounted(() => fetchData())
         <NFormItem label="标签 JSON" path="tags">
           <NInput
             v-model:value="permissionForm.tags"
-            clearable
+            clearable size="small"
             placeholder="[&quot;admin&quot;]"
             :rows="3"
             type="textarea"
           />
         </NFormItem>
         <NFormItem label="备注" path="remark">
-          <NInput v-model:value="permissionForm.remark" clearable placeholder="请输入备注" />
+          <NInput v-model:value="permissionForm.remark" clearable size="small" placeholder="请输入备注" />
         </NFormItem>
         <NFormItem label="描述" path="permissionDescription">
           <NInput
             v-model:value="permissionForm.permissionDescription"
-            clearable
+            clearable size="small"
             placeholder="请输入权限描述"
             :rows="3"
             type="textarea"

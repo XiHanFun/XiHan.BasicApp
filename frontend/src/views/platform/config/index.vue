@@ -13,9 +13,6 @@ import {
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
   NForm,
   NFormItem,
   NIcon,
@@ -24,12 +21,12 @@ import {
   NModal,
   NPagination,
   NPopconfirm,
-  NScrollbar,
   NSelect,
   NSkeleton,
   NSpace,
-  NSpin,
   NSwitch,
+  NTabPane,
+  NTabs,
   NTag,
   NTooltip,
   useMessage,
@@ -493,12 +490,10 @@ onMounted(() => fetchData())
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <NConfigProvider size="small" abstract>
-        <div class="xh-query-panel__content">
-        <NInput
+    <div class="xh-query-panel mb-2">
+      <NInput
           v-model:value="queryParams.keyword"
-          clearable
+          clearable size="small"
           placeholder="搜索配置名称/键/分组"
           style="width: 250px"
           @keyup.enter="handleSearch"
@@ -506,28 +501,28 @@ onMounted(() => fetchData())
         <NSelect
           v-model:value="queryParams.configType"
           :options="configTypeOptions"
-          clearable
+          clearable size="small"
           placeholder="配置类型"
           style="width: 120px"
         />
         <NSelect
           v-model:value="queryParams.dataType"
           :options="dataTypeOptions"
-          clearable
+          clearable size="small"
           placeholder="数据类型"
           style="width: 100px"
         />
         <NSelect
           v-model:value="queryParams.isGlobal"
           :options="globalOptions"
-          clearable
+          clearable size="small"
           placeholder="全局"
           style="width: 90px"
         />
         <NSelect
           v-model:value="queryParams.status"
           :options="statusOptions"
-          clearable
+          clearable size="small"
           placeholder="状态"
           style="width: 100px"
         />
@@ -542,9 +537,7 @@ onMounted(() => fetchData())
             <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
           </template>
           重置
-        </NButton>
-        </div>
-      </NConfigProvider>
+      </NButton>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
@@ -589,66 +582,125 @@ onMounted(() => fetchData())
       </div>
     </NCard>
 
-    <NDrawer v-model:show="detailVisible" :width="720">
-      <NDrawerContent closable title="配置详情">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无配置详情">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
-            <NDescriptions :column="2" bordered size="small">
-              <NDescriptionsItem label="配置名称">
-                {{ currentDetail.configName }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="配置键">
-                {{ currentDetail.configKey }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="配置分组">
-                {{ formatNullable(currentDetail.configGroup) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="配置类型">
-                {{ getOptionLabel(configTypeOptions, currentDetail.configType) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="数据类型">
-                {{ getOptionLabel(dataTypeOptions, currentDetail.dataType) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="是否全局">
-                {{ formatBoolean(currentDetail.isGlobal) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="是否内置">
-                {{ formatBoolean(currentDetail.isBuiltIn) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="是否加密">
-                {{ formatBoolean(currentDetail.isEncrypted) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="排序">
-                {{ currentDetail.sort }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="状态">
+    <NModal
+      v-model:show="detailVisible"
+      class="xh-mgmt-detail-modal"
+      preset="card"
+      :bordered="false"
+      :mask-closable="true"
+      style="width: 720px; max-width: calc(100vw - 32px);"
+    >
+      <template v-if="currentDetail" #header>
+        <div class="det-hd-entity">
+          <div class="det-hd-ico">
+            <Icon icon="tabler:settings" :size="22" />
+          </div>
+          <div class="min-w-0">
+            <div class="det-hd-name">
+              {{ currentDetail.configName }}
+            </div>
+            <div class="det-hd-sub">
+              {{ currentDetail.configKey }}
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div v-if="detailLoading" class="modal-loading">
+        加载中…
+      </div>
+      <NTabs v-else-if="currentDetail" type="line" animated size="small">
+        <NTabPane name="overview" tab="概览">
+          <NDescriptions :column="2" bordered size="small">
+            <NDescriptionsItem label="配置分组">
+              {{ formatNullable(currentDetail.configGroup) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="配置类型">
+              {{ getOptionLabel(configTypeOptions, currentDetail.configType) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="数据类型">
+              {{ getOptionLabel(dataTypeOptions, currentDetail.dataType) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="状态">
+              <NTag size="small" :type="currentDetail.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
                 {{ getOptionLabel(statusOptions, currentDetail.status) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="描述">
-                {{ formatNullable(currentDetail.configDescription) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="创建时间">
-                {{ formatNullableDate(currentDetail.createdTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="修改时间">
-                {{ formatNullableDate(currentDetail.modifiedTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="创建人">
-                {{ formatNullable(currentDetail.createdBy) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="修改人">
-                {{ formatNullable(currentDetail.modifiedBy) }}
-              </NDescriptionsItem>
-            </NDescriptions>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+              </NTag>
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否全局">
+              {{ formatBoolean(currentDetail.isGlobal) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否内置">
+              {{ formatBoolean(currentDetail.isBuiltIn) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否加密">
+              {{ formatBoolean(currentDetail.isEncrypted) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="排序">
+              {{ currentDetail.sort }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="描述" :span="2">
+              {{ formatNullable(currentDetail.configDescription) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="创建时间">
+              {{ formatNullableDate(currentDetail.createdTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="修改时间">
+              {{ formatNullableDate(currentDetail.modifiedTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="创建人">
+              {{ formatNullable(currentDetail.createdBy) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="修改人">
+              {{ formatNullable(currentDetail.modifiedBy) }}
+            </NDescriptionsItem>
+          </NDescriptions>
+        </NTabPane>
+        <NTabPane name="values" tab="配置值">
+          <NDescriptions :column="1" bordered size="small">
+            <NDescriptionsItem label="当前值">
+              <NSpace align="center" size="small">
+                <NTag v-if="currentDetail.hasCurrentValue" size="small" type="success" :bordered="false">
+                  已配置
+                </NTag>
+                <NTag v-else size="small" :bordered="false">
+                  未配置
+                </NTag>
+                <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:var(--n-text-color-3)">敏感项已加密，请通过编辑查看或修改</span>
+              </NSpace>
+            </NDescriptionsItem>
+            <NDescriptionsItem label="默认值">
+              <NSpace align="center" size="small">
+                <NTag v-if="currentDetail.hasFallbackValue" size="small" type="info" :bordered="false">
+                  已设置
+                </NTag>
+                <NTag v-else size="small" :bordered="false">
+                  未设置
+                </NTag>
+              </NSpace>
+            </NDescriptionsItem>
+            <NDescriptionsItem v-if="currentDetail.hasNote" label="说明">
+              含附加备注，编辑时可维护
+            </NDescriptionsItem>
+          </NDescriptions>
+        </NTabPane>
+      </NTabs>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton size="small" @click="detailVisible = false">
+            关闭
+          </NButton>
+          <NButton
+            v-if="currentDetail"
+            size="small"
+            type="primary"
+            @click="detailVisible = false; handleEdit(currentDetail as ConfigListItemDto)"
+          >
+            编辑
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
 
     <NModal
       v-model:show="modalVisible"
@@ -661,18 +713,18 @@ onMounted(() => fetchData())
       <NConfigProvider size="small" abstract>
         <NForm :model="configForm" size="small" class="xh-edit-form-grid" label-placement="top">
         <NFormItem label="配置名称" path="configName">
-          <NInput v-model:value="configForm.configName" clearable placeholder="请输入配置名称" />
+          <NInput v-model:value="configForm.configName" clearable size="small" placeholder="请输入配置名称" />
         </NFormItem>
         <NFormItem label="配置键" path="configKey">
           <NInput
             v-model:value="configForm.configKey"
-            clearable
+            clearable size="small"
             :disabled="Boolean(configForm.basicId)"
             placeholder="如: app.site_name"
           />
         </NFormItem>
         <NFormItem label="配置分组" path="configGroup">
-          <NInput v-model:value="configForm.configGroup" clearable placeholder="请输入配置分组" />
+          <NInput v-model:value="configForm.configGroup" clearable size="small" placeholder="请输入配置分组" />
         </NFormItem>
         <NFormItem label="配置类型" path="configType">
           <NSelect v-model:value="configForm.configType" :options="configTypeOptions" />
@@ -684,13 +736,13 @@ onMounted(() => fetchData())
           <NInput
             v-model:value="configForm.configValue"
             :rows="5"
-            clearable
+            clearable size="small"
             placeholder="请输入配置值"
             type="textarea"
           />
         </NFormItem>
         <NFormItem label="默认值" path="defaultValue">
-          <NInput v-model:value="configForm.defaultValue" clearable placeholder="请输入默认值" />
+          <NInput v-model:value="configForm.defaultValue" clearable size="small" placeholder="请输入默认值" />
         </NFormItem>
         <NFormItem label="是否全局" path="isGlobal">
           <NSwitch v-model:value="configForm.isGlobal" />
@@ -705,7 +757,7 @@ onMounted(() => fetchData())
           <NInputNumber v-model:value="configForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem label="备注" path="remark">
-          <NInput v-model:value="configForm.remark" clearable placeholder="请输入备注" />
+          <NInput v-model:value="configForm.remark" clearable size="small" placeholder="请输入备注" />
         </NFormItem>
         <NFormItem v-if="!configForm.basicId" label="状态" path="status">
           <NSelect v-model:value="configForm.status" :options="statusOptions" />

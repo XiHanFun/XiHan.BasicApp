@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DataTableColumns, DropdownOption } from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 import type {
   ApiId,
   RoleSelectItemDto,
@@ -17,7 +17,6 @@ import {
   NConfigProvider,
   NDataTable,
   NDatePicker,
-  NDropdown,
   NFormItem,
   NIcon,
   NInput,
@@ -30,6 +29,7 @@ import {
   NTabPane,
   NTabs,
   NTag,
+  NTooltip,
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
@@ -121,7 +121,7 @@ const filterSearch = ref('')
 const filterStatus = ref<EnableStatus | null>(null)
 const filterGender = ref<UserGender | null>(null)
 const filterDeptId = ref<ApiId | null>(null)
-const deptFilterOptions = ref<{ label: string, value: ApiId }[]>([])
+const deptFilterOptions = ref<{ label: string; value: ApiId }[]>([])
 
 const checkedRowKeys = ref<ApiId[]>([])
 const showFormModal = ref(false)
@@ -131,7 +131,7 @@ const formTab = ref('0')
 const submitLoading = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<UserManagementDetailDto | null>(null)
-const delTarget = ref<{ id: ApiId, name: string } | null>(null)
+const delTarget = ref<{ id: ApiId; name: string } | null>(null)
 
 const roleOptions = ref<RoleSelectItemDto[]>([])
 const selRoleIds = ref<ApiId[]>([])
@@ -142,37 +142,50 @@ const existingDepts = ref<UserDepartmentListItemDto[]>([])
 const userForm = ref<UserFormState>(createDefaultForm())
 
 const formTitle = computed(() =>
-  userForm.value.basicId
-    ? `编辑用户 · ${userForm.value.userName}`
-    : '新建用户',
+  userForm.value.basicId ? `编辑用户 · ${userForm.value.userName}` : '新建用户',
 )
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
-const statusFilterOptions = STATUS_OPTIONS.map(o => ({ label: o.label === '启用' ? '已启用' : '已禁用', value: o.value }))
+const statusFilterOptions = STATUS_OPTIONS.map((o) => ({
+  label: o.label === '启用' ? '已启用' : '已禁用',
+  value: o.value,
+}))
 const genderFilterOptions = GENDER_OPTIONS
-const statusFormOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
+const statusFormOptions = STATUS_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
 
 const detUser = computed(() => {
   const d = currentDetail.value
   if (!d) return null
   const u = d.user
   const sec = d.security
-  const todayStat = d.statistics.find(s => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
-  const onlineSession = d.sessions.find(s => s.isOnline)
-  const badges: { label: string, cls: string, icon: string }[] = []
+  const todayStat = d.statistics.find((s) => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
+  const onlineSession = d.sessions.find((s) => s.isOnline)
+  const badges: { label: string; cls: string; icon: string }[] = []
   if (sec) {
-    badges.push(sec.emailVerified
-      ? { label: '邮箱已验证', cls: 'bdg-ok', icon: 'tabler:mail' }
-      : { label: '邮箱未验证', cls: 'bdg-gray', icon: 'tabler:mail' })
-    badges.push(sec.phoneVerified
-      ? { label: '手机已验证', cls: 'bdg-ok', icon: 'tabler:phone' }
-      : { label: '手机未验证', cls: 'bdg-gray', icon: 'tabler:phone' })
+    badges.push(
+      sec.emailVerified
+        ? { label: '邮箱已验证', cls: 'bdg-ok', icon: 'tabler:mail' }
+        : { label: '邮箱未验证', cls: 'bdg-gray', icon: 'tabler:mail' },
+    )
+    badges.push(
+      sec.phoneVerified
+        ? { label: '手机已验证', cls: 'bdg-ok', icon: 'tabler:phone' }
+        : { label: '手机未验证', cls: 'bdg-gray', icon: 'tabler:phone' },
+    )
     if (sec.twoFactorEnabled) {
-      badges.push({ label: `2FA: ${formatTwoFa(sec.twoFactorMethod)}`, cls: 'bdg-info', icon: 'tabler:shield-check' })
+      badges.push({
+        label: `2FA: ${formatTwoFa(sec.twoFactorMethod)}`,
+        cls: 'bdg-info',
+        icon: 'tabler:shield-check',
+      })
     }
     if (sec.isLocked) badges.push({ label: '账号已锁定', cls: 'bdg-no', icon: 'tabler:lock' })
     if (sec.failedLoginAttempts > 0) {
-      badges.push({ label: `失败登录 ${sec.failedLoginAttempts} 次`, cls: 'bdg-warn', icon: 'tabler:alert-triangle' })
+      badges.push({
+        label: `失败登录 ${sec.failedLoginAttempts} 次`,
+        cls: 'bdg-warn',
+        icon: 'tabler:alert-triangle',
+      })
     }
   }
   const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
@@ -188,13 +201,23 @@ const detUser = computed(() => {
     timeZone: u.timeZone ?? '—',
     country: u.country ?? '—',
     gender: getOptionLabel(GENDER_OPTIONS, u.gender),
-    roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
-    depts: d.departments.map(dep => dep.departmentName ?? '').filter(Boolean),
+    roles: d.roles.map((r) => r.roleName ?? '').filter(Boolean),
+    depts: d.departments.map((dep) => dep.departmentName ?? '').filter(Boolean),
     remark: u.remark,
     badges,
     metrics: [
-      { label: '登录次数', value: todayStat?.loginCount ?? 0, icon: 'tabler:login-2', cls: 'det-stat-primary' },
-      { label: '访问次数', value: todayStat?.accessCount ?? 0, icon: 'tabler:activity', cls: 'det-stat-info' },
+      {
+        label: '登录次数',
+        value: todayStat?.loginCount ?? 0,
+        icon: 'tabler:login-2',
+        cls: 'det-stat-primary',
+      },
+      {
+        label: '访问次数',
+        value: todayStat?.accessCount ?? 0,
+        icon: 'tabler:activity',
+        cls: 'det-stat-info',
+      },
       {
         label: '在线时长',
         value: `${Math.round((todayStat?.onlineTime ?? 0) / 3600)}h`,
@@ -210,7 +233,9 @@ const detUser = computed(() => {
     ],
     online: !!onlineSession,
     lastLoginIp: onlineSession?.ipAddressMasked ?? '—',
-    lastLoginTime: onlineSession ? formatDate(onlineSession.lastActivityTime) : formatNullableDate(u.lastLoginTime),
+    lastLoginTime: onlineSession
+      ? formatDate(onlineSession.lastActivityTime)
+      : formatNullableDate(u.lastLoginTime),
     sessionLabel: onlineSession
       ? `${onlineSession.deviceName || '设备'} · ${onlineSession.browser || ''}`
       : '',
@@ -246,7 +271,11 @@ function getAvatarStyle(name: string) {
   }
 }
 
-function getInitials(row: { realName?: string | null, nickName?: string | null, userName: string }) {
+function getInitials(row: {
+  realName?: string | null
+  nickName?: string | null
+  userName: string
+}) {
   const name = row.realName || row.nickName || row.userName
   return name ? name.substring(0, 2) : '?'
 }
@@ -268,8 +297,11 @@ function normalizeStr(value?: string | null) {
   return v || null
 }
 
-function flattenDeptOptions(nodes: DepartmentTreeNodeDto[], depth = 0): { label: string, value: ApiId }[] {
-  const out: { label: string, value: ApiId }[] = []
+function flattenDeptOptions(
+  nodes: DepartmentTreeNodeDto[],
+  depth = 0,
+): { label: string; value: ApiId }[] {
+  const out: { label: string; value: ApiId }[] = []
   for (const n of nodes) {
     out.push({ label: `${'　'.repeat(depth)}${n.departmentName}`, value: n.basicId })
     if (n.children?.length) out.push(...flattenDeptOptions(n.children, depth + 1))
@@ -285,10 +317,10 @@ function buildMetaFromDetail(detail: UserManagementDetailDto): UserRowMeta {
     twoFactorEnabled: sec?.twoFactorEnabled ?? false,
     failedLoginAttempts: sec?.failedLoginAttempts ?? 0,
     isActive: inviteAccepted && detail.user.status === EnableStatus.Enabled,
-    online: detail.sessions.some(s => s.isOnline),
-    lastLoginIp: detail.sessions.find(s => s.isOnline)?.ipAddressMasked ?? null,
-    roles: detail.roles.map(r => r.roleName ?? '').filter(Boolean),
-    depts: detail.departments.map(d => d.departmentName ?? '').filter(Boolean),
+    online: detail.sessions.some((s) => s.isOnline),
+    lastLoginIp: detail.sessions.find((s) => s.isOnline)?.ipAddressMasked ?? null,
+    roles: detail.roles.map((r) => r.roleName ?? '').filter(Boolean),
+    depts: detail.departments.map((d) => d.departmentName ?? '').filter(Boolean),
     emailMasked: detail.externalLogins[0]?.externalEmailMasked ?? null,
     emailVerified: sec?.emailVerified ?? false,
     phoneVerified: sec?.phoneVerified ?? false,
@@ -324,12 +356,15 @@ async function fetchData() {
         true,
         true,
       )
-      deptUserIds = new Set(bindings.map(b => b.userId))
+      deptUserIds = new Set(bindings.map((b) => b.userId))
     }
 
     const result = await userManagementApi.page({
       ...createPageRequest({
-        page: { pageIndex: filterDeptId.value ? 1 : currentPage.value, pageSize: filterDeptId.value ? 500 : pageSize.value },
+        page: {
+          pageIndex: filterDeptId.value ? 1 : currentPage.value,
+          pageSize: filterDeptId.value ? 500 : pageSize.value,
+        },
       }),
       gender: filterGender.value ?? undefined,
       keyword: normalizeStr(filterSearch.value),
@@ -338,7 +373,7 @@ async function fetchData() {
 
     let items = result.items ?? []
     if (deptUserIds) {
-      items = items.filter(i => deptUserIds!.has(i.basicId))
+      items = items.filter((i) => deptUserIds!.has(i.basicId))
       totalCount.value = items.length
       const start = (currentPage.value - 1) * pageSize.value
       items = items.slice(start, start + pageSize.value)
@@ -442,8 +477,8 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
   }
   existingRoles.value = detail.roles
   existingDepts.value = detail.departments
-  selRoleIds.value = detail.roles.map(r => r.roleId)
-  selDeptIds.value = detail.departments.map(d => d.departmentId)
+  selRoleIds.value = detail.roles.map((r) => r.roleId)
+  selDeptIds.value = detail.departments.map((d) => d.departmentId)
 }
 
 async function openEdit(id: ApiId) {
@@ -490,7 +525,7 @@ async function syncRoles(userId: ApiId) {
   const current = existingRoles.value
   const selected = new Set(selRoleIds.value)
   for (const role of roleOptions.value) {
-    const bound = current.find(c => c.roleId === role.basicId)
+    const bound = current.find((c) => c.roleId === role.basicId)
     const want = selected.has(role.basicId)
     if (want && !bound) {
       await userManagementApi.roles.grant({ userId, roleId: role.basicId })
@@ -503,14 +538,14 @@ async function syncRoles(userId: ApiId) {
 async function syncDepartments(userId: ApiId) {
   const current = existingDepts.value
   const selected = new Set(selDeptIds.value)
-  for (const depId of deptFilterOptions.value.map(d => d.value)) {
-    const bound = current.find(c => c.departmentId === depId)
+  for (const depId of deptFilterOptions.value.map((d) => d.value)) {
+    const bound = current.find((c) => c.departmentId === depId)
     const want = selected.has(depId)
     if (want && !bound) {
       await userManagementApi.userDepartments.assign({
         userId,
         departmentId: depId,
-        isMain: selected.size === 1 || !current.some(c => c.isMain),
+        isMain: selected.size === 1 || !current.some((c) => c.isMain),
       })
     } else if (!want && bound) {
       await userManagementApi.userDepartments.revoke(bound.basicId)
@@ -644,63 +679,37 @@ async function confirmDelete() {
   }
 }
 
-function buildRowMenu(row: UserListItemDto): DropdownOption[] {
-  const meta = rowMetaMap.value[String(row.basicId)]
-  return [
-    { label: '查看详情', key: 'view', icon: () => h(Icon, { icon: 'lucide:eye', size: 14 }) },
-    { label: '编辑用户', key: 'edit', icon: () => h(Icon, { icon: 'lucide:pencil', size: 14 }) },
-    { type: 'divider', key: 'd1' },
-    {
-      label: meta?.isLocked ? '解锁账号' : '锁定账号',
-      key: 'lock',
-      icon: () => h(Icon, { icon: meta?.isLocked ? 'lucide:lock-open' : 'lucide:lock', size: 14 }),
-    },
-    {
-      label: '强制下线',
-      key: 'logout',
-      disabled: !meta?.online,
-      icon: () => h(Icon, { icon: 'lucide:log-out', size: 14 }),
-    },
-    { type: 'divider', key: 'd2' },
-    {
-      label: '删除用户',
-      key: 'delete',
-      disabled: row.isSystemAccount,
-      icon: () => h(Icon, { icon: 'lucide:trash-2', size: 14 }),
-      props: { style: { color: 'var(--n-error-color)' } },
-    },
-  ]
-}
-
-function onRowMenu(key: string, row: UserListItemDto) {
-  if (key === 'view') void openDetail(row.basicId)
-  else if (key === 'edit') void openEdit(row.basicId)
-  else if (key === 'lock') void toggleLock(row)
-  else if (key === 'logout') void forceLogout(row)
-  else if (key === 'delete') openDelete(row)
-}
-
 function renderTag(label: string, type: 'default' | 'info' | 'success' | 'warning' | 'error') {
-  return h(NTag, { size: 'small', type, bordered: false, style: { fontSize: '11px', fontWeight: 500 } }, () => label)
+  return h(
+    NTag,
+    { size: 'small', type, bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
+    () => label,
+  )
 }
 
 /** 双行单元格：主行 + 次要行 */
 function renderTwoLine(primary: string, secondary?: string | null, primaryStrong = false) {
   return h('div', { class: 'tbl-cell-2l' }, [
-    h('div', {
-      class: ['tbl-cell-2l__primary', primaryStrong ? 'tbl-cell-2l__primary--strong' : ''],
-    }, primary),
-    secondary
-      ? h('div', { class: 'tbl-cell-2l__secondary' }, secondary)
-      : null,
+    h(
+      'div',
+      {
+        class: ['tbl-cell-2l__primary', primaryStrong ? 'tbl-cell-2l__primary--strong' : ''],
+      },
+      primary,
+    ),
+    secondary ? h('div', { class: 'tbl-cell-2l__secondary' }, secondary) : null,
   ])
 }
 
 function renderTextClamp2(text: string, title?: string) {
-  return h('span', {
-    class: 'tbl-text-2l',
-    title: title ?? (text === '—' ? undefined : text),
-  }, text)
+  return h(
+    'span',
+    {
+      class: 'tbl-text-2l',
+      title: title ?? (text === '—' ? undefined : text),
+    },
+    text,
+  )
 }
 
 function joinOrDash(items: string[]) {
@@ -717,11 +726,15 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
     align: 'center',
     render(row) {
       const c = getAvatarStyle(row.userName)
-      return h('div', {
-        class: 'tbl-av',
-        style: { background: c.bg, color: c.fg },
-        title: row.realName || row.userName,
-      }, getInitials(row))
+      return h(
+        'div',
+        {
+          class: 'tbl-av',
+          style: { background: c.bg, color: c.fg },
+          title: row.realName || row.userName,
+        },
+        getInitials(row),
+      )
     },
   },
   {
@@ -817,11 +830,15 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       const meta = rowMetaMap.value[String(row.basicId)]
       if (!meta) return h('span', { style: 'color:var(--n-text-color-3);font-size:12px' }, '—')
       const icons: ReturnType<typeof h>[] = []
-      if (meta.isLocked) icons.push(h(Icon, { icon: 'tabler:lock', size: 15, style: { color: 'var(--n-warning-color)' } }))
-      if (!meta.isActive) icons.push(h(Icon, { icon: 'tabler:clock-pause', size: 15, style: { color: 'var(--n-text-color-3)' } }))
-      if (meta.twoFactorEnabled) icons.push(h(Icon, { icon: 'tabler:shield-check', size: 15, style: { color: 'var(--n-success-color)' } }))
-      if (meta.failedLoginAttempts > 0) icons.push(h(Icon, { icon: 'tabler:alert-triangle', size: 15, style: { color: 'var(--n-warning-color)' } }))
-      if (meta.online) icons.push(h(Icon, { icon: 'tabler:wifi', size: 15, style: { color: 'var(--n-info-color)' } }))
+      const secIco = (icon: string, tone: 'warn' | 'muted' | 'ok' | 'info') =>
+        h('span', { class: ['tbl-sec-ico', `tbl-sec-ico--${tone}`] }, [
+          h(Icon, { icon, width: 15 }),
+        ])
+      if (meta.isLocked) icons.push(secIco('tabler:lock', 'warn'))
+      if (!meta.isActive) icons.push(secIco('tabler:clock-pause', 'muted'))
+      if (meta.twoFactorEnabled) icons.push(secIco('tabler:shield-check', 'ok'))
+      if (meta.failedLoginAttempts > 0) icons.push(secIco('tabler:alert-triangle', 'warn'))
+      if (meta.online) icons.push(secIco('tabler:wifi', 'info'))
       return h('div', { class: 'tbl-cell-tags flex gap-[5px]' }, icons.length ? icons : '—')
     },
   },
@@ -839,49 +856,101 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
     key: 'createdTime',
     width: 158,
     render(row) {
-      return h('span', { style: 'font-size:12px;color:var(--n-text-color-3)' }, formatDate(row.createdTime))
+      return h(
+        'span',
+        { style: 'font-size:12px;color:var(--n-text-color-3)' },
+        formatDate(row.createdTime),
+      )
     },
   },
   {
     title: '操作',
     key: 'actions',
-    width: 56,
-    align: 'center',
+    width: 196,
     fixed: 'right',
     render(row) {
-      return h(NDropdown, {
-        trigger: 'click',
-        options: buildRowMenu(row),
-        onSelect: (key: string) => onRowMenu(key, row),
-      }, {
-        // 与角色页一致：lucide 已离线预加载；勿用未加载的 tabler 图标
-        default: () => h(NButton, {
-          quaternary: true,
-          circle: true,
-          size: 'small',
-          'aria-label': '操作',
-        }, {
-          icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:ellipsis-vertical' })),
+      const meta = rowMetaMap.value[String(row.basicId)]
+      const locked = meta?.isLocked ?? false
+      return h(NSpace, { size: 4, wrap: false }, () => [
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, {
+              'aria-label': '查看详情',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              onClick: () => openDetail(row.basicId),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+          default: () => '查看详情',
         }),
-      })
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, {
+              'aria-label': '编辑用户',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'primary',
+              onClick: () => openEdit(row.basicId),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+          default: () => '编辑',
+        }),
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, {
+              'aria-label': locked ? '解锁账号' : '锁定账号',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'warning',
+              onClick: () => toggleLock(row),
+            }, {
+              icon: () => h(NIcon, null, () => h(Icon, { icon: locked ? 'lucide:lock-open' : 'lucide:lock' })),
+            }),
+          default: () => (locked ? '解锁' : '锁定'),
+        }),
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, {
+              'aria-label': '强制下线',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'info',
+              disabled: !meta?.online,
+              onClick: () => forceLogout(row),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:log-out' })) }),
+          default: () => '强制下线',
+        }),
+        h(NTooltip, {}, {
+          trigger: () =>
+            h(NButton, {
+              'aria-label': '删除用户',
+              circle: true,
+              quaternary: true,
+              size: 'small',
+              type: 'error',
+              disabled: row.isSystemAccount,
+              onClick: () => openDelete(row),
+            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '删除',
+        }),
+      ])
     },
   },
 ])
 </script>
 
 <template>
-  <div class="user-page flex overflow-hidden flex-col gap-2 p-3 h-full">
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full user-page">
     <!-- 筛选 -->
-    <div
-      class="xh-query-panel mb-2 flex flex-wrap items-center gap-2"
-      style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);"
-    >
+    <div class="xh-query-panel mb-2">
       <NInput
         v-model:value="filterSearch"
         placeholder="搜索用户名、姓名、邮箱…"
         clearable
         size="small"
-        style="flex:1;min-width:200px;max-width:360px"
+        style="flex: 1; min-width: 200px; max-width: 360px"
         @keyup.enter="applyFilter"
       />
       <NSelect
@@ -890,7 +959,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
         placeholder="全部状态"
         clearable
         size="small"
-        style="width:108px"
+        style="width: 108px"
         @update:value="applyFilter"
       />
       <NSelect
@@ -899,7 +968,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
         placeholder="全部性别"
         clearable
         size="small"
-        style="width:96px"
+        style="width: 96px"
         @update:value="applyFilter"
       />
       <NSelect
@@ -908,7 +977,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
         placeholder="全部部门"
         clearable
         size="small"
-        style="width:120px"
+        style="width: 120px"
         @update:value="applyFilter"
       />
       <NButton size="small" @click="resetFilter">
@@ -924,7 +993,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       :bordered="false"
       class="flex-1"
       content-style="padding:0;display:flex;flex-direction:column;height:100%;"
-      style="height:0;"
+      style="height: 0"
     >
       <div class="list-hd">
         <NButton type="primary" size="small" @click="openCreate">
@@ -936,10 +1005,12 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       </div>
 
       <div v-if="checkedRowKeys.length" class="batch-bar">
-        <span>已选 <strong>{{ checkedRowKeys.length }}</strong> 项</span>
-        <NButton text size="tiny" @click="clearChecked">
-          取消选择
-        </NButton>
+        <span>
+          已选
+          <strong>{{ checkedRowKeys.length }}</strong>
+          项
+        </span>
+        <NButton text size="tiny" @click="clearChecked">取消选择</NButton>
       </div>
 
       <NDataTable
@@ -955,7 +1026,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
         flex-height
         :row-key="(row: UserListItemDto) => row.basicId"
         :scroll-x="2000"
-        style="flex:1;"
+        style="flex: 1"
       >
         <template #empty>
           <div class="empty-hint">
@@ -965,9 +1036,22 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
         </template>
       </NDataTable>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 20px;
+          border-top: 1px solid var(--n-border-color);
+          flex-shrink: 0;
+        "
+      >
+        <div style="font-size: 13px; color: var(--n-text-color-3)">
+          共
+          <strong>{{ totalCount }}</strong>
+          条，第
+          <strong>{{ currentPage }}</strong>
+          / {{ totalPages }} 页
         </div>
         <NPagination
           size="small"
@@ -991,178 +1075,226 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       :bordered="false"
       :title="formTitle"
       preset="card"
-      style="width: 640px; max-width: calc(100vw - 32px);"
+      style="width: 640px; max-width: calc(100vw - 32px)"
     >
       <NConfigProvider size="small" abstract>
         <NTabs v-model:value="formTab" type="line" animated>
-            <NTabPane name="0" tab="基本信息" display-directive="show">
-              <div class="form-grid">
-                <NFormItem label="用户名 *" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NInput v-model:value="userForm.userName" placeholder="请输入用户名" :disabled="!!userForm.basicId" />
-                </NFormItem>
-                <NFormItem label="真实姓名" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NInput v-model:value="userForm.realName" placeholder="请输入真实姓名" />
-                </NFormItem>
-                <NFormItem label="昵称" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NInput v-model:value="userForm.nickName" placeholder="请输入昵称" />
-                </NFormItem>
-                <NFormItem label="邮箱" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NInput v-model:value="userForm.email" placeholder="请输入邮箱" />
-                </NFormItem>
-                <NFormItem label="手机号" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NInput v-model:value="userForm.phone" placeholder="请输入手机号" />
-                </NFormItem>
-                <NFormItem label="性别" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NSelect v-model:value="userForm.gender" :options="genderFilterOptions" />
-                </NFormItem>
-                <NFormItem label="生日" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NDatePicker v-model:value="userForm.birthday" type="date" class="w-full" />
-                </NFormItem>
-                <NFormItem label="语言" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NSelect v-model:value="userForm.language" :options="languageOptions" />
-                </NFormItem>
-                <NFormItem label="国家/地区" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NInput v-model:value="userForm.country" placeholder="如：CN" />
-                </NFormItem>
-                <NFormItem label="时区" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
-                </NFormItem>
-                <NFormItem label="账号状态" :show-feedback="false" label-style="font-size:11px;font-weight:500">
-                  <NSelect v-model:value="userForm.status" :options="statusFormOptions" />
-                </NFormItem>
-                <NFormItem
-                  v-if="!userForm.basicId"
-                  label="初始密码 *"
-                  :show-feedback="false"
-                  label-style="font-size:11px;font-weight:500"
-                >
-                  <NInput v-model:value="userForm.initialPassword" type="password" placeholder="请输入初始密码" />
-                </NFormItem>
-              </div>
-              <NFormItem label="备注" :show-feedback="false" label-style="font-size:11px;font-weight:500" class="mt-1">
-                <NInput v-model:value="userForm.remark" type="textarea" :rows="2" placeholder="请输入备注信息" />
+          <NTabPane name="0" tab="基本信息" display-directive="show">
+            <div class="form-grid">
+              <NFormItem
+                label="用户名 *"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput
+                  v-model:value="userForm.userName"
+                  placeholder="请输入用户名"
+                  :disabled="!!userForm.basicId"
+                />
               </NFormItem>
-            </NTabPane>
+              <NFormItem
+                label="真实姓名"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput v-model:value="userForm.realName" placeholder="请输入真实姓名" />
+              </NFormItem>
+              <NFormItem
+                label="昵称"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput v-model:value="userForm.nickName" placeholder="请输入昵称" />
+              </NFormItem>
+              <NFormItem
+                label="邮箱"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput v-model:value="userForm.email" placeholder="请输入邮箱" />
+              </NFormItem>
+              <NFormItem
+                label="手机号"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput v-model:value="userForm.phone" placeholder="请输入手机号" />
+              </NFormItem>
+              <NFormItem
+                label="性别"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NSelect v-model:value="userForm.gender" :options="genderFilterOptions" />
+              </NFormItem>
+              <NFormItem
+                label="生日"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NDatePicker v-model:value="userForm.birthday" type="date" class="w-full" />
+              </NFormItem>
+              <NFormItem
+                label="语言"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NSelect v-model:value="userForm.language" :options="languageOptions" />
+              </NFormItem>
+              <NFormItem
+                label="国家/地区"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput v-model:value="userForm.country" placeholder="如：CN" />
+              </NFormItem>
+              <NFormItem
+                label="时区"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
+              </NFormItem>
+              <NFormItem
+                label="账号状态"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NSelect v-model:value="userForm.status" :options="statusFormOptions" />
+              </NFormItem>
+              <NFormItem
+                v-if="!userForm.basicId"
+                label="初始密码 *"
+                :show-feedback="false"
+                label-style="font-size:11px;font-weight:500"
+              >
+                <NInput
+                  v-model:value="userForm.initialPassword"
+                  type="password"
+                  placeholder="请输入初始密码"
+                />
+              </NFormItem>
+            </div>
+            <NFormItem
+              label="备注"
+              :show-feedback="false"
+              label-style="font-size:11px;font-weight:500"
+              class="mt-1"
+            >
+              <NInput
+                v-model:value="userForm.remark"
+                type="textarea"
+                :rows="2"
+                placeholder="请输入备注信息"
+              />
+            </NFormItem>
+          </NTabPane>
 
-            <NTabPane name="1" tab="安全设置" display-directive="show">
-              <div class="sec-panel">
-                <div class="sec-block">
-                  <div class="sec-block-hd">
-                    <Icon icon="tabler:shield-lock" :size="14" />
-                    <span>账号安全</span>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-row-main">
-                      <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
-                      <div>
-                        <div class="lbl">
-                          账号锁定
-                        </div>
-                        <div class="sub">
-                          锁定后用户无法登录
-                        </div>
-                      </div>
-                    </div>
-                    <NSwitch v-model:value="userForm.isLocked" />
-                  </div>
+          <NTabPane name="1" tab="安全设置" display-directive="show">
+            <div class="sec-panel">
+              <div class="sec-block">
+                <div class="sec-block-hd">
+                  <Icon icon="tabler:shield-lock" :size="14" />
+                  <span>账号安全</span>
                 </div>
-                <div class="sec-block">
-                  <div class="sec-block-hd">
-                    <Icon icon="tabler:devices" :size="14" />
-                    <span>登录会话</span>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-row-main">
-                      <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
-                      <div>
-                        <div class="lbl">
-                          允许多端登录
-                        </div>
-                        <div class="sub">
-                          关闭后新登录会踢出旧会话
-                        </div>
-                      </div>
+                <div class="form-row">
+                  <div class="form-row-main">
+                    <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
+                    <div>
+                      <div class="lbl">账号锁定</div>
+                      <div class="sub">锁定后用户无法登录</div>
                     </div>
-                    <NSwitch v-model:value="userForm.multiLogin" />
                   </div>
-                  <div class="form-row">
-                    <div class="form-row-main">
-                      <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
-                      <div>
-                        <div class="lbl">
-                          最大登录设备数
-                        </div>
-                        <div class="sub">
-                          0 = 不限
-                        </div>
-                      </div>
-                    </div>
-                    <NInputNumber
-                      v-model:value="userForm.maxDev"
-                      :min="0"
-                      :max="99"
-                      class="max-dev-input"
-                      size="small"
-                      :show-button="false"
-                    />
-                  </div>
+                  <NSwitch v-model:value="userForm.isLocked" />
                 </div>
               </div>
-            </NTabPane>
-
-            <NTabPane name="2" tab="角色权限" display-directive="show">
-              <div class="pick-panel">
-                <p class="pick-desc">
-                  选择要分配的角色，可多选
-                </p>
-                <p v-if="selRoleIds.length" class="pick-summary">
-                  已选 <strong>{{ selRoleIds.length }}</strong> 个
-                </p>
-                <div class="pick-grid">
-                  <button
-                    v-for="r in roleOptions"
-                    :key="r.basicId"
-                    type="button"
-                    :class="['pick-chip', selRoleIds.includes(r.basicId) ? 'on' : '']"
-                    @click="togglePick(selRoleIds, r.basicId)"
-                  >
-                    <Icon icon="tabler:user-check" :size="13" />
-                    {{ r.roleName }}
-                  </button>
+              <div class="sec-block">
+                <div class="sec-block-hd">
+                  <Icon icon="tabler:devices" :size="14" />
+                  <span>登录会话</span>
+                </div>
+                <div class="form-row">
+                  <div class="form-row-main">
+                    <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
+                    <div>
+                      <div class="lbl">允许多端登录</div>
+                      <div class="sub">关闭后新登录会踢出旧会话</div>
+                    </div>
+                  </div>
+                  <NSwitch v-model:value="userForm.multiLogin" />
+                </div>
+                <div class="form-row">
+                  <div class="form-row-main">
+                    <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
+                    <div>
+                      <div class="lbl">最大登录设备数</div>
+                      <div class="sub">0 = 不限</div>
+                    </div>
+                  </div>
+                  <NInputNumber
+                    v-model:value="userForm.maxDev"
+                    :min="0"
+                    :max="99"
+                    class="max-dev-input"
+                    size="small"
+                    :show-button="false"
+                  />
                 </div>
               </div>
-            </NTabPane>
+            </div>
+          </NTabPane>
 
-            <NTabPane name="3" tab="所属部门" display-directive="show">
-              <div class="pick-panel">
-                <p class="pick-desc">
-                  选择所属部门，可多选
-                </p>
-                <p v-if="selDeptIds.length" class="pick-summary">
-                  已选 <strong>{{ selDeptIds.length }}</strong> 个
-                </p>
-                <div class="pick-grid">
-                  <button
-                    v-for="d in deptFilterOptions"
-                    :key="d.value"
-                    type="button"
-                    :class="['pick-chip', selDeptIds.includes(d.value) ? 'on' : '']"
-                    @click="togglePick(selDeptIds, d.value)"
-                  >
-                    <Icon icon="tabler:building" :size="13" />
-                    {{ d.label.trim() }}
-                  </button>
-                </div>
+          <NTabPane name="2" tab="角色权限" display-directive="show">
+            <div class="pick-panel">
+              <p class="pick-desc">选择要分配的角色，可多选</p>
+              <p v-if="selRoleIds.length" class="pick-summary">
+                已选
+                <strong>{{ selRoleIds.length }}</strong>
+                个
+              </p>
+              <div class="pick-grid">
+                <button
+                  v-for="r in roleOptions"
+                  :key="r.basicId"
+                  type="button"
+                  :class="['pick-chip', selRoleIds.includes(r.basicId) ? 'on' : '']"
+                  @click="togglePick(selRoleIds, r.basicId)"
+                >
+                  <Icon icon="tabler:user-check" :size="13" />
+                  {{ r.roleName }}
+                </button>
               </div>
-            </NTabPane>
+            </div>
+          </NTabPane>
+
+          <NTabPane name="3" tab="所属部门" display-directive="show">
+            <div class="pick-panel">
+              <p class="pick-desc">选择所属部门，可多选</p>
+              <p v-if="selDeptIds.length" class="pick-summary">
+                已选
+                <strong>{{ selDeptIds.length }}</strong>
+                个
+              </p>
+              <div class="pick-grid">
+                <button
+                  v-for="d in deptFilterOptions"
+                  :key="d.value"
+                  type="button"
+                  :class="['pick-chip', selDeptIds.includes(d.value) ? 'on' : '']"
+                  @click="togglePick(selDeptIds, d.value)"
+                >
+                  <Icon icon="tabler:building" :size="13" />
+                  {{ d.label.trim() }}
+                </button>
+              </div>
+            </div>
+          </NTabPane>
         </NTabs>
       </NConfigProvider>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton size="small" @click="closeModals">
-            取消
-          </NButton>
+          <NButton size="small" @click="closeModals">取消</NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="saveUser">
             保存
           </NButton>
@@ -1178,7 +1310,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       :bordered="false"
       preset="card"
       title="用户详情"
-      style="width: 640px; max-width: calc(100vw - 32px);"
+      style="width: 640px; max-width: calc(100vw - 32px)"
     >
       <template v-if="detUser" #header>
         <div class="det-hd-user">
@@ -1189,81 +1321,83 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
             <div class="det-name">
               {{ detUser.displayName }}
             </div>
-            <div class="det-sub">
-              @{{ detUser.userName }}
-            </div>
+            <div class="det-sub">@{{ detUser.userName }}</div>
           </div>
         </div>
       </template>
 
-      <div v-if="detailLoading" class="modal-loading">
-        加载中…
-      </div>
+      <div v-if="detailLoading" class="modal-loading">加载中…</div>
       <template v-else-if="detUser">
         <div class="det-info-grid">
-            <div><span class="muted">语言/时区：</span>{{ detUser.language }} / {{ detUser.timeZone }}</div>
-            <div><span class="muted">国家：</span>{{ detUser.country }}</div>
-            <div><span class="muted">性别：</span>{{ detUser.gender }}</div>
-            <div><span class="muted">角色：</span>{{ detUser.roles.join('、') || '—' }}</div>
-            <div><span class="muted">部门：</span>{{ detUser.depts.join('、') || '—' }}</div>
-            <div v-if="detUser.remark" class="col-span-2">
-              <span class="muted">备注：</span>{{ detUser.remark }}
-            </div>
+          <div>
+            <span class="muted">语言/时区：</span>
+            {{ detUser.language }} / {{ detUser.timeZone }}
           </div>
-          <div class="det-badges">
-            <span v-for="t in detUser.badges" :key="t.label" :class="['bdg', t.cls]">
-              <Icon :icon="t.icon" :size="12" />
-              {{ t.label }}
-            </span>
+          <div>
+            <span class="muted">国家：</span>
+            {{ detUser.country }}
           </div>
-          <div class="det-divider" />
-          <div class="det-sec">
-            <div class="det-sec-hd">
-              <Icon icon="tabler:chart-bar" :size="14" />
-              <span>行为统计（今日）</span>
-            </div>
-            <div class="det-stat-grid">
-              <div
-                v-for="m in detUser.metrics"
-                :key="m.label"
-                :class="['det-stat-card', m.cls]"
-              >
-                <div class="det-stat-top">
-                  <span class="det-stat-lbl">{{ m.label }}</span>
-                  <Icon :icon="m.icon" :size="13" />
-                </div>
-                <div class="det-stat-val">
-                  {{ m.value }}
-                </div>
-              </div>
-            </div>
+          <div>
+            <span class="muted">性别：</span>
+            {{ detUser.gender }}
           </div>
+          <div>
+            <span class="muted">角色：</span>
+            {{ detUser.roles.join('、') || '—' }}
+          </div>
+          <div>
+            <span class="muted">部门：</span>
+            {{ detUser.depts.join('、') || '—' }}
+          </div>
+          <div v-if="detUser.remark" class="col-span-2">
+            <span class="muted">备注：</span>
+            {{ detUser.remark }}
+          </div>
+        </div>
+        <div class="det-badges">
+          <span v-for="t in detUser.badges" :key="t.label" :class="['bdg', t.cls]">
+            <Icon :icon="t.icon" :size="12" />
+            {{ t.label }}
+          </span>
+        </div>
+        <div class="det-divider" />
+        <div class="det-sec">
           <div class="det-sec-hd">
-            <Icon icon="tabler:device-desktop" :size="14" />
-            <span>登录会话</span>
+            <Icon icon="tabler:chart-bar" :size="14" />
+            <span>行为统计（今日）</span>
           </div>
-          <div v-if="detUser.online" class="s-row">
-            <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
-            <div class="flex-1 min-w-0">
-              <div class="session-title">
-                {{ detUser.sessionLabel }}
+          <div class="det-stat-grid">
+            <div v-for="m in detUser.metrics" :key="m.label" :class="['det-stat-card', m.cls]">
+              <div class="det-stat-top">
+                <span class="det-stat-lbl">{{ m.label }}</span>
+                <Icon :icon="m.icon" :size="13" />
               </div>
-              <div class="session-sub">
-                {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
+              <div class="det-stat-val">
+                {{ m.value }}
               </div>
             </div>
-            <span class="bdg bdg-ok">在线</span>
           </div>
-          <div v-else class="session-empty">
-            暂无活跃会话
+        </div>
+        <div class="det-sec-hd">
+          <Icon icon="tabler:device-desktop" :size="14" />
+          <span>登录会话</span>
+        </div>
+        <div v-if="detUser.online" class="s-row">
+          <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
+          <div class="flex-1 min-w-0">
+            <div class="session-title">
+              {{ detUser.sessionLabel }}
+            </div>
+            <div class="session-sub">{{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}</div>
           </div>
+          <span class="bdg bdg-ok">在线</span>
+        </div>
+        <div v-else class="session-empty">暂无活跃会话</div>
       </template>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton size="small" @click="closeModals">
-            关闭
-          </NButton>
+          <NButton size="small" @click="closeModals">关闭</NButton>
         </NSpace>
       </template>
     </NModal>
@@ -1276,28 +1410,24 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
       :bordered="false"
       preset="card"
       title="确认删除"
-      style="width: 420px; max-width: calc(100vw - 32px);"
+      style="width: 420px; max-width: calc(100vw - 32px)"
     >
       <div class="del-body">
         <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
         <div>
           <p class="del-title">
-            确定要删除用户 "<span class="name">{{ delTarget?.name }}</span>" 吗？
+            确定要删除用户 "
+            <span class="name">{{ delTarget?.name }}</span>
+            " 吗？
           </p>
-          <p class="del-desc">
-            此操作为软删除，保留审计记录；删除前将吊销该用户全部会话。
-          </p>
+          <p class="del-desc">此操作为软删除，保留审计记录；删除前将吊销该用户全部会话。</p>
         </div>
       </div>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton size="small" @click="closeModals">
-            取消
-          </NButton>
-          <NButton size="small" type="error" @click="confirmDelete">
-            确认删除
-          </NButton>
+          <NButton size="small" @click="closeModals">取消</NButton>
+          <NButton size="small" type="error" @click="confirmDelete">确认删除</NButton>
         </NSpace>
       </template>
     </NModal>
@@ -1353,55 +1483,76 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
   overflow: hidden;
 }
 
+.tbl-sec-ico {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.tbl-sec-ico--warn :deep(svg) {
+  color: var(--n-warning-color);
+}
+
+.tbl-sec-ico--muted :deep(svg) {
+  color: var(--n-text-color-3);
+}
+
+.tbl-sec-ico--ok :deep(svg) {
+  color: var(--n-success-color);
+}
+
+.tbl-sec-ico--info :deep(svg) {
+  color: var(--n-info-color);
+}
+
 .user-page :deep(.user-table .n-data-table-tbody .n-data-table-td) {
   vertical-align: middle;
   padding-top: 6px;
   padding-bottom: 6px;
 }
 
-/* 区块标题、详情、空状态等图标语义色 */
-.user-page .sec-block-hd :deep(svg),
-.user-page .det-sec-hd :deep(svg) {
+/* 图标语义色：勿加 .user-page 前缀，弹窗 Teleport 到 body 后不在该子树内 */
+.sec-block-hd :deep(svg),
+.det-sec-hd :deep(svg) {
   color: var(--n-primary-color);
 }
 
-.user-page .det-stat-primary .det-stat-top :deep(svg) {
+.det-stat-primary .det-stat-top :deep(svg) {
   color: var(--n-primary-color);
 }
 
-.user-page .det-stat-info .det-stat-top :deep(svg) {
+.det-stat-info .det-stat-top :deep(svg) {
   color: var(--n-info-color);
 }
 
-.user-page .det-stat-warning .det-stat-top :deep(svg) {
+.det-stat-warning .det-stat-top :deep(svg) {
   color: var(--n-warning-color);
 }
 
-.user-page .det-stat-muted .det-stat-top :deep(svg) {
+.det-stat-muted .det-stat-top :deep(svg) {
   color: var(--n-text-color-3);
 }
 
-.user-page .pick-chip :deep(svg) {
+.pick-chip :deep(svg) {
   color: var(--n-text-color-3);
 }
 
-.user-page .pick-chip.on :deep(svg) {
+.pick-chip.on :deep(svg) {
   color: var(--n-primary-color);
 }
 
-.user-page .empty-hint__ico {
+.empty-hint__ico {
   color: var(--n-primary-color);
 }
 
-.user-page .session-ico {
+.session-ico {
   color: var(--n-info-color);
 }
 
-.user-page .del-icon {
+.del-icon {
   color: var(--n-warning-color);
 }
 
-.user-page .bdg :deep(svg) {
+.bdg :deep(svg) {
   color: currentColor;
 }
 
@@ -1459,7 +1610,6 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
 .empty-hint__ico {
   display: block;
   margin: 0 auto 8px;
-  opacity: 0.55;
 }
 
 /* 弹窗内容卡 */
@@ -1513,15 +1663,15 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
   flex: 1;
 }
 
-.form-row-ico {
+.form-row-ico :deep(svg) {
   color: var(--n-primary-color);
 }
 
-.form-row-ico.warn {
+.form-row-ico.warn :deep(svg) {
   color: var(--n-warning-color);
 }
 
-.form-row-ico.ok {
+.form-row-ico.ok :deep(svg) {
   color: var(--n-success-color);
 }
 
@@ -1815,6 +1965,4 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
 .del-title .name {
   color: var(--n-error-color);
 }
-
 </style>
-

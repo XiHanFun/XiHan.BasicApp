@@ -1,5 +1,10 @@
 import type { ApiId } from '../../types'
-import type { PermissionCenterDetailDto, RoleManagementDetailDto, UserManagementDetailDto } from './system.types'
+import type {
+  DepartmentManagementDetailDto,
+  PermissionCenterDetailDto,
+  RoleManagementDetailDto,
+  UserManagementDetailDto,
+} from './system.types'
 import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 import { permissionChangeLogApi } from '../audit'
 import {
@@ -24,6 +29,7 @@ import { departmentApi, userDepartmentApi } from '../organization'
 
 const userManagementQueryApi = createDynamicApiClient('UserManagementQuery')
 const roleManagementQueryApi = createDynamicApiClient('RoleManagementQuery')
+const departmentManagementQueryApi = createDynamicApiClient('DepartmentManagementQuery')
 const permissionCenterQueryApi = createDynamicApiClient('PermissionCenterQuery')
 
 export const userManagementApi = {
@@ -57,6 +63,11 @@ export const roleManagementApi = {
 
 export const orgManagementApi = {
   ...departmentApi,
+  detailView(id: ApiId) {
+    return departmentManagementQueryApi.get<DepartmentManagementDetailDto | null>(
+      `DepartmentManagementDetail/${formatDynamicApiRouteValue(id)}`,
+    )
+  },
 }
 
 export const permissionCenterApi = {
