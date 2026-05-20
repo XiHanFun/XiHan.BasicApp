@@ -9,8 +9,6 @@ import {
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
   NEmpty,
   NForm,
   NFormItem,
@@ -19,10 +17,8 @@ import {
   NInputNumber,
   NModal,
   NPagination,
-  NScrollbar,
   NSelect,
   NSpace,
-  NSpin,
   NSwitch,
   NTabPane,
   NTabs,
@@ -82,13 +78,40 @@ const modalTitle = computed(() => (menuForm.value.basicId ? '编辑菜单' : '�
 
 function treeToCascaderOptions(nodes: MenuTreeNodeDto[]): CascaderOption[] {
   return nodes.map(node => ({
-    children: node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
+    children: node.children?.length ? treeToCascaderOptions(node.children) : undefined,
     label: `${node.menuName}（${node.path}）`,
     value: node.basicId,
   }))
 }
 
 const cascaderOptions = computed(() => treeToCascaderOptions(treeNodes.value))
+
+interface MenuTreeItem extends MenuListItemDto {
+  children?: MenuTreeItem[]
+}
+
+function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
+  const map = new Map<ApiId, MenuTreeItem>()
+  const roots: MenuTreeItem[] = []
+
+  for (const item of items) {
+    map.set(item.basicId, { ...item, children: [] })
+  }
+
+  for (const item of items) {
+    const node = map.get(item.basicId)!
+    if (item.parentId && map.has(item.parentId)) {
+      map.get(item.parentId)!.children!.push(node)
+    }
+    else {
+      roots.push(node)
+    }
+  }
+
+  return roots
+}
+
+const treeTableData = computed(() => buildTree(dataList.value))
 
 function createDefaultForm(): MenuFormModel {
   return {
@@ -148,6 +171,35 @@ const childMenus = computed(() => {
   return dataList.value.filter(item => item.parentId === currentDetail.value!.basicId)
 })
 
+const childMenuColumns: DataTableColumns<MenuListItemDto> = [
+  { title: '菜单名称', key: 'menuName', minWidth: 120, ellipsis: { tooltip: true } },
+  { title: '编码', key: 'menuCode', width: 100, ellipsis: { tooltip: true } },
+  {
+    title: '类型',
+    key: 'menuType',
+    width: 80,
+    render: row => getOptionLabel(menuTypeOptions, row.menuType),
+  },
+  {
+    title: '路径',
+    key: 'path',
+    minWidth: 100,
+    ellipsis: { tooltip: true },
+    render: row => formatNullable(row.path),
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 72,
+    render: row => h(NTag, {
+      size: 'small',
+      round: true,
+      type: row.status === EnableStatus.Enabled ? 'success' : 'error',
+      bordered: false,
+    }, () => formatStatus(row.status)),
+  },
+]
+
 async function loadTree() {
   try {
     treeNodes.value = await menuManagementApi.tree({ keyword: null, limit: 3000, onlyEnabled: false })
@@ -175,7 +227,7 @@ async function fetchData() {
       status: queryParams.status,
     })
     dataList.value = result.items
-    totalCount.value = result.page.totalCount
+    totalCount.value = result.items.length
   }
   catch {
     message.error('查询菜单失败')
@@ -198,11 +250,12 @@ function handlePageSizeChange(size: number) {
   currentPage.value = 1
 }
 
-const tableColumns = computed<DataTableColumns<MenuListItemDto>>(() => [
+const tableColumns = computed<DataTableColumns<MenuTreeItem>>(() => [
   {
     key: 'menuName',
     title: '菜单名称',
     minWidth: 180,
+    tree: true,
     ellipsis: { tooltip: true },
   },
   {
@@ -484,44 +537,43 @@ onMounted(async () => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <NConfigProvider size="small" abstract>
-        <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索菜单名称/编码/路径"
-          style="width: 250px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.menuType"
-          :options="menuTypeOptions"
-          clearable
-          placeholder="菜单类型"
-          style="width: 110px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="statusOptions"
-          clearable
-          placeholder="状态"
-          style="width: 100px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-        </div>
-      </NConfigProvider>
+    <div class="xh-query-panel mb-2">
+      <NInput
+        v-model:value="queryParams.keyword"
+        clearable
+        size="small"
+        placeholder="搜索菜单名称/编码/路径"
+        style="width: 250px"
+        @keyup.enter="handleSearch"
+      />
+      <NSelect
+        v-model:value="queryParams.menuType"
+        :options="menuTypeOptions"
+        clearable
+        size="small"
+        placeholder="菜单类型"
+        style="width: 110px"
+      />
+      <NSelect
+        v-model:value="queryParams.status"
+        :options="statusOptions"
+        clearable
+        size="small"
+        placeholder="状态"
+        style="width: 100px"
+      />
+      <NButton size="small" type="primary" @click="handleSearch">
+        <template #icon>
+          <NIcon><Icon icon="lucide:search" /></NIcon>
+        </template>
+        查询
+      </NButton>
+      <NButton size="small" @click="handleReset">
+        <template #icon>
+          <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+        </template>
+        重置
+      </NButton>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
@@ -542,7 +594,7 @@ onMounted(async () => {
 
       <NDataTable
         :columns="tableColumns"
-        :data="dataList"
+        :data="treeTableData"
         :loading="tableLoading"
         :bordered="false"
         :single-line="false"
@@ -570,97 +622,116 @@ onMounted(async () => {
       </div>
     </NCard>
 
-    <NDrawer v-model:show="detailVisible" :width="820">
-      <NDrawerContent closable title="菜单详情">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无菜单详情">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
-            <NTabs animated type="line">
-              <NTabPane name="overview" tab="概览">
-                <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem label="菜单名称">
-                    {{ currentDetail.menuName }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="菜单编码">
-                    {{ currentDetail.menuCode }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="菜单类型">
-                    {{ getOptionLabel(menuTypeOptions, currentDetail.menuType) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="路由路径">
-                    {{ formatNullable(currentDetail.path) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="组件路径">
-                    {{ formatNullable(currentDetail.component) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="路由名称">
-                    {{ formatNullable(currentDetail.routeName) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="图标">
-                    {{ formatNullable(currentDetail.icon) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="标题">
-                    {{ formatNullable(currentDetail.title) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="是否外链">
-                    {{ formatBoolean(currentDetail.isExternal) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="是否缓存">
-                    {{ formatBoolean(currentDetail.isCache) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="是否可见">
-                    {{ formatBoolean(currentDetail.isVisible) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="是否固定">
-                    {{ formatBoolean(currentDetail.isAffix) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="排序">
-                    {{ currentDetail.sort }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="状态">
-                    {{ formatStatus(currentDetail.status) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="权限ID">
-                    {{ formatNullable(currentDetail.permissionId) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="创建时间">
-                    {{ formatNullableDate(currentDetail.createdTime) }}
-                  </NDescriptionsItem>
-                </NDescriptions>
-              </NTabPane>
+    <NModal
+      v-model:show="detailVisible"
+      class="xh-mgmt-detail-modal"
+      preset="card"
+      :bordered="false"
+      :mask-closable="true"
+      style="width: 720px; max-width: calc(100vw - 32px);"
+    >
+      <template v-if="currentDetail" #header>
+        <div class="det-hd-entity">
+          <div class="det-hd-ico">
+            <Icon icon="tabler:menu-2" :size="22" />
+          </div>
+          <div class="min-w-0">
+            <div class="det-hd-name">
+              {{ currentDetail.menuName }}
+            </div>
+            <div class="det-hd-sub">
+              {{ currentDetail.menuCode }}
+            </div>
+          </div>
+        </div>
+      </template>
 
-              <NTabPane name="children" :tab="`子菜单 (${childMenus.length})`">
-                <table v-if="childMenus.length" class="xh-detail-table">
-                  <thead>
-                    <tr>
-                      <th>菜单名称</th>
-                      <th>编码</th>
-                      <th>类型</th>
-                      <th>路径</th>
-                      <th>状态</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in childMenus" :key="item.basicId">
-                      <td>{{ item.menuName }}</td>
-                      <td>{{ item.menuCode }}</td>
-                      <td>{{ getOptionLabel(menuTypeOptions, item.menuType) }}</td>
-                      <td>{{ formatNullable(item.path) }}</td>
-                      <td>{{ formatStatus(item.status) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <NEmpty v-else description="暂无子菜单" style="padding: 40px 0" />
-              </NTabPane>
-            </NTabs>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+      <div v-if="detailLoading" class="modal-loading">
+        加载中…
+      </div>
+      <NTabs v-else-if="currentDetail" type="line" animated size="small">
+        <NTabPane name="overview" tab="概览">
+          <NDescriptions :column="2" bordered size="small">
+            <NDescriptionsItem label="菜单类型">
+              {{ getOptionLabel(menuTypeOptions, currentDetail.menuType) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="状态">
+              <NTag size="small" :type="currentDetail.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
+                {{ formatStatus(currentDetail.status) }}
+              </NTag>
+            </NDescriptionsItem>
+            <NDescriptionsItem label="路由路径">
+              {{ formatNullable(currentDetail.path) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="组件路径">
+              {{ formatNullable(currentDetail.component) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="路由名称">
+              {{ formatNullable(currentDetail.routeName) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="图标">
+              {{ formatNullable(currentDetail.icon) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="标题">
+              {{ formatNullable(currentDetail.title) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否外链">
+              {{ formatBoolean(currentDetail.isExternal) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否缓存">
+              {{ formatBoolean(currentDetail.isCache) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否可见">
+              {{ formatBoolean(currentDetail.isVisible) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="是否固定">
+              {{ formatBoolean(currentDetail.isAffix) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="排序">
+              {{ currentDetail.sort }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="权限 ID">
+              {{ formatNullable(currentDetail.permissionId) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="创建时间">
+              {{ formatNullableDate(currentDetail.createdTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem v-if="currentDetail.remark" label="备注" :span="2">
+              {{ currentDetail.remark }}
+            </NDescriptionsItem>
+          </NDescriptions>
+        </NTabPane>
+        <NTabPane name="children" :tab="`子菜单 (${childMenus.length})`">
+          <div class="xh-detail-table-wrap">
+            <NDataTable
+              v-if="childMenus.length"
+              :columns="childMenuColumns"
+              :data="childMenus"
+              :bordered="false"
+              size="small"
+              :row-key="(row: MenuListItemDto) => row.basicId"
+            />
+            <NEmpty v-else description="暂无子菜单" style="padding: 32px 0" />
+          </div>
+        </NTabPane>
+      </NTabs>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton size="small" @click="detailVisible = false">
+            关闭
+          </NButton>
+          <NButton
+            v-if="currentDetail"
+            size="small"
+            type="primary"
+            @click="detailVisible = false; handleEdit(currentDetail as MenuListItemDto)"
+          >
+            编辑
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
 
     <NModal
       v-model:show="modalVisible"

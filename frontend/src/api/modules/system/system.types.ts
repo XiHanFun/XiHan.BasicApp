@@ -17,7 +17,7 @@ import type {
 } from '../authorization'
 import type { RoleDetailDto } from '../authorization/role.types'
 import type { UserDetailDto, UserSessionListItemDto, UserStatisticsDetailDto } from '../identity'
-import type { DepartmentType } from '../organization/department.types'
+import type { DepartmentDetailDto, DepartmentListItemDto, DepartmentType } from '../organization/department.types'
 import type { EnableStatus, ValidityStatus } from '../shared'
 import type { TenantMemberListItemDto } from '../tenant'
 
@@ -125,6 +125,27 @@ export interface RoleManagementGrantedUserDto {
   status: ValidityStatus
   userId: ApiId
   userName?: string | null
+}
+
+/** 部门管理成员项 */
+export interface DepartmentManagementMemberDto {
+  basicId: ApiId
+  createdTime: DateTimeString
+  isMain: boolean
+  nickName?: string | null
+  realName?: string | null
+  remark?: string | null
+  status: ValidityStatus
+  userId: ApiId
+  userName?: string | null
+}
+
+/** 部门管理详情聚合 */
+export interface DepartmentManagementDetailDto {
+  childDepartments: DepartmentListItemDto[]
+  department: DepartmentDetailDto
+  generatedTime: DateTimeString
+  members: DepartmentManagementMemberDto[]
 }
 
 export interface RoleManagementDetailDto {

@@ -424,10 +424,11 @@ onMounted(() => fetchData())
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
+    <div class="xh-query-panel mb-2">
       <NInput
         v-model:value="queryParams.keyword"
         clearable
+        size="small"
         placeholder="搜索角色名称/编码"
         style="width: 240px"
         @keyup.enter="handleSearch"
@@ -436,6 +437,7 @@ onMounted(() => fetchData())
         v-model:value="queryParams.roleType"
         :options="roleTypeOptions"
         clearable
+        size="small"
         placeholder="角色类型"
         style="width: 130px"
       />
@@ -443,6 +445,7 @@ onMounted(() => fetchData())
         v-model:value="queryParams.dataScope"
         :options="dataScopeOptions"
         clearable
+        size="small"
         placeholder="数据范围"
         style="width: 140px"
       />
@@ -450,6 +453,7 @@ onMounted(() => fetchData())
         v-model:value="queryParams.isGlobal"
         :options="globalOptions"
         clearable
+        size="small"
         placeholder="全局"
         style="width: 110px"
       />
@@ -457,6 +461,7 @@ onMounted(() => fetchData())
         v-model:value="queryParams.status"
         :options="STATUS_OPTIONS"
         clearable
+        size="small"
         placeholder="状态"
         style="width: 110px"
       />

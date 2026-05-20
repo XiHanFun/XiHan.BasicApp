@@ -5,6 +5,8 @@ import type {
   DepartmentCreateDto,
   DepartmentDetailDto,
   DepartmentListItemDto,
+  DepartmentManagementDetailDto,
+  DepartmentManagementMemberDto,
   DepartmentTreeNodeDto,
   DepartmentUpdateDto,
 } from '@/api'
@@ -16,8 +18,6 @@ import {
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
   NEmpty,
   NForm,
   NFormItem,
@@ -27,10 +27,8 @@ import {
   NModal,
   NPagination,
   NPopconfirm,
-  NScrollbar,
   NSelect,
   NSpace,
-  NSpin,
   NTabPane,
   NTabs,
   NTag,
@@ -44,6 +42,7 @@ import {
   DepartmentType,
   EnableStatus,
   orgManagementApi,
+  ValidityStatus,
 } from '@/api'
 import { Icon } from '~/components'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
@@ -65,12 +64,10 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const detailVisible = ref(false)
 const detailLoading = ref(false)
-const currentDetail = ref<DepartmentDetailDto | null>(null)
+const managementDetail = ref<DepartmentManagementDetailDto | null>(null)
 const deptForm = ref<DeptFormModel>(createDefaultForm())
 const tableData = ref<DepartmentListItemDto[]>([])
 const treeNodes = ref<DepartmentTreeNodeDto[]>([])
-const expandedKeys = ref<Set<ApiId>>(new Set())
-
 const queryParams = reactive({
   departmentType: undefined as DepartmentType | undefined,
   keyword: '',
@@ -161,10 +158,53 @@ function findDepartmentName(parentId: ApiId) {
   return dept?.departmentName ?? formatNullable(parentId)
 }
 
-const childDepartments = computed(() => {
-  if (!currentDetail.value) return []
-  return tableData.value.filter(item => item.parentId === currentDetail.value!.basicId)
-})
+const detDept = computed(() => managementDetail.value?.department ?? null)
+
+const childDeptColumns: DataTableColumns<DepartmentListItemDto> = [
+  { title: '部门名称', key: 'departmentName', minWidth: 120, ellipsis: { tooltip: true } },
+  { title: '编码', key: 'departmentCode', width: 100, ellipsis: { tooltip: true } },
+  {
+    title: '类型',
+    key: 'departmentType',
+    width: 90,
+    render: row => getOptionLabel(deptTypeOptions, row.departmentType),
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 72,
+    render: row => h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => formatStatus(row.status)),
+  },
+]
+
+const memberColumns: DataTableColumns<DepartmentManagementMemberDto> = [
+  {
+    title: '用户',
+    key: 'user',
+    minWidth: 140,
+    render: row => row.realName || row.nickName || row.userName || String(row.userId),
+  },
+  { title: '用户名', key: 'userName', width: 110, ellipsis: { tooltip: true }, render: row => row.userName ?? '—' },
+  {
+    title: '主部门',
+    key: 'isMain',
+    width: 72,
+    render: row => row.isMain
+      ? h(NTag, { size: 'small', type: 'info', bordered: false }, () => '是')
+      : h('span', { style: 'color:var(--n-text-color-3)' }, '—'),
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 72,
+    render: row => h(NTag, {
+      size: 'small',
+      round: true,
+      type: row.status === ValidityStatus.Valid ? 'success' : 'default',
+      bordered: false,
+    }, () => (row.status === ValidityStatus.Valid ? '有效' : '无效')),
+  },
+]
 
 async function loadTree() {
   try {
@@ -207,32 +247,13 @@ async function loadTable() {
   }
 }
 
-function toggleExpand(key: ApiId) {
-  const set = new Set(expandedKeys.value)
-  if (set.has(key)) {
-    set.delete(key)
-  }
-  else {
-    set.add(key)
-  }
-  expandedKeys.value = set
-}
-
 const tableColumns = computed<DataTableColumns<DepartmentTreeItem>>(() => [
   {
     key: 'departmentName',
     title: '部门名称',
     minWidth: 200,
+    tree: true,
     ellipsis: { tooltip: true },
-    render(row) {
-      const hasChildren = row.children && row.children.length > 0
-      const isExpanded = expandedKeys.value.has(row.basicId)
-      const indent = h('span', { style: 'display:inline-block;width:16px;' })
-      const arrow = hasChildren
-        ? h(NIcon, { size: 14, style: 'cursor:pointer;vertical-align:middle;margin-right:4px;', onClick: () => toggleExpand(row.basicId) }, () => h(Icon, { icon: isExpanded ? 'lucide:chevron-down' : 'lucide:chevron-right' }))
-        : h('span', { style: 'display:inline-block;width:18px;' })
-      return h('span', {}, [indent, arrow, row.departmentName])
-    },
   },
   { key: 'departmentCode', title: '部门编码', minWidth: 130, ellipsis: { tooltip: true } },
   {
@@ -347,11 +368,11 @@ async function handleEdit(row: DepartmentListItemDto) {
 async function handleView(row: DepartmentListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
-  currentDetail.value = null
+  managementDetail.value = null
 
   try {
-    currentDetail.value = await orgManagementApi.detail(row.basicId)
-    if (!currentDetail.value) {
+    managementDetail.value = await orgManagementApi.detailView(row.basicId)
+    if (!managementDetail.value) {
       message.warning('未查询到部门详情')
     }
   }
@@ -447,11 +468,11 @@ onMounted(async () => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2 flex flex-wrap items-center gap-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <NConfigProvider size="small" abstract>
-        <NInput
+    <div class="xh-query-panel mb-2">
+      <NInput
         v-model:value="queryParams.keyword"
         clearable
+        size="small"
         placeholder="搜索部门名称/编码"
         style="width: 220px"
         @keyup.enter="handleSearch"
@@ -460,6 +481,7 @@ onMounted(async () => {
         v-model:value="queryParams.departmentType"
         :options="deptTypeOptions"
         clearable
+        size="small"
         placeholder="部门类型"
         style="width: 120px"
       />
@@ -467,6 +489,7 @@ onMounted(async () => {
         v-model:value="queryParams.status"
         :options="statusOptions"
         clearable
+        size="small"
         placeholder="状态"
         style="width: 100px"
       />
@@ -482,7 +505,6 @@ onMounted(async () => {
         </template>
         重置
       </NButton>
-      </NConfigProvider>
     </div>
 
     <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
@@ -521,86 +543,114 @@ onMounted(async () => {
       </div>
     </NCard>
 
-    <NDrawer v-model:show="detailVisible" :width="820">
-      <NDrawerContent closable title="部门详情">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无部门详情">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
-            <NTabs animated type="line">
-              <NTabPane name="overview" tab="概览">
-                <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem label="部门名称">
-                    {{ currentDetail.departmentName }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="部门编码">
-                    {{ currentDetail.departmentCode }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="部门类型">
-                    {{ getOptionLabel(deptTypeOptions, currentDetail.departmentType) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="父级部门">
-                    {{ currentDetail.parentId ? findDepartmentName(currentDetail.parentId) : '-' }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="负责人">
-                    {{ formatNullable(currentDetail.leaderId) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="电话">
-                    {{ formatNullable(currentDetail.phone) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="邮箱">
-                    {{ formatNullable(currentDetail.email) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="地址">
-                    {{ formatNullable(currentDetail.address) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="排序">
-                    {{ currentDetail.sort }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="状态">
-                    {{ formatStatus(currentDetail.status) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem label="创建时间">
-                    {{ formatNullableDate(currentDetail.createdTime) }}
-                  </NDescriptionsItem>
-                </NDescriptions>
-              </NTabPane>
+    <NModal
+      v-model:show="detailVisible"
+      class="xh-mgmt-detail-modal"
+      preset="card"
+      :bordered="false"
+      :mask-closable="true"
+      style="width: 720px; max-width: calc(100vw - 32px);"
+    >
+      <template v-if="detDept" #header>
+        <div class="det-hd-entity">
+          <div class="det-hd-ico">
+            <Icon icon="tabler:building" :size="22" />
+          </div>
+          <div class="min-w-0">
+            <div class="det-hd-name">
+              {{ detDept.departmentName }}
+            </div>
+            <div class="det-hd-sub">
+              {{ detDept.departmentCode }}
+            </div>
+          </div>
+        </div>
+      </template>
 
-              <NTabPane name="children" :tab="`子部门 (${childDepartments.length})`">
-                <table v-if="childDepartments.length" class="xh-detail-table">
-                  <thead>
-                    <tr>
-                      <th>部门名称</th>
-                      <th>编码</th>
-                      <th>类型</th>
-                      <th>电话</th>
-                      <th>状态</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in childDepartments" :key="item.basicId">
-                      <td>{{ item.departmentName }}</td>
-                      <td>{{ item.departmentCode }}</td>
-                      <td>{{ getOptionLabel(deptTypeOptions, item.departmentType) }}</td>
-                      <td>{{ formatNullable('phone' in item ? item.phone : null) }}</td>
-                      <td>{{ formatStatus(item.status) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <NEmpty v-else description="暂无子部门" style="padding: 40px 0" />
-              </NTabPane>
+      <div v-if="detailLoading" class="modal-loading">
+        加载中…
+      </div>
+      <NTabs v-else-if="managementDetail" type="line" animated size="small">
+        <NTabPane name="overview" tab="概览">
+          <NDescriptions :column="2" bordered size="small">
+            <NDescriptionsItem label="部门类型">
+              {{ getOptionLabel(deptTypeOptions, detDept!.departmentType) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="父级部门">
+              {{ detDept!.parentId ? findDepartmentName(detDept!.parentId) : '—' }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="负责人 ID">
+              {{ formatNullable(detDept!.leaderId) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="状态">
+              <NTag size="small" :type="detDept!.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
+                {{ formatStatus(detDept!.status) }}
+              </NTag>
+            </NDescriptionsItem>
+            <NDescriptionsItem label="电话">
+              {{ formatNullable(detDept!.phone) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="邮箱">
+              {{ formatNullable(detDept!.email) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="地址" :span="2">
+              {{ formatNullable(detDept!.address) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="排序">
+              {{ detDept!.sort }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="创建时间">
+              {{ formatNullableDate(detDept!.createdTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem v-if="detDept!.remark" label="备注" :span="2">
+              {{ detDept!.remark }}
+            </NDescriptionsItem>
+          </NDescriptions>
+        </NTabPane>
+        <NTabPane name="children" :tab="`子部门 (${managementDetail.childDepartments.length})`">
+          <div class="xh-detail-table-wrap">
+            <NDataTable
+              v-if="managementDetail.childDepartments.length"
+              :columns="childDeptColumns"
+              :data="managementDetail.childDepartments"
+              :bordered="false"
+              size="small"
+              :row-key="(row: DepartmentListItemDto) => row.basicId"
+            />
+            <NEmpty v-else description="暂无子部门" style="padding: 32px 0" />
+          </div>
+        </NTabPane>
+        <NTabPane name="members" :tab="`部门成员 (${managementDetail.members.length})`">
+          <div class="xh-detail-table-wrap">
+            <NDataTable
+              v-if="managementDetail.members.length"
+              :columns="memberColumns"
+              :data="managementDetail.members"
+              :bordered="false"
+              size="small"
+              :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
+            />
+            <NEmpty v-else description="暂无部门成员" style="padding: 32px 0" />
+          </div>
+        </NTabPane>
+      </NTabs>
 
-              <NTabPane name="members" tab="部门成员">
-                <NEmpty description="暂无部门成员" style="padding: 40px 0" />
-              </NTabPane>
-            </NTabs>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton size="small" @click="detailVisible = false">
+            关闭
+          </NButton>
+          <NButton
+            v-if="detDept"
+            size="small"
+            type="primary"
+            @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
+          >
+            编辑
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
 
     <NModal
       v-model:show="modalVisible"
