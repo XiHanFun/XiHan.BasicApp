@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysApiLog.Expand
+// FileName:SysOpenApiLog.Expand
 // Guid:3e28152c-d6e9-4396-addb-b479254bad62
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统接口日志实体扩展
 /// </summary>
-public partial class SysApiLog
+public partial class SysOpenApiLog
 {
     /// <summary>
     /// 租户信息

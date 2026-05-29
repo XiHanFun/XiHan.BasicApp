@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysApiLog
+// FileName:SysOpenApiLog
 // Guid:3d28152c-d6e9-4396-addb-b479254bad53
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -19,8 +19,8 @@ using XiHan.Framework.Domain.Entities.Abstracts;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统接口日志实体
-/// 记录 API 层级的每次请求/响应详情（路径/方法/状态码/耗时/请求响应体摘要等）
+/// 系统开放接口日志实体
+/// 记录 OpenApi 层级的每次请求/响应详情（路径/方法/状态码/耗时/请求响应体摘要等）
 /// </summary>
 /// <remarks>
 /// 分表策略：
@@ -49,7 +49,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 第三方调用量计费（按 ClientId/AppId 聚合）
 /// - 异常请求追溯
 /// </remarks>
-[SugarTable("SysApiLog_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
+[SugarTable("SysOpenApiLog_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -61,7 +61,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ApId", nameof(AppId), OrderByType.Asc)]
-public partial class SysApiLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
+public partial class SysOpenApiLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID

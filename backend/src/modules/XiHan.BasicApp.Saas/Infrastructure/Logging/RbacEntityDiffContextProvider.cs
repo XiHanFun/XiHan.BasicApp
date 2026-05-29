@@ -30,7 +30,7 @@ public class RbacEntityDiffContextProvider : IEntityAuditContextProvider
     private static readonly HashSet<string> ExcludedEntityNames = new(StringComparer.Ordinal)
     {
         nameof(SysAccessLog),
-        nameof(SysApiLog),
+        nameof(SysOpenApiLog),
         nameof(SysDiffLog),
         nameof(SysExceptionLog),
         nameof(SysLoginLog),

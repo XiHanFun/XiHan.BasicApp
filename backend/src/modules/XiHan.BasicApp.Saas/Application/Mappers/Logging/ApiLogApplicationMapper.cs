@@ -27,7 +27,7 @@ public static class ApiLogApplicationMapper
     /// </summary>
     /// <param name="apiLog">API 日志实体</param>
     /// <returns>API 日志列表项 DTO</returns>
-    public static ApiLogListItemDto ToListItemDto(SysApiLog apiLog)
+    public static ApiLogListItemDto ToListItemDto(SysOpenApiLog apiLog)
     {
         ArgumentNullException.ThrowIfNull(apiLog);
 
@@ -79,7 +79,7 @@ public static class ApiLogApplicationMapper
     /// </summary>
     /// <param name="apiLog">API 日志实体</param>
     /// <returns>API 日志详情 DTO</returns>
-    public static ApiLogDetailDto ToDetailDto(SysApiLog apiLog)
+    public static ApiLogDetailDto ToDetailDto(SysOpenApiLog apiLog)
     {
         ArgumentNullException.ThrowIfNull(apiLog);
 

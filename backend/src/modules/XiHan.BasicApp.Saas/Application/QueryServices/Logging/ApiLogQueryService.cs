@@ -64,7 +64,7 @@ public sealed class ApiLogQueryService
 
         var predicate = BuildApiLogPredicate(input);
         RefAsync<int> totalCount = 0;
-        var entities = await DbClient.Queryable<SysApiLog>()
+        var entities = await DbClient.Queryable<SysOpenApiLog>()
             .Where(predicate)
             .SplitTable()
             .OrderByDescending(x => x.RequestTime)
@@ -98,7 +98,7 @@ public sealed class ApiLogQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var apiLog = await DbClient.Queryable<SysApiLog>()
+        var apiLog = await DbClient.Queryable<SysOpenApiLog>()
             .Where(x => x.BasicId == id)
             .SplitTable()
             .FirstAsync(cancellationToken);
@@ -108,9 +108,9 @@ public sealed class ApiLogQueryService
     /// <summary>
     /// 构建 API 日志查询表达式
     /// </summary>
-    private static Expression<Func<SysApiLog, bool>> BuildApiLogPredicate(ApiLogPageQueryDto input)
+    private static Expression<Func<SysOpenApiLog, bool>> BuildApiLogPredicate(ApiLogPageQueryDto input)
     {
-        Expression<Func<SysApiLog, bool>> predicate = apiLog => true;
+        Expression<Func<SysOpenApiLog, bool>> predicate = apiLog => true;
 
         if (input.RequestTimeStart.HasValue)
         {
