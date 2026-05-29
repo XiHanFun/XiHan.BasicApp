@@ -70,7 +70,7 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
         var db = _clientResolver.GetCurrentClient();
 
         var activeSessions = await db.Queryable<SysUserSession>()
-            .Where(s => s.TenantId == tenantId && s.IsOnline && !s.IsRevoked && !s.IsDeleted)
+            .Where(s => s.TenantId == tenantId && s.Status == SessionStatus.Active && !s.IsDeleted)
             .ToListAsync();
 
         if (activeSessions.Count == 0)
@@ -83,14 +83,13 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
         var now = DateTimeOffset.UtcNow;
         foreach (var session in activeSessions)
         {
-            session.IsOnline = false;
-            session.IsRevoked = true;
+            session.Status = SessionStatus.Revoked;
             session.RevokedAt = now;
             session.RevokedReason = reason ?? "Tenant status changed";
         }
 
         await db.Updateable(activeSessions)
-            .UpdateColumns(s => new { s.IsOnline, s.IsRevoked, s.RevokedAt, s.RevokedReason })
+            .UpdateColumns(s => new { s.Status, s.RevokedAt, s.RevokedReason })
             .ExecuteCommandAsync();
 
         _logger.LogWarning(

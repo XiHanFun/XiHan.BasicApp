@@ -68,7 +68,6 @@ public sealed class ConstraintRuleDomainService
             ConstraintType = command.ConstraintType,
             TargetType = command.TargetType,
             Parameters = NormalizeParameters(command.Parameters),
-            IsGlobal = false,
             Status = command.Status,
             ViolationAction = command.ViolationAction,
             Description = NormalizeNullable(command.Description),

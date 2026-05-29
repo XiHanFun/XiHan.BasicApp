@@ -17,7 +17,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统接口日志实体扩展
+/// 系统开放接口日志实体扩展
 /// </summary>
 public partial class SysOpenApiLog
 {

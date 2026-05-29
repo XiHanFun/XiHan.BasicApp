@@ -72,7 +72,7 @@ public class RbacApiLogWriter : IApiLogWriter
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
-            SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
+            UserSessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
             TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
             ClientId = RbacLogMappingHelper.TrimOrNull(record.ClientId, 100),
             AppId = RbacLogMappingHelper.TrimOrNull(record.AppId, 100),

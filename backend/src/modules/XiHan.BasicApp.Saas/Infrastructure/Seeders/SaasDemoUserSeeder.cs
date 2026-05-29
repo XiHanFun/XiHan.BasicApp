@@ -340,7 +340,6 @@ public sealed class SaasDemoUserSeeder(
                 RoleName = seed.RoleName,
                 RoleDescription = $"演示角色：{seed.RoleName}",
                 RoleType = RoleType.Custom,
-                IsGlobal = false,
                 DataScope = seed.DataScope,
                 MaxMembers = 0,
                 Status = EnableStatus.Enabled,

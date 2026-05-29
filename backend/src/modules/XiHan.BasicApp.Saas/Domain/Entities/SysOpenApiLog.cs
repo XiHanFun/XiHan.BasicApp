@@ -31,8 +31,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - UserId → SysUser；ClientId/AppId → SysOAuthApp；TraceId 串联同一请求
 ///
 /// 写入：
-/// - 只追加，由 API 中间件异步批量写入，避免影响业务性能
+/// - 只追加，由 OpenApi 中间件异步批量写入，避免影响业务性能
 /// - 大请求/响应体建议截断（如 4KB）或只记 Hash，防止日志爆量
+/// - 敏感请求头（Authorization/Cookie 等）与请求体中的密钥/隐私字段必须在落库前脱敏，禁止明文持久化
 /// - StatusCode>=400 的请求建议提升采样率
 ///
 /// 查询：
@@ -45,11 +46,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 不支持业务删除；按保留策略 TRUNCATE 月表
 ///
 /// 场景：
-/// - API 性能监控与 APM 集成
+/// - OpenApi 性能监控与 APM 集成
 /// - 第三方调用量计费（按 ClientId/AppId 聚合）
 /// - 异常请求追溯
 /// </remarks>
-[SugarTable("SysOpenApiLog_{year}{month}{day}", "系统接口日志表"), SplitTable(SplitType.Month)]
+[SugarTable("SysOpenApiLog_{year}{month}{day}", "系统开放接口日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -76,10 +77,10 @@ public partial class SysOpenApiLog : BasicAppCreationEntity, ISplitTableEntity, 
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 会话ID
+    /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
+    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    public virtual string? UserSessionId { get; set; }
 
     /// <summary>
     /// 请求ID
@@ -172,14 +173,18 @@ public partial class SysOpenApiLog : BasicAppCreationEntity, ISplitTableEntity, 
     public virtual int StatusCode { get; set; } = 200;
 
     /// <summary>
-    /// 请求头
+    /// 请求头（已脱敏；Authorization/Cookie 等敏感头不落库，禁止 API 回显）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "请求头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestHeaders { get; set; }
 
     /// <summary>
-    /// 响应头
+    /// 响应头（已脱敏；Set-Cookie 等敏感头不落库，禁止 API 回显）
     /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(ColumnDescription = "响应头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseHeaders { get; set; }
 

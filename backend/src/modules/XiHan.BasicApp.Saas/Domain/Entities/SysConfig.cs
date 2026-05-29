@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + ConfigKey 租户内唯一（UX_TeId_CoKe）
-/// - IsGlobal=true 作为平台级默认配置（TenantId = 0），租户级同键覆盖全局
+/// - TenantId = 0（即派生属性 IsGlobal=true）作为平台级默认配置，租户级同键覆盖全局
 /// - 敏感值（密钥/密码类）必须在应用层加密后落库
 /// - 修改后应发布配置变更事件，通知相关服务刷新缓存
 ///
@@ -52,19 +52,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_CoKe", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_CoKe", nameof(TenantId), OrderByType.Asc, nameof(ConfigKey), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_CoTy", nameof(ConfigType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysConfig : BasicAppFullAuditedEntity
 {
-    /// <summary>
-    /// 是否平台级全局配置（全局配置对所有租户生效，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局配置")]
-    public virtual bool IsGlobal { get; set; } = false;
-
     /// <summary>
     /// 配置名称
     /// </summary>

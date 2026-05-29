@@ -79,7 +79,6 @@ public sealed class RoleDomainService
             RoleName = command.RoleName.Trim(),
             RoleDescription = NormalizeNullable(command.RoleDescription),
             RoleType = command.RoleType,
-            IsGlobal = false,
             DataScope = command.DataScope,
             MaxMembers = command.MaxMembers,
             Status = command.Status,

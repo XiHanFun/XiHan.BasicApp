@@ -165,8 +165,8 @@ public sealed class SaasMenuSeeder(
     {
         var menu = new SysMenu
         {
-            TenantId = 0,
-            IsGlobal = true
+            // IsGlobal 为派生属性（= TenantId == 0）：平台菜单仅需置 TenantId = 0
+            TenantId = 0
         };
         _ = ApplyDefinition(menu, definition, parentId, permissionId);
         return menu;
@@ -176,7 +176,6 @@ public sealed class SaasMenuSeeder(
     {
         var changed = false;
         changed |= SetIfChanged(menu.TenantId, 0, value => menu.TenantId = value);
-        changed |= SetIfChanged(menu.IsGlobal, true, value => menu.IsGlobal = value);
         changed |= SetIfChanged(menu.ParentId, parentId, value => menu.ParentId = value);
         changed |= SetIfChanged(menu.PermissionId, permissionId, value => menu.PermissionId = value);
         changed |= SetIfChanged(menu.MenuName, definition.MenuName, value => menu.MenuName = value);

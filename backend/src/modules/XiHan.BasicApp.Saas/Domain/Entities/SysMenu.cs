@@ -33,7 +33,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + MenuCode 租户内唯一（UX_TeId_MeCo）
-/// - IsGlobal=true 作为平台菜单模板，新租户初始化时克隆
+/// - TenantId = 0（即派生属性 IsGlobal=true）作为平台菜单模板，新租户初始化时克隆
 /// - 树结构写入必须做环路检测（禁止 A→B→A）
 ///
 /// 查询：
@@ -56,12 +56,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_MeTy", nameof(MenuType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysMenu : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -75,12 +74,6 @@ public partial class SysMenu : BasicAppFullAuditedEntity
     /// </remarks>
     [SugarColumn(ColumnDescription = "权限ID", IsNullable = true)]
     public virtual long? PermissionId { get; set; }
-
-    /// <summary>
-    /// 是否平台级全局菜单（全局菜单作为所有租户的基础模板，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局菜单")]
-    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 父级菜单ID

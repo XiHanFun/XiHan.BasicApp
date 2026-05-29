@@ -36,7 +36,7 @@ public static class AccessLogApplicationMapper
             BasicId = accessLog.BasicId,
             UserId = accessLog.UserId,
             UserName = accessLog.UserName,
-            SessionId = accessLog.SessionId,
+            SessionId = accessLog.UserSessionId,
             TraceId = accessLog.TraceId,
             ResourcePath = accessLog.ResourcePath,
             ResourceName = accessLog.ResourceName,

@@ -109,9 +109,9 @@ public class OperationLogListItemDto : BasicAppDto
     public string? UserAgent { get; set; }
 
     /// <summary>
-    /// 操作状态
+    /// 操作执行结果（成功/失败/部分成功）
     /// </summary>
-    public EnableStatus Status { get; set; }
+    public OperationExecuteResult Result { get; set; }
 
     /// <summary>
     /// 错误消息

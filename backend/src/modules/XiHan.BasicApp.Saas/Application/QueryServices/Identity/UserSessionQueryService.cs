@@ -151,14 +151,9 @@ public sealed class UserSessionQueryService
             request.Conditions.AddFilter(nameof(SysUserSession.DeviceType), input.DeviceType.Value);
         }
 
-        if (input.IsOnline.HasValue)
+        if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.IsOnline), input.IsOnline.Value);
-        }
-
-        if (input.IsRevoked.HasValue)
-        {
-            request.Conditions.AddFilter(nameof(SysUserSession.IsRevoked), input.IsRevoked.Value);
+            request.Conditions.AddFilter(nameof(SysUserSession.Status), input.Status.Value);
         }
 
         if (input.LoginTimeStart.HasValue)
@@ -181,7 +176,8 @@ public sealed class UserSessionQueryService
             request.Conditions.AddFilter(nameof(SysUserSession.LastActivityTime), input.LastActivityTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysUserSession.IsOnline), SortDirection.Descending, 0);
+        // 会话状态升序：Active(0) 优先于 Offline/Revoked/Expired，等效于"在线优先"
+        request.Conditions.AddSort(nameof(SysUserSession.Status), SortDirection.Ascending, 0);
         request.Conditions.AddSort(nameof(SysUserSession.LastActivityTime), SortDirection.Descending, 1);
         request.Conditions.AddSort(nameof(SysUserSession.LoginTime), SortDirection.Descending, 2);
         return request;

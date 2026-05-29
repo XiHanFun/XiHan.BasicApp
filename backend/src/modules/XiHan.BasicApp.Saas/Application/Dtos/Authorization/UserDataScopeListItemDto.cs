@@ -54,11 +54,6 @@ public sealed class UserDataScopeListItemDto : BasicAppDto
     public ValidityStatus? TenantMemberStatus { get; set; }
 
     /// <summary>
-    /// 数据权限范围
-    /// </summary>
-    public DataPermissionScope DataScope { get; set; }
-
-    /// <summary>
     /// 部门主键
     /// </summary>
     public long DepartmentId { get; set; }

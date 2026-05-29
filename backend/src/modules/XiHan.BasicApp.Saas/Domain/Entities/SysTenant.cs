@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeCo", nameof(TenantCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeNa", nameof(TenantName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeSt", nameof(TenantStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoSt", nameof(ConfigStatus), OrderByType.Asc)]

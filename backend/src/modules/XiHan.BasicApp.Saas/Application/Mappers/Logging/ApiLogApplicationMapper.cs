@@ -36,7 +36,7 @@ public static class ApiLogApplicationMapper
             BasicId = apiLog.BasicId,
             UserId = apiLog.UserId,
             UserName = apiLog.UserName,
-            SessionId = apiLog.SessionId,
+            SessionId = apiLog.UserSessionId,
             RequestId = apiLog.RequestId,
             TraceId = apiLog.TraceId,
             ClientId = apiLog.ClientId,

@@ -29,13 +29,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - TenantId + OperationCode 租户内唯一（UX_TeId_OpCo）
 /// - OperationCode 规范：小写英文（create/read/update/delete/approve/export）
-/// - IsGlobal=true 时作为平台动作模板（CRUD/Approve/Export 等通用操作）
+/// - TenantId = 0（即派生属性 IsGlobal=true）时作为平台动作模板（CRUD/Approve/Export 等通用操作）
 /// - IsDangerous=true 的操作前端应弹二次确认；IsRequireAudit=true 的操作必须写 SysDiffLog
 ///
 /// 查询：
 /// - 按 Category/OperationTypeCode 过滤用于前端操作面板分组
 /// - 全局+私有合并查询优先使用：WHERE TenantId IN (0, ?)
-///   IsGlobal 仅作为语义标记，不应替代 TenantId=0 的平台记录约束
+///   平台记录以 TenantId=0 唯一约束；IsGlobal 为派生只读属性（= TenantId==0）
 ///
 /// 删除：
 /// - 仅软删；删除前必须校验：无权限引用（SysPermission.OperationId）
@@ -52,11 +52,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_OpCo", nameof(TenantId), OrderByType.Asc, nameof(OperationCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_OpCo", nameof(TenantId), OrderByType.Asc, nameof(OperationCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_Ca", nameof(Category), OrderByType.Asc)]
 [SugarIndex("IX_{table}_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysOperation : BasicAppAggregateRoot
 {
     /// <summary>
@@ -118,12 +117,6 @@ public partial class SysOperation : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
-
-    /// <summary>
-    /// 是否平台级全局操作（全局操作所有租户共享，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局操作")]
-    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 状态

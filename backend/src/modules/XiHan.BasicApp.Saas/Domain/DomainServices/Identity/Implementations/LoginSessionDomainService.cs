@@ -91,8 +91,7 @@ public sealed class LoginSessionDomainService
             Location = NormalizeNullable(client.Location, 200),
             LoginTime = now,
             LastActivityTime = now,
-            IsOnline = true,
-            IsRevoked = false,
+            Status = SessionStatus.Active,
             ExpiresAt = ToDateTimeOffset(tokenResult.ExpiresAt)
         };
 
@@ -159,8 +158,7 @@ public sealed class LoginSessionDomainService
             return null;
         }
 
-        session.IsOnline = false;
-        session.IsRevoked = true;
+        session.Status = SessionStatus.Revoked;
         session.RevokedAt = now;
         session.RevokedReason = "用户主动退出";
         session.LogoutTime = now;

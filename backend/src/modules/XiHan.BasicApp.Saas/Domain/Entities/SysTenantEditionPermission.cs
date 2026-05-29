@@ -24,11 +24,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 关联：
-/// - EditionId → SysTenantEdition；PermissionId → SysPermission（通常是 IsGlobal=true 的全局权限）
+/// - EditionId → SysTenantEdition；PermissionId → SysPermission（通常是 TenantId=0 的全局权限，即派生属性 IsGlobal=true）
 ///
 /// 写入：
 /// - EditionId + PermissionId 唯一（UX_EdId_PeId）
-/// - 写入前必须校验：PermissionId 对应的权限 IsGlobal=true（非全局权限不应被版本门控）
+/// - 写入前必须校验：PermissionId 对应权限的 TenantId=0（即 IsGlobal=true；非全局权限不应被版本门控）
 /// - Edition 升级（如 Basic → Pro）时应增量写入新增权限
 ///
 /// 查询：

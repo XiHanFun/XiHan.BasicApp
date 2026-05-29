@@ -23,6 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysRole : IValidatableObject
 {
     /// <summary>
+    /// 是否平台级全局角色（派生属性：TenantId == 0 即为平台全局，作为所有租户的模板；不落库，消除与 TenantId 漂移的风险）
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public bool IsGlobal => TenantId == 0;
+
+    /// <summary>
     /// 用户角色关联列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -105,16 +111,6 @@ public partial class SysRole : IValidatableObject
         if (string.IsNullOrWhiteSpace(RoleName))
         {
             yield return new ValidationResult("RoleName 不能为空。", [nameof(RoleName)]);
-        }
-
-        if (IsGlobal && TenantId != 0)
-        {
-            yield return new ValidationResult("全局角色必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
-        }
-
-        if (TenantId == 0 && !IsGlobal)
-        {
-            yield return new ValidationResult("平台租户（TenantId=0）的角色必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
         }
 
         if (RoleType == RoleType.System && !IsGlobal)

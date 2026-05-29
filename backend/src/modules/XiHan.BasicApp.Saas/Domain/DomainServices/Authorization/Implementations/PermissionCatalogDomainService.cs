@@ -96,7 +96,6 @@ public sealed class PermissionCatalogDomainService
             PermissionDescription = NormalizeNullable(command.PermissionDescription),
             Tags = NormalizeTags(command.Tags),
             IsRequireAudit = command.IsRequireAudit,
-            IsGlobal = false,
             Priority = command.Priority,
             Status = command.Status,
             Sort = command.Sort,
@@ -191,7 +190,6 @@ public sealed class PermissionCatalogDomainService
             Description = NormalizeNullable(command.Description),
             Metadata = NormalizeMetadata(command.Metadata),
             AccessLevel = command.AccessLevel,
-            IsGlobal = false,
             Status = command.Status,
             Sort = command.Sort,
             Remark = NormalizeNullable(command.Remark)
@@ -284,7 +282,6 @@ public sealed class PermissionCatalogDomainService
             Color = NormalizeNullable(command.Color),
             IsDangerous = command.IsDangerous,
             IsRequireAudit = command.IsRequireAudit,
-            IsGlobal = false,
             Status = command.Status,
             Sort = command.Sort,
             Remark = NormalizeNullable(command.Remark)

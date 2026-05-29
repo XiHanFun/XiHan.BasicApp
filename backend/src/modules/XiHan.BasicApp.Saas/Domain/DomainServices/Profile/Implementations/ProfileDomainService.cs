@@ -281,7 +281,7 @@ public sealed class ProfileDomainService
 
         var sessions = await _userSessionRepository.GetListAsync(
             session => session.UserId == command.UserId &&
-                       !session.IsRevoked &&
+                       session.Status != SessionStatus.Revoked &&
                        session.UserSessionId != command.CurrentSessionId,
             cancellationToken);
         if (sessions.Count == 0)
@@ -511,8 +511,7 @@ public sealed class ProfileDomainService
     private static void RevokeSession(SysUserSession session, string reason)
     {
         var now = DateTimeOffset.UtcNow;
-        session.IsOnline = false;
-        session.IsRevoked = true;
+        session.Status = SessionStatus.Revoked;
         session.RevokedAt = now;
         session.RevokedReason = NormalizeNullable(reason, 200);
         session.LogoutTime ??= now;
@@ -613,7 +612,7 @@ public sealed class ProfileDomainService
         CancellationToken cancellationToken)
     {
         var (user, _) = await GetUserSecurityOrThrowAsync(userId, cancellationToken);
-        var sessions = await _userSessionRepository.GetListAsync(session => session.UserId == user.BasicId && !session.IsRevoked, cancellationToken);
+        var sessions = await _userSessionRepository.GetListAsync(session => session.UserId == user.BasicId && session.Status != SessionStatus.Revoked, cancellationToken);
         if (sessions.Count == 0)
         {
             return new ProfileSessionRevokeResult([]);

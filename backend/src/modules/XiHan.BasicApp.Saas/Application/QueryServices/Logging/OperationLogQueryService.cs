@@ -129,7 +129,7 @@ public sealed class OperationLogQueryService
             var keyword = input.Keyword.Trim();
             predicate = And(predicate, operationLog =>
                 (operationLog.UserName != null && operationLog.UserName.Contains(keyword)) ||
-                (operationLog.SessionId != null && operationLog.SessionId.Contains(keyword)) ||
+                (operationLog.UserSessionId != null && operationLog.UserSessionId.Contains(keyword)) ||
                 (operationLog.TraceId != null && operationLog.TraceId.Contains(keyword)) ||
                 (operationLog.Module != null && operationLog.Module.Contains(keyword)) ||
                 (operationLog.Function != null && operationLog.Function.Contains(keyword)) ||
@@ -152,7 +152,7 @@ public sealed class OperationLogQueryService
         if (!string.IsNullOrWhiteSpace(input.SessionId))
         {
             var sessionId = input.SessionId.Trim();
-            predicate = And(predicate, operationLog => operationLog.SessionId == sessionId);
+            predicate = And(predicate, operationLog => operationLog.UserSessionId == sessionId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.TraceId))
@@ -191,10 +191,10 @@ public sealed class OperationLogQueryService
             predicate = And(predicate, operationLog => operationLog.Method == method);
         }
 
-        if (input.Status.HasValue)
+        if (input.Result.HasValue)
         {
-            var status = input.Status.Value;
-            predicate = And(predicate, operationLog => operationLog.Status == status);
+            var result = input.Result.Value;
+            predicate = And(predicate, operationLog => operationLog.Result == result);
         }
 
         if (input.MinExecutionTime.HasValue)
@@ -252,9 +252,9 @@ public sealed class OperationLogQueryService
             throw new ArgumentOutOfRangeException(nameof(input.OperationType), "操作类型无效。");
         }
 
-        if (input.Status.HasValue && !Enum.IsDefined(input.Status.Value))
+        if (input.Result.HasValue && !Enum.IsDefined(input.Result.Value))
         {
-            throw new ArgumentOutOfRangeException(nameof(input.Status), "操作状态无效。");
+            throw new ArgumentOutOfRangeException(nameof(input.Result), "操作执行结果无效。");
         }
 
         if (input.MinExecutionTime.HasValue &&

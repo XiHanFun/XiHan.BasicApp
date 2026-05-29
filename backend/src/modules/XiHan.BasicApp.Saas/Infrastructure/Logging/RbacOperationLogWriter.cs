@@ -84,7 +84,7 @@ public class RbacOperationLogWriter : IOperationLogWriter
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
             TraceId = RbacLogMappingHelper.TrimOrNull(traceId, 64),
-            SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
+            UserSessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
             OperationType = operationType,
             Module = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 50),
             Function = RbacLogMappingHelper.TrimOrNull(record.ActionName, 50),
@@ -98,7 +98,7 @@ public class RbacOperationLogWriter : IOperationLogWriter
             Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
             Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
             UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
-            Status = RbacLogMappingHelper.ResolveStatus(record.StatusCode, record.ErrorMessage),
+            Result = RbacLogMappingHelper.ResolveResult(record.StatusCode, record.ErrorMessage),
             ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
             OperationTime = DateTimeOffset.UtcNow
         };

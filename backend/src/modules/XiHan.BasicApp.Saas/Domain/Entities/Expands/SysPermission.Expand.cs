@@ -23,6 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysPermission : IValidatableObject
 {
     /// <summary>
+    /// 是否平台级全局权限（派生属性：TenantId == 0 即所有租户共享，作为平台模板；不落库，消除与 TenantId 漂移的风险）
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public bool IsGlobal => TenantId == 0;
+
+    /// <summary>
     /// 关联的资源（多权限可关联同一资源，ManyToOne）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -115,16 +121,6 @@ public partial class SysPermission : IValidatableObject
         if (string.IsNullOrWhiteSpace(PermissionName))
         {
             yield return new ValidationResult("PermissionName 不能为空。", [nameof(PermissionName)]);
-        }
-
-        if (IsGlobal && TenantId != 0)
-        {
-            yield return new ValidationResult("全局权限必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
-        }
-
-        if (TenantId == 0 && !IsGlobal)
-        {
-            yield return new ValidationResult("平台租户（TenantId=0）的权限必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
         }
     }
 }

@@ -131,7 +131,7 @@ public sealed class AccessLogQueryService
             var keyword = input.Keyword.Trim();
             predicate = And(predicate, accessLog =>
                 (accessLog.UserName != null && accessLog.UserName.Contains(keyword)) ||
-                (accessLog.SessionId != null && accessLog.SessionId.Contains(keyword)) ||
+                (accessLog.UserSessionId != null && accessLog.UserSessionId.Contains(keyword)) ||
                 (accessLog.TraceId != null && accessLog.TraceId.Contains(keyword)) ||
                 accessLog.ResourcePath.Contains(keyword) ||
                 (accessLog.ResourceName != null && accessLog.ResourceName.Contains(keyword)) ||
@@ -154,7 +154,7 @@ public sealed class AccessLogQueryService
         if (!string.IsNullOrWhiteSpace(input.SessionId))
         {
             var sessionId = input.SessionId.Trim();
-            predicate = And(predicate, accessLog => accessLog.SessionId == sessionId);
+            predicate = And(predicate, accessLog => accessLog.UserSessionId == sessionId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.TraceId))

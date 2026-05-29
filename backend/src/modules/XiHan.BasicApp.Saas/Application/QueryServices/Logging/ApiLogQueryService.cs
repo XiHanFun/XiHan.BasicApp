@@ -129,7 +129,7 @@ public sealed class ApiLogQueryService
             var keyword = input.Keyword.Trim();
             predicate = And(predicate, apiLog =>
                 (apiLog.UserName != null && apiLog.UserName.Contains(keyword)) ||
-                (apiLog.SessionId != null && apiLog.SessionId.Contains(keyword)) ||
+                (apiLog.UserSessionId != null && apiLog.UserSessionId.Contains(keyword)) ||
                 (apiLog.RequestId != null && apiLog.RequestId.Contains(keyword)) ||
                 (apiLog.TraceId != null && apiLog.TraceId.Contains(keyword)) ||
                 (apiLog.ClientId != null && apiLog.ClientId.Contains(keyword)) ||
@@ -155,7 +155,7 @@ public sealed class ApiLogQueryService
         if (!string.IsNullOrWhiteSpace(input.SessionId))
         {
             var sessionId = input.SessionId.Trim();
-            predicate = And(predicate, apiLog => apiLog.SessionId == sessionId);
+            predicate = And(predicate, apiLog => apiLog.UserSessionId == sessionId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.RequestId))

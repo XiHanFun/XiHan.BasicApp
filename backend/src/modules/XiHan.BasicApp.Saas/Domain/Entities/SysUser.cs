@@ -62,7 +62,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_UsNa", nameof(TenantId), OrderByType.Asc, nameof(UserName), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_UsNa", nameof(TenantId), OrderByType.Asc, nameof(UserName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsNa", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Em", nameof(Email), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ph", nameof(Phone), OrderByType.Asc)]
@@ -165,6 +165,17 @@ public partial class SysUser : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否系统内置账号")]
     public virtual bool IsSystemAccount { get; set; } = false;
+
+    /// <summary>
+    /// 用户级数据权限范围覆盖（与 SysRole.DataScope 对称的用户级覆盖；null=不覆盖，按角色 DataScope 生效）
+    /// </summary>
+    /// <remarks>
+    /// - 非空时优先级高于角色 DataScope（如 CEO 角色是部门经理但需看全部数据，可置 All）
+    /// - 取值 Custom 时，须在 SysUserDataScope 中枚举可见部门集合
+    /// - 禁止依赖枚举数值大小做权限合并，必须按 DataPermissionScope 注释中的显式语义解释
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "数据权限范围覆盖", IsNullable = true)]
+    public virtual DataPermissionScope? DataScopeOverride { get; set; }
 
     /// <summary>
     /// 备注

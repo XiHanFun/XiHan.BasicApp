@@ -31,12 +31,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - TenantId + PermissionCode 租户内唯一（UX_TeId_PeCo），建议格式 "{resource}:{operation}"
 /// - TenantId + ResourceId + OperationId 租户内唯一（UX_TeId_ReId_OpId），防止重复授权
-/// - IsGlobal=true 时 TenantId 必须为 0（平台租户占位），作为平台模板供订阅版本引用（SysTenantEditionPermission）
+/// - TenantId = 0（即派生属性 IsGlobal=true）作为平台模板供订阅版本引用（SysTenantEditionPermission）
 /// - IsRequireAudit=true 时，该权限的操作应强制写 SysDiffLog
 ///
 /// 查询：
 /// - 全局权限 + 租户私有权限合并查询优先使用：WHERE TenantId IN (0, ?)
-///   IsGlobal 仅作为语义校验字段，不应替代 TenantId=0 的平台记录约束
+///   平台记录以 TenantId=0 唯一约束；IsGlobal 为派生只读属性（= TenantId==0）
 /// - 按资源反查权限：走 IX_ReId
 ///
 /// 删除：
@@ -55,12 +55,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_PeCo", nameof(TenantId), OrderByType.Asc, nameof(PermissionCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_PeCo", nameof(TenantId), OrderByType.Asc, nameof(PermissionCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_ReId_OpId", nameof(TenantId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(OperationId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ReId", nameof(ResourceId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_PeTy", nameof(TenantId), OrderByType.Asc, nameof(PermissionType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysPermission : BasicAppAggregateRoot
 {
     /// <summary>
@@ -117,12 +116,6 @@ public partial class SysPermission : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
-
-    /// <summary>
-    /// 是否平台级全局权限（全局权限所有租户共享，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局权限")]
-    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 优先级（数字越大优先级越高；仅用于同级别 Grant/Deny 之间的排序，不参与 Grant vs Deny 的跨级覆盖决策——Deny 始终优先于 Grant）

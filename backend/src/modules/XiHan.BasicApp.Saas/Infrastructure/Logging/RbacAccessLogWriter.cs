@@ -66,7 +66,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
             TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
             UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            SessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
+            UserSessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
             TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
             ResourcePath = RbacLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
             ResourceName = RbacLogMappingHelper.TrimOrNull(record.ResourceName, 200),
