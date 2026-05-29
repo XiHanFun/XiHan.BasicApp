@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <remarks>
 /// 职责边界：
 /// - 本表仅关注"数据库实体变更"（谁在什么时候改了哪张表哪条记录的哪些字段）
-/// - 与 SysAccessLog（HTTP 访问日志）、SysApiLog（API 调用日志）职责分离，通过 TraceId 串联
+/// - 与 SysAccessLog（HTTP 访问日志）、SysOpenApiLog（API 调用日志）职责分离，通过 TraceId 串联
 /// - 与 SysReviewLog（业务审批动作日志）职责分离：本表记录数据变更事实，SysReviewLog 记录审批决策过程
 ///
 /// 写入触发：
@@ -77,13 +77,13 @@ public partial class SysDiffLog : BasicAppCreationEntity, ISplitTableEntity, ITr
     public virtual string? SessionId { get; set; }
 
     /// <summary>
-    /// 请求ID（关联 SysApiLog，用于定位触发本次变更的 API 请求）
+    /// 请求ID（关联 SysOpenApiLog，用于定位触发本次变更的 API 请求）
     /// </summary>
     [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
     public virtual string? RequestId { get; set; }
 
     /// <summary>
-    /// 链路追踪ID（串联 SysAccessLog/SysApiLog/SysDiffLog 的完整请求生命周期）
+    /// 链路追踪ID（串联 SysAccessLog/SysOpenApiLog/SysDiffLog 的完整请求生命周期）
     /// </summary>
     [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }

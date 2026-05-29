@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 职责边界：
-/// - 与 SysApiLog 区别：本表关注"业务语义"（用户导出了报表），SysApiLog 关注"HTTP 请求"（POST /api/export）
+/// - 与 SysOpenApiLog 区别：本表关注"业务语义"（用户导出了报表），SysOpenApiLog 关注"HTTP 请求"（POST /api/export）
 /// - 与 SysDiffLog 区别：本表覆盖更宽泛的操作，SysDiffLog 仅针对敏感/合规级操作
 ///
 /// 分表策略：

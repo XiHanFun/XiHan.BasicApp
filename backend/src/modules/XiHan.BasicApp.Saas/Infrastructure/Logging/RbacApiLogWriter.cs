@@ -66,7 +66,7 @@ public class RbacApiLogWriter : IApiLogWriter
 
         var sessionId = httpContext?.User?.FindFirst(XiHanClaimTypes.SessionId)?.Value;
 
-        var entity = new SysApiLog
+        var entity = new SysOpenApiLog
         {
             TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
