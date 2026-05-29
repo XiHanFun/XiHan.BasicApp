@@ -23,6 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysOperation : IValidatableObject
 {
     /// <summary>
+    /// 是否平台级全局操作（派生属性：TenantId == 0 即所有租户共享；不落库，消除与 TenantId 漂移的风险）
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public bool IsGlobal => TenantId == 0;
+
+    /// <summary>
     /// 操作权限列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -42,16 +48,6 @@ public partial class SysOperation : IValidatableObject
         if (string.IsNullOrWhiteSpace(OperationName))
         {
             yield return new ValidationResult("OperationName 不能为空。", [nameof(OperationName)]);
-        }
-
-        if (IsGlobal && TenantId != 0)
-        {
-            yield return new ValidationResult("全局操作必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
-        }
-
-        if (TenantId == 0 && !IsGlobal)
-        {
-            yield return new ValidationResult("平台租户（TenantId=0）的操作必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
         }
     }
 }

@@ -17,7 +17,7 @@ using System.ComponentModel;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// API 签名类型枚举
+/// OpenApi 签名类型枚举
 /// </summary>
 public enum SignatureType
 {

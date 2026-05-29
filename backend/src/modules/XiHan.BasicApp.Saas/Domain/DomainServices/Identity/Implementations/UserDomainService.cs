@@ -653,17 +653,20 @@ public sealed class UserDomainService
 
         var now = DateTimeOffset.UtcNow;
         var tenantMember = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken);
-        var department = await GetDepartmentForScopeOrThrowAsync(command.DataScope, command.DepartmentId, cancellationToken);
-        var departmentId = ResolveDataScopeDepartmentId(command.DataScope, command.DepartmentId);
-
-        await EnsureCanPersistScopeAsync(command.UserId, command.DataScope, departmentId, null, cancellationToken);
+        _ = await GetCustomDataScopeUserOrThrowAsync(command.UserId, cancellationToken);
+        var department = await GetEnabledDepartmentOrThrowAsync(command.DepartmentId, cancellationToken);
+        if (await _userDataScopeRepository.AnyAsync(
+            scope => scope.UserId == command.UserId && scope.DepartmentId == command.DepartmentId,
+            cancellationToken))
+        {
+            throw new InvalidOperationException("用户数据范围已绑定。");
+        }
 
         var dataScope = new SysUserDataScope
         {
             UserId = command.UserId,
-            DataScope = command.DataScope,
-            DepartmentId = departmentId,
-            IncludeChildren = command.DataScope == DataPermissionScope.Custom && command.IncludeChildren,
+            DepartmentId = command.DepartmentId,
+            IncludeChildren = command.IncludeChildren,
             Status = ValidityStatus.Valid,
             Remark = NormalizeNullable(command.Remark)
         };
@@ -688,14 +691,10 @@ public sealed class UserDomainService
         var now = DateTimeOffset.UtcNow;
         var dataScope = await GetUserDataScopeOrThrowAsync(command.BasicId, cancellationToken);
         var tenantMember = await GetAssignableTenantMemberOrThrowAsync(dataScope.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken);
-        var department = await GetDepartmentForScopeOrThrowAsync(command.DataScope, command.DepartmentId, cancellationToken);
-        var departmentId = ResolveDataScopeDepartmentId(command.DataScope, command.DepartmentId);
+        _ = await GetCustomDataScopeUserOrThrowAsync(dataScope.UserId, cancellationToken);
+        var department = await GetEnabledDepartmentOrThrowAsync(dataScope.DepartmentId, cancellationToken);
 
-        await EnsureCanPersistScopeAsync(dataScope.UserId, command.DataScope, departmentId, dataScope.BasicId, cancellationToken);
-
-        dataScope.DataScope = command.DataScope;
-        dataScope.DepartmentId = departmentId;
-        dataScope.IncludeChildren = command.DataScope == DataPermissionScope.Custom && command.IncludeChildren;
+        dataScope.IncludeChildren = command.IncludeChildren;
         dataScope.Remark = NormalizeNullable(command.Remark);
 
         var savedDataScope = await _userDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
@@ -725,9 +724,14 @@ public sealed class UserDomainService
         var tenantMember = command.Status == ValidityStatus.Valid
             ? await GetAssignableTenantMemberOrThrowAsync(dataScope.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken)
             : await _tenantUserRepository.GetMembershipAsync(dataScope.UserId, cancellationToken);
-        var department = dataScope.DataScope == DataPermissionScope.Custom && command.Status == ValidityStatus.Valid
+        var department = command.Status == ValidityStatus.Valid
             ? await GetEnabledDepartmentOrThrowAsync(dataScope.DepartmentId, cancellationToken)
             : await GetDepartmentOrDefaultAsync(dataScope.DepartmentId, cancellationToken);
+
+        if (command.Status == ValidityStatus.Valid)
+        {
+            _ = await GetCustomDataScopeUserOrThrowAsync(dataScope.UserId, cancellationToken);
+        }
 
         dataScope.Status = command.Status;
         dataScope.Remark = NormalizeNullable(command.Remark);
@@ -929,7 +933,7 @@ public sealed class UserDomainService
         var session = await GetSessionOrThrowAsync(command.BasicId, cancellationToken);
         var user = await _userRepository.GetByIdAsync(session.UserId, cancellationToken);
         UserSessionRevokedDomainEvent? domainEvent = null;
-        if (!session.IsRevoked)
+        if (session.Status != SessionStatus.Revoked)
         {
             var reason = command.Reason.Trim();
             RevokeSession(session, reason, DateTimeOffset.UtcNow);
@@ -956,7 +960,7 @@ public sealed class UserDomainService
         var user = await _userRepository.GetByIdAsync(command.UserId, cancellationToken)
             ?? throw new InvalidOperationException("用户不存在。");
         var sessions = await _userSessionRepository.GetListAsync(
-            session => session.UserId == user.BasicId && !session.IsRevoked,
+            session => session.UserId == user.BasicId && session.Status != SessionStatus.Revoked,
             cancellationToken);
 
         if (sessions.Count == 0)
@@ -1008,22 +1012,13 @@ public sealed class UserDomainService
     }
 
     /// <summary>
-    /// 解析持久化部门主键
-    /// </summary>
-    private static long ResolveDataScopeDepartmentId(DataPermissionScope dataScope, long? departmentId)
-    {
-        return dataScope == DataPermissionScope.Custom ? departmentId!.Value : 0;
-    }
-
-    /// <summary>
     /// 撤销会话
     /// </summary>
     private static void RevokeSession(SysUserSession session, string reason, DateTimeOffset now)
     {
-        session.IsRevoked = true;
+        session.Status = SessionStatus.Revoked;
         session.RevokedAt = now;
         session.RevokedReason = reason;
-        session.IsOnline = false;
         session.LogoutTime ??= now;
         session.LastActivityTime = now;
     }
@@ -1283,7 +1278,10 @@ public sealed class UserDomainService
             throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
         }
 
-        ValidateEnum(command.DataScope, nameof(command.DataScope));
+        if (command.DepartmentId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
+        }
     }
 
     /// <summary>
@@ -1295,8 +1293,6 @@ public sealed class UserDomainService
         {
             throw new ArgumentOutOfRangeException(nameof(command), "用户数据范围绑定主键必须大于 0。");
         }
-
-        ValidateEnum(command.DataScope, nameof(command.DataScope));
     }
 
     /// <summary>
@@ -1706,52 +1702,24 @@ public sealed class UserDomainService
     }
 
     /// <summary>
-    /// 校验用户数据范围覆盖可持久化
+    /// 获取数据权限范围覆盖为自定义的用户，不满足规则时抛出异常（与角色侧 GetCustomDataScopeRoleOrThrowAsync 对称）
     /// </summary>
-    private async Task EnsureCanPersistScopeAsync(long userId, DataPermissionScope dataScope, long departmentId, long? excludeId, CancellationToken cancellationToken)
+    private async Task<SysUser> GetCustomDataScopeUserOrThrowAsync(long userId, CancellationToken cancellationToken)
     {
-        var hasOtherMode = dataScope == DataPermissionScope.Custom
-            ? await _userDataScopeRepository.AnyAsync(
-                scope => scope.UserId == userId && scope.DataScope != DataPermissionScope.Custom && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
-                cancellationToken)
-            : await _userDataScopeRepository.AnyAsync(
-                scope => scope.UserId == userId && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
-                cancellationToken);
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("用户不存在。");
 
-        if (hasOtherMode)
+        if (user.Status != EnableStatus.Enabled)
         {
-            throw new InvalidOperationException("用户数据范围覆盖模式冲突。");
+            throw new InvalidOperationException("停用用户不能维护数据范围。");
         }
 
-        if (await _userDataScopeRepository.AnyAsync(
-            scope => scope.UserId == userId && scope.DepartmentId == departmentId && (!excludeId.HasValue || scope.BasicId != excludeId.Value),
-            cancellationToken))
+        if (user.DataScopeOverride != DataPermissionScope.Custom)
         {
-            throw new InvalidOperationException("用户数据范围已绑定。");
-        }
-    }
-
-    /// <summary>
-    /// 获取数据范围对应部门，不满足规则时抛出异常
-    /// </summary>
-    private async Task<SysDepartment?> GetDepartmentForScopeOrThrowAsync(DataPermissionScope dataScope, long? departmentId, CancellationToken cancellationToken)
-    {
-        if (dataScope == DataPermissionScope.Custom)
-        {
-            if (!departmentId.HasValue || departmentId.Value <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(departmentId), "自定义用户数据范围必须指定部门主键。");
-            }
-
-            return await GetEnabledDepartmentOrThrowAsync(departmentId.Value, cancellationToken);
+            throw new InvalidOperationException("只有数据权限范围覆盖为自定义（DataScopeOverride=Custom）的用户才能维护部门数据范围。");
         }
 
-        if (departmentId.HasValue && departmentId.Value > 0)
-        {
-            throw new InvalidOperationException("非自定义用户数据范围不能指定部门。");
-        }
-
-        return null;
+        return user;
     }
 
     /// <summary>

@@ -74,7 +74,6 @@ public sealed class SaasIdentitySeeder(
         changed |= SetIfChanged(role.RoleName, "超级管理员", value => role.RoleName = value);
         changed |= SetIfChanged(role.RoleDescription, "系统初始化超级管理员角色", value => role.RoleDescription = value);
         changed |= SetIfChanged(role.RoleType, RoleType.System, value => role.RoleType = value);
-        changed |= SetIfChanged(role.IsGlobal, true, value => role.IsGlobal = value);
         changed |= SetIfChanged(role.DataScope, DataPermissionScope.All, value => role.DataScope = value);
         changed |= SetIfChanged(role.MaxMembers, 0, value => role.MaxMembers = value);
         changed |= SetIfChanged(role.Status, EnableStatus.Enabled, value => role.Status = value);

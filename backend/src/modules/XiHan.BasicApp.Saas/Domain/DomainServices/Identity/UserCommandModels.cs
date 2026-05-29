@@ -139,8 +139,7 @@ public sealed record UserPermissionStatusChangeCommand(long BasicId, ValiditySta
 /// </summary>
 public sealed record UserDataScopeGrantCommand(
     long UserId,
-    DataPermissionScope DataScope,
-    long? DepartmentId,
+    long DepartmentId,
     bool IncludeChildren,
     string? Remark);
 
@@ -149,8 +148,6 @@ public sealed record UserDataScopeGrantCommand(
 /// </summary>
 public sealed record UserDataScopeUpdateCommand(
     long BasicId,
-    DataPermissionScope DataScope,
-    long? DepartmentId,
     bool IncludeChildren,
     string? Remark);
 

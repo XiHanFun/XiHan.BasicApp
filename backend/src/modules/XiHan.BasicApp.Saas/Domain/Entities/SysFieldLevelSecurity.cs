@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_TaTy_TaId_ReId_FiNa", nameof(TenantId), OrderByType.Asc, nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(FieldName), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_TaTy_TaId_ReId_FiNa", nameof(TenantId), OrderByType.Asc, nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, nameof(ResourceId), OrderByType.Asc, nameof(FieldName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TaTy_TaId", nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ReId_FiNa", nameof(ResourceId), OrderByType.Asc, nameof(FieldName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]

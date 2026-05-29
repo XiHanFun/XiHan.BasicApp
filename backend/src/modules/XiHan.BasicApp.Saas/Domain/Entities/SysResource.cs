@@ -32,14 +32,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + ResourceCode 租户内唯一（UX_TeId_ReCo）
-/// - IsGlobal=true 时作为平台资源模板（TenantId = 0），所有租户共享
+/// - TenantId = 0（即派生属性 IsGlobal=true）时作为平台资源模板，所有租户共享
 /// - ResourcePath 对 API 类资源建议填写路由模式（便于自动扫描注册）
 /// - Metadata JSON 用于扩展（如 controller/action、字段结构描述）
 ///
 /// 查询：
 /// - 按资源类型+状态筛选走复合索引 IX_TeId_ReTy_St
 /// - 全局+私有合并查询优先使用：WHERE TenantId IN (0, ?)
-///   IsGlobal 仅作为语义标记，不应替代 TenantId=0 的平台记录约束
+///   平台记录以 TenantId=0 唯一约束；IsGlobal 为派生只读属性（= TenantId==0）
 ///
 /// 删除：
 /// - 仅软删；删除前必须校验：无权限引用（SysPermission.ResourceId）、无字段级策略引用（SysFieldLevelSecurity.ResourceId）
@@ -56,10 +56,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_ReTy", nameof(ResourceType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysResource : BasicAppAggregateRoot
 {
     /// <summary>
@@ -104,12 +103,6 @@ public partial class SysResource : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "访问级别")]
     public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
-
-    /// <summary>
-    /// 是否平台级全局资源（全局资源所有租户共享，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局资源")]
-    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 状态

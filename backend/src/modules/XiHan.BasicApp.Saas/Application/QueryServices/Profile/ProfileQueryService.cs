@@ -153,7 +153,7 @@ public sealed class ProfileQueryService
         var expireFallback = now.AddYears(100);
         var sessions = await _userSessionRepository.GetListAsync(
             session => session.UserId == userId &&
-                       !session.IsRevoked &&
+                       session.Status != SessionStatus.Revoked &&
                        SqlFunc.IsNull(session.ExpiresAt, expireFallback) > now,
             cancellationToken);
 

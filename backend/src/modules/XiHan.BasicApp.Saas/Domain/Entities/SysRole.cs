@@ -49,9 +49,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_RoCo", nameof(TenantId), OrderByType.Asc, nameof(RoleCode), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_RoCo", nameof(TenantId), OrderByType.Asc, nameof(RoleCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
 public partial class SysRole : BasicAppAggregateRoot
 {
     /// <summary>
@@ -76,6 +75,7 @@ public partial class SysRole : BasicAppAggregateRoot
     /// 角色类型（System=平台预置 / Tenant=租户级 / Custom=租户自定义，仅展示分类）
     /// </summary>
     /// <remarks>
+    /// IsGlobal 为派生属性（= TenantId == 0，定义于 Expand），下表中 IsGlobal=true 等价于 TenantId=0。
     /// RoleType × IsGlobal 合法组合矩阵：
     /// ┌──────────┬─────────────────┬──────────────────┐
     /// │ RoleType │ IsGlobal=true   │ IsGlobal=false   │
@@ -84,16 +84,10 @@ public partial class SysRole : BasicAppAggregateRoot
     /// │ Tenant   │ 合法（租户可见但由平台定义的通用角色） │ 合法（租户自有角色）     │
     /// │ Custom   │ 不合法（租户自定义不应全局化）  │ 合法（租户自建角色）     │
     /// └──────────┴─────────────────┴──────────────────┘
-    /// 服务层创建/修改角色时应校验此矩阵，拒绝非法组合。
+    /// 该矩阵由 Expand 中的 Validate 校验（System 必须 TenantId=0、Custom 不可 TenantId=0）。
     /// </remarks>
     [SugarColumn(ColumnDescription = "角色类型")]
     public virtual RoleType RoleType { get; set; } = RoleType.Custom;
-
-    /// <summary>
-    /// 是否平台级全局角色（全局角色作为所有租户的模板，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局角色")]
-    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 数据权限范围

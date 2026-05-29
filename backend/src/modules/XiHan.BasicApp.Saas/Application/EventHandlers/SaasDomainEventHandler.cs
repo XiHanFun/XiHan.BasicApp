@@ -67,7 +67,7 @@ public sealed class SaasDomainEventHandler
         _sessionRoleRepository = sessionRoleRepository;
         _clientResolver = clientResolver;
         _currentTenant = currentTenant;
-    }
+    }
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <inheritdoc />
@@ -292,10 +292,9 @@ public sealed class SaasDomainEventHandler
     /// </summary>
     private static void RevokeSession(SysUserSession session, DateTimeOffset now, string reason)
     {
-        session.IsRevoked = true;
+        session.Status = SessionStatus.Revoked;
         session.RevokedAt = now;
         session.RevokedReason = reason;
-        session.IsOnline = false;
         session.LogoutTime ??= now;
         session.LastActivityTime = now;
     }
@@ -345,7 +344,7 @@ public sealed class SaasDomainEventHandler
         var now = DateTimeOffset.UtcNow;
         var reason = NormalizeText(eventData.Reason, 200) ?? $"租户状态变更为 {eventData.NewStatus}";
 
-        var sessions = await _userSessionRepository.GetListAsync(session => !session.IsRevoked);
+        var sessions = await _userSessionRepository.GetListAsync(session => session.Status != SessionStatus.Revoked);
         if (sessions.Count > 0)
         {
             foreach (var session in sessions)
@@ -371,7 +370,7 @@ public sealed class SaasDomainEventHandler
         if (eventData.RevokeAllUserSessions)
         {
             var sessions = await _userSessionRepository.GetListAsync(session => session.UserId == eventData.UserId);
-            var activeSessions = sessions.Where(session => !session.IsRevoked).ToArray();
+            var activeSessions = sessions.Where(session => session.Status != SessionStatus.Revoked).ToArray();
             foreach (var session in activeSessions)
             {
                 RevokeSession(session, now, reason);
@@ -391,7 +390,7 @@ public sealed class SaasDomainEventHandler
         if (sessionIds.Length > 0)
         {
             var sessions = await _userSessionRepository.GetListAsync(session => sessionIds.Contains(session.BasicId));
-            var activeSessions = sessions.Where(session => !session.IsRevoked).ToArray();
+            var activeSessions = sessions.Where(session => session.Status != SessionStatus.Revoked).ToArray();
             foreach (var session in activeSessions)
             {
                 RevokeSession(session, now, reason);

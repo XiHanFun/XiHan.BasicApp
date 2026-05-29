@@ -49,7 +49,6 @@ public sealed class ConfigDomainService
 
         var config = new SysConfig
         {
-            IsGlobal = command.IsGlobal,
             ConfigName = Required(command.ConfigName, 100, nameof(command.ConfigName), "配置名称不能超过 100 个字符。"),
             ConfigGroup = Optional(command.ConfigGroup, 100, nameof(command.ConfigGroup), "配置分组不能超过 100 个字符。"),
             ConfigKey = configKey,
@@ -64,6 +63,12 @@ public sealed class ConfigDomainService
             Sort = command.Sort,
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
+        // IsGlobal 已改为派生属性（= TenantId == 0）：全局配置须显式置 TenantId = 0（见 BasicAppEntity 约定）；
+        // 非全局配置的 TenantId 由 ITenantContext 在写入时自动注入。
+        if (command.IsGlobal)
+        {
+            config.TenantId = 0;
+        }
 
         return new ConfigCommandResult(await _configRepository.AddAsync(config, cancellationToken));
     }

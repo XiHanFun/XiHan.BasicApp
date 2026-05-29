@@ -14,7 +14,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -32,18 +31,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 按月分表；查询/清理必带时间范围
 ///
 /// 关联：
-/// - UserId → SysUser；SessionId → SysUserSession；TraceId 串联请求链
+/// - UserId → SysUser；UserSessionId → SysUserSession.UserSessionId（会话业务标识，非主键）；TraceId 串联请求链
 ///
 /// 写入：
 /// - 由业务切面（AOP）/拦截器统一写入
 /// - OperationType 用于快速分类（查询/新增/修改/删除/导出等）
-/// - Status 记录该操作最终结果（成功/失败/部分成功）
+/// - Result 记录该操作最终结果（成功/失败/部分成功），勿与启用状态 EnableStatus 混淆
 ///
 /// 查询：
 /// - 用户操作历史（个人中心"我的操作"）：IX_UsId + 时间范围
 /// - 租户操作趋势：IX_TeId_OpTi
 /// - 按类型聚合：IX_OpTy
-/// - 失败操作分析：IX_St
+/// - 失败操作分析：IX_Re
 ///
 /// 删除：
 /// - 不支持业务删除；按保留策略清理
@@ -59,9 +58,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_OpTy", nameof(OperationType), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_{split_table}_St", nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_Re", nameof(Result), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
-[SugarIndex("IX_{split_table}_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsSeId", nameof(UserSessionId), OrderByType.Asc)]
 public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
@@ -77,10 +76,10 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 会话ID
+    /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
+    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    public virtual string? UserSessionId { get; set; }
 
     /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
@@ -167,10 +166,10 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     public virtual string? UserAgent { get; set; }
 
     /// <summary>
-    /// 操作状态
+    /// 操作执行结果（成功/失败/部分成功）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作状态")]
-    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
+    [SugarColumn(ColumnDescription = "操作执行结果")]
+    public virtual OperationExecuteResult Result { get; set; } = OperationExecuteResult.Success;
 
     /// <summary>
     /// 错误消息

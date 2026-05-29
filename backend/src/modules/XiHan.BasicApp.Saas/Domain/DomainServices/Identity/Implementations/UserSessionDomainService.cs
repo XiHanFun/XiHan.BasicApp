@@ -26,7 +26,7 @@ public sealed class UserSessionDomainService : IUserSessionDomainService
     {
         ArgumentNullException.ThrowIfNull(session);
 
-        if (session.IsRevoked || !session.IsOnline)
+        if (session.Status != SessionStatus.Active)
         {
             return false;
         }

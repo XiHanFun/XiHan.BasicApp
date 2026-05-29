@@ -61,7 +61,6 @@ public sealed class MenuDomainService
         {
             ParentId = command.ParentId,
             PermissionId = command.PermissionId,
-            IsGlobal = false,
             MenuName = command.MenuName.Trim(),
             MenuCode = menuCode,
             MenuType = command.MenuType,

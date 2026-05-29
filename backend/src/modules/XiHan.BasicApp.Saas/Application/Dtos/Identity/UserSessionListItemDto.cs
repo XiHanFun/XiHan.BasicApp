@@ -88,14 +88,9 @@ public class UserSessionListItemDto : BasicAppDto
     public DateTimeOffset LastActivityTime { get; set; }
 
     /// <summary>
-    /// 是否在线
+    /// 会话状态（Active=活跃 / Offline=离线 / Revoked=已撤销 / Expired=已过期）
     /// </summary>
-    public bool IsOnline { get; set; }
-
-    /// <summary>
-    /// 是否已撤销
-    /// </summary>
-    public bool IsRevoked { get; set; }
+    public SessionStatus Status { get; set; }
 
     /// <summary>
     /// 撤销时间

@@ -26,9 +26,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_UsSeId", nameof(TenantId), OrderByType.Asc, nameof(UserSessionId), OrderByType.Asc, true)]
+[SugarIndex("UX_{table}_TeId_UsSeId", nameof(TenantId), OrderByType.Asc, nameof(UserSessionId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
 public partial class SysUserSession : BasicAppFullAuditedEntity
 {
@@ -106,16 +107,18 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     public virtual DateTimeOffset LastActivityTime { get; set; }
 
     /// <summary>
-    /// 是否在线
+    /// 会话状态（Active=活跃 / Offline=离线 / Revoked=已撤销 / Expired=已过期；统一替代原 IsOnline + IsRevoked 布尔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否在线")]
-    public virtual bool IsOnline { get; set; } = true;
-
-    /// <summary>
-    /// 是否已撤销
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否已撤销")]
-    public virtual bool IsRevoked { get; set; } = false;
+    /// <remarks>
+    /// 状态判定建议：
+    /// - 新建登录会话：Active
+    /// - 正常登出 / 心跳超时：Offline（配合 LogoutTime）
+    /// - 强制下线 / 安全撤销：Revoked（配合 RevokedAt、RevokedReason）
+    /// - 超过 ExpiresAt：Expired（定时任务扫描置位）
+    /// 鉴权"会话有效"判定：Status == Active 且未软删。
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "会话状态")]
+    public virtual SessionStatus Status { get; set; } = SessionStatus.Active;
 
     /// <summary>
     /// 撤销时间

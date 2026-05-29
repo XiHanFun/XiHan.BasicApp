@@ -27,17 +27,12 @@ public sealed class UserDataScopeGrantDto
     public long UserId { get; set; }
 
     /// <summary>
-    /// 数据权限范围
+    /// 部门主键（用户级 Custom 范围绑定的部门；用户的范围档位由 SysUser.DataScopeOverride 控制）
     /// </summary>
-    public DataPermissionScope DataScope { get; set; } = DataPermissionScope.Custom;
+    public long DepartmentId { get; set; }
 
     /// <summary>
-    /// 部门主键（仅自定义范围需要）
-    /// </summary>
-    public long? DepartmentId { get; set; }
-
-    /// <summary>
-    /// 是否包含子部门（仅自定义范围生效）
+    /// 是否包含子部门
     /// </summary>
     public bool IncludeChildren { get; set; }
 

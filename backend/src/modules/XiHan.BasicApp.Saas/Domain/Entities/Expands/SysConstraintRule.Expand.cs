@@ -23,6 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysConstraintRule : IValidatableObject
 {
     /// <summary>
+    /// 是否平台级全局约束规则（派生属性：TenantId == 0 即对所有租户生效；不落库，消除与 TenantId 漂移的风险）
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public bool IsGlobal => TenantId == 0;
+
+    /// <summary>
     /// 约束规则目标项列表
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -42,16 +48,6 @@ public partial class SysConstraintRule : IValidatableObject
         if (string.IsNullOrWhiteSpace(RuleName))
         {
             yield return new ValidationResult("RuleName 不能为空。", [nameof(RuleName)]);
-        }
-
-        if (IsGlobal && TenantId != 0)
-        {
-            yield return new ValidationResult("全局约束规则必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
-        }
-
-        if (TenantId == 0 && !IsGlobal)
-        {
-            yield return new ValidationResult("平台租户（TenantId=0）的约束规则必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
         }
 
         if (EffectiveTime.HasValue && ExpirationTime.HasValue && EffectiveTime.Value >= ExpirationTime.Value)

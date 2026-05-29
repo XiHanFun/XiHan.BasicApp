@@ -24,18 +24,18 @@ public sealed class EnumMetadataDto
     /// 枚举类型名称
     /// </summary>
     /// <example>UserGender</example>
-    public string EnumTypeName { get; init; }
+    public string EnumTypeName { get; init; } = string.Empty;
 
     /// <summary>
     /// 枚举类型显示名称
     /// </summary>
     /// <example>用户性别</example>
-    public string DisplayName { get; init; }
+    public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
     /// 枚举项列表
     /// </summary>
-    public List<EnumItemDto> Items { get; init; }
+    public List<EnumItemDto> Items { get; init; } = [];
 }
 
 /// <summary>
@@ -48,7 +48,7 @@ public sealed class EnumItemDto
     /// 枚举成员名称
     /// </summary>
     /// <example>Male</example>
-    public string Name { get; init; }
+    public string Name { get; init; } = string.Empty;
 
     /// <summary>
     /// 枚举数值
@@ -61,7 +61,7 @@ public sealed class EnumItemDto
     /// 来源于枚举字段上的 [Description] 特性
     /// </summary>
     /// <example>男</example>
-    public string DisplayName { get; init; }
+    public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
     /// 枚举成员描述

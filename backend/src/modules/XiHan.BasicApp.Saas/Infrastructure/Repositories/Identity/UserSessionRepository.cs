@@ -30,7 +30,7 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
         cancellationToken.ThrowIfCancellationRequested();
 
         return await CreateQueryable()
-            .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked)
+            .Where(session => session.UserId == userId && session.Status == SessionStatus.Active)
             .OrderByDescending(session => session.LastActivityTime)
             .ToListAsync(cancellationToken);
     }
@@ -41,10 +41,9 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
         cancellationToken.ThrowIfCancellationRequested();
 
         return await DbClient.Updateable<SysUserSession>()
-            .SetColumns(session => session.IsRevoked == true)
-            .SetColumns(session => session.IsOnline == false)
+            .SetColumns(session => session.Status == SessionStatus.Revoked)
             .SetColumns(session => session.RevokedAt == DateTimeOffset.UtcNow)
-            .Where(session => session.UserId == userId && session.IsOnline && !session.IsRevoked)
+            .Where(session => session.UserId == userId && session.Status == SessionStatus.Active)
             .ExecuteCommandAsync(cancellationToken);
     }
 }

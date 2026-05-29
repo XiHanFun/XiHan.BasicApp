@@ -112,7 +112,6 @@ public sealed class SaasConfigurationSeeder(
     {
         var changed = false;
         changed |= SetIfChanged(config.TenantId, 0, value => config.TenantId = value);
-        changed |= SetIfChanged(config.IsGlobal, true, value => config.IsGlobal = value);
         changed |= SetIfChanged(config.ConfigName, definition.ConfigName, value => config.ConfigName = value);
         changed |= SetIfChanged(config.ConfigGroup, definition.ConfigGroup, value => config.ConfigGroup = value);
         changed |= SetIfChanged(config.ConfigKey, definition.ConfigKey, value => config.ConfigKey = value);

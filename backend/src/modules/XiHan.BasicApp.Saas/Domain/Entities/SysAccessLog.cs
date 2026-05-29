@@ -28,17 +28,17 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 查询/清理必须带时间范围，否则框架会扫描所有月表
 ///
 /// 关联：
-/// - UserId → SysUser；SessionId → SysUserSession；TraceId 串联同一请求链路
+/// - UserId → SysUser；UserSessionId → SysUserSession.UserSessionId（会话业务标识，非主键）；TraceId 串联同一请求链路
 ///
 /// 写入：
 /// - 只追加，永不更新；由鉴权中间件在请求结束时异步批量写入
-/// - AccessResult 包含 Allowed/Denied/Error；Denied 必须记录原因供"为什么没权限"排查
+/// - AccessResult 取值：Success/Failed/Forbidden/Unauthorized/NotFound/ServerError；Forbidden/Unauthorized 必须记录原因供"为什么没权限"排查
 /// - TraceId 必填：贯穿 SysOpenApiLog/SysOperationLog/SysDiffLog 便于跨日志查询
 ///
 /// 查询：
 /// - 用户行为追溯：IX_UsId + 时间范围
 /// - 租户访问趋势：IX_TeId_AcTi
-/// - 异常访问告警：WHERE AccessResult=Denied AND 时间窗内次数 > 阈值
+/// - 异常访问告警：WHERE AccessResult IN (Forbidden, Unauthorized) AND 时间窗内次数 > 阈值
 ///
 /// 删除：
 /// - 不支持业务删除；按合规要求定期 TRUNCATE/DROP 历史月表
@@ -54,7 +54,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_AcRe", nameof(AccessResult), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_RePa", nameof(ResourcePath), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_AcTi", nameof(TenantId), OrderByType.Asc, nameof(AccessTime), OrderByType.Desc)]
-[SugarIndex("IX_{split_table}_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsSeId", nameof(UserSessionId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
 public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
@@ -71,10 +71,10 @@ public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, I
     public virtual string? UserName { get; set; }
 
     /// <summary>
-    /// 会话ID
+    /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
+    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    public virtual string? UserSessionId { get; set; }
 
     /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期

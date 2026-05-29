@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 关联：
-/// - SessionId → SysUserSession；RoleId → SysRole
+/// - SessionId → SysUserSession 主键（数据库 FK，long 类型；区别于日志表中存业务标识 UserSessionId 字符串）；RoleId → SysRole
 ///
 /// 写入：
 /// - SessionId + RoleId 唯一（UX_SeId_RoId）
@@ -59,7 +59,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysSessionRole : BasicAppCreationEntity
 {
     /// <summary>
-    /// 会话ID
+    /// 会话ID（SysUserSession 主键 FK，long 类型）
     /// </summary>
     [SugarColumn(ColumnDescription = "会话ID", IsNullable = false)]
     public virtual long SessionId { get; set; }

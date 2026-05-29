@@ -45,6 +45,12 @@ public sealed class DynamicJobWorker : IJobWorker
     private readonly ILogger<DynamicJobWorker> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="scopeFactory"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public DynamicJobWorker(ILogger<DynamicJobWorker> logger, IServiceScopeFactory scopeFactory)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

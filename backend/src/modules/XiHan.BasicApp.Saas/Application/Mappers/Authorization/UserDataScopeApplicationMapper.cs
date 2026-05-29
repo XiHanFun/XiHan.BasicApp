@@ -32,7 +32,6 @@ public static class UserDataScopeApplicationMapper
 
         return new UserDataScopeGrantCommand(
             input.UserId,
-            input.DataScope,
             input.DepartmentId,
             input.IncludeChildren,
             input.Remark);
@@ -58,7 +57,6 @@ public static class UserDataScopeApplicationMapper
             TenantMemberType = tenantMember?.MemberType,
             TenantMemberInviteStatus = tenantMember?.InviteStatus,
             TenantMemberStatus = tenantMember?.Status,
-            DataScope = scope.DataScope,
             DepartmentId = scope.DepartmentId,
             DepartmentCode = department?.DepartmentCode,
             DepartmentName = department?.DepartmentName,
@@ -92,7 +90,6 @@ public static class UserDataScopeApplicationMapper
             TenantMemberType = tenantMember?.MemberType,
             TenantMemberInviteStatus = tenantMember?.InviteStatus,
             TenantMemberStatus = tenantMember?.Status,
-            DataScope = scope.DataScope,
             DepartmentId = scope.DepartmentId,
             DepartmentCode = department?.DepartmentCode,
             DepartmentName = department?.DepartmentName,
@@ -126,8 +123,6 @@ public static class UserDataScopeApplicationMapper
 
         return new UserDataScopeUpdateCommand(
             input.BasicId,
-            input.DataScope,
-            input.DepartmentId,
             input.IncludeChildren,
             input.Remark);
     }

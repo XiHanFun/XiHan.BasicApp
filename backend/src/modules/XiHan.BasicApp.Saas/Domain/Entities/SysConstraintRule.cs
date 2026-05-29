@@ -32,8 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeId_RuCo", nameof(TenantId), OrderByType.Asc, nameof(RuleCode), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_IsGl", nameof(IsGlobal), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_RuCo", nameof(TenantId), OrderByType.Asc, nameof(RuleCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_CoTy", nameof(TenantId), OrderByType.Asc, nameof(ConstraintType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysConstraintRule : BasicAppFullAuditedEntity
@@ -79,12 +78,6 @@ public partial class SysConstraintRule : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "约束参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Parameters { get; set; }
-
-    /// <summary>
-    /// 是否平台级全局约束规则（全局规则对所有租户生效，TenantId = 0）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否全局约束规则")]
-    public virtual bool IsGlobal { get; set; } = false;
 
     /// <summary>
     /// 状态

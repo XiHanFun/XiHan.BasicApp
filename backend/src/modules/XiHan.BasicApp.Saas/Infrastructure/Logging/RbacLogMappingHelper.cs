@@ -114,13 +114,13 @@ internal static class RbacLogMappingHelper
     }
 
     /// <summary>
-    /// 根据响应结果映射操作状态
+    /// 根据响应结果映射操作执行结果
     /// </summary>
-    public static EnableStatus ResolveStatus(int statusCode, string? errorMessage)
+    public static OperationExecuteResult ResolveResult(int statusCode, string? errorMessage)
     {
         return statusCode < 400 && string.IsNullOrWhiteSpace(errorMessage)
-            ? EnableStatus.Enabled
-            : EnableStatus.Disabled;
+            ? OperationExecuteResult.Success
+            : OperationExecuteResult.Failed;
     }
 
     /// <summary>

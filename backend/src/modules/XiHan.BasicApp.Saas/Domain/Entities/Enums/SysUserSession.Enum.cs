@@ -17,6 +17,36 @@ using System.ComponentModel;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
+/// 会话状态枚举（统一表达会话生命周期，替代原 IsOnline/IsRevoked 散落布尔）
+/// </summary>
+public enum SessionStatus
+{
+    /// <summary>
+    /// 活跃（已登录且在线，未撤销、未过期）
+    /// </summary>
+    [Description("活跃")]
+    Active = 0,
+
+    /// <summary>
+    /// 离线（用户正常登出或心跳超时下线，但未被强制撤销，仍可按策略重新激活）
+    /// </summary>
+    [Description("离线")]
+    Offline = 1,
+
+    /// <summary>
+    /// 已撤销（被管理员/安全策略强制下线，不可恢复，须重新登录）
+    /// </summary>
+    [Description("已撤销")]
+    Revoked = 2,
+
+    /// <summary>
+    /// 已过期（超过绝对过期时间 ExpiresAt，自动失效）
+    /// </summary>
+    [Description("已过期")]
+    Expired = 3
+}
+
+/// <summary>
 /// 设备类型枚举
 /// </summary>
 public enum DeviceType

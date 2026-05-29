@@ -23,6 +23,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysConfig : IValidatableObject
 {
     /// <summary>
+    /// 是否平台级全局配置（派生属性：TenantId == 0 即对所有租户生效；不落库，消除与 TenantId 漂移的风险）
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public bool IsGlobal => TenantId == 0;
+
+    /// <summary>
     /// 租户信息
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
@@ -34,16 +40,6 @@ public partial class SysConfig : IValidatableObject
     /// <inheritdoc />
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (IsGlobal && TenantId != 0)
-        {
-            yield return new ValidationResult("全局配置必须使用 TenantId = 0。", [nameof(IsGlobal), nameof(TenantId)]);
-        }
-
-        if (TenantId == 0 && !IsGlobal)
-        {
-            yield return new ValidationResult("平台租户（TenantId=0）的配置必须标记为全局。", [nameof(TenantId), nameof(IsGlobal)]);
-        }
-
         if (string.IsNullOrWhiteSpace(ConfigKey))
         {
             yield return new ValidationResult("ConfigKey 不能为空。", [nameof(ConfigKey)]);

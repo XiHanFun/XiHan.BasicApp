@@ -44,6 +44,12 @@ public sealed class SaasJobStore : IJobStore
     /// </summary>
     private readonly ConcurrentDictionary<string, InstanceMapping> _instanceMappings = new();
 
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="scopeFactory"></param>
+    /// <param name="logger"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public SaasJobStore(IServiceScopeFactory scopeFactory, ILogger<SaasJobStore> logger)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));

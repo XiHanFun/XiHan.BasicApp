@@ -263,7 +263,7 @@ public sealed class UserManagementQueryService
 
         return [.. sessions
             .Select(item => UserSessionApplicationMapper.ToListItemDto(item, user, now))
-            .OrderByDescending(item => item.IsOnline)
+            .OrderByDescending(item => item.Status == SessionStatus.Active)
             .ThenByDescending(item => item.LastActivityTime)
             .ThenByDescending(item => item.LoginTime)
             .Take(MaxSessionCount)];
