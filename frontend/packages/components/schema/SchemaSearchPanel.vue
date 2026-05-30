@@ -148,11 +148,9 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 </template>
 
 <style scoped>
+/* 搜索区不再作为独立卡片，直接贴合页面顶部，避免与页面内边距叠加出空白带 */
 .xh-search {
   position: relative;
-  padding: 10px 12px;
-  border-radius: var(--n-border-radius, 6px);
-  background: var(--n-card-color, transparent);
 }
 
 /* 顶层：常用条件块 + 按钮块。按钮块与控件底对齐，常用条件换行时按钮固定第一行右侧 */
