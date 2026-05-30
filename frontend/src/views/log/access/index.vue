@@ -1,42 +1,21 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { AccessLogDetailDto, AccessLogListItemDto } from '@/api'
-import {
-  NButton,
-  NCard,
-  NDataTable,
-  NIcon,
-  NInput,
-  NPagination,
-  NSelect,
-  NTag,
-  NTooltip,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { AccessLogDetailDto, AccessLogListItemDto, PageResult } from '@/api'
+import { NTag, useMessage } from 'naive-ui'
+import { h, ref } from 'vue'
 import { AccessResult, createPageRequest, logManagementApi } from '@/api'
-import { Icon } from '~/components'
-import { formatDate, getOptionLabel } from '~/utils'
+import { SchemaPage } from '~/components'
+import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogAccessPage' })
 
 const message = useMessage()
-const tableLoading = ref(false)
-const dataList = ref<AccessLogListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
+
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<AccessLogDetailDto | null>(null)
-
-const queryParams = reactive({
-  accessResult: undefined as AccessResult | undefined,
-  keyword: '',
-  method: undefined as string | undefined,
-})
 
 const accessResultOptions = [
   { label: '成功', value: AccessResult.Success },
@@ -54,6 +33,114 @@ const methodOptions = [
   { label: 'DELETE', value: 'DELETE' },
   { label: 'PATCH', value: 'PATCH' },
 ]
+
+function accessResultType(result: AccessResult) {
+  switch (result) {
+    case AccessResult.Success: return 'success'
+    case AccessResult.Failed: return 'error'
+    case AccessResult.Forbidden:
+    case AccessResult.Unauthorized: return 'warning'
+    default: return 'default'
+  }
+}
+
+// ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
+const fields: ListFieldSchema[] = [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索路径/用户', width: 220, order: 0 },
+  // 常用搜索 + 列
+  {
+    key: 'accessResult',
+    title: '访问结果',
+    dataType: 'enum',
+    searchable: true,
+    options: accessResultOptions,
+    searchPlaceholder: '访问结果',
+    width: 110,
+    order: 10,
+    render: (row) => {
+      const r = row as unknown as AccessLogListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions, r.accessResult))
+    },
+  },
+  {
+    key: 'method',
+    title: '请求方法',
+    dataType: 'enum',
+    searchable: true,
+    options: methodOptions,
+    searchPlaceholder: '请求方法',
+    width: 100,
+    order: 11,
+  },
+  // 高级搜索 + 列
+  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 12 },
+  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 13 },
+  { key: 'resourcePath', title: '资源路径', dataType: 'string', advancedSearch: true, minWidth: 240, order: 14 },
+  { key: 'resourceType', title: '资源类型', dataType: 'string', advancedSearch: true, minWidth: 100, order: 15 },
+  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 16 },
+  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 17 },
+  { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 18 },
+  // 仅高级搜索（不作为列）
+  { key: 'minExecutionTime', title: '最小耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最小耗时(ms)', order: 19 },
+  { key: 'maxExecutionTime', title: '最大耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最大耗时(ms)', order: 20 },
+  { key: 'accessTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 21 },
+  { key: 'accessTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 22 },
+  // 仅列（不搜索）
+  { key: 'resourceName', title: '资源名称', dataType: 'string', minWidth: 120, order: 30 },
+  { key: 'accessIp', title: '访问 IP', dataType: 'string', minWidth: 130, order: 31 },
+  { key: 'accessLocation', title: '访问位置', dataType: 'string', minWidth: 160, order: 32 },
+  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 33 },
+  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 34 },
+  { key: 'device', title: '设备', dataType: 'string', minWidth: 120, order: 35 },
+  { key: 'executionTime', title: '执行耗时', dataType: 'number', sortable: true, width: 110, order: 36, render: row => `${(row as unknown as AccessLogListItemDto).executionTime}ms` },
+  { key: 'accessTime', title: '访问时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 37 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 38 },
+]
+
+/** 过滤值辅助：trim 字符串 / 转数字 / 时间戳转 ISO */
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+function toNum(v: unknown): number | undefined {
+  return v == null || v === '' ? undefined : Number(v)
+}
+function toIso(v: unknown): string | undefined {
+  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
+}
+
+const schema: PageSchema = {
+  pageCode: 'log.access',
+  pageName: '访问日志',
+  rowKey: 'basicId',
+  scrollX: 2200,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return logManagementApi.access.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword),
+        accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
+        method: toStr(f.method),
+        userName: toStr(f.userName),
+        userId: toStr(f.userId),
+        resourcePath: toStr(f.resourcePath),
+        resourceType: toStr(f.resourceType),
+        sessionId: toStr(f.sessionId),
+        traceId: toStr(f.traceId),
+        statusCode: toNum(f.statusCode),
+        minExecutionTime: toNum(f.minExecutionTime),
+        maxExecutionTime: toNum(f.maxExecutionTime),
+        accessTimeStart: toIso(f.accessTimeStart),
+        accessTimeEnd: toIso(f.accessTimeEnd),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+  },
+  actions: [
+    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+  ],
+}
 
 const detailFields: LogDetailField[] = [
   { key: 'basicId', label: '日志主键' },
@@ -84,127 +171,12 @@ const detailFields: LogDetailField[] = [
   { key: 'extendData', label: '扩展数据', type: 'code' },
 ]
 
-function accessResultType(result: AccessResult) {
-  switch (result) {
-    case AccessResult.Success: return 'success'
-    case AccessResult.Failed: return 'error'
-    case AccessResult.Forbidden:
-    case AccessResult.Unauthorized: return 'warning'
-    default: return 'default'
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as AccessLogListItemDto | undefined
+  if (payload.key === 'view' && row) {
+    void handleDetail(row)
   }
 }
-
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await logManagementApi.access.page({
-      ...createPageRequest({
-        page: { pageIndex: currentPage.value, pageSize: pageSize.value },
-      }),
-      accessResult: queryParams.accessResult,
-      keyword: queryParams.keyword?.trim() || undefined,
-      method: queryParams.method,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询访问日志失败')
-  }
-  finally {
-    tableLoading.value = false
-  }
-}
-
-const tableColumns = computed<DataTableColumns<AccessLogListItemDto>>(() => [
-  { key: 'sessionId', title: '会话标识', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'traceId', title: '链路追踪 ID', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'userName', title: '用户名', minWidth: 100, ellipsis: { tooltip: true } },
-  { key: 'userId', title: '用户主键', minWidth: 80, ellipsis: { tooltip: true } },
-  { key: 'resourcePath', title: '资源路径', minWidth: 240, ellipsis: { tooltip: true } },
-  { key: 'resourceName', title: '资源名称', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'resourceType', title: '资源类型', minWidth: 100, ellipsis: { tooltip: true } },
-  { key: 'method', title: '请求方法', width: 90 },
-  { key: 'statusCode', title: '响应状态码', width: 100 },
-  { key: 'accessIp', title: '访问 IP', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'accessLocation', title: '访问位置', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'browser', title: '浏览器', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'os', title: '操作系统', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'device', title: '设备', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'referer', title: '来源地址', minWidth: 220, ellipsis: { tooltip: true } },
-  { key: 'userAgent', title: 'User-Agent', minWidth: 260, ellipsis: { tooltip: true } },
-  {
-    key: 'accessResult',
-    title: '访问结果',
-    width: 100,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: accessResultType(row.accessResult), bordered: false }, () => getOptionLabel(accessResultOptions, row.accessResult))
-    },
-  },
-  { key: 'errorMessage', title: '错误消息', minWidth: 220, ellipsis: { tooltip: true } },
-  { key: 'extendData', title: '扩展数据', minWidth: 240, ellipsis: { tooltip: true } },
-  { key: 'remark', title: '备注', minWidth: 180, ellipsis: { tooltip: true } },
-  {
-    key: 'executionTime',
-    title: '执行耗时（毫秒）',
-    width: 130,
-    sorter: true,
-    render(row) { return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, `${row.executionTime}ms`) },
-  },
-  {
-    key: 'accessTime',
-    title: '访问时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) { return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.accessTime)) },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    render(row) { return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime)) },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 86,
-    fixed: 'right',
-    render(row) {
-      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '详情',
-        }),
-      ])
-    },
-  },
-])
-
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.accessResult = undefined
-  queryParams.method = undefined
-  currentPage.value = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
-}
-
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 async function handleDetail(row: AccessLogListItemDto) {
   detailVisible.value = true
@@ -220,72 +192,10 @@ async function handleDetail(row: AccessLogListItemDto) {
     detailLoading.value = false
   }
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索路径/用户"
-          style="width:220px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.accessResult"
-          :options="accessResultOptions"
-          clearable
-          placeholder="访问结果"
-          style="width: 120px"
-        />
-        <NSelect
-          v-model:value="queryParams.method"
-          :options="methodOptions"
-          clearable
-          placeholder="方法"
-          style="width: 100px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
-        </div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
       :fields="detailFields"
@@ -293,5 +203,5 @@ onMounted(() => fetchData())
       :record="detailData"
       title="访问日志详情"
     />
-  </div>
+  </SchemaPage>
 </template>
