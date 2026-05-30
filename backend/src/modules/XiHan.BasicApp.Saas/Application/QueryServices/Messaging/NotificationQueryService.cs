@@ -17,6 +17,7 @@ using SqlSugar;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -165,51 +166,51 @@ public sealed class NotificationQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysNotification>(
                 input.Keyword.Trim(),
-                nameof(SysNotification.Title),
-                nameof(SysNotification.BusinessType));
+                notification => notification.Title,
+                notification => notification.BusinessType);
         }
 
         if (input.SendUserId.HasValue && input.SendUserId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.SendUserId), input.SendUserId.Value);
+            request.Conditions.AddFilter((SysNotification notification) => notification.SendUserId, input.SendUserId.Value);
         }
 
         if (input.NotificationType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.NotificationType), input.NotificationType.Value);
+            request.Conditions.AddFilter((SysNotification notification) => notification.NotificationType, input.NotificationType.Value);
         }
 
         if (input.TargetType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.TargetType), input.TargetType.Value);
+            request.Conditions.AddFilter((SysNotification notification) => notification.TargetType, input.TargetType.Value);
         }
 
         if (input.NeedConfirm.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.NeedConfirm), input.NeedConfirm.Value);
+            request.Conditions.AddFilter((SysNotification notification) => notification.NeedConfirm, input.NeedConfirm.Value);
         }
 
         if (input.IsPublished.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.IsPublished), input.IsPublished.Value);
+            request.Conditions.AddFilter((SysNotification notification) => notification.IsPublished, input.IsPublished.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(input.BusinessType))
         {
-            request.Conditions.AddFilter(nameof(SysNotification.BusinessType), input.BusinessType.Trim());
+            request.Conditions.AddFilter((SysNotification notification) => notification.BusinessType, input.BusinessType.Trim());
         }
 
         if (input.BusinessId.HasValue && input.BusinessId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysNotification.BusinessId), input.BusinessId.Value);
+            request.Conditions.AddFilter((SysNotification notification) => notification.BusinessId, input.BusinessId.Value);
         }
 
         AddTimeRange(request, nameof(SysNotification.SendTime), input.SendTimeStart, input.SendTimeEnd);
         AddTimeRange(request, nameof(SysNotification.ExpireTime), input.ExpireTimeStart, input.ExpireTimeEnd);
-        request.Conditions.AddSort(nameof(SysNotification.SendTime), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysNotification.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysNotification notification) => notification.SendTime, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysNotification notification) => notification.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 
@@ -229,23 +230,23 @@ public sealed class NotificationQueryService
 
         if (input.NotificationId.HasValue && input.NotificationId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysUserNotification.NotificationId), input.NotificationId.Value);
+            request.Conditions.AddFilter((SysUserNotification userNotification) => userNotification.NotificationId, input.NotificationId.Value);
         }
 
         if (input.UserId.HasValue && input.UserId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysUserNotification.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysUserNotification userNotification) => userNotification.UserId, input.UserId.Value);
         }
 
         if (input.NotificationStatus.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserNotification.NotificationStatus), input.NotificationStatus.Value);
+            request.Conditions.AddFilter((SysUserNotification userNotification) => userNotification.NotificationStatus, input.NotificationStatus.Value);
         }
 
         AddTimeRange(request, nameof(SysUserNotification.ReadTime), input.ReadTimeStart, input.ReadTimeEnd);
         AddTimeRange(request, nameof(SysUserNotification.ConfirmTime), input.ConfirmTimeStart, input.ConfirmTimeEnd);
-        request.Conditions.AddSort(nameof(SysUserNotification.CreatedTime), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysUserNotification.UserId), SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysUserNotification userNotification) => userNotification.CreatedTime, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysUserNotification userNotification) => userNotification.UserId, SortDirection.Ascending, 1);
         return request;
     }
 
