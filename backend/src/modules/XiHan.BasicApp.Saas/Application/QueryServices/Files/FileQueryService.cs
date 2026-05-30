@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -147,62 +148,62 @@ public sealed class FileQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysFile>(
                 input.Keyword.Trim(),
-                nameof(SysFile.FileName),
-                nameof(SysFile.OriginalName),
-                nameof(SysFile.FileExtension),
-                nameof(SysFile.MimeType));
+                file => file.FileName,
+                file => file.OriginalName,
+                file => file.FileExtension,
+                file => file.MimeType);
         }
 
         if (input.FileType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.FileType), input.FileType.Value);
+            request.Conditions.AddFilter((SysFile file) => file.FileType, input.FileType.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(input.FileExtension))
         {
-            request.Conditions.AddFilter(nameof(SysFile.FileExtension), input.FileExtension.Trim());
+            request.Conditions.AddFilter((SysFile file) => file.FileExtension, input.FileExtension.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(input.MimeType))
         {
-            request.Conditions.AddFilter(nameof(SysFile.MimeType), input.MimeType.Trim());
+            request.Conditions.AddFilter((SysFile file) => file.MimeType, input.MimeType.Trim());
         }
 
         if (input.AccessLevel.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.AccessLevel), input.AccessLevel.Value);
+            request.Conditions.AddFilter((SysFile file) => file.AccessLevel, input.AccessLevel.Value);
         }
 
         if (input.IsEncrypted.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.IsEncrypted), input.IsEncrypted.Value);
+            request.Conditions.AddFilter((SysFile file) => file.IsEncrypted, input.IsEncrypted.Value);
         }
 
         if (input.IsTemporary.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.IsTemporary), input.IsTemporary.Value);
+            request.Conditions.AddFilter((SysFile file) => file.IsTemporary, input.IsTemporary.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysFile file) => file.Status, input.Status.Value);
         }
 
         if (input.ExpiresAtStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.ExpiresAt), input.ExpiresAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysFile file) => file.ExpiresAt, input.ExpiresAtStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.ExpiresAtEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFile.ExpiresAt), input.ExpiresAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysFile file) => file.ExpiresAt, input.ExpiresAtEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysFile.CreatedTime), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysFile.FileType), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysFile.FileName), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysFile file) => file.CreatedTime, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysFile file) => file.FileType, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysFile file) => file.FileName, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -222,69 +223,69 @@ public sealed class FileQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysFileStorage>(
                 input.Keyword.Trim(),
-                nameof(SysFileStorage.StorageProvider),
-                nameof(SysFileStorage.StorageRegion),
-                nameof(SysFileStorage.AccessControl),
-                nameof(SysFileStorage.StorageClass),
-                nameof(SysFileStorage.CacheControl));
+                storage => storage.StorageProvider,
+                storage => storage.StorageRegion,
+                storage => storage.AccessControl,
+                storage => storage.StorageClass,
+                storage => storage.CacheControl);
         }
 
         if (input.FileId.HasValue && input.FileId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.FileId), input.FileId.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.FileId, input.FileId.Value);
         }
 
         if (input.StorageType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.StorageType), input.StorageType.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.StorageType, input.StorageType.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.Status, input.Status.Value);
         }
 
         if (input.IsPrimary.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.IsPrimary), input.IsPrimary.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.IsPrimary, input.IsPrimary.Value);
         }
 
         if (input.IsBackup.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.IsBackup), input.IsBackup.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.IsBackup, input.IsBackup.Value);
         }
 
         if (input.EnableCdn.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.EnableCdn), input.EnableCdn.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.EnableCdn, input.EnableCdn.Value);
         }
 
         if (input.IsVerified.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.IsVerified), input.IsVerified.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.IsVerified, input.IsVerified.Value);
         }
 
         if (input.IsSynced.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.IsSynced), input.IsSynced.Value);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.IsSynced, input.IsSynced.Value);
         }
 
         if (input.UploadedAtStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.UploadedAt), input.UploadedAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.UploadedAt, input.UploadedAtStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.UploadedAtEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFileStorage.UploadedAt), input.UploadedAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.UploadedAt, input.UploadedAtEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysFileStorage.FileId), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysFileStorage.IsPrimary), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysFileStorage.SortOrder), SortDirection.Ascending, 2);
-        request.Conditions.AddSort(nameof(SysFileStorage.StorageType), SortDirection.Ascending, 3);
+        request.Conditions.AddSort((SysFileStorage storage) => storage.FileId, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysFileStorage storage) => storage.IsPrimary, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysFileStorage storage) => storage.SortOrder, SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysFileStorage storage) => storage.StorageType, SortDirection.Ascending, 3);
         return request;
     }
 }

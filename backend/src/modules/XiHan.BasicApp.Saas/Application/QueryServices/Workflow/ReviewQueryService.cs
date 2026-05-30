@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -102,66 +103,66 @@ public sealed class ReviewQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysReview>(
                 input.Keyword.Trim(),
-                nameof(SysReview.ReviewCode),
-                nameof(SysReview.ReviewTitle),
-                nameof(SysReview.ReviewType),
-                nameof(SysReview.EntityType),
-                nameof(SysReview.EntityId));
+                review => review.ReviewCode,
+                review => review.ReviewTitle,
+                review => review.ReviewType,
+                review => review.EntityType,
+                review => review.EntityId);
         }
 
         if (!string.IsNullOrWhiteSpace(input.ReviewCode))
         {
-            request.Conditions.AddFilter(nameof(SysReview.ReviewCode), input.ReviewCode.Trim());
+            request.Conditions.AddFilter((SysReview review) => review.ReviewCode, input.ReviewCode.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(input.ReviewType))
         {
-            request.Conditions.AddFilter(nameof(SysReview.ReviewType), input.ReviewType.Trim());
+            request.Conditions.AddFilter((SysReview review) => review.ReviewType, input.ReviewType.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(input.EntityType))
         {
-            request.Conditions.AddFilter(nameof(SysReview.EntityType), input.EntityType.Trim());
+            request.Conditions.AddFilter((SysReview review) => review.EntityType, input.EntityType.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(input.EntityId))
         {
-            request.Conditions.AddFilter(nameof(SysReview.EntityId), input.EntityId.Trim());
+            request.Conditions.AddFilter((SysReview review) => review.EntityId, input.EntityId.Trim());
         }
 
         if (input.SubmitUserId.HasValue && input.SubmitUserId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysReview.SubmitUserId), input.SubmitUserId.Value);
+            request.Conditions.AddFilter((SysReview review) => review.SubmitUserId, input.SubmitUserId.Value);
         }
 
         if (input.CurrentReviewUserId.HasValue && input.CurrentReviewUserId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysReview.CurrentReviewUserId), input.CurrentReviewUserId.Value);
+            request.Conditions.AddFilter((SysReview review) => review.CurrentReviewUserId, input.CurrentReviewUserId.Value);
         }
 
         if (input.ReviewStatus.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysReview.ReviewStatus), input.ReviewStatus.Value);
+            request.Conditions.AddFilter((SysReview review) => review.ReviewStatus, input.ReviewStatus.Value);
         }
 
         if (input.ReviewResult.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysReview.ReviewResult), input.ReviewResult.Value);
+            request.Conditions.AddFilter((SysReview review) => review.ReviewResult, input.ReviewResult.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysReview.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysReview review) => review.Status, input.Status.Value);
         }
 
         AddTimeRange(request, nameof(SysReview.SubmitTime), input.SubmitTimeStart, input.SubmitTimeEnd);
         AddTimeRange(request, nameof(SysReview.ReviewStartTime), input.ReviewStartTimeStart, input.ReviewStartTimeEnd);
         AddTimeRange(request, nameof(SysReview.ReviewEndTime), input.ReviewEndTimeStart, input.ReviewEndTimeEnd);
-        request.Conditions.AddSort(nameof(SysReview.Priority), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysReview.SubmitTime), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysReview.CreatedTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysReview review) => review.Priority, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysReview review) => review.SubmitTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysReview review) => review.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
 
