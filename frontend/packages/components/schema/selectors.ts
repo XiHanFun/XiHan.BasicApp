@@ -94,8 +94,16 @@ export function toColumns<TRow extends object>(
     if (field.minWidth !== undefined) {
       column.minWidth = field.minWidth
     }
-    if (field.fixed !== undefined) {
-      column.fixed = field.fixed
+    // 固定方向：列设置/视图覆盖优先（含「取消固定」），否则用字段默认
+    const overriddenFixed = options?.fixedMap && field.key in options.fixedMap
+      ? options.fixedMap[field.key]
+      : field.fixed
+    if (overriddenFixed !== undefined) {
+      column.fixed = overriddenFixed
+      // Naive UI 固定列必须有确定 width；仅声明 minWidth/无宽度的列回退一个宽度，否则固定会错位失效
+      if (field.width === undefined) {
+        column.width = field.minWidth ?? 120
+      }
     }
     if (field.sortable) {
       // 服务端排序：仅声明可排序，排序事件由表格上抛
