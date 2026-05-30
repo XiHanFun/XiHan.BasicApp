@@ -49,14 +49,19 @@ export function toExportFields<TRow extends object>(
 }
 
 /**
- * 派生：表格列（visible=true 且有权限），可叠加视图的列可见/顺序。
- * @param visibleKeys 视图覆盖的可见列；未提供则用 schema 默认
- * @param columnOrder 视图覆盖的列顺序
+ * 派生：表格列（visible=true 且有权限），可叠加视图/列设置的列可见、顺序与固定。
+ * @param options.visibleKeys 覆盖的可见列；未提供则用 schema 默认
+ * @param options.columnOrder 覆盖的列顺序
+ * @param options.fixedMap 覆盖的列固定方向（key → left/right/undefined）
  */
 export function toColumns<TRow extends object>(
   schema: PageSchema<TRow>,
   can: (code: string) => boolean,
-  options?: { visibleKeys?: string[], columnOrder?: string[] },
+  options?: {
+    visibleKeys?: string[]
+    columnOrder?: string[]
+    fixedMap?: Record<string, 'left' | 'right' | undefined>
+  },
 ): DataTableColumn<TRow>[] {
   let fields = schema.fields.filter(f => f.visible !== false && isFieldPermitted(f, can))
 

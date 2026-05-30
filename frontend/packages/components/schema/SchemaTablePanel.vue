@@ -29,6 +29,8 @@ const props = withDefaults(defineProps<{
   selectable?: boolean
   /** 已选行主键 */
   checkedKeys?: Array<string | number>
+  /** 密度（映射 NDataTable size） */
+  density?: 'small' | 'medium' | 'large'
 }>(), {
   loading: false,
   rowKey: 'basicId',
@@ -39,6 +41,7 @@ const props = withDefaults(defineProps<{
   pageSizes: () => [10, 20, 50, 100],
   selectable: false,
   checkedKeys: () => [],
+  density: 'small',
 })
 
 const emit = defineEmits<{

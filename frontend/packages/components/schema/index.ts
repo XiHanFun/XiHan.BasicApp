@@ -2,6 +2,7 @@ export { default as SchemaActionPanel } from './SchemaActionPanel.vue'
 export { default as SchemaPage } from './SchemaPage.vue'
 export { default as SchemaSearchPanel } from './SchemaSearchPanel.vue'
 export { default as SchemaTablePanel } from './SchemaTablePanel.vue'
+export { default as SchemaTableSettings } from './SchemaTableSettings.vue'
 
 export { formatFieldText, renderFieldCell } from './renderer'
 export {
@@ -28,3 +29,6 @@ export type {
 
 export { useSchemaTable } from './useSchemaTable'
 export type { UseSchemaTableOptions } from './useSchemaTable'
+
+export { useTableSettings } from './useTableSettings'
+export type { ColumnSetting, TableDensity } from './useTableSettings'
