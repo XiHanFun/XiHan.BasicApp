@@ -196,7 +196,11 @@ public sealed class RoleQueryService
 
         if (isGlobal.HasValue)
         {
-            request.Conditions.AddFilter((SysRole role) => role.IsGlobal, isGlobal.Value);
+            // IsGlobal 为派生属性（TenantId == 0），不落库，故按租户列过滤：全局=租户0，非全局=非租户0
+            request.Conditions.AddFilter(
+                (SysRole role) => role.TenantId,
+                0L,
+                isGlobal.Value ? QueryOperator.Equal : QueryOperator.NotEqual);
         }
 
         if (status.HasValue)

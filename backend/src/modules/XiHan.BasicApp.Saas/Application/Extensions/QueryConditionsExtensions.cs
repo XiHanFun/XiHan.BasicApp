@@ -12,7 +12,9 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
 using System.Linq.Expressions;
+using System.Reflection;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
 
@@ -148,11 +150,36 @@ public static class QueryConditionsExtensions
 
         if (body is MemberExpression member)
         {
+            EnsureQueryableColumn(member.Member, selector);
             return member.Member.Name;
         }
 
         throw new ArgumentException(
             $"选择器必须是简单的成员访问表达式（如 u => u.PropertyName），实际收到：{selector}",
             nameof(selector));
+    }
+
+    /// <summary>
+    /// 校验所选成员可作为数据库列参与查询。
+    /// <para>
+    /// 标注了 <c>[SugarColumn(IsIgnore = true)]</c> 的成员是<b>派生/导航属性</b>（如 <c>SysPermission.IsGlobal =&gt; TenantId == 0</c>），
+    /// 不落库；若误用于 <c>AddFilter</c>/<c>AddSort</c>/<c>SetKeyword</c> 会被翻译成不存在的列，导致运行期 SQL 报错（如 PostgreSQL 42703）。
+    /// 此处提前在构建查询条件时抛出清晰异常，将该类错误从"线上运行期"前移到"开发期"。
+    /// </para>
+    /// </summary>
+    /// <param name="member">表达式解析出的成员</param>
+    /// <param name="selector">原始选择器（用于异常信息定位）</param>
+    /// <exception cref="ArgumentException">成员为不落库的派生/导航属性时抛出</exception>
+    private static void EnsureQueryableColumn(MemberInfo member, Expression selector)
+    {
+        var sugarColumn = member.GetCustomAttribute<SugarColumn>();
+        if (sugarColumn is { IsIgnore: true })
+        {
+            throw new ArgumentException(
+                $"成员 {member.DeclaringType?.Name}.{member.Name} 标注了 [SugarColumn(IsIgnore = true)]，"
+                + $"属于不落库的派生/导航属性，不能用于数据库查询过滤/排序/关键字。"
+                + $"请改用其对应的真实列（如 IsGlobal 应改用 TenantId == 0）。原始选择器：{selector}",
+                nameof(selector));
+        }
     }
 }
