@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DataTableColumns } from 'naive-ui'
+import type { CrudResource, CrudSearchField } from '~/components'
 import type {
   DictCreateDto,
   DictDetailDto,
@@ -7,11 +8,11 @@ import type {
   DictItemListItemDto,
   DictItemUpdateDto,
   DictListItemDto,
+  DictPageQueryDto,
   DictUpdateDto,
 } from '@/api'
 import {
   NButton,
-  NCard,
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
@@ -28,16 +29,15 @@ import {
   NPopconfirm,
   NScrollbar,
   NSelect,
-  NSkeleton,
   NSpace,
   NSpin,
   NSwitch,
   NTag,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, reactive, ref } from 'vue'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
-import { Icon } from '~/components'
+import { CrudPage, Icon } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -67,30 +67,6 @@ interface DictItemFormModel {
 }
 
 const message = useMessage()
-const loading = ref(true)
-
-const dictLoading = ref(false)
-const dictList = ref<DictListItemDto[]>([])
-const dictTotal = ref(0)
-const dictPage = ref(1)
-const dictPageSize = ref(20)
-
-const itemLoading = ref(false)
-const itemList = ref<DictItemListItemDto[]>([])
-const itemTotal = ref(0)
-const itemPage = ref(1)
-const itemPageSize = ref(20)
-
-const queryParams = reactive({
-  isBuiltIn: undefined as number | undefined,
-  keyword: '',
-  status: undefined as EnableStatus | undefined,
-})
-
-const itemQueryParams = reactive({
-  keyword: '',
-})
-
 const statusOptions = STATUS_OPTIONS
 
 const builtInOptions = [
@@ -98,11 +74,44 @@ const builtInOptions = [
   { label: '非内置', value: 0 },
 ]
 
+const searchFields: CrudSearchField[] = [
+  { field: 'keyword', placeholder: '搜索字典名称/编码/类型', type: 'input', width: 250 },
+  { field: 'isBuiltIn', options: builtInOptions, placeholder: '是否内置', type: 'select', width: 110 },
+  { field: 'status', options: statusOptions, placeholder: '状态', type: 'select', width: 100 },
+]
+
+// 字典列表资源：适配统一脚手架 CrudResource 契约（page 内部沿用原有查询参数映射）
+const dictResource: CrudResource<DictListItemDto, DictPageQueryDto> = {
+  page: (query) => {
+    const filters = query as unknown as Record<string, unknown>
+    return dictManagementApi.page({
+      ...createPageRequest({ page: query.page }),
+      isBuiltIn: filters.isBuiltIn === undefined ? undefined : Boolean(filters.isBuiltIn),
+      keyword: (filters.keyword as string | undefined)?.trim() || undefined,
+      status: filters.status as EnableStatus | undefined,
+    })
+  },
+  remove: id => dictManagementApi.delete(id),
+}
+
+const crudPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadDict() {
+  void crudPageRef.value?.reload()
+}
+
+// 字典项（详情抽屉内的主从子表，保留页面自有逻辑）
+const itemLoading = ref(false)
+const itemList = ref<DictItemListItemDto[]>([])
+const itemTotal = ref(0)
+const itemPage = ref(1)
+const itemPageSize = ref(20)
+const itemQueryParams = reactive({ keyword: '' })
+
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const dictForm = ref<DictFormModel>(createDefaultDictForm())
-
 const modalTitle = computed(() => (dictForm.value.basicId ? '编辑字典' : '新增字典'))
 
 const detailVisible = ref(false)
@@ -114,7 +123,6 @@ const itemModalVisible = ref(false)
 const itemSubmitLoading = ref(false)
 const itemEditingStatus = ref<EnableStatus | null>(null)
 const itemForm = ref<DictItemFormModel>(createDefaultDictItemForm())
-
 const itemModalTitle = computed(() => (itemForm.value.basicId ? '编辑字典项' : '新增字典项'))
 
 function createDefaultDictForm(): DictFormModel {
@@ -159,34 +167,6 @@ function formatBoolean(value?: boolean | null) {
 
 function canMaintainDict(row: DictListItemDto) {
   return !row.isBuiltIn
-}
-
-async function fetchDictData() {
-  dictLoading.value = true
-  try {
-    const result = await dictManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: dictPage.value,
-          pageSize: dictPageSize.value,
-        },
-      }),
-      isBuiltIn: queryParams.isBuiltIn === undefined ? undefined : Boolean(queryParams.isBuiltIn),
-      keyword: queryParams.keyword?.trim() || undefined,
-      status: queryParams.status,
-    })
-    dictList.value = result.items
-    dictTotal.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询字典失败')
-    dictList.value = []
-    dictTotal.value = 0
-  }
-  finally {
-    dictLoading.value = false
-    loading.value = false
-  }
 }
 
 async function fetchItemData() {
@@ -345,19 +325,6 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
   },
 ])
 
-const dictTotalPages = computed(() => Math.max(1, Math.ceil(dictTotal.value / dictPageSize.value)))
-
-function handleDictPageChange(page: number) {
-  dictPage.value = page
-  fetchDictData()
-}
-
-function handleDictPageSizeChange(pageSize: number) {
-  dictPageSize.value = pageSize
-  dictPage.value = 1
-  fetchDictData()
-}
-
 const itemTotalPages = computed(() => Math.max(1, Math.ceil(itemTotal.value / itemPageSize.value)))
 
 function handleItemPageChange(page: number) {
@@ -369,19 +336,6 @@ function handleItemPageSizeChange(pageSize: number) {
   itemPageSize.value = pageSize
   itemPage.value = 1
   fetchItemData()
-}
-
-function handleSearch() {
-  dictPage.value = 1
-  fetchDictData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.isBuiltIn = undefined
-  queryParams.status = undefined
-  dictPage.value = 1
-  fetchDictData()
 }
 
 function handleAdd() {
@@ -483,7 +437,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    fetchDictData()
+    reloadDict()
   }
   catch {
     message.error('保存失败')
@@ -496,7 +450,7 @@ async function handleSubmit() {
 async function handleDelete(row: DictListItemDto) {
   await dictManagementApi.delete(row.basicId)
   message.success('删除成功')
-  fetchDictData()
+  reloadDict()
 }
 
 async function handleToggleStatus(row: DictListItemDto) {
@@ -506,7 +460,7 @@ async function handleToggleStatus(row: DictListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  fetchDictData()
+  reloadDict()
 }
 
 function handleItemSearch() {
@@ -623,87 +577,24 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
   message.success('状态已更新')
   fetchItemData()
 }
-
-onMounted(() => {
-  fetchDictData()
-})
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索字典名称/编码/类型"
-          style="width: 250px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.isBuiltIn"
-          :options="builtInOptions"
-          clearable
-          placeholder="是否内置"
-          style="width: 110px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="statusOptions"
-          clearable
-          placeholder="状态"
-          style="width: 100px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard class="flex-1" style="height: 0">
-      <NSkeleton v-if="loading" :height="48" :repeat="5" text style="padding: 16px" />
-      <template v-if="!loading">
-        <div class="flex items-center mb-3">
-          <NButton size="small" type="primary" @click="handleAdd">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>
-            新增字典
-          </NButton>
-        </div>
-        <NDataTable
-          :columns="dictColumns"
-          :data="dictList"
-          :loading="dictLoading"
-          :max-height="500"
-          :row-key="(row: DictListItemDto) => row.basicId"
-          :scroll-x="1000"
-          size="small"
-          striped
-        />
-        <div class="flex justify-end p-2">
-          <NPagination
-            v-model:page="dictPage"
-            v-model:page-size="dictPageSize"
-            :item-count="dictTotal"
-            :page-count="dictTotalPages"
-            :page-sizes="[10, 20, 50, 100]"
-            show-size-picker
-            @update:page="handleDictPageChange"
-            @update:page-size="handleDictPageSizeChange"
-          />
-        </div>
-      </template>
-    </NCard>
+  <CrudPage
+    ref="crudPageRef"
+    :columns="dictColumns"
+    :resource="dictResource"
+    :scroll-x="1000"
+    :search-fields="searchFields"
+  >
+    <template #toolbar>
+      <NButton size="small" type="primary" @click="handleAdd">
+        <template #icon>
+          <NIcon><Icon icon="lucide:plus" /></NIcon>
+        </template>
+        新增字典
+      </NButton>
+    </template>
 
     <NDrawer v-model:show="detailVisible" :width="800">
       <NDrawerContent :title="`字典详情 - ${currentDict?.dictName ?? ''}`" closable>
@@ -903,7 +794,7 @@ onMounted(() => {
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </CrudPage>
 </template>
 
 <style scoped>
