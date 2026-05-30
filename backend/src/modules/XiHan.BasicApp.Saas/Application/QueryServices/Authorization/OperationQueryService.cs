@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -131,10 +132,10 @@ public sealed class OperationQueryService
             input.IsGlobal,
             input.Status);
 
-        request.Conditions.AddSort(nameof(SysOperation.Category), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysOperation.OperationTypeCode), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysOperation.Sort), SortDirection.Ascending, 2);
-        request.Conditions.AddSort(nameof(SysOperation.OperationCode), SortDirection.Ascending, 3);
+        request.Conditions.AddSort((SysOperation operation) => operation.Category, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysOperation operation) => operation.OperationTypeCode, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysOperation operation) => operation.Sort, SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysOperation operation) => operation.OperationCode, SortDirection.Ascending, 3);
         return request;
     }
 
@@ -163,10 +164,10 @@ public sealed class OperationQueryService
             isGlobal: true,
             status: EnableStatus.Enabled);
 
-        request.Conditions.AddSort(nameof(SysOperation.Category), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysOperation.OperationTypeCode), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysOperation.Sort), SortDirection.Ascending, 2);
-        request.Conditions.AddSort(nameof(SysOperation.OperationCode), SortDirection.Ascending, 3);
+        request.Conditions.AddSort((SysOperation operation) => operation.Category, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysOperation operation) => operation.OperationTypeCode, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysOperation operation) => operation.Sort, SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysOperation operation) => operation.OperationCode, SortDirection.Ascending, 3);
         return request;
     }
 
@@ -186,46 +187,46 @@ public sealed class OperationQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysOperation>(
                 keyword.Trim(),
-                nameof(SysOperation.OperationCode),
-                nameof(SysOperation.OperationName),
-                nameof(SysOperation.Description));
+                operation => operation.OperationCode,
+                operation => operation.OperationName,
+                operation => operation.Description);
         }
 
         if (operationTypeCode.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.OperationTypeCode), operationTypeCode.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.OperationTypeCode, operationTypeCode.Value);
         }
 
         if (category.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.Category), category.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.Category, category.Value);
         }
 
         if (httpMethod.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.HttpMethod), httpMethod.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.HttpMethod, httpMethod.Value);
         }
 
         if (isDangerous.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.IsDangerous), isDangerous.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.IsDangerous, isDangerous.Value);
         }
 
         if (isRequireAudit.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.IsRequireAudit), isRequireAudit.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.IsRequireAudit, isRequireAudit.Value);
         }
 
         if (isGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.IsGlobal), isGlobal.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.IsGlobal, isGlobal.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOperation.Status), status.Value);
+            request.Conditions.AddFilter((SysOperation operation) => operation.Status, status.Value);
         }
     }
 }

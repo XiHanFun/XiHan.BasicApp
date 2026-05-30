@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -163,41 +164,41 @@ public sealed class ConstraintRuleQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysConstraintRule>(
                 input.Keyword.Trim(),
-                nameof(SysConstraintRule.RuleCode),
-                nameof(SysConstraintRule.RuleName),
-                nameof(SysConstraintRule.Description),
-                nameof(SysConstraintRule.Remark));
+                rule => rule.RuleCode,
+                rule => rule.RuleName,
+                rule => rule.Description,
+                rule => rule.Remark);
         }
 
         if (input.ConstraintType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConstraintRule.ConstraintType), input.ConstraintType.Value);
+            request.Conditions.AddFilter((SysConstraintRule rule) => rule.ConstraintType, input.ConstraintType.Value);
         }
 
         if (input.TargetType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConstraintRule.TargetType), input.TargetType.Value);
+            request.Conditions.AddFilter((SysConstraintRule rule) => rule.TargetType, input.TargetType.Value);
         }
 
         if (input.ViolationAction.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConstraintRule.ViolationAction), input.ViolationAction.Value);
+            request.Conditions.AddFilter((SysConstraintRule rule) => rule.ViolationAction, input.ViolationAction.Value);
         }
 
         if (input.IsGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConstraintRule.IsGlobal), input.IsGlobal.Value);
+            request.Conditions.AddFilter((SysConstraintRule rule) => rule.IsGlobal, input.IsGlobal.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConstraintRule.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysConstraintRule rule) => rule.Status, input.Status.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysConstraintRule.Priority), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysConstraintRule.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysConstraintRule rule) => rule.Priority, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysConstraintRule rule) => rule.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 

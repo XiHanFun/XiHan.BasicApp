@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -185,43 +186,43 @@ public sealed class FieldLevelSecurityQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysFieldLevelSecurity>(
                 input.Keyword.Trim(),
-                nameof(SysFieldLevelSecurity.FieldName),
-                nameof(SysFieldLevelSecurity.Description),
-                nameof(SysFieldLevelSecurity.MaskPattern),
-                nameof(SysFieldLevelSecurity.Remark));
+                fls => fls.FieldName,
+                fls => fls.Description,
+                fls => fls.MaskPattern,
+                fls => fls.Remark);
         }
 
         if (input.TargetType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFieldLevelSecurity.TargetType), input.TargetType.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.TargetType, input.TargetType.Value);
         }
 
         if (input.TargetId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFieldLevelSecurity.TargetId), input.TargetId.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.TargetId, input.TargetId.Value);
         }
 
         if (input.ResourceId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFieldLevelSecurity.ResourceId), input.ResourceId.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.ResourceId, input.ResourceId.Value);
         }
 
         if (input.MaskStrategy.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFieldLevelSecurity.MaskStrategy), input.MaskStrategy.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.MaskStrategy, input.MaskStrategy.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysFieldLevelSecurity.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.Status, input.Status.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysFieldLevelSecurity.ResourceId), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysFieldLevelSecurity.TargetType), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysFieldLevelSecurity.Priority), SortDirection.Descending, 2);
-        request.Conditions.AddSort(nameof(SysFieldLevelSecurity.FieldName), SortDirection.Ascending, 3);
+        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.ResourceId, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.TargetType, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.Priority, SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.FieldName, SortDirection.Ascending, 3);
         return request;
     }
 

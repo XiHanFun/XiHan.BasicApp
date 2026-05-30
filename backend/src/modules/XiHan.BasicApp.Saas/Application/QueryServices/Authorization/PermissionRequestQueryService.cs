@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -180,38 +181,38 @@ public sealed class PermissionRequestQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysPermissionRequest>(
                 input.Keyword.Trim(),
-                nameof(SysPermissionRequest.RequestReason),
-                nameof(SysPermissionRequest.Remark));
+                pr => pr.RequestReason,
+                pr => pr.Remark);
         }
 
         if (input.RequestUserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionRequest.RequestUserId), input.RequestUserId.Value);
+            request.Conditions.AddFilter((SysPermissionRequest pr) => pr.RequestUserId, input.RequestUserId.Value);
         }
 
         if (input.PermissionId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionRequest.PermissionId), input.PermissionId.Value);
+            request.Conditions.AddFilter((SysPermissionRequest pr) => pr.PermissionId, input.PermissionId.Value);
         }
 
         if (input.RoleId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionRequest.RoleId), input.RoleId.Value);
+            request.Conditions.AddFilter((SysPermissionRequest pr) => pr.RoleId, input.RoleId.Value);
         }
 
         if (input.ReviewId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionRequest.ReviewId), input.ReviewId.Value);
+            request.Conditions.AddFilter((SysPermissionRequest pr) => pr.ReviewId, input.ReviewId.Value);
         }
 
         if (input.RequestStatus.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionRequest.RequestStatus), input.RequestStatus.Value);
+            request.Conditions.AddFilter((SysPermissionRequest pr) => pr.RequestStatus, input.RequestStatus.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysPermissionRequest.CreatedTime), SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysPermissionRequest pr) => pr.CreatedTime, SortDirection.Descending, 0);
         return request;
     }
 
