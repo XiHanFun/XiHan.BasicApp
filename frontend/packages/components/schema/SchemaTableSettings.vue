@@ -140,7 +140,6 @@ onBeforeUnmount(() => {
           :key="col.key"
           class="xh-col-row flex gap-2 items-center py-1"
         >
-          <!-- 拖拽手柄 -->
           <span class="xh-col-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
             <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
           </span>
