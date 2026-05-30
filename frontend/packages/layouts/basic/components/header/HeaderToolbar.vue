@@ -83,7 +83,7 @@ const emit = defineEmits<{
       @click="emit('fullscreenToggle')"
     >
       <Icon
-        :icon="props.isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+        :icon="props.isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
         width="16"
         height="16"
       />
