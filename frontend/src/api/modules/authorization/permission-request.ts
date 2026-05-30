@@ -17,7 +17,7 @@ import {
 } from '../../base'
 
 const permissionRequestQueryApi = createDynamicApiClient('PermissionRequestQuery')
-const permissionRequestCommandApi = createDynamicApiClient('Permission')
+const permissionRequestCommandApi = createDynamicApiClient('PermissionRequest')
 const permissionRequestReadApi = createReadApi<
   PermissionRequestListItemDto,
   PermissionRequestDetailDto,
@@ -27,7 +27,7 @@ const permissionRequestBaseCommandApi = createCommandApi<
   PermissionRequestCreateDto,
   PermissionRequestUpdateDto,
   PermissionRequestDetailDto
->('Permission', 'PermissionRequest')
+>('PermissionRequest', 'PermissionRequest')
 
 export const permissionRequestApi = {
   create(input: PermissionRequestCreateDto) {
