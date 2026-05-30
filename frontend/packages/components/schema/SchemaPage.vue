@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { DataTableColumn, DropdownOption } from 'naive-ui'
-import type { ActionSchema, PageSchema, SchemaActionPayload } from './types'
-import { NButton, NCard, NDropdown, NIcon, NSkeleton } from 'naive-ui'
+import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
+import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
+import SchemaTableSettings from './SchemaTableSettings.vue'
 import { toAdvancedFields, toColumns, toSearchFields } from './selectors'
 import { useSchemaTable } from './useSchemaTable'
+import { useTableSettings } from './useTableSettings'
 
 defineOptions({ name: 'SchemaPage' })
 
@@ -39,6 +41,20 @@ const { loading, rows, total, page, pageSize, filters, search, reset, changePage
 const searchFields = computed(() => toSearchFields(props.schema, hasPermission))
 const advancedFields = computed(() => toAdvancedFields(props.schema, hasPermission))
 
+/** 表格可选列字段（可见 + 有权限），作为列设置的来源 */
+const columnFields = computed<ListFieldSchema[]>(() =>
+  props.schema.fields.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
+)
+
+/** 列设置（显隐/顺序/固定/密度，按 pageCode 持久化） */
+const settings = useTableSettings(props.schema.pageCode, columnFields)
+
+/** 局部全屏 */
+const isFullscreen = ref(false)
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value
+}
+
 /** 行级操作（有权限） */
 const rowActions = computed(() =>
   (props.schema.actions ?? []).filter(a => a.scope === 'row' && (!a.permission || hasPermission(a.permission))),
@@ -56,9 +72,13 @@ const selectedRows = computed(() => {
   return rows.value.filter(row => keySet.has((row as Record<string, unknown>)[rowKey] as string | number))
 })
 
-/** 列：schema 派生列 + 行操作列 */
+/** 列：schema 派生列（应用列设置：显隐/顺序/固定）+ 行操作列 */
 const columns = computed<DataTableColumn<Row>[]>(() => {
-  const base = toColumns(props.schema, hasPermission)
+  const base = toColumns(props.schema, hasPermission, {
+    visibleKeys: settings.visibleKeys.value,
+    columnOrder: settings.columnOrder.value,
+    fixedMap: settings.fixedMap.value,
+  })
   if (rowActions.value.length === 0) {
     return base
   }
@@ -127,7 +147,7 @@ defineExpose({ reload, remove, clearSelection, filters })
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
+  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
     <!-- 搜索面板 -->
     <SchemaSearchPanel
       v-if="searchFields.length"
@@ -146,7 +166,38 @@ defineExpose({ reload, remove, clearSelection, filters })
         <div class="mb-3">
           <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
             <template #toolbar>
+              <!-- 页面自定义工具栏项 -->
               <slot name="toolbar" :reload="reload" />
+              <!-- 内置工具栏：刷新 / 列设置 / 全屏 -->
+              <NTooltip>
+                <template #trigger>
+                  <NButton circle quaternary size="small" aria-label="刷新" @click="reload">
+                    <template #icon>
+                      <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+                    </template>
+                  </NButton>
+                </template>
+                刷新
+              </NTooltip>
+              <SchemaTableSettings
+                :columns="settings.columns.value"
+                :density="settings.density.value"
+                @move="settings.move"
+                @reset="settings.resetDefault"
+                @set-density="settings.setDensity"
+                @set-fixed="settings.setFixed"
+                @toggle-visible="settings.toggleVisible"
+              />
+              <NTooltip>
+                <template #trigger>
+                  <NButton circle quaternary size="small" aria-label="全屏" @click="toggleFullscreen">
+                    <template #icon>
+                      <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
+                    </template>
+                  </NButton>
+                </template>
+                {{ isFullscreen ? '退出全屏' : '全屏' }}
+              </NTooltip>
             </template>
           </SchemaActionPanel>
         </div>
@@ -173,6 +224,7 @@ defineExpose({ reload, remove, clearSelection, filters })
           v-model:checked-keys="checkedKeys"
           :columns="columns"
           :data="rows"
+          :density="settings.density.value"
           :loading="loading"
           :page="page"
           :page-size="pageSize"
@@ -201,5 +253,12 @@ defineExpose({ reload, remove, clearSelection, filters })
   margin-bottom: 12px;
   border-radius: 8px;
   background: rgb(var(--primary) / 0.08);
+}
+
+.xh-schema-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--n-color, #fff);
 }
 </style>
