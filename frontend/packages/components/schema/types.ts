@@ -118,6 +118,20 @@ export interface ActionSchema<TRow = Record<string, unknown>> {
 }
 
 /**
+ * 操作事件载荷（页面级/行级/批量级统一上抛）
+ */
+export interface SchemaActionPayload<TRow = Record<string, unknown>> {
+  /** 操作码 */
+  key: string
+  /** 作用域 */
+  scope: SchemaActionScope
+  /** 行级操作携带的行数据 */
+  row?: TRow
+  /** 批量操作携带的选中行 */
+  rows?: TRow[]
+}
+
+/**
  * 视图 Schema —— 预置视图（系统视图）。租户/团队/个人视图为运行时数据。
  */
 export interface ViewSchema {

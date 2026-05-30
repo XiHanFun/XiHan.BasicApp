@@ -16,6 +16,7 @@ export type {
   ActionSchema,
   ListFieldSchema,
   PageSchema,
+  SchemaActionPayload,
   SchemaActionScope,
   SchemaColumn,
   SchemaFieldDataType,
