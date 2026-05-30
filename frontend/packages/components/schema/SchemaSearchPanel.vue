@@ -159,7 +159,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 </template>
 
 <style scoped>
-/* 搜索区不再作为独立卡片，直接贴合页面顶部，避免与页面内边距叠加出空白带 */
+/* 搜索区作为高级浮层的定位上下文（外层由 NCard 提供卡片容器与内边距） */
 .xh-search {
   position: relative;
 }
@@ -195,18 +195,20 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   margin-left: auto;
 }
 
-/* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表） */
+/* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表）。
+   left/right 用负值抵消 NCard 内容内边距（16px），使浮层铺满卡片宽度；
+   自身 padding 再以同样 16px 内缩，让高级字段左边缘与常用字段严格对齐。 */
 .xh-search__advanced {
   position: absolute;
   top: 100%;
-  right: 0;
-  left: 0;
+  right: -16px;
+  left: -16px;
   z-index: 20;
   display: flex;
   flex-wrap: wrap;
   gap: 10px 12px;
-  margin-top: 4px;
-  padding: 14px 12px;
+  margin-top: 12px;
+  padding: 14px 16px;
   border-radius: var(--n-border-radius, 6px);
   background: var(--n-card-color, #fff);
   box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);

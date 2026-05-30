@@ -207,24 +207,30 @@ defineExpose({
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板（含内部滑入的高级条件 + 搜索设置） -->
-    <SchemaSearchPanel
+    <!-- 搜索面板：用 NCard 包裹（与表格同款容器），高级条件浮层在卡片内对齐 -->
+    <NCard
       v-if="searchFields.length || advancedFields.length"
-      :advanced-fields="advancedFields"
-      :common-fields="searchFields"
-      :model="filters"
-      @reset="reset"
-      @search="search"
+      size="small"
+      :content-style="{ padding: '12px 16px' }"
+      :style="{ overflow: 'visible' }"
     >
-      <template #settings>
-        <SchemaSearchSettings
-          :settings="searchSettings.settings.value"
-          @move="searchSettings.move"
-          @reset="searchSettings.resetDefault"
-          @toggle-pin="searchSettings.togglePin"
-        />
-      </template>
-    </SchemaSearchPanel>
+      <SchemaSearchPanel
+        :advanced-fields="advancedFields"
+        :common-fields="searchFields"
+        :model="filters"
+        @reset="reset"
+        @search="search"
+      >
+        <template #settings>
+          <SchemaSearchSettings
+            :settings="searchSettings.settings.value"
+            @move="searchSettings.move"
+            @reset="searchSettings.resetDefault"
+            @toggle-pin="searchSettings.togglePin"
+          />
+        </template>
+      </SchemaSearchPanel>
+    </NCard>
 
     <NCard class="flex-1" style="height: 0">
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
