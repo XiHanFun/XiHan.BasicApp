@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="TList extends Record<string, unknown>">
+<script setup lang="ts" generic="TList extends object">
 import type { DataTableColumns } from 'naive-ui'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
@@ -6,8 +6,9 @@ import { computed } from 'vue'
 defineOptions({ name: 'CrudTable' })
 
 const props = withDefaults(defineProps<{
-  /** 列定义（Naive UI 原生） */
-  columns: DataTableColumns<TList>
+  /** 列定义（Naive UI 原生）。脚手架仅透传给 NDataTable，TList 由页面侧列声明保证类型，故此处放宽避免逆变冲突 */
+  // eslint-disable-next-line ts/no-explicit-any
+  columns: DataTableColumns<any>
   /** 数据行 */
   data: TList[]
   /** 加载态 */
@@ -42,7 +43,7 @@ const emit = defineEmits<{
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
 
 function rowKeyGetter(row: TList) {
-  return row[props.rowKey] as string | number
+  return (row as Record<string, unknown>)[props.rowKey] as string | number
 }
 </script>
 

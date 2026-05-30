@@ -1,4 +1,6 @@
-<script setup lang="ts" generic="TList extends Record<string, unknown>, TQuery extends Partial<import('@/api').PageRequest>">
+<script setup lang="ts" generic="TQuery extends Partial<import('@/api').PageRequest>">
+// CRUD 列表页骨架：搜索区 + 工具栏插槽 + 表格 + 分页 + 默认插槽（承载页面自有弹窗/抽屉）。
+// 列表项类型由页面侧 columns/resource 声明保证，脚手架内部仅透传，故用 any 行类型避免泛型逆变冲突。
 import type { DataTableColumns } from 'naive-ui'
 import type { CrudResource, CrudSearchField } from './types'
 import { NCard, NSkeleton } from 'naive-ui'
@@ -10,10 +12,12 @@ import { useCrud } from './useCrud'
 defineOptions({ name: 'CrudPage' })
 
 const props = withDefaults(defineProps<{
-  /** 资源 API */
-  resource: CrudResource<TList, TQuery>
-  /** 表格列定义 */
-  columns: DataTableColumns<TList>
+  /** 资源 API（列表项类型由页面侧声明，脚手架仅透传） */
+  // eslint-disable-next-line ts/no-explicit-any
+  resource: CrudResource<any, TQuery>
+  /** 表格列定义。脚手架仅透传给表格，列表项类型由页面侧列声明保证，故此处放宽避免逆变冲突 */
+  // eslint-disable-next-line ts/no-explicit-any
+  columns: DataTableColumns<any>
   /** 搜索字段 schema */
   searchFields?: CrudSearchField[]
   /** 行主键字段 */
@@ -37,7 +41,8 @@ const props = withDefaults(defineProps<{
 
 const firstLoaded = ref(false)
 
-const crud = useCrud<TList, TQuery>(props.resource, {
+// eslint-disable-next-line ts/no-explicit-any
+const crud = useCrud<any, TQuery>(props.resource, {
   defaultQuery: props.defaultQuery,
   pageSize: props.pageSize,
 })
