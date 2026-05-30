@@ -1,6 +1,6 @@
-<script setup lang="ts" generic="TRow extends Record<string, unknown>">
+<script setup lang="ts">
 import type { DataTableColumn, DropdownOption } from 'naive-ui'
-import type { ActionSchema, PageSchema } from './types'
+import type { ActionSchema, PageSchema, SchemaActionPayload } from './types'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
@@ -13,14 +13,19 @@ import { useSchemaTable } from './useSchemaTable'
 
 defineOptions({ name: 'SchemaPage' })
 
+// 行类型在框架边界放宽：页面侧以 PageSchema<ConcreteDto> 定义时保有完整类型安全；
+// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）。
+// eslint-disable-next-line ts/no-explicit-any
+type Row = Record<string, any>
+
 const props = defineProps<{
   /** 页面单一事实源 */
-  schema: PageSchema<TRow>
+  schema: PageSchema<Row>
 }>()
 
 const emit = defineEmits<{
   /** 操作事件（页面级/行级/批量级统一上抛，由页面处理具体逻辑） */
-  action: [payload: { key: string, scope: 'page' | 'row' | 'batch', row?: TRow, rows?: TRow[] }]
+  action: [payload: SchemaActionPayload<Row>]
 }>()
 
 const { hasPermission } = usePermission()
@@ -52,7 +57,7 @@ const selectedRows = computed(() => {
 })
 
 /** 列：schema 派生列 + 行操作列 */
-const columns = computed<DataTableColumn<TRow>[]>(() => {
+const columns = computed<DataTableColumn<Row>[]>(() => {
   const base = toColumns(props.schema, hasPermission)
   if (rowActions.value.length === 0) {
     return base
