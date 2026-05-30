@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -134,42 +135,42 @@ public sealed class UserSecurityQueryService
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.UserId, input.UserId.Value);
         }
 
         if (input.IsLocked.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.IsLocked), input.IsLocked.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.IsLocked, input.IsLocked.Value);
         }
 
         if (input.TwoFactorEnabled.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.TwoFactorEnabled), input.TwoFactorEnabled.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.TwoFactorEnabled, input.TwoFactorEnabled.Value);
         }
 
         if (input.TwoFactorMethod.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.TwoFactorMethod), input.TwoFactorMethod.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.TwoFactorMethod, input.TwoFactorMethod.Value);
         }
 
         if (input.EmailVerified.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.EmailVerified), input.EmailVerified.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.EmailVerified, input.EmailVerified.Value);
         }
 
         if (input.PhoneVerified.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.PhoneVerified), input.PhoneVerified.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.PhoneVerified, input.PhoneVerified.Value);
         }
 
         if (input.AllowMultiLogin.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSecurity.AllowMultiLogin), input.AllowMultiLogin.Value);
+            request.Conditions.AddFilter((SysUserSecurity security) => security.AllowMultiLogin, input.AllowMultiLogin.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysUserSecurity.IsLocked), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysUserSecurity.LastFailedLoginTime), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysUserSecurity.CreatedTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysUserSecurity security) => security.IsLocked, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysUserSecurity security) => security.LastFailedLoginTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysUserSecurity security) => security.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
 

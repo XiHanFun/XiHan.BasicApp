@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -133,27 +134,27 @@ public sealed class UserStatisticsQueryService
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserStatistics.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysUserStatistics statistics) => statistics.UserId, input.UserId.Value);
         }
 
         if (input.Period.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserStatistics.Period), input.Period.Value);
+            request.Conditions.AddFilter((SysUserStatistics statistics) => statistics.Period, input.Period.Value);
         }
 
         if (input.StatisticsDateStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserStatistics.StatisticsDate), input.StatisticsDateStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysUserStatistics statistics) => statistics.StatisticsDate, input.StatisticsDateStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.StatisticsDateEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserStatistics.StatisticsDate), input.StatisticsDateEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysUserStatistics statistics) => statistics.StatisticsDate, input.StatisticsDateEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysUserStatistics.StatisticsDate), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysUserStatistics.Period), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysUserStatistics.UserId), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysUserStatistics statistics) => statistics.StatisticsDate, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysUserStatistics statistics) => statistics.Period, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysUserStatistics statistics) => statistics.UserId, SortDirection.Ascending, 2);
         return request;
     }
 

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -130,21 +131,21 @@ public sealed class PasswordHistoryQueryService
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPasswordHistory.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysPasswordHistory history) => history.UserId, input.UserId.Value);
         }
 
         if (input.ChangedTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPasswordHistory.ChangedTime), input.ChangedTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysPasswordHistory history) => history.ChangedTime, input.ChangedTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.ChangedTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPasswordHistory.ChangedTime), input.ChangedTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysPasswordHistory history) => history.ChangedTime, input.ChangedTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysPasswordHistory.ChangedTime), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysPasswordHistory.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysPasswordHistory history) => history.ChangedTime, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysPasswordHistory history) => history.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 

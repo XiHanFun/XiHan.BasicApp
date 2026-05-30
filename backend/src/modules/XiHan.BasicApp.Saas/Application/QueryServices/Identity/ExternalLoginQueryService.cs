@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -130,34 +131,34 @@ public sealed class ExternalLoginQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysExternalLogin>(
                 input.Keyword.Trim(),
-                nameof(SysExternalLogin.Provider),
-                nameof(SysExternalLogin.ProviderDisplayName));
+                login => login.Provider,
+                login => login.ProviderDisplayName);
         }
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysExternalLogin.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysExternalLogin login) => login.UserId, input.UserId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(input.Provider))
         {
-            request.Conditions.AddFilter(nameof(SysExternalLogin.Provider), input.Provider.Trim());
+            request.Conditions.AddFilter((SysExternalLogin login) => login.Provider, input.Provider.Trim());
         }
 
         if (input.LastLoginTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysExternalLogin.LastLoginTime), input.LastLoginTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysExternalLogin login) => login.LastLoginTime, input.LastLoginTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.LastLoginTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysExternalLogin.LastLoginTime), input.LastLoginTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysExternalLogin login) => login.LastLoginTime, input.LastLoginTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysExternalLogin.LastLoginTime), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysExternalLogin.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysExternalLogin login) => login.LastLoginTime, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysExternalLogin login) => login.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 
