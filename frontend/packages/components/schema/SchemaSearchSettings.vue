@@ -28,9 +28,9 @@ function initSortable() {
     return
   }
   sortable = Sortable.create(listRef.value, {
-    handle: '.xh-search-drag-handle',
+    handle: '.xh-set-drag-handle',
     animation: 150,
-    ghostClass: 'xh-search-drag-ghost',
+    ghostClass: 'xh-set-drag-ghost',
     onEnd(evt) {
       const { oldIndex, newIndex } = evt
       if (oldIndex == null || newIndex == null || oldIndex === newIndex) {
@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="280" display-directive="show">
+  <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="300" display-directive="show">
     <template #trigger>
       <NTooltip>
         <template #trigger>
@@ -87,9 +87,9 @@ onBeforeUnmount(() => {
         <div
           v-for="item in settings"
           :key="item.key"
-          class="xh-search-set-row flex gap-2 items-center py-1"
+          class="xh-set-row flex gap-2 items-center"
         >
-          <span class="xh-search-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
+          <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
             <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
           </span>
           <span class="flex-1 text-sm truncate">{{ item.title }}</span>
@@ -109,11 +109,21 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.xh-search-drag-handle:active {
+/* 统一设置弹窗行样式（与列设置一致） */
+.xh-set-row {
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.xh-set-row:hover {
+  background: rgb(var(--primary) / 0.06);
+}
+
+.xh-set-drag-handle:active {
   cursor: grabbing;
 }
 
-.xh-search-drag-ghost {
+.xh-set-drag-ghost {
   opacity: 0.5;
   background: rgb(var(--primary) / 0.08);
 }
