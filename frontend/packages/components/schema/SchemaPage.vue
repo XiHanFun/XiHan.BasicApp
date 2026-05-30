@@ -10,7 +10,6 @@ import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import SchemaViewManager from './SchemaViewManager.vue'
 import { toColumns } from './selectors'
 import { useSchemaTable } from './useSchemaTable'
 import { useSearchSettings } from './useSearchSettings'
@@ -24,14 +23,10 @@ defineOptions({ name: 'SchemaPage' })
 // eslint-disable-next-line ts/no-explicit-any
 type Row = Record<string, any>
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   /** 页面单一事实源 */
   schema: PageSchema<Row>
-  /** 是否显示搜索方案（个人视图），默认显示 */
-  showViews?: boolean
-}>(), {
-  showViews: true,
-})
+}>()
 
 const emit = defineEmits<{
   /** 操作事件（页面级/行级/批量级统一上抛，由页面处理具体逻辑） */
@@ -72,10 +67,14 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value
 }
 
-/** 视图管理（个人视图，按 pageCode 持久化） */
+/**
+ * 搜索方案（个人视图）—— 作为接口暴露，不内置 UI。
+ * 当前持久化到本地（localStorage，按 pageCode）；后续可替换为后端按用户保存。
+ * 页面可通过模板 ref 调用 saveView / applyView / views 自定义方案入口。
+ */
 const viewManager = useViewManager(props.schema.pageCode)
 
-/** 保存当前列表状态为视图 */
+/** 保存当前列表状态为命名方案 */
 function saveView(name: string) {
   viewManager.addView(name, {
     filters: { ...filters },
@@ -85,7 +84,7 @@ function saveView(name: string) {
   })
 }
 
-/** 应用视图：落地快照到表格状态并刷新 */
+/** 应用方案：落地快照到表格状态并刷新 */
 function applyView(code: string) {
   const snapshot = viewManager.applyView(code)
   if (!snapshot) {
@@ -191,7 +190,19 @@ onMounted(async () => {
   firstLoaded.value = true
 })
 
-defineExpose({ reload, remove, clearSelection, filters })
+defineExpose({
+  reload,
+  remove,
+  clearSelection,
+  filters,
+  // 搜索方案接口（无内置 UI，供页面自定义方案入口调用）
+  views: viewManager.views,
+  activeViewCode: viewManager.activeCode,
+  saveView,
+  applyView,
+  removeView: viewManager.removeView,
+  setDefaultView: viewManager.setDefault,
+})
 </script>
 
 <template>
@@ -214,18 +225,6 @@ defineExpose({ reload, remove, clearSelection, filters })
         />
       </template>
     </SchemaSearchPanel>
-
-    <!-- 搜索方案（个人视图） -->
-    <div v-if="showViews" class="flex justify-end">
-      <SchemaViewManager
-        :active-code="viewManager.activeCode.value"
-        :views="viewManager.views.value"
-        @apply="(code: string) => applyView(code)"
-        @remove="(code: string) => viewManager.removeView(code)"
-        @save="(name: string) => saveView(name)"
-        @set-default="(code: string) => viewManager.setDefault(code)"
-      />
-    </div>
 
     <NCard class="flex-1" style="height: 0">
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />

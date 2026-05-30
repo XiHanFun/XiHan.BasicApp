@@ -21,7 +21,6 @@ const emit = defineEmits<{
   reset: []
 }>()
 
-/** 高级条件展开状态 */
 const expanded = ref(false)
 
 const hasAdvanced = computed(() => props.advancedFields.length > 0)
@@ -46,7 +45,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 
 <template>
   <div class="xh-search">
-    <!-- 常用条件 + 操作按钮 -->
+    <!-- 常用条件 + 操作按钮（按钮永远固定第一行右上） -->
     <div class="xh-search__bar">
       <div class="xh-search__fields">
         <div
@@ -54,6 +53,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
           :key="field.key"
           class="xh-search__item"
         >
+          <span class="xh-search__label">{{ field.title }}</span>
           <NSelect
             v-if="isSelect(field)"
             v-model:value="(model[field.key] as string)"
@@ -82,7 +82,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
         </div>
       </div>
 
-      <!-- 操作按钮：固定最右 -->
+      <!-- 操作按钮：align-self 顶对齐 + margin-left auto，常用条件换行时仍固定第一行右上 -->
       <div class="xh-search__actions">
         <NButton size="small" type="primary" @click="emit('search')">
           <template #icon>
@@ -107,15 +107,15 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
       </div>
     </div>
 
-    <!-- 高级条件：内部滑入 -->
+    <!-- 高级条件：内部滑入（同样上下布局） -->
     <Transition name="xh-search-expand">
       <div v-if="expanded && hasAdvanced" class="xh-search__advanced">
         <div
           v-for="field in advancedFields"
           :key="field.key"
-          class="xh-search__adv-item"
+          class="xh-search__item"
         >
-          <span class="xh-search__adv-label">{{ field.title }}</span>
+          <span class="xh-search__label">{{ field.title }}</span>
           <NSelect
             v-if="isSelect(field)"
             v-model:value="(model[field.key] as string)"
@@ -154,56 +154,59 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   background: var(--n-card-color, transparent);
 }
 
+/* 顶层：常用条件块 + 按钮块。按钮块顶对齐，常用条件换行时按钮固定第一行右上 */
 .xh-search__bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-/* 常用条件区：自适应，挤占左侧 */
+/* 常用条件区：内部 flex-wrap，挤占左侧 */
 .xh-search__fields {
   display: flex;
   flex-wrap: wrap;
   flex: 1 1 auto;
-  gap: 8px;
+  gap: 10px 12px;
   min-width: 0;
 }
 
+/* 单个搜索项：上下布局（标题在上、控件在下） */
 .xh-search__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: 180px;
 }
 
-/* 操作按钮：固定最右，不换行 */
+/* 搜索标题：小字号、紧靠控件 */
+.xh-search__label {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--n-text-color-3, inherit);
+}
+
+/* 操作按钮：顶对齐 + 推到最右，永远在第一行 */
 .xh-search__actions {
   display: flex;
   flex-shrink: 0;
   gap: 8px;
   margin-left: auto;
+  /* 与控件底边对齐：标题约 17px 高 + 2px gap */
+  padding-top: 19px;
 }
 
-/* 高级条件区：grid 自适应列，内部滑入 */
+/* 高级条件区：grid 自适应列，内部滑入；项复用上下布局 */
 .xh-search__advanced {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 10px 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px 12px;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid rgb(var(--foreground, 0 0 0) / 0.06);
 }
 
-.xh-search__adv-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.xh-search__adv-label {
-  flex-shrink: 0;
-  width: 76px;
-  font-size: 13px;
-  text-align: right;
-  color: var(--n-text-color-3, inherit);
+.xh-search__advanced .xh-search__item {
+  width: auto;
 }
 
 /* 展开/收起动画 */
@@ -220,6 +223,10 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 
 /* 移动端：常用条件项占满整行，按钮区独占一行铺满 */
 @media (max-width: 767px) {
+  .xh-search__bar {
+    flex-direction: column;
+  }
+
   .xh-search__item {
     width: 100%;
   }
@@ -227,6 +234,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   .xh-search__actions {
     width: 100%;
     margin-left: 0;
+    padding-top: 0;
   }
 
   .xh-search__actions :deep(.n-button) {
@@ -235,17 +243,6 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 
   .xh-search__advanced {
     grid-template-columns: 1fr;
-  }
-
-  .xh-search__adv-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-  }
-
-  .xh-search__adv-label {
-    width: auto;
-    text-align: left;
   }
 }
 </style>
