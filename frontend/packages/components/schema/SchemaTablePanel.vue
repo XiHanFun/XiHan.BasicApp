@@ -82,7 +82,7 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
       remote
       :row-key="rowKeyGetter"
       :scroll-x="scrollX"
-      size="small"
+      :size="density"
       striped
       @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
       @update:sorter="onSort"

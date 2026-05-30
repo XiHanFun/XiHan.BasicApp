@@ -6,12 +6,15 @@ import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import SchemaActionPanel from './SchemaActionPanel.vue'
+import SchemaAdvancedSearch from './SchemaAdvancedSearch.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
+import SchemaViewManager from './SchemaViewManager.vue'
 import { toAdvancedFields, toColumns, toSearchFields } from './selectors'
 import { useSchemaTable } from './useSchemaTable'
 import { useTableSettings } from './useTableSettings'
+import { useViewManager } from './useViewManager'
 
 defineOptions({ name: 'SchemaPage' })
 
@@ -36,12 +39,12 @@ const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
 
 const table = useSchemaTable<Row>(props.schema)
-const { loading, rows, total, page, pageSize, filters, search, reset, changePage, changePageSize, changeSort, remove } = table
+const { loading, rows, total, page, pageSize, filters, sortField, sortOrder, search, reset, changePage, changePageSize, changeSort, remove } = table
 
 const searchFields = computed(() => toSearchFields(props.schema, hasPermission))
 const advancedFields = computed(() => toAdvancedFields(props.schema, hasPermission))
 
-/** 表格可选列字段（可见 + 有权限），作为列设置的来源 */
+/** 表格可选列字段（可见 + 有权限），作为列设置来源 */
 const columnFields = computed<ListFieldSchema[]>(() =>
   props.schema.fields.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
@@ -53,6 +56,43 @@ const settings = useTableSettings(props.schema.pageCode, columnFields)
 const isFullscreen = ref(false)
 function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value
+}
+
+/** 高级搜索抽屉 */
+const advancedShow = ref(false)
+function openAdvanced() {
+  advancedShow.value = true
+}
+
+/** 视图管理（个人视图，按 pageCode 持久化） */
+const viewManager = useViewManager(props.schema.pageCode)
+
+/** 保存当前列表状态为视图 */
+function saveView(name: string) {
+  viewManager.addView(name, {
+    filters: { ...filters },
+    sortField: sortField.value,
+    sortOrder: sortOrder.value,
+    pageSize: pageSize.value,
+  })
+}
+
+/** 应用视图：落地快照到表格状态并刷新 */
+function applyView(code: string) {
+  const snapshot = viewManager.applyView(code)
+  if (!snapshot) {
+    return
+  }
+  for (const key of Object.keys(filters)) {
+    delete filters[key]
+  }
+  Object.assign(filters, snapshot.filters)
+  sortField.value = snapshot.sortField
+  sortOrder.value = snapshot.sortOrder
+  if (snapshot.pageSize) {
+    pageSize.value = snapshot.pageSize
+  }
+  search()
 }
 
 /** 行级操作（有权限） */
@@ -123,6 +163,10 @@ function renderRowActions(row: Row) {
 }
 
 function onPageAction(key: string) {
+  if (key === '__advanced__') {
+    openAdvanced()
+    return
+  }
   emit('action', { key, scope: 'page' })
 }
 
@@ -154,7 +198,28 @@ defineExpose({ reload, remove, clearSelection, filters })
       :fields="searchFields"
       :has-advanced="advancedFields.length > 0"
       :model="filters"
-      @open-advanced="emit('action', { key: '__advanced__', scope: 'page' })"
+      @open-advanced="openAdvanced"
+      @reset="reset"
+      @search="search"
+    />
+
+    <!-- 搜索方案（个人视图） -->
+    <div class="flex justify-end">
+      <SchemaViewManager
+        :active-code="viewManager.activeCode.value"
+        :views="viewManager.views.value"
+        @apply="(code: string) => applyView(code)"
+        @remove="(code: string) => viewManager.removeView(code)"
+        @save="(name: string) => saveView(name)"
+        @set-default="(code: string) => viewManager.setDefault(code)"
+      />
+    </div>
+
+    <!-- 高级搜索抽屉 -->
+    <SchemaAdvancedSearch
+      v-model:show="advancedShow"
+      :fields="advancedFields"
+      :model="filters"
       @reset="reset"
       @search="search"
     />
