@@ -6,7 +6,6 @@ import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import SchemaActionPanel from './SchemaActionPanel.vue'
-import SchemaAdvancedSearch from './SchemaAdvancedSearch.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
@@ -56,12 +55,6 @@ const settings = useTableSettings(props.schema.pageCode, columnFields)
 const isFullscreen = ref(false)
 function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value
-}
-
-/** 高级搜索抽屉 */
-const advancedShow = ref(false)
-function openAdvanced() {
-  advancedShow.value = true
 }
 
 /** 视图管理（个人视图，按 pageCode 持久化） */
@@ -163,10 +156,6 @@ function renderRowActions(row: Row) {
 }
 
 function onPageAction(key: string) {
-  if (key === '__advanced__') {
-    openAdvanced()
-    return
-  }
   emit('action', { key, scope: 'page' })
 }
 
@@ -192,13 +181,12 @@ defineExpose({ reload, remove, clearSelection, filters })
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板 -->
+    <!-- 搜索面板（含内部滑入的高级条件） -->
     <SchemaSearchPanel
-      v-if="searchFields.length"
-      :fields="searchFields"
-      :has-advanced="advancedFields.length > 0"
+      v-if="searchFields.length || advancedFields.length"
+      :advanced-fields="advancedFields"
+      :common-fields="searchFields"
       :model="filters"
-      @open-advanced="openAdvanced"
       @reset="reset"
       @search="search"
     />
@@ -214,15 +202,6 @@ defineExpose({ reload, remove, clearSelection, filters })
         @set-default="(code: string) => viewManager.setDefault(code)"
       />
     </div>
-
-    <!-- 高级搜索抽屉 -->
-    <SchemaAdvancedSearch
-      v-model:show="advancedShow"
-      :fields="advancedFields"
-      :model="filters"
-      @reset="reset"
-      @search="search"
-    />
 
     <NCard class="flex-1" style="height: 0">
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
