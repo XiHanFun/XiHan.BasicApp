@@ -24,10 +24,14 @@ defineOptions({ name: 'SchemaPage' })
 // eslint-disable-next-line ts/no-explicit-any
 type Row = Record<string, any>
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   /** 页面单一事实源 */
   schema: PageSchema<Row>
-}>()
+  /** 是否显示搜索方案（个人视图），默认显示 */
+  showViews?: boolean
+}>(), {
+  showViews: true,
+})
 
 const emit = defineEmits<{
   /** 操作事件（页面级/行级/批量级统一上抛，由页面处理具体逻辑） */
@@ -212,7 +216,7 @@ defineExpose({ reload, remove, clearSelection, filters })
     </SchemaSearchPanel>
 
     <!-- 搜索方案（个人视图） -->
-    <div class="flex justify-end">
+    <div v-if="showViews" class="flex justify-end">
       <SchemaViewManager
         :active-code="viewManager.activeCode.value"
         :views="viewManager.views.value"
