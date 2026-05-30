@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -102,49 +103,49 @@ public sealed class TaskQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysTask>(
                 input.Keyword.Trim(),
-                nameof(SysTask.TaskCode),
-                nameof(SysTask.TaskName),
-                nameof(SysTask.TaskDescription),
-                nameof(SysTask.TaskGroup));
+                task => task.TaskCode,
+                task => task.TaskName,
+                task => task.TaskDescription,
+                task => task.TaskGroup);
         }
 
         if (!string.IsNullOrWhiteSpace(input.TaskCode))
         {
-            request.Conditions.AddFilter(nameof(SysTask.TaskCode), input.TaskCode.Trim());
+            request.Conditions.AddFilter((SysTask task) => task.TaskCode, input.TaskCode.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(input.TaskGroup))
         {
-            request.Conditions.AddFilter(nameof(SysTask.TaskGroup), input.TaskGroup.Trim());
+            request.Conditions.AddFilter((SysTask task) => task.TaskGroup, input.TaskGroup.Trim());
         }
 
         if (input.TriggerType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTask.TriggerType), input.TriggerType.Value);
+            request.Conditions.AddFilter((SysTask task) => task.TriggerType, input.TriggerType.Value);
         }
 
         if (input.RunTaskStatus.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTask.RunTaskStatus), input.RunTaskStatus.Value);
+            request.Conditions.AddFilter((SysTask task) => task.RunTaskStatus, input.RunTaskStatus.Value);
         }
 
         if (input.AllowConcurrent.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTask.AllowConcurrent), input.AllowConcurrent.Value);
+            request.Conditions.AddFilter((SysTask task) => task.AllowConcurrent, input.AllowConcurrent.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTask.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysTask task) => task.Status, input.Status.Value);
         }
 
         AddTimeRange(request, nameof(SysTask.NextRunTime), input.NextRunTimeStart, input.NextRunTimeEnd);
         AddTimeRange(request, nameof(SysTask.LastRunTime), input.LastRunTimeStart, input.LastRunTimeEnd);
-        request.Conditions.AddSort(nameof(SysTask.Priority), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysTask.NextRunTime), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysTask.CreatedTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysTask task) => task.Priority, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysTask task) => task.NextRunTime, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysTask task) => task.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
 
