@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
           <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
             <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
           </span>
-          <span class="flex-1 text-sm truncate">{{ item.title }}</span>
+          <span class="xh-set-row__label flex-1 truncate">{{ item.title }}</span>
           <span class="text-xs text-foreground/45">{{ item.pinned ? '常用' : '高级' }}</span>
           <NSwitch
             :value="item.pinned"
@@ -113,6 +113,11 @@ onBeforeUnmount(() => {
 .xh-set-row {
   padding: 4px 6px;
   border-radius: 6px;
+}
+
+/* 行标题钉死 14px，避免 rem(Tailwind) 与 px(Naive 控件) 不一致 */
+.xh-set-row__label {
+  font-size: 14px;
 }
 
 .xh-set-row:hover {

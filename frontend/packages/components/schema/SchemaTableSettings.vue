@@ -174,6 +174,11 @@ onBeforeUnmount(() => {
   border-radius: 6px;
 }
 
+/* 复选框标题钉死 14px，与搜索设置行标题字号一致 */
+.xh-set-row :deep(.n-checkbox__label) {
+  font-size: 14px;
+}
+
 .xh-set-row:hover {
   background: rgb(var(--primary) / 0.06);
 }
