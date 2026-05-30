@@ -107,7 +107,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
       </div>
     </div>
 
-    <!-- 高级条件：内部滑入（同样上下布局） -->
+    <!-- 高级条件：上层浮层滑入，不占文档流（不推动下方按钮/列表） -->
     <Transition name="xh-search-expand">
       <div v-if="expanded && hasAdvanced" class="xh-search__advanced">
         <div
@@ -149,6 +149,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 
 <style scoped>
 .xh-search {
+  position: relative;
   padding: 10px 12px;
   border-radius: var(--n-border-radius, 6px);
   background: var(--n-card-color, transparent);
@@ -170,7 +171,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   min-width: 0;
 }
 
-/* 单个搜索项：上下布局（标题在上、控件在下） */
+/* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度 */
 .xh-search__item {
   display: flex;
   flex-direction: column;
@@ -195,18 +196,21 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   padding-top: 19px;
 }
 
-/* 高级条件区：grid 自适应列，内部滑入；项复用上下布局 */
+/* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表） */
 .xh-search__advanced {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px 12px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgb(var(--foreground, 0 0 0) / 0.06);
-}
-
-.xh-search__advanced .xh-search__item {
-  width: auto;
+  margin-top: 4px;
+  padding: 14px 12px;
+  border-radius: var(--n-border-radius, 6px);
+  background: var(--n-card-color, #fff);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);
 }
 
 /* 展开/收起动画 */
