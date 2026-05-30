@@ -22,7 +22,7 @@ export interface UseCrudOptions<TQuery> {
  * 列表页数据状态机：分页 / 查询 / 删除 / loading 统一封装。
  * 仅依赖 CrudResource 的 page / remove，不绑定具体资源实现。
  */
-export function useCrud<TList extends Record<string, unknown>, TQuery extends Partial<PageRequest>>(
+export function useCrud<TList extends object, TQuery extends Partial<PageRequest>>(
   resource: CrudResource<TList, TQuery>,
   options: UseCrudOptions<TQuery> = {},
 ) {
