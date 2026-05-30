@@ -21,6 +21,7 @@ const emit = defineEmits<{
   reset: []
 }>()
 
+/** 高级条件展开状态 */
 const expanded = ref(false)
 
 const hasAdvanced = computed(() => props.advancedFields.length > 0)
@@ -45,44 +46,42 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 
 <template>
   <div class="xh-search">
-    <!-- 常用条件 + 操作按钮（按钮永远固定第一行右上） -->
+    <!-- 常用条件 + 操作按钮：同一 flex-wrap 流，按钮组随条件自适应流动并在所在行靠右 -->
     <div class="xh-search__bar">
-      <div class="xh-search__fields">
-        <div
-          v-for="field in commonFields"
-          :key="field.key"
-          class="xh-search__item"
-        >
-          <span class="xh-search__label">{{ field.title }}</span>
-          <NSelect
-            v-if="isSelect(field)"
-            v-model:value="(model[field.key] as string)"
-            clearable
-            size="small"
-            :options="asOptions(field)"
-            :placeholder="field.searchPlaceholder ?? field.title"
-          />
-          <NDatePicker
-            v-else-if="isDate(field)"
-            v-model:value="(model[field.key] as number)"
-            clearable
-            size="small"
-            class="w-full"
-            :type="field.dataType === 'datetime' ? 'datetime' : 'date'"
-            :placeholder="field.searchPlaceholder ?? field.title"
-          />
-          <NInput
-            v-else
-            v-model:value="(model[field.key] as string)"
-            clearable
-            size="small"
-            :placeholder="field.searchPlaceholder ?? field.title"
-            @keyup.enter="emit('search')"
-          />
-        </div>
+      <div
+        v-for="field in commonFields"
+        :key="field.key"
+        class="xh-search__item"
+      >
+        <span class="xh-search__label">{{ field.title }}</span>
+        <NSelect
+          v-if="isSelect(field)"
+          v-model:value="(model[field.key] as string)"
+          clearable
+          size="small"
+          :options="asOptions(field)"
+          :placeholder="field.searchPlaceholder ?? field.title"
+        />
+        <NDatePicker
+          v-else-if="isDate(field)"
+          v-model:value="(model[field.key] as number)"
+          clearable
+          size="small"
+          class="w-full"
+          :type="field.dataType === 'datetime' ? 'datetime' : 'date'"
+          :placeholder="field.searchPlaceholder ?? field.title"
+        />
+        <NInput
+          v-else
+          v-model:value="(model[field.key] as string)"
+          clearable
+          size="small"
+          :placeholder="field.searchPlaceholder ?? field.title"
+          @keyup.enter="emit('search')"
+        />
       </div>
 
-      <!-- 操作按钮：align-self 顶对齐 + margin-left auto，常用条件换行时仍固定第一行右上 -->
+      <!-- 操作按钮：作为流的最后一项，margin-left:auto 推到所在行右侧 -->
       <div class="xh-search__actions">
         <NButton size="small" type="primary" @click="emit('search')">
           <template #icon>
@@ -153,20 +152,12 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   position: relative;
 }
 
-/* 顶层：常用条件块 + 按钮块。按钮块与控件底对齐，常用条件换行时按钮固定第一行右侧 */
+/* 常用条件 + 按钮组：同一 flex-wrap 流，底对齐（按钮与控件底边平齐） */
 .xh-search__bar {
   display: flex;
-  gap: 12px;
-  align-items: flex-end;
-}
-
-/* 常用条件区：内部 flex-wrap，挤占左侧 */
-.xh-search__fields {
-  display: flex;
   flex-wrap: wrap;
-  flex: 1 1 auto;
   gap: 10px 12px;
-  min-width: 0;
+  align-items: flex-end;
 }
 
 /* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度 */
@@ -184,10 +175,10 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   color: var(--n-text-color-3, inherit);
 }
 
-/* 操作按钮：推到最右、与控件底边对齐，永远在第一行 */
+/* 操作按钮：作为流最后一项，margin-left:auto 推到所在行右侧，随条件自适应流动 */
 .xh-search__actions {
   display: flex;
-  flex-shrink: 0;
+  flex-wrap: wrap;
   gap: 8px;
   margin-left: auto;
 }
@@ -221,12 +212,8 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   transform: translateY(-6px);
 }
 
-/* 移动端：常用条件项占满整行，按钮区独占一行铺满 */
+/* 移动端：常用条件项占满整行，按钮区独占一行、按钮平分铺满 */
 @media (max-width: 767px) {
-  .xh-search__bar {
-    flex-direction: column;
-  }
-
   .xh-search__item {
     width: 100%;
   }
@@ -234,15 +221,10 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   .xh-search__actions {
     width: 100%;
     margin-left: 0;
-    padding-top: 0;
   }
 
   .xh-search__actions :deep(.n-button) {
     flex: 1 1 auto;
-  }
-
-  .xh-search__advanced {
-    grid-template-columns: 1fr;
   }
 }
 </style>
