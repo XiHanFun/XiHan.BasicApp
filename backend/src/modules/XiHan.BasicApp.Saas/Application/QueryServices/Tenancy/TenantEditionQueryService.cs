@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -126,31 +127,31 @@ public sealed class TenantEditionQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysTenantEdition>(
                 input.Keyword.Trim(),
-                nameof(SysTenantEdition.EditionCode),
-                nameof(SysTenantEdition.EditionName),
-                nameof(SysTenantEdition.Description));
+                edition => edition.EditionCode,
+                edition => edition.EditionName,
+                edition => edition.Description);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantEdition.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysTenantEdition edition) => edition.Status, input.Status.Value);
         }
 
         if (input.IsFree.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantEdition.IsFree), input.IsFree.Value);
+            request.Conditions.AddFilter((SysTenantEdition edition) => edition.IsFree, input.IsFree.Value);
         }
 
         if (input.IsDefault.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantEdition.IsDefault), input.IsDefault.Value);
+            request.Conditions.AddFilter((SysTenantEdition edition) => edition.IsDefault, input.IsDefault.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysTenantEdition.IsDefault), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysTenantEdition.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysTenantEdition.CreatedTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysTenantEdition edition) => edition.IsDefault, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysTenantEdition edition) => edition.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysTenantEdition edition) => edition.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
 }

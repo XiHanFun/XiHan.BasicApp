@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -104,45 +105,45 @@ public sealed class TenantMemberQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysTenantUser>(
                 input.Keyword.Trim(),
-                nameof(SysTenantUser.DisplayName),
-                nameof(SysTenantUser.InviteRemark),
-                nameof(SysTenantUser.Remark));
+                member => member.DisplayName,
+                member => member.InviteRemark,
+                member => member.Remark);
         }
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantUser.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysTenantUser member) => member.UserId, input.UserId.Value);
         }
 
         if (input.MemberType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantUser.MemberType), input.MemberType.Value);
+            request.Conditions.AddFilter((SysTenantUser member) => member.MemberType, input.MemberType.Value);
         }
 
         if (input.InviteStatus.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantUser.InviteStatus), input.InviteStatus.Value);
+            request.Conditions.AddFilter((SysTenantUser member) => member.InviteStatus, input.InviteStatus.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantUser.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysTenantUser member) => member.Status, input.Status.Value);
         }
 
         if (input.ExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantUser.ExpirationTime), input.ExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysTenantUser member) => member.ExpirationTime, input.ExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.ExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysTenantUser.ExpirationTime), input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysTenantUser member) => member.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysTenantUser.MemberType), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysTenantUser.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysTenantUser member) => member.MemberType, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysTenantUser member) => member.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 }

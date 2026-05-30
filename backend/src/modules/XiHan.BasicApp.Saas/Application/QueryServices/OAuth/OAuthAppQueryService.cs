@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -104,33 +105,33 @@ public sealed class OAuthAppQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysOAuthApp>(
                 input.Keyword.Trim(),
-                nameof(SysOAuthApp.AppName),
-                nameof(SysOAuthApp.AppDescription),
-                nameof(SysOAuthApp.ClientId),
-                nameof(SysOAuthApp.Homepage),
-                nameof(SysOAuthApp.Remark));
+                app => app.AppName,
+                app => app.AppDescription,
+                app => app.ClientId,
+                app => app.Homepage,
+                app => app.Remark);
         }
 
         if (input.AppType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthApp.AppType), input.AppType.Value);
+            request.Conditions.AddFilter((SysOAuthApp app) => app.AppType, input.AppType.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthApp.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysOAuthApp app) => app.Status, input.Status.Value);
         }
 
         if (input.SkipConsent.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthApp.SkipConsent), input.SkipConsent.Value);
+            request.Conditions.AddFilter((SysOAuthApp app) => app.SkipConsent, input.SkipConsent.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysOAuthApp.Status), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysOAuthApp.CreatedTime), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysOAuthApp.AppName), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysOAuthApp app) => app.Status, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysOAuthApp app) => app.CreatedTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysOAuthApp app) => app.AppName, SortDirection.Ascending, 2);
         return request;
     }
 
