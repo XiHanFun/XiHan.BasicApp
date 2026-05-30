@@ -578,7 +578,7 @@ watch(() => route.fullPath, () => {
       <template #icon>
         <NIcon>
           <Icon
-            :icon="isContentMaximized ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+            :icon="isContentMaximized ? 'lucide:minimize' : 'lucide:maximize'"
             width="14"
           />
         </NIcon>
