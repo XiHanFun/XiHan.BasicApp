@@ -252,11 +252,7 @@ defineExpose({
     </NCard>
 
     <!-- 表格容器 -->
-    <NCard
-      class="flex-1"
-      style="height: 0"
-      :content-style="{ height: '100%', display: 'flex', flexDirection: 'column', padding: '12px 16px' }"
-    >
+    <NCard class="flex-1" style="height: 0">
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
       <template v-else>
         <!-- 批量浮条 -->

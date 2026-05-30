@@ -87,7 +87,11 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
       @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
       @update:sorter="onSort"
     />
-    <div class="flex justify-end">
+    <div class="flex gap-3 items-center justify-between">
+      <!-- 底部左侧：内置工具按钮（刷新/列设置/全屏）插槽 -->
+      <div class="flex gap-1 items-center">
+        <slot name="footer-left" />
+      </div>
       <NPagination
         :item-count="total"
         :page="page"
