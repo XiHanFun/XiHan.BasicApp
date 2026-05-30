@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { CrudResource, CrudSearchField } from '~/components'
+import type { ListFieldSchema, PageSchema } from '~/components'
 import type {
   DictCreateDto,
   DictDetailDto,
@@ -8,7 +7,6 @@ import type {
   DictItemListItemDto,
   DictItemUpdateDto,
   DictListItemDto,
-  DictPageQueryDto,
   DictUpdateDto,
 } from '@/api'
 import {
@@ -37,7 +35,7 @@ import {
 } from 'naive-ui'
 import { computed, h, reactive, ref } from 'vue'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
-import { CrudPage, Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -74,33 +72,106 @@ const builtInOptions = [
   { label: '非内置', value: 0 },
 ]
 
-const searchFields: CrudSearchField[] = [
-  { field: 'keyword', placeholder: '搜索字典名称/编码/类型', type: 'input', width: 250 },
-  { field: 'isBuiltIn', options: builtInOptions, placeholder: '是否内置', type: 'select', width: 110 },
-  { field: 'status', options: statusOptions, placeholder: '状态', type: 'select', width: 100 },
-]
-
-// 字典列表资源：适配统一脚手架 CrudResource 契约（page 内部沿用原有查询参数映射）
-const dictResource: CrudResource<DictListItemDto, DictPageQueryDto> = {
-  page: (query) => {
-    const filters = query as unknown as Record<string, unknown>
-    return dictManagementApi.page({
-      ...createPageRequest({ page: query.page }),
-      isBuiltIn: filters.isBuiltIn === undefined ? undefined : Boolean(filters.isBuiltIn),
-      keyword: (filters.keyword as string | undefined)?.trim() || undefined,
-      status: filters.status as EnableStatus | undefined,
-    })
-  },
-  remove: id => dictManagementApi.delete(id),
-}
-
-const crudPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 function reloadDict() {
-  void crudPageRef.value?.reload()
+  void schemaPageRef.value?.reload()
 }
 
-// 字典项（详情抽屉内的主从子表，保留页面自有逻辑）
+function canMaintainDict(row: DictListItemDto) {
+  return !row.isBuiltIn
+}
+
+// ── 字段单一事实源 ──────────────────────────────────────────────
+const fields: ListFieldSchema<DictListItemDto>[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索字典名称/编码/类型', width: 250, order: 0 },
+  { key: 'dictName', title: '字典名称', dataType: 'string', sortable: true, minWidth: 140, order: 1 },
+  { key: 'dictCode', title: '字典编码', dataType: 'string', minWidth: 140, order: 2 },
+  { key: 'dictType', title: '字典类型', dataType: 'string', minWidth: 120, order: 3 },
+  {
+    key: 'isBuiltIn',
+    title: '内置',
+    dataType: 'boolean',
+    searchable: true,
+    options: builtInOptions,
+    searchPlaceholder: '是否内置',
+    width: 80,
+    order: 4,
+    render: row => h(NTag, { type: row.isBuiltIn ? 'warning' : 'default', round: true, size: 'small' }, () => (row.isBuiltIn ? '是' : '否')),
+  },
+  {
+    key: 'status',
+    title: '状态',
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions,
+    searchPlaceholder: '状态',
+    width: 90,
+    order: 5,
+    render: row => h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
+  },
+  { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 6 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
+]
+
+// ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
+const schema: PageSchema<DictListItemDto> = {
+  pageCode: 'platform.dict',
+  pageName: '字典管理',
+  rowKey: 'basicId',
+  scrollX: 1000,
+  fields,
+  resource: {
+    page: (params) => {
+      const { keyword, isBuiltIn, status } = params.filters
+      return dictManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        isBuiltIn: isBuiltIn === undefined || isBuiltIn === null ? undefined : Boolean(isBuiltIn),
+        keyword: (keyword as string | undefined)?.trim() || undefined,
+        status: status as EnableStatus | undefined,
+      })
+    },
+    remove: id => dictManagementApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: '新增字典', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: '查看详情', scope: 'row' },
+    { key: 'edit', title: '编辑', scope: 'row', visible: canMaintainDict },
+    { key: 'toggle', title: '启用/停用', scope: 'row', visible: canMaintainDict },
+    { key: 'delete', title: '删除', scope: 'row', visible: canMaintainDict },
+  ],
+}
+
+// ── 行/页面操作分发 ─────────────────────────────────────────────
+function onAction(payload: { key: string, scope: string, row?: DictListItemDto }) {
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'view':
+      if (payload.row) {
+        void handleView(payload.row)
+      }
+      break
+    case 'edit':
+      if (payload.row) {
+        handleEdit(payload.row)
+      }
+      break
+    case 'toggle':
+      if (payload.row) {
+        void handleToggleStatus(payload.row)
+      }
+      break
+    case 'delete':
+      if (payload.row) {
+        void handleDelete(payload.row)
+      }
+      break
+  }
+}
+
+// ── 字典项（详情抽屉内主从子表，保留页面自有逻辑） ──────────────
 const itemLoading = ref(false)
 const itemList = ref<DictItemListItemDto[]>([])
 const itemTotal = ref(0)
@@ -165,10 +236,6 @@ function formatBoolean(value?: boolean | null) {
   return value ? '是' : '否'
 }
 
-function canMaintainDict(row: DictListItemDto) {
-  return !row.isBuiltIn
-}
-
 async function fetchItemData() {
   if (!currentDict.value) {
     itemList.value = []
@@ -200,80 +267,12 @@ async function fetchItemData() {
   }
 }
 
-const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
-  {
-    key: 'dictName',
-    title: '字典名称',
-    minWidth: 140,
-    ellipsis: { tooltip: true },
-    sorter: true,
-  },
-  {
-    key: 'dictCode',
-    title: '字典编码',
-    minWidth: 140,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'dictType',
-    title: '字典类型',
-    minWidth: 120,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'isBuiltIn',
-    title: '内置',
-    width: 70,
-    render: row =>
-      h(NTag, { type: row.isBuiltIn ? 'warning' : 'default', round: true, size: 'small' }, () => row.isBuiltIn ? '是' : '否'),
-  },
-  {
-    key: 'status',
-    title: '状态',
-    width: 80,
-    render: row =>
-      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
-  },
-  {
-    key: 'sort',
-    title: '排序',
-    width: 80,
-    sorter: true,
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render: row => formatDate(row.createdTime),
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 160,
-    render: row =>
-      h(NSpace, { size: 'small' }, () => [
-        h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-        h(NButton, { disabled: !canMaintainDict(row), ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
-        h(NPopconfirm, { disabled: !canMaintainDict(row), onPositiveClick: () => handleToggleStatus(row) }, {
-          trigger: () => h(NButton, { disabled: !canMaintainDict(row), ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
-          default: () => '确认更新字典状态？',
-        }),
-        h(NPopconfirm, { disabled: !canMaintainDict(row), onPositiveClick: () => handleDelete(row) }, {
-          trigger: () => h(NButton, { disabled: !canMaintainDict(row), ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确认删除该字典？',
-        }),
-      ]),
-  },
-])
-
-const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
+const itemColumns = computed(() => [
   {
     key: 'itemName',
     title: '字典项名称',
     minWidth: 130,
     ellipsis: { tooltip: true },
-    sorter: true,
   },
   {
     key: 'itemCode',
@@ -291,14 +290,14 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
     key: 'isDefault',
     title: '默认',
     width: 70,
-    render: row =>
-      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => row.isDefault ? '是' : '否'),
+    render: (row: DictItemListItemDto) =>
+      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => (row.isDefault ? '是' : '否')),
   },
   {
     key: 'status',
     title: '状态',
     width: 80,
-    render: row =>
+    render: (row: DictItemListItemDto) =>
       h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
   },
   {
@@ -310,7 +309,7 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
     key: 'actions',
     title: '操作',
     width: 128,
-    render: row =>
+    render: (row: DictItemListItemDto) =>
       h(NSpace, { size: 'small' }, () => [
         h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleItemToggleStatus(row) }, {
@@ -580,22 +579,11 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
 </script>
 
 <template>
-  <CrudPage
-    ref="crudPageRef"
-    :columns="dictColumns"
-    :resource="dictResource"
-    :scroll-x="1000"
-    :search-fields="searchFields"
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
   >
-    <template #toolbar>
-      <NButton size="small" type="primary" @click="handleAdd">
-        <template #icon>
-          <NIcon><Icon icon="lucide:plus" /></NIcon>
-        </template>
-        新增字典
-      </NButton>
-    </template>
-
     <NDrawer v-model:show="detailVisible" :width="800">
       <NDrawerContent :title="`字典详情 - ${currentDict?.dictName ?? ''}`" closable>
         <NSpin :show="detailLoading">
@@ -794,7 +782,7 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
         </NSpace>
       </template>
     </NModal>
-  </CrudPage>
+  </SchemaPage>
 </template>
 
 <style scoped>
