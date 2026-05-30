@@ -1,5 +1,4 @@
 export { default as SchemaActionPanel } from './SchemaActionPanel.vue'
-export { default as SchemaAdvancedSearch } from './SchemaAdvancedSearch.vue'
 export { default as SchemaPage } from './SchemaPage.vue'
 export { default as SchemaSearchPanel } from './SchemaSearchPanel.vue'
 export { default as SchemaTablePanel } from './SchemaTablePanel.vue'
