@@ -62,7 +62,6 @@ public sealed class SaasMenuSeeder(
         var permissions = await client.Queryable<SysPermission>()
             .Where(permission =>
                 permission.TenantId == 0
-                && permission.IsGlobal
                 && permissionCodes.Contains(permission.PermissionCode)
                 && permission.Status == EnableStatus.Enabled)
             .ToListAsync();
