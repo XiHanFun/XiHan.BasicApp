@@ -28,7 +28,7 @@ const { hasPermission } = usePermission()
 const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
 
-const table = useSchemaTable<TRow>(props.schema)
+const table = useSchemaTable<Row>(props.schema)
 const { loading, rows, total, page, pageSize, filters, search, reset, changePage, changePageSize, changeSort, remove } = table
 
 const searchFields = computed(() => toSearchFields(props.schema, hasPermission))
@@ -67,11 +67,11 @@ const columns = computed<DataTableColumn<TRow>[]>(() => {
   return [...base, actionColumn]
 })
 
-function visibleRowActions(row: TRow): ActionSchema<TRow>[] {
+function visibleRowActions(row: Row): ActionSchema<Row>[] {
   return rowActions.value.filter(a => !a.visible || a.visible(row))
 }
 
-function renderRowActions(row: TRow) {
+function renderRowActions(row: Row) {
   const options: DropdownOption[] = visibleRowActions(row).map(a => ({
     key: a.key,
     label: a.title,
