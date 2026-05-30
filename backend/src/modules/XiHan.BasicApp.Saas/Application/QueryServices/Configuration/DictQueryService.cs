@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -178,32 +179,32 @@ public sealed class DictQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysDict>(
                 input.Keyword.Trim(),
-                nameof(SysDict.DictCode),
-                nameof(SysDict.DictName),
-                nameof(SysDict.DictType),
-                nameof(SysDict.DictDescription));
+                dict => dict.DictCode,
+                dict => dict.DictName,
+                dict => dict.DictType,
+                dict => dict.DictDescription);
         }
 
         if (!string.IsNullOrWhiteSpace(input.DictCode))
         {
-            request.Conditions.AddFilter(nameof(SysDict.DictCode), input.DictCode.Trim());
+            request.Conditions.AddFilter((SysDict dict) => dict.DictCode, input.DictCode.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(input.DictType))
         {
-            request.Conditions.AddFilter(nameof(SysDict.DictType), input.DictType.Trim());
+            request.Conditions.AddFilter((SysDict dict) => dict.DictType, input.DictType.Trim());
         }
 
         if (input.IsBuiltIn.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysDict.IsBuiltIn), input.IsBuiltIn.Value);
+            request.Conditions.AddFilter((SysDict dict) => dict.IsBuiltIn, input.IsBuiltIn.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysDict.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysDict dict) => dict.Status, input.Status.Value);
         }
 
         ApplyDictSorts(request);
@@ -275,37 +276,37 @@ public sealed class DictQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysDictItem>(
                 keyword.Trim(),
-                nameof(SysDictItem.ItemCode),
-                nameof(SysDictItem.ItemName),
-                nameof(SysDictItem.ItemValue),
-                nameof(SysDictItem.ItemDescription));
+                item => item.ItemCode,
+                item => item.ItemName,
+                item => item.ItemValue,
+                item => item.ItemDescription);
         }
 
         if (dictId.HasValue && dictId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysDictItem.DictId), dictId.Value);
+            request.Conditions.AddFilter((SysDictItem item) => item.DictId, dictId.Value);
         }
 
         if (parentId.HasValue && parentId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysDictItem.ParentId), parentId.Value);
+            request.Conditions.AddFilter((SysDictItem item) => item.ParentId, parentId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(itemCode))
         {
-            request.Conditions.AddFilter(nameof(SysDictItem.ItemCode), itemCode.Trim());
+            request.Conditions.AddFilter((SysDictItem item) => item.ItemCode, itemCode.Trim());
         }
 
         if (isDefault.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysDictItem.IsDefault), isDefault.Value);
+            request.Conditions.AddFilter((SysDictItem item) => item.IsDefault, isDefault.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysDictItem.Status), status.Value);
+            request.Conditions.AddFilter((SysDictItem item) => item.Status, status.Value);
         }
     }
 
@@ -314,9 +315,9 @@ public sealed class DictQueryService
     /// </summary>
     private static void ApplyDictSorts(BasicAppPRDto request)
     {
-        request.Conditions.AddSort(nameof(SysDict.Sort), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysDict.DictType), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysDict.DictCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysDict dict) => dict.Sort, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysDict dict) => dict.DictType, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysDict dict) => dict.DictCode, SortDirection.Ascending, 2);
     }
 
     /// <summary>
@@ -324,10 +325,10 @@ public sealed class DictQueryService
     /// </summary>
     private static void ApplyDictItemSorts(BasicAppPRDto request)
     {
-        request.Conditions.AddSort(nameof(SysDictItem.DictId), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysDictItem.ParentId), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysDictItem.Sort), SortDirection.Ascending, 2);
-        request.Conditions.AddSort(nameof(SysDictItem.ItemCode), SortDirection.Ascending, 3);
+        request.Conditions.AddSort((SysDictItem item) => item.DictId, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysDictItem item) => item.ParentId, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysDictItem item) => item.Sort, SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysDictItem item) => item.ItemCode, SortDirection.Ascending, 3);
     }
 
     /// <summary>
