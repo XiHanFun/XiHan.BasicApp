@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IUserAppService
-// Guid:384f77f8-9c58-4be5-86ae-4055757f165a
+// FileName:IUserDataScopeAppService
+// Guid:5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/05/01 00:00:00
@@ -18,38 +18,38 @@ using XiHan.Framework.Application.Contracts.Services;
 namespace XiHan.BasicApp.Saas.Application.Contracts;
 
 /// <summary>
-/// 用户命令应用服务接口
+/// 用户数据范围命令应用服务接口
 /// </summary>
-public interface IUserAppService : IApplicationService
+public interface IUserDataScopeAppService : IApplicationService
 {
     /// <summary>
-    /// 创建用户
+    /// 授予用户数据范围
     /// </summary>
-    /// <param name="input">创建参数</param>
+    /// <param name="input">授权参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户详情</returns>
-    Task<UserDetailDto> CreateUserAsync(UserCreateDto input, CancellationToken cancellationToken = default);
+    /// <returns>用户数据范围详情</returns>
+    Task<UserDataScopeDetailDto> CreateUserDataScopeAsync(UserDataScopeGrantDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 更新用户资料
+    /// 更新用户数据范围
     /// </summary>
     /// <param name="input">更新参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户详情</returns>
-    Task<UserDetailDto> UpdateUserAsync(UserUpdateDto input, CancellationToken cancellationToken = default);
+    /// <returns>用户数据范围详情</returns>
+    Task<UserDataScopeDetailDto> UpdateUserDataScopeAsync(UserDataScopeUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 更新用户状态
+    /// 更新用户数据范围状态
     /// </summary>
     /// <param name="input">状态更新参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户详情</returns>
-    Task<UserDetailDto> UpdateUserStatusAsync(UserStatusUpdateDto input, CancellationToken cancellationToken = default);
+    /// <returns>用户数据范围详情</returns>
+    Task<UserDataScopeDetailDto> UpdateUserDataScopeStatusAsync(UserDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 删除用户
+    /// 撤销用户数据范围
     /// </summary>
-    /// <param name="id">用户主键</param>
+    /// <param name="id">用户数据范围绑定主键</param>
     /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteUserAsync(long id, CancellationToken cancellationToken = default);
+    Task DeleteUserDataScopeAsync(long id, CancellationToken cancellationToken = default);
 }
