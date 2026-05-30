@@ -15,7 +15,7 @@ import {
 } from '../../base'
 
 const userSessionQueryApi = createDynamicApiClient('UserSessionQuery')
-const userSessionCommandApi = createDynamicApiClient('User')
+const userSessionCommandApi = createDynamicApiClient('UserSession')
 const userSessionReadApi = createReadApi<
   UserSessionListItemDto,
   UserSessionDetailDto,
