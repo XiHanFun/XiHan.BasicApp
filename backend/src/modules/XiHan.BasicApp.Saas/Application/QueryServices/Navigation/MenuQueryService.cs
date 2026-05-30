@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -221,50 +222,50 @@ public sealed class MenuQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysMenu>(
                 keyword.Trim(),
-                nameof(SysMenu.MenuCode),
-                nameof(SysMenu.MenuName),
-                nameof(SysMenu.Path),
-                nameof(SysMenu.Component),
-                nameof(SysMenu.RouteName),
-                nameof(SysMenu.Title),
-                nameof(SysMenu.Remark));
+                menu => menu.MenuCode,
+                menu => menu.MenuName,
+                menu => menu.Path,
+                menu => menu.Component,
+                menu => menu.RouteName,
+                menu => menu.Title,
+                menu => menu.Remark);
         }
 
         if (parentId.HasValue && parentId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.ParentId), parentId.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.ParentId, parentId.Value);
         }
 
         if (permissionId.HasValue && permissionId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.PermissionId), permissionId.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.PermissionId, permissionId.Value);
         }
 
         if (menuType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.MenuType), menuType.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.MenuType, menuType.Value);
         }
 
         if (isExternal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.IsExternal), isExternal.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.IsExternal, isExternal.Value);
         }
 
         if (isVisible.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.IsVisible), isVisible.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.IsVisible, isVisible.Value);
         }
 
         if (isGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.IsGlobal), isGlobal.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.IsGlobal, isGlobal.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysMenu.Status), status.Value);
+            request.Conditions.AddFilter((SysMenu menu) => menu.Status, status.Value);
         }
     }
 
@@ -273,9 +274,9 @@ public sealed class MenuQueryService
     /// </summary>
     private static void ApplyMenuSorts(BasicAppPRDto request)
     {
-        request.Conditions.AddSort(nameof(SysMenu.ParentId), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysMenu.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysMenu.MenuCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysMenu menu) => menu.ParentId, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysMenu menu) => menu.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysMenu menu) => menu.MenuCode, SortDirection.Ascending, 2);
     }
 
     /// <summary>

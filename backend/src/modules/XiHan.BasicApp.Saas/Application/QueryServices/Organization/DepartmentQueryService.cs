@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -175,34 +176,34 @@ public sealed class DepartmentQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysDepartment>(
                 keyword.Trim(),
-                nameof(SysDepartment.DepartmentCode),
-                nameof(SysDepartment.DepartmentName),
-                nameof(SysDepartment.Phone),
-                nameof(SysDepartment.Email),
-                nameof(SysDepartment.Address),
-                nameof(SysDepartment.Remark));
+                department => department.DepartmentCode,
+                department => department.DepartmentName,
+                department => department.Phone,
+                department => department.Email,
+                department => department.Address,
+                department => department.Remark);
         }
 
         if (parentId.HasValue && parentId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysDepartment.ParentId), parentId.Value);
+            request.Conditions.AddFilter((SysDepartment department) => department.ParentId, parentId.Value);
         }
 
         if (departmentType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysDepartment.DepartmentType), departmentType.Value);
+            request.Conditions.AddFilter((SysDepartment department) => department.DepartmentType, departmentType.Value);
         }
 
         if (leaderId.HasValue && leaderId.Value > 0)
         {
-            request.Conditions.AddFilter(nameof(SysDepartment.LeaderId), leaderId.Value);
+            request.Conditions.AddFilter((SysDepartment department) => department.LeaderId, leaderId.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysDepartment.Status), status.Value);
+            request.Conditions.AddFilter((SysDepartment department) => department.Status, status.Value);
         }
     }
 
@@ -211,9 +212,9 @@ public sealed class DepartmentQueryService
     /// </summary>
     private static void ApplyDepartmentSorts(BasicAppPRDto request)
     {
-        request.Conditions.AddSort(nameof(SysDepartment.ParentId), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysDepartment.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysDepartment.DepartmentCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysDepartment department) => department.ParentId, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysDepartment department) => department.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysDepartment department) => department.DepartmentCode, SortDirection.Ascending, 2);
     }
 
     /// <summary>
