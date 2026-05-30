@@ -14,6 +14,8 @@
 
 using Microsoft.Extensions.Logging;
 using SqlSugar;
+using System.ComponentModel;
+using System.Text;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
@@ -210,125 +212,82 @@ public sealed class SaasDictSeeder(
 
     private static IReadOnlyList<DictSeedDefinition> BuildDefinitions()
     {
+        // 枚举绑定字典（反射生成）+ 纯业务字典（手工维护），两者合并
+        return [.. BuildEnumDefinitions(), .. BuildManualDefinitions()];
+    }
+
+    /// <summary>
+    /// 枚举绑定字典注册表：以枚举为唯一事实来源，字典项由反射自动生成。
+    /// 新增/调整枚举值后，字典随之自动同步，无需两处维护。
+    /// </summary>
+    private static readonly IReadOnlyList<EnumDictRegistration> EnumDictRegistrations =
+    [
+        new("enable_status", "启用状态", "通用启用/禁用状态", 10, typeof(EnableStatus), 1),
+        new("tenant_status", "租户状态", "租户生命周期状态", 30, typeof(TenantStatus), 0),
+        new("tenant_config_status", "租户配置状态", "租户数据库和运行环境配置状态", 40, typeof(TenantConfigStatus), 0),
+        new("tenant_isolation_mode", "租户隔离模式", "租户数据隔离策略", 50, typeof(TenantIsolationMode), 0),
+        new("tenant_member_type", "租户成员类型", "用户在租户内的成员身份", 60, typeof(TenantMemberType), 0),
+        new("tenant_member_invite_status", "租户成员邀请状态", "租户成员邀请和响应生命周期", 70, typeof(TenantMemberInviteStatus), 0),
+        new("role_type", "角色类型", "角色定义类型", 80, typeof(RoleType), 0),
+        new("data_permission_scope", "数据权限范围", "角色或用户授权的数据访问范围", 90, typeof(DataPermissionScope), 0),
+        new("permission_type", "权限类型", "权限定义类型", 100, typeof(PermissionType), 1),
+        new("user_gender", "用户性别", "用户资料性别选项", 110, typeof(UserGender), 0),
+        new("config_type", "配置类型", "系统参数配置类型", 120, typeof(ConfigType), 0),
+        new("config_data_type", "配置数据类型", "系统参数值数据类型", 130, typeof(ConfigDataType), 0),
+        new("department_type", "部门类型", "组织架构部门分类", 140, typeof(DepartmentType), 6),
+        new("message_channel", "消息发送渠道", "系统通知和消息的发送渠道", 150, typeof(MessageChannel), 0),
+        new("task_status", "任务状态", "系统任务生命周期状态", 180, typeof(RunTaskStatus), 0)
+    ];
+
+    /// <summary>
+    /// 反射生成枚举绑定字典：字典项编码取枚举名 snake_case，名称取 [Description]，值取枚举整型值。
+    /// </summary>
+    private static IReadOnlyList<DictSeedDefinition> BuildEnumDefinitions()
+    {
+        var definitions = new List<DictSeedDefinition>(EnumDictRegistrations.Count);
+        foreach (var registration in EnumDictRegistrations)
+        {
+            var items = new List<DictItemSeedDefinition>();
+            var sort = 0;
+            foreach (var value in Enum.GetValues(registration.EnumType))
+            {
+                var name = value.ToString() ?? string.Empty;
+                var intValue = Convert.ToInt32(value);
+                var displayName = GetEnumDescription(registration.EnumType, name);
+                items.Add(new DictItemSeedDefinition(
+                    ToSnakeCase(name),
+                    displayName,
+                    intValue.ToString(),
+                    intValue == registration.DefaultValue,
+                    displayName,
+                    sort));
+                sort++;
+            }
+
+            definitions.Add(new DictSeedDefinition(
+                registration.DictCode,
+                registration.DictName,
+                registration.DictDescription,
+                registration.Sort,
+                items));
+        }
+
+        return definitions;
+    }
+
+    /// <summary>
+    /// 纯业务字典：无对应枚举或与枚举语义存在偏差，保持手工维护。
+    /// 注：resource_type 与 ResourceType 枚举、review_status 与 AuditStatus 枚举取值不一致，
+    /// 暂列此处待后续单独评审是否并入枚举生成。
+    /// </summary>
+    private static IReadOnlyList<DictSeedDefinition> BuildManualDefinitions()
+    {
         return
         [
-            new("enable_status", "启用状态", "通用启用/禁用状态", 10,
-            [
-                new("disabled", "禁用", "0", false, "禁用状态", 0),
-                new("enabled", "启用", "1", true, "启用状态", 1)
-            ]),
             new("validity_status", "有效性状态", "授权、成员关系等关联数据的有效/无效状态", 20,
             [
                 new("invalid", "无效", "0", false, "无效状态", 0),
                 new("valid", "有效", "1", true, "有效状态", 1)
-            ]),
-            new("tenant_status", "租户状态", "租户生命周期状态", 30,
-            [
-                new("normal", "正常", "0", true, "正常运营", 0),
-                new("suspended", "暂停", "1", false, "管理员手动暂停", 1),
-                new("expired", "过期", "2", false, "订阅到期", 2),
-                new("disabled", "禁用", "3", false, "停用归档", 3)
-            ]),
-            new("tenant_config_status", "租户配置状态", "租户数据库和运行环境配置状态", 40,
-            [
-                new("pending", "待配置", "0", true, "等待配置", 0),
-                new("configuring", "配置中", "1", false, "正在配置", 1),
-                new("configured", "已配置", "2", false, "配置完成", 2),
-                new("failed", "配置失败", "3", false, "配置失败", 3),
-                new("disabled", "已停用", "4", false, "配置停用", 4)
-            ]),
-            new("tenant_isolation_mode", "租户隔离模式", "租户数据隔离策略", 50,
-            [
-                new("field", "字段隔离", "0", true, "通过 TenantId 字段隔离", 0),
-                new("database", "数据库隔离", "1", false, "每租户独立数据库", 1),
-                new("schema", "Schema 隔离", "2", false, "同库不同 Schema", 2)
-            ]),
-            new("tenant_member_type", "租户成员类型", "用户在租户内的成员身份", 60,
-            [
-                new("owner", "租户所有者", "0", true, "租户最高权限成员", 0),
-                new("admin", "租户管理员", "1", false, "租户日常管理员", 1),
-                new("member", "普通成员", "2", false, "租户普通成员", 2),
-                new("external", "外部协作者", "3", false, "外部组织成员", 3),
-                new("guest", "访客", "4", false, "短期临时访问", 4),
-                new("consultant", "顾问", "5", false, "咨询或审计访问", 5),
-                new("platform_admin", "平台管理员", "99", false, "平台运营身份", 99)
-            ]),
-            new("tenant_member_invite_status", "租户成员邀请状态", "租户成员邀请和响应生命周期", 70,
-            [
-                new("pending", "待接受", "0", true, "邀请等待响应", 0),
-                new("accepted", "已接受", "1", false, "成员身份生效", 1),
-                new("rejected", "已拒绝", "2", false, "用户拒绝邀请", 2),
-                new("revoked", "已撤销", "3", false, "管理员撤销成员身份", 3),
-                new("expired", "已过期", "4", false, "邀请或成员身份过期", 4)
-            ]),
-            new("role_type", "角色类型", "角色定义类型", 80,
-            [
-                new("system", "系统", "0", true, "系统内置角色", 0),
-                new("business", "业务", "1", false, "业务角色", 1),
-                new("custom", "自定义", "2", false, "租户自定义角色", 2)
-            ]),
-            new("data_permission_scope", "数据权限范围", "角色或用户授权的数据访问范围", 90,
-            [
-                new("self_only", "本人数据", "0", true, "仅本人数据", 0),
-                new("department_only", "本部门", "1", false, "仅本部门数据", 1),
-                new("department_and_children", "本部门及下级", "2", false, "本部门及子部门数据", 2),
-                new("all", "全部数据", "3", false, "全部数据", 3),
-                new("custom", "自定义", "99", false, "自定义数据范围", 99)
-            ]),
-            new("permission_type", "权限类型", "权限定义类型", 100,
-            [
-                new("resource_based", "资源操作", "0", false, "绑定资源和操作", 0),
-                new("functional", "功能", "1", true, "功能权限", 1),
-                new("data_scope", "数据范围", "2", false, "数据范围权限", 2)
-            ]),
-            new("user_gender", "用户性别", "用户资料性别选项", 110,
-            [
-                new("unknown", "未知", "0", true, "未知或未设置", 0),
-                new("male", "男", "1", false, "男性", 1),
-                new("female", "女", "2", false, "女性", 2)
-            ]),
-            new("config_type", "配置类型", "系统参数配置类型", 120,
-            [
-                new("system", "系统配置", "0", true, "系统配置", 0),
-                new("user", "用户配置", "1", false, "用户配置", 1),
-                new("application", "应用配置", "2", false, "应用配置", 2),
-                new("business", "业务配置", "3", false, "业务配置", 3)
-            ]),
-            new("config_data_type", "配置数据类型", "系统参数值数据类型", 130,
-            [
-                new("string", "字符串", "0", true, "字符串", 0),
-                new("number", "数字", "1", false, "数字", 1),
-                new("boolean", "布尔值", "2", false, "布尔值", 2),
-                new("json", "JSON对象", "3", false, "JSON 对象", 3),
-                new("array", "数组", "4", false, "数组", 4)
-            ]),
-            new("department_type", "部门类型", "组织架构部门分类", 140,
-            [
-                new("corporation", "集团", "0", false, "集团公司", 0),
-                new("headquarters", "总部", "1", false, "集团总部", 1),
-                new("company", "公司", "2", false, "独立法人公司", 2),
-                new("branch", "分公司", "3", false, "分支机构", 3),
-                new("division", "事业部", "4", false, "事业部门", 4),
-                new("center", "中心", "5", false, "职能中心", 5),
-                new("department", "部门", "6", true, "标准部门", 6),
-                new("section", "科室", "7", false, "科室", 7),
-                new("team", "小组", "8", false, "工作小组", 8),
-                new("group", "组", "9", false, "组", 9),
-                new("project", "项目组", "10", false, "临时项目组", 10),
-                new("workgroup", "工作组", "11", false, "工作组", 11),
-                new("virtual", "虚拟", "12", false, "虚拟组织", 12),
-                new("office", "办公室", "13", false, "办公室", 13),
-                new("subsidiary", "子公司", "14", false, "子公司", 14),
-                new("other", "其他", "99", false, "其他类型", 99)
-            ]),
-            new("message_channel", "消息发送渠道", "系统通知和消息的发送渠道", 150,
-            [
-                new("email", "邮件", "0", true, "电子邮件渠道", 0),
-                new("sms", "短信", "1", false, "短信渠道", 1),
-                new("push", "推送", "2", false, "App 推送渠道", 2),
-                new("inbox", "站内信", "3", false, "系统站内信渠道", 3),
-                new("wechat", "微信", "4", false, "微信公众号渠道", 4),
-                new("webhook", "Webhook", "99", false, "自定义回调渠道", 99)
             ]),
             new("notification_priority", "通知优先级", "系统通知和消息的优先级", 160,
             [
@@ -345,15 +304,6 @@ public sealed class SaasDictSeeder(
                 new("business_object", "业务对象", "3", false, "业务对象资源", 3),
                 new("other", "其他", "99", false, "其他资源类型", 99)
             ]),
-            new("task_status", "任务状态", "系统任务生命周期状态", 180,
-            [
-                new("pending", "待执行", "0", true, "等待调度执行", 0),
-                new("running", "运行中", "1", false, "正在执行", 1),
-                new("paused", "已暂停", "2", false, "已暂停", 2),
-                new("completed", "已完成", "3", false, "执行完成", 3),
-                new("failed", "已失败", "4", false, "执行失败", 4),
-                new("cancelled", "已取消", "5", false, "已被取消", 5)
-            ]),
             new("review_status", "审查状态", "审批流程状态", 190,
             [
                 new("draft", "草稿", "0", true, "草稿状态", 0),
@@ -367,6 +317,45 @@ public sealed class SaasDictSeeder(
         ];
     }
 
+    /// <summary>
+    /// 反射读取枚举成员的 <see cref="DescriptionAttribute"/>，无则回退成员名。
+    /// </summary>
+    private static string GetEnumDescription(Type enumType, string memberName)
+    {
+        var field = enumType.GetField(memberName);
+        var attribute = field?.GetCustomAttributes(typeof(DescriptionAttribute), false);
+        return attribute is { Length: > 0 } && attribute[0] is DescriptionAttribute description
+            ? description.Description
+            : memberName;
+    }
+
+    /// <summary>
+    /// 将枚举成员名（PascalCase）转换为字典项编码（snake_case）。
+    /// </summary>
+    private static string ToSnakeCase(string name)
+    {
+        var builder = new StringBuilder(name.Length + 8);
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (char.IsUpper(c))
+            {
+                if (i > 0)
+                {
+                    builder.Append('_');
+                }
+
+                builder.Append(char.ToLowerInvariant(c));
+            }
+            else
+            {
+                builder.Append(c);
+            }
+        }
+
+        return builder.ToString();
+    }
+
     private static bool SetIfChanged<T>(T current, T next, Action<T> setter)
     {
         if (EqualityComparer<T>.Default.Equals(current, next))
@@ -377,6 +366,14 @@ public sealed class SaasDictSeeder(
         setter(next);
         return true;
     }
+
+    private sealed record EnumDictRegistration(
+        string DictCode,
+        string DictName,
+        string DictDescription,
+        int Sort,
+        Type EnumType,
+        int DefaultValue);
 
     private sealed record DictSeedDefinition(
         string DictCode,
