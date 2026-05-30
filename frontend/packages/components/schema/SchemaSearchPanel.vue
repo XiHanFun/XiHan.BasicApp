@@ -99,6 +99,8 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
           </template>
           重置
         </NButton>
+        <!-- 搜索设置（排序/固定）插槽 -->
+        <slot name="settings" />
         <NButton v-if="hasAdvanced" size="small" quaternary @click="toggleExpand">
           <template #icon>
             <NIcon><Icon :icon="expanded ? 'lucide:chevron-up' : 'lucide:sliders-horizontal'" /></NIcon>

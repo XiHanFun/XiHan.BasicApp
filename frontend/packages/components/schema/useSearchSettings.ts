@@ -1,0 +1,150 @@
+import type { Ref } from 'vue'
+import type { ListFieldSchema } from './types'
+import { computed, ref, watch } from 'vue'
+import { storage } from '~/utils'
+
+/**
+ * 单个搜索字段设置项
+ */
+export interface SearchFieldSetting {
+  /** 字段键 */
+  key: string
+  /** 字段标题（展示用） */
+  title: string
+  /** 是否固定到常用搜索区（true=常驻常用区，false=收入高级条件） */
+  pinned: boolean
+}
+
+/**
+ * 持久化结构（localStorage）
+ */
+interface PersistedSearchSettings {
+  /** 按顺序的字段设置 */
+  fields: Array<{ key: string, pinned: boolean }>
+}
+
+const STORAGE_PREFIX = 'xh:search-settings:'
+
+/**
+ * 搜索字段设置状态机：固定（常用/高级）与拖拽排序，按 pageCode 持久化。
+ * 字段池来自 schema 中所有 searchable 或 advancedSearch 的字段；
+ * 默认：searchable=true 的字段固定到常用区，仅 advancedSearch 的收入高级区。
+ *
+ * @param pageCode 页面唯一码（存储维度）
+ * @param fields 搜索字段池（已按权限过滤）
+ */
+export function useSearchSettings(
+  pageCode: string,
+  fields: Ref<ListFieldSchema[]>,
+) {
+  const storageKey = `${STORAGE_PREFIX}${pageCode}`
+
+  /** 由 schema 字段生成的默认设置（保持 schema order） */
+  function buildDefault(): SearchFieldSetting[] {
+    return fields.value.map(f => ({
+      key: f.key,
+      title: f.title,
+      // searchable 显式为 true 才默认常驻；仅 advancedSearch 的默认收入高级区
+      pinned: f.searchable === true,
+    }))
+  }
+
+  const settings = ref<SearchFieldSetting[]>(buildDefault())
+
+  /** 字段对象索引（供派生取回完整 schema） */
+  const fieldMap = computed(() => {
+    const map = new Map<string, ListFieldSchema>()
+    for (const f of fields.value) {
+      map.set(f.key, f)
+    }
+    return map
+  })
+
+  /** 从 localStorage 恢复（按 key 合并，丢弃已不存在字段、追加新字段） */
+  function restore() {
+    const persisted = storage.get<PersistedSearchSettings>(storageKey)
+    if (!persisted) {
+      settings.value = buildDefault()
+      return
+    }
+    const defaults = buildDefault()
+    const defaultMap = new Map(defaults.map(s => [s.key, s]))
+    const ordered: SearchFieldSetting[] = []
+    for (const p of persisted.fields) {
+      const def = defaultMap.get(p.key)
+      if (def) {
+        ordered.push({ key: p.key, title: def.title, pinned: p.pinned })
+        defaultMap.delete(p.key)
+      }
+    }
+    for (const def of defaults) {
+      if (defaultMap.has(def.key)) {
+        ordered.push(def)
+      }
+    }
+    settings.value = ordered
+  }
+
+  function persist() {
+    const data: PersistedSearchSettings = {
+      fields: settings.value.map(s => ({ key: s.key, pinned: s.pinned })),
+    }
+    storage.set(storageKey, data)
+  }
+
+  /** 常用搜索字段（pinned，按当前顺序，取回完整 schema） */
+  const commonFields = computed<ListFieldSchema[]>(() =>
+    settings.value
+      .filter(s => s.pinned)
+      .map(s => fieldMap.value.get(s.key))
+      .filter((f): f is ListFieldSchema => !!f),
+  )
+
+  /** 高级搜索字段（未 pinned，按当前顺序） */
+  const advancedFields = computed<ListFieldSchema[]>(() =>
+    settings.value
+      .filter(s => !s.pinned)
+      .map(s => fieldMap.value.get(s.key))
+      .filter((f): f is ListFieldSchema => !!f),
+  )
+
+  function togglePin(key: string, value: boolean) {
+    const target = settings.value.find(s => s.key === key)
+    if (target) {
+      target.pinned = value
+    }
+  }
+
+  function move(fromIndex: number, toIndex: number) {
+    if (fromIndex < 0 || toIndex < 0 || fromIndex >= settings.value.length || toIndex >= settings.value.length) {
+      return
+    }
+    const next = [...settings.value]
+    const [moved] = next.splice(fromIndex, 1)
+    if (moved) {
+      next.splice(toIndex, 0, moved)
+      settings.value = next
+    }
+  }
+
+  function resetDefault() {
+    settings.value = buildDefault()
+  }
+
+  // 字段池变化（权限变更等）时重建并尝试恢复
+  watch(fields, () => restore(), { immediate: false })
+  // 设置变化即持久化
+  watch(settings, () => persist(), { deep: true })
+
+  restore()
+
+  return {
+    settings,
+    commonFields,
+    advancedFields,
+    togglePin,
+    move,
+    resetDefault,
+    restore,
+  }
+}

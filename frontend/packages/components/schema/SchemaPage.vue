@@ -7,11 +7,13 @@ import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
+import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
 import SchemaViewManager from './SchemaViewManager.vue'
-import { toAdvancedFields, toColumns, toSearchFields } from './selectors'
+import { toColumns } from './selectors'
 import { useSchemaTable } from './useSchemaTable'
+import { useSearchSettings } from './useSearchSettings'
 import { useTableSettings } from './useTableSettings'
 import { useViewManager } from './useViewManager'
 
@@ -40,8 +42,17 @@ const checkedKeys = ref<Array<string | number>>([])
 const table = useSchemaTable<Row>(props.schema)
 const { loading, rows, total, page, pageSize, filters, sortField, sortOrder, search, reset, changePage, changePageSize, changeSort, remove } = table
 
-const searchFields = computed(() => toSearchFields(props.schema, hasPermission))
-const advancedFields = computed(() => toAdvancedFields(props.schema, hasPermission))
+/** 搜索字段池：所有 searchable 或 advancedSearch 且有权限的字段（保持 schema order） */
+const searchPool = computed<ListFieldSchema[]>(() =>
+  [...props.schema.fields]
+    .filter(f => (f.searchable || f.advancedSearch) && (!f.permission || hasPermission(f.permission)))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+)
+
+/** 搜索设置（固定/排序，按 pageCode 持久化）→ 派生常用/高级字段 */
+const searchSettings = useSearchSettings(props.schema.pageCode, searchPool)
+const searchFields = searchSettings.commonFields
+const advancedFields = searchSettings.advancedFields
 
 /** 表格可选列字段（可见 + 有权限），作为列设置来源 */
 const columnFields = computed<ListFieldSchema[]>(() =>
@@ -181,7 +192,7 @@ defineExpose({ reload, remove, clearSelection, filters })
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板（含内部滑入的高级条件） -->
+    <!-- 搜索面板（含内部滑入的高级条件 + 搜索设置） -->
     <SchemaSearchPanel
       v-if="searchFields.length || advancedFields.length"
       :advanced-fields="advancedFields"
@@ -189,7 +200,16 @@ defineExpose({ reload, remove, clearSelection, filters })
       :model="filters"
       @reset="reset"
       @search="search"
-    />
+    >
+      <template #settings>
+        <SchemaSearchSettings
+          :settings="searchSettings.settings.value"
+          @move="searchSettings.move"
+          @reset="searchSettings.resetDefault"
+          @toggle-pin="searchSettings.togglePin"
+        />
+      </template>
+    </SchemaSearchPanel>
 
     <!-- 搜索方案（个人视图） -->
     <div class="flex justify-end">
