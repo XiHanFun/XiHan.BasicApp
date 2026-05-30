@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ColumnSetting, TableDensity } from './useTableSettings'
 import { NButton, NCheckbox, NDivider, NIcon, NPopover, NTooltip } from 'naive-ui'
+import Sortable from 'sortablejs'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaTableSettings' })
@@ -46,10 +48,52 @@ function fixedLabel(fixed?: 'left' | 'right'): string {
   }
   return '－'
 }
+
+// ── 拖拽排序（sortablejs，仅手柄可拖） ──────────────────────────
+const listRef = ref<HTMLElement | null>(null)
+const popoverShow = ref(false)
+let sortable: Sortable | null = null
+
+function initSortable() {
+  if (!listRef.value || sortable) {
+    return
+  }
+  sortable = Sortable.create(listRef.value, {
+    handle: '.xh-col-drag-handle',
+    animation: 150,
+    ghostClass: 'xh-col-drag-ghost',
+    onEnd(evt) {
+      const { oldIndex, newIndex } = evt
+      if (oldIndex == null || newIndex == null || oldIndex === newIndex) {
+        return
+      }
+      // 撤销 Sortable 对真实 DOM 的移动，交回 Vue 以数据驱动重渲染（避免 DOM 与 vdom 不一致）
+      const parent = evt.from
+      const movedNode = evt.item
+      movedNode.remove()
+      const reference = parent.children[oldIndex] ?? null
+      parent.insertBefore(movedNode, reference)
+      emit('move', oldIndex, newIndex)
+    },
+  })
+}
+
+// 首次展开 Popover 时初始化拖拽（内容延迟挂载，需等 DOM 就绪）
+watch(popoverShow, async (visible) => {
+  if (visible) {
+    await nextTick()
+    initSortable()
+  }
+})
+
+onBeforeUnmount(() => {
+  sortable?.destroy()
+  sortable = null
+})
 </script>
 
 <template>
-  <NPopover trigger="click" placement="bottom-end" :width="280">
+  <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="280" display-directive="show">
     <template #trigger>
       <NTooltip>
         <template #trigger>
@@ -82,20 +126,24 @@ function fixedLabel(fixed?: 'left' | 'right'): string {
 
       <NDivider class="!my-1" />
 
-      <!-- 列显隐 / 固定 / 排序 -->
+      <!-- 列显隐 / 固定 / 拖拽排序 -->
       <div class="flex items-center justify-between">
-        <span class="text-xs text-foreground/60">列设置</span>
+        <span class="text-xs text-foreground/60">列设置（拖拽手柄可排序）</span>
         <NButton size="tiny" quaternary @click="emit('reset')">
           恢复默认
         </NButton>
       </div>
 
-      <div class="flex flex-col max-h-72 overflow-auto">
+      <div ref="listRef" class="flex flex-col max-h-72 overflow-auto">
         <div
-          v-for="(col, index) in columns"
+          v-for="col in columns"
           :key="col.key"
-          class="flex gap-2 items-center py-1"
+          class="xh-col-row flex gap-2 items-center py-1"
         >
+          <!-- 拖拽手柄 -->
+          <span class="xh-col-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
+            <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
+          </span>
           <NCheckbox
             :checked="col.visible"
             @update:checked="(value) => emit('toggleVisible', col.key, value)"
@@ -114,30 +162,19 @@ function fixedLabel(fixed?: 'left' | 'right'): string {
             </template>
             {{ fixedLabel(col.fixed) }}
           </NButton>
-          <NButton
-            size="tiny"
-            quaternary
-            :disabled="index === 0"
-            aria-label="上移"
-            @click="emit('move', index, index - 1)"
-          >
-            <template #icon>
-              <NIcon><Icon icon="lucide:chevron-up" /></NIcon>
-            </template>
-          </NButton>
-          <NButton
-            size="tiny"
-            quaternary
-            :disabled="index === columns.length - 1"
-            aria-label="下移"
-            @click="emit('move', index, index + 1)"
-          >
-            <template #icon>
-              <NIcon><Icon icon="lucide:chevron-down" /></NIcon>
-            </template>
-          </NButton>
         </div>
       </div>
     </div>
   </NPopover>
 </template>
+
+<style scoped>
+.xh-col-drag-handle:active {
+  cursor: grabbing;
+}
+
+.xh-col-drag-ghost {
+  opacity: 0.5;
+  background: rgb(var(--primary) / 0.08);
+}
+</style>
