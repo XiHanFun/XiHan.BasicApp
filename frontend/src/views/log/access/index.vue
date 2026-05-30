@@ -195,7 +195,7 @@ async function handleDetail(row: AccessLogListItemDto) {
 </script>
 
 <template>
-  <SchemaPage :schema="schema" :show-views="false" @action="onAction">
+  <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
       :fields="detailFields"
