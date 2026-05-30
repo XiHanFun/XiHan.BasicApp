@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -177,9 +178,9 @@ public sealed class PermissionQueryService
             input.IsRequireAudit,
             input.Status);
 
-        request.Conditions.AddSort(nameof(SysPermission.ModuleCode), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysPermission.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysPermission.PermissionCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysPermission permission) => permission.ModuleCode, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysPermission permission) => permission.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysPermission permission) => permission.PermissionCode, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -208,9 +209,9 @@ public sealed class PermissionQueryService
             isRequireAudit: null,
             status: EnableStatus.Enabled);
 
-        request.Conditions.AddSort(nameof(SysPermission.ModuleCode), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysPermission.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysPermission.PermissionCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysPermission permission) => permission.ModuleCode, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysPermission permission) => permission.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysPermission permission) => permission.PermissionCode, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -230,47 +231,47 @@ public sealed class PermissionQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysPermission>(
                 keyword.Trim(),
-                nameof(SysPermission.PermissionCode),
-                nameof(SysPermission.PermissionName),
-                nameof(SysPermission.PermissionDescription),
-                nameof(SysPermission.Tags));
+                permission => permission.PermissionCode,
+                permission => permission.PermissionName,
+                permission => permission.PermissionDescription,
+                permission => permission.Tags);
         }
 
         if (!string.IsNullOrWhiteSpace(moduleCode))
         {
-            request.Conditions.AddFilter(nameof(SysPermission.ModuleCode), moduleCode.Trim());
+            request.Conditions.AddFilter((SysPermission permission) => permission.ModuleCode, moduleCode.Trim());
         }
 
         if (permissionType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermission.PermissionType), permissionType.Value);
+            request.Conditions.AddFilter((SysPermission permission) => permission.PermissionType, permissionType.Value);
         }
 
         if (resourceId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermission.ResourceId), resourceId.Value);
+            request.Conditions.AddFilter((SysPermission permission) => permission.ResourceId, resourceId.Value);
         }
 
         if (operationId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermission.OperationId), operationId.Value);
+            request.Conditions.AddFilter((SysPermission permission) => permission.OperationId, operationId.Value);
         }
 
         if (isGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermission.IsGlobal), isGlobal.Value);
+            request.Conditions.AddFilter((SysPermission permission) => permission.IsGlobal, isGlobal.Value);
         }
 
         if (isRequireAudit.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermission.IsRequireAudit), isRequireAudit.Value);
+            request.Conditions.AddFilter((SysPermission permission) => permission.IsRequireAudit, isRequireAudit.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermission.Status), status.Value);
+            request.Conditions.AddFilter((SysPermission permission) => permission.Status, status.Value);
         }
     }
 

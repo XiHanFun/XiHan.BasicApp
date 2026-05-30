@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -175,39 +176,39 @@ public sealed class PermissionDelegationQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysPermissionDelegation>(
                 input.Keyword.Trim(),
-                nameof(SysPermissionDelegation.DelegationReason),
-                nameof(SysPermissionDelegation.Remark));
+                delegation => delegation.DelegationReason,
+                delegation => delegation.Remark);
         }
 
         if (input.DelegatorUserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionDelegation.DelegatorUserId), input.DelegatorUserId.Value);
+            request.Conditions.AddFilter((SysPermissionDelegation delegation) => delegation.DelegatorUserId, input.DelegatorUserId.Value);
         }
 
         if (input.DelegateeUserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionDelegation.DelegateeUserId), input.DelegateeUserId.Value);
+            request.Conditions.AddFilter((SysPermissionDelegation delegation) => delegation.DelegateeUserId, input.DelegateeUserId.Value);
         }
 
         if (input.PermissionId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionDelegation.PermissionId), input.PermissionId.Value);
+            request.Conditions.AddFilter((SysPermissionDelegation delegation) => delegation.PermissionId, input.PermissionId.Value);
         }
 
         if (input.RoleId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionDelegation.RoleId), input.RoleId.Value);
+            request.Conditions.AddFilter((SysPermissionDelegation delegation) => delegation.RoleId, input.RoleId.Value);
         }
 
         if (input.DelegationStatus.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysPermissionDelegation.DelegationStatus), input.DelegationStatus.Value);
+            request.Conditions.AddFilter((SysPermissionDelegation delegation) => delegation.DelegationStatus, input.DelegationStatus.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysPermissionDelegation.ExpirationTime), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysPermissionDelegation.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysPermissionDelegation delegation) => delegation.ExpirationTime, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysPermissionDelegation delegation) => delegation.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -128,9 +129,9 @@ public sealed class RoleQueryService
             input.IsGlobal,
             input.Status);
 
-        request.Conditions.AddSort(nameof(SysRole.RoleType), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysRole.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysRole.RoleCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysRole role) => role.RoleType, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysRole role) => role.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysRole role) => role.RoleCode, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -156,9 +157,9 @@ public sealed class RoleQueryService
             input.IsGlobal,
             EnableStatus.Enabled);
 
-        request.Conditions.AddSort(nameof(SysRole.RoleType), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysRole.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysRole.RoleCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysRole role) => role.RoleType, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysRole role) => role.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysRole role) => role.RoleCode, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -175,32 +176,32 @@ public sealed class RoleQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysRole>(
                 keyword.Trim(),
-                nameof(SysRole.RoleCode),
-                nameof(SysRole.RoleName),
-                nameof(SysRole.RoleDescription),
-                nameof(SysRole.Remark));
+                role => role.RoleCode,
+                role => role.RoleName,
+                role => role.RoleDescription,
+                role => role.Remark);
         }
 
         if (roleType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysRole.RoleType), roleType.Value);
+            request.Conditions.AddFilter((SysRole role) => role.RoleType, roleType.Value);
         }
 
         if (dataScope.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysRole.DataScope), dataScope.Value);
+            request.Conditions.AddFilter((SysRole role) => role.DataScope, dataScope.Value);
         }
 
         if (isGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysRole.IsGlobal), isGlobal.Value);
+            request.Conditions.AddFilter((SysRole role) => role.IsGlobal, isGlobal.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysRole.Status), status.Value);
+            request.Conditions.AddFilter((SysRole role) => role.Status, status.Value);
         }
     }
 }

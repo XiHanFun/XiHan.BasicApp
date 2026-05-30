@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -128,9 +129,9 @@ public sealed class ResourceQueryService
             input.IsGlobal,
             input.Status);
 
-        request.Conditions.AddSort(nameof(SysResource.ResourceType), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysResource.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysResource.ResourceCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysResource resource) => resource.ResourceType, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysResource resource) => resource.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysResource resource) => resource.ResourceCode, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -156,9 +157,9 @@ public sealed class ResourceQueryService
             isGlobal: true,
             status: EnableStatus.Enabled);
 
-        request.Conditions.AddSort(nameof(SysResource.ResourceType), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysResource.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysResource.ResourceCode), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysResource resource) => resource.ResourceType, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysResource resource) => resource.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysResource resource) => resource.ResourceCode, SortDirection.Ascending, 2);
         return request;
     }
 
@@ -175,33 +176,33 @@ public sealed class ResourceQueryService
     {
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysResource>(
                 keyword.Trim(),
-                nameof(SysResource.ResourceCode),
-                nameof(SysResource.ResourceName),
-                nameof(SysResource.ResourcePath),
-                nameof(SysResource.Description),
-                nameof(SysResource.Metadata));
+                resource => resource.ResourceCode,
+                resource => resource.ResourceName,
+                resource => resource.ResourcePath,
+                resource => resource.Description,
+                resource => resource.Metadata);
         }
 
         if (resourceType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysResource.ResourceType), resourceType.Value);
+            request.Conditions.AddFilter((SysResource resource) => resource.ResourceType, resourceType.Value);
         }
 
         if (accessLevel.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysResource.AccessLevel), accessLevel.Value);
+            request.Conditions.AddFilter((SysResource resource) => resource.AccessLevel, accessLevel.Value);
         }
 
         if (isGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysResource.IsGlobal), isGlobal.Value);
+            request.Conditions.AddFilter((SysResource resource) => resource.IsGlobal, isGlobal.Value);
         }
 
         if (status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysResource.Status), status.Value);
+            request.Conditions.AddFilter((SysResource resource) => resource.Status, status.Value);
         }
     }
 }
