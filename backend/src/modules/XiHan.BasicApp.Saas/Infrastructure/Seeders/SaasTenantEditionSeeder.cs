@@ -89,7 +89,7 @@ public sealed class SaasTenantEditionSeeder(
         var editionResult = await EnsureEditionsAsync(client, definitions);
 
         var permissions = await client.Queryable<SysPermission>()
-            .Where(permission => permission.TenantId == 0 && permission.IsGlobal && permission.Status == EnableStatus.Enabled)
+            .Where(permission => permission.TenantId == 0 && permission.Status == EnableStatus.Enabled)
             .ToListAsync();
         if (permissions.Count == 0)
         {
