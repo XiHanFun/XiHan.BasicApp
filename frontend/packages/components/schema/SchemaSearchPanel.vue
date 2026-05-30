@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { ListFieldSchema } from './types'
-import { NButton, NDatePicker, NIcon, NInput, NSelect } from 'naive-ui'
+import { NButton, NDatePicker, NIcon, NInput, NSelect, NTooltip } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { Icon } from '~/iconify'
 
@@ -81,28 +81,40 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
         />
       </div>
 
-      <!-- 操作按钮：作为流的最后一项，margin-left:auto 推到所在行右侧 -->
+      <!-- 操作按钮：纯图标 + tooltip，作为流的最后一项，margin-left:auto 推到所在行右侧 -->
       <div class="xh-search__actions">
-        <NButton size="small" type="primary" @click="emit('search')">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
+        <NTooltip>
+          <template #trigger>
+            <NButton circle size="small" type="primary" aria-label="查询" @click="emit('search')">
+              <template #icon>
+                <NIcon><Icon icon="lucide:search" /></NIcon>
+              </template>
+            </NButton>
           </template>
           查询
-        </NButton>
-        <NButton size="small" @click="emit('reset')">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+        </NTooltip>
+        <NTooltip>
+          <template #trigger>
+            <NButton circle size="small" aria-label="重置" @click="emit('reset')">
+              <template #icon>
+                <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
+              </template>
+            </NButton>
           </template>
           重置
-        </NButton>
+        </NTooltip>
         <!-- 搜索设置（排序/固定）插槽 -->
         <slot name="settings" />
-        <NButton v-if="hasAdvanced" size="small" quaternary @click="toggleExpand">
-          <template #icon>
-            <NIcon><Icon :icon="expanded ? 'lucide:chevron-up' : 'lucide:sliders-horizontal'" /></NIcon>
+        <NTooltip v-if="hasAdvanced">
+          <template #trigger>
+            <NButton circle size="small" quaternary :aria-label="expanded ? '隐藏条件' : '高级搜索'" @click="toggleExpand">
+              <template #icon>
+                <NIcon><Icon :icon="expanded ? 'lucide:chevron-up' : 'lucide:sliders-horizontal'" /></NIcon>
+              </template>
+            </NButton>
           </template>
           {{ expanded ? '隐藏条件' : '高级搜索' }}
-        </NButton>
+        </NTooltip>
       </div>
     </div>
 
