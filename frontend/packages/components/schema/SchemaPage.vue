@@ -232,49 +232,50 @@ defineExpose({
       </SchemaSearchPanel>
     </NCard>
 
+    <!-- 操作工具栏：独立容器（页面级操作 + 刷新/列设置/全屏） -->
+    <NCard size="small" :content-style="{ padding: '8px 16px' }">
+      <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
+        <template #toolbar>
+          <!-- 页面自定义工具栏项 -->
+          <slot name="toolbar" :reload="reload" />
+          <!-- 内置工具栏：刷新 / 列设置 / 全屏 -->
+          <NTooltip>
+            <template #trigger>
+              <NButton circle quaternary size="small" aria-label="刷新" @click="reload">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            刷新
+          </NTooltip>
+          <SchemaTableSettings
+            :columns="settings.columns.value"
+            :density="settings.density.value"
+            @move="settings.move"
+            @reset="settings.resetDefault"
+            @set-density="settings.setDensity"
+            @set-fixed="settings.setFixed"
+            @toggle-visible="settings.toggleVisible"
+          />
+          <NTooltip>
+            <template #trigger>
+              <NButton circle quaternary size="small" aria-label="全屏" @click="toggleFullscreen">
+                <template #icon>
+                  <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            {{ isFullscreen ? '退出全屏' : '全屏' }}
+          </NTooltip>
+        </template>
+      </SchemaActionPanel>
+    </NCard>
+
+    <!-- 表格容器 -->
     <NCard class="flex-1" style="height: 0">
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
       <template v-else>
-        <!-- 操作面板 -->
-        <div class="mb-3">
-          <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
-            <template #toolbar>
-              <!-- 页面自定义工具栏项 -->
-              <slot name="toolbar" :reload="reload" />
-              <!-- 内置工具栏：刷新 / 列设置 / 全屏 -->
-              <NTooltip>
-                <template #trigger>
-                  <NButton circle quaternary size="small" aria-label="刷新" @click="reload">
-                    <template #icon>
-                      <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-                    </template>
-                  </NButton>
-                </template>
-                刷新
-              </NTooltip>
-              <SchemaTableSettings
-                :columns="settings.columns.value"
-                :density="settings.density.value"
-                @move="settings.move"
-                @reset="settings.resetDefault"
-                @set-density="settings.setDensity"
-                @set-fixed="settings.setFixed"
-                @toggle-visible="settings.toggleVisible"
-              />
-              <NTooltip>
-                <template #trigger>
-                  <NButton circle quaternary size="small" aria-label="全屏" @click="toggleFullscreen">
-                    <template #icon>
-                      <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
-                    </template>
-                  </NButton>
-                </template>
-                {{ isFullscreen ? '退出全屏' : '全屏' }}
-              </NTooltip>
-            </template>
-          </SchemaActionPanel>
-        </div>
-
         <!-- 批量浮条 -->
         <div v-if="checkedKeys.length" class="xh-batch-toolbar">
           <span class="text-sm">已选择 {{ checkedKeys.length }} 条</span>
