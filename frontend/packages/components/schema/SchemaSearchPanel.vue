@@ -3,7 +3,6 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { ListFieldSchema } from './types'
 import { NButton, NDatePicker, NIcon, NInput, NSelect } from 'naive-ui'
 import { computed, ref } from 'vue'
-import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaSearchPanel' })
@@ -21,8 +20,6 @@ const emit = defineEmits<{
   search: []
   reset: []
 }>()
-
-const isMobile = useIsMobile()
 
 /** 高级条件展开状态 */
 const expanded = ref(false)
