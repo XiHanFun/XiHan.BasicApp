@@ -67,8 +67,8 @@ const columns = computed<DataTableColumn<Row>[]>(() => {
     title: '操作',
     width: 90,
     fixed: 'right',
-    render: (row: TRow) => renderRowActions(row),
-  } as DataTableColumn<TRow>
+    render: (row: Row) => renderRowActions(row),
+  } as unknown as DataTableColumn<Row>
   return [...base, actionColumn]
 })
 

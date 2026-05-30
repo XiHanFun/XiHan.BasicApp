@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema } from '~/components'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   DictCreateDto,
   DictDetailDto,
@@ -83,7 +83,7 @@ function canMaintainDict(row: DictListItemDto) {
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
-const fields: ListFieldSchema<DictListItemDto>[] = [
+const fields: ListFieldSchema[] = [
   { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索字典名称/编码/类型', width: 250, order: 0 },
   { key: 'dictName', title: '字典名称', dataType: 'string', sortable: true, minWidth: 140, order: 1 },
   { key: 'dictCode', title: '字典编码', dataType: 'string', minWidth: 140, order: 2 },
@@ -115,7 +115,8 @@ const fields: ListFieldSchema<DictListItemDto>[] = [
 ]
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
-const schema: PageSchema<DictListItemDto> = {
+// schema 使用框架默认行类型（Record），页面侧在 handler 入口断言为 DictListItemDto 保有类型安全
+const schema: PageSchema = {
   pageCode: 'platform.dict',
   pageName: '字典管理',
   rowKey: 'basicId',
@@ -136,36 +137,37 @@ const schema: PageSchema<DictListItemDto> = {
   actions: [
     { key: 'create', title: '新增字典', scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'edit', title: '编辑', scope: 'row', visible: canMaintainDict },
-    { key: 'toggle', title: '启用/停用', scope: 'row', visible: canMaintainDict },
-    { key: 'delete', title: '删除', scope: 'row', visible: canMaintainDict },
+    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainDict(row as DictListItemDto) },
+    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainDict(row as DictListItemDto) },
+    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainDict(row as DictListItemDto) },
   ],
 }
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
-function onAction(payload: { key: string, scope: string, row?: DictListItemDto }) {
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as DictListItemDto | undefined
   switch (payload.key) {
     case 'create':
       handleAdd()
       break
     case 'view':
-      if (payload.row) {
-        void handleView(payload.row)
+      if (row) {
+        void handleView(row)
       }
       break
     case 'edit':
-      if (payload.row) {
-        handleEdit(payload.row)
+      if (row) {
+        handleEdit(row)
       }
       break
     case 'toggle':
-      if (payload.row) {
-        void handleToggleStatus(payload.row)
+      if (row) {
+        void handleToggleStatus(row)
       }
       break
     case 'delete':
-      if (payload.row) {
-        void handleDelete(payload.row)
+      if (row) {
+        void handleDelete(row)
       }
       break
   }
