@@ -5,8 +5,8 @@ import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaTableSettings' })
 
-const props = defineProps<{
-  /** 列设置（来自 useTableSettings.columns，可双向同步可见性/固定） */
+defineProps<{
+  /** 列设置（来自 useTableSettings.columns） */
   columns: ColumnSetting[]
   /** 当前密度 */
   density: TableDensity
@@ -26,8 +26,8 @@ const densityOptions: Array<{ label: string, value: TableDensity }> = [
   { label: '宽松', value: 'large' },
 ]
 
+/** 固定循环切换：无 → 左 → 右 → 无 */
 function nextFixed(current?: 'left' | 'right'): 'left' | 'right' | undefined {
-  // 循环切换：无 → 左 → 右 → 无
   if (current === undefined) {
     return 'left'
   }
@@ -103,7 +103,6 @@ function fixedLabel(fixed?: 'left' | 'right'): string {
             {{ col.title }}
           </NCheckbox>
           <div class="flex-1" />
-          <!-- 固定切换 -->
           <NButton
             size="tiny"
             quaternary
@@ -115,7 +114,6 @@ function fixedLabel(fixed?: 'left' | 'right'): string {
             </template>
             {{ fixedLabel(col.fixed) }}
           </NButton>
-          <!-- 上移 / 下移 -->
           <NButton
             size="tiny"
             quaternary

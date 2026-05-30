@@ -1,7 +1,8 @@
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
-import { computed, ref, watch } from 'vue'
-import { getStorage, setStorage } from '~/utils'
+import { ref, watch } from 'vue'
+import { computed } from 'vue'
+import { storage } from '~/utils'
 
 /**
  * 单列设置项（显隐 / 固定）
@@ -60,7 +61,7 @@ export function useTableSettings(
 
   /** 从 localStorage 恢复（按 key 合并，丢弃已不存在的列、追加新列） */
   function restore() {
-    const persisted = getStorage<PersistedTableSettings>(storageKey)
+    const persisted = storage.get<PersistedTableSettings>(storageKey)
     if (!persisted) {
       columns.value = buildDefault()
       return
@@ -92,7 +93,7 @@ export function useTableSettings(
       columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed })),
       density: density.value,
     }
-    setStorage(storageKey, data)
+    storage.set(storageKey, data)
   }
 
   /** 可见列键（按当前顺序） */
@@ -143,7 +144,7 @@ export function useTableSettings(
     density.value = 'small'
   }
 
-  // 字段变化（如权限变更导致列增减）时重建默认并尝试恢复
+  // 字段变化（如权限变更导致列增减）时重建并尝试恢复
   watch(fields, () => restore(), { immediate: false })
 
   // 设置变化即持久化

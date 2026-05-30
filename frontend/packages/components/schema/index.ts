@@ -1,8 +1,10 @@
 export { default as SchemaActionPanel } from './SchemaActionPanel.vue'
+export { default as SchemaAdvancedSearch } from './SchemaAdvancedSearch.vue'
 export { default as SchemaPage } from './SchemaPage.vue'
 export { default as SchemaSearchPanel } from './SchemaSearchPanel.vue'
 export { default as SchemaTablePanel } from './SchemaTablePanel.vue'
 export { default as SchemaTableSettings } from './SchemaTableSettings.vue'
+export { default as SchemaViewManager } from './SchemaViewManager.vue'
 
 export { formatFieldText, renderFieldCell } from './renderer'
 export {
@@ -32,3 +34,6 @@ export type { UseSchemaTableOptions } from './useSchemaTable'
 
 export { useTableSettings } from './useTableSettings'
 export type { ColumnSetting, TableDensity } from './useTableSettings'
+
+export { useViewManager } from './useViewManager'
+export type { PersonalView, ViewSnapshot } from './useViewManager'
