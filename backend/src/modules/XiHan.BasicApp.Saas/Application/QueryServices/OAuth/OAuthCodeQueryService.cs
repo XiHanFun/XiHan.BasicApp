@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -143,50 +144,50 @@ public sealed class OAuthCodeQueryService
 
         if (!string.IsNullOrWhiteSpace(input.ClientId))
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.ClientId), input.ClientId.Trim());
+            request.Conditions.AddFilter((SysOAuthCode code) => code.ClientId, input.ClientId.Trim());
         }
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.UserId, input.UserId.Value);
         }
 
         if (input.IsUsed.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.IsUsed), input.IsUsed.Value);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.IsUsed, input.IsUsed.Value);
         }
 
         if (input.IsExpired.HasValue)
         {
             request.Conditions.AddFilter(
-                nameof(SysOAuthCode.ExpiresTime),
+                (SysOAuthCode code) => code.ExpiresTime,
                 now,
                 input.IsExpired.Value ? QueryOperator.LessThanOrEqual : QueryOperator.GreaterThan);
         }
 
         if (input.ExpiresTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.ExpiresTime), input.ExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.ExpiresTime, input.ExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.ExpiresTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.ExpiresTime), input.ExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.ExpiresTime, input.ExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         if (input.CreatedTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.CreatedTime), input.CreatedTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.CreatedTime, input.CreatedTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.CreatedTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthCode.CreatedTime), input.CreatedTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.CreatedTime, input.CreatedTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysOAuthCode.IsUsed), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysOAuthCode.ExpiresTime), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysOAuthCode.CreatedTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysOAuthCode code) => code.IsUsed, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysOAuthCode code) => code.ExpiresTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysOAuthCode code) => code.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
 

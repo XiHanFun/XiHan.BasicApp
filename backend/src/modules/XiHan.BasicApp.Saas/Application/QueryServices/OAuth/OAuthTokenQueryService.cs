@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -167,38 +168,38 @@ public sealed class OAuthTokenQueryService
 
         if (!string.IsNullOrWhiteSpace(input.ClientId))
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.ClientId), input.ClientId.Trim());
+            request.Conditions.AddFilter((SysOAuthToken token) => token.ClientId, input.ClientId.Trim());
         }
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.UserId, input.UserId.Value);
         }
 
         if (input.SessionId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.SessionId), input.SessionId.Value);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.SessionId, input.SessionId.Value);
         }
 
         if (input.GrantType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.GrantType), input.GrantType.Value);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.GrantType, input.GrantType.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.Status, input.Status.Value);
         }
 
         if (input.IsRevoked.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.IsRevoked), input.IsRevoked.Value);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.IsRevoked, input.IsRevoked.Value);
         }
 
         if (input.IsAccessTokenExpired.HasValue)
         {
             request.Conditions.AddFilter(
-                nameof(SysOAuthToken.AccessTokenExpiresTime),
+                (SysOAuthToken token) => token.AccessTokenExpiresTime,
                 now,
                 input.IsAccessTokenExpired.Value ? QueryOperator.LessThanOrEqual : QueryOperator.GreaterThan);
         }
@@ -206,34 +207,34 @@ public sealed class OAuthTokenQueryService
         if (input.IsRefreshTokenExpired.HasValue)
         {
             request.Conditions.AddFilter(
-                nameof(SysOAuthToken.RefreshTokenExpiresTime),
+                (SysOAuthToken token) => token.RefreshTokenExpiresTime,
                 now,
                 input.IsRefreshTokenExpired.Value ? QueryOperator.LessThanOrEqual : QueryOperator.GreaterThan);
         }
 
         if (input.AccessTokenExpiresTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.AccessTokenExpiresTime), input.AccessTokenExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.AccessTokenExpiresTime, input.AccessTokenExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.AccessTokenExpiresTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.AccessTokenExpiresTime), input.AccessTokenExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.AccessTokenExpiresTime, input.AccessTokenExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         if (input.RefreshTokenExpiresTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.RefreshTokenExpiresTime), input.RefreshTokenExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.RefreshTokenExpiresTime, input.RefreshTokenExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.RefreshTokenExpiresTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysOAuthToken.RefreshTokenExpiresTime), input.RefreshTokenExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.RefreshTokenExpiresTime, input.RefreshTokenExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysOAuthToken.IsRevoked), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysOAuthToken.AccessTokenExpiresTime), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysOAuthToken.CreatedTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysOAuthToken token) => token.IsRevoked, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysOAuthToken token) => token.AccessTokenExpiresTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysOAuthToken token) => token.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
 
