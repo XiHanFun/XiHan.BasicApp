@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -157,41 +158,41 @@ public sealed class SessionRoleQueryService
 
         if (input.SessionId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.SessionId), input.SessionId.Value);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.SessionId, input.SessionId.Value);
         }
 
         if (input.RoleId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.RoleId), input.RoleId.Value);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.RoleId, input.RoleId.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.Status, input.Status.Value);
         }
 
         if (input.ActivatedAtStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.ActivatedAt), input.ActivatedAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ActivatedAt, input.ActivatedAtStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.ActivatedAtEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.ActivatedAt), input.ActivatedAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ActivatedAt, input.ActivatedAtEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         if (input.ExpiresAtStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.ExpiresAt), input.ExpiresAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ExpiresAt, input.ExpiresAtStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.ExpiresAtEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysSessionRole.ExpiresAt), input.ExpiresAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ExpiresAt, input.ExpiresAtEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort(nameof(SysSessionRole.ActivatedAt), SortDirection.Descending, 0);
-        request.Conditions.AddSort(nameof(SysSessionRole.CreatedTime), SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysSessionRole sessionRole) => sessionRole.ActivatedAt, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysSessionRole sessionRole) => sessionRole.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
 

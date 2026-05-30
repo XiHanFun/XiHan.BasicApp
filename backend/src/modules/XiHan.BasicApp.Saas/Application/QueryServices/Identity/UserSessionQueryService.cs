@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -132,54 +133,54 @@ public sealed class UserSessionQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysUserSession>(
                 input.Keyword.Trim(),
-                nameof(SysUserSession.UserSessionId),
-                nameof(SysUserSession.DeviceName),
-                nameof(SysUserSession.OperatingSystem),
-                nameof(SysUserSession.Browser),
-                nameof(SysUserSession.Remark));
+                session => session.UserSessionId,
+                session => session.DeviceName,
+                session => session.OperatingSystem,
+                session => session.Browser,
+                session => session.Remark);
         }
 
         if (input.UserId.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.UserId), input.UserId.Value);
+            request.Conditions.AddFilter((SysUserSession session) => session.UserId, input.UserId.Value);
         }
 
         if (input.DeviceType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.DeviceType), input.DeviceType.Value);
+            request.Conditions.AddFilter((SysUserSession session) => session.DeviceType, input.DeviceType.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysUserSession session) => session.Status, input.Status.Value);
         }
 
         if (input.LoginTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.LoginTime), input.LoginTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysUserSession session) => session.LoginTime, input.LoginTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.LoginTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.LoginTime), input.LoginTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysUserSession session) => session.LoginTime, input.LoginTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         if (input.LastActivityTimeStart.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.LastActivityTime), input.LastActivityTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysUserSession session) => session.LastActivityTime, input.LastActivityTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
         if (input.LastActivityTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysUserSession.LastActivityTime), input.LastActivityTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysUserSession session) => session.LastActivityTime, input.LastActivityTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         // 会话状态升序：Active(0) 优先于 Offline/Revoked/Expired，等效于"在线优先"
-        request.Conditions.AddSort(nameof(SysUserSession.Status), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysUserSession.LastActivityTime), SortDirection.Descending, 1);
-        request.Conditions.AddSort(nameof(SysUserSession.LoginTime), SortDirection.Descending, 2);
+        request.Conditions.AddSort((SysUserSession session) => session.Status, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysUserSession session) => session.LastActivityTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysUserSession session) => session.LoginTime, SortDirection.Descending, 2);
         return request;
     }
 
