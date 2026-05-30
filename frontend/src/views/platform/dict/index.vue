@@ -88,6 +88,7 @@ const fields: ListFieldSchema[] = [
   { key: 'dictName', title: '字典名称', dataType: 'string', sortable: true, minWidth: 140, order: 1 },
   { key: 'dictCode', title: '字典编码', dataType: 'string', minWidth: 140, order: 2 },
   { key: 'dictType', title: '字典类型', dataType: 'string', minWidth: 120, order: 3 },
+  // boolean/enum + options 由框架 renderFieldCell 自动渲染为 NTag，无需自定义 render
   {
     key: 'isBuiltIn',
     title: '内置',
@@ -97,7 +98,6 @@ const fields: ListFieldSchema[] = [
     searchPlaceholder: '是否内置',
     width: 80,
     order: 4,
-    render: row => h(NTag, { type: row.isBuiltIn ? 'warning' : 'default', round: true, size: 'small' }, () => (row.isBuiltIn ? '是' : '否')),
   },
   {
     key: 'status',
@@ -108,7 +108,6 @@ const fields: ListFieldSchema[] = [
     searchPlaceholder: '状态',
     width: 90,
     order: 5,
-    render: row => h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
   },
   { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 6 },
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
@@ -130,22 +129,22 @@ const schema: PageSchema = {
         isBuiltIn: isBuiltIn === undefined || isBuiltIn === null ? undefined : Boolean(isBuiltIn),
         keyword: (keyword as string | undefined)?.trim() || undefined,
         status: status as EnableStatus | undefined,
-      })
+      }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => dictManagementApi.delete(id),
   },
   actions: [
     { key: 'create', title: '新增字典', scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainDict(row as DictListItemDto) },
-    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainDict(row as DictListItemDto) },
-    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainDict(row as DictListItemDto) },
+    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
+    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
+    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
   ],
 }
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row as DictListItemDto | undefined
+  const row = payload.row as unknown as DictListItemDto | undefined
   switch (payload.key) {
     case 'create':
       handleAdd()
