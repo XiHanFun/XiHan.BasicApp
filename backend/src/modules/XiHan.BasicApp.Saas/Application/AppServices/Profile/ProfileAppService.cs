@@ -31,11 +31,12 @@ using XiHan.Framework.Uow.Attributes;
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
 /// <summary>
-/// 当前用户个人中心应用服务
+/// 当前用户个人中心应用服务（账号资料关注点）。
+/// 其余关注点见 <c>ProfileAppService.Security.cs</c> / <c>ProfileAppService.Verification.cs</c> / <c>ProfileAppService.Session.cs</c>。
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "个人中心")]
-public sealed class ProfileAppService
+public sealed partial class ProfileAppService
     : SaasApplicationService, IProfileAppService
 {
     private readonly ICurrentUser _currentUser;
@@ -71,28 +72,6 @@ public sealed class ProfileAppService
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task ChangePasswordAsync(ProfileChangePasswordDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var currentUserId = GetCurrentUserIdOrThrow();
-        var result = await _profileDomainService.ChangePasswordAsync(
-            ProfileApplicationMapper.ToChangePasswordCommand(input, currentUserId),
-            cancellationToken);
-
-        await _notificationDispatchService.DispatchToUserAsync(
-            result.User.BasicId,
-            "密码已修改",
-            "您的账号密码已更新，如非本人操作，请立即联系管理员。",
-            NotificationType.Warning,
-            "profile.password.changed",
-            result.User.BasicId,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
     public async Task ChangeUserNameAsync(ProfileChangeUserNameDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -111,34 +90,6 @@ public sealed class ProfileAppService
             "profile.username.changed",
             result.User.BasicId,
             cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task ConfirmChangeEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        var pendingEmail = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.ChangeEmail, input.Code);
-        await _profileDomainService.ConfirmContactAsync(
-            ProfileApplicationMapper.ToConfirmContactCommand(userId, ProfileContactKind.Email, pendingEmail),
-            cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task ConfirmChangePhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        var pendingPhone = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.ChangePhone, input.Code);
-        await _profileDomainService.ConfirmContactAsync(
-            ProfileApplicationMapper.ToConfirmContactCommand(userId, ProfileContactKind.Phone, pendingPhone),
-            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -170,167 +121,15 @@ public sealed class ProfileAppService
     }
 
     /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task Disable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        var context = await _profileQueryService.GetSecurityContextAsync(userId, cancellationToken);
-        var method = ToTwoFactorMethod(input.Method);
-        if (!context.Security.TwoFactorMethod.HasFlag(method))
-        {
-            return;
-        }
-
-        _profileVerificationService.EnsureTwoFactorCodeValid(context, method, input.Code);
-        await _profileDomainService.DisableTwoFactorAsync(ProfileApplicationMapper.ToTwoFactorCommand(userId, method), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task Enable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        var context = await _profileQueryService.GetSecurityContextAsync(userId, cancellationToken);
-        var method = ToTwoFactorMethod(input.Method);
-        _profileVerificationService.EnsureTwoFactorCodeValid(context, method, input.Code);
-        await _profileDomainService.EnableTwoFactorAsync(ProfileApplicationMapper.ToTwoFactorCommand(userId, method), cancellationToken);
-    }
-
-    /// <inheritdoc />
     public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetLinkedAccountsAsync(GetCurrentUserIdOrThrow(), cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<ProfileLoginLogPageDto> GetLoginLogsAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
-    {
-        return await _profileQueryService.GetLoginLogsAsync(GetCurrentUserIdOrThrow(), page, pageSize, cancellationToken);
-    }
-
-    /// <inheritdoc />
     public async Task<UserProfileDto> GetProfileAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetProfileAsync(GetCurrentUserIdOrThrow(), _currentUser.TenantId, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<List<ProfileSessionDto>> GetSessionsAsync(CancellationToken cancellationToken = default)
-    {
-        return await _profileQueryService.GetSessionsAsync(GetCurrentUserIdOrThrow(), GetCurrentSessionId(), cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task RevokeOtherSessionsAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var currentUserId = GetCurrentUserIdOrThrow();
-        var result = await _profileDomainService.RevokeOtherSessionsAsync(
-            ProfileApplicationMapper.ToOtherSessionsRevokeCommand(currentUserId, GetCurrentSessionId(), _currentUser.UserId),
-            cancellationToken);
-        await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task RevokeSessionAsync(ProfileSessionRevokeDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var currentUserId = GetCurrentUserIdOrThrow();
-        var result = await _profileDomainService.RevokeSessionAsync(
-            ProfileApplicationMapper.ToSessionRevokeCommand(input, currentUserId, GetCurrentSessionId(), _currentUser.UserId),
-            cancellationToken);
-        await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> Send2FASetupCodeAsync(ProfileTwoFactorMethodDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var context = await _profileQueryService.GetSecurityContextAsync(GetCurrentUserIdOrThrow(), cancellationToken);
-        var method = ToTwoFactorMethod(input.Method);
-        return method switch
-        {
-            TwoFactorMethod.Email => await _profileVerificationService.SendCodeAsync(context.User, ProfileVerificationPurpose.TwoFactorEmail, context.User.Email, "邮箱两步验证", cancellationToken),
-            TwoFactorMethod.Phone => await _profileVerificationService.SendCodeAsync(context.User, ProfileVerificationPurpose.TwoFactorPhone, context.User.Phone, "手机两步验证", cancellationToken),
-            _ => throw new InvalidOperationException("该双因素方式不需要发送验证码。")
-        };
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendChangeEmailCodeAsync(ProfileChangeEmailDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var currentUserId = GetCurrentUserIdOrThrow();
-        var result = await _profileDomainService.PrepareChangeContactAsync(
-            ProfileApplicationMapper.ToChangeContactPrepareCommand(currentUserId, ProfileContactKind.Email, input.NewEmail, input.Password),
-            cancellationToken);
-        return await _profileVerificationService.SendCodeAsync(result.User, ProfileVerificationPurpose.ChangeEmail, result.Target, "邮箱换绑", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendChangePhoneCodeAsync(ProfileChangePhoneDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var currentUserId = GetCurrentUserIdOrThrow();
-        var result = await _profileDomainService.PrepareChangeContactAsync(
-            ProfileApplicationMapper.ToChangeContactPrepareCommand(currentUserId, ProfileContactKind.Phone, input.NewPhone, input.Password),
-            cancellationToken);
-        return await _profileVerificationService.SendCodeAsync(result.User, ProfileVerificationPurpose.ChangePhone, result.Target, "手机换绑", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendEmailVerifyCodeAsync(CancellationToken cancellationToken = default)
-    {
-        var context = await _profileQueryService.GetSecurityContextAsync(GetCurrentUserIdOrThrow(), cancellationToken);
-        if (string.IsNullOrWhiteSpace(context.User.Email))
-        {
-            throw new InvalidOperationException("当前账号未绑定邮箱。");
-        }
-
-        return await _profileVerificationService.SendCodeAsync(context.User, ProfileVerificationPurpose.VerifyEmail, context.User.Email, "邮箱验证", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileVerificationCodeResultDto> SendPhoneVerifyCodeAsync(CancellationToken cancellationToken = default)
-    {
-        var context = await _profileQueryService.GetSecurityContextAsync(GetCurrentUserIdOrThrow(), cancellationToken);
-        if (string.IsNullOrWhiteSpace(context.User.Phone))
-        {
-            throw new InvalidOperationException("当前账号未绑定手机号。");
-        }
-
-        return await _profileVerificationService.SendCodeAsync(context.User, ProfileVerificationPurpose.VerifyPhone, context.User.Phone, "手机验证", cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task<ProfileTwoFactorSetupDto> Setup2FAAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var currentUserId = GetCurrentUserIdOrThrow();
-        var result = await _profileDomainService.SetupTwoFactorAsync(
-            ProfileApplicationMapper.ToTwoFactorSetupCommand(currentUserId, "XiHan BasicApp"),
-            cancellationToken);
-
-        return ProfileApplicationMapper.ToTwoFactorSetupDto(result);
     }
 
     /// <inheritdoc />
@@ -358,34 +157,6 @@ public sealed class ProfileAppService
             cancellationToken);
 
         return await _profileQueryService.GetProfileAsync(userId, _currentUser.TenantId, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task VerifyEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        _ = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.VerifyEmail, input.Code);
-        await _profileDomainService.VerifyContactAsync(
-            ProfileApplicationMapper.ToVerifyContactCommand(userId, ProfileContactKind.Email),
-            cancellationToken);
-    }
-
-    /// <inheritdoc />
-    [UnitOfWork(true)]
-    public async Task VerifyPhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userId = GetCurrentUserIdOrThrow();
-        _ = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.VerifyPhone, input.Code);
-        await _profileDomainService.VerifyContactAsync(
-            ProfileApplicationMapper.ToVerifyContactCommand(userId, ProfileContactKind.Phone),
-            cancellationToken);
     }
 
     private static TwoFactorMethod ToTwoFactorMethod(int method)
@@ -419,5 +190,4 @@ public sealed class ProfileAppService
             await _localEventBus.PublishAsync(domainEvent);
         }
     }
-
 }
