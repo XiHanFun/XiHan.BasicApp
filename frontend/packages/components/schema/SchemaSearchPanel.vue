@@ -155,11 +155,11 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   background: var(--n-card-color, transparent);
 }
 
-/* 顶层：常用条件块 + 按钮块。按钮块顶对齐，常用条件换行时按钮固定第一行右上 */
+/* 顶层：常用条件块 + 按钮块。按钮块与控件底对齐，常用条件换行时按钮固定第一行右侧 */
 .xh-search__bar {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
+  align-items: flex-end;
 }
 
 /* 常用条件区：内部 flex-wrap，挤占左侧 */
@@ -186,14 +186,12 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   color: var(--n-text-color-3, inherit);
 }
 
-/* 操作按钮：顶对齐 + 推到最右，永远在第一行 */
+/* 操作按钮：推到最右、与控件底边对齐，永远在第一行 */
 .xh-search__actions {
   display: flex;
   flex-shrink: 0;
   gap: 8px;
   margin-left: auto;
-  /* 与控件底边对齐：标题约 17px 高 + 2px gap */
-  padding-top: 19px;
 }
 
 /* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表） */

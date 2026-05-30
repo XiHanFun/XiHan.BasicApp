@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SearchFieldSetting } from './useSearchSettings'
-import { NButton, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
+import { NButton, NDivider, NIcon, NPopover, NSwitch } from 'naive-ui'
 import Sortable from 'sortablejs'
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
@@ -63,16 +63,12 @@ onBeforeUnmount(() => {
 <template>
   <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="280" display-directive="show">
     <template #trigger>
-      <NTooltip>
-        <template #trigger>
-          <NButton size="small" quaternary circle aria-label="搜索设置">
-            <template #icon>
-              <NIcon><Icon icon="lucide:settings-2" /></NIcon>
-            </template>
-          </NButton>
+      <NButton size="small" quaternary aria-label="搜索设置">
+        <template #icon>
+          <NIcon><Icon icon="lucide:settings-2" /></NIcon>
         </template>
         搜索设置
-      </NTooltip>
+      </NButton>
     </template>
 
     <div class="flex flex-col gap-2">
