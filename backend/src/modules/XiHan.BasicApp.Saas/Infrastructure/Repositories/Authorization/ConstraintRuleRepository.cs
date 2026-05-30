@@ -16,14 +16,17 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
 /// <summary>
 /// 约束规则仓储实现
 /// </summary>
-public sealed class ConstraintRuleRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysConstraintRule>(clientResolver), IConstraintRuleRepository
+public sealed class ConstraintRuleRepository(
+    ISqlSugarClientResolver clientResolver,
+    IUnitOfWorkManager unitOfWorkManager)
+    : SaasAggregateRepository<SysConstraintRule>(clientResolver, unitOfWorkManager), IConstraintRuleRepository
 {
     /// <inheritdoc />
     public async Task<IReadOnlyList<SysConstraintRule>> GetActiveRulesAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
