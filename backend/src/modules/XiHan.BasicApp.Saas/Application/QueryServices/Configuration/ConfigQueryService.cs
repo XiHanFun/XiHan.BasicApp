@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -116,52 +117,52 @@ public sealed class ConfigQueryService
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
-            request.Conditions.SetKeyword(
+            request.Conditions.SetKeyword<SysConfig>(
                 input.Keyword.Trim(),
-                nameof(SysConfig.ConfigName),
-                nameof(SysConfig.ConfigGroup),
-                nameof(SysConfig.ConfigKey),
-                nameof(SysConfig.ConfigDescription));
+                config => config.ConfigName,
+                config => config.ConfigGroup,
+                config => config.ConfigKey,
+                config => config.ConfigDescription);
         }
 
         if (input.IsGlobal.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConfig.IsGlobal), input.IsGlobal.Value);
+            request.Conditions.AddFilter((SysConfig config) => config.IsGlobal, input.IsGlobal.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(input.ConfigGroup))
         {
-            request.Conditions.AddFilter(nameof(SysConfig.ConfigGroup), input.ConfigGroup.Trim());
+            request.Conditions.AddFilter((SysConfig config) => config.ConfigGroup, input.ConfigGroup.Trim());
         }
 
         if (input.ConfigType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConfig.ConfigType), input.ConfigType.Value);
+            request.Conditions.AddFilter((SysConfig config) => config.ConfigType, input.ConfigType.Value);
         }
 
         if (input.DataType.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConfig.DataType), input.DataType.Value);
+            request.Conditions.AddFilter((SysConfig config) => config.DataType, input.DataType.Value);
         }
 
         if (input.IsBuiltIn.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConfig.IsBuiltIn), input.IsBuiltIn.Value);
+            request.Conditions.AddFilter((SysConfig config) => config.IsBuiltIn, input.IsBuiltIn.Value);
         }
 
         if (input.IsEncrypted.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConfig.IsEncrypted), input.IsEncrypted.Value);
+            request.Conditions.AddFilter((SysConfig config) => config.IsEncrypted, input.IsEncrypted.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter(nameof(SysConfig.Status), input.Status.Value);
+            request.Conditions.AddFilter((SysConfig config) => config.Status, input.Status.Value);
         }
 
-        request.Conditions.AddSort(nameof(SysConfig.ConfigGroup), SortDirection.Ascending, 0);
-        request.Conditions.AddSort(nameof(SysConfig.Sort), SortDirection.Ascending, 1);
-        request.Conditions.AddSort(nameof(SysConfig.ConfigKey), SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysConfig config) => config.ConfigGroup, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysConfig config) => config.Sort, SortDirection.Ascending, 1);
+        request.Conditions.AddSort((SysConfig config) => config.ConfigKey, SortDirection.Ascending, 2);
         return request;
     }
 }
