@@ -1,0 +1,120 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:OperationAppService
+// Guid:7c3e0a5d-4b6f-4c8d-9e0a-3b1c2d4e5f6a
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/04/30 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Contracts;
+using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Uow.Attributes;
+
+namespace XiHan.BasicApp.Saas.Application.AppServices;
+
+/// <summary>
+/// 操作定义命令应用服务
+/// </summary>
+[Authorize]
+[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "操作定义")]
+public sealed class OperationAppService
+    : SaasApplicationService, IOperationAppService
+{
+    /// <summary>
+    /// 操作查询服务
+    /// </summary>
+    private readonly IOperationQueryService _operationQueryService;
+
+    /// <summary>
+    /// 权限目录领域服务
+    /// </summary>
+    private readonly IPermissionCatalogDomainService _permissionCatalogDomainService;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public OperationAppService(
+        IPermissionCatalogDomainService permissionCatalogDomainService,
+        IOperationQueryService operationQueryService)
+    {
+        _permissionCatalogDomainService = permissionCatalogDomainService;
+        _operationQueryService = operationQueryService;
+    }
+
+    #region Operation
+
+    /// <summary>
+    /// 创建操作定义
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Operation.Create)]
+    public async Task<OperationDetailDto> CreateOperationAsync(OperationCreateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _permissionCatalogDomainService.CreateOperationAsync(OperationApplicationMapper.ToCreateCommand(input), cancellationToken);
+
+        return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
+            ?? throw new InvalidOperationException("操作定义不存在。");
+    }
+
+    /// <summary>
+    /// 删除操作定义
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Operation.Delete)]
+    public async Task DeleteOperationAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _permissionCatalogDomainService.DeleteOperationAsync(id, cancellationToken);
+    }
+
+    /// <summary>
+    /// 更新操作定义
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Operation.Update)]
+    public async Task<OperationDetailDto> UpdateOperationAsync(OperationUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _permissionCatalogDomainService.UpdateOperationAsync(OperationApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
+            ?? throw new InvalidOperationException("操作定义不存在。");
+    }
+
+    /// <summary>
+    /// 更新操作定义状态
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Operation.Status)]
+    public async Task<OperationDetailDto> UpdateOperationStatusAsync(OperationStatusUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _permissionCatalogDomainService.UpdateOperationStatusAsync(OperationApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
+            ?? throw new InvalidOperationException("操作定义不存在。");
+    }
+
+    #endregion Operation
+
+}
