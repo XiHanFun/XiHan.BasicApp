@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 约束规则仓储接口
 /// </summary>
-public interface IConstraintRuleRepository : ISaasRepository<SysConstraintRule>
+public interface IConstraintRuleRepository : ISaasAggregateRepository<SysConstraintRule>
 {
     /// <summary>
     /// 获取当前生效的约束规则
