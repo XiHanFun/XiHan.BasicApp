@@ -1,43 +1,21 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { ExceptionLogDetailDto, ExceptionLogListItemDto } from '@/api'
-import {
-  NButton,
-  NCard,
-  NConfigProvider,
-  NDataTable,
-  NIcon,
-  NInput,
-  NPagination,
-  NSelect,
-  NTag,
-  NTooltip,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { ExceptionLogDetailDto, ExceptionLogListItemDto, PageResult } from '@/api'
+import { NTag, useMessage } from 'naive-ui'
+import { h, ref } from 'vue'
 import { createPageRequest, DeviceType, logManagementApi } from '@/api'
-import { Icon } from '~/components'
-import { formatDate, getOptionLabel } from '~/utils'
+import { SchemaPage } from '~/components'
+import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogExceptionPage' })
 
 const message = useMessage()
+
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<ExceptionLogDetailDto | null>(null)
-const tableLoading = ref(false)
-const dataList = ref<ExceptionLogListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
-
-const queryParams = reactive({
-  isHandled: undefined as number | undefined,
-  keyword: '',
-  severityLevel: undefined as number | undefined,
-})
 
 const handledOptions = [
   { label: '已处理', value: 1 },
@@ -64,6 +42,139 @@ const deviceTypeOptions = [
   { label: '小程序', value: DeviceType.MiniProgram },
   { label: 'API', value: DeviceType.Api },
 ]
+
+function severityType(level: number) {
+  switch (level) {
+    case 1: return 'info'
+    case 2: return 'warning'
+    case 3:
+    case 4:
+    case 5: return 'error'
+    default: return 'default'
+  }
+}
+
+// ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
+const fields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索异常类型/位置/用户', order: 0 },
+  {
+    key: 'severityLevel',
+    title: '严重级别',
+    dataType: 'enum',
+    searchable: true,
+    options: severityOptions,
+    searchPlaceholder: '严重等级',
+    width: 90,
+    order: 10,
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => getOptionLabel(severityOptions, (row as unknown as ExceptionLogListItemDto).severityLevel)),
+  },
+  {
+    key: 'isHandled',
+    title: '处理状态',
+    dataType: 'boolean',
+    searchable: true,
+    options: handledOptions,
+    searchPlaceholder: '处理状态',
+    width: 100,
+    order: 11,
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as ExceptionLogListItemDto).isHandled ? 'success' : 'warning' }, () => (row as unknown as ExceptionLogListItemDto).isHandled ? '已处理' : '未处理'),
+  },
+  // 高级搜索 + 列
+  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 12 },
+  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 13 },
+  { key: 'exceptionType', title: '异常类型', dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
+  { key: 'exceptionSource', title: '异常源', dataType: 'string', advancedSearch: true, minWidth: 140, order: 15 },
+  { key: 'exceptionLocation', title: '异常发生位置', dataType: 'string', advancedSearch: true, minWidth: 200, order: 16 },
+  { key: 'requestPath', title: '请求路径', dataType: 'string', advancedSearch: true, minWidth: 200, order: 17 },
+  { key: 'requestMethod', title: '请求方法', dataType: 'string', advancedSearch: true, width: 90, order: 18 },
+  { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 19 },
+  { key: 'errorCode', title: '错误代码', dataType: 'string', advancedSearch: true, minWidth: 100, order: 20 },
+  { key: 'applicationName', title: '应用程序名称', dataType: 'string', advancedSearch: true, minWidth: 130, order: 21 },
+  { key: 'environmentName', title: '环境名称', dataType: 'string', advancedSearch: true, minWidth: 100, order: 22 },
+  {
+    key: 'deviceType',
+    title: '设备类型',
+    dataType: 'enum',
+    advancedSearch: true,
+    options: deviceTypeOptions,
+    width: 100,
+    order: 23,
+    render: row => getOptionLabel(deviceTypeOptions, (row as unknown as ExceptionLogListItemDto).deviceType),
+  },
+  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 24 },
+  { key: 'requestId', title: '请求标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 25 },
+  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 26 },
+  // 仅高级搜索
+  { key: 'exceptionTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 27 },
+  { key: 'exceptionTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 28 },
+  // 仅列
+  { key: 'exceptionMessage', title: '异常消息', dataType: 'string', minWidth: 260, order: 30 },
+  { key: 'controllerName', title: '控制器', dataType: 'string', minWidth: 140, order: 31 },
+  { key: 'actionName', title: '动作', dataType: 'string', minWidth: 140, order: 32 },
+  { key: 'operationIp', title: '操作 IP', dataType: 'string', minWidth: 130, order: 33 },
+  { key: 'operationLocation', title: '操作位置', dataType: 'string', minWidth: 160, order: 34 },
+  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 35 },
+  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 36 },
+  { key: 'applicationVersion', title: '应用程序版本', dataType: 'string', minWidth: 120, order: 37 },
+  { key: 'serverHostName', title: '服务器主机', dataType: 'string', minWidth: 140, order: 38 },
+  { key: 'threadId', title: '线程 ID', dataType: 'number', width: 90, order: 39 },
+  { key: 'processId', title: '进程 ID', dataType: 'number', width: 90, order: 40 },
+  { key: 'handledTime', title: '处理时间', dataType: 'datetime', minWidth: 170, order: 41 },
+  { key: 'exceptionTime', title: '异常时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 42 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 43 },
+]
+
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+function toNum(v: unknown): number | undefined {
+  return v == null || v === '' ? undefined : Number(v)
+}
+function toBool(v: unknown): boolean | undefined {
+  return v == null || v === '' ? undefined : v === 1 || v === true
+}
+function toIso(v: unknown): string | undefined {
+  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
+}
+
+const schema: PageSchema = {
+  pageCode: 'log.exception',
+  pageName: '异常日志',
+  rowKey: 'basicId',
+  scrollX: 2800,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return logManagementApi.exception.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword),
+        severityLevel: toNum(f.severityLevel),
+        isHandled: toBool(f.isHandled),
+        userName: toStr(f.userName),
+        userId: toStr(f.userId),
+        exceptionType: toStr(f.exceptionType),
+        exceptionSource: toStr(f.exceptionSource),
+        exceptionLocation: toStr(f.exceptionLocation),
+        requestPath: toStr(f.requestPath),
+        requestMethod: toStr(f.requestMethod),
+        statusCode: toNum(f.statusCode),
+        errorCode: toStr(f.errorCode),
+        applicationName: toStr(f.applicationName),
+        environmentName: toStr(f.environmentName),
+        deviceType: (f.deviceType as DeviceType | undefined) ?? undefined,
+        traceId: toStr(f.traceId),
+        requestId: toStr(f.requestId),
+        sessionId: toStr(f.sessionId),
+        exceptionTimeStart: toIso(f.exceptionTimeStart),
+        exceptionTimeEnd: toIso(f.exceptionTimeEnd),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+  },
+  actions: [
+    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+  ],
+}
 
 const detailFields: LogDetailField[] = [
   { key: 'basicId', label: '日志主键' },
@@ -112,168 +223,11 @@ const detailFields: LogDetailField[] = [
   { key: 'extendData', label: '扩展数据', type: 'code' },
 ]
 
-function severityType(level: number) {
-  switch (level) {
-    case 1: return 'info'
-    case 2: return 'warning'
-    case 3:
-    case 4:
-    case 5: return 'error'
-    default: return 'default'
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as ExceptionLogListItemDto | undefined
+  if (payload.key === 'view' && row) {
+    void handleDetail(row)
   }
-}
-
-function severityLabel(level: number) {
-  return severityOptions.find(o => o.value === level)?.label ?? '未知'
-}
-
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await logManagementApi.exception.page({
-      ...createPageRequest({
-        page: { pageIndex: currentPage.value, pageSize: pageSize.value },
-      }),
-      isHandled: queryParams.isHandled !== undefined ? queryParams.isHandled === 1 : undefined,
-      keyword: queryParams.keyword?.trim() || undefined,
-      severityLevel: queryParams.severityLevel,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询异常日志失败')
-  }
-  finally {
-    tableLoading.value = false
-  }
-}
-
-const tableColumns = computed<DataTableColumns<ExceptionLogListItemDto>>(() => [
-  { key: 'sessionId', title: '会话标识', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'traceId', title: '链路追踪 ID', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'requestId', title: '请求标识', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'userName', title: '用户名', minWidth: 100, ellipsis: { tooltip: true } },
-  { key: 'userId', title: '用户主键', minWidth: 80, ellipsis: { tooltip: true } },
-  { key: 'exceptionType', title: '异常类型', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'exceptionMessage', title: '异常消息', minWidth: 260, ellipsis: { tooltip: true } },
-  { key: 'exceptionSource', title: '异常源', minWidth: 140, ellipsis: { tooltip: true } },
-  { key: 'exceptionLocation', title: '异常发生位置', minWidth: 200, ellipsis: { tooltip: true } },
-  { key: 'controllerName', title: '控制器', minWidth: 140, ellipsis: { tooltip: true } },
-  { key: 'actionName', title: '动作', minWidth: 140, ellipsis: { tooltip: true } },
-  {
-    key: 'severityLevel',
-    title: '严重级别',
-    width: 90,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: severityType(row.severityLevel), bordered: false }, () => severityLabel(row.severityLevel))
-    },
-  },
-  { key: 'requestPath', title: '请求路径', minWidth: 200, ellipsis: { tooltip: true } },
-  { key: 'requestMethod', title: '请求方法', width: 90 },
-  { key: 'statusCode', title: '响应状态码', width: 100 },
-  { key: 'operationIp', title: '操作 IP', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'operationLocation', title: '操作位置', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'browser', title: '浏览器', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'os', title: '操作系统', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'deviceInfo', title: '设备信息', minWidth: 140, ellipsis: { tooltip: true } },
-  { key: 'userAgent', title: 'User-Agent', minWidth: 260, ellipsis: { tooltip: true } },
-  {
-    key: 'deviceType',
-    title: '设备类型',
-    width: 100,
-    render(row) {
-      return h('span', {}, getOptionLabel(deviceTypeOptions, row.deviceType))
-    },
-  },
-  { key: 'applicationName', title: '应用程序名称', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'applicationVersion', title: '应用程序版本', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'environmentName', title: '环境名称', minWidth: 100, ellipsis: { tooltip: true } },
-  { key: 'errorCode', title: '错误代码', minWidth: 100, ellipsis: { tooltip: true } },
-  { key: 'serverHostName', title: '服务器主机', minWidth: 140, ellipsis: { tooltip: true } },
-  { key: 'threadId', title: '线程 ID', minWidth: 90 },
-  { key: 'processId', title: '进程 ID', minWidth: 90 },
-  {
-    key: 'isHandled',
-    title: '是否已处理',
-    width: 100,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.isHandled ? 'success' : 'warning', bordered: false }, () => row.isHandled ? '已处理' : '未处理')
-    },
-  },
-  { key: 'handledRemark', title: '处理备注', minWidth: 220, ellipsis: { tooltip: true } },
-  { key: 'exceptionStackTrace', title: '异常堆栈', minWidth: 260, ellipsis: { tooltip: true } },
-  { key: 'requestParams', title: '请求参数', minWidth: 240, ellipsis: { tooltip: true } },
-  { key: 'requestBody', title: '请求体', minWidth: 240, ellipsis: { tooltip: true } },
-  { key: 'requestHeaders', title: '请求头', minWidth: 240, ellipsis: { tooltip: true } },
-  { key: 'extendData', title: '扩展数据', minWidth: 240, ellipsis: { tooltip: true } },
-  {
-    key: 'handledTime',
-    title: '处理时间',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.handledTime ? formatDate(row.handledTime) : '-')
-    },
-  },
-  { key: 'handledBy', title: '处理人主键', minWidth: 90, ellipsis: { tooltip: true } },
-  { key: 'remark', title: '备注', minWidth: 180, ellipsis: { tooltip: true } },
-  {
-    key: 'exceptionTime',
-    title: '异常时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.exceptionTime))
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 86,
-    fixed: 'right',
-    render(row) {
-      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '详情',
-        }),
-      ])
-    },
-  },
-])
-
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
-
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.isHandled = undefined
-  queryParams.severityLevel = undefined
-  currentPage.value = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
 }
 
 async function handleDetail(row: ExceptionLogListItemDto) {
@@ -290,74 +244,10 @@ async function handleDetail(row: ExceptionLogListItemDto) {
     detailLoading.value = false
   }
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="flex-shrink:0;padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <NConfigProvider size="small" abstract>
-        <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索异常类型/位置/用户"
-          style="width:220px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.severityLevel"
-          :options="severityOptions"
-          clearable
-          placeholder="严重等级"
-          style="width: 110px"
-        />
-        <NSelect
-          v-model:value="queryParams.isHandled"
-          :options="handledOptions"
-          clearable
-          placeholder="处理状态"
-          style="width: 110px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-        </div>
-      </NConfigProvider>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2400"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
-        </div>
-        <NPagination size="small" :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
       :fields="detailFields"
@@ -365,5 +255,5 @@ onMounted(() => fetchData())
       :record="detailData"
       title="异常日志详情"
     />
-  </div>
+  </SchemaPage>
 </template>
