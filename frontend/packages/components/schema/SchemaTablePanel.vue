@@ -115,7 +115,6 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
         v-if="!tree"
         :item-count="total"
         :page="page"
-        :page-count="pageCount"
         :page-size="pageSize"
         :page-sizes="pageSizes"
         show-size-picker
