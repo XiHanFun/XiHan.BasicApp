@@ -72,15 +72,15 @@ onMounted(() => {
 <template>
   <div class="pf-page">
     <NSpin :show="profileLoading && !profile">
-      <ProfileBanner
-        :profile="profile"
-        :sessions-count="devicesRef?.sessions?.length ?? 0"
-        :sessions-loaded="devicesRef?.sessionsLoaded ?? false"
-      />
-
       <div class="pf-layout">
-        <!-- 左侧导航 -->
-        <nav class="pf-nav">
+        <!-- 左侧：用户信息卡 + 导航 -->
+        <aside class="pf-aside">
+          <ProfileBanner
+            :profile="profile"
+            :sessions-count="devicesRef?.sessions?.length ?? 0"
+            :sessions-loaded="devicesRef?.sessionsLoaded ?? false"
+          />
+          <nav class="pf-nav">
           <button
             v-for="item in navItems"
             :key="item.key"
@@ -98,7 +98,8 @@ onMounted(() => {
             </span>
             <Icon class="pf-nav-arrow" icon="lucide:chevron-right" width="16" />
           </button>
-        </nav>
+          </nav>
+        </aside>
 
         <!-- 右侧内容 -->
         <section class="pf-content">
@@ -131,10 +132,17 @@ onMounted(() => {
   align-items: start;
 }
 
-/* 左侧导航 */
-.pf-nav {
+/* 左侧栏：用户卡 + 导航，整体 sticky */
+.pf-aside {
   position: sticky;
   top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 导航 */
+.pf-nav {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -231,14 +239,17 @@ onMounted(() => {
   min-width: 0;
 }
 
-/* 移动端：导航转为顶部横向 */
+/* 移动端：左栏转为顶部、导航横向 */
 @media (max-width: 860px) {
   .pf-layout {
     grid-template-columns: 1fr;
   }
 
-  .pf-nav {
+  .pf-aside {
     position: static;
+  }
+
+  .pf-nav {
     flex-direction: row;
     overflow-x: auto;
     padding: 6px;
