@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   OAuthAppCreateDto,
   OAuthAppDetailDto,
@@ -7,6 +6,7 @@ import type {
   OAuthAppSecretDto,
   OAuthAppUpdateDto,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDescriptions,
@@ -351,6 +351,7 @@ async function handleSubmit() {
         appName: appForm.value.appName.trim(),
         appType: appForm.value.appType,
         authorizationCodeLifetime: appForm.value.authorizationCodeLifetime,
+        // ClientId 为后端必填、不自动生成（领域服务对空值抛错并做唯一性校验），由前端录入；ClientSecret 留空由后端生成
         clientId: appForm.value.clientId.trim(),
         grantTypes: appForm.value.grantTypes.trim(),
         homepage: appForm.value.homepage,

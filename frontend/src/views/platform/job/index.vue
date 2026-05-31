@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   PageResult,
   TaskCreateDto,
@@ -7,6 +6,7 @@ import type {
   TaskListItemDto,
   TaskUpdateDto,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDescriptions,
@@ -42,10 +42,14 @@ interface JobFormModel {
   allowConcurrent: boolean
   basicId?: string
   cronExpression?: string | null
+  // 运行统计：非用户编辑字段，仅用于在编辑时回填原值，避免提交时被覆盖（DTO 中为必填）
+  executedCount: number
   intervalSeconds?: number | null
   maxRetryCount: number
   priority: number
   remark?: string | null
+  repeatCount: number
+  retryCount: number
   taskClass: string
   taskCode: string
   taskDescription?: string | null
@@ -354,10 +358,13 @@ function createDefaultJobForm(): JobFormModel {
   return {
     allowConcurrent: false,
     cronExpression: null,
+    executedCount: 0,
     intervalSeconds: null,
     maxRetryCount: 3,
     priority: 5,
     remark: null,
+    repeatCount: 0,
+    retryCount: 0,
     taskClass: '',
     taskCode: '',
     taskDescription: null,
@@ -390,10 +397,13 @@ async function handleEdit(row: TaskListItemDto) {
     allowConcurrent: src.allowConcurrent,
     basicId: src.basicId,
     cronExpression: src.cronExpression ?? null,
+    executedCount: src.executedCount,
     intervalSeconds: src.intervalSeconds ?? null,
     maxRetryCount: src.maxRetryCount,
     priority: src.priority,
     remark: src.remark ?? null,
+    repeatCount: src.repeatCount,
+    retryCount: src.retryCount,
     taskClass: src.taskClass ?? '',
     taskCode: src.taskCode,
     taskDescription: src.taskDescription ?? null,
@@ -434,13 +444,14 @@ async function handleSubmit() {
         allowConcurrent: jobForm.value.allowConcurrent,
         basicId: jobForm.value.basicId,
         cronExpression: jobForm.value.cronExpression,
-        executedCount: 0,
+        // 回填详情原值，避免覆盖服务端运行统计（DTO 中三者为必填）
+        executedCount: jobForm.value.executedCount,
         intervalSeconds: jobForm.value.intervalSeconds,
         maxRetryCount: jobForm.value.maxRetryCount,
         priority: jobForm.value.priority,
         remark: jobForm.value.remark,
-        repeatCount: 0,
-        retryCount: 0,
+        repeatCount: jobForm.value.repeatCount,
+        retryCount: jobForm.value.retryCount,
         taskClass: jobForm.value.taskClass.trim(),
         taskDescription: jobForm.value.taskDescription,
         taskGroup: jobForm.value.taskGroup,
@@ -456,13 +467,14 @@ async function handleSubmit() {
       const createInput: TaskCreateDto = {
         allowConcurrent: jobForm.value.allowConcurrent,
         cronExpression: jobForm.value.cronExpression,
-        executedCount: 0,
+        // 新增时运行统计初值为 0（来自 createDefaultJobForm）
+        executedCount: jobForm.value.executedCount,
         intervalSeconds: jobForm.value.intervalSeconds,
         maxRetryCount: jobForm.value.maxRetryCount,
         priority: jobForm.value.priority,
         remark: jobForm.value.remark,
-        repeatCount: 0,
-        retryCount: 0,
+        repeatCount: jobForm.value.repeatCount,
+        retryCount: jobForm.value.retryCount,
         runTaskStatus: RunTaskStatus.Pending,
         status: EnableStatus.Enabled,
         taskClass: jobForm.value.taskClass.trim(),
