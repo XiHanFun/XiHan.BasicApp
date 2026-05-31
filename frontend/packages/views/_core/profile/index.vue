@@ -7,9 +7,11 @@ import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import ProfileBanner from './ProfileBanner.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
+import ProfileTabDevices from './ProfileTabDevices.vue'
 import ProfileTabInfo from './ProfileTabInfo.vue'
 import ProfileTabNotifications from './ProfileTabNotifications.vue'
 import ProfileTabSecurity from './ProfileTabSecurity.vue'
+import ProfileTabStats from './ProfileTabStats.vue'
 
 defineOptions({ name: 'ProfilePage' })
 
@@ -25,11 +27,13 @@ const { apis } = useAppContext()
 const activeTab = ref('profile')
 const profileLoading = ref(false)
 const profile = ref<UserProfile | null>(null)
-const securityRef = ref<InstanceType<typeof ProfileTabSecurity> | null>(null)
+const devicesRef = ref<InstanceType<typeof ProfileTabDevices> | null>(null)
 
 const navItems: ProfileNavItem[] = [
   { key: 'profile', label: '个人资料', desc: '头像、昵称与联系方式', icon: 'lucide:contact' },
-  { key: 'security', label: '安全设置', desc: '密码、两步验证与会话', icon: 'lucide:shield-check' },
+  { key: 'security', label: '安全设置', desc: '密码、两步验证与账号', icon: 'lucide:shield-check' },
+  { key: 'devices', label: '登录设备', desc: '在线会话与设备管理', icon: 'lucide:monitor-smartphone' },
+  { key: 'stats', label: '数据统计', desc: '登录、访问与活跃度', icon: 'lucide:bar-chart-3' },
   { key: 'notifications', label: '通知偏好', desc: '消息渠道与提醒', icon: 'lucide:bell-ring' },
   { key: 'developer', label: '开发者设置', desc: '令牌与第三方接入', icon: 'lucide:code-2' },
 ]
@@ -38,6 +42,8 @@ const navItems: ProfileNavItem[] = [
 const tabComponents: Record<string, Component> = {
   profile: markRaw(ProfileTabInfo),
   security: markRaw(ProfileTabSecurity),
+  devices: markRaw(ProfileTabDevices),
+  stats: markRaw(ProfileTabStats),
   notifications: markRaw(ProfileTabNotifications),
   developer: markRaw(ProfileTabDeveloper),
 }
@@ -68,8 +74,8 @@ onMounted(() => {
     <NSpin :show="profileLoading && !profile">
       <ProfileBanner
         :profile="profile"
-        :sessions-count="securityRef?.sessions?.length ?? 0"
-        :sessions-loaded="securityRef?.sessionsLoaded ?? false"
+        :sessions-count="devicesRef?.sessions?.length ?? 0"
+        :sessions-loaded="devicesRef?.sessionsLoaded ?? false"
       />
 
       <div class="pf-layout">
@@ -100,7 +106,7 @@ onMounted(() => {
             <component
               :is="activeComponent"
               v-bind="activeTab === 'profile' || activeTab === 'security' ? { profile } : {}"
-              :ref="activeTab === 'security' ? (el: any) => (securityRef = el) : undefined"
+              :ref="activeTab === 'devices' ? (el: any) => (devicesRef = el) : undefined"
               @saved="loadProfile"
               @updated="loadProfile"
             />
