@@ -42,6 +42,8 @@ public sealed class ProfileQueryService
 
     private readonly IUserStatisticsRepository _userStatisticsRepository;
 
+    private readonly IUserPreferenceRepository _userPreferenceRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -51,8 +53,10 @@ public sealed class ProfileQueryService
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
         IUserStatisticsRepository userStatisticsRepository,
+        IUserPreferenceRepository userPreferenceRepository,
         ISqlSugarClientResolver clientResolver)
     {
+        _userPreferenceRepository = userPreferenceRepository;
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
         _userSessionRepository = userSessionRepository;
@@ -246,6 +250,42 @@ public sealed class ProfileQueryService
             AccessCount = stats.AccessCount,
             OperationCount = stats.OperationCount,
             OnlineTime = stats.OnlineTime
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        // 无记录时返回默认偏好（不落库，写入时再惰性创建）
+        return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
+    }
+
+    /// <summary>
+    /// 偏好实体 → DTO
+    /// </summary>
+    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserPreference preference)
+    {
+        ArgumentNullException.ThrowIfNull(preference);
+
+        return new ProfileNotificationPreferenceDto
+        {
+            ChannelInApp = preference.ChannelInApp,
+            ChannelEmail = preference.ChannelEmail,
+            ChannelSms = preference.ChannelSms,
+            ChannelPush = preference.ChannelPush,
+            TypeAnnouncement = preference.TypeAnnouncement,
+            TypeTask = preference.TypeTask,
+            TypeApproval = preference.TypeApproval,
+            TypeSecurity = preference.TypeSecurity,
+            TypeMarketing = preference.TypeMarketing
         };
     }
 

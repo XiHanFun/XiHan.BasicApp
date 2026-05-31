@@ -1,50 +1,148 @@
 <script lang="ts" setup>
-import { NAlert, NCard, NSwitch, NTag } from 'naive-ui'
-import { ref } from 'vue'
+import type { NotificationPreference } from '~/types'
+import { NButton, NCard, NSpin, NSwitch, NTag, useMessage } from 'naive-ui'
+import { onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 
-interface NotifyChannel { key: string, label: string, desc: string, icon: string, enabled: boolean, marketing?: boolean }
+defineOptions({ name: 'ProfileTabNotifications' })
 
-const notifyChannels = ref<NotifyChannel[]>([
-  { key: 'email_security', label: '安全警报邮件', desc: '登录异常、密码修改等安全事件通知', icon: 'lucide:shield-alert', enabled: true },
-  { key: 'email_system', label: '系统通知邮件', desc: '账户变更、服务状态等系统消息', icon: 'lucide:mail', enabled: true },
-  { key: 'sms_security', label: '安全短信通知', desc: '异地登录、高危操作短信提醒', icon: 'lucide:smartphone', enabled: false },
-  { key: 'sms_system', label: '系统短信通知', desc: '重要系统公告短信推送', icon: 'lucide:message-square', enabled: false },
-  { key: 'in_app', label: '站内消息', desc: '系统内消息中心通知', icon: 'lucide:bell', enabled: true },
-  { key: 'email_marketing', label: '营销与推广', desc: '产品更新、优惠活动等推广信息', icon: 'lucide:megaphone', enabled: false, marketing: true },
-])
+const { apis } = useAppContext()
+const message = useMessage()
+
+const loading = ref(false)
+const saving = ref(false)
+const pref = ref<NotificationPreference>({
+  channelInApp: true,
+  channelEmail: true,
+  channelSms: false,
+  channelPush: true,
+  typeAnnouncement: true,
+  typeTask: true,
+  typeApproval: true,
+  typeSecurity: true,
+  typeMarketing: false,
+})
+
+interface PrefItem {
+  key: keyof NotificationPreference
+  label: string
+  desc: string
+  icon: string
+  marketing?: boolean
+}
+
+const channels: PrefItem[] = [
+  { key: 'channelInApp', label: '站内信', desc: '系统内消息中心通知', icon: 'lucide:bell' },
+  { key: 'channelEmail', label: '邮箱通知', desc: '通过邮件接收重要消息', icon: 'lucide:mail' },
+  { key: 'channelSms', label: '短信通知', desc: '通过短信接收高优先级提醒', icon: 'lucide:smartphone' },
+  { key: 'channelPush', label: '推送通知', desc: '浏览器/客户端实时推送', icon: 'lucide:radio' },
+]
+
+const types: PrefItem[] = [
+  { key: 'typeAnnouncement', label: '系统公告', desc: '平台维护、版本更新等公告', icon: 'lucide:megaphone' },
+  { key: 'typeTask', label: '任务提醒', desc: '待办任务与到期提醒', icon: 'lucide:check-square' },
+  { key: 'typeApproval', label: '审批通知', desc: '审批待办与结果通知', icon: 'lucide:file-check' },
+  { key: 'typeSecurity', label: '安全告警', desc: '异常登录、密码变更等安全事件', icon: 'lucide:shield-alert' },
+  { key: 'typeMarketing', label: '营销消息', desc: '产品推广与优惠活动（可随时关闭）', icon: 'lucide:gift', marketing: true },
+]
+
+async function loadPreference() {
+  loading.value = true
+  try {
+    pref.value = await apis.getNotificationPreferenceApi()
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '加载通知偏好失败')
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+async function savePreference() {
+  saving.value = true
+  try {
+    pref.value = await apis.updateNotificationPreferenceApi(pref.value)
+    message.success('通知偏好已保存')
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '保存失败')
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+onMounted(loadPreference)
 </script>
 
 <template>
   <div class="pf-tab-body">
-    <NAlert type="info" :bordered="false">
-      通知偏好设置将在后端接口就绪后生效。营销类通知您可随时关闭（GDPR 合规）。
-    </NAlert>
-    <NCard :bordered="false" size="small" class="pf-card">
-      <template #header>
-        <div class="pf-card-header">
-          <Icon icon="lucide:bell-ring" width="16" /><span>通知渠道</span>
-        </div>
-      </template>
-      <div class="pf-list">
-        <div v-for="ch in notifyChannels" :key="ch.key" class="pf-list-item">
-          <div class="pf-list-icon">
-            <Icon :icon="ch.icon" width="16" />
+    <NSpin :show="loading">
+      <NCard :bordered="false" size="small" class="pf-card">
+        <template #header>
+          <div class="pf-card-header">
+            <Icon icon="lucide:send" width="16" /><span>接收渠道</span>
           </div>
-          <div class="pf-list-body">
-            <div class="pf-list-title">
-              {{ ch.label }} <NTag v-if="ch.marketing" size="tiny" :bordered="false">
-                营销
-              </NTag>
+        </template>
+        <div class="pf-list">
+          <div v-for="ch in channels" :key="ch.key" class="pf-list-item">
+            <div class="pf-list-icon">
+              <Icon :icon="ch.icon" width="16" />
             </div>
-            <div class="pf-list-desc">
-              {{ ch.desc }}
+            <div class="pf-list-body">
+              <div class="pf-list-title">
+                {{ ch.label }}
+              </div>
+              <div class="pf-list-desc">
+                {{ ch.desc }}
+              </div>
             </div>
+            <NSwitch v-model:value="pref[ch.key]" />
           </div>
-          <NSwitch v-model:value="ch.enabled" />
         </div>
+      </NCard>
+
+      <NCard :bordered="false" size="small" class="pf-card">
+        <template #header>
+          <div class="pf-card-header">
+            <Icon icon="lucide:bell-ring" width="16" /><span>通知类型</span>
+          </div>
+        </template>
+        <div class="pf-list">
+          <div v-for="t in types" :key="t.key" class="pf-list-item">
+            <div class="pf-list-icon">
+              <Icon :icon="t.icon" width="16" />
+            </div>
+            <div class="pf-list-body">
+              <div class="pf-list-title">
+                {{ t.label }}
+                <NTag v-if="t.marketing" size="tiny" :bordered="false">
+                  营销
+                </NTag>
+              </div>
+              <div class="pf-list-desc">
+                {{ t.desc }}
+              </div>
+            </div>
+            <NSwitch v-model:value="pref[t.key]" />
+          </div>
+        </div>
+      </NCard>
+
+      <div class="pf-card-actions">
+        <NButton @click="loadPreference">
+          重置
+        </NButton>
+        <NButton type="primary" :loading="saving" @click="savePreference">
+          <template #icon>
+            <Icon icon="lucide:save" width="16" />
+          </template>
+          保存偏好
+        </NButton>
       </div>
-    </NCard>
+    </NSpin>
   </div>
 </template>
 

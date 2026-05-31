@@ -146,4 +146,14 @@ public interface IProfileAppService : IApplicationService
     /// 注销当前账号
     /// </summary>
     Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户通知偏好
+    /// </summary>
+    Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新当前用户通知偏好
+    /// </summary>
+    Task<ProfileNotificationPreferenceDto> UpdateNotificationPreferenceAsync(ProfileNotificationPreferenceDto input, CancellationToken cancellationToken = default);
 }

@@ -818,6 +818,48 @@ onMounted(() => {
         </NCard>
       </NGridItem>
 
+      <!-- 安全状态 -->
+      <NGridItem :span="2">
+        <NCard :bordered="false" size="small" class="pf-card">
+          <template #header>
+            <div class="pf-card-header">
+              <Icon icon="lucide:shield-alert" width="16" />
+              <span>安全状态</span>
+            </div>
+          </template>
+          <div class="pf-sec-status">
+            <div class="pf-sec-status__item">
+              <span class="pf-sec-status__label">账号锁定</span>
+              <NTag :type="profile?.isLocked ? 'error' : 'success'" size="small" :bordered="false">
+                {{ profile?.isLocked ? '已锁定' : '正常' }}
+              </NTag>
+            </div>
+            <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-sec-status__item">
+              <span class="pf-sec-status__label">锁定结束</span>
+              <span class="pf-sec-status__value">{{ formatDate(profile.lockoutEndTime) }}</span>
+            </div>
+            <div class="pf-sec-status__item">
+              <span class="pf-sec-status__label">连续失败登录</span>
+              <span class="pf-sec-status__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
+                {{ profile?.failedLoginAttempts ?? 0 }} 次
+              </span>
+            </div>
+            <div v-if="profile?.lastFailedLoginTime" class="pf-sec-status__item">
+              <span class="pf-sec-status__label">最后失败登录</span>
+              <span class="pf-sec-status__value">{{ formatDate(profile.lastFailedLoginTime) }}</span>
+            </div>
+            <div class="pf-sec-status__item">
+              <span class="pf-sec-status__label">最后修改密码</span>
+              <span class="pf-sec-status__value">{{ profile?.lastPasswordChangeTime ? formatDate(profile.lastPasswordChangeTime) : '—' }}</span>
+            </div>
+            <div class="pf-sec-status__item">
+              <span class="pf-sec-status__label">最后修改用户名</span>
+              <span class="pf-sec-status__value">{{ profile?.lastUserNameChangeTime ? formatDate(profile.lastUserNameChangeTime) : '—' }}</span>
+            </div>
+          </div>
+        </NCard>
+      </NGridItem>
+
       <!-- 账号管理 -->
       <NGridItem :span="2">
         <NCard :bordered="false" size="small" class="pf-card">
@@ -964,6 +1006,39 @@ onMounted(() => {
 @media (max-width: 900px) {
   .pf-2fa-setup {
     flex-direction: column;
+  }
+}
+
+/* 安全状态网格 */
+.pf-sec-status {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 24px;
+}
+
+.pf-sec-status__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pf-sec-status__label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pf-sec-status__value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .pf-sec-status {
+    grid-template-columns: 1fr;
   }
 }
 </style>
