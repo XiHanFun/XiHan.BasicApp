@@ -2,7 +2,7 @@
 import type { DataTableColumn, DropdownOption } from 'naive-ui'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip } from 'naive-ui'
-import { computed, h, onMounted, ref, useSlots } from 'vue'
+import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import SchemaActionPanel from './SchemaActionPanel.vue'
@@ -34,7 +34,6 @@ const emit = defineEmits<{
 }>()
 
 const { hasPermission } = usePermission()
-const slots = useSlots()
 
 const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
@@ -112,14 +111,6 @@ const rowActions = computed(() =>
 const batchActions = computed(() =>
   (props.schema.actions ?? []).filter(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission))),
 )
-
-/** 页面级操作（有权限） */
-const pageActions = computed(() =>
-  (props.schema.actions ?? []).filter(a => a.scope === 'page' && (!a.permission || hasPermission(a.permission))),
-)
-
-/** 工具栏卡片是否渲染：仅在有页面操作或页面自定义工具栏时显示 */
-const hasToolbar = computed(() => pageActions.value.length > 0 || !!slots.toolbar)
 
 /** 选中的行对象 */
 const selectedRows = computed(() => {
@@ -241,12 +232,42 @@ defineExpose({
       </SchemaSearchPanel>
     </NCard>
 
-    <!-- 操作工具栏：独立容器，仅承载页面级操作按钮（无操作时不渲染） -->
-    <NCard v-if="hasToolbar" size="small" :content-style="{ padding: '8px 16px' }">
+    <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/列设置/全屏） -->
+    <NCard size="small" :content-style="{ padding: '8px 16px' }">
       <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
         <template #toolbar>
           <!-- 页面自定义工具栏项 -->
           <slot name="toolbar" :reload="reload" />
+          <!-- 内置工具：刷新 / 列设置 / 全屏 -->
+          <NTooltip>
+            <template #trigger>
+              <NButton circle quaternary size="small" aria-label="刷新" @click="reload">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            刷新
+          </NTooltip>
+          <SchemaTableSettings
+            :columns="settings.columns.value"
+            :density="settings.density.value"
+            @move="settings.move"
+            @reset="settings.resetDefault"
+            @set-density="settings.setDensity"
+            @set-fixed="settings.setFixed"
+            @toggle-visible="settings.toggleVisible"
+          />
+          <NTooltip>
+            <template #trigger>
+              <NButton circle quaternary size="small" aria-label="全屏" @click="toggleFullscreen">
+                <template #icon>
+                  <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            {{ isFullscreen ? '退出全屏' : '全屏' }}
+          </NTooltip>
         </template>
       </SchemaActionPanel>
     </NCard>
@@ -288,40 +309,7 @@ defineExpose({
           @sort="changeSort"
           @update:page="changePage"
           @update:page-size="changePageSize"
-        >
-          <template #footer-left>
-            <!-- 内置工具：刷新 / 列设置 / 全屏 -->
-            <NTooltip>
-              <template #trigger>
-                <NButton circle quaternary size="small" aria-label="刷新" @click="reload">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              刷新
-            </NTooltip>
-            <SchemaTableSettings
-              :columns="settings.columns.value"
-              :density="settings.density.value"
-              @move="settings.move"
-              @reset="settings.resetDefault"
-              @set-density="settings.setDensity"
-              @set-fixed="settings.setFixed"
-              @toggle-visible="settings.toggleVisible"
-            />
-            <NTooltip>
-              <template #trigger>
-                <NButton circle quaternary size="small" aria-label="全屏" @click="toggleFullscreen">
-                  <template #icon>
-                    <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              {{ isFullscreen ? '退出全屏' : '全屏' }}
-            </NTooltip>
-          </template>
-        </SchemaTablePanel>
+        />
       </template>
     </NCard>
 

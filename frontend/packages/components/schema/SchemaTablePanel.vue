@@ -88,9 +88,9 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
       @update:sorter="onSort"
     />
     <div class="flex gap-3 items-center justify-between">
-      <!-- 底部左侧：内置工具按钮（刷新/列设置/全屏）插槽 -->
-      <div class="flex gap-1 items-center">
-        <slot name="footer-left" />
+      <!-- 底部左侧：数据量与页码提示 -->
+      <div class="xh-table__count">
+        共 {{ total }} 条，第 {{ page }} / {{ pageCount }} 页
       </div>
       <NPagination
         :item-count="total"
@@ -105,3 +105,11 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.xh-table__count {
+  font-size: 13px;
+  color: var(--n-text-color-3, rgb(148 163 184));
+  white-space: nowrap;
+}
+</style>
