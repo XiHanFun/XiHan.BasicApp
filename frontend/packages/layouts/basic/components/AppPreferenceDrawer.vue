@@ -55,7 +55,7 @@ const showFloatingFab = computed(() => {
     || isFullContentLayout.value
   )
 })
-const { animateThemeTransition, followSystem } = useTheme()
+const { animateThemeTransition } = useTheme()
 
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
@@ -147,10 +147,7 @@ function handleOpenPreferenceDrawer() {
 }
 
 function handleThemeModeChange(value: 'light' | 'dark' | 'auto') {
-  if (value === 'auto') {
-    followSystem()
-    return
-  }
+  // 三种模式统一走扩散动画：auto 由 animateThemeTransition 内部按系统主题决定方向并落地为跟随系统
   animateThemeTransition(value)
 }
 
