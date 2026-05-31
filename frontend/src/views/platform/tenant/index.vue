@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   ApiId,
+  PageResult,
   TenantCreateDto,
   TenantDetailDto,
   TenantListItemDto,
@@ -10,10 +10,9 @@ import type {
   TenantMemberUpdateDto,
   TenantUpdateDto,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NDatePicker,
   NDescriptions,
   NDescriptionsItem,
@@ -26,7 +25,6 @@ import {
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
   NScrollbar,
   NSelect,
   NSpace,
@@ -34,22 +32,21 @@ import {
   NTabPane,
   NTabs,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
   TenantConfigStatus,
   TenantIsolationMode,
+  tenantManagementApi,
   TenantMemberInviteStatus,
   TenantMemberType,
-  tenantManagementApi,
   TenantStatus,
   ValidityStatus,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import {
   MEMBER_INVITE_STATUS_OPTIONS,
   MEMBER_TYPE_OPTIONS,
@@ -68,24 +65,35 @@ interface TenantFormModel extends TenantCreateDto {
 }
 
 const message = useMessage()
+
+const tenantStatusOptions = TENANT_STATUS_OPTIONS
+const configStatusOptions = TENANT_CONFIG_STATUS_OPTIONS
+const isolationModeOptions = TENANT_ISOLATION_MODE_OPTIONS
+const memberTypeOptions = MEMBER_TYPE_OPTIONS
+const inviteStatusOptions = MEMBER_INVITE_STATUS_OPTIONS
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
+
+const expiredOptions = [
+  { label: '是', value: 1 },
+  { label: '否', value: 0 },
+]
+
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadTenant() {
+  void schemaPageRef.value?.reload()
+}
+
+// ── 弹窗/表单状态(保留全部增删改) ───────────────────────────────
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<TenantStatus | null>(null)
 const tenantForm = ref<TenantFormModel>(createDefaultForm())
+const modalTitle = computed(() => (tenantForm.value.basicId ? '编辑租户' : '新增租户'))
+
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<TenantDetailDto | null>(null)
-const tableLoading = ref(false)
-const dataList = ref<TenantListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
-
-const memberTypeOptions = MEMBER_TYPE_OPTIONS
-
-const inviteStatusOptions = MEMBER_INVITE_STATUS_OPTIONS
-
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 
 const memberLoading = ref(false)
 const memberError = ref(false)
@@ -99,24 +107,148 @@ const memberStatusLoading = ref(false)
 const editingMemberStatusId = ref<ApiId | null>(null)
 const editingMemberStatus = ref<ValidityStatus>(ValidityStatus.Valid)
 
-const queryParams = reactive({
-  configStatus: undefined as TenantConfigStatus | undefined,
-  editionId: undefined as ApiId | null | undefined,
-  expireTimeEnd: null as string | null,
-  expireTimeStart: null as string | null,
-  keyword: '',
-  tenantStatus: undefined as TenantStatus | undefined,
-})
+function getTenantStatusTagType(status: TenantStatus) {
+  if (status === TenantStatus.Normal) {
+    return 'success'
+  }
+  if (status === TenantStatus.Disabled) {
+    return 'error'
+  }
+  return 'warning'
+}
 
-const tenantStatusOptions = TENANT_STATUS_OPTIONS
+// ── 字段单一事实源:列 + 常用搜索 + 高级搜索 ─────────────────────
+const fields: ListFieldSchema[] = [
+  // 仅搜索(不作为列)
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索租户名称/编码/域名', width: 250, order: 0 },
+  // 常用搜索 + 列
+  {
+    key: 'tenantName',
+    title: '租户名称',
+    dataType: 'string',
+    sortable: true,
+    minWidth: 160,
+    order: 1,
+  },
+  { key: 'tenantCode', title: '租户编码', dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'tenantShortName', title: '简称', dataType: 'string', minWidth: 130, order: 3 },
+  { key: 'domain', title: '域名', dataType: 'string', minWidth: 180, order: 4 },
+  {
+    key: 'isolationMode',
+    title: '隔离模式',
+    dataType: 'enum',
+    options: isolationModeOptions,
+    minWidth: 120,
+    order: 5,
+  },
+  { key: 'editionId', title: '版本', dataType: 'string', minWidth: 100, order: 6 },
+  {
+    key: 'tenantStatus',
+    title: '租户状态',
+    dataType: 'enum',
+    searchable: true,
+    options: tenantStatusOptions,
+    searchPlaceholder: '租户状态',
+    width: 100,
+    order: 7,
+    render: (row) => {
+      const r = row as unknown as TenantListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: getTenantStatusTagType(r.tenantStatus) }, () => getOptionLabel(tenantStatusOptions, r.tenantStatus))
+    },
+  },
+  {
+    key: 'configStatus',
+    title: '配置状态',
+    dataType: 'enum',
+    searchable: true,
+    options: configStatusOptions,
+    searchPlaceholder: '配置状态',
+    minWidth: 110,
+    order: 8,
+  },
+  {
+    key: 'isExpired',
+    title: '过期',
+    dataType: 'boolean',
+    options: expiredOptions,
+    width: 82,
+    order: 9,
+    render: (row) => {
+      const r = row as unknown as TenantListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isExpired ? 'error' : 'success' }, () => (r.isExpired ? '是' : '否'))
+    },
+  },
+  { key: 'userLimit', title: '用户上限', dataType: 'number', minWidth: 100, order: 10 },
+  { key: 'storageLimit', title: '存储上限', dataType: 'number', minWidth: 120, order: 11 },
+  { key: 'sort', title: '排序', dataType: 'number', sortable: true, minWidth: 80, order: 12 },
+  { key: 'expireTime', title: '到期时间', dataType: 'datetime', minWidth: 170, order: 13 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
+  // 仅高级搜索(不作为列)
+  { key: 'editionIdFilter', title: '版本 ID', dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: '版本 ID', order: 20 },
+  { key: 'expireTimeStart', title: '到期开始', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期开始', order: 21 },
+  { key: 'expireTimeEnd', title: '到期结束', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期结束', order: 22 },
+]
 
-const configStatusOptions = TENANT_CONFIG_STATUS_OPTIONS
+/** 过滤值辅助:trim 字符串 / 时间戳转 yyyy-MM-dd */
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+function toDate(v: unknown): string | null {
+  if (v == null || v === '') {
+    return null
+  }
+  if (typeof v === 'number') {
+    return formatDate(new Date(v).toISOString(), 'YYYY-MM-DD')
+  }
+  return String(v)
+}
 
-const isolationModeOptions = TENANT_ISOLATION_MODE_OPTIONS
+const schema: PageSchema = {
+  pageCode: 'platform.tenant',
+  pageName: '租户管理',
+  rowKey: 'basicId',
+  scrollX: 2000,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return tenantManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword) ?? null,
+        tenantStatus: (f.tenantStatus as TenantStatus | undefined) ?? undefined,
+        configStatus: (f.configStatus as TenantConfigStatus | undefined) ?? undefined,
+        editionId: toStr(f.editionIdFilter) ?? null,
+        expireTimeStart: toDate(f.expireTimeStart),
+        expireTimeEnd: toDate(f.expireTimeEnd),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+  },
+  actions: [
+    { key: 'create', title: '新增租户', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: '编辑', scope: 'row' },
+  ],
+}
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
-
-const modalTitle = computed(() => (tenantForm.value.basicId ? '编辑租户' : '新增租户'))
+// ── 行/页面操作分发 ─────────────────────────────────────────────
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as TenantListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'view':
+      if (row) {
+        void handleView(row)
+      }
+      break
+    case 'edit':
+      if (row) {
+        handleEdit(row)
+      }
+      break
+  }
+}
 
 function createDefaultForm(): TenantFormModel {
   return {
@@ -141,156 +273,19 @@ function normalizeNullable(value?: string | null) {
   return normalized || null
 }
 
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await tenantManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: currentPage.value,
-          pageSize: pageSize.value,
-        },
-      }),
-      configStatus: queryParams.configStatus,
-      editionId: queryParams.editionId ?? null,
-      expireTimeEnd: queryParams.expireTimeEnd,
-      expireTimeStart: queryParams.expireTimeStart,
-      keyword: normalizeNullable(queryParams.keyword),
-      tenantStatus: queryParams.tenantStatus,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询租户失败')
-    dataList.value = []
-    totalCount.value = 0
-  }
-  finally {
-    tableLoading.value = false
-  }
+function formatNullable(value: unknown) {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
 }
 
-const tableColumns = computed<DataTableColumns<TenantListItemDto>>(() => [
-  { key: 'tenantName', title: '租户名称', minWidth: 160, ellipsis: { tooltip: true }, sorter: true },
-  { key: 'tenantCode', title: '租户编码', minWidth: 150, ellipsis: { tooltip: true } },
-  { key: 'tenantShortName', title: '简称', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'domain', title: '域名', minWidth: 180, ellipsis: { tooltip: true } },
-  {
-    key: 'isolationMode',
-    title: '隔离模式',
-    minWidth: 120,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(isolationModeOptions, row.isolationMode))
-    },
-  },
-  { key: 'editionId', title: '版本', minWidth: 100 },
-  {
-    key: 'tenantStatus',
-    title: '租户状态',
-    width: 100,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: getTenantStatusTagType(row.tenantStatus), bordered: false }, () => getOptionLabel(tenantStatusOptions, row.tenantStatus))
-    },
-  },
-  {
-    key: 'configStatus',
-    title: '配置状态',
-    minWidth: 110,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(configStatusOptions, row.configStatus))
-    },
-  },
-  {
-    key: 'isExpired',
-    title: '过期',
-    width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.isExpired ? 'error' : 'success', bordered: false }, () => row.isExpired ? '是' : '否')
-    },
-  },
-  { key: 'userLimit', title: '用户上限', minWidth: 100 },
-  { key: 'storageLimit', title: '存储上限', minWidth: 120 },
-  { key: 'sort', title: '排序', minWidth: 80, sorter: true },
-  {
-    key: 'expireTime',
-    title: '到期时间',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.expireTime ? formatDate(row.expireTime) : '-')
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 106,
-    render(row) {
-      return h(NSpace, { size: 'small' }, () => [
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
-            }),
-          default: () => '查看详情',
-        }),
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })),
-            }),
-          default: () => '编辑',
-        }),
-      ])
-    },
-  },
-])
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
+}
 
-function getTenantStatusTagType(status: TenantStatus) {
-  if (status === TenantStatus.Normal) {
-    return 'success'
+function formatBoolean(value?: boolean | null) {
+  if (value === undefined || value === null) {
+    return '-'
   }
-
-  if (status === TenantStatus.Disabled) {
-    return 'error'
-  }
-
-  return 'warning'
-}
-
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.tenantStatus = undefined
-  queryParams.configStatus = undefined
-  queryParams.editionId = undefined
-  queryParams.expireTimeStart = null
-  queryParams.expireTimeEnd = null
-  currentPage.value = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
+  return value ? '是' : '否'
 }
 
 function handleAdd() {
@@ -341,7 +336,9 @@ async function handleView(row: TenantListItemDto) {
 }
 
 async function loadMembers() {
-  if (!currentDetail.value) return
+  if (!currentDetail.value) {
+    return
+  }
   memberLoading.value = true
   memberError.value = false
   try {
@@ -378,7 +375,9 @@ function handleEditMember(row: TenantMemberListItemDto) {
 }
 
 async function handleSaveMember() {
-  if (!editingMember.value || !editingMemberId.value) return
+  if (!editingMember.value || !editingMemberId.value) {
+    return
+  }
   memberEditLoading.value = true
   try {
     await tenantManagementApi.members.update(editingMember.value)
@@ -401,7 +400,9 @@ function handleChangeMemberStatus(row: TenantMemberListItemDto) {
 }
 
 async function handleSaveMemberStatus() {
-  if (!editingMemberStatusId.value) return
+  if (!editingMemberStatusId.value) {
+    return
+  }
   memberStatusLoading.value = true
   try {
     const input: TenantMemberStatusUpdateDto = {
@@ -422,24 +423,19 @@ async function handleSaveMemberStatus() {
 }
 
 function getInviteStatusTagType(status: TenantMemberInviteStatus) {
-  if (status === TenantMemberInviteStatus.Accepted) return 'success'
-  if (status === TenantMemberInviteStatus.Pending) return 'info'
-  if (status === TenantMemberInviteStatus.Rejected) return 'error'
-  if (status === TenantMemberInviteStatus.Revoked) return 'warning'
+  if (status === TenantMemberInviteStatus.Accepted) {
+    return 'success'
+  }
+  if (status === TenantMemberInviteStatus.Pending) {
+    return 'info'
+  }
+  if (status === TenantMemberInviteStatus.Rejected) {
+    return 'error'
+  }
+  if (status === TenantMemberInviteStatus.Revoked) {
+    return 'warning'
+  }
   return 'default'
-}
-
-function formatNullable(value: unknown) {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
-}
-
-function formatNullableDate(value?: string | null) {
-  return value ? formatDate(value) : '-'
-}
-
-function formatBoolean(value?: boolean | null) {
-  if (value === undefined || value === null) return '-'
-  return value ? '是' : '否'
 }
 
 function validateForm() {
@@ -447,12 +443,10 @@ function validateForm() {
     message.warning('请输入租户名称')
     return false
   }
-
   if (!tenantForm.value.basicId && !tenantForm.value.tenantCode.trim()) {
     message.warning('请输入租户编码')
     return false
   }
-
   return true
 }
 
@@ -510,7 +504,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    fetchData()
+    reloadTenant()
   }
   catch {
     message.error('保存失败')
@@ -519,100 +513,14 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索租户名称/编码/域名"
-          style="width: 250px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.tenantStatus"
-          :options="tenantStatusOptions"
-          clearable
-          placeholder="租户状态"
-          style="width: 120px"
-        />
-        <NSelect
-          v-model:value="queryParams.configStatus"
-          :options="configStatusOptions"
-          clearable
-          placeholder="配置状态"
-          style="width: 120px"
-        />
-        <NInput
-          v-model:value="queryParams.editionId"
-          clearable
-          placeholder="版本 ID"
-          style="width: 120px"
-        />
-        <NDatePicker
-          v-model:formatted-value="queryParams.expireTimeStart"
-          clearable
-          placeholder="到期开始"
-          style="width: 160px"
-          type="date"
-          value-format="yyyy-MM-dd"
-        />
-        <NDatePicker
-          v-model:formatted-value="queryParams.expireTimeEnd"
-          clearable
-          placeholder="到期结束"
-          style="width: 160px"
-          type="date"
-          value-format="yyyy-MM-dd"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <div style="padding:10px 16px;flex-shrink:0;">
-        <NButton size="small" type="primary" @click="handleAdd">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" /></NIcon>
-          </template>
-          新增租户
-        </NButton>
-      </div>
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
     <NDrawer v-model:show="detailVisible" :width="800">
       <NDrawerContent closable title="租户详情">
         <NSpin :show="detailLoading">
@@ -682,7 +590,9 @@ onMounted(() => fetchData())
                   <div v-if="memberError" class="xh-detail-empty">
                     <NEmpty description="加载成员失败">
                       <template #extra>
-                        <NButton size="small" @click="loadMembers">重试</NButton>
+                        <NButton size="small" @click="loadMembers">
+                          重试
+                        </NButton>
                       </template>
                     </NEmpty>
                   </div>
@@ -721,8 +631,12 @@ onMounted(() => fetchData())
                         <td>{{ formatNullableDate(item.createdTime) }}</td>
                         <td>
                           <NSpace size="small">
-                            <NButton size="tiny" @click="handleEditMember(item)">编辑资料</NButton>
-                            <NButton size="tiny" type="warning" @click="handleChangeMemberStatus(item)">变更状态</NButton>
+                            <NButton size="tiny" @click="handleEditMember(item)">
+                              编辑资料
+                            </NButton>
+                            <NButton size="tiny" type="warning" @click="handleChangeMemberStatus(item)">
+                              变更状态
+                            </NButton>
                           </NSpace>
                         </td>
                       </tr>
@@ -887,8 +801,12 @@ onMounted(() => fetchData())
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="memberEditVisible = false">取消</NButton>
-          <NButton :loading="memberEditLoading" type="primary" @click="handleSaveMember">保存</NButton>
+          <NButton @click="memberEditVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="memberEditLoading" type="primary" @click="handleSaveMember">
+            保存
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -909,12 +827,16 @@ onMounted(() => fetchData())
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="memberStatusVisible = false">取消</NButton>
-          <NButton :loading="memberStatusLoading" type="primary" @click="handleSaveMemberStatus">保存</NButton>
+          <NButton @click="memberStatusVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="memberStatusLoading" type="primary" @click="handleSaveMemberStatus">
+            保存
+          </NButton>
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>

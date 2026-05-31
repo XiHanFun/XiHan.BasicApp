@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { RoleCreateDto, RoleListItemDto, RoleManagementDetailDto, RoleUpdateDto } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type {
+  PageResult,
+  RoleCreateDto,
+  RoleListItemDto,
+  RoleManagementDetailDto,
+  RoleUpdateDto,
+  ValidityStatus,
+} from '@/api'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -16,8 +21,6 @@ import {
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
-  NPopconfirm,
   NScrollbar,
   NSelect,
   NSpace,
@@ -25,19 +28,17 @@ import {
   NTabPane,
   NTabs,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import {
   createPageRequest,
   DataPermissionScope,
   EnableStatus,
   roleManagementApi,
   RoleType,
-  ValidityStatus,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import {
   DATA_SCOPE_OPTIONS,
   PERMISSION_ACTION_OPTIONS,
@@ -55,38 +56,169 @@ interface RoleFormModel extends RoleCreateDto {
 
 const message = useMessage()
 
-const tableLoading = ref(false)
-const dataList = ref<RoleListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
-
-const queryParams = reactive({
-  dataScope: undefined as DataPermissionScope | undefined,
-  isGlobal: undefined as number | undefined,
-  keyword: '',
-  roleType: undefined as RoleType | undefined,
-  status: undefined as EnableStatus | undefined,
-})
+const statusOptions = STATUS_OPTIONS
+const roleTypeOptions = ROLE_TYPE_OPTIONS
+const dataScopeOptions = DATA_SCOPE_OPTIONS
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
+const permissionActionOptions = PERMISSION_ACTION_OPTIONS
 
 const globalOptions = [
   { label: '全局角色', value: 1 },
   { label: '租户角色', value: 0 },
 ]
 
-const roleTypeOptions = ROLE_TYPE_OPTIONS
-
 const maintainableRoleTypeOptions = [
   { label: '业务角色', value: RoleType.Business },
   { label: '自定义角色', value: RoleType.Custom },
 ]
 
-const dataScopeOptions = DATA_SCOPE_OPTIONS
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
+function reloadRole() {
+  void schemaPageRef.value?.reload()
+}
 
-const permissionActionOptions = PERMISSION_ACTION_OPTIONS
+// ── 过滤值清洗辅助 ──────────────────────────────────────────────
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+function toBool(v: unknown): boolean | undefined {
+  if (v == null || v === '') {
+    return undefined
+  }
+  return Number(v) === 1
+}
 
+function canMaintainRole(row: RoleListItemDto) {
+  return !row.isGlobal && row.roleType !== RoleType.System
+}
+
+// ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
+const fields: ListFieldSchema[] = [
+  // 仅搜索（不展示）
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索角色名称/编码', width: 240, order: 0 },
+  { key: 'roleName', title: '角色名称', dataType: 'string', sortable: true, minWidth: 150, order: 1 },
+  { key: 'roleCode', title: '角色编码', dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'roleDescription', title: '描述', dataType: 'string', minWidth: 220, order: 3 },
+  {
+    key: 'roleType',
+    title: '角色类型',
+    dataType: 'enum',
+    searchable: true,
+    options: roleTypeOptions,
+    searchPlaceholder: '角色类型',
+    minWidth: 110,
+    order: 4,
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(roleTypeOptions, (row as unknown as RoleListItemDto).roleType)),
+  },
+  {
+    key: 'isGlobal',
+    title: '全局',
+    dataType: 'boolean',
+    searchable: true,
+    options: globalOptions,
+    searchPlaceholder: '全局',
+    width: 82,
+    order: 5,
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'default', bordered: false }, () => (row as unknown as RoleListItemDto).isGlobal ? '是' : '否'),
+  },
+  {
+    key: 'dataScope',
+    title: '数据范围',
+    dataType: 'enum',
+    searchable: true,
+    options: dataScopeOptions,
+    searchPlaceholder: '数据范围',
+    minWidth: 130,
+    order: 6,
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions, (row as unknown as RoleListItemDto).dataScope)),
+  },
+  { key: 'maxMembers', title: '成员上限', dataType: 'number', minWidth: 100, order: 7 },
+  { key: 'sort', title: '排序', dataType: 'number', sortable: true, minWidth: 80, order: 8 },
+  {
+    key: 'status',
+    title: '状态',
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions,
+    searchPlaceholder: '状态',
+    width: 82,
+    order: 9,
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? '启用' : '禁用'),
+  },
+  {
+    key: 'createdTime',
+    title: '创建时间',
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 10,
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate((row as unknown as RoleListItemDto).createdTime)),
+  },
+]
+
+// ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
+const schema: PageSchema = {
+  pageCode: 'system.role',
+  pageName: '角色管理',
+  rowKey: 'basicId',
+  scrollX: 1600,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return roleManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword) ?? null,
+        // RoleType / DataPermissionScope / EnableStatus 均为后端字符串枚举，原样透传即可
+        roleType: (f.roleType as RoleType | undefined) || undefined,
+        dataScope: (f.dataScope as DataPermissionScope | undefined) || undefined,
+        isGlobal: toBool(f.isGlobal),
+        status: (f.status as EnableStatus | undefined) || undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => roleManagementApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: '新增角色', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: '查看详情', scope: 'row' },
+    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+  ],
+}
+
+// ── 行/页面操作分发 ─────────────────────────────────────────────
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as RoleListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'view':
+      if (row) {
+        void handleView(row)
+      }
+      break
+    case 'edit':
+      if (row) {
+        handleEdit(row)
+      }
+      break
+    case 'toggle':
+      if (row) {
+        void handleToggleStatus(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
+}
+
+// ── 表单 / 详情（保留页面自有逻辑） ─────────────────────────────
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
@@ -96,8 +228,6 @@ const currentDetail = ref<RoleManagementDetailDto | null>(null)
 const roleForm = ref<RoleFormModel>(createDefaultRoleForm())
 
 const modalTitle = computed(() => (roleForm.value.basicId ? '编辑角色' : '新增角色'))
-
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 function createDefaultRoleForm(): RoleFormModel {
   return {
@@ -113,14 +243,6 @@ function createDefaultRoleForm(): RoleFormModel {
   }
 }
 
-function toOptionalBoolean(value: number | undefined) {
-  if (value === undefined) {
-    return undefined
-  }
-
-  return value === 1
-}
-
 function formatNullable(value: unknown) {
   return value === null || value === undefined || value === '' ? '-' : String(value)
 }
@@ -133,161 +255,15 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-
   return value ? '是' : '否'
 }
 
 function formatStatus(value?: EnableStatus | null) {
-  return getOptionLabel(STATUS_OPTIONS, value)
+  return getOptionLabel(statusOptions, value)
 }
 
 function formatValidityStatus(value?: ValidityStatus | null) {
   return getOptionLabel(validityStatusOptions, value)
-}
-
-function canMaintainRole(row: RoleListItemDto) {
-  return !row.isGlobal && row.roleType !== RoleType.System
-}
-
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await roleManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: currentPage.value,
-          pageSize: pageSize.value,
-        },
-      }),
-      dataScope: queryParams.dataScope,
-      isGlobal: toOptionalBoolean(queryParams.isGlobal),
-      keyword: queryParams.keyword.trim() || null,
-      roleType: queryParams.roleType,
-      status: queryParams.status,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询角色失败')
-    dataList.value = []
-    totalCount.value = 0
-  }
-  finally {
-    tableLoading.value = false
-  }
-}
-
-const tableColumns = computed<DataTableColumns<RoleListItemDto>>(() => [
-  { key: 'roleName', title: '角色名称', minWidth: 150, ellipsis: { tooltip: true }, sorter: true },
-  { key: 'roleCode', title: '角色编码', minWidth: 150, ellipsis: { tooltip: true } },
-  { key: 'roleDescription', title: '描述', minWidth: 220, ellipsis: { tooltip: true } },
-  {
-    key: 'roleType',
-    title: '角色类型',
-    minWidth: 110,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(roleTypeOptions, row.roleType))
-    },
-  },
-  {
-    key: 'isGlobal',
-    title: '全局',
-    width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.isGlobal ? 'warning' : 'default', bordered: false }, () => row.isGlobal ? '是' : '否')
-    },
-  },
-  {
-    key: 'dataScope',
-    title: '数据范围',
-    minWidth: 130,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions, row.dataScope))
-    },
-  },
-  { key: 'maxMembers', title: '成员上限', minWidth: 100 },
-  { key: 'sort', title: '排序', minWidth: 80, sorter: true },
-  {
-    key: 'status',
-    title: '状态',
-    width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => row.status === EnableStatus.Enabled ? '启用' : '禁用')
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 156,
-    render(row) {
-      return h(NSpace, { size: 'small' }, () => [
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
-            }),
-          default: () => '查看详情',
-        }),
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, { disabled: !canMaintainRole(row), ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })),
-            }),
-          default: () => '编辑',
-        }),
-        h(NPopconfirm, { disabled: !canMaintainRole(row), onPositiveClick: () => handleToggleStatus(row) }, {
-          trigger: () =>
-            h(NButton, { disabled: !canMaintainRole(row), ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
-            }),
-          default: () => '确认更新角色状态？',
-        }),
-        h(NPopconfirm, { disabled: !canMaintainRole(row), onPositiveClick: () => handleDelete(row) }, {
-          trigger: () =>
-            h(NButton, { disabled: !canMaintainRole(row), ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
-            }),
-          default: () => '确认删除该角色？',
-        }),
-      ])
-    },
-  },
-])
-
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.status = undefined
-  queryParams.roleType = undefined
-  queryParams.dataScope = undefined
-  queryParams.isGlobal = undefined
-  currentPage.value = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
 }
 
 function handleAdd() {
@@ -393,7 +369,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    fetchData()
+    reloadRole()
   }
   catch {
     message.error('保存失败')
@@ -406,7 +382,7 @@ async function handleSubmit() {
 async function handleDelete(row: RoleListItemDto) {
   await roleManagementApi.delete(row.basicId)
   message.success('删除成功')
-  fetchData()
+  reloadRole()
 }
 
 async function handleToggleStatus(row: RoleListItemDto) {
@@ -416,99 +392,16 @@ async function handleToggleStatus(row: RoleListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  fetchData()
+  reloadRole()
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2">
-      <NInput
-        v-model:value="queryParams.keyword"
-        clearable
-        size="small"
-        placeholder="搜索角色名称/编码"
-        style="width: 240px"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.roleType"
-        :options="roleTypeOptions"
-        clearable
-        size="small"
-        placeholder="角色类型"
-        style="width: 130px"
-      />
-      <NSelect
-        v-model:value="queryParams.dataScope"
-        :options="dataScopeOptions"
-        clearable
-        size="small"
-        placeholder="数据范围"
-        style="width: 140px"
-      />
-      <NSelect
-        v-model:value="queryParams.isGlobal"
-        :options="globalOptions"
-        clearable
-        size="small"
-        placeholder="全局"
-        style="width: 110px"
-      />
-      <NSelect
-        v-model:value="queryParams.status"
-        :options="STATUS_OPTIONS"
-        clearable
-        size="small"
-        placeholder="状态"
-        style="width: 110px"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        <template #icon>
-          <NIcon><Icon icon="lucide:search" /></NIcon>
-        </template>
-        查询
-      </NButton>
-      <NButton size="small" @click="handleReset">
-        <template #icon>
-          <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-        </template>
-        重置
-      </NButton>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <div style="padding:12px 16px;flex-shrink:0;">
-        <NButton size="small" type="primary" @click="handleAdd">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" /></NIcon>
-          </template>
-          新增角色
-        </NButton>
-      </div>
-
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row: RoleListItemDto) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
     <NDrawer v-model:show="detailVisible" :width="900">
       <NDrawerContent closable title="角色详情">
         <NSpin :show="detailLoading">
@@ -718,7 +611,7 @@ onMounted(() => fetchData())
           <NInputNumber v-model:value="roleForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem label="状态" path="status">
-          <NSelect v-model:value="roleForm.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="roleForm.status" :options="statusOptions" />
         </NFormItem>
         <NFormItem label="备注" path="remark">
           <NInput v-model:value="roleForm.remark" clearable placeholder="请输入备注" />
@@ -745,7 +638,7 @@ onMounted(() => fetchData())
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>

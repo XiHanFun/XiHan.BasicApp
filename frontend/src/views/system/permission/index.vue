@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   OperationSelectItemDto,
+  PageResult,
   PermissionCenterDetailDto,
   PermissionCreateDto,
   PermissionListItemDto,
@@ -11,8 +12,6 @@ import type {
 } from '@/api'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -24,8 +23,6 @@ import {
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
-  NPopconfirm,
   NScrollbar,
   NSelect,
   NSpace,
@@ -33,11 +30,9 @@ import {
   NSwitch,
   NTabPane,
   NTabs,
-  NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   createPageRequest,
   EnableStatus,
@@ -45,7 +40,7 @@ import {
   PermissionType,
   ValidityStatus,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import {
   CONDITION_OPERATOR_OPTIONS,
   CONFIG_DATA_TYPE_OPTIONS,
@@ -78,13 +73,6 @@ interface NumericSelectOption {
 
 const message = useMessage()
 
-const tableLoading = ref(false)
-const dataList = ref<PermissionListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
-
-const modalVisible = ref(false)
 const submitLoading = ref(false)
 const resourceLoading = ref(false)
 const operationLoading = ref(false)
@@ -95,16 +83,22 @@ const permissionForm = ref<PermissionFormModel>(createDefaultForm())
 const resourceOptions = ref<NumericSelectOption[]>([])
 const operationOptions = ref<NumericSelectOption[]>([])
 
-const queryParams = reactive({
-  isGlobal: undefined as number | undefined,
-  isRequireAudit: undefined as number | undefined,
-  keyword: '',
-  moduleCode: '',
-  permissionType: undefined as PermissionType | undefined,
-  status: undefined as EnableStatus | undefined,
-})
+const modalVisible = ref(false)
 
 const permissionTypeOptions = PERMISSION_TYPE_OPTIONS
+const validityStatusOptions = VALIDITY_STATUS_OPTIONS
+const resourceTypeOptions = RESOURCE_TYPE_OPTIONS
+const resourceAccessLevelOptions = RESOURCE_ACCESS_LEVEL_OPTIONS
+const httpMethodOptions = HTTP_METHOD_OPTIONS
+const operationCategoryOptions = OPERATION_CATEGORY_OPTIONS
+const operationTypeOptions = OPERATION_TYPE_OPTIONS
+const conditionOperatorOptions = CONDITION_OPERATOR_OPTIONS
+const configDataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
+const delegationStatusOptions = DELEGATION_STATUS_OPTIONS
+const requestStatusOptions = PERMISSION_REQUEST_STATUS_OPTIONS
+const fieldMaskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
+const fieldSecurityTargetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
+const changeTypeOptions = PERMISSION_CHANGE_TYPE_OPTIONS
 
 const globalOptions = [
   { label: '全局权限', value: 1 },
@@ -116,36 +110,14 @@ const auditOptions = [
   { label: '无需审计', value: 0 },
 ]
 
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
-
-const resourceTypeOptions = RESOURCE_TYPE_OPTIONS
-
-const resourceAccessLevelOptions = RESOURCE_ACCESS_LEVEL_OPTIONS
-
-const httpMethodOptions = HTTP_METHOD_OPTIONS
-
-const operationCategoryOptions = OPERATION_CATEGORY_OPTIONS
-
-const operationTypeOptions = OPERATION_TYPE_OPTIONS
-
-const conditionOperatorOptions = CONDITION_OPERATOR_OPTIONS
-
-const configDataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
-
-const delegationStatusOptions = DELEGATION_STATUS_OPTIONS
-
-const requestStatusOptions = PERMISSION_REQUEST_STATUS_OPTIONS
-
-const fieldMaskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
-
-const fieldSecurityTargetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
-
-const changeTypeOptions = PERMISSION_CHANGE_TYPE_OPTIONS
-
 const modalTitle = computed(() => (permissionForm.value.basicId ? '编辑权限' : '新增权限'))
 const isResourceBasedForm = computed(() => permissionForm.value.permissionType === PermissionType.ResourceBased)
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadPermission() {
+  void schemaPageRef.value?.reload()
+}
 
 watch(
   () => permissionForm.value.permissionType,
@@ -175,12 +147,12 @@ function createDefaultForm(): PermissionFormModel {
   }
 }
 
-function toOptionalBoolean(value: number | undefined) {
-  if (value === undefined) {
-    return undefined
-  }
+function toBool(value: unknown) {
+  return value === undefined || value === null ? undefined : Boolean(value)
+}
 
-  return value === 1
+function toStr(value: unknown) {
+  return (value as string | undefined)?.trim() || undefined
 }
 
 function normalizeNullable(value?: string | null) {
@@ -216,149 +188,118 @@ function canMaintainPermission(row: PermissionListItemDto) {
   return !row.isGlobal
 }
 
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await permissionCenterApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: currentPage.value,
-          pageSize: pageSize.value,
-        },
-      }),
-      isGlobal: toOptionalBoolean(queryParams.isGlobal),
-      isRequireAudit: toOptionalBoolean(queryParams.isRequireAudit),
-      keyword: normalizeNullable(queryParams.keyword),
-      moduleCode: normalizeNullable(queryParams.moduleCode),
-      permissionType: queryParams.permissionType,
-      status: queryParams.status,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询权限失败')
-    dataList.value = []
-    totalCount.value = 0
-  }
-  finally {
-    tableLoading.value = false
-  }
-}
-
-const tableColumns = computed<DataTableColumns<PermissionListItemDto>>(() => [
-  { key: 'permissionName', title: '权限名称', minWidth: 160, ellipsis: { tooltip: true }, sorter: true },
-  { key: 'permissionCode', title: '权限编码', minWidth: 220, ellipsis: { tooltip: true } },
-  { key: 'moduleCode', title: '模块', minWidth: 110, ellipsis: { tooltip: true } },
+// ── 字段单一事实源 ──────────────────────────────────────────────
+const fields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索权限名称/编码', width: 240, order: 0 },
+  { key: 'moduleCode', title: '模块', dataType: 'string', searchable: true, searchPlaceholder: '模块编码', minWidth: 110, order: 1 },
+  { key: 'permissionName', title: '权限名称', dataType: 'string', sortable: true, minWidth: 160, order: 2 },
+  { key: 'permissionCode', title: '权限编码', dataType: 'string', minWidth: 220, order: 3 },
   {
     key: 'permissionType',
     title: '权限类型',
+    dataType: 'enum',
+    searchable: true,
+    options: permissionTypeOptions,
+    searchPlaceholder: '权限类型',
     minWidth: 110,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(permissionTypeOptions, row.permissionType))
-    },
+    order: 4,
   },
-  { key: 'resourceName', title: '资源', minWidth: 150, ellipsis: { tooltip: true } },
-  { key: 'operationName', title: '操作', minWidth: 130, ellipsis: { tooltip: true } },
+  { key: 'resourceName', title: '资源', dataType: 'string', minWidth: 150, order: 5 },
+  { key: 'operationName', title: '操作', dataType: 'string', minWidth: 130, order: 6 },
   {
     key: 'isGlobal',
     title: '全局',
+    dataType: 'boolean',
+    searchable: true,
+    options: globalOptions,
+    searchPlaceholder: '全局',
     width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.isGlobal ? 'warning' : 'default', bordered: false }, () => row.isGlobal ? '是' : '否')
-    },
+    order: 7,
   },
   {
     key: 'isRequireAudit',
     title: '审计',
+    dataType: 'boolean',
+    searchable: true,
+    options: auditOptions,
+    searchPlaceholder: '审计',
     width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.isRequireAudit ? 'warning' : 'default', bordered: false }, () => row.isRequireAudit ? '是' : '否')
-    },
+    order: 8,
   },
-  { key: 'priority', title: '优先级', minWidth: 80, sorter: true },
-  { key: 'sort', title: '排序', minWidth: 80, sorter: true },
+  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 90, order: 9 },
+  { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 10 },
   {
     key: 'status',
     title: '状态',
-    width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => row.status === EnableStatus.Enabled ? '启用' : '禁用')
-    },
+    dataType: 'enum',
+    searchable: true,
+    options: STATUS_OPTIONS,
+    searchPlaceholder: '状态',
+    width: 90,
+    order: 11,
   },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 156,
-    render(row) {
-      return h(NSpace, { size: 'small' }, () => [
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '查看详情', circle: true, quaternary: true, size: 'small', onClick: () => handleView(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
-            }),
-          default: () => '查看详情',
-        }),
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, { disabled: !canMaintainPermission(row), ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEdit(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })),
-            }),
-          default: () => '编辑',
-        }),
-        h(NPopconfirm, { disabled: !canMaintainPermission(row), onPositiveClick: () => handleToggleStatus(row) }, {
-          trigger: () =>
-            h(NButton, { disabled: !canMaintainPermission(row), ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
-            }),
-          default: () => '确认更新权限状态？',
-        }),
-        h(NPopconfirm, { disabled: !canMaintainPermission(row), onPositiveClick: () => handleDelete(row) }, {
-          trigger: () =>
-            h(NButton, { disabled: !canMaintainPermission(row), ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
-            }),
-          default: () => '确认删除该权限？',
-        }),
-      ])
-    },
-  },
-])
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 12 },
+]
 
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
+// ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
+const schema: PageSchema = {
+  pageCode: 'system.permission',
+  pageName: '权限管理',
+  rowKey: 'basicId',
+  scrollX: 2000,
+  fields,
+  resource: {
+    page: (params) => {
+      const { keyword, moduleCode, permissionType, isGlobal, isRequireAudit, status } = params.filters
+      return permissionCenterApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        isGlobal: toBool(isGlobal),
+        isRequireAudit: toBool(isRequireAudit),
+        keyword: toStr(keyword),
+        moduleCode: toStr(moduleCode),
+        permissionType: permissionType as PermissionType | undefined,
+        status: status as EnableStatus | undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => permissionCenterApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: '新增权限', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: '查看详情', scope: 'row' },
+    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+  ],
 }
 
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.moduleCode = ''
-  queryParams.permissionType = undefined
-  queryParams.isGlobal = undefined
-  queryParams.isRequireAudit = undefined
-  queryParams.status = undefined
-  currentPage.value = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
+// ── 行/页面操作分发 ─────────────────────────────────────────────
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as PermissionListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'view':
+      if (row) {
+        void handleView(row)
+      }
+      break
+    case 'edit':
+      if (row) {
+        handleEdit(row)
+      }
+      break
+    case 'toggle':
+      if (row) {
+        void handleToggleStatus(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
 }
 
 function handleAdd() {
@@ -594,7 +535,7 @@ async function handleSubmit() {
 
     message.success('保存成功')
     modalVisible.value = false
-    fetchData()
+    reloadPermission()
   }
   catch {
     message.error('保存失败')
@@ -607,7 +548,7 @@ async function handleSubmit() {
 async function handleDelete(row: PermissionListItemDto) {
   await permissionCenterApi.delete(row.basicId)
   message.success('删除成功')
-  fetchData()
+  reloadPermission()
 }
 
 async function handleToggleStatus(row: PermissionListItemDto) {
@@ -617,101 +558,16 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
   message.success('状态已更新')
-  fetchData()
+  reloadPermission()
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2">
-      <NInput
-        v-model:value="queryParams.keyword"
-        clearable size="small"
-        placeholder="搜索权限名称/编码"
-        style="width: 240px"
-        @keyup.enter="handleSearch"
-      />
-      <NInput
-        v-model:value="queryParams.moduleCode"
-        clearable size="small"
-        placeholder="模块编码"
-        style="width: 140px"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.permissionType"
-        :options="permissionTypeOptions"
-        clearable size="small"
-        placeholder="权限类型"
-        style="width: 130px"
-      />
-      <NSelect
-        v-model:value="queryParams.isRequireAudit"
-        :options="auditOptions"
-        clearable size="small"
-        placeholder="审计"
-        style="width: 120px"
-      />
-      <NSelect
-        v-model:value="queryParams.isGlobal"
-        :options="globalOptions"
-        clearable size="small"
-        placeholder="全局"
-        style="width: 110px"
-      />
-      <NSelect
-        v-model:value="queryParams.status"
-        :options="STATUS_OPTIONS"
-        clearable size="small"
-        placeholder="状态"
-        style="width: 110px"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        <template #icon>
-          <NIcon><Icon icon="lucide:search" /></NIcon>
-        </template>
-        查询
-      </NButton>
-      <NButton size="small" @click="handleReset">
-        <template #icon>
-          <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-        </template>
-        重置
-      </NButton>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <div style="padding:12px 16px;flex-shrink:0;">
-        <NButton size="small" type="primary" @click="handleAdd">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" /></NIcon>
-          </template>
-          新增权限
-        </NButton>
-      </div>
-
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row: PermissionListItemDto) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
     <NDrawer v-model:show="detailVisible" :width="980">
       <NDrawerContent closable title="权限详情">
         <NSpin :show="detailLoading">
@@ -1041,7 +897,7 @@ onMounted(() => fetchData())
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>

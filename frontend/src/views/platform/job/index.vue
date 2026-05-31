@@ -1,50 +1,64 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { TaskDetailDto, TaskListItemDto } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type {
+  PageResult,
+  TaskCreateDto,
+  TaskDetailDto,
+  TaskListItemDto,
+  TaskUpdateDto,
+} from '@/api'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
+  NEmpty,
+  NForm,
+  NFormItem,
   NIcon,
   NInput,
-  NPagination,
-  NPopconfirm,
+  NInputNumber,
+  NModal,
+  NScrollbar,
   NSelect,
   NSpace,
+  NSpin,
+  NSwitch,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, TriggerType } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
+import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformJobPage' })
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
-const message = useMessage()
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const detailData = ref<TaskDetailDto | null>(null)
-const actionLoading = ref(false)
-const tableLoading = ref(false)
-const dataList = ref<TaskListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
+interface JobFormModel {
+  allowConcurrent: boolean
+  basicId?: string
+  cronExpression?: string | null
+  intervalSeconds?: number | null
+  maxRetryCount: number
+  priority: number
+  remark?: string | null
+  taskClass: string
+  taskCode: string
+  taskDescription?: string | null
+  taskGroup?: string | null
+  taskMethod?: string | null
+  taskName: string
+  taskParams?: string | null
+  timeoutSeconds: number
+  triggerType: TriggerType
+}
 
-const queryParams = reactive({
-  keyword: '',
-  runTaskStatus: undefined as RunTaskStatus | undefined,
-  status: undefined as EnableStatus | undefined,
-  triggerType: undefined as TriggerType | undefined,
-})
+const message = useMessage()
+const statusOptions = STATUS_OPTIONS
 
 const triggerTypeOptions = [
   { label: '立即执行', value: TriggerType.Immediate },
@@ -62,35 +76,24 @@ const runTaskStatusOptions = [
   { label: '已暂停', value: RunTaskStatus.Paused },
 ]
 
-const statusOptions = [
-  { label: '启用', value: EnableStatus.Enabled },
-  { label: '禁用', value: EnableStatus.Disabled },
+// boolean 选项以 1/0 表达（SchemaSelectOption.value 仅 string|number），查询时 toBool 还原
+const concurrentOptions = [
+  { label: '允许', value: 1 },
+  { label: '禁止', value: 0 },
 ]
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
-const canTrigger = computed(() => {
-  if (!detailData.value) return false
-  return detailData.value.status === EnableStatus.Enabled
-    && detailData.value.runTaskStatus !== RunTaskStatus.Running
-})
-
-const canToggle = computed(() => {
-  if (!detailData.value) return false
-  return detailData.value.runTaskStatus !== RunTaskStatus.Running
-})
-
-function normalizeNullable(value?: string | null) {
-  const normalized = value?.trim()
-  return normalized || null
+function reloadJob() {
+  void schemaPageRef.value?.reload()
 }
 
-function formatNullableDate(value?: string | null) {
-  return value ? formatDate(value) : '-'
+// ── 过滤值清洗 ──────────────────────────────────────────────────
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
 }
-
-function formatBoolean(value: boolean) {
-  return value ? '是' : '否'
+function toBool(v: unknown): boolean | undefined {
+  return v == null || v === '' ? undefined : Boolean(Number(v))
 }
 
 function runStatusTag(status: RunTaskStatus): TagType {
@@ -113,176 +116,161 @@ function statusTag(status: EnableStatus): TagType {
   return status === EnableStatus.Enabled ? 'success' : 'default'
 }
 
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await jobManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: currentPage.value,
-          pageSize: pageSize.value,
-        },
-      }),
-      keyword: normalizeNullable(queryParams.keyword),
-      runTaskStatus: queryParams.runTaskStatus,
-      status: queryParams.status,
-      triggerType: queryParams.triggerType,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询任务调度失败')
-    dataList.value = []
-    totalCount.value = 0
-  }
-  finally {
-    tableLoading.value = false
-  }
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
 }
 
-const tableColumns = computed<DataTableColumns<TaskListItemDto>>(() => [
-  { key: 'taskName', title: '任务名称', minWidth: 180, ellipsis: { tooltip: true } },
-  { key: 'taskCode', title: '任务编码', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'taskGroup', title: '任务分组', minWidth: 120, ellipsis: { tooltip: true } },
+function formatBoolean(value?: boolean | null) {
+  if (value === undefined || value === null) {
+    return '-'
+  }
+  return value ? '是' : '否'
+}
+
+// ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────
+const fields: ListFieldSchema[] = [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索任务名称/编码/分组', width: 240, order: 0 },
+  // 列 + 列
+  { key: 'taskName', title: '任务名称', dataType: 'string', minWidth: 180, order: 1 },
+  { key: 'taskCode', title: '任务编码', dataType: 'string', searchable: true, searchPlaceholder: '任务编码', minWidth: 160, order: 2 },
+  { key: 'taskGroup', title: '任务分组', dataType: 'string', searchable: true, searchPlaceholder: '任务分组', minWidth: 120, order: 3 },
   {
     key: 'triggerType',
     title: '触发类型',
+    dataType: 'enum',
+    searchable: true,
+    options: triggerTypeOptions,
+    searchPlaceholder: '触发类型',
     minWidth: 120,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(triggerTypeOptions, row.triggerType))
-    },
+    order: 4,
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(triggerTypeOptions, (row as unknown as TaskListItemDto).triggerType)),
   },
   {
     key: 'runTaskStatus',
     title: '运行状态',
+    dataType: 'enum',
+    searchable: true,
+    options: runTaskStatusOptions,
+    searchPlaceholder: '运行状态',
     width: 120,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: runStatusTag(row.runTaskStatus), bordered: false }, () => getOptionLabel(runTaskStatusOptions, row.runTaskStatus))
+    order: 5,
+    render: (row) => {
+      const r = row as unknown as TaskListItemDto
+      return h(NTag, { size: 'small', round: true, type: runStatusTag(r.runTaskStatus), bordered: false }, () => getOptionLabel(runTaskStatusOptions, r.runTaskStatus))
     },
   },
   {
     key: 'status',
     title: '启停状态',
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions,
+    searchPlaceholder: '启停状态',
     width: 100,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: statusTag(row.status), bordered: false }, () => getOptionLabel(statusOptions, row.status))
+    order: 6,
+    render: (row) => {
+      const r = row as unknown as TaskListItemDto
+      return h(NTag, { size: 'small', round: true, type: statusTag(r.status), bordered: false }, () => getOptionLabel(statusOptions, r.status))
     },
   },
   {
     key: 'allowConcurrent',
     title: '并发',
+    dataType: 'boolean',
+    searchable: true,
+    options: concurrentOptions,
+    searchPlaceholder: '并发',
     width: 86,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.allowConcurrent ? 'warning' : 'info', bordered: false }, () => row.allowConcurrent ? '允许' : '禁止')
+    order: 7,
+    render: (row) => {
+      const r = row as unknown as TaskListItemDto
+      return h(NTag, { size: 'small', round: true, type: r.allowConcurrent ? 'warning' : 'info', bordered: false }, () => (r.allowConcurrent ? '允许' : '禁止'))
     },
   },
-  { key: 'executedCount', title: '已执行', minWidth: 100 },
-  { key: 'retryCount', title: '重试次数', minWidth: 100 },
-  { key: 'priority', title: '优先级', minWidth: 86, sorter: true },
-  {
-    key: 'nextRunTime',
-    title: '下次执行',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.nextRunTime ? formatDate(row.nextRunTime) : '-')
-    },
-  },
-  {
-    key: 'lastRunTime',
-    title: '上次执行',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, row.lastRunTime ? formatDate(row.lastRunTime) : '-')
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 160,
-    render(row) {
-      return h(NSpace, { size: 4 }, () => [
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleDetail(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
-            }),
-          default: () => '详情',
-        }),
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, {
-              ariaLabel: '启动',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: 'info',
-              disabled: row.runTaskStatus === RunTaskStatus.Running || row.status !== EnableStatus.Enabled,
-              onClick: () => handleTriggerViaRow(row),
-            }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:play' })),
-            }),
-          default: () => '触发执行',
-        }),
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, {
-              ariaLabel: '启停',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
-              onClick: () => handleToggleStatus(row),
-            }, {
-              icon: () => h(NIcon, { icon: row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play' }),
-            }),
-          default: () => row.status === EnableStatus.Enabled ? '停用' : '启用',
-        }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
-            }),
-          default: () => '确定删除该任务？删除后不可恢复。',
-        }),
-      ])
-    },
-  },
-])
+  { key: 'executedCount', title: '已执行', dataType: 'number', minWidth: 100, order: 8 },
+  { key: 'retryCount', title: '重试次数', dataType: 'number', minWidth: 100, order: 9 },
+  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 86, order: 10 },
+  { key: 'nextRunTime', title: '下次执行', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+  { key: 'lastRunTime', title: '上次执行', dataType: 'datetime', minWidth: 170, order: 12 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 13 },
+]
 
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
+const schema: PageSchema = {
+  pageCode: 'platform.job',
+  pageName: '任务调度',
+  rowKey: 'basicId',
+  scrollX: 2000,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return jobManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword),
+        taskCode: toStr(f.taskCode),
+        taskGroup: toStr(f.taskGroup),
+        triggerType: (f.triggerType as TriggerType | undefined) ?? undefined,
+        runTaskStatus: (f.runTaskStatus as RunTaskStatus | undefined) ?? undefined,
+        status: (f.status as EnableStatus | undefined) ?? undefined,
+        allowConcurrent: toBool(f.allowConcurrent),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => jobManagementApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: '新增任务', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
+    { key: 'trigger', title: '立即执行', scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto) },
+    { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
+    { key: 'delete', title: '删除', scope: 'row', icon: 'lucide:trash-2', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
+  ],
 }
 
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.runTaskStatus = undefined
-  queryParams.status = undefined
-  queryParams.triggerType = undefined
-  currentPage.value = 1
-  fetchData()
+function triggerDisabled(row: TaskListItemDto) {
+  return row.runTaskStatus === RunTaskStatus.Running || row.status !== EnableStatus.Enabled
 }
 
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
+// ── 行/页面操作分发 ─────────────────────────────────────────────
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as TaskListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'view':
+      if (row) {
+        void handleDetail(row)
+      }
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'trigger':
+      if (row) {
+        void handleTrigger(row)
+      }
+      break
+    case 'toggle':
+      if (row) {
+        void handleToggleStatus(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
 }
 
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
-}
+// ── 详情抽屉 ────────────────────────────────────────────────────
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<TaskDetailDto | null>(null)
 
 async function handleDetail(row: TaskListItemDto) {
   detailVisible.value = true
@@ -299,45 +287,26 @@ async function handleDetail(row: TaskListItemDto) {
   }
 }
 
-async function handleTriggerViaRow(row: TaskListItemDto) {
+// ── 行操作：立即执行 / 启停 / 删除 ──────────────────────────────
+async function handleTrigger(row: TaskListItemDto) {
   if (row.status !== EnableStatus.Enabled) {
     message.warning('停用的任务不能触发')
     return
   }
-  actionLoading.value = true
+  if (row.runTaskStatus === RunTaskStatus.Running) {
+    message.warning('运行中的任务不能再次触发')
+    return
+  }
   try {
     await jobManagementApi.updateRunStatus({
       basicId: row.basicId,
       runTaskStatus: RunTaskStatus.Running,
     })
     message.success('任务已触发')
-    fetchData()
+    reloadJob()
   }
   catch {
     message.error('触发任务失败')
-  }
-  finally {
-    actionLoading.value = false
-  }
-}
-
-async function handleTrigger() {
-  if (!detailData.value) return
-  actionLoading.value = true
-  try {
-    await jobManagementApi.updateRunStatus({
-      basicId: detailData.value.basicId,
-      runTaskStatus: RunTaskStatus.Running,
-    })
-    message.success('任务已触发')
-    detailVisible.value = false
-    fetchData()
-  }
-  catch {
-    message.error('触发任务失败')
-  }
-  finally {
-    actionLoading.value = false
   }
 }
 
@@ -347,20 +316,16 @@ async function handleToggleStatus(row: TaskListItemDto) {
     return
   }
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
-  actionLoading.value = true
   try {
     await jobManagementApi.updateStatus({
       basicId: row.basicId,
       status: newStatus,
     })
     message.success(newStatus === EnableStatus.Enabled ? '任务已启用' : '任务已停用')
-    fetchData()
+    reloadJob()
   }
   catch {
     message.error('更新任务状态失败')
-  }
-  finally {
-    actionLoading.value = false
   }
 }
 
@@ -369,211 +334,376 @@ async function handleDelete(row: TaskListItemDto) {
     message.warning('运行中的任务不能删除')
     return
   }
-  actionLoading.value = true
   try {
     await jobManagementApi.delete(row.basicId)
     message.success('任务已删除')
-    fetchData()
+    reloadJob()
   }
   catch {
     message.error('删除任务失败')
   }
-  finally {
-    actionLoading.value = false
+}
+
+// ── 新增 / 编辑表单 ─────────────────────────────────────────────
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const jobForm = ref<JobFormModel>(createDefaultJobForm())
+const modalTitle = computed(() => (jobForm.value.basicId ? '编辑任务' : '新增任务'))
+
+function createDefaultJobForm(): JobFormModel {
+  return {
+    allowConcurrent: false,
+    cronExpression: null,
+    intervalSeconds: null,
+    maxRetryCount: 3,
+    priority: 5,
+    remark: null,
+    taskClass: '',
+    taskCode: '',
+    taskDescription: null,
+    taskGroup: null,
+    taskMethod: null,
+    taskName: '',
+    taskParams: null,
+    timeoutSeconds: 60,
+    triggerType: TriggerType.Cron,
   }
 }
 
-onMounted(() => fetchData())
+function handleAdd() {
+  jobForm.value = createDefaultJobForm()
+  modalVisible.value = true
+}
+
+async function handleEdit(row: TaskListItemDto) {
+  // 取详情以补齐 taskClass/taskMethod/taskParams 等列表未返回字段
+  let detail: TaskDetailDto | null = null
+  try {
+    detail = await jobManagementApi.detail(row.basicId) ?? null
+  }
+  catch {
+    message.error('加载任务详情失败')
+    return
+  }
+  const src = detail ?? (row as unknown as TaskDetailDto)
+  jobForm.value = {
+    allowConcurrent: src.allowConcurrent,
+    basicId: src.basicId,
+    cronExpression: src.cronExpression ?? null,
+    intervalSeconds: src.intervalSeconds ?? null,
+    maxRetryCount: src.maxRetryCount,
+    priority: src.priority,
+    remark: src.remark ?? null,
+    taskClass: src.taskClass ?? '',
+    taskCode: src.taskCode,
+    taskDescription: src.taskDescription ?? null,
+    taskGroup: src.taskGroup ?? null,
+    taskMethod: src.taskMethod ?? null,
+    taskName: src.taskName,
+    taskParams: src.taskParams ?? null,
+    timeoutSeconds: src.timeoutSeconds,
+    triggerType: src.triggerType,
+  }
+  modalVisible.value = true
+}
+
+function validateJobForm() {
+  if (!jobForm.value.taskName.trim()) {
+    message.warning('请输入任务名称')
+    return false
+  }
+  if (!jobForm.value.basicId && !jobForm.value.taskCode.trim()) {
+    message.warning('请输入任务编码')
+    return false
+  }
+  if (!jobForm.value.taskClass.trim()) {
+    message.warning('请输入任务类名')
+    return false
+  }
+  return true
+}
+
+async function handleSubmit() {
+  if (!validateJobForm()) {
+    return
+  }
+  submitLoading.value = true
+  try {
+    if (jobForm.value.basicId) {
+      const updateInput: TaskUpdateDto = {
+        allowConcurrent: jobForm.value.allowConcurrent,
+        basicId: jobForm.value.basicId,
+        cronExpression: jobForm.value.cronExpression,
+        executedCount: 0,
+        intervalSeconds: jobForm.value.intervalSeconds,
+        maxRetryCount: jobForm.value.maxRetryCount,
+        priority: jobForm.value.priority,
+        remark: jobForm.value.remark,
+        repeatCount: 0,
+        retryCount: 0,
+        taskClass: jobForm.value.taskClass.trim(),
+        taskDescription: jobForm.value.taskDescription,
+        taskGroup: jobForm.value.taskGroup,
+        taskMethod: jobForm.value.taskMethod,
+        taskName: jobForm.value.taskName.trim(),
+        taskParams: jobForm.value.taskParams,
+        timeoutSeconds: jobForm.value.timeoutSeconds,
+        triggerType: jobForm.value.triggerType,
+      }
+      await jobManagementApi.update(updateInput)
+    }
+    else {
+      const createInput: TaskCreateDto = {
+        allowConcurrent: jobForm.value.allowConcurrent,
+        cronExpression: jobForm.value.cronExpression,
+        executedCount: 0,
+        intervalSeconds: jobForm.value.intervalSeconds,
+        maxRetryCount: jobForm.value.maxRetryCount,
+        priority: jobForm.value.priority,
+        remark: jobForm.value.remark,
+        repeatCount: 0,
+        retryCount: 0,
+        runTaskStatus: RunTaskStatus.Pending,
+        status: EnableStatus.Enabled,
+        taskClass: jobForm.value.taskClass.trim(),
+        taskCode: jobForm.value.taskCode.trim(),
+        taskDescription: jobForm.value.taskDescription,
+        taskGroup: jobForm.value.taskGroup,
+        taskMethod: jobForm.value.taskMethod,
+        taskName: jobForm.value.taskName.trim(),
+        taskParams: jobForm.value.taskParams,
+        timeoutSeconds: jobForm.value.timeoutSeconds,
+        triggerType: jobForm.value.triggerType,
+      }
+      await jobManagementApi.create(createInput)
+    }
+    message.success('保存成功')
+    modalVisible.value = false
+    reloadJob()
+  }
+  catch {
+    message.error('保存失败')
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索任务名称/编码/分组"
-          style="width: 240px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.triggerType"
-          :options="triggerTypeOptions"
-          clearable
-          placeholder="触发类型"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.runTaskStatus"
-          :options="runTaskStatusOptions"
-          clearable
-          placeholder="运行状态"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="statusOptions"
-          clearable
-          placeholder="启停状态"
-          style="width: 120px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
     <NDrawer v-model:show="detailVisible" :width="640">
       <NDrawerContent closable title="任务详情">
-        <div v-if="detailLoading" class="py-8 text-center text-gray-400">
-          正在加载...
-        </div>
-        <NDescriptions v-else-if="detailData" :column="1" bordered label-placement="left" size="small">
-          <NDescriptionsItem label="任务名称">
-            {{ detailData.taskName }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="任务编码">
-            {{ detailData.taskCode }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="任务分组">
-            {{ detailData.taskGroup || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="任务描述">
-            {{ detailData.taskDescription || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="任务类名">
-            {{ detailData.taskClass }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="任务方法">
-            {{ detailData.taskMethod || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="任务参数">
-            <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
-          </NDescriptionsItem>
-          <NDescriptionsItem label="触发类型">
-            {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="Cron 表达式">
-            {{ detailData.cronExpression || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="运行状态">
-            <NTag :type="runStatusTag(detailData.runTaskStatus)" round size="small">
-              {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
-            </NTag>
-          </NDescriptionsItem>
-          <NDescriptionsItem label="启停状态">
-            <NTag :type="statusTag(detailData.status)" round size="small">
-              {{ getOptionLabel(statusOptions, detailData.status) }}
-            </NTag>
-          </NDescriptionsItem>
-          <NDescriptionsItem label="优先级">
-            {{ detailData.priority }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="允许并发">
-            {{ formatBoolean(detailData.allowConcurrent) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="超时时间">
-            {{ detailData.timeoutSeconds }}s
-          </NDescriptionsItem>
-          <NDescriptionsItem label="执行间隔">
-            {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="执行统计">
-            已执行 {{ detailData.executedCount }} 次，重复 {{ detailData.repeatCount }} 次，重试 {{ detailData.retryCount }}/{{ detailData.maxRetryCount }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="开始时间">
-            {{ formatNullableDate(detailData.startTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="结束时间">
-            {{ formatNullableDate(detailData.endTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="下次执行">
-            {{ formatNullableDate(detailData.nextRunTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="上次执行">
-            {{ formatNullableDate(detailData.lastRunTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
-            {{ formatNullableDate(detailData.createdTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
-            {{ formatNullableDate(detailData.modifiedTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
-            {{ detailData.remark || '-' }}
-          </NDescriptionsItem>
-        </NDescriptions>
-        <div v-else class="py-8 text-center text-gray-400">
-          暂无任务详情
-        </div>
+        <NSpin :show="detailLoading">
+          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" description="暂无任务详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
+          <NScrollbar v-else-if="detailData" style="max-height: calc(100vh - 120px)">
+            <NDescriptions :column="1" bordered label-placement="left" size="small">
+              <NDescriptionsItem label="任务名称">
+                {{ detailData.taskName }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="任务编码">
+                {{ detailData.taskCode }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="任务分组">
+                {{ detailData.taskGroup || '-' }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="任务描述">
+                {{ detailData.taskDescription || '-' }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="任务类名">
+                {{ detailData.taskClass }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="任务方法">
+                {{ detailData.taskMethod || '-' }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="任务参数">
+                <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
+              </NDescriptionsItem>
+              <NDescriptionsItem label="触发类型">
+                {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="Cron 表达式">
+                {{ detailData.cronExpression || '-' }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="运行状态">
+                <NTag :type="runStatusTag(detailData.runTaskStatus)" round size="small">
+                  {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
+                </NTag>
+              </NDescriptionsItem>
+              <NDescriptionsItem label="启停状态">
+                <NTag :type="statusTag(detailData.status)" round size="small">
+                  {{ getOptionLabel(statusOptions, detailData.status) }}
+                </NTag>
+              </NDescriptionsItem>
+              <NDescriptionsItem label="优先级">
+                {{ detailData.priority }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="允许并发">
+                {{ formatBoolean(detailData.allowConcurrent) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="超时时间">
+                {{ detailData.timeoutSeconds }}s
+              </NDescriptionsItem>
+              <NDescriptionsItem label="执行间隔">
+                {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="执行统计">
+                已执行 {{ detailData.executedCount }} 次，重复 {{ detailData.repeatCount }} 次，重试 {{ detailData.retryCount }}/{{ detailData.maxRetryCount }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="开始时间">
+                {{ formatNullableDate(detailData.startTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="结束时间">
+                {{ formatNullableDate(detailData.endTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="下次执行">
+                {{ formatNullableDate(detailData.nextRunTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="上次执行">
+                {{ formatNullableDate(detailData.lastRunTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="创建时间">
+                {{ formatNullableDate(detailData.createdTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="修改时间">
+                {{ formatNullableDate(detailData.modifiedTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="备注">
+                {{ detailData.remark || '-' }}
+              </NDescriptionsItem>
+            </NDescriptions>
+          </NScrollbar>
+        </NSpin>
         <template v-if="detailData" #footer>
           <NSpace justify="end">
             <NButton
               type="primary"
-              :disabled="!canTrigger"
-              :loading="actionLoading"
-              @click="handleTrigger"
+              :disabled="triggerDisabled(detailData)"
+              @click="handleTrigger(detailData); detailVisible = false"
             >
               <template #icon>
                 <NIcon><Icon icon="lucide:zap" /></NIcon>
               </template>
-              触发执行
+              立即执行
             </NButton>
             <NButton
               :type="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              :disabled="!canToggle"
-              :loading="actionLoading"
-              @click="handleToggleStatus(detailData)"
+              :disabled="detailData.runTaskStatus === RunTaskStatus.Running"
+              @click="handleToggleStatus(detailData); detailVisible = false"
             >
               <template #icon>
-                <NIcon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" />
+                <NIcon><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></NIcon>
               </template>
               {{ detailData.status === EnableStatus.Enabled ? '停用' : '启用' }}
             </NButton>
-            <NPopconfirm @positive-click="handleDelete(detailData); detailVisible = false">
-              <template #trigger>
-                <NButton type="error" :loading="actionLoading">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                  删除
-                </NButton>
-              </template>
-              确定删除该任务？
-            </NPopconfirm>
           </NSpace>
         </template>
       </NDrawerContent>
     </NDrawer>
-  </div>
+
+    <NModal
+      v-model:show="modalVisible"
+      :auto-focus="false"
+      :bordered="false"
+      :title="modalTitle"
+      preset="card"
+      style="width: 720px; max-width: 92vw"
+    >
+      <NForm :model="jobForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem label="任务编码" path="taskCode">
+          <NInput
+            v-model:value="jobForm.taskCode"
+            clearable
+            :disabled="Boolean(jobForm.basicId)"
+            placeholder="如: SyncOrderJob"
+          />
+        </NFormItem>
+        <NFormItem label="任务名称" path="taskName">
+          <NInput v-model:value="jobForm.taskName" clearable placeholder="请输入任务名称" />
+        </NFormItem>
+        <NFormItem label="任务分组" path="taskGroup">
+          <NInput v-model:value="jobForm.taskGroup" clearable placeholder="请输入任务分组" />
+        </NFormItem>
+        <NFormItem label="触发类型" path="triggerType">
+          <NSelect v-model:value="jobForm.triggerType" :options="triggerTypeOptions" />
+        </NFormItem>
+        <NFormItem label="任务类名" path="taskClass">
+          <NInput v-model:value="jobForm.taskClass" clearable placeholder="如: XiHan.Jobs.SyncOrderJob" />
+        </NFormItem>
+        <NFormItem label="任务方法" path="taskMethod">
+          <NInput v-model:value="jobForm.taskMethod" clearable placeholder="如: Execute" />
+        </NFormItem>
+        <NFormItem label="Cron 表达式" path="cronExpression">
+          <NInput v-model:value="jobForm.cronExpression" clearable placeholder="如: 0 0/5 * * * ?" />
+        </NFormItem>
+        <NFormItem label="执行间隔(秒)" path="intervalSeconds">
+          <NInputNumber v-model:value="jobForm.intervalSeconds" :min="0" clearable style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="优先级" path="priority">
+          <NInputNumber v-model:value="jobForm.priority" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="超时时间(秒)" path="timeoutSeconds">
+          <NInputNumber v-model:value="jobForm.timeoutSeconds" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="最大重试次数" path="maxRetryCount">
+          <NInputNumber v-model:value="jobForm.maxRetryCount" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="允许并发" path="allowConcurrent">
+          <NSwitch v-model:value="jobForm.allowConcurrent" />
+        </NFormItem>
+        <NFormItem label="任务参数" path="taskParams">
+          <NInput
+            v-model:value="jobForm.taskParams"
+            clearable
+            placeholder="JSON 参数"
+            :rows="3"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem label="任务描述" path="taskDescription">
+          <NInput
+            v-model:value="jobForm.taskDescription"
+            clearable
+            placeholder="请输入任务描述"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput
+            v-model:value="jobForm.remark"
+            clearable
+            placeholder="请输入备注"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+            保存
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </SchemaPage>
 </template>
+
+<style scoped>
+.xh-detail-empty {
+  padding: 48px 0;
+}
+</style>

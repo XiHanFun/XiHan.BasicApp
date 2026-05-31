@@ -1,226 +1,254 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { OAuthAppDetailDto, OAuthAppListItemDto, OAuthAppSecretDto } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type {
+  OAuthAppCreateDto,
+  OAuthAppDetailDto,
+  OAuthAppListItemDto,
+  OAuthAppSecretDto,
+  OAuthAppUpdateDto,
+} from '@/api'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
+  NEmpty,
+  NForm,
+  NFormItem,
   NIcon,
   NInput,
-  NPagination,
-  NPopconfirm,
+  NInputNumber,
+  NModal,
+  NScrollbar,
   NSelect,
   NSpace,
+  NSpin,
+  NSwitch,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
-import { appManagementApi, createPageRequest, EnableStatus } from '@/api'
-import { Icon } from '~/components'
+import { computed, h, ref } from 'vue'
+import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType } from '@/api'
+import { Icon, SchemaPage } from '~/components'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformAppPage' })
 
+interface AppFormModel {
+  accessTokenLifetime: number
+  appDescription?: string | null
+  appName: string
+  appType: OAuthAppType
+  authorizationCodeLifetime: number
+  basicId?: string
+  clientId: string
+  grantTypes: string
+  homepage?: string | null
+  logo?: string | null
+  redirectUris?: string | null
+  refreshTokenLifetime: number
+  remark?: string | null
+  scopes: string
+  skipConsent: boolean
+  status: EnableStatus
+}
+
 const message = useMessage()
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const currentDetail = ref<OAuthAppDetailDto | null>(null)
-const actionLoading = ref(false)
-const secretVisible = ref(false)
-const currentSecret = ref<OAuthAppSecretDto | null>(null)
-const tableLoading = ref(false)
-const dataList = ref<OAuthAppListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
+const statusOptions = STATUS_OPTIONS
+const appTypeOptions = OAUTH_APP_TYPE_OPTIONS
 
-const queryParams = reactive({
-  appType: undefined as OAuthAppListItemDto['appType'] | undefined,
-  keyword: '',
-  skipConsent: undefined as number | undefined,
-  status: undefined as EnableStatus | undefined,
-})
-
+// 布尔筛选项：SchemaSelectOption.value 仅支持 string|number，用 1/0 表示真假
 const consentOptions = [
   { label: '跳过确认', value: 1 },
   { label: '需要确认', value: 0 },
 ]
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
-function toOptionalBoolean(value: number | undefined) {
-  if (value === undefined) {
-    return undefined
-  }
-
-  return value === 1
+function reloadApp() {
+  void schemaPageRef.value?.reload()
 }
 
 function formatSeconds(seconds: number) {
   if (seconds < 60) {
     return `${seconds} 秒`
   }
-
   if (seconds < 3600) {
     return `${Math.floor(seconds / 60)} 分钟`
   }
-
   if (seconds < 86400) {
     return `${Math.floor(seconds / 3600)} 小时`
   }
-
   return `${Math.floor(seconds / 86400)} 天`
 }
 
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await appManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: currentPage.value,
-          pageSize: pageSize.value,
-        },
-      }),
-      appType: queryParams.appType,
-      keyword: queryParams.keyword.trim() || null,
-      skipConsent: toOptionalBoolean(queryParams.skipConsent),
-      status: queryParams.status,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询 OAuth 应用失败')
-    dataList.value = []
-    totalCount.value = 0
-  }
-  finally {
-    tableLoading.value = false
-  }
+function formatNullable(value: unknown) {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
 }
 
-const tableColumns = computed<DataTableColumns<OAuthAppListItemDto>>(() => [
-  { key: 'appName', title: '应用名称', minWidth: 160, ellipsis: { tooltip: true }, sorter: true },
-  { key: 'clientId', title: 'Client ID', minWidth: 220, ellipsis: { tooltip: true } },
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
+}
+
+// ── 字段单一事实源 ──────────────────────────────────────────────
+const fields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索应用名称/Client ID', width: 250, order: 0 },
+  { key: 'appName', title: '应用名称', dataType: 'string', sortable: true, minWidth: 160, order: 1 },
+  { key: 'clientId', title: 'Client ID', dataType: 'string', minWidth: 220, order: 2 },
   {
     key: 'appType',
     title: '应用类型',
+    dataType: 'enum',
+    searchable: true,
+    options: appTypeOptions,
+    searchPlaceholder: '应用类型',
     minWidth: 110,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(OAUTH_APP_TYPE_OPTIONS, row.appType))
-    },
+    order: 3,
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(appTypeOptions, (row as unknown as OAuthAppListItemDto).appType)),
   },
-  { key: 'grantTypes', title: '授权类型', minWidth: 180, ellipsis: { tooltip: true } },
-  { key: 'scopes', title: '权限范围', minWidth: 160, ellipsis: { tooltip: true } },
+  { key: 'grantTypes', title: '授权类型', dataType: 'string', minWidth: 180, order: 4 },
+  { key: 'scopes', title: '权限范围', dataType: 'string', minWidth: 160, order: 5 },
   {
     key: 'accessTokenLifetime',
     title: '访问令牌',
+    dataType: 'number',
     minWidth: 130,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatSeconds(Number(row.accessTokenLifetime || 0)))
-    },
+    order: 6,
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatSeconds(Number((row as unknown as OAuthAppListItemDto).accessTokenLifetime || 0))),
   },
   {
     key: 'skipConsent',
     title: '授权确认',
+    dataType: 'boolean',
+    searchable: true,
+    options: consentOptions,
+    searchPlaceholder: '授权确认',
     width: 110,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.skipConsent ? 'warning' : 'default', bordered: false }, () => row.skipConsent ? '跳过' : '确认')
-    },
+    order: 7,
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'default', bordered: false }, () => (row as unknown as OAuthAppListItemDto).skipConsent ? '跳过' : '确认'),
   },
   {
     key: 'status',
     title: '状态',
-    width: 82,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => row.status === EnableStatus.Enabled ? '启用' : '禁用')
-    },
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions,
+    searchPlaceholder: '状态',
+    width: 90,
+    order: 8,
   },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 9 },
+]
+
+// ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
+const schema: PageSchema = {
+  pageCode: 'platform.app',
+  pageName: '应用管理',
+  rowKey: 'basicId',
+  scrollX: 1700,
+  fields,
+  resource: {
+    page: (params) => {
+      const { keyword, appType, skipConsent, status } = params.filters
+      return appManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        // appType 为字符串枚举（option.value 直接是 OAuthAppType），透传即可
+        appType: (appType as OAuthAppType | undefined) ?? null,
+        keyword: (keyword as string | undefined)?.trim() || null,
+        // skipConsent 用 1/0 数值选项表示布尔，清洗为 boolean
+        skipConsent: skipConsent === undefined || skipConsent === null || skipConsent === '' ? null : Boolean(Number(skipConsent)),
+        // status 为数值枚举（option.value 直接是 EnableStatus），透传即可
+        status: (status as EnableStatus | undefined) ?? null,
+      }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
+    remove: id => appManagementApi.delete(id),
   },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 170,
-    render(row) {
-      return h(NSpace, { size: 4 }, () => [
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleDetail(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
-            }),
-          default: () => '详情',
-        }),
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, {
-              ariaLabel: '启停',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
-              onClick: () => handleToggleStatus(row),
-            }, {
-              icon: () => h(NIcon, { icon: row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play' }),
-            }),
-          default: () => row.status === EnableStatus.Enabled ? '停用' : '启用',
-        }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
-            }),
-          default: () => '确定删除该 OAuth 应用？删除后不可恢复。',
-        }),
-      ])
-    },
-  },
-])
-
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
+  actions: [
+    { key: 'create', title: '新增应用', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: '查看详情', scope: 'row' },
+    { key: 'edit', title: '编辑', scope: 'row' },
+    { key: 'toggle', title: '启用/停用', scope: 'row' },
+    { key: 'secret', title: '重置密钥', scope: 'row' },
+    { key: 'delete', title: '删除', scope: 'row' },
+  ],
 }
 
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.appType = undefined
-  queryParams.skipConsent = undefined
-  queryParams.status = undefined
-  currentPage.value = 1
-  fetchData()
+// ── 行/页面操作分发 ─────────────────────────────────────────────
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as OAuthAppListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'view':
+      if (row) {
+        void handleView(row)
+      }
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'toggle':
+      if (row) {
+        void handleToggleStatus(row)
+      }
+      break
+    case 'secret':
+      if (row) {
+        void handleRegenerateSecret(row.basicId)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
 }
 
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
+// ── 详情抽屉 ────────────────────────────────────────────────────
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<OAuthAppDetailDto | null>(null)
+
+// ── 密钥抽屉 ────────────────────────────────────────────────────
+const secretVisible = ref(false)
+const currentSecret = ref<OAuthAppSecretDto | null>(null)
+
+// ── 新增/编辑弹窗 ───────────────────────────────────────────────
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const appForm = ref<AppFormModel>(createDefaultForm())
+const modalTitle = computed(() => (appForm.value.basicId ? '编辑应用' : '新增应用'))
+
+function createDefaultForm(): AppFormModel {
+  return {
+    accessTokenLifetime: 3600,
+    appDescription: null,
+    appName: '',
+    appType: OAuthAppType.Web,
+    authorizationCodeLifetime: 600,
+    clientId: '',
+    grantTypes: '',
+    homepage: null,
+    logo: null,
+    redirectUris: null,
+    refreshTokenLifetime: 2592000,
+    remark: null,
+    scopes: '',
+    skipConsent: false,
+    status: EnableStatus.Enabled,
+  }
 }
 
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
-}
-
-async function handleDetail(row: OAuthAppListItemDto) {
+async function handleView(row: OAuthAppListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   currentDetail.value = null
-
   try {
     currentDetail.value = await appManagementApi.detail(row.basicId)
   }
@@ -233,24 +261,141 @@ async function handleDetail(row: OAuthAppListItemDto) {
   }
 }
 
-async function handleRegenerateSecret() {
-  if (!currentDetail.value) return
-  actionLoading.value = true
+function handleAdd() {
+  appForm.value = createDefaultForm()
+  modalVisible.value = true
+}
+
+async function handleEdit(row: OAuthAppListItemDto) {
   try {
-    currentSecret.value = await appManagementApi.regenerateSecret(currentDetail.value.basicId)
+    const detail = await appManagementApi.detail(row.basicId)
+    if (!detail) {
+      message.error('加载应用详情失败')
+      return
+    }
+    appForm.value = {
+      accessTokenLifetime: detail.accessTokenLifetime,
+      appDescription: detail.appDescription ?? null,
+      appName: detail.appName,
+      appType: detail.appType,
+      authorizationCodeLifetime: detail.authorizationCodeLifetime,
+      basicId: detail.basicId,
+      clientId: detail.clientId,
+      grantTypes: detail.grantTypes,
+      homepage: detail.homepage ?? null,
+      logo: detail.logo ?? null,
+      redirectUris: detail.redirectUris ?? null,
+      refreshTokenLifetime: detail.refreshTokenLifetime,
+      remark: detail.remark ?? null,
+      scopes: detail.scopes ?? '',
+      skipConsent: detail.skipConsent,
+      status: detail.status,
+    }
+    modalVisible.value = true
+  }
+  catch {
+    message.error('加载应用详情失败')
+  }
+}
+
+function validateForm() {
+  if (!appForm.value.appName.trim()) {
+    message.warning('请输入应用名称')
+    return false
+  }
+  if (!appForm.value.basicId && !appForm.value.clientId.trim()) {
+    message.warning('请输入 Client ID')
+    return false
+  }
+  if (!appForm.value.grantTypes.trim()) {
+    message.warning('请输入授权类型')
+    return false
+  }
+  if (!appForm.value.scopes.trim()) {
+    message.warning('请输入权限范围')
+    return false
+  }
+  return true
+}
+
+async function handleSubmit() {
+  if (!validateForm()) {
+    return
+  }
+  submitLoading.value = true
+  try {
+    if (appForm.value.basicId) {
+      const updateInput: OAuthAppUpdateDto = {
+        accessTokenLifetime: appForm.value.accessTokenLifetime,
+        appDescription: appForm.value.appDescription,
+        appName: appForm.value.appName.trim(),
+        appType: appForm.value.appType,
+        authorizationCodeLifetime: appForm.value.authorizationCodeLifetime,
+        basicId: appForm.value.basicId,
+        grantTypes: appForm.value.grantTypes.trim(),
+        homepage: appForm.value.homepage,
+        logo: appForm.value.logo,
+        redirectUris: appForm.value.redirectUris,
+        refreshTokenLifetime: appForm.value.refreshTokenLifetime,
+        remark: appForm.value.remark,
+        scopes: appForm.value.scopes.trim(),
+        skipConsent: appForm.value.skipConsent,
+      }
+      await appManagementApi.update(updateInput)
+      message.success('保存成功')
+    }
+    else {
+      const createInput: OAuthAppCreateDto = {
+        accessTokenLifetime: appForm.value.accessTokenLifetime,
+        appDescription: appForm.value.appDescription,
+        appName: appForm.value.appName.trim(),
+        appType: appForm.value.appType,
+        authorizationCodeLifetime: appForm.value.authorizationCodeLifetime,
+        clientId: appForm.value.clientId.trim(),
+        grantTypes: appForm.value.grantTypes.trim(),
+        homepage: appForm.value.homepage,
+        logo: appForm.value.logo,
+        redirectUris: appForm.value.redirectUris,
+        refreshTokenLifetime: appForm.value.refreshTokenLifetime,
+        remark: appForm.value.remark,
+        scopes: appForm.value.scopes.trim(),
+        skipConsent: appForm.value.skipConsent,
+        status: appForm.value.status,
+      }
+      // 新增成功返回客户端密钥，弹出密钥抽屉（仅显示一次）
+      const secret = await appManagementApi.create(createInput)
+      message.success('保存成功')
+      if (secret) {
+        currentSecret.value = secret
+        secretVisible.value = true
+      }
+    }
+    modalVisible.value = false
+    reloadApp()
+  }
+  catch {
+    message.error('保存失败')
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
+
+async function handleRegenerateSecret(id: string) {
+  try {
+    currentSecret.value = await appManagementApi.regenerateSecret(id)
     secretVisible.value = true
     message.success('密钥已重新生成')
   }
   catch {
     message.error('重新生成密钥失败')
   }
-  finally {
-    actionLoading.value = false
-  }
 }
 
 function copySecret() {
-  if (!currentSecret.value?.clientSecret) return
+  if (!currentSecret.value?.clientSecret) {
+    return
+  }
   navigator.clipboard.writeText(currentSecret.value.clientSecret).then(() => {
     message.success('密钥已复制到剪贴板')
   }).catch(() => {
@@ -260,210 +405,190 @@ function copySecret() {
 
 async function handleToggleStatus(row: OAuthAppListItemDto) {
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
-  actionLoading.value = true
   try {
     await appManagementApi.updateStatus({
       basicId: row.basicId,
       status: newStatus,
     })
     message.success(newStatus === EnableStatus.Enabled ? '应用已启用' : '应用已停用')
-    fetchData()
+    reloadApp()
   }
   catch {
     message.error('更新状态失败')
   }
-  finally {
-    actionLoading.value = false
-  }
 }
 
 async function handleDelete(row: OAuthAppListItemDto) {
-  actionLoading.value = true
   try {
     await appManagementApi.delete(row.basicId)
     message.success('应用已删除')
-    fetchData()
+    reloadApp()
   }
   catch {
     message.error('删除应用失败')
   }
-  finally {
-    actionLoading.value = false
-  }
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索应用名称/Client ID"
-          style="width: 260px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.appType"
-          :options="OAUTH_APP_TYPE_OPTIONS"
-          clearable
-          placeholder="应用类型"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.skipConsent"
-          :options="consentOptions"
-          clearable
-          placeholder="授权确认"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="STATUS_OPTIONS"
-          clearable
-          placeholder="状态"
-          style="width: 110px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
+    <!-- 详情抽屉 -->
     <NDrawer v-model:show="detailVisible" :width="560">
       <NDrawerContent closable title="OAuth 应用详情">
-        <NSpace v-if="detailLoading" justify="center">
-          加载中...
-        </NSpace>
-
-        <NDescriptions v-else-if="currentDetail" :column="1" bordered size="small">
-          <NDescriptionsItem label="应用名称">
-            {{ currentDetail.appName }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="应用描述">
-            {{ currentDetail.appDescription || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="Client ID">
-            {{ currentDetail.clientId }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="应用类型">
-            {{ getOptionLabel(OAUTH_APP_TYPE_OPTIONS, currentDetail.appType) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="授权类型">
-            {{ currentDetail.grantTypes || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="权限范围">
-            {{ currentDetail.scopes || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="回调地址">
-            {{ currentDetail.redirectUris || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="主页">
-            {{ currentDetail.homepage || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label=" Logo">
-            {{ currentDetail.logo || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="访问令牌有效期">
-            {{ formatSeconds(currentDetail.accessTokenLifetime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="刷新令牌有效期">
-            {{ formatSeconds(currentDetail.refreshTokenLifetime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="授权码有效期">
-            {{ formatSeconds(currentDetail.authorizationCodeLifetime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="授权确认">
-            {{ currentDetail.skipConsent ? '跳过授权确认' : '需要授权确认' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="状态">
-            {{ currentDetail.status === EnableStatus.Enabled ? '启用' : '禁用' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
-            {{ currentDetail.remark || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
-            {{ formatDate(currentDetail.createdTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
-            {{ currentDetail.modifiedTime ? formatDate(currentDetail.modifiedTime) : '-' }}
-          </NDescriptionsItem>
-        </NDescriptions>
-
-        <div v-else class="py-8 text-center text-gray-400">
-          暂无应用详情
-        </div>
-
-        <template v-if="currentDetail && !detailLoading" #footer>
-          <NSpace justify="end">
-            <NButton
-              type="primary"
-              :loading="actionLoading"
-              @click="handleRegenerateSecret"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:key-round" /></NIcon>
-              </template>
-              重新生成密钥
-            </NButton>
-            <NButton
-              :type="currentDetail.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              :loading="actionLoading"
-              @click="handleToggleStatus(currentDetail)"
-            >
-              <template #icon>
-                <NIcon :icon="currentDetail.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" />
-              </template>
-              {{ currentDetail.status === EnableStatus.Enabled ? '停用' : '启用' }}
-            </NButton>
-            <NPopconfirm @positive-click="handleDelete(currentDetail); detailVisible = false">
-              <template #trigger>
-                <NButton type="error" :loading="actionLoading">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                  删除
-                </NButton>
-              </template>
-              确定删除该 OAuth 应用？
-            </NPopconfirm>
-          </NSpace>
-        </template>
+        <NSpin :show="detailLoading">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无应用详情">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
+          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 180px)">
+            <NDescriptions :column="1" bordered size="small">
+              <NDescriptionsItem label="应用名称">
+                {{ currentDetail.appName }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="应用描述">
+                {{ formatNullable(currentDetail.appDescription) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="Client ID">
+                {{ currentDetail.clientId }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="应用类型">
+                {{ getOptionLabel(appTypeOptions, currentDetail.appType) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="授权类型">
+                {{ formatNullable(currentDetail.grantTypes) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="权限范围">
+                {{ formatNullable(currentDetail.scopes) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="回调地址">
+                {{ formatNullable(currentDetail.redirectUris) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="主页">
+                {{ formatNullable(currentDetail.homepage) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="Logo">
+                {{ formatNullable(currentDetail.logo) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="访问令牌有效期">
+                {{ formatSeconds(currentDetail.accessTokenLifetime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="刷新令牌有效期">
+                {{ formatSeconds(currentDetail.refreshTokenLifetime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="授权码有效期">
+                {{ formatSeconds(currentDetail.authorizationCodeLifetime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="授权确认">
+                {{ currentDetail.skipConsent ? '跳过授权确认' : '需要授权确认' }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="状态">
+                {{ getOptionLabel(statusOptions, currentDetail.status) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="备注">
+                {{ formatNullable(currentDetail.remark) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="创建时间">
+                {{ formatNullableDate(currentDetail.createdTime) }}
+              </NDescriptionsItem>
+              <NDescriptionsItem label="修改时间">
+                {{ formatNullableDate(currentDetail.modifiedTime) }}
+              </NDescriptionsItem>
+            </NDescriptions>
+          </NScrollbar>
+        </NSpin>
       </NDrawerContent>
     </NDrawer>
 
+    <!-- 新增/编辑弹窗 -->
+    <NModal
+      v-model:show="modalVisible"
+      :auto-focus="false"
+      :bordered="false"
+      :title="modalTitle"
+      preset="card"
+      style="width: 680px; max-width: 92vw"
+    >
+      <NForm :model="appForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem label="应用名称" path="appName">
+          <NInput v-model:value="appForm.appName" clearable placeholder="请输入应用名称" />
+        </NFormItem>
+        <NFormItem v-if="!appForm.basicId" label="Client ID" path="clientId">
+          <NInput v-model:value="appForm.clientId" clearable placeholder="请输入 Client ID" />
+        </NFormItem>
+        <NFormItem v-else label="Client ID" path="clientId">
+          <NInput v-model:value="appForm.clientId" disabled />
+        </NFormItem>
+        <NFormItem v-if="!appForm.basicId" label="应用类型" path="appType">
+          <NSelect v-model:value="appForm.appType" :options="appTypeOptions" />
+        </NFormItem>
+        <NFormItem label="授权类型" path="grantTypes">
+          <NInput v-model:value="appForm.grantTypes" clearable placeholder="如: authorization_code,refresh_token" />
+        </NFormItem>
+        <NFormItem label="权限范围" path="scopes">
+          <NInput v-model:value="appForm.scopes" clearable placeholder="如: openid,profile,email" />
+        </NFormItem>
+        <NFormItem label="回调地址" path="redirectUris">
+          <NInput v-model:value="appForm.redirectUris" clearable placeholder="多个以逗号分隔" />
+        </NFormItem>
+        <NFormItem label="主页" path="homepage">
+          <NInput v-model:value="appForm.homepage" clearable placeholder="请输入主页地址" />
+        </NFormItem>
+        <NFormItem label="Logo" path="logo">
+          <NInput v-model:value="appForm.logo" clearable placeholder="请输入 Logo 地址" />
+        </NFormItem>
+        <NFormItem label="访问令牌有效期(秒)" path="accessTokenLifetime">
+          <NInputNumber v-model:value="appForm.accessTokenLifetime" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="刷新令牌有效期(秒)" path="refreshTokenLifetime">
+          <NInputNumber v-model:value="appForm.refreshTokenLifetime" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="授权码有效期(秒)" path="authorizationCodeLifetime">
+          <NInputNumber v-model:value="appForm.authorizationCodeLifetime" :min="0" style="width: 100%" />
+        </NFormItem>
+        <NFormItem label="跳过授权确认" path="skipConsent">
+          <NSwitch v-model:value="appForm.skipConsent" />
+        </NFormItem>
+        <NFormItem v-if="!appForm.basicId" label="状态" path="status">
+          <NSelect v-model:value="appForm.status" :options="statusOptions" />
+        </NFormItem>
+        <NFormItem label="应用描述" path="appDescription">
+          <NInput
+            v-model:value="appForm.appDescription"
+            clearable
+            placeholder="请输入应用描述"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem label="备注" path="remark">
+          <NInput
+            v-model:value="appForm.remark"
+            clearable
+            placeholder="请输入备注"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+            保存
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 密钥抽屉 -->
     <NDrawer v-model:show="secretVisible" :width="420">
       <NDrawerContent closable title="客户端密钥">
         <NSpace v-if="currentSecret" vertical>
@@ -472,14 +597,12 @@ onMounted(() => fetchData())
               {{ currentSecret.clientId }}
             </NDescriptionsItem>
             <NDescriptionsItem label="Client Secret">
-              <div class="relative">
-                <div class="break-all font-mono text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                  {{ currentSecret.clientSecret }}
-                </div>
+              <div class="p-3 font-mono text-sm break-all bg-gray-50 rounded dark:bg-gray-800">
+                {{ currentSecret.clientSecret }}
               </div>
             </NDescriptionsItem>
           </NDescriptions>
-          <div class="text-xs text-gray-400 mt-2">
+          <div class="mt-2 text-xs text-gray-400">
             密钥仅显示一次，请妥善保管。丢失后需重新生成。
           </div>
           <NButton block type="primary" @click="copySecret">
@@ -494,5 +617,11 @@ onMounted(() => fetchData())
         </NSpace>
       </NDrawerContent>
     </NDrawer>
-  </div>
+  </SchemaPage>
 </template>
+
+<style scoped>
+.xh-detail-empty {
+  padding: 48px 0;
+}
+</style>
