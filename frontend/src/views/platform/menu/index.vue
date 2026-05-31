@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
+import type { DataTableColumns, TreeSelectOption } from 'naive-ui'
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import type { PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import {
@@ -124,14 +124,8 @@ function createDefaultForm(): MenuFormModel {
   }
 }
 
-// --- 上级菜单 NTreeSelect ---
-interface MenuTreeSelectOption {
-  key: ApiId
-  label: string
-  children?: MenuTreeSelectOption[]
-}
-
-function buildTreeSelectOptions(nodes: MenuTreeNodeDto[]): MenuTreeSelectOption[] {
+// --- 上级菜单 NTreeSelect（key-field=key / label-field=label） ---
+function buildTreeSelectOptions(nodes: MenuTreeNodeDto[]): TreeSelectOption[] {
   return nodes.map(node => ({
     key: node.basicId,
     label: `${node.menuName}（${node.path}）`,
@@ -172,7 +166,7 @@ function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
   return roots
 }
 
-const schema: PageSchema<MenuListItemDto> = {
+const schema: PageSchema = {
   pageCode: 'platform.menu',
   pageName: '菜单管理',
   rowKey: 'basicId',
@@ -189,7 +183,7 @@ const schema: PageSchema<MenuListItemDto> = {
         menuType: (params.filters.menuType as MenuType | undefined) || undefined,
         status: (params.filters.status as EnableStatus | undefined) || undefined,
       })
-      return result.then(res => buildTree(res.items)) as unknown as Promise<MenuListItemDto[]>
+      return result.then(res => buildTree(res.items)) as unknown as Promise<Record<string, unknown>[]>
     },
     remove: (id: ApiId) => menuManagementApi.delete(id),
   },
@@ -220,8 +214,8 @@ const schema: PageSchema<MenuListItemDto> = {
       searchPlaceholder: '菜单类型',
       width: 90,
       order: 2,
-      render: (row: MenuListItemDto) =>
-        h(NTag, { size: 'small', round: true, bordered: false }, () => getOptionLabel(menuTypeOptions, row.menuType)),
+      render: row =>
+        h(NTag, { size: 'small', round: true, bordered: false }, () => getOptionLabel(menuTypeOptions, (row as unknown as MenuListItemDto).menuType)),
     },
     {
       key: 'path',
@@ -236,7 +230,7 @@ const schema: PageSchema<MenuListItemDto> = {
       dataType: 'string',
       minWidth: 150,
       order: 4,
-      render: (row: MenuListItemDto) => formatNullable(row.icon),
+      render: row => formatNullable((row as unknown as MenuListItemDto).icon),
     },
     {
       key: 'isVisible',
@@ -244,8 +238,8 @@ const schema: PageSchema<MenuListItemDto> = {
       dataType: 'boolean',
       width: 80,
       order: 5,
-      render: (row: MenuListItemDto) =>
-        h(NTag, { size: 'small', round: true, type: row.isVisible ? 'success' : 'default' }, () => (row.isVisible ? '是' : '否')),
+      render: row =>
+        h(NTag, { size: 'small', round: true, type: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'default' }, () => ((row as unknown as MenuListItemDto).isVisible ? '是' : '否')),
     },
     {
       key: 'status',
@@ -256,8 +250,8 @@ const schema: PageSchema<MenuListItemDto> = {
       searchPlaceholder: '状态',
       width: 90,
       order: 6,
-      render: (row: MenuListItemDto) =>
-        h(NTag, { size: 'small', round: true, bordered: false, type: row.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusOptions, row.status)),
+      render: row =>
+        h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusOptions, (row as unknown as MenuListItemDto).status)),
     },
     {
       key: 'sort',
@@ -272,12 +266,12 @@ const schema: PageSchema<MenuListItemDto> = {
       dataType: 'datetime',
       minWidth: 170,
       order: 8,
-      render: (row: MenuListItemDto) => formatDate(row.createdTime),
+      render: row => formatDate((row as unknown as MenuListItemDto).createdTime),
     },
   ],
   actions: [
     { key: 'create', title: '新增菜单', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'addChild', title: '新增子项', scope: 'row', icon: 'lucide:plus', visible: (row: MenuListItemDto) => row.menuType !== MenuType.Button },
+    { key: 'addChild', title: '新增子项', scope: 'row', icon: 'lucide:plus', visible: row => (row as unknown as MenuListItemDto).menuType !== MenuType.Button },
     { key: 'view', title: '详情', scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pen' },
     { key: 'toggle', title: '启停', scope: 'row', icon: 'lucide:power' },
