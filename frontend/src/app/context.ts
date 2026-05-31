@@ -26,6 +26,7 @@ import type {
   UserSessionItem,
   VerificationCodeResult,
 } from '~/types'
+import { fileApi } from '@/api/modules/files'
 import { logManagementApi } from '@/api/modules/log'
 import {
   appManagementApi,
@@ -159,6 +160,9 @@ function createProfileApis() {
     },
     getActivityApi() {
       return requestClient.get<UserActivity>('/Profile/Activity')
+    },
+    getFilePresignedUrlApi(fileId: string) {
+      return fileApi.generatePresignedUrl(fileId)
     },
     getLinkedAccountsApi() {
       return getWithFallback<ExternalLoginItem[]>('/Profile/LinkedAccounts', [])

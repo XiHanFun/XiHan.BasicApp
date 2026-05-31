@@ -1,17 +1,20 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
 import { NAvatar } from 'naive-ui'
+import { computed } from 'vue'
+import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
-defineProps<{
+const props = defineProps<{
   profile: UserProfile | null
   sessionsCount: number
   sessionsLoaded: boolean
 }>()
 
 const userStore = useUserStore()
+const avatarDisplayUrl = useAvatarUrl(computed(() => props.profile?.avatar || userStore.avatar))
 </script>
 
 <template>
@@ -27,7 +30,7 @@ const userStore = useUserStore()
       <div class="pf-avatar-wrap">
         <NAvatar
           round :size="64"
-          :src="profile?.avatar || userStore.avatar"
+          :src="avatarDisplayUrl"
           :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
         />
         <button class="pf-avatar-edit">
