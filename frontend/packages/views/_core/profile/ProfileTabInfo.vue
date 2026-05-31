@@ -19,6 +19,8 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
+import { fileApi, ResourceAccessLevel } from '@/api'
+import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 
@@ -100,6 +102,101 @@ function handleChangeUserName() {
       }
       finally {
         usernameChangeLoading.value = false
+      }
+    },
+  })
+}
+
+// ==================== 头像上传 / 删除 ====================
+
+const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
+const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
+
+const avatarInputRef = ref<HTMLInputElement | null>(null)
+const avatarUploading = ref(false)
+const avatarRemoving = ref(false)
+
+/** 头像原始值（fileId 或旧数据的直链），用于按钮禁用判断与持久化对比 */
+const currentAvatar = computed(() => props.profile?.avatar || userStore.avatar)
+/** 解析后的可显示 URL（fileId → 预签名 URL；直链原样；空值交由 fallback 兜底） */
+const avatarDisplayUrl = useAvatarUrl(currentAvatar)
+
+/** 把头像写入资料并同步全局状态（与 profileForm 合并提交，避免覆盖其它字段） */
+async function persistAvatar(avatar: string) {
+  await apis.updateProfileApi({
+    ...profileForm.value,
+    avatar,
+    birthday: profileForm.value.birthday
+      ? new Date(profileForm.value.birthday).toISOString()
+      : undefined,
+  })
+  if (userStore.userInfo) {
+    userStore.setUserInfo({ ...userStore.userInfo, avatar })
+  }
+  emit('saved')
+}
+
+function triggerAvatarUpload() {
+  avatarInputRef.value?.click()
+}
+
+async function handleAvatarChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  // 清空 input，保证再次选择同一文件也能触发 change
+  input.value = ''
+  if (!file) {
+    return
+  }
+  if (!AVATAR_ACCEPT.includes(file.type)) {
+    message.warning('仅支持 JPG、PNG 格式的图片')
+    return
+  }
+  if (file.size > AVATAR_MAX_SIZE) {
+    message.warning('图片大小不能超过 2MB')
+    return
+  }
+  avatarUploading.value = true
+  try {
+    const detail = await fileApi.upload({
+      file,
+      accessLevel: ResourceAccessLevel.Public,
+      directory: 'avatars',
+    })
+    // user.avatar 存文件主键(fileId)，显示时再换取预签名 URL
+    await persistAvatar(detail.basicId)
+    message.success('头像已更新')
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '头像上传失败')
+  }
+  finally {
+    avatarUploading.value = false
+  }
+}
+
+function handleAvatarRemove() {
+  if (!currentAvatar.value) {
+    message.warning('当前没有可删除的头像')
+    return
+  }
+  dialog.warning({
+    title: '删除头像',
+    content: '确定要删除当前头像吗？删除后将显示默认头像。',
+    positiveText: '确认删除',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      avatarRemoving.value = true
+      try {
+        await persistAvatar('')
+        message.success('头像已删除')
+      }
+      catch (e: unknown) {
+        message.error((e as Error)?.message || '删除失败')
+        return false
+      }
+      finally {
+        avatarRemoving.value = false
       }
     },
   })
@@ -380,17 +477,35 @@ function cancelChange() {
           <div class="pf-avatar-section">
             <NAvatar
               round :size="56"
-              :src="profile?.avatar || userStore.avatar"
+              :src="avatarDisplayUrl"
               :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
             />
             <div class="pf-avatar-info">
               <span class="pf-avatar-hint">支持 JPG、PNG，不超过 2MB</span>
             </div>
+            <input
+              ref="avatarInputRef"
+              type="file"
+              accept="image/jpeg,image/png"
+              style="display: none"
+              @change="handleAvatarChange"
+            >
             <NSpace :size="8">
-              <NButton size="small" type="primary">
+              <NButton
+                size="small"
+                type="primary"
+                :loading="avatarUploading"
+                @click="triggerAvatarUpload"
+              >
                 上传
               </NButton>
-              <NButton size="small" quaternary>
+              <NButton
+                size="small"
+                quaternary
+                :loading="avatarRemoving"
+                :disabled="!currentAvatar"
+                @click="handleAvatarRemove"
+              >
                 删除
               </NButton>
             </NSpace>

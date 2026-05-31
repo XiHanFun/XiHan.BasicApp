@@ -1,4 +1,5 @@
 export * from './useAccessDirective'
+export * from './useAvatarUrl'
 export * from './useGlobalShortcuts'
 export * from './useHtmlStyle'
 export * from './useIsMobile'

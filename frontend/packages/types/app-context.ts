@@ -110,6 +110,8 @@ export interface AppContextApis extends Record<string, unknown> {
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
   }
   getActivityApi: () => Promise<UserActivity>
+  /** 由文件主键(fileId)换取对象存储预签名访问 URL（<img> 可直接用、无需 token，会过期） */
+  getFilePresignedUrlApi: (fileId: string) => Promise<string>
   getLinkedAccountsApi: () => Promise<ExternalLoginItem[]>
   getLoginConfigApi: () => Promise<LoginConfig>
   getLoginLogsApi: (page: number, pageSize: number) => Promise<LoginLogPage & { page: number, pageSize: number }>

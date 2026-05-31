@@ -31,6 +31,16 @@ export const fileApi = {
   fastUpload(input: FileFastUploadDto) {
     return fileCommandApi.post<FileDetailDto, FileFastUploadDto>('FastUploadFile', input)
   },
+  generatePresignedUrl(fileId: ApiId) {
+    // 后端 GenerateFilePresignedUrlAsync：方法名前缀 Generate 不在动词约定表中，默认 POST；
+    // fileId（简单类型）在 POST 下绑定到 Query。返回对象存储签名 URL，<img> 可直接访问且无需 token（会过期）。
+    // params 由 axios 负责编码，这里传原始值即可，避免双重编码。
+    return fileCommandApi.post<string>(
+      'GenerateFilePresignedUrl',
+      undefined,
+      { params: { fileId } },
+    )
+  },
   page(input: FilePageQueryDto) {
     return fileQueryApi.get<PageResult<FileListItemDto>>('FilePage', toFilePageParams(input))
   },
