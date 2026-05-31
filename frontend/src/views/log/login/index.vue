@@ -1,41 +1,21 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { LoginLogDetailDto, LoginLogListItemDto } from '@/api'
-import {
-  NButton,
-  NCard,
-  NDataTable,
-  NIcon,
-  NInput,
-  NPagination,
-  NSelect,
-  NTag,
-  NTooltip,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { LoginLogDetailDto, LoginLogListItemDto, PageResult } from '@/api'
+import { NTag, useMessage } from 'naive-ui'
+import { h, ref } from 'vue'
 import { createPageRequest, LoginResult, logManagementApi } from '@/api'
-import { Icon } from '~/components'
-import { formatDate, getOptionLabel } from '~/utils'
+import { SchemaPage } from '~/components'
+import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogLoginPage' })
 
 const message = useMessage()
+
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<LoginLogDetailDto | null>(null)
-const tableLoading = ref(false)
-const dataList = ref<LoginLogListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
-
-const queryParams = reactive({
-  keyword: '',
-  loginResult: undefined as LoginResult | undefined,
-})
 
 const loginResultOptions = [
   { label: '成功', value: LoginResult.Success },
@@ -47,6 +27,107 @@ const loginResultOptions = [
   { label: '登出', value: LoginResult.Logout },
   { label: '其他失败', value: LoginResult.Failed },
 ]
+
+const riskOptions = [
+  { label: '是', value: 1 },
+  { label: '否', value: 0 },
+]
+
+function loginResultType(result: LoginResult) {
+  switch (result) {
+    case LoginResult.Success: return 'success'
+    case LoginResult.Logout: return 'info'
+    case LoginResult.InvalidCredentials:
+    case LoginResult.TwoFactorFailed:
+    case LoginResult.Failed: return 'error'
+    case LoginResult.AccountLocked:
+    case LoginResult.AccountDisabled:
+    case LoginResult.RequiresTwoFactor: return 'warning'
+    default: return 'default'
+  }
+}
+
+// ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
+const fields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索用户/会话/链路', order: 0 },
+  {
+    key: 'loginResult',
+    title: '登录/登出结果',
+    dataType: 'enum',
+    searchable: true,
+    options: loginResultOptions,
+    searchPlaceholder: '登录/登出结果',
+    width: 120,
+    order: 10,
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions, (row as unknown as LoginLogListItemDto).loginResult)),
+  },
+  // 高级搜索 + 列
+  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 12 },
+  {
+    key: 'isRiskLogin',
+    title: '是否风险登录',
+    dataType: 'boolean',
+    advancedSearch: true,
+    options: riskOptions,
+    width: 120,
+    order: 13,
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'error' : 'info' }, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? '是' : '否'),
+  },
+  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
+  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 15 },
+  // 仅高级搜索
+  { key: 'loginTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 16 },
+  { key: 'loginTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 17 },
+  // 仅列
+  { key: 'loginIp', title: '登录 IP', dataType: 'string', minWidth: 130, order: 30 },
+  { key: 'loginLocation', title: '登录位置', dataType: 'string', minWidth: 160, order: 31 },
+  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 32 },
+  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 33 },
+  { key: 'device', title: '设备', dataType: 'string', minWidth: 120, order: 34 },
+  { key: 'deviceId', title: '设备标识', dataType: 'string', minWidth: 160, order: 35 },
+  { key: 'message', title: '消息', dataType: 'string', minWidth: 220, order: 36 },
+  { key: 'loginTime', title: '登录时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 37 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 38 },
+]
+
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+function toBool(v: unknown): boolean | undefined {
+  return v == null || v === '' ? undefined : v === 1 || v === true
+}
+function toIso(v: unknown): string | undefined {
+  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
+}
+
+const schema: PageSchema = {
+  pageCode: 'log.login',
+  pageName: '登录日志',
+  rowKey: 'basicId',
+  scrollX: 2000,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return logManagementApi.login.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword),
+        loginResult: (f.loginResult as LoginResult | undefined) ?? undefined,
+        userName: toStr(f.userName),
+        userId: toStr(f.userId),
+        isRiskLogin: toBool(f.isRiskLogin),
+        sessionId: toStr(f.sessionId),
+        traceId: toStr(f.traceId),
+        loginTimeStart: toIso(f.loginTimeStart),
+        loginTimeEnd: toIso(f.loginTimeEnd),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+  },
+  actions: [
+    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+  ],
+}
 
 const detailFields: LogDetailField[] = [
   { key: 'basicId', label: '日志主键' },
@@ -70,126 +151,11 @@ const detailFields: LogDetailField[] = [
   { key: 'userAgent', label: 'User-Agent', type: 'code' },
 ]
 
-function loginResultType(result: LoginResult) {
-  switch (result) {
-    case LoginResult.Success: return 'success'
-    case LoginResult.Logout: return 'info'
-    case LoginResult.InvalidCredentials:
-    case LoginResult.TwoFactorFailed:
-    case LoginResult.Failed: return 'error'
-    case LoginResult.AccountLocked:
-    case LoginResult.AccountDisabled:
-    case LoginResult.RequiresTwoFactor: return 'warning'
-    default: return 'default'
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as LoginLogListItemDto | undefined
+  if (payload.key === 'view' && row) {
+    void handleDetail(row)
   }
-}
-
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await logManagementApi.login.page({
-      ...createPageRequest({
-        page: { pageIndex: currentPage.value, pageSize: pageSize.value },
-      }),
-      keyword: queryParams.keyword?.trim() || undefined,
-      loginResult: queryParams.loginResult,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询登录日志失败')
-  }
-  finally {
-    tableLoading.value = false
-  }
-}
-
-const tableColumns = computed<DataTableColumns<LoginLogListItemDto>>(() => [
-  { key: 'sessionId', title: '会话标识', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'traceId', title: '链路追踪 ID', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'userName', title: '用户名', minWidth: 100, ellipsis: { tooltip: true } },
-  { key: 'userId', title: '用户主键', minWidth: 80, ellipsis: { tooltip: true } },
-  { key: 'loginIp', title: '登录 IP', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'loginLocation', title: '登录位置', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'browser', title: '浏览器', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'os', title: '操作系统', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'device', title: '设备', minWidth: 120, ellipsis: { tooltip: true } },
-  { key: 'deviceId', title: '设备标识', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'userAgent', title: 'User-Agent', minWidth: 260, ellipsis: { tooltip: true } },
-  {
-    key: 'loginResult',
-    title: '登录/登出结果',
-    width: 120,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: loginResultType(row.loginResult), bordered: false }, () => getOptionLabel(loginResultOptions, row.loginResult))
-    },
-  },
-  { key: 'message', title: '消息', minWidth: 220, ellipsis: { tooltip: true } },
-  {
-    key: 'isRiskLogin',
-    title: '是否风险登录',
-    width: 110,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: row.isRiskLogin ? 'error' : 'info', bordered: false }, () => row.isRiskLogin ? '是' : '否')
-    },
-  },
-  {
-    key: 'loginTime',
-    title: '登录时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.loginTime))
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 86,
-    fixed: 'right',
-    render(row) {
-      return h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', onClick: () => handleDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '详情',
-        }),
-      ])
-    },
-  },
-])
-
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
-
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.loginResult = undefined
-  currentPage.value = 1
-  fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
 }
 
 async function handleDetail(row: LoginLogListItemDto) {
@@ -206,65 +172,10 @@ async function handleDetail(row: LoginLogListItemDto) {
     detailLoading.value = false
   }
 }
-
-onMounted(() => fetchData())
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索用户/会话/链路"
-          style="width:220px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.loginResult"
-          :options="loginResultOptions"
-          clearable
-          placeholder="登录/登出结果"
-          style="width: 130px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2400"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
-        </div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
       :fields="detailFields"
@@ -272,5 +183,5 @@ onMounted(() => fetchData())
       :record="detailData"
       title="登录日志详情"
     />
-  </div>
+  </SchemaPage>
 </template>
