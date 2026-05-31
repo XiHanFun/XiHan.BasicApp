@@ -128,6 +128,11 @@ public interface IProfileAppService : IApplicationService
     Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取当前用户活跃度统计
+    /// </summary>
+    Task<ProfileActivityDto> GetActivityAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 解除第三方账号绑定
     /// </summary>
     Task UnlinkAccountAsync(ProfileUnlinkAccountDto input, CancellationToken cancellationToken = default);

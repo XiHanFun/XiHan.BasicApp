@@ -121,6 +121,12 @@ public sealed partial class ProfileAppService
     }
 
     /// <inheritdoc />
+    public async Task<ProfileActivityDto> GetActivityAsync(CancellationToken cancellationToken = default)
+    {
+        return await _profileQueryService.GetActivityAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetLinkedAccountsAsync(GetCurrentUserIdOrThrow(), cancellationToken);
