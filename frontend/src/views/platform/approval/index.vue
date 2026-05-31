@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { ReviewDetailDto, ReviewListItemDto } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PageResult, ReviewDetailDto, ReviewListItemDto } from '@/api'
 import {
   NButton,
-  NCard,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDivider,
@@ -12,17 +10,15 @@ import {
   NDrawerContent,
   NIcon,
   NInput,
-  NPagination,
   NPopconfirm,
-  NSelect,
   NSpace,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { h, ref } from 'vue'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
+import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformApprovalPage' })
@@ -30,25 +26,12 @@ defineOptions({ name: 'PlatformApprovalPage' })
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 const message = useMessage()
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const detailData = ref<ReviewDetailDto | null>(null)
-const actionLoading = ref(false)
-const approveVisible = ref(false)
-const auditResult = ref<AuditResult>(AuditResult.Pass)
-const auditComment = ref('')
-const tableLoading = ref(false)
-const dataList = ref<ReviewListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
+const statusOptions = STATUS_OPTIONS
 
-const queryParams = reactive({
-  keyword: '',
-  reviewResult: undefined as AuditResult | undefined,
-  reviewStatus: undefined as AuditStatus | undefined,
-  status: undefined as EnableStatus | undefined,
-})
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+function reload() {
+  void schemaPageRef.value?.reload()
+}
 
 const reviewStatusOptions = [
   { label: '待审核', value: AuditStatus.Pending },
@@ -63,34 +46,6 @@ const reviewResultOptions = [
   { label: '拒绝', value: AuditResult.Reject },
   { label: '退回修改', value: AuditResult.Return },
 ]
-
-const statusOptions = [
-  { label: '启用', value: EnableStatus.Enabled },
-  { label: '禁用', value: EnableStatus.Disabled },
-]
-
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
-
-const canAudit = () => {
-  if (!detailData.value) return false
-  const status = detailData.value.reviewStatus
-  return status === AuditStatus.Pending || status === AuditStatus.InProgress
-}
-
-const canWithdraw = () => {
-  if (!detailData.value) return false
-  const status = detailData.value.reviewStatus
-  return status !== AuditStatus.Approved && status !== AuditStatus.Rejected && status !== AuditStatus.Withdrawn
-}
-
-function normalizeNullable(value?: string | null) {
-  const normalized = value?.trim()
-  return normalized || null
-}
-
-function formatNullableDate(value?: string | null) {
-  return value ? formatDate(value) : '-'
-}
 
 function reviewStatusTag(status: AuditStatus): TagType {
   switch (status) {
@@ -124,165 +79,129 @@ function statusTag(status: EnableStatus): TagType {
   return status === EnableStatus.Enabled ? 'success' : 'default'
 }
 
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await approvalManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: currentPage.value,
-          pageSize: pageSize.value,
-        },
-      }),
-      keyword: normalizeNullable(queryParams.keyword),
-      reviewResult: queryParams.reviewResult,
-      reviewStatus: queryParams.reviewStatus,
-      status: queryParams.status,
-    })
-    dataList.value = result.items
-    totalCount.value = result.page.totalCount
-  }
-  catch {
-    message.error('查询审批流程失败')
-    dataList.value = []
-    totalCount.value = 0
-  }
-  finally {
-    tableLoading.value = false
-  }
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
 }
 
-const tableColumns = computed<DataTableColumns<ReviewListItemDto>>(() => [
-  { key: 'reviewTitle', title: '审批标题', minWidth: 220, ellipsis: { tooltip: true } },
-  { key: 'reviewCode', title: '审批编码', minWidth: 160, ellipsis: { tooltip: true } },
-  { key: 'reviewType', title: '审批类型', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'entityType', title: '业务实体', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'entityId', title: '业务主键', minWidth: 150, ellipsis: { tooltip: true } },
+/** 过滤值辅助：trim 字符串 */
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+
+// ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
+const fields: ListFieldSchema[] = [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索标题/编码/业务', width: 240, order: 0 },
+  // 常用搜索 + 列
   {
     key: 'reviewStatus',
     title: '审批状态',
+    dataType: 'enum',
+    searchable: true,
+    options: reviewStatusOptions,
+    searchPlaceholder: '审批状态',
     width: 120,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: reviewStatusTag(row.reviewStatus), bordered: false }, () => getOptionLabel(reviewStatusOptions, row.reviewStatus))
+    order: 1,
+    render: (row) => {
+      const r = row as unknown as ReviewListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewStatusTag(r.reviewStatus) }, () => getOptionLabel(reviewStatusOptions, r.reviewStatus))
     },
   },
   {
     key: 'reviewResult',
     title: '审批结果',
+    dataType: 'enum',
+    searchable: true,
+    options: reviewResultOptions,
+    searchPlaceholder: '审批结果',
     width: 120,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: reviewResultTag(row.reviewResult), bordered: false }, () => row.reviewResult === null || row.reviewResult === undefined ? '未出结果' : getOptionLabel(reviewResultOptions, row.reviewResult))
+    order: 2,
+    render: (row) => {
+      const r = row as unknown as ReviewListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewResultTag(r.reviewResult) }, () => (r.reviewResult === null || r.reviewResult === undefined ? '未出结果' : getOptionLabel(reviewResultOptions, r.reviewResult)))
     },
   },
   {
     key: 'status',
     title: '启停状态',
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions,
+    searchPlaceholder: '启停状态',
     width: 100,
-    render(row) {
-      return h(NTag, { size: 'small', round: true, type: statusTag(row.status), bordered: false }, () => getOptionLabel(statusOptions, row.status))
+    order: 3,
+    render: (row) => {
+      const r = row as unknown as ReviewListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: statusTag(r.status) }, () => getOptionLabel(statusOptions, r.status))
     },
   },
-  { key: 'priority', title: '优先级', minWidth: 86, sorter: true },
-  { key: 'reviewLevel', title: '审批级别', minWidth: 100 },
-  { key: 'currentLevel', title: '当前级别', minWidth: 110 },
-  { key: 'submitUserId', title: '提交人', minWidth: 110 },
-  {
-    key: 'submitTime',
-    title: '提交时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.submitTime))
-    },
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 180,
-    render(row) {
-      return h(NSpace, { size: 4 }, () => [
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleDetail(row) }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })),
-            }),
-          default: () => '详情',
-        }),
-        ...(row.reviewStatus === AuditStatus.Pending || row.reviewStatus === AuditStatus.InProgress
-          ? [
-              h(NTooltip, null, {
-                trigger: () =>
-                  h(NButton, { ariaLabel: '通过', circle: true, quaternary: true, size: 'small', type: 'success', onClick: () => { handleDetail(row); openApproveDialog(AuditResult.Pass) } }, {
-                    icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:check' })),
-                  }),
-                default: () => '通过',
-              }),
-              h(NTooltip, null, {
-                trigger: () =>
-                  h(NButton, { ariaLabel: '拒绝', circle: true, quaternary: true, size: 'small', type: 'error', onClick: () => { handleDetail(row); openApproveDialog(AuditResult.Reject) } }, {
-                    icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:x' })),
-                  }),
-                default: () => '拒绝',
-              }),
-            ]
-          : []),
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, {
-              ariaLabel: '启停',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
-              onClick: () => handleToggleStatus(row),
-            }, {
-              icon: () => h(NIcon, { icon: row.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play' }),
-            }),
-          default: () => row.status === EnableStatus.Enabled ? '停用' : '启用',
-        }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () =>
-            h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })),
-            }),
-          default: () => '确定删除该审批？删除后不可恢复。',
-        }),
-      ])
-    },
-  },
-])
+  // 仅列（不搜索）
+  { key: 'reviewTitle', title: '审批标题', dataType: 'string', minWidth: 220, order: 10 },
+  { key: 'reviewCode', title: '审批编码', dataType: 'string', minWidth: 160, order: 11 },
+  { key: 'reviewType', title: '审批类型', dataType: 'string', minWidth: 130, order: 12 },
+  { key: 'entityType', title: '业务实体', dataType: 'string', minWidth: 130, order: 13 },
+  { key: 'entityId', title: '业务主键', dataType: 'string', minWidth: 150, order: 14 },
+  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 90, order: 15 },
+  { key: 'reviewLevel', title: '审批级别', dataType: 'number', width: 100, order: 16 },
+  { key: 'currentLevel', title: '当前级别', dataType: 'number', width: 110, order: 17 },
+  { key: 'submitUserId', title: '提交人', dataType: 'string', minWidth: 110, order: 18 },
+  { key: 'submitTime', title: '提交时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 20 },
+]
 
-function handleSearch() {
-  currentPage.value = 1
-  fetchData()
+const schema: PageSchema = {
+  pageCode: 'platform.approval',
+  pageName: '审批中心',
+  rowKey: 'basicId',
+  scrollX: 2000,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return approvalManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword),
+        reviewStatus: (f.reviewStatus as AuditStatus | undefined) ?? undefined,
+        reviewResult: (f.reviewResult as AuditResult | undefined) ?? undefined,
+        status: (f.status as EnableStatus | undefined) ?? undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => approvalManagementApi.delete(id),
+  },
+  actions: [
+    { key: 'view', title: '查看流程', scope: 'row', icon: 'lucide:eye' },
+    { key: 'approve', title: '通过', scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
+    { key: 'reject', title: '拒绝', scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
+    { key: 'toggle', title: '启用/停用', scope: 'row' },
+    { key: 'delete', title: '删除', scope: 'row', type: 'error' },
+  ],
 }
 
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.reviewResult = undefined
-  queryParams.reviewStatus = undefined
-  queryParams.status = undefined
-  currentPage.value = 1
-  fetchData()
+function canAuditRow(row: ReviewListItemDto) {
+  return row.reviewStatus === AuditStatus.Pending || row.reviewStatus === AuditStatus.InProgress
 }
 
-function handlePageChange(page: number) {
-  currentPage.value = page
-  fetchData()
+// ── 详情抽屉 + 审批/驳回/撤回（保留页面自有逻辑） ───────────────
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<ReviewDetailDto | null>(null)
+const actionLoading = ref(false)
+const approveVisible = ref(false)
+const auditResult = ref<AuditResult>(AuditResult.Pass)
+const auditComment = ref('')
+
+function canAudit() {
+  if (!detailData.value)
+    return false
+  const status = detailData.value.reviewStatus
+  return status === AuditStatus.Pending || status === AuditStatus.InProgress
 }
 
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
+function canWithdraw() {
+  if (!detailData.value)
+    return false
+  const status = detailData.value.reviewStatus
+  return status !== AuditStatus.Approved && status !== AuditStatus.Rejected && status !== AuditStatus.Withdrawn
 }
 
 async function handleDetail(row: ReviewListItemDto) {
@@ -306,8 +225,16 @@ function openApproveDialog(result: AuditResult) {
   approveVisible.value = true
 }
 
+/** 行级快捷审批：先取详情再打开审批弹窗 */
+async function handleQuickAudit(row: ReviewListItemDto, result: AuditResult) {
+  await handleDetail(row)
+  if (detailData.value)
+    openApproveDialog(result)
+}
+
 async function handleAudit() {
-  if (!detailData.value) return
+  if (!detailData.value)
+    return
   actionLoading.value = true
   try {
     await approvalManagementApi.audit({
@@ -318,7 +245,7 @@ async function handleAudit() {
     message.success(auditResult.value === AuditResult.Pass ? '已通过' : auditResult.value === AuditResult.Reject ? '已拒绝' : '已退回')
     approveVisible.value = false
     detailVisible.value = false
-    fetchData()
+    reload()
   }
   catch {
     message.error('审核操作失败')
@@ -329,15 +256,14 @@ async function handleAudit() {
 }
 
 async function handleWithdraw() {
-  if (!detailData.value) return
+  if (!detailData.value)
+    return
   actionLoading.value = true
   try {
-    await approvalManagementApi.withdraw({
-      basicId: detailData.value.basicId,
-    })
+    await approvalManagementApi.withdraw({ basicId: detailData.value.basicId })
     message.success('已撤回')
     detailVisible.value = false
-    fetchData()
+    reload()
   }
   catch {
     message.error('撤回失败')
@@ -349,108 +275,56 @@ async function handleWithdraw() {
 
 async function handleToggleStatus(row: ReviewListItemDto) {
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
-  actionLoading.value = true
   try {
-    await approvalManagementApi.updateStatus({
-      basicId: row.basicId,
-      status: newStatus,
-    })
+    await approvalManagementApi.updateStatus({ basicId: row.basicId, status: newStatus })
     message.success(newStatus === EnableStatus.Enabled ? '已启用' : '已停用')
-    fetchData()
+    reload()
   }
   catch {
     message.error('更新状态失败')
   }
-  finally {
-    actionLoading.value = false
-  }
 }
 
 async function handleDelete(row: ReviewListItemDto) {
-  actionLoading.value = true
   try {
     await approvalManagementApi.delete(row.basicId)
     message.success('已删除')
-    fetchData()
+    reload()
   }
   catch {
     message.error('删除失败')
   }
-  finally {
-    actionLoading.value = false
-  }
 }
 
-onMounted(() => fetchData())
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as ReviewListItemDto | undefined
+  switch (payload.key) {
+    case 'view':
+      if (row)
+        void handleDetail(row)
+      break
+    case 'approve':
+      if (row)
+        void handleQuickAudit(row, AuditResult.Pass)
+      break
+    case 'reject':
+      if (row)
+        void handleQuickAudit(row, AuditResult.Reject)
+      break
+    case 'toggle':
+      if (row)
+        void handleToggleStatus(row)
+      break
+    case 'delete':
+      if (row)
+        void handleDelete(row)
+      break
+  }
+}
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NInput
-          v-model:value="queryParams.keyword"
-          clearable
-          placeholder="搜索标题/编码/业务"
-          style="width: 240px"
-          @keyup.enter="handleSearch"
-        />
-        <NSelect
-          v-model:value="queryParams.reviewStatus"
-          :options="reviewStatusOptions"
-          clearable
-          placeholder="审批状态"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.reviewResult"
-          :options="reviewResultOptions"
-          clearable
-          placeholder="审批结果"
-          style="width: 130px"
-        />
-        <NSelect
-          v-model:value="queryParams.status"
-          :options="statusOptions"
-          clearable
-          placeholder="启停状态"
-          style="width: 120px"
-        />
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="tableColumns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页</div>
-        <NPagination :page="currentPage" :page-count="totalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="pageSize" show-size-picker @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
-    </NCard>
-
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <NDrawer v-model:show="detailVisible" :width="660">
       <NDrawerContent closable title="审批详情">
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
@@ -537,36 +411,23 @@ onMounted(() => fetchData())
 
         <template v-if="detailData && !detailLoading" #footer>
           <NDivider style="margin: 12px 0" />
-          <div class="text-sm font-medium mb-2">审批操作</div>
+          <div class="text-sm font-medium mb-2">
+            审批操作
+          </div>
           <NSpace justify="start" :size="8">
-            <NButton
-              type="success"
-              :disabled="!canAudit()"
-              :loading="actionLoading"
-              @click="openApproveDialog(AuditResult.Pass)"
-            >
+            <NButton type="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
               <template #icon>
                 <NIcon><Icon icon="lucide:check" /></NIcon>
               </template>
               通过
             </NButton>
-            <NButton
-              type="error"
-              :disabled="!canAudit()"
-              :loading="actionLoading"
-              @click="openApproveDialog(AuditResult.Reject)"
-            >
+            <NButton type="error" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
               <template #icon>
                 <NIcon><Icon icon="lucide:x" /></NIcon>
               </template>
               拒绝
             </NButton>
-            <NButton
-              type="warning"
-              :disabled="!canAudit()"
-              :loading="actionLoading"
-              @click="openApproveDialog(AuditResult.Return)"
-            >
+            <NButton type="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
               <template #icon>
                 <NIcon><Icon icon="lucide:corner-down-left" /></NIcon>
               </template>
@@ -604,12 +465,12 @@ onMounted(() => fetchData())
             @click="handleAudit"
           >
             <template #icon>
-              <NIcon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" />
+              <NIcon><Icon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" /></NIcon>
             </template>
             确认{{ auditResult === AuditResult.Pass ? '通过' : auditResult === AuditResult.Reject ? '拒绝' : '退回' }}
           </NButton>
         </NSpace>
       </NDrawerContent>
     </NDrawer>
-  </div>
+  </SchemaPage>
 </template>

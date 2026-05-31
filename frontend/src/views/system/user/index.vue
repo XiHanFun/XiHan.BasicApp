@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
+  PageResult,
   RoleSelectItemDto,
   UserCreateDto,
   UserListItemDto,
@@ -13,23 +14,18 @@ import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-
 import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import {
   NButton,
-  NCard,
   NConfigProvider,
-  NDataTable,
   NDatePicker,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
   NSelect,
   NSpace,
   NSwitch,
   NTabPane,
   NTabs,
   NTag,
-  NTooltip,
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
@@ -44,7 +40,7 @@ import {
   userManagementApi,
   UserGender,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -55,21 +51,6 @@ const GENDER_TAG_TYPE: Record<UserGender, 'default' | 'info' | 'warning'> = {
 }
 
 defineOptions({ name: 'SystemUserPage' })
-
-/** 列表行扩展信息（由聚合详情填充） */
-interface UserRowMeta {
-  depts: string[]
-  emailMasked: string | null
-  emailVerified: boolean
-  failedLoginAttempts: number
-  isActive: boolean
-  isLocked: boolean
-  lastLoginIp: string | null
-  online: boolean
-  phoneVerified: boolean
-  roles: string[]
-  twoFactorEnabled: boolean
-}
 
 interface UserFormState {
   basicId?: ApiId
@@ -92,7 +73,6 @@ interface UserFormState {
 }
 
 const message = useMessage()
-const pageSize = ref(20)
 
 /** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
 const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
@@ -111,19 +91,10 @@ const timezoneOptions = [
   { label: 'Europe/London (UTC+0)', value: 'Europe/London' },
 ]
 
-const tableLoading = ref(false)
-const dataList = ref<UserListItemDto[]>([])
-const rowMetaMap = ref<Record<string, UserRowMeta>>({})
-const totalCount = ref(0)
-const currentPage = ref(1)
+// 搜索/表单选项
+const statusOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
+const genderOptions = GENDER_OPTIONS
 
-const filterSearch = ref('')
-const filterStatus = ref<EnableStatus | null>(null)
-const filterGender = ref<UserGender | null>(null)
-const filterDeptId = ref<ApiId | null>(null)
-const deptFilterOptions = ref<{ label: string; value: ApiId }[]>([])
-
-const checkedRowKeys = ref<ApiId[]>([])
 const showFormModal = ref(false)
 const showDetModal = ref(false)
 const showDelModal = ref(false)
@@ -131,9 +102,10 @@ const formTab = ref('0')
 const submitLoading = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<UserManagementDetailDto | null>(null)
-const delTarget = ref<{ id: ApiId; name: string } | null>(null)
+const delTarget = ref<{ id: ApiId, name: string } | null>(null)
 
 const roleOptions = ref<RoleSelectItemDto[]>([])
+const deptFlatOptions = ref<{ label: string, value: ApiId }[]>([])
 const selRoleIds = ref<ApiId[]>([])
 const existingRoles = ref<UserRoleListItemDto[]>([])
 const selDeptIds = ref<ApiId[]>([])
@@ -144,23 +116,22 @@ const userForm = ref<UserFormState>(createDefaultForm())
 const formTitle = computed(() =>
   userForm.value.basicId ? `编辑用户 · ${userForm.value.userName}` : '新建用户',
 )
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
-const statusFilterOptions = STATUS_OPTIONS.map((o) => ({
-  label: o.label === '启用' ? '已启用' : '已禁用',
-  value: o.value,
-}))
-const genderFilterOptions = GENDER_OPTIONS
-const statusFormOptions = STATUS_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadList() {
+  void schemaPageRef.value?.reload()
+}
 
 const detUser = computed(() => {
   const d = currentDetail.value
-  if (!d) return null
+  if (!d)
+    return null
   const u = d.user
   const sec = d.security
-  const todayStat = d.statistics.find((s) => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
-  const onlineSession = d.sessions.find((s) => s.isOnline)
-  const badges: { label: string; cls: string; icon: string }[] = []
+  const todayStat = d.statistics.find(s => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
+  const onlineSession = d.sessions.find(s => s.isOnline)
+  const badges: { label: string, cls: string, icon: string }[] = []
   if (sec) {
     badges.push(
       sec.emailVerified
@@ -179,7 +150,8 @@ const detUser = computed(() => {
         icon: 'tabler:shield-check',
       })
     }
-    if (sec.isLocked) badges.push({ label: '账号已锁定', cls: 'bdg-no', icon: 'tabler:lock' })
+    if (sec.isLocked)
+      badges.push({ label: '账号已锁定', cls: 'bdg-no', icon: 'tabler:lock' })
     if (sec.failedLoginAttempts > 0) {
       badges.push({
         label: `失败登录 ${sec.failedLoginAttempts} 次`,
@@ -201,8 +173,8 @@ const detUser = computed(() => {
     timeZone: u.timeZone ?? '—',
     country: u.country ?? '—',
     gender: getOptionLabel(GENDER_OPTIONS, u.gender),
-    roles: d.roles.map((r) => r.roleName ?? '').filter(Boolean),
-    depts: d.departments.map((dep) => dep.departmentName ?? '').filter(Boolean),
+    roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
+    depts: d.departments.map(dep => dep.departmentName ?? '').filter(Boolean),
     remark: u.remark,
     badges,
     metrics: [
@@ -282,9 +254,12 @@ function getInitials(row: {
 
 function formatTwoFa(method: number) {
   const parts: string[] = []
-  if (method & TwoFactorMethod.Totp) parts.push('TOTP')
-  if (method & TwoFactorMethod.Email) parts.push('邮箱')
-  if (method & TwoFactorMethod.Phone) parts.push('短信')
+  if (method & TwoFactorMethod.Totp)
+    parts.push('TOTP')
+  if (method & TwoFactorMethod.Email)
+    parts.push('邮箱')
+  if (method & TwoFactorMethod.Phone)
+    parts.push('短信')
   return parts.join('+') || '—'
 }
 
@@ -300,141 +275,200 @@ function normalizeStr(value?: string | null) {
 function flattenDeptOptions(
   nodes: DepartmentTreeNodeDto[],
   depth = 0,
-): { label: string; value: ApiId }[] {
-  const out: { label: string; value: ApiId }[] = []
+): { label: string, value: ApiId }[] {
+  const out: { label: string, value: ApiId }[] = []
   for (const n of nodes) {
     out.push({ label: `${'　'.repeat(depth)}${n.departmentName}`, value: n.basicId })
-    if (n.children?.length) out.push(...flattenDeptOptions(n.children, depth + 1))
+    if (n.children?.length)
+      out.push(...flattenDeptOptions(n.children, depth + 1))
   }
   return out
 }
 
-function buildMetaFromDetail(detail: UserManagementDetailDto): UserRowMeta {
-  const sec = detail.security
-  const inviteAccepted = detail.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
-  return {
-    isLocked: sec?.isLocked ?? false,
-    twoFactorEnabled: sec?.twoFactorEnabled ?? false,
-    failedLoginAttempts: sec?.failedLoginAttempts ?? 0,
-    isActive: inviteAccepted && detail.user.status === EnableStatus.Enabled,
-    online: detail.sessions.some((s) => s.isOnline),
-    lastLoginIp: detail.sessions.find((s) => s.isOnline)?.ipAddressMasked ?? null,
-    roles: detail.roles.map((r) => r.roleName ?? '').filter(Boolean),
-    depts: detail.departments.map((d) => d.departmentName ?? '').filter(Boolean),
-    emailMasked: detail.externalLogins[0]?.externalEmailMasked ?? null,
-    emailVerified: sec?.emailVerified ?? false,
-    phoneVerified: sec?.phoneVerified ?? false,
-  }
+// ── 过滤值辅助：trim 字符串（gender/status 均为后端字符串枚举） ──────
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
 }
 
-async function enrichRows(rows: UserListItemDto[]) {
-  const entries = await Promise.all(
-    rows.map(async (row) => {
-      try {
-        const detail = await userManagementApi.detailView(row.basicId)
-        if (!detail) return [String(row.basicId), null] as const
-        return [String(row.basicId), buildMetaFromDetail(detail)] as const
-      } catch {
-        return [String(row.basicId), null] as const
-      }
-    }),
-  )
-  const next = { ...rowMetaMap.value }
-  for (const [id, meta] of entries) {
-    if (meta) next[id] = meta
-  }
-  rowMetaMap.value = next
-}
-
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    let deptUserIds: Set<ApiId> | null = null
-    if (filterDeptId.value) {
-      const bindings = await userManagementApi.userDepartments.departmentUsers(
-        filterDeptId.value,
-        true,
-        true,
+// ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────────
+const fields: ListFieldSchema[] = [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索用户名、姓名、邮箱…', width: 240, order: 0 },
+  // 头像（仅列）
+  {
+    key: 'avatar',
+    title: '头像',
+    dataType: 'string',
+    width: 56,
+    order: 1,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const c = getAvatarStyle(r.userName)
+      return h(
+        'div',
+        { class: 'tbl-av', style: { background: c.bg, color: c.fg }, title: r.realName || r.userName },
+        getInitials(r),
       )
-      deptUserIds = new Set(bindings.map((b) => b.userId))
-    }
-
-    const result = await userManagementApi.page({
-      ...createPageRequest({
-        page: {
-          pageIndex: filterDeptId.value ? 1 : currentPage.value,
-          pageSize: filterDeptId.value ? 500 : pageSize.value,
+    },
+  },
+  // 用户信息（仅列）
+  {
+    key: 'userName',
+    title: '用户信息',
+    dataType: 'string',
+    minWidth: 180,
+    order: 2,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const display = r.realName || r.nickName || r.userName
+      const nickLine = r.nickName && r.nickName !== display ? r.nickName : null
+      const subLine = nickLine ? `${nickLine} · @${r.userName}` : `@${r.userName}`
+      return h('div', { class: 'tbl-cell-2l' }, [
+        h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
+          display,
+          r.isSystemAccount ? h('span', { class: 'sys-tag' }, '系统') : null,
+        ]),
+        h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
+      ])
+    },
+  },
+  // 性别（常用搜索 + 列）
+  {
+    key: 'gender',
+    title: '性别',
+    dataType: 'enum',
+    searchable: true,
+    options: genderOptions,
+    searchPlaceholder: '全部性别',
+    width: 80,
+    order: 3,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const label = getOptionLabel(GENDER_OPTIONS, r.gender)
+      return h(
+        NTag,
+        { size: 'small', type: GENDER_TAG_TYPE[r.gender] ?? 'default', bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
+        () => label,
+      )
+    },
+  },
+  // 地区/语言（仅列）
+  {
+    key: 'locale',
+    title: '地区/语言',
+    dataType: 'string',
+    width: 140,
+    order: 4,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const region = [r.country, r.language].filter(Boolean).join(' · ') || '—'
+      return h('div', { class: 'tbl-cell-2l' }, [
+        h('div', { class: 'tbl-cell-2l__primary' }, region),
+        r.timeZone ? h('div', { class: 'tbl-cell-2l__secondary' }, r.timeZone) : null,
+      ])
+    },
+  },
+  // 账号状态（常用搜索 + 列）
+  {
+    key: 'status',
+    title: '账号状态',
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions,
+    searchPlaceholder: '全部状态',
+    width: 100,
+    order: 5,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return h(
+        NTag,
+        {
+          size: 'small',
+          type: r.status === EnableStatus.Enabled ? 'success' : 'error',
+          bordered: false,
+          style: { fontSize: '11px', fontWeight: 500 },
         },
-      }),
-      gender: filterGender.value ?? undefined,
-      keyword: normalizeStr(filterSearch.value),
-      status: filterStatus.value ?? undefined,
-    })
+        () => (r.status === EnableStatus.Enabled ? '已启用' : '已禁用'),
+      )
+    },
+  },
+  // 最后登录（仅列）
+  {
+    key: 'lastLoginTime',
+    title: '最后登录',
+    dataType: 'datetime',
+    minWidth: 150,
+    order: 6,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return formatNullableDate(r.lastLoginTime)
+    },
+  },
+  // 创建时间（仅列）
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, width: 170, order: 7 },
+]
 
-    let items = result.items ?? []
-    if (deptUserIds) {
-      items = items.filter((i) => deptUserIds!.has(i.basicId))
-      totalCount.value = items.length
-      const start = (currentPage.value - 1) * pageSize.value
-      items = items.slice(start, start + pageSize.value)
-    } else {
-      totalCount.value = result.page.totalCount
-    }
-    dataList.value = items
-    // 元数据异步补充，不阻塞表格展示
-    void enrichRows(items)
-  } catch {
-    message.error('加载用户列表失败')
-  } finally {
-    tableLoading.value = false
+const schema: PageSchema = {
+  pageCode: 'system.user',
+  pageName: '用户管理',
+  rowKey: 'basicId',
+  scrollX: 1200,
+  fields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return userManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: toStr(f.keyword),
+        gender: toStr(f.gender) as UserGender | undefined,
+        status: toStr(f.status) as EnableStatus | undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => userManagementApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: '新建用户', scope: 'page', type: 'primary', icon: 'tabler:plus' },
+    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
+    { key: 'lock', title: '锁定/解锁', scope: 'row', icon: 'lucide:lock' },
+    { key: 'logout', title: '强制下线', scope: 'row', icon: 'lucide:log-out' },
+    {
+      key: 'delete',
+      title: '删除',
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      visible: row => !(row as unknown as UserListItemDto).isSystemAccount,
+    },
+  ],
+}
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as UserListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      openCreate()
+      break
+    case 'view':
+      if (row)
+        void openDetail(row.basicId)
+      break
+    case 'edit':
+      if (row)
+        void openEdit(row.basicId)
+      break
+    case 'lock':
+      if (row)
+        void toggleLock(row)
+      break
+    case 'logout':
+      if (row)
+        void forceLogout(row)
+      break
+    case 'delete':
+      if (row)
+        openDelete(row)
+      break
   }
-}
-
-async function loadOptions() {
-  try {
-    const [roles, tree] = await Promise.all([
-      roleApi.enabledList({ limit: 200 }),
-      userManagementApi.departments.tree({ limit: 500, onlyEnabled: true }),
-    ])
-    roleOptions.value = roles
-    deptFilterOptions.value = flattenDeptOptions(tree)
-  } catch {
-    message.warning('加载角色或部门选项失败')
-  }
-}
-
-onMounted(() => {
-  void loadOptions()
-  void fetchData()
-})
-
-function applyFilter() {
-  currentPage.value = 1
-  void fetchData()
-}
-
-function resetFilter() {
-  filterSearch.value = ''
-  filterStatus.value = null
-  filterGender.value = null
-  filterDeptId.value = null
-  currentPage.value = 1
-  void fetchData()
-}
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-  void fetchData()
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  void fetchData()
-}
-
-function clearChecked() {
-  checkedRowKeys.value = []
 }
 
 function closeModals() {
@@ -452,6 +486,24 @@ function openCreate() {
   formTab.value = '0'
   showFormModal.value = true
 }
+
+async function loadOptions() {
+  try {
+    const [roles, tree] = await Promise.all([
+      roleApi.enabledList({ limit: 200 }),
+      userManagementApi.departments.tree({ limit: 500, onlyEnabled: true }),
+    ])
+    roleOptions.value = roles
+    deptFlatOptions.value = flattenDeptOptions(tree)
+  }
+  catch {
+    message.warning('加载角色或部门选项失败')
+  }
+}
+
+onMounted(() => {
+  void loadOptions()
+})
 
 async function fillFormFromDetail(detail: UserManagementDetailDto) {
   const u = detail.user
@@ -477,8 +529,8 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
   }
   existingRoles.value = detail.roles
   existingDepts.value = detail.departments
-  selRoleIds.value = detail.roles.map((r) => r.roleId)
-  selDeptIds.value = detail.departments.map((d) => d.departmentId)
+  selRoleIds.value = detail.roles.map(r => r.roleId)
+  selDeptIds.value = detail.departments.map(d => d.departmentId)
 }
 
 async function openEdit(id: ApiId) {
@@ -491,7 +543,8 @@ async function openEdit(id: ApiId) {
     await fillFormFromDetail(detail)
     formTab.value = '0'
     showFormModal.value = true
-  } catch {
+  }
+  catch {
     message.error('加载用户信息失败')
   }
 }
@@ -502,22 +555,26 @@ async function openDetail(id: ApiId) {
   currentDetail.value = null
   try {
     currentDetail.value = await userManagementApi.detailView(id)
-  } catch {
+  }
+  catch {
     message.error('加载用户详情失败')
-  } finally {
+  }
+  finally {
     detailLoading.value = false
   }
 }
 
 function openDelete(row: UserListItemDto) {
-  if (row.isSystemAccount) return
+  if (row.isSystemAccount)
+    return
   delTarget.value = { id: row.basicId, name: row.userName }
   showDelModal.value = true
 }
 
 function togglePick(arr: ApiId[], id: ApiId) {
   const i = arr.indexOf(id)
-  if (i >= 0) arr.splice(i, 1)
+  if (i >= 0)
+    arr.splice(i, 1)
   else arr.push(id)
 }
 
@@ -525,11 +582,12 @@ async function syncRoles(userId: ApiId) {
   const current = existingRoles.value
   const selected = new Set(selRoleIds.value)
   for (const role of roleOptions.value) {
-    const bound = current.find((c) => c.roleId === role.basicId)
+    const bound = current.find(c => c.roleId === role.basicId)
     const want = selected.has(role.basicId)
     if (want && !bound) {
       await userManagementApi.roles.grant({ userId, roleId: role.basicId })
-    } else if (!want && bound) {
+    }
+    else if (!want && bound) {
       await userManagementApi.roles.revoke(bound.basicId)
     }
   }
@@ -538,16 +596,17 @@ async function syncRoles(userId: ApiId) {
 async function syncDepartments(userId: ApiId) {
   const current = existingDepts.value
   const selected = new Set(selDeptIds.value)
-  for (const depId of deptFilterOptions.value.map((d) => d.value)) {
-    const bound = current.find((c) => c.departmentId === depId)
+  for (const depId of deptFlatOptions.value.map(d => d.value)) {
+    const bound = current.find(c => c.departmentId === depId)
     const want = selected.has(depId)
     if (want && !bound) {
       await userManagementApi.userDepartments.assign({
         userId,
         departmentId: depId,
-        isMain: selected.size === 1 || !current.some((c) => c.isMain),
+        isMain: selected.size === 1 || !current.some(c => c.isMain),
       })
-    } else if (!want && bound) {
+    }
+    else if (!want && bound) {
       await userManagementApi.userDepartments.revoke(bound.basicId)
     }
   }
@@ -587,7 +646,8 @@ async function saveUser() {
       if (form.status !== undefined) {
         await userManagementApi.updateStatus({ basicId: userId, status: form.status })
       }
-    } else {
+    }
+    else {
       const createInput: UserCreateDto = {
         userName: form.userName.trim(),
         initialPassword: form.initialPassword,
@@ -630,26 +690,29 @@ async function saveUser() {
 
     message.success('保存成功')
     closeModals()
-    void fetchData()
-  } catch {
+    reloadList()
+  }
+  catch {
     message.error('保存失败')
-  } finally {
+  }
+  finally {
     submitLoading.value = false
   }
 }
 
 async function toggleLock(row: UserListItemDto) {
-  const meta = rowMetaMap.value[String(row.basicId)]
-  const locked = meta?.isLocked ?? false
   try {
+    const detail = await userManagementApi.detailView(row.basicId)
+    const locked = detail?.security?.isLocked ?? false
     await userManagementApi.security.updateLock({
       userId: row.basicId,
       isLocked: !locked,
       lockoutEndTime: null,
     })
     message.success(locked ? '账号已解锁' : '账号已锁定')
-    void fetchData()
-  } catch {
+    reloadList()
+  }
+  catch {
     message.error('操作失败')
   }
 }
@@ -661,412 +724,30 @@ async function forceLogout(row: UserListItemDto) {
       reason: '管理员强制下线',
     })
     message.success('已强制下线')
-    void fetchData()
-  } catch {
+    reloadList()
+  }
+  catch {
     message.error('强制下线失败')
   }
 }
 
 async function confirmDelete() {
-  if (!delTarget.value) return
+  if (!delTarget.value)
+    return
   try {
     await userManagementApi.delete(delTarget.value.id)
     message.success('用户已删除')
     closeModals()
-    void fetchData()
-  } catch {
+    reloadList()
+  }
+  catch {
     message.error('删除失败')
   }
 }
-
-function renderTag(label: string, type: 'default' | 'info' | 'success' | 'warning' | 'error') {
-  return h(
-    NTag,
-    { size: 'small', type, bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
-    () => label,
-  )
-}
-
-/** 双行单元格：主行 + 次要行 */
-function renderTwoLine(primary: string, secondary?: string | null, primaryStrong = false) {
-  return h('div', { class: 'tbl-cell-2l' }, [
-    h(
-      'div',
-      {
-        class: ['tbl-cell-2l__primary', primaryStrong ? 'tbl-cell-2l__primary--strong' : ''],
-      },
-      primary,
-    ),
-    secondary ? h('div', { class: 'tbl-cell-2l__secondary' }, secondary) : null,
-  ])
-}
-
-function renderTextClamp2(text: string, title?: string) {
-  return h(
-    'span',
-    {
-      class: 'tbl-text-2l',
-      title: title ?? (text === '—' ? undefined : text),
-    },
-    text,
-  )
-}
-
-function joinOrDash(items: string[]) {
-  const text = items.join('、')
-  return text || '—'
-}
-
-const columns = computed<DataTableColumns<UserListItemDto>>(() => [
-  { type: 'selection', fixed: 'left', width: 40 },
-  {
-    title: '头像',
-    key: 'avatar',
-    width: 52,
-    align: 'center',
-    render(row) {
-      const c = getAvatarStyle(row.userName)
-      return h(
-        'div',
-        {
-          class: 'tbl-av',
-          style: { background: c.bg, color: c.fg },
-          title: row.realName || row.userName,
-        },
-        getInitials(row),
-      )
-    },
-  },
-  {
-    title: '用户信息',
-    key: 'user',
-    minWidth: 180,
-    render(row) {
-      const display = row.realName || row.nickName || row.userName
-      const nickLine = row.nickName && row.nickName !== display ? row.nickName : null
-      const subLine = nickLine ? `${nickLine} · @${row.userName}` : `@${row.userName}`
-      return h('div', { class: 'tbl-cell-2l' }, [
-        h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
-          display,
-          row.isSystemAccount ? h('span', { class: 'sys-tag' }, '系统') : null,
-        ]),
-        h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
-      ])
-    },
-  },
-  {
-    title: '联系信息',
-    key: 'contact',
-    minWidth: 150,
-    render(row) {
-      const meta = rowMetaMap.value[String(row.basicId)]
-      if (!meta) return h('span', { style: 'color:var(--n-text-color-3);font-size:12px' }, '—')
-      const emailLine = meta.emailMasked || (meta.emailVerified ? '邮箱已验证' : '邮箱未验证')
-      const phoneLine = meta.phoneVerified ? '手机已验证' : '手机未验证'
-      return renderTwoLine(emailLine, phoneLine)
-    },
-  },
-  {
-    title: '性别',
-    key: 'gender',
-    width: 58,
-    render(row) {
-      const label = getOptionLabel(GENDER_OPTIONS, row.gender)
-      return renderTag(label, GENDER_TAG_TYPE[row.gender] ?? 'default')
-    },
-  },
-  {
-    title: '角色',
-    key: 'roles',
-    minWidth: 120,
-    render(row) {
-      const meta = rowMetaMap.value[String(row.basicId)]
-      const text = joinOrDash(meta?.roles ?? [])
-      return renderTextClamp2(text)
-    },
-  },
-  {
-    title: '部门',
-    key: 'depts',
-    minWidth: 120,
-    render(row) {
-      const meta = rowMetaMap.value[String(row.basicId)]
-      const text = joinOrDash(meta?.depts ?? [])
-      return renderTextClamp2(text)
-    },
-  },
-  {
-    title: '地区/语言',
-    key: 'locale',
-    width: 130,
-    render(row) {
-      const region = [row.country, row.language].filter(Boolean).join(' · ') || '—'
-      return renderTwoLine(region, row.timeZone ?? null)
-    },
-  },
-  {
-    title: '账号状态',
-    key: 'status',
-    width: 100,
-    render(row) {
-      const meta = rowMetaMap.value[String(row.basicId)]
-      const tags = [
-        renderTag(
-          row.status === EnableStatus.Enabled ? '已启用' : '已禁用',
-          row.status === EnableStatus.Enabled ? 'success' : 'error',
-        ),
-      ]
-      if (meta && !meta.isActive) {
-        tags.push(renderTag('未激活', 'warning'))
-      }
-      return h('div', { class: 'tbl-cell-tags' }, tags)
-    },
-  },
-  {
-    title: '安全标记',
-    key: 'sec',
-    width: 100,
-    render(row) {
-      const meta = rowMetaMap.value[String(row.basicId)]
-      if (!meta) return h('span', { style: 'color:var(--n-text-color-3);font-size:12px' }, '—')
-      const icons: ReturnType<typeof h>[] = []
-      const secIco = (icon: string, tone: 'warn' | 'muted' | 'ok' | 'info') =>
-        h('span', { class: ['tbl-sec-ico', `tbl-sec-ico--${tone}`] }, [
-          h(Icon, { icon, width: 15 }),
-        ])
-      if (meta.isLocked) icons.push(secIco('tabler:lock', 'warn'))
-      if (!meta.isActive) icons.push(secIco('tabler:clock-pause', 'muted'))
-      if (meta.twoFactorEnabled) icons.push(secIco('tabler:shield-check', 'ok'))
-      if (meta.failedLoginAttempts > 0) icons.push(secIco('tabler:alert-triangle', 'warn'))
-      if (meta.online) icons.push(secIco('tabler:wifi', 'info'))
-      return h('div', { class: 'tbl-cell-tags flex gap-[5px]' }, icons.length ? icons : '—')
-    },
-  },
-  {
-    title: '最后登录',
-    key: 'login',
-    minWidth: 150,
-    render(row) {
-      const ip = rowMetaMap.value[String(row.basicId)]?.lastLoginIp ?? '—'
-      return renderTwoLine(formatNullableDate(row.lastLoginTime), ip)
-    },
-  },
-  {
-    title: '创建时间',
-    key: 'createdTime',
-    width: 158,
-    render(row) {
-      return h(
-        'span',
-        { style: 'font-size:12px;color:var(--n-text-color-3)' },
-        formatDate(row.createdTime),
-      )
-    },
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 196,
-    fixed: 'right',
-    render(row) {
-      const meta = rowMetaMap.value[String(row.basicId)]
-      const locked = meta?.isLocked ?? false
-      return h(NSpace, { size: 4, wrap: false }, () => [
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, {
-              'aria-label': '查看详情',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              onClick: () => openDetail(row.basicId),
-            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '查看详情',
-        }),
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, {
-              'aria-label': '编辑用户',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: 'primary',
-              onClick: () => openEdit(row.basicId),
-            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
-          default: () => '编辑',
-        }),
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, {
-              'aria-label': locked ? '解锁账号' : '锁定账号',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: 'warning',
-              onClick: () => toggleLock(row),
-            }, {
-              icon: () => h(NIcon, null, () => h(Icon, { icon: locked ? 'lucide:lock-open' : 'lucide:lock' })),
-            }),
-          default: () => (locked ? '解锁' : '锁定'),
-        }),
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, {
-              'aria-label': '强制下线',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: 'info',
-              disabled: !meta?.online,
-              onClick: () => forceLogout(row),
-            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:log-out' })) }),
-          default: () => '强制下线',
-        }),
-        h(NTooltip, {}, {
-          trigger: () =>
-            h(NButton, {
-              'aria-label': '删除用户',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              type: 'error',
-              disabled: row.isSystemAccount,
-              onClick: () => openDelete(row),
-            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '删除',
-        }),
-      ])
-    },
-  },
-])
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full user-page">
-    <!-- 筛选 -->
-    <div class="xh-query-panel mb-2">
-      <NInput
-        v-model:value="filterSearch"
-        placeholder="搜索用户名、姓名、邮箱…"
-        clearable
-        size="small"
-        style="flex: 1; min-width: 200px; max-width: 360px"
-        @keyup.enter="applyFilter"
-      />
-      <NSelect
-        v-model:value="filterStatus"
-        :options="statusFilterOptions"
-        placeholder="全部状态"
-        clearable
-        size="small"
-        style="width: 108px"
-        @update:value="applyFilter"
-      />
-      <NSelect
-        v-model:value="filterGender"
-        :options="genderFilterOptions"
-        placeholder="全部性别"
-        clearable
-        size="small"
-        style="width: 96px"
-        @update:value="applyFilter"
-      />
-      <NSelect
-        v-model:value="filterDeptId"
-        :options="deptFilterOptions"
-        placeholder="全部部门"
-        clearable
-        size="small"
-        style="width: 120px"
-        @update:value="applyFilter"
-      />
-      <NButton size="small" @click="resetFilter">
-        <template #icon>
-          <NIcon><Icon icon="tabler:rotate" /></NIcon>
-        </template>
-        重置
-      </NButton>
-    </div>
-
-    <!-- 列表 -->
-    <NCard
-      :bordered="false"
-      class="flex-1"
-      content-style="padding:0;display:flex;flex-direction:column;height:100%;"
-      style="height: 0"
-    >
-      <div class="list-hd">
-        <NButton type="primary" size="small" @click="openCreate">
-          <template #icon>
-            <NIcon><Icon icon="tabler:plus" /></NIcon>
-          </template>
-          新建用户
-        </NButton>
-      </div>
-
-      <div v-if="checkedRowKeys.length" class="batch-bar">
-        <span>
-          已选
-          <strong>{{ checkedRowKeys.length }}</strong>
-          项
-        </span>
-        <NButton text size="tiny" @click="clearChecked">取消选择</NButton>
-      </div>
-
-      <NDataTable
-        v-model:checked-row-keys="checkedRowKeys"
-        class="user-table"
-        :columns="columns"
-        :data="dataList"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        size="small"
-        striped
-        flex-height
-        :row-key="(row: UserListItemDto) => row.basicId"
-        :scroll-x="2000"
-        style="flex: 1"
-      >
-        <template #empty>
-          <div class="empty-hint">
-            <Icon icon="tabler:users-group" :size="32" class="empty-hint__ico" />
-            暂无匹配用户
-          </div>
-        </template>
-      </NDataTable>
-
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 14px 20px;
-          border-top: 1px solid var(--n-border-color);
-          flex-shrink: 0;
-        "
-      >
-        <div style="font-size: 13px; color: var(--n-text-color-3)">
-          共
-          <strong>{{ totalCount }}</strong>
-          条，第
-          <strong>{{ currentPage }}</strong>
-          / {{ totalPages }} 页
-        </div>
-        <NPagination
-          size="small"
-          :page="currentPage"
-          :page-count="totalPages"
-          :page-slot="7"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="pageSize"
-          show-size-picker
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
-    </NCard>
-
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 新建/编辑：preset=card 使用 Naive 主题卡片背景，避免暗色下透明 -->
     <NModal
       v-model:show="showFormModal"
@@ -1125,7 +806,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NSelect v-model:value="userForm.gender" :options="genderFilterOptions" />
+                <NSelect v-model:value="userForm.gender" :options="genderOptions" />
               </NFormItem>
               <NFormItem
                 label="生日"
@@ -1160,7 +841,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NSelect v-model:value="userForm.status" :options="statusFormOptions" />
+                <NSelect v-model:value="userForm.status" :options="statusOptions" />
               </NFormItem>
               <NFormItem
                 v-if="!userForm.basicId"
@@ -1277,7 +958,7 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
               </p>
               <div class="pick-grid">
                 <button
-                  v-for="d in deptFilterOptions"
+                  v-for="d in deptFlatOptions"
                   :key="d.value"
                   type="button"
                   :class="['pick-chip', selDeptIds.includes(d.value) ? 'on' : '']"
@@ -1431,11 +1112,10 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>
-/* 表格单元格最多两行，避免行高过大 */
 .tbl-cell-2l {
   min-width: 0;
   line-height: 1.4;
@@ -1463,54 +1143,27 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
   color: var(--n-text-color-3);
 }
 
-.tbl-text-2l {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--n-text-color);
-  word-break: break-all;
-}
-
-.tbl-cell-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  max-height: calc(1.4em * 2 + 4px);
-  overflow: hidden;
-}
-
-.tbl-sec-ico {
+.tbl-av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: inline-flex;
-  line-height: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.tbl-sec-ico--warn :deep(svg) {
+.sys-tag {
+  font-size: 9px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  border-radius: 3px;
+  background: var(--n-warning-color-suppl);
   color: var(--n-warning-color);
 }
 
-.tbl-sec-ico--muted :deep(svg) {
-  color: var(--n-text-color-3);
-}
-
-.tbl-sec-ico--ok :deep(svg) {
-  color: var(--n-success-color);
-}
-
-.tbl-sec-ico--info :deep(svg) {
-  color: var(--n-info-color);
-}
-
-.user-page :deep(.user-table .n-data-table-tbody .n-data-table-td) {
-  vertical-align: middle;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-/* 图标语义色：勿加 .user-page 前缀，弹窗 Teleport 到 body 后不在该子树内 */
+/* 图标语义色：勿加页面前缀，弹窗 Teleport 到 body 后不在该子树内 */
 .sec-block-hd :deep(svg),
 .det-sec-hd :deep(svg) {
   color: var(--n-primary-color);
@@ -1540,10 +1193,6 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
   color: var(--n-primary-color);
 }
 
-.empty-hint__ico {
-  color: var(--n-primary-color);
-}
-
 .session-ico {
   color: var(--n-info-color);
 }
@@ -1554,62 +1203,6 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
 
 .bdg :deep(svg) {
   color: currentColor;
-}
-
-.list-hd {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  flex-shrink: 0;
-}
-
-.batch-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  margin: 0 0 4px;
-  font-size: 12px;
-  color: var(--n-text-color-2);
-  background: var(--n-info-color-suppl);
-  border-top: 1px solid var(--n-border-color);
-  border-bottom: 1px solid var(--n-border-color);
-}
-
-.batch-bar strong {
-  color: var(--n-info-color);
-  font-weight: 600;
-}
-
-.tbl-av {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.sys-tag {
-  font-size: 9px;
-  padding: 1px 4px;
-  margin-left: 4px;
-  border-radius: 3px;
-  background: var(--n-warning-color-suppl);
-  color: var(--n-warning-color);
-}
-
-.empty-hint {
-  text-align: center;
-  padding: 48px 0;
-  color: var(--n-text-color-3);
-}
-
-.empty-hint__ico {
-  display: block;
-  margin: 0 auto 8px;
 }
 
 /* 弹窗内容卡 */
@@ -1650,10 +1243,6 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
   border-radius: var(--n-border-radius);
   margin-bottom: 8px;
   background: var(--n-action-color);
-}
-
-.form-row-block {
-  display: block;
 }
 
 .form-row-main {
@@ -1932,20 +1521,10 @@ const columns = computed<DataTableColumns<UserListItemDto>>(() => [
   padding: 8px 0;
 }
 
-.session-ico {
-  color: var(--n-text-color-3);
-  flex-shrink: 0;
-}
-
 .del-body {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-}
-
-.del-icon {
-  color: var(--n-warning-color);
-  flex-shrink: 0;
 }
 
 .del-title {
