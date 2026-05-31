@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -21,19 +22,23 @@ using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Password;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Seeders;
+namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 
 /// <summary>
 /// SaaS 演示用户种子数据（对齐用户管理设计稿样本，便于联调列表/筛选/安全标记）
+/// 仅在开发环境执行，生产环境默认跳过（演示数据，非系统必需）
 /// </summary>
 public sealed class SaasDemoUserSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasDemoUserSeeder> logger,
     IServiceProvider serviceProvider,
     ICurrentTenant currentTenant,
-    IPasswordHasher passwordHasher)
+    IPasswordHasher passwordHasher,
+    IHostEnvironment hostEnvironment)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
+    private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
+
     private const long DefaultTenantId = 1;
     private const string DefaultTenantCode = "default";
     private const string DemoPassword = "Demo@123";
@@ -114,6 +119,13 @@ public sealed class SaasDemoUserSeeder(
 
     protected override async Task SeedInternalAsync()
     {
+        // 演示数据仅在开发环境播种，生产环境跳过
+        if (!_hostEnvironment.IsDevelopment())
+        {
+            Logger.LogInformation("非开发环境，跳过演示用户种子数据");
+            return;
+        }
+
         var tenantId = await ResolveTenantIdAsync();
         if (tenantId == 0)
         {
