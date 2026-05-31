@@ -1,32 +1,29 @@
 <script setup lang="ts">
-import type { CascaderOption, DataTableColumns } from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
+import type { PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import {
   NButton,
-  NCard,
   NConfigProvider,
-  NCascader,
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NEmpty,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
   NSelect,
   NSpace,
   NSwitch,
   NTabPane,
   NTabs,
   NTag,
-  NTooltip,
+  NTreeSelect,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, ref } from 'vue'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
@@ -34,7 +31,7 @@ import {
   menuManagementApi,
   MenuType,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
@@ -43,25 +40,11 @@ interface MenuFormModel extends MenuCreateDto {
   basicId?: ApiId
 }
 
-const message = useMessage()
-const tableLoading = ref(false)
-const dataList = ref<MenuListItemDto[]>([])
-const totalCount = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(20)
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const currentDetail = ref<MenuDetailDto | null>(null)
-const menuForm = ref<MenuFormModel>(createDefaultForm())
-const treeNodes = ref<MenuTreeNodeDto[]>([])
+interface MenuTreeItem extends MenuListItemDto {
+  children?: MenuTreeItem[]
+}
 
-const queryParams = reactive({
-  keyword: '',
-  menuType: undefined as MenuType | undefined,
-  status: undefined as EnableStatus | undefined,
-})
+const message = useMessage()
 
 const statusOptions = [
   { label: '启用', value: EnableStatus.Enabled },
@@ -74,44 +57,44 @@ const menuTypeOptions = [
   { label: '按钮', value: MenuType.Button },
 ]
 
+// 上级菜单树（NTreeSelect 选项来源，独立 ref，增删改后与表格一起 reload）
+const treeNodes = ref<MenuTreeNodeDto[]>([])
+
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<MenuDetailDto | null>(null)
+
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const menuForm = ref<MenuFormModel>(createDefaultForm())
+
+const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
+
 const modalTitle = computed(() => (menuForm.value.basicId ? '编辑菜单' : '新增菜单'))
 
-function treeToCascaderOptions(nodes: MenuTreeNodeDto[]): CascaderOption[] {
-  return nodes.map(node => ({
-    children: node.children?.length ? treeToCascaderOptions(node.children) : undefined,
-    label: `${node.menuName}（${node.path}）`,
-    value: node.basicId,
-  }))
+function toStr(value?: string | null) {
+  const normalized = value?.trim()
+  return normalized || null
 }
 
-const cascaderOptions = computed(() => treeToCascaderOptions(treeNodes.value))
-
-interface MenuTreeItem extends MenuListItemDto {
-  children?: MenuTreeItem[]
+function formatNullable(value: unknown) {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
 }
 
-function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
-  const map = new Map<ApiId, MenuTreeItem>()
-  const roots: MenuTreeItem[] = []
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '-'
+}
 
-  for (const item of items) {
-    map.set(item.basicId, { ...item, children: [] })
+function formatBoolean(value?: boolean | null) {
+  if (value === undefined || value === null) {
+    return '-'
   }
-
-  for (const item of items) {
-    const node = map.get(item.basicId)!
-    if (item.parentId && map.has(item.parentId)) {
-      map.get(item.parentId)!.children!.push(node)
-    }
-    else {
-      roots.push(node)
-    }
-  }
-
-  return roots
+  return value ? '是' : '否'
 }
 
-const treeTableData = computed(() => buildTree(dataList.value))
+function formatStatus(value?: EnableStatus | null) {
+  return getOptionLabel(statusOptions, value)
+}
 
 function createDefaultForm(): MenuFormModel {
   return {
@@ -141,64 +124,22 @@ function createDefaultForm(): MenuFormModel {
   }
 }
 
-function normalizeNullable(value?: string | null) {
-  const normalized = value?.trim()
-  return normalized || null
+// --- 上级菜单 NTreeSelect ---
+interface MenuTreeSelectOption {
+  key: ApiId
+  label: string
+  children?: MenuTreeSelectOption[]
 }
 
-function formatNullable(value: unknown) {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+function buildTreeSelectOptions(nodes: MenuTreeNodeDto[]): MenuTreeSelectOption[] {
+  return nodes.map(node => ({
+    key: node.basicId,
+    label: `${node.menuName}（${node.path}）`,
+    children: node.children?.length ? buildTreeSelectOptions(node.children) : undefined,
+  }))
 }
 
-function formatNullableDate(value?: string | null) {
-  return value ? formatDate(value) : '-'
-}
-
-function formatBoolean(value?: boolean | null) {
-  if (value === undefined || value === null) {
-    return '-'
-  }
-
-  return value ? '是' : '否'
-}
-
-function formatStatus(value?: EnableStatus | null) {
-  return getOptionLabel(statusOptions, value)
-}
-
-const childMenus = computed(() => {
-  if (!currentDetail.value) return []
-  return dataList.value.filter(item => item.parentId === currentDetail.value!.basicId)
-})
-
-const childMenuColumns: DataTableColumns<MenuListItemDto> = [
-  { title: '菜单名称', key: 'menuName', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: '编码', key: 'menuCode', width: 100, ellipsis: { tooltip: true } },
-  {
-    title: '类型',
-    key: 'menuType',
-    width: 80,
-    render: row => getOptionLabel(menuTypeOptions, row.menuType),
-  },
-  {
-    title: '路径',
-    key: 'path',
-    minWidth: 100,
-    ellipsis: { tooltip: true },
-    render: row => formatNullable(row.path),
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 72,
-    render: row => h(NTag, {
-      size: 'small',
-      round: true,
-      type: row.status === EnableStatus.Enabled ? 'success' : 'error',
-      bordered: false,
-    }, () => formatStatus(row.status)),
-  },
-]
+const treeSelectOptions = computed(() => buildTreeSelectOptions(treeNodes.value))
 
 async function loadTree() {
   try {
@@ -209,157 +150,164 @@ async function loadTree() {
   }
 }
 
-async function fetchData() {
-  tableLoading.value = true
-  try {
-    const result = await menuManagementApi.page({
-      ...createPageRequest({
-        behavior: createDefaultQueryBehavior({
-          disablePaging: true,
+// --- 客户端组树（保留全部列字段：状态/可见/创建时间等，tree() DTO 不含这些字段，故由 page() 组树） ---
+function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
+  const map = new Map<ApiId, MenuTreeItem>()
+  const roots: MenuTreeItem[] = []
+
+  for (const item of items) {
+    map.set(item.basicId, { ...item, children: [] })
+  }
+
+  for (const item of items) {
+    const node = map.get(item.basicId)!
+    if (item.parentId && map.has(item.parentId)) {
+      map.get(item.parentId)!.children!.push(node)
+    }
+    else {
+      roots.push(node)
+    }
+  }
+
+  return roots
+}
+
+const schema: PageSchema<MenuListItemDto> = {
+  pageCode: 'platform.menu',
+  pageName: '菜单管理',
+  rowKey: 'basicId',
+  scrollX: 2000,
+  tree: { childrenKey: 'children', defaultExpandAll: true },
+  resource: {
+    tree: (params: SchemaQueryParams) => {
+      const result = menuManagementApi.page({
+        ...createPageRequest({
+          behavior: createDefaultQueryBehavior({ disablePaging: true }),
+          page: { pageIndex: 1, pageSize: 5000 },
         }),
-        page: {
-          pageIndex: 1,
-          pageSize: 5000,
-        },
-      }),
-      keyword: normalizeNullable(queryParams.keyword),
-      menuType: queryParams.menuType,
-      status: queryParams.status,
-    })
-    dataList.value = result.items
-    totalCount.value = result.items.length
+        keyword: toStr(params.filters.keyword as string | undefined),
+        menuType: (params.filters.menuType as MenuType | undefined) || undefined,
+        status: (params.filters.status as EnableStatus | undefined) || undefined,
+      })
+      return result.then(res => buildTree(res.items)) as unknown as Promise<MenuListItemDto[]>
+    },
+    remove: (id: ApiId) => menuManagementApi.delete(id),
+  },
+  fields: [
+    {
+      key: 'menuName',
+      title: '菜单名称',
+      dataType: 'string',
+      treeColumn: true,
+      searchable: true,
+      searchPlaceholder: '搜索菜单名称/编码/路径',
+      minWidth: 200,
+      order: 0,
+    },
+    {
+      key: 'menuCode',
+      title: '菜单编码',
+      dataType: 'string',
+      minWidth: 150,
+      order: 1,
+    },
+    {
+      key: 'menuType',
+      title: '类型',
+      dataType: 'enum',
+      options: menuTypeOptions,
+      searchable: true,
+      searchPlaceholder: '菜单类型',
+      width: 90,
+      order: 2,
+      render: (row: MenuListItemDto) =>
+        h(NTag, { size: 'small', round: true, bordered: false }, () => getOptionLabel(menuTypeOptions, row.menuType)),
+    },
+    {
+      key: 'path',
+      title: '路径',
+      dataType: 'string',
+      minWidth: 200,
+      order: 3,
+    },
+    {
+      key: 'icon',
+      title: '图标',
+      dataType: 'string',
+      minWidth: 150,
+      order: 4,
+      render: (row: MenuListItemDto) => formatNullable(row.icon),
+    },
+    {
+      key: 'isVisible',
+      title: '可见',
+      dataType: 'boolean',
+      width: 80,
+      order: 5,
+      render: (row: MenuListItemDto) =>
+        h(NTag, { size: 'small', round: true, type: row.isVisible ? 'success' : 'default' }, () => (row.isVisible ? '是' : '否')),
+    },
+    {
+      key: 'status',
+      title: '状态',
+      dataType: 'enum',
+      options: statusOptions,
+      searchable: true,
+      searchPlaceholder: '状态',
+      width: 90,
+      order: 6,
+      render: (row: MenuListItemDto) =>
+        h(NTag, { size: 'small', round: true, bordered: false, type: row.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusOptions, row.status)),
+    },
+    {
+      key: 'sort',
+      title: '排序',
+      dataType: 'number',
+      width: 80,
+      order: 7,
+    },
+    {
+      key: 'createdTime',
+      title: '创建时间',
+      dataType: 'datetime',
+      minWidth: 170,
+      order: 8,
+      render: (row: MenuListItemDto) => formatDate(row.createdTime),
+    },
+  ],
+  actions: [
+    { key: 'create', title: '新增菜单', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'addChild', title: '新增子项', scope: 'row', icon: 'lucide:plus', visible: (row: MenuListItemDto) => row.menuType !== MenuType.Button },
+    { key: 'view', title: '详情', scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pen' },
+    { key: 'toggle', title: '启停', scope: 'row', icon: 'lucide:power' },
+    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: '确认删除该菜单？' },
+  ],
+}
+
+function onAction(payload: SchemaActionPayload) {
+  const { key, scope } = payload
+  const row = payload.row as unknown as MenuListItemDto | undefined
+
+  if (scope === 'page' && key === 'create') {
+    openCreate()
+    return
   }
-  catch {
-    message.error('查询菜单失败')
-    dataList.value = []
-    totalCount.value = 0
+  if (scope === 'row' && row) {
+    if (key === 'addChild')
+      openCreate(row.basicId)
+    else if (key === 'view')
+      void openDetail(row)
+    else if (key === 'edit')
+      void openEdit(row)
+    else if (key === 'toggle')
+      void toggleStatus(row)
+    else if (key === 'delete')
+      void removeRow(row)
   }
-  finally {
-    tableLoading.value = false
-  }
 }
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
-
-function handlePageChange(page: number) {
-  currentPage.value = page
-}
-
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-}
-
-const tableColumns = computed<DataTableColumns<MenuTreeItem>>(() => [
-  {
-    key: 'menuName',
-    title: '菜单名称',
-    minWidth: 180,
-    tree: true,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'menuCode',
-    title: '菜单编码',
-    minWidth: 150,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'menuType',
-    title: '类型',
-    width: 80,
-    render(row) {
-      return h('span', { style: 'font-size:13px;' }, getOptionLabel(menuTypeOptions, row.menuType))
-    },
-  },
-  {
-    key: 'path',
-    title: '路径',
-    minWidth: 200,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'icon',
-    title: '图标',
-    minWidth: 160,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'isVisible',
-    title: '可见',
-    width: 70,
-    render(row) {
-      return h(NTag, { type: row.isVisible ? 'success' : 'default', round: true, size: 'small' }, () => row.isVisible ? '是' : '否')
-    },
-  },
-  {
-    key: 'status',
-    title: '状态',
-    width: 80,
-    render(row) {
-      return h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status))
-    },
-  },
-  {
-    key: 'sort',
-    title: '排序',
-    width: 80,
-    sorter: true,
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render(row) {
-      return h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate(row.createdTime))
-    },
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 216,
-    fixed: 'right',
-    render(row) {
-      return h(NSpace, { size: 'small' }, () => [
-        h(NTooltip, null, {
-          trigger: () =>
-            h(NButton, {
-              ariaLabel: '查看详情',
-              circle: true,
-              quaternary: true,
-              size: 'small',
-              onClick: () => handleView(row),
-            }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '查看详情',
-        }),
-        row.menuType !== MenuType.Button
-          ? h(NButton, { size: 'small', text: true, type: 'info', onClick: () => handleAdd(row.basicId) }, () => '新增子项')
-          : null,
-        h(NButton, { size: 'small', text: true, type: 'primary', onClick: () => handleEdit(row) }, () => '编辑'),
-        h(NButton, {
-          type: row.status === EnableStatus.Enabled ? 'warning' : 'success',
-          size: 'small',
-          text: true,
-          onClick: () => handleToggleStatus(row),
-        }, () => row.status === EnableStatus.Enabled ? '禁用' : '启用'),
-      ])
-    },
-  },
-])
-
-function handleSearch() {
-  void fetchData()
-}
-
-function handleReset() {
-  queryParams.keyword = ''
-  queryParams.menuType = undefined
-  queryParams.status = undefined
-  void fetchData()
-}
-
-function handleAdd(parentId?: ApiId) {
+function openCreate(parentId?: ApiId | null) {
   menuForm.value = createDefaultForm()
   menuForm.value.parentId = parentId ?? null
   modalVisible.value = true
@@ -395,7 +343,7 @@ function buildFormModel(row: MenuDetailDto | MenuListItemDto): MenuFormModel {
   }
 }
 
-async function handleEdit(row: MenuListItemDto) {
+async function openEdit(row: MenuListItemDto) {
   try {
     const detail = await menuManagementApi.detail(row.basicId)
     menuForm.value = buildFormModel(detail ?? row)
@@ -407,7 +355,7 @@ async function handleEdit(row: MenuListItemDto) {
   modalVisible.value = true
 }
 
-async function handleView(row: MenuListItemDto) {
+async function openDetail(row: MenuListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   currentDetail.value = null
@@ -426,16 +374,28 @@ async function handleView(row: MenuListItemDto) {
   }
 }
 
-async function handleToggleStatus(row: MenuListItemDto) {
-  const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
+async function toggleStatus(row: MenuListItemDto) {
+  const next = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
-    await menuManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
+    await menuManagementApi.updateStatus({ basicId: row.basicId, status: next })
     message.success('状态更新成功')
-    await fetchData()
-    await loadTree()
+    schemaPageRef.value?.reload()
+    void loadTree()
   }
   catch {
     message.error('状态更新失败')
+  }
+}
+
+async function removeRow(row: MenuListItemDto) {
+  try {
+    await menuManagementApi.delete(row.basicId)
+    message.success('删除成功')
+    schemaPageRef.value?.reload()
+    void loadTree()
+  }
+  catch {
+    message.error('删除失败')
   }
 }
 
@@ -463,39 +423,39 @@ async function handleSubmit() {
   try {
     if (menuForm.value.basicId) {
       const updateInput: MenuUpdateDto = {
-        badge: normalizeNullable(menuForm.value.badge),
+        badge: toStr(menuForm.value.badge),
         badgeDot: menuForm.value.badgeDot,
-        badgeType: normalizeNullable(menuForm.value.badgeType),
+        badgeType: toStr(menuForm.value.badgeType),
         basicId: menuForm.value.basicId,
-        component: normalizeNullable(menuForm.value.component),
-        externalUrl: normalizeNullable(menuForm.value.externalUrl),
-        icon: normalizeNullable(menuForm.value.icon),
+        component: toStr(menuForm.value.component),
+        externalUrl: toStr(menuForm.value.externalUrl),
+        icon: toStr(menuForm.value.icon),
         isAffix: menuForm.value.isAffix,
         isCache: menuForm.value.isCache,
         isExternal: menuForm.value.isExternal,
         isVisible: menuForm.value.isVisible,
         menuName: menuForm.value.menuName.trim(),
         menuType: menuForm.value.menuType,
-        metadata: normalizeNullable(menuForm.value.metadata),
+        metadata: toStr(menuForm.value.metadata),
         parentId: menuForm.value.parentId,
         path: menuForm.value.path.trim(),
         permissionId: menuForm.value.permissionId,
-        redirect: normalizeNullable(menuForm.value.redirect),
-        remark: normalizeNullable(menuForm.value.remark),
-        routeName: normalizeNullable(menuForm.value.routeName),
+        redirect: toStr(menuForm.value.redirect),
+        remark: toStr(menuForm.value.remark),
+        routeName: toStr(menuForm.value.routeName),
         sort: menuForm.value.sort,
-        title: normalizeNullable(menuForm.value.title),
+        title: toStr(menuForm.value.title),
       }
       await menuManagementApi.update(updateInput)
     }
     else {
       const createInput: MenuCreateDto = {
-        badge: normalizeNullable(menuForm.value.badge),
+        badge: toStr(menuForm.value.badge),
         badgeDot: menuForm.value.badgeDot,
-        badgeType: normalizeNullable(menuForm.value.badgeType),
-        component: normalizeNullable(menuForm.value.component),
-        externalUrl: normalizeNullable(menuForm.value.externalUrl),
-        icon: normalizeNullable(menuForm.value.icon),
+        badgeType: toStr(menuForm.value.badgeType),
+        component: toStr(menuForm.value.component),
+        externalUrl: toStr(menuForm.value.externalUrl),
+        icon: toStr(menuForm.value.icon),
         isAffix: menuForm.value.isAffix,
         isCache: menuForm.value.isCache,
         isExternal: menuForm.value.isExternal,
@@ -503,24 +463,24 @@ async function handleSubmit() {
         menuCode: menuForm.value.menuCode.trim(),
         menuName: menuForm.value.menuName.trim(),
         menuType: menuForm.value.menuType,
-        metadata: normalizeNullable(menuForm.value.metadata),
+        metadata: toStr(menuForm.value.metadata),
         parentId: menuForm.value.parentId,
         path: menuForm.value.path.trim(),
         permissionId: menuForm.value.permissionId,
-        redirect: normalizeNullable(menuForm.value.redirect),
-        remark: normalizeNullable(menuForm.value.remark),
-        routeName: normalizeNullable(menuForm.value.routeName),
+        redirect: toStr(menuForm.value.redirect),
+        remark: toStr(menuForm.value.remark),
+        routeName: toStr(menuForm.value.routeName),
         sort: menuForm.value.sort,
         status: menuForm.value.status,
-        title: normalizeNullable(menuForm.value.title),
+        title: toStr(menuForm.value.title),
       }
       await menuManagementApi.create(createInput)
     }
 
     message.success('保存成功')
     modalVisible.value = false
-    await fetchData()
-    await loadTree()
+    schemaPageRef.value?.reload()
+    void loadTree()
   }
   catch {
     message.error('保存失败')
@@ -530,97 +490,52 @@ async function handleSubmit() {
   }
 }
 
-onMounted(async () => {
-  await Promise.all([loadTree(), fetchData()])
+// 详情弹窗子菜单（从菜单树定位当前节点的 children 展示）
+const childMenuColumns: DataTableColumns<MenuTreeNodeDto> = [
+  { title: '菜单名称', key: 'menuName', minWidth: 120, ellipsis: { tooltip: true } },
+  { title: '编码', key: 'menuCode', width: 110, ellipsis: { tooltip: true } },
+  {
+    title: '类型',
+    key: 'menuType',
+    width: 80,
+    render: row => getOptionLabel(menuTypeOptions, row.menuType),
+  },
+  {
+    title: '路径',
+    key: 'path',
+    minWidth: 120,
+    ellipsis: { tooltip: true },
+    render: row => formatNullable(row.path),
+  },
+]
+
+function findNodeChildren(nodes: MenuTreeNodeDto[], id: ApiId): MenuTreeNodeDto[] {
+  for (const node of nodes) {
+    if (node.basicId === id)
+      return node.children ?? []
+    if (node.children?.length) {
+      const found = findNodeChildren(node.children, id)
+      if (found.length)
+        return found
+    }
+  }
+  return []
+}
+
+const childMenus = computed(() => {
+  if (!currentDetail.value)
+    return []
+  return findNodeChildren(treeNodes.value, currentDetail.value.basicId)
+})
+
+onMounted(() => {
+  void loadTree()
 })
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2">
-      <NInput
-        v-model:value="queryParams.keyword"
-        clearable
-        size="small"
-        placeholder="搜索菜单名称/编码/路径"
-        style="width: 250px"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.menuType"
-        :options="menuTypeOptions"
-        clearable
-        size="small"
-        placeholder="菜单类型"
-        style="width: 110px"
-      />
-      <NSelect
-        v-model:value="queryParams.status"
-        :options="statusOptions"
-        clearable
-        size="small"
-        placeholder="状态"
-        style="width: 100px"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        <template #icon>
-          <NIcon><Icon icon="lucide:search" /></NIcon>
-        </template>
-        查询
-      </NButton>
-      <NButton size="small" @click="handleReset">
-        <template #icon>
-          <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-        </template>
-        重置
-      </NButton>
-    </div>
-
-    <NCard content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <div style="padding:12px 16px;flex-shrink:0;">
-        <NButton size="small" type="primary" @click="handleAdd()">
-          <template #icon>
-            <NIcon><Icon icon="lucide:plus" /></NIcon>
-          </template>
-          新增菜单
-        </NButton>
-        <NButton size="small" @click="fetchData" style="margin-left:8px;">
-          <template #icon>
-            <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-          </template>
-          刷新
-        </NButton>
-      </div>
-
-      <NDataTable
-        :columns="tableColumns"
-        :data="treeTableData"
-        :loading="tableLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row: MenuListItemDto) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ totalCount }}</strong> 条，第 <strong>{{ currentPage }}</strong> / {{ totalPages }} 页
-        </div>
-        <NPagination
-          size="small"
-          :page="currentPage"
-          :page-size="pageSize"
-          :page-count="totalPages"
-          :page-sizes="[10, 20, 50, 100]"
-          show-size-picker
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
-    </NCard>
+  <div class="flex overflow-hidden flex-col h-full">
+    <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction" />
 
     <NModal
       v-model:show="detailVisible"
@@ -709,7 +624,7 @@ onMounted(async () => {
               :data="childMenus"
               :bordered="false"
               size="small"
-              :row-key="(row: MenuListItemDto) => row.basicId"
+              :row-key="(row: MenuTreeNodeDto) => row.basicId"
             />
             <NEmpty v-else description="暂无子菜单" style="padding: 32px 0" />
           </div>
@@ -725,7 +640,7 @@ onMounted(async () => {
             v-if="currentDetail"
             size="small"
             type="primary"
-            @click="detailVisible = false; handleEdit(currentDetail as MenuListItemDto)"
+            @click="detailVisible = false; openEdit(currentDetail as unknown as MenuListItemDto)"
           >
             编辑
           </NButton>
@@ -743,63 +658,63 @@ onMounted(async () => {
     >
       <NConfigProvider size="small" abstract>
         <NForm :model="menuForm" size="small" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="菜单名称" path="menuName">
-          <NInput v-model:value="menuForm.menuName" clearable placeholder="请输入菜单名称" />
-        </NFormItem>
-        <NFormItem label="菜单编码" path="menuCode">
-          <NInput
-            v-model:value="menuForm.menuCode"
-            :disabled="Boolean(menuForm.basicId)"
-            clearable
-            placeholder="如: system.user"
-          />
-        </NFormItem>
-        <NFormItem label="上级菜单" path="parentId">
-          <NCascader
-            v-model:value="menuForm.parentId"
-            :options="cascaderOptions"
-            check-strategy="child"
-            clearable
-            placeholder="选择上级菜单（可留空）"
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem label="菜单类型" path="menuType">
-          <NSelect v-model:value="menuForm.menuType" :options="menuTypeOptions" />
-        </NFormItem>
-        <NFormItem label="路由路径" path="path">
-          <NInput v-model:value="menuForm.path" clearable placeholder="如: /system/user" />
-        </NFormItem>
-        <NFormItem label="路由名称" path="routeName">
-          <NInput v-model:value="menuForm.routeName" clearable placeholder="如: SystemUser" />
-        </NFormItem>
-        <NFormItem label="组件路径" path="component">
-          <NInput v-model:value="menuForm.component" clearable placeholder="如: system/user/index" />
-        </NFormItem>
-        <NFormItem label="重定向" path="redirect">
-          <NInput v-model:value="menuForm.redirect" clearable placeholder="目录类型填入默认子路由" />
-        </NFormItem>
-        <NFormItem label="图标" path="icon">
-          <NInput v-model:value="menuForm.icon" clearable placeholder="如: lucide:users" />
-        </NFormItem>
-        <NFormItem label="标题" path="title">
-          <NInput v-model:value="menuForm.title" clearable placeholder="显示标题" />
-        </NFormItem>
-        <NFormItem label="排序" path="sort">
-          <NInputNumber v-model:value="menuForm.sort" :min="0" style="width: 100%" />
-        </NFormItem>
-        <NFormItem label="可见">
-          <NSwitch v-model:value="menuForm.isVisible" />
-        </NFormItem>
-        <NFormItem label="缓存">
-          <NSwitch v-model:value="menuForm.isCache" />
-        </NFormItem>
-        <NFormItem label="固定标签">
-          <NSwitch v-model:value="menuForm.isAffix" />
-        </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="menuForm.remark" clearable placeholder="请输入备注" :rows="3" type="textarea" />
-        </NFormItem>
+          <NFormItem label="菜单名称" path="menuName">
+            <NInput v-model:value="menuForm.menuName" clearable placeholder="请输入菜单名称" />
+          </NFormItem>
+          <NFormItem label="菜单编码" path="menuCode">
+            <NInput
+              v-model:value="menuForm.menuCode"
+              :disabled="Boolean(menuForm.basicId)"
+              clearable
+              placeholder="如: system.user"
+            />
+          </NFormItem>
+          <NFormItem label="上级菜单" path="parentId">
+            <NTreeSelect
+              v-model:value="menuForm.parentId"
+              :options="treeSelectOptions"
+              key-field="key"
+              label-field="label"
+              clearable
+              placeholder="选择上级菜单（可留空，留空为顶级）"
+            />
+          </NFormItem>
+          <NFormItem label="菜单类型" path="menuType">
+            <NSelect v-model:value="menuForm.menuType" :options="menuTypeOptions" />
+          </NFormItem>
+          <NFormItem label="路由路径" path="path">
+            <NInput v-model:value="menuForm.path" clearable placeholder="如: /system/user" />
+          </NFormItem>
+          <NFormItem label="路由名称" path="routeName">
+            <NInput v-model:value="menuForm.routeName" clearable placeholder="如: SystemUser" />
+          </NFormItem>
+          <NFormItem label="组件路径" path="component">
+            <NInput v-model:value="menuForm.component" clearable placeholder="如: system/user/index" />
+          </NFormItem>
+          <NFormItem label="重定向" path="redirect">
+            <NInput v-model:value="menuForm.redirect" clearable placeholder="目录类型填入默认子路由" />
+          </NFormItem>
+          <NFormItem label="图标" path="icon">
+            <NInput v-model:value="menuForm.icon" clearable placeholder="如: lucide:users" />
+          </NFormItem>
+          <NFormItem label="标题" path="title">
+            <NInput v-model:value="menuForm.title" clearable placeholder="显示标题" />
+          </NFormItem>
+          <NFormItem label="排序" path="sort">
+            <NInputNumber v-model:value="menuForm.sort" :min="0" style="width: 100%" />
+          </NFormItem>
+          <NFormItem label="可见">
+            <NSwitch v-model:value="menuForm.isVisible" />
+          </NFormItem>
+          <NFormItem label="缓存">
+            <NSwitch v-model:value="menuForm.isCache" />
+          </NFormItem>
+          <NFormItem label="固定标签">
+            <NSwitch v-model:value="menuForm.isAffix" />
+          </NFormItem>
+          <NFormItem label="备注" path="remark">
+            <NInput v-model:value="menuForm.remark" clearable placeholder="请输入备注" :rows="3" type="textarea" />
+          </NFormItem>
         </NForm>
       </NConfigProvider>
 
@@ -820,24 +735,5 @@ onMounted(async () => {
 <style scoped>
 .xh-detail-empty {
   padding: 48px 0;
-}
-
-.xh-detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.xh-detail-table th,
-.xh-detail-table td {
-  padding: 9px 10px;
-  border: 1px solid var(--n-border-color);
-  text-align: left;
-  vertical-align: top;
-}
-
-.xh-detail-table th {
-  background: var(--n-merged-th-color);
-  font-weight: 500;
 }
 </style>
