@@ -185,6 +185,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           ws: true,
         },
+        // 本地存储静态文件（头像、公开文件等）：转发到后端 UseStaticFiles 暴露的 /uploads
+        '/uploads': {
+          target: env.VITE_DEV_PROXY_TARGET,
+          changeOrigin: true,
+        },
       },
     },
     build: {
