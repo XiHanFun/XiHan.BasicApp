@@ -300,7 +300,7 @@ const fields: ListFieldSchema[] = [
     key: 'avatar',
     title: '头像',
     dataType: 'string',
-    width: 56,
+    width: 80,
     order: 1,
     render: (row) => {
       const r = row as unknown as UserListItemDto
@@ -310,7 +310,7 @@ const fields: ListFieldSchema[] = [
         name: r.realName || r.nickName || r.userName,
         bg: c.bg,
         fg: c.fg,
-        size: 32,
+        size: 40,
       })
     },
   },
