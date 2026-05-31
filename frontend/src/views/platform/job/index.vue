@@ -363,7 +363,8 @@ function createDefaultJobForm(): JobFormModel {
     maxRetryCount: 3,
     priority: 5,
     remark: null,
-    repeatCount: 0,
+    // -1 表示无限重复（与后端 SysTask.RepeatCount 默认语义一致；0 会导致任务永不执行）
+    repeatCount: -1,
     retryCount: 0,
     taskClass: '',
     taskCode: '',
