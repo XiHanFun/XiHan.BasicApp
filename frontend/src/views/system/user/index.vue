@@ -392,6 +392,57 @@ const fields: ListFieldSchema[] = [
       )
     },
   },
+  // 角色（仅列，来自后端批量聚合 roleNames）
+  {
+    key: 'roleNames',
+    title: '角色',
+    dataType: 'string',
+    minWidth: 160,
+    order: 5.1,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const names = r.roleNames ?? []
+      if (names.length === 0) {
+        return h('span', { class: 'text-foreground/40' }, '—')
+      }
+      return h('div', { class: 'flex flex-wrap gap-1' }, names.map(name =>
+        h(NTag, { size: 'small', round: true, bordered: false, type: 'info', style: { fontSize: '11px' } }, () => name)))
+    },
+  },
+  // 部门（仅列，主部门名称）
+  {
+    key: 'departmentName',
+    title: '部门',
+    dataType: 'string',
+    minWidth: 120,
+    order: 5.2,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return r.departmentName || h('span', { class: 'text-foreground/40' }, '—')
+    },
+  },
+  // 安全标记（仅列，锁定 / 双因素）
+  {
+    key: 'security',
+    title: '安全',
+    dataType: 'string',
+    width: 120,
+    order: 5.3,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const tags = []
+      if (r.isLocked) {
+        tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'error', style: { fontSize: '11px' } }, () => '锁定'))
+      }
+      if (r.twoFactorEnabled) {
+        tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'success', style: { fontSize: '11px' } }, () => '2FA'))
+      }
+      if (tags.length === 0) {
+        return h('span', { class: 'text-foreground/40' }, '正常')
+      }
+      return h('div', { class: 'flex flex-wrap gap-1' }, tags)
+    },
+  },
   // 最后登录（仅列）
   {
     key: 'lastLoginTime',
@@ -404,6 +455,18 @@ const fields: ListFieldSchema[] = [
       return formatNullableDate(r.lastLoginTime)
     },
   },
+  // 最后登录 IP（仅列）
+  {
+    key: 'lastLoginIp',
+    title: '最后登录 IP',
+    dataType: 'string',
+    minWidth: 130,
+    order: 6.1,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return r.lastLoginIp || h('span', { class: 'text-foreground/40' }, '—')
+    },
+  },
   // 创建时间（仅列）
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, width: 170, order: 7 },
 ]
@@ -412,7 +475,7 @@ const schema: PageSchema = {
   pageCode: 'system.user',
   pageName: '用户管理',
   rowKey: 'basicId',
-  scrollX: 1200,
+  scrollX: 1760,
   fields,
   resource: {
     page: (params) => {
