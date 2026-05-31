@@ -90,7 +90,7 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
     <div class="flex gap-3 items-center justify-between">
       <!-- 底部左侧：数据量与页码提示 -->
       <div class="xh-table__count">
-        共 {{ total }} 条，第 {{ page }} / {{ pageCount }} 页
+        共 <strong>{{ total }}</strong> 条，第 <strong>{{ page }}</strong> / {{ pageCount }} 页
       </div>
       <NPagination
         :item-count="total"
