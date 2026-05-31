@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -20,22 +21,25 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Seeders;
+namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 
 /// <summary>
 /// SaaS 默认部门种子数据（与演示用户部门名称对齐，并维护闭包表）
+/// 演示配套数据，仅在开发环境执行，生产环境默认跳过
 /// </summary>
 public sealed class SaasDepartmentSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasDepartmentSeeder> logger,
     IServiceProvider serviceProvider,
-    ICurrentTenant currentTenant)
+    ICurrentTenant currentTenant,
+    IHostEnvironment hostEnvironment)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
     private const string DefaultTenantCode = "default";
     private const string RootDepartmentCode = "xihan";
 
     private readonly ICurrentTenant _currentTenant = currentTenant;
+    private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
 
     /// <summary>
     /// 种子数据优先级（需在演示用户之前）
@@ -52,6 +56,13 @@ public sealed class SaasDepartmentSeeder(
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        // 演示配套数据仅在开发环境播种，生产环境跳过
+        if (!_hostEnvironment.IsDevelopment())
+        {
+            Logger.LogInformation("非开发环境，跳过默认部门种子数据");
+            return;
+        }
+
         var tenantId = await ResolveTenantIdAsync();
         if (tenantId == 0)
         {

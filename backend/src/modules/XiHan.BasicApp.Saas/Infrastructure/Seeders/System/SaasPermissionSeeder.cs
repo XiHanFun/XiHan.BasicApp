@@ -20,7 +20,7 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Seeders;
+namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 /// <summary>
 /// SaaS 权限种子数据
