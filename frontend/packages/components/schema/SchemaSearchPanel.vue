@@ -226,19 +226,15 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   transform: translateY(-6px);
 }
 
-/* 移动端：常用条件项占满整行，按钮区独占一行、按钮平分铺满 */
+/* 移动端：常用条件项占满整行；按钮组仍为右对齐的圆形图标按钮（不拉伸成整行） */
 @media (max-width: 767px) {
   .xh-search__item {
     width: 100%;
   }
 
+  /* 按钮组保持紧凑右对齐：margin-left:auto 推到右侧，按钮维持圆形不被拉伸 */
   .xh-search__actions {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .xh-search__actions :deep(.n-button) {
-    flex: 1 1 auto;
+    margin-left: auto;
   }
 }
 </style>
