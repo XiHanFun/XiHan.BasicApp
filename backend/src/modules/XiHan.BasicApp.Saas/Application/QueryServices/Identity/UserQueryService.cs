@@ -43,11 +43,47 @@ public sealed class UserQueryService
     private readonly IUserRepository _userRepository;
 
     /// <summary>
+    /// 用户角色关联仓储
+    /// </summary>
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    /// <summary>
+    /// 角色仓储
+    /// </summary>
+    private readonly IRoleRepository _roleRepository;
+
+    /// <summary>
+    /// 用户部门关联仓储
+    /// </summary>
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+
+    /// <summary>
+    /// 部门仓储
+    /// </summary>
+    private readonly IDepartmentRepository _departmentRepository;
+
+    /// <summary>
+    /// 用户安全状态仓储
+    /// </summary>
+    private readonly IUserSecurityRepository _userSecurityRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public UserQueryService(IUserRepository userRepository)
+    public UserQueryService(
+        IUserRepository userRepository,
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository,
+        IUserDepartmentRepository userDepartmentRepository,
+        IDepartmentRepository departmentRepository,
+        IUserSecurityRepository userSecurityRepository)
     {
         _userRepository = userRepository;
+        _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
+        _userDepartmentRepository = userDepartmentRepository;
+        _departmentRepository = departmentRepository;
+        _userSecurityRepository = userSecurityRepository;
     }
 
     /// <summary>
@@ -65,7 +101,35 @@ public sealed class UserQueryService
         var request = BuildUserPageRequest(input);
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
 
-        return users.Map(UserApplicationMapper.ToListItemDto);
+        if (users.Items.Count == 0)
+        {
+            return new PageResultDtoBase<UserListItemDto>([], users.Page)
+            {
+                ExtendDatas = users.ExtendDatas
+            };
+        }
+
+        // 按当前页用户主键批量预取关联数据，避免逐行 N+1
+        var userIds = users.Items.Select(user => user.BasicId).Distinct().ToList();
+        var roleNameMap = await BuildRoleNameMapAsync(userIds, cancellationToken);
+        var departmentNameMap = await BuildDepartmentNameMapAsync(userIds, cancellationToken);
+        var securityMap = await BuildSecurityMapAsync(userIds, cancellationToken);
+
+        var items = users.Items.Select(user =>
+        {
+            securityMap.TryGetValue(user.BasicId, out var security);
+            return UserApplicationMapper.ToListItemDto(
+                user,
+                roleNameMap.TryGetValue(user.BasicId, out var roleNames) ? roleNames : [],
+                departmentNameMap.TryGetValue(user.BasicId, out var departmentName) ? departmentName : null,
+                security.IsLocked,
+                security.TwoFactorEnabled);
+        }).ToList();
+
+        return new PageResultDtoBase<UserListItemDto>(items, users.Page)
+        {
+            ExtendDatas = users.ExtendDatas
+        };
     }
 
     /// <summary>
@@ -104,6 +168,102 @@ public sealed class UserQueryService
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
 
         return [.. users.Items.Select(UserApplicationMapper.ToSelectItemDto)];
+    }
+
+    /// <summary>
+    /// 批量构建「用户主键 → 角色名称集合」映射（有效授权 + 启用角色）
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, IReadOnlyList<string>>> BuildRoleNameMapAsync(
+        List<long> userIds,
+        CancellationToken cancellationToken)
+    {
+        var userRoles = await _userRoleRepository.GetListAsync(
+            userRole => userIds.Contains(userRole.UserId)
+                && userRole.Status == ValidityStatus.Valid,
+            cancellationToken);
+        if (userRoles.Count == 0)
+        {
+            return new Dictionary<long, IReadOnlyList<string>>();
+        }
+
+        var roleIds = userRoles.Select(userRole => userRole.RoleId).Distinct().ToList();
+        var roles = await _roleRepository.GetEnabledByIdsAsync(roleIds, cancellationToken);
+        var roleNameById = roles
+            .GroupBy(role => role.BasicId)
+            .ToDictionary(group => group.Key, group => group.First().RoleName);
+
+        return userRoles
+            .GroupBy(userRole => userRole.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<string>)[.. group
+                    .Where(userRole => roleNameById.ContainsKey(userRole.RoleId))
+                    .Select(userRole => roleNameById[userRole.RoleId])
+                    .Distinct()
+                    .OrderBy(name => name, StringComparer.CurrentCulture)]);
+    }
+
+    /// <summary>
+    /// 批量构建「用户主键 → 主部门名称」映射（优先主部门，否则取首个有效归属）
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, string>> BuildDepartmentNameMapAsync(
+        List<long> userIds,
+        CancellationToken cancellationToken)
+    {
+        var userDepartments = await _userDepartmentRepository.GetListAsync(
+            userDepartment => userIds.Contains(userDepartment.UserId)
+                && userDepartment.Status == ValidityStatus.Valid,
+            cancellationToken);
+        if (userDepartments.Count == 0)
+        {
+            return new Dictionary<long, string>();
+        }
+
+        var departmentIds = userDepartments.Select(item => item.DepartmentId).Distinct().ToList();
+        var departments = await _departmentRepository.GetListAsync(
+            department => departmentIds.Contains(department.BasicId),
+            cancellationToken);
+        var departmentNameById = departments
+            .GroupBy(department => department.BasicId)
+            .ToDictionary(group => group.Key, group => group.First().DepartmentName);
+
+        var result = new Dictionary<long, string>();
+        foreach (var group in userDepartments.GroupBy(item => item.UserId))
+        {
+            var chosen = group.OrderByDescending(item => item.IsMain).First();
+            if (departmentNameById.TryGetValue(chosen.DepartmentId, out var departmentName))
+            {
+                result[group.Key] = departmentName;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 批量构建「用户主键 → 安全标记」映射（锁定 / 双因素）
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, (bool IsLocked, bool TwoFactorEnabled)>> BuildSecurityMapAsync(
+        List<long> userIds,
+        CancellationToken cancellationToken)
+    {
+        var securities = await _userSecurityRepository.GetListAsync(
+            security => userIds.Contains(security.UserId),
+            cancellationToken);
+        if (securities.Count == 0)
+        {
+            return new Dictionary<long, (bool IsLocked, bool TwoFactorEnabled)>();
+        }
+
+        return securities
+            .GroupBy(security => security.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group =>
+                {
+                    var security = group.First();
+                    return (security.IsLocked, security.TwoFactorEnabled);
+                });
     }
 
     /// <summary>

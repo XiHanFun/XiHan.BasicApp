@@ -54,13 +54,23 @@ public static class UserApplicationMapper
     }
 
     /// <summary>
-    /// 映射用户列表项
+    /// 映射用户列表项（含批量预取的角色/部门/安全聚合数据）
     /// </summary>
     /// <param name="user">用户实体</param>
+    /// <param name="roleNames">角色名称集合（已批量预取）</param>
+    /// <param name="departmentName">主部门名称（已批量预取，可空）</param>
+    /// <param name="isLocked">是否锁定（来自安全扩展）</param>
+    /// <param name="twoFactorEnabled">是否启用双因素认证（来自安全扩展）</param>
     /// <returns>用户列表项 DTO</returns>
-    public static UserListItemDto ToListItemDto(SysUser user)
+    public static UserListItemDto ToListItemDto(
+        SysUser user,
+        IReadOnlyList<string> roleNames,
+        string? departmentName,
+        bool isLocked,
+        bool twoFactorEnabled)
     {
         ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(roleNames);
 
         return new UserListItemDto
         {
@@ -75,7 +85,12 @@ public static class UserApplicationMapper
             Language = user.Language,
             Country = user.Country,
             IsSystemAccount = user.IsSystemAccount,
+            RoleNames = roleNames,
+            DepartmentName = departmentName,
+            IsLocked = isLocked,
+            TwoFactorEnabled = twoFactorEnabled,
             LastLoginTime = user.LastLoginTime,
+            LastLoginIp = user.LastLoginIp,
             CreatedTime = user.CreatedTime,
             ModifiedTime = user.ModifiedTime
         };

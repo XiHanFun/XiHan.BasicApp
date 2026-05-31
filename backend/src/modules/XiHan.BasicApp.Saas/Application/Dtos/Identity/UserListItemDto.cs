@@ -74,9 +74,34 @@ public sealed class UserListItemDto : BasicAppDto
     public bool IsSystemAccount { get; set; }
 
     /// <summary>
+    /// 角色名称集合（来自 SysUserRole→SysRole，仅有效授权 + 启用角色）
+    /// </summary>
+    public IReadOnlyList<string> RoleNames { get; set; } = [];
+
+    /// <summary>
+    /// 主部门名称（优先主部门，否则取首个有效归属；来自 SysUserDepartment→SysDepartment）
+    /// </summary>
+    public string? DepartmentName { get; set; }
+
+    /// <summary>
+    /// 是否已锁定（来自 SysUserSecurity）
+    /// </summary>
+    public bool IsLocked { get; set; }
+
+    /// <summary>
+    /// 是否启用双因素认证（来自 SysUserSecurity）
+    /// </summary>
+    public bool TwoFactorEnabled { get; set; }
+
+    /// <summary>
     /// 最后登录时间
     /// </summary>
     public DateTimeOffset? LastLoginTime { get; set; }
+
+    /// <summary>
+    /// 最后登录 IP
+    /// </summary>
+    public string? LastLoginIp { get; set; }
 
     /// <summary>
     /// 创建时间
