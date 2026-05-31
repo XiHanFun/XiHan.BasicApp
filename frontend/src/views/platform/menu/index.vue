@@ -171,7 +171,7 @@ const schema: PageSchema = {
   pageName: '菜单管理',
   rowKey: 'basicId',
   scrollX: 2000,
-  tree: { childrenKey: 'children', defaultExpandAll: true },
+  tree: { childrenKey: 'children', defaultExpandAll: false },
   resource: {
     tree: (params: SchemaQueryParams) => {
       const result = menuManagementApi.page({
