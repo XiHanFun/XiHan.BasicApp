@@ -31,6 +31,12 @@ const props = withDefaults(defineProps<{
   checkedKeys?: Array<string | number>
   /** 密度（映射 NDataTable size） */
   density?: 'small' | 'medium' | 'large'
+  /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
+  tree?: boolean
+  /** 子节点字段名（默认 children） */
+  childrenKey?: string
+  /** 默认展开全部（默认 true） */
+  defaultExpandAll?: boolean
 }>(), {
   loading: false,
   rowKey: 'basicId',
@@ -42,6 +48,9 @@ const props = withDefaults(defineProps<{
   selectable: false,
   checkedKeys: () => [],
   density: 'small',
+  tree: false,
+  childrenKey: 'children',
+  defaultExpandAll: true,
 })
 
 const emit = defineEmits<{
@@ -79,20 +88,28 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
       :columns="resolvedColumns"
       :data="data"
       :loading="loading"
-      remote
+      :remote="!tree"
       :row-key="rowKeyGetter"
       :scroll-x="scrollX"
       :size="density"
+      :children-key="childrenKey"
+      :default-expand-all="tree && defaultExpandAll"
       striped
       @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
       @update:sorter="onSort"
     />
     <div class="flex gap-3 items-center justify-between">
-      <!-- 底部左侧：数据量与页码提示 -->
+      <!-- 底部左侧：数据量与页码提示（树形不分页，仅显示总数） -->
       <div class="xh-table__count">
-        共 <strong>{{ total }}</strong> 条，第 <strong>{{ page }}</strong> / {{ pageCount }} 页
+        <template v-if="tree">
+          共 <strong>{{ total }}</strong> 条
+        </template>
+        <template v-else>
+          共 <strong>{{ total }}</strong> 条，第 <strong>{{ page }}</strong> / {{ pageCount }} 页
+        </template>
       </div>
       <NPagination
+        v-if="!tree"
         :item-count="total"
         :page="page"
         :page-count="pageCount"
