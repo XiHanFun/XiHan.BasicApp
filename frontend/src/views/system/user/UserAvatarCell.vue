@@ -24,10 +24,18 @@ const initials = computed(() => (props.name ? props.name.substring(0, 2) : '?'))
 </script>
 
 <template>
+  <!-- 有图：显示图片头像；无图/换取中：显示首字母文字头像（slot 与 src 互斥，避免 slot 覆盖图片） -->
   <NAvatar
+    v-if="avatarUrl"
     round
     :size="size ?? 32"
-    :src="avatarUrl || undefined"
+    :src="avatarUrl"
+    object-fit="cover"
+  />
+  <NAvatar
+    v-else
+    round
+    :size="size ?? 32"
     :color="bg"
     :style="{ color: fg, fontSize: '12px', fontWeight: 600 }"
   >
