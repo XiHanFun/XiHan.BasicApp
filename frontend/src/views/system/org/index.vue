@@ -134,7 +134,7 @@ const schema: PageSchema = {
   pageName: '组织机构',
   rowKey: 'basicId',
   scrollX: 1400,
-  tree: { childrenKey: 'children', defaultExpandAll: true },
+  tree: { childrenKey: 'children', defaultExpandAll: false },
   fields,
   resource: {
     tree: (params) => {
