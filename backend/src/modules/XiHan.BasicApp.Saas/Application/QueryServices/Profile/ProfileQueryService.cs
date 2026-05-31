@@ -282,7 +282,11 @@ public sealed class ProfileQueryService
             PhoneVerified = security.PhoneVerified,
             LastPasswordChangeTime = security.LastPasswordChangeTime,
             LastUserNameChangeTime = security.LastUserNameChangeTime,
-            CanChangeUserName = !user.IsSystemAccount && CanChangeUserName(security, DateTimeOffset.UtcNow)
+            CanChangeUserName = !user.IsSystemAccount && CanChangeUserName(security, DateTimeOffset.UtcNow),
+            IsLocked = security.IsLocked,
+            LockoutEndTime = security.LockoutEndTime,
+            FailedLoginAttempts = security.FailedLoginAttempts,
+            LastFailedLoginTime = security.LastFailedLoginTime
         };
     }
 }
