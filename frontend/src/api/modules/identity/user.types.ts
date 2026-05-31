@@ -24,15 +24,20 @@ export interface UserListItemDto extends BasicDto {
   avatar?: string | null
   country?: string | null
   createdTime: DateTimeString
+  departmentName?: string | null
   gender: UserGender
+  isLocked: boolean
   isSystemAccount: boolean
   language?: string | null
+  lastLoginIp?: string | null
   lastLoginTime?: DateTimeString | null
   modifiedTime?: DateTimeString | null
   nickName?: string | null
   realName?: string | null
+  roleNames: string[]
   status: EnableStatus
   timeZone?: string | null
+  twoFactorEnabled: boolean
   userName: string
 }
 
