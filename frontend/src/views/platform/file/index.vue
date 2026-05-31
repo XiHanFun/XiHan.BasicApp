@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import type { UploadCustomRequestOptions } from 'naive-ui'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { DataTableColumns } from 'naive-ui'
 import type {
   FileDetailDto,
   FileListItemDto,
   FileStorageDetailDto,
+  FileStorageListItemDto,
   PageResult,
 } from '@/api'
 import {
   NButton,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -16,10 +19,12 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NPopconfirm,
   NSelect,
   NSpace,
   NSwitch,
   NTag,
+  NTooltip,
   NUpload,
   useMessage,
 } from 'naive-ui'
@@ -275,7 +280,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'storages':
       if (row) {
-        void handleFileStorages(row)
+        void openStorageList(row)
       }
       break
     case 'archive':
@@ -471,34 +476,199 @@ async function handleFileDetail(row: FileListItemDto) {
   }
 }
 
-async function handleFileStorages(row: FileListItemDto) {
-  // 加载该文件的主存储副本详情（取首个），并展示在副本详情抽屉
+// ── 存储副本列表抽屉 ────────────────────────────────────────────
+const storageListVisible = ref(false)
+const storageListLoading = ref(false)
+const storageRows = ref<FileStorageListItemDto[]>([])
+const storageFile = ref<FileListItemDto | null>(null)
+
+function getStorageStatusTagType(status: FileStorageStatus): TagType {
+  if (status === FileStorageStatus.Normal) {
+    return 'success'
+  }
+  if (
+    status === FileStorageStatus.UploadFailed
+    || status === FileStorageStatus.SyncFailed
+    || status === FileStorageStatus.VerificationFailed
+    || status === FileStorageStatus.Unavailable
+  ) {
+    return 'error'
+  }
+  if (
+    status === FileStorageStatus.Uploading
+    || status === FileStorageStatus.Syncing
+    || status === FileStorageStatus.PendingVerification
+  ) {
+    return 'warning'
+  }
+  return 'default'
+}
+
+/** 打开副本列表抽屉并加载该文件的全部存储副本 */
+async function openStorageList(row: FileListItemDto) {
+  storageFile.value = row
+  storageListVisible.value = true
+  await loadStorageRows()
+}
+
+async function loadStorageRows() {
+  const file = storageFile.value
+  if (!file) {
+    return
+  }
+  storageListLoading.value = true
+  try {
+    const result = await fileManagementApi.storagePage({
+      ...createPageRequest({ page: { pageIndex: 1, pageSize: 100 } }),
+      fileId: file.basicId,
+    })
+    storageRows.value = result.items
+  }
+  catch {
+    storageRows.value = []
+    message.error('加载存储副本失败')
+  }
+  finally {
+    storageListLoading.value = false
+  }
+}
+
+/** 查看单个副本详情（复用文件/副本详情抽屉） */
+async function viewStorageDetail(storageId: string) {
   detailKind.value = 'storage'
   detailVisible.value = true
   detailLoading.value = true
   currentFileDetail.value = null
   currentStorageDetail.value = null
   try {
-    const result = await fileManagementApi.storagePage({
-      ...createPageRequest({ page: { pageIndex: 1, pageSize: 1 } }),
-      fileId: row.basicId,
-    })
-    const first = result.items[0]
-    if (first) {
-      currentStorageDetail.value = await fileManagementApi.storageDetail(first.basicId)
-    }
-    else {
-      message.warning('该文件暂无存储副本')
-    }
+    currentStorageDetail.value = await fileManagementApi.storageDetail(storageId)
   }
   catch {
     currentStorageDetail.value = null
-    message.error('加载存储副本失败')
+    message.error('加载副本详情失败')
   }
   finally {
     detailLoading.value = false
   }
 }
+
+/** 设为主副本 */
+async function handleSwitchPrimary(storage: FileStorageListItemDto) {
+  const file = storageFile.value
+  if (!file) {
+    return
+  }
+  actionLoading.value = true
+  try {
+    await fileManagementApi.switchPrimaryStorage({ basicId: file.basicId, storageId: storage.basicId })
+    message.success('已设为主副本')
+    await loadStorageRows()
+  }
+  catch {
+    message.error('设置主副本失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+/** 校验副本 */
+async function handleVerifyStorage(storage: FileStorageListItemDto) {
+  actionLoading.value = true
+  try {
+    await fileManagementApi.verifyStorage({ basicId: storage.basicId })
+    message.success('副本校验已触发')
+    await loadStorageRows()
+  }
+  catch {
+    message.error('副本校验失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+/** 启用 / 停用副本（Normal ↔ Unavailable 互切） */
+async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
+  const nextStatus = storage.status === FileStorageStatus.Normal
+    ? FileStorageStatus.Unavailable
+    : FileStorageStatus.Normal
+  actionLoading.value = true
+  try {
+    await fileManagementApi.updateStorageStatus({ basicId: storage.basicId, status: nextStatus })
+    message.success('副本状态已更新')
+    await loadStorageRows()
+  }
+  catch {
+    message.error('更新副本状态失败')
+  }
+  finally {
+    actionLoading.value = false
+  }
+}
+
+const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => [
+  {
+    key: 'storageType',
+    title: '存储类型',
+    minWidth: 110,
+    render: row => getOptionLabel(storageTypeOptions, row.storageType),
+  },
+  {
+    key: 'storageProvider',
+    title: '提供商/区域',
+    minWidth: 140,
+    ellipsis: { tooltip: true },
+    render: row => `${row.storageProvider || '-'} / ${row.storageRegion || '-'}`,
+  },
+  {
+    key: 'isPrimary',
+    title: '主副本',
+    width: 80,
+    render: row => row.isPrimary
+      ? h(NTag, { size: 'small', type: 'info', round: true, bordered: false }, () => '主')
+      : h('span', { class: 'text-foreground/40' }, '-'),
+  },
+  {
+    key: 'flags',
+    title: '校验/同步',
+    width: 110,
+    render: row => `${formatFlag(row.isVerified)} / ${formatFlag(row.isSynced)}`,
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 100,
+    render: row => h(NTag, { size: 'small', round: true, type: getStorageStatusTagType(row.status) }, () => getOptionLabel(storageStatusOptions, row.status)),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 150,
+    fixed: 'right',
+    render: row => h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
+      h(NTooltip, null, {
+        trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, onClick: () => viewStorageDetail(row.basicId) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
+        default: () => '详情',
+      }),
+      h(NTooltip, null, {
+        trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', disabled: row.isPrimary, onClick: () => handleSwitchPrimary(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:star' })) }),
+        default: () => row.isPrimary ? '已是主副本' : '设为主副本',
+      }),
+      h(NTooltip, null, {
+        trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'info', onClick: () => handleVerifyStorage(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:shield-check' })) }),
+        default: () => '校验',
+      }),
+      h(NPopconfirm, { onPositiveClick: () => handleToggleStorageStatus(row) }, {
+        trigger: () => h(NTooltip, null, {
+          trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: row.status === FileStorageStatus.Normal ? 'warning' : 'success' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === FileStorageStatus.Normal ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => row.status === FileStorageStatus.Normal ? '停用' : '启用',
+        }),
+        default: () => `确认${row.status === FileStorageStatus.Normal ? '停用' : '启用'}该副本？`,
+      }),
+    ]),
+  },
+])
 </script>
 
 <template>
@@ -758,6 +928,31 @@ async function handleFileStorages(row: FileListItemDto) {
         <div v-else class="py-8 text-center text-gray-400">
           暂无详情数据
         </div>
+      </NDrawerContent>
+    </NDrawer>
+
+    <!-- 存储副本列表抽屉：列出该文件全部副本，支持 详情/设主副本/校验/启停 -->
+    <NDrawer v-model:show="storageListVisible" :width="760">
+      <NDrawerContent closable :title="`存储副本 - ${storageFile?.originalName ?? ''}`">
+        <NSpace vertical :size="12">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-foreground/60">共 {{ storageRows.length }} 个副本</span>
+            <NButton size="small" :loading="storageListLoading" @click="loadStorageRows">
+              <template #icon>
+                <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+              </template>
+              刷新
+            </NButton>
+          </div>
+          <NDataTable
+            :columns="storageColumns"
+            :data="storageRows"
+            :loading="storageListLoading"
+            :row-key="(row: FileStorageListItemDto) => row.basicId"
+            :scroll-x="720"
+            size="small"
+          />
+        </NSpace>
       </NDrawerContent>
     </NDrawer>
   </SchemaPage>
