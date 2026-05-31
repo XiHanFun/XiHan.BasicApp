@@ -109,12 +109,12 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
 <style scoped>
 .xh-table__count {
   font-size: 13px;
-  color: rgb(var(--primary));
+  color: var(--n-text-color);
   white-space: nowrap;
 }
 
 .xh-table__count strong {
   font-weight: 600;
-  color: rgb(var(--primary));
+  color: var(--n-text-color);
 }
 </style>
