@@ -3,6 +3,7 @@ import type { UserProfile } from '~/types'
 import { NAvatar } from 'naive-ui'
 import { computed } from 'vue'
 import { useAvatarUrl } from '~/composables'
+import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
@@ -42,211 +43,181 @@ const chips = computed(() => {
   return list
 })
 
-/** 右侧 meta 概要 */
+/** meta 概要 */
 const metaItems = computed(() => {
   const p = props.profile
   return [
-    { key: 'lastLogin', label: '最后登录', value: p?.lastLoginTime ? formatDate(p.lastLoginTime) : '—' },
-    { key: 'lastIp', label: '登录 IP', value: p?.lastLoginIp || '—' },
-    { key: 'devices', label: '在线设备', value: props.sessionsLoaded ? `${props.sessionsCount} 台` : '—' },
+    { key: 'lastLogin', icon: 'lucide:clock', label: '最后登录', value: p?.lastLoginTime ? formatDate(p.lastLoginTime) : '—' },
+    { key: 'lastIp', icon: 'lucide:map-pin', label: '登录 IP', value: p?.lastLoginIp || '—' },
+    { key: 'devices', icon: 'lucide:monitor', label: '在线设备', value: props.sessionsLoaded ? `${props.sessionsCount} 台` : '—' },
   ]
 })
 </script>
 
 <template>
-  <div class="pf-hero">
-    <div class="pf-hero__bg" />
-    <div class="pf-hero__grid" />
-    <div class="pf-hero__inner">
-      <div class="pf-hero__avatar">
+  <div class="pf-usercard">
+    <div class="pf-usercard__top">
+      <div class="pf-usercard__avatar">
         <NAvatar
           v-if="avatarDisplayUrl"
           round
-          :size="80"
+          :size="56"
           :src="avatarDisplayUrl"
           object-fit="cover"
         />
-        <div v-else class="pf-hero__avatar-text">
+        <div v-else class="pf-usercard__avatar-text">
           {{ initials }}
         </div>
       </div>
-
-      <div class="pf-hero__id">
-        <div class="pf-hero__name">
+      <div class="pf-usercard__id">
+        <div class="pf-usercard__name">
           {{ displayName }}
         </div>
-        <div class="pf-hero__uname">
+        <div class="pf-usercard__uname">
           @{{ userName }}
-          <template v-if="profile?.realName">
-            · {{ profile.realName }}
-          </template>
-        </div>
-        <div v-if="chips.length" class="pf-hero__chips">
-          <span
-            v-for="chip in chips"
-            :key="chip.key"
-            class="pf-hero__chip"
-            :class="{ 'is-on': chip.on }"
-          >
-            <i v-if="chip.on" class="pf-hero__chip-dot" />
-            {{ chip.label }}
-          </span>
         </div>
       </div>
+    </div>
 
-      <div class="pf-hero__meta">
-        <div v-for="item in metaItems" :key="item.key" class="pf-hero__meta-item">
-          <span class="pf-hero__meta-label">{{ item.label }}</span>
-          <span class="pf-hero__meta-value">{{ item.value }}</span>
-        </div>
+    <div v-if="chips.length" class="pf-usercard__chips">
+      <span
+        v-for="chip in chips"
+        :key="chip.key"
+        class="pf-usercard__chip"
+        :class="{ 'is-on': chip.on }"
+      >
+        <i v-if="chip.on" class="pf-usercard__chip-dot" />
+        {{ chip.label }}
+      </span>
+    </div>
+
+    <div class="pf-usercard__meta">
+      <div v-for="item in metaItems" :key="item.key" class="pf-usercard__meta-row">
+        <span class="pf-usercard__meta-label">
+          <Icon :icon="item.icon" width="13" />
+          {{ item.label }}
+        </span>
+        <span class="pf-usercard__meta-value">{{ item.value }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.pf-hero {
-  position: relative;
-  overflow: hidden;
-  padding: 24px 28px;
-  border-radius: var(--radius-lg, 12px);
-  background: linear-gradient(135deg, hsl(var(--primary) / 92%) 0%, hsl(var(--primary)) 50%, hsl(var(--primary) / 78%) 100%);
-  color: #fff;
-  box-shadow: 0 18px 40px -24px hsl(var(--primary) / 60%);
+.pf-usercard {
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
 }
 
-/* 光晕 */
-.pf-hero__bg {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(420px 220px at 88% -10%, rgb(255 255 255 / 0.22), transparent 60%),
-    radial-gradient(360px 300px at 6% 130%, rgb(0 0 0 / 0.18), transparent 60%);
-  pointer-events: none;
-}
-
-/* 网格纹理 */
-.pf-hero__grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 0),
-    linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 0);
-  background-size: 38px 38px;
-  mask-image: linear-gradient(180deg, #000, transparent 78%);
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent 78%);
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.pf-hero__inner {
-  position: relative;
+.pf-usercard__top {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.pf-hero__avatar {
+.pf-usercard__avatar {
   flex-shrink: 0;
 }
 
-.pf-hero__avatar-text {
-  width: 80px;
-  height: 80px;
+.pf-usercard__avatar-text {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 700;
-  color: #fff;
-  background: rgb(255 255 255 / 0.18);
-  border: 2px solid rgb(255 255 255 / 0.3);
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 20%);
 }
 
-.pf-hero__id {
+.pf-usercard__id {
+  min-width: 0;
   flex: 1;
-  min-width: 220px;
 }
 
-.pf-hero__name {
-  font-size: 24px;
+.pf-usercard__name {
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pf-hero__uname {
-  font-size: 13px;
-  color: rgb(255 255 255 / 0.78);
-  margin-top: 4px;
+.pf-usercard__uname {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pf-hero__chips {
+.pf-usercard__chips {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 14px;
 }
 
-.pf-hero__chip {
+.pf-usercard__chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 4px 11px;
+  gap: 5px;
+  font-size: 11.5px;
+  padding: 3px 9px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.14);
-  border: 1px solid rgb(255 255 255 / 0.2);
+  background: hsl(var(--accent));
+  color: var(--text-secondary);
 }
 
-.pf-hero__chip.is-on {
-  background: rgb(255 255 255 / 0.22);
-  border-color: rgb(255 255 255 / 0.4);
+.pf-usercard__chip.is-on {
+  background: hsl(var(--primary) / 10%);
+  color: hsl(var(--primary));
 }
 
-.pf-hero__chip-dot {
-  width: 6px;
-  height: 6px;
+.pf-usercard__chip-dot {
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: #fff;
+  background: hsl(var(--primary));
 }
 
-.pf-hero__meta {
-  display: flex;
-  gap: 28px;
-  flex-wrap: wrap;
-}
-
-.pf-hero__meta-item {
+.pf-usercard__meta {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  text-align: right;
+  gap: 9px;
 }
 
-.pf-hero__meta-label {
-  font-size: 11.5px;
-  color: rgb(255 255 255 / 0.62);
+.pf-usercard__meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.pf-hero__meta-value {
-  font-size: 14px;
+.pf-usercard__meta-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pf-usercard__meta-value {
+  font-size: 12.5px;
   font-weight: 600;
-}
-
-@media (max-width: 720px) {
-  .pf-hero {
-    padding: 18px 18px;
-  }
-
-  .pf-hero__meta {
-    width: 100%;
-    gap: 18px;
-  }
-
-  .pf-hero__meta-item {
-    text-align: left;
-  }
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
