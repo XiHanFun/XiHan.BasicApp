@@ -12,12 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.Saas.Hubs;
@@ -56,43 +50,11 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     {
         var app = context.GetApplicationBuilder();
 
-        // 本地存储静态文件服务：将本地存储根目录（默认 uploads）暴露到 /uploads 路径，
-        // 使本地存储 Provider 返回的静态 URL（头像、公开文件等）可经 <img>/直链访问。
-        UseLocalStorageStaticFiles(app);
-
         // 映射 SignalR Hub 端点
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapXiHanHub<BasicAppNotificationHub>(SignalRConstants.HubPaths.Notification);
             endpoints.MapXiHanHub<BasicAppChatHub>(SignalRConstants.HubPaths.Chat);
-        });
-    }
-
-    /// <summary>
-    /// 启用本地存储静态文件服务（与 LocalStorageOptions 的 RootPath/UrlPrefix 对齐）。
-    /// </summary>
-    private static void UseLocalStorageStaticFiles(IApplicationBuilder app)
-    {
-        var environment = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-
-        // 与 LocalStorageOptions 默认值对齐：RootPath="uploads"、UrlPrefix="/uploads"
-        const string rootPath = "uploads";
-        const string requestPath = "/uploads";
-
-        var physicalRoot = Path.IsPathRooted(rootPath)
-            ? rootPath
-            : Path.Combine(environment.ContentRootPath, rootPath);
-
-        if (!Directory.Exists(physicalRoot))
-        {
-            Directory.CreateDirectory(physicalRoot);
-        }
-
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(physicalRoot),
-            RequestPath = requestPath,
-            ServeUnknownFileTypes = false
         });
     }
 }
