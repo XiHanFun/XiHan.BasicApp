@@ -13,6 +13,7 @@ const { t } = useI18n()
 <template>
   <NFloatButton
     v-if="show"
+    class="xh-preference-fab"
     type="primary"
     :right="12"
     :bottom="88"
@@ -26,3 +27,10 @@ const { t } = useI18n()
     </NIcon>
   </NFloatButton>
 </template>
+
+<style scoped>
+/* 提升层级，避免被表格固定列 / 列表卡片等高 z-index 元素遮挡 */
+.xh-preference-fab {
+  z-index: 1000;
+}
+</style>
