@@ -82,8 +82,11 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <!-- 定高 flex 列：表格占满中段并在内部滚动，分页栏固定底部，整体不撑破父容器 -->
+  <div class="xh-table-panel">
     <NDataTable
+      class="xh-table-panel__grid"
+      flex-height
       :checked-row-keys="checkedKeys"
       :columns="resolvedColumns"
       :data="data"
@@ -98,7 +101,7 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
       @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
       @update:sorter="onSort"
     />
-    <div class="flex gap-3 items-center justify-between">
+    <div class="xh-table-panel__footer">
       <!-- 底部左侧：数据量与页码提示（树形不分页，仅显示总数） -->
       <div class="xh-table__count">
         <template v-if="tree">
@@ -124,6 +127,31 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
 </template>
 
 <style scoped>
+/* 占满父级（SchemaPage 的定高表格卡片）剩余高度，自身再分为表格 + 底部栏 */
+.xh-table-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+/* 表格占满中段；flex-height 使其内部纵向滚动而非撑高外层 */
+.xh-table-panel__grid {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 底部统计 + 分页：固定在底，不随表格滚动 */
+.xh-table-panel__footer {
+  display: flex;
+  flex-shrink: 0;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+}
+
 .xh-table__count {
   font-size: 13px;
   color: var(--n-text-color);

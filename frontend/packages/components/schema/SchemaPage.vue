@@ -272,8 +272,12 @@ defineExpose({
       </SchemaActionPanel>
     </NCard>
 
-    <!-- 表格容器 -->
-    <NCard class="flex-1" style="height: 0">
+    <!-- 表格容器：定高卡片（flex-1 + height:0），content 成为定高 flex 列，滚动只发生在表格内部 -->
+    <NCard
+      class="flex-1"
+      style="height: 0"
+      :content-style="{ height: '100%', display: 'flex', flexDirection: 'column', padding: '12px 16px' }"
+    >
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
       <template v-else>
         <!-- 批量浮条 -->
@@ -324,6 +328,7 @@ defineExpose({
 <style scoped>
 .xh-batch-toolbar {
   display: flex;
+  flex-shrink: 0;
   gap: 12px;
   align-items: center;
   padding: 8px 12px;
