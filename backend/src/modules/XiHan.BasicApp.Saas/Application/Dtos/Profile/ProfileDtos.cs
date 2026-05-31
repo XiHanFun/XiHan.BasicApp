@@ -614,3 +614,54 @@ public sealed class ProfileActivityDto
     /// </summary>
     public List<ProfileActivityTrendPointDto> Trend { get; set; } = [];
 }
+
+/// <summary>
+/// 用户通知偏好 DTO（读 + 写共用）
+/// </summary>
+public sealed class ProfileNotificationPreferenceDto
+{
+    /// <summary>
+    /// 站内信通知
+    /// </summary>
+    public bool ChannelInApp { get; set; } = true;
+
+    /// <summary>
+    /// 邮箱通知
+    /// </summary>
+    public bool ChannelEmail { get; set; } = true;
+
+    /// <summary>
+    /// 短信通知
+    /// </summary>
+    public bool ChannelSms { get; set; }
+
+    /// <summary>
+    /// 推送通知
+    /// </summary>
+    public bool ChannelPush { get; set; } = true;
+
+    /// <summary>
+    /// 系统公告
+    /// </summary>
+    public bool TypeAnnouncement { get; set; } = true;
+
+    /// <summary>
+    /// 任务提醒
+    /// </summary>
+    public bool TypeTask { get; set; } = true;
+
+    /// <summary>
+    /// 审批通知
+    /// </summary>
+    public bool TypeApproval { get; set; } = true;
+
+    /// <summary>
+    /// 安全告警
+    /// </summary>
+    public bool TypeSecurity { get; set; } = true;
+
+    /// <summary>
+    /// 营销消息
+    /// </summary>
+    public bool TypeMarketing { get; set; }
+}

@@ -22,6 +22,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
@@ -51,6 +52,8 @@ public sealed partial class ProfileAppService
 
     private readonly IProfileVerificationService _profileVerificationService;
 
+    private readonly IUserPreferenceRepository _userPreferenceRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -60,6 +63,7 @@ public sealed partial class ProfileAppService
         IProfileVerificationService profileVerificationService,
         ILocalEventBus localEventBus,
         IUserNotificationDispatchService notificationDispatchService,
+        IUserPreferenceRepository userPreferenceRepository,
         ICurrentUser currentUser)
     {
         _profileDomainService = profileDomainService;
@@ -67,7 +71,39 @@ public sealed partial class ProfileAppService
         _profileVerificationService = profileVerificationService;
         _localEventBus = localEventBus;
         _notificationDispatchService = notificationDispatchService;
+        _userPreferenceRepository = userPreferenceRepository;
         _currentUser = currentUser;
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(CancellationToken cancellationToken = default)
+    {
+        return await _profileQueryService.GetNotificationPreferenceAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<ProfileNotificationPreferenceDto> UpdateNotificationPreferenceAsync(ProfileNotificationPreferenceDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userId = GetCurrentUserIdOrThrow();
+        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        if (preference is null)
+        {
+            // 惰性创建
+            preference = new SysUserPreference { UserId = userId };
+            ApplyPreference(preference, input);
+            await _userPreferenceRepository.AddAsync(preference, cancellationToken);
+        }
+        else
+        {
+            ApplyPreference(preference, input);
+            await _userPreferenceRepository.UpdateAsync(preference, cancellationToken);
+        }
+
+        return ProfileQueryService.ToPreferenceDto(preference);
     }
 
     /// <inheritdoc />
@@ -163,6 +199,22 @@ public sealed partial class ProfileAppService
             cancellationToken);
 
         return await _profileQueryService.GetProfileAsync(userId, _currentUser.TenantId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 将 DTO 写入偏好实体
+    /// </summary>
+    private static void ApplyPreference(SysUserPreference preference, ProfileNotificationPreferenceDto input)
+    {
+        preference.ChannelInApp = input.ChannelInApp;
+        preference.ChannelEmail = input.ChannelEmail;
+        preference.ChannelSms = input.ChannelSms;
+        preference.ChannelPush = input.ChannelPush;
+        preference.TypeAnnouncement = input.TypeAnnouncement;
+        preference.TypeTask = input.TypeTask;
+        preference.TypeApproval = input.TypeApproval;
+        preference.TypeSecurity = input.TypeSecurity;
+        preference.TypeMarketing = input.TypeMarketing;
     }
 
     private static TwoFactorMethod ToTwoFactorMethod(int method)

@@ -26,6 +26,14 @@ export interface UserProfile {
   lastPasswordChangeTime?: string
   lastUserNameChangeTime?: string
   canChangeUserName: boolean
+  /** 是否已锁定 */
+  isLocked: boolean
+  /** 锁定结束时间 */
+  lockoutEndTime?: string
+  /** 连续失败登录次数 */
+  failedLoginAttempts: number
+  /** 最后失败登录时间 */
+  lastFailedLoginTime?: string
 }
 
 export interface UpdateProfileParams {
@@ -92,6 +100,19 @@ export interface UserSessionItem {
 export interface TwoFactorSetupResult {
   sharedKey: string
   authenticatorUri: string
+}
+
+/** 用户通知偏好（渠道 × 类型） */
+export interface NotificationPreference {
+  channelInApp: boolean
+  channelEmail: boolean
+  channelSms: boolean
+  channelPush: boolean
+  typeAnnouncement: boolean
+  typeTask: boolean
+  typeApproval: boolean
+  typeSecurity: boolean
+  typeMarketing: boolean
 }
 
 export interface ExternalLoginItem {

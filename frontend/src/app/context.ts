@@ -15,6 +15,7 @@ import type {
   LoginParams,
   LoginResponse,
   LoginToken,
+  NotificationPreference,
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
@@ -160,6 +161,12 @@ function createProfileApis() {
     },
     getActivityApi() {
       return requestClient.get<UserActivity>('/Profile/Activity')
+    },
+    getNotificationPreferenceApi() {
+      return requestClient.get<NotificationPreference>('/Profile/NotificationPreference')
+    },
+    updateNotificationPreferenceApi(input: NotificationPreference) {
+      return requestClient.put<NotificationPreference>('/Profile/NotificationPreference', input)
     },
     getFilePresignedUrlApi(fileId: string) {
       return fileApi.generatePresignedUrl(fileId)

@@ -50,4 +50,9 @@ public interface IProfileQueryService
     /// 获取当前用户活跃度统计
     /// </summary>
     Task<ProfileActivityDto> GetActivityAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户通知偏好（无记录时返回默认值）
+    /// </summary>
+    Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default);
 }
