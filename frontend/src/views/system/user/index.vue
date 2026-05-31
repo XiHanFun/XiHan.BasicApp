@@ -43,6 +43,7 @@ import {
 import { Icon, SchemaPage } from '~/components'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
+import UserAvatarCell from './UserAvatarCell.vue'
 
 const GENDER_TAG_TYPE: Record<UserGender, 'default' | 'info' | 'warning'> = {
   [UserGender.Unknown]: 'default',
@@ -304,11 +305,13 @@ const fields: ListFieldSchema[] = [
     render: (row) => {
       const r = row as unknown as UserListItemDto
       const c = getAvatarStyle(r.userName)
-      return h(
-        'div',
-        { class: 'tbl-av', style: { background: c.bg, color: c.fg }, title: r.realName || r.userName },
-        getInitials(r),
-      )
+      return h(UserAvatarCell, {
+        avatar: r.avatar,
+        name: r.realName || r.nickName || r.userName,
+        bg: c.bg,
+        fg: c.fg,
+        size: 32,
+      })
     },
   },
   // 用户信息（仅列）
