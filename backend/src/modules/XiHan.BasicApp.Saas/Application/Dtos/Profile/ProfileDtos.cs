@@ -138,6 +138,26 @@ public sealed class UserProfileDto
     /// 是否可修改用户名
     /// </summary>
     public bool CanChangeUserName { get; set; }
+
+    /// <summary>
+    /// 是否已锁定
+    /// </summary>
+    public bool IsLocked { get; set; }
+
+    /// <summary>
+    /// 锁定结束时间（为空表示未设置自动解锁）
+    /// </summary>
+    public DateTimeOffset? LockoutEndTime { get; set; }
+
+    /// <summary>
+    /// 连续失败登录次数
+    /// </summary>
+    public int FailedLoginAttempts { get; set; }
+
+    /// <summary>
+    /// 最后失败登录时间
+    /// </summary>
+    public DateTimeOffset? LastFailedLoginTime { get; set; }
 }
 
 /// <summary>

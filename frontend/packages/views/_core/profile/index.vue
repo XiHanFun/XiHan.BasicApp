@@ -6,12 +6,14 @@ import { computed, markRaw, onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import ProfileBanner from './ProfileBanner.vue'
+import ProfileTabBinding from './ProfileTabBinding.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabDevices from './ProfileTabDevices.vue'
 import ProfileTabInfo from './ProfileTabInfo.vue'
 import ProfileTabNotifications from './ProfileTabNotifications.vue'
 import ProfileTabSecurity from './ProfileTabSecurity.vue'
 import ProfileTabStats from './ProfileTabStats.vue'
+import ProfileTabTenants from './ProfileTabTenants.vue'
 
 defineOptions({ name: 'ProfilePage' })
 
@@ -32,7 +34,9 @@ const devicesRef = ref<InstanceType<typeof ProfileTabDevices> | null>(null)
 const navItems: ProfileNavItem[] = [
   { key: 'profile', label: '个人资料', desc: '头像、昵称与联系方式', icon: 'lucide:contact' },
   { key: 'security', label: '安全设置', desc: '密码、两步验证与账号', icon: 'lucide:shield-check' },
+  { key: 'binding', label: '账号绑定', desc: '第三方账号关联', icon: 'lucide:link' },
   { key: 'devices', label: '登录设备', desc: '在线会话与设备管理', icon: 'lucide:monitor-smartphone' },
+  { key: 'tenants', label: '我的租户', desc: '可访问的租户与成员身份', icon: 'lucide:building-2' },
   { key: 'stats', label: '数据统计', desc: '登录、访问与活跃度', icon: 'lucide:bar-chart-3' },
   { key: 'notifications', label: '通知偏好', desc: '消息渠道与提醒', icon: 'lucide:bell-ring' },
   { key: 'developer', label: '开发者设置', desc: '令牌与第三方接入', icon: 'lucide:code-2' },
@@ -42,7 +46,9 @@ const navItems: ProfileNavItem[] = [
 const tabComponents: Record<string, Component> = {
   profile: markRaw(ProfileTabInfo),
   security: markRaw(ProfileTabSecurity),
+  binding: markRaw(ProfileTabBinding),
   devices: markRaw(ProfileTabDevices),
+  tenants: markRaw(ProfileTabTenants),
   stats: markRaw(ProfileTabStats),
   notifications: markRaw(ProfileTabNotifications),
   developer: markRaw(ProfileTabDeveloper),
