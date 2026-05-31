@@ -203,14 +203,39 @@ export function useTheme() {
     skipTransition?: () => void
   }
 
-  function animateThemeTransition(mode: 'light' | 'dark', e?: MouseEvent) {
+  /** 解析目标模式切换后「实际呈现的明暗」（auto 取当前系统主题） */
+  function resolveEffectiveDark(mode: 'light' | 'dark' | 'auto'): boolean {
+    if (mode === THEME_AUTO) {
+      return osTheme.value === 'dark'
+    }
+    return mode === 'dark'
+  }
+
+  /** 将目标模式落地到 store（auto 走跟随系统，其余直设） */
+  function commitThemeMode(mode: 'light' | 'dark' | 'auto') {
+    if (mode === THEME_AUTO) {
+      appStore.setFollowSystemTheme()
+    }
+    else {
+      appStore.setTheme(mode)
+    }
+  }
+
+  function animateThemeTransition(mode: 'light' | 'dark' | 'auto', e?: MouseEvent) {
     if (appStore.themeMode === mode)
       return
+
+    // 切换前后「实际明暗」一致（如 dark → auto 且系统也是 dark）：仅更新模式，无需扩散动画
+    const willBeDark = resolveEffectiveDark(mode)
+    if (willBeDark === isDark.value) {
+      commitThemeMode(mode)
+      return
+    }
 
     // 无动画或浏览器不支持：直接切换，抑制 CSS 过渡一帧
     if (!appStore.themeAnimationEnabled || !('startViewTransition' in document)) {
       document.documentElement.classList.add('theme-switching')
-      appStore.setTheme(mode)
+      commitThemeMode(mode)
       requestAnimationFrame(() => document.documentElement.classList.remove('theme-switching'))
       return
     }
@@ -231,13 +256,13 @@ export function useTheme() {
     const transition = (
       document as Document & { startViewTransition: (cb: () => Promise<void>) => VTResult }
     ).startViewTransition(async () => {
-      appStore.setTheme(mode)
-      // 等 Vue 全部 DOM 更新完毕，浏览器才截"新主题"快照
+      commitThemeMode(mode)
       // 等 Vue 全部 DOM 更新完毕，浏览器才截"新主题"快照，缺少此步截图不完整
       await nextTick()
     })
 
-    const toDark = mode === 'dark'
+    // 扩散方向按「切换后实际明暗」决定（auto 时取系统主题对应的明暗）
+    const toDark = willBeDark
     transition.ready
       .then(() => {
         // 切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
