@@ -84,6 +84,8 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   searchPlaceholder?: string
   /** 自定义单元格渲染（最高优先级，覆盖内置渲染器） */
   render?: (row: TRow) => VNodeChild
+  /** 树形列：该列承载展开/缩进箭头（仅树形模式生效，应有且仅有一个字段标记） */
+  treeColumn?: boolean
 }
 
 /**
@@ -177,8 +179,13 @@ export interface SchemaQueryParams {
  * 与 defineResource 产出兼容（页面侧用适配器包装），亦可手工提供。
  */
 export interface SchemaResource<TRow> {
-  /** 分页查询（接收归一化参数，返回标准分页结果） */
-  page: (params: SchemaQueryParams) => Promise<PageResult<TRow>>
+  /** 分页查询（列表模式必填；接收归一化参数，返回标准分页结果） */
+  page?: (params: SchemaQueryParams) => Promise<PageResult<TRow>>
+  /**
+   * 树形查询（树形模式必填）—— 返回嵌套数组（含 children），不分页。
+   * 入参复用 SchemaQueryParams（page/pageSize 可忽略），filters 用于服务端过滤。
+   */
+  tree?: (params: SchemaQueryParams) => Promise<TRow[]>
   /** 删除单条（行级/批量删除依赖） */
   remove?: (id: ApiId) => Promise<void>
 }
@@ -207,6 +214,17 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   scrollX?: number
   /** 默认每页数量 */
   pageSize?: number
+  /**
+   * 树形模式配置（存在即启用树形）。
+   * 启用后：走 resource.tree 取数（嵌套数组、不分页）、隐藏分页器、子行按 childrenKey 展开；
+   * 需在 fields 里用 treeColumn:true 标记承载展开箭头的列。
+   */
+  tree?: {
+    /** 子节点字段名（默认 children） */
+    childrenKey?: string
+    /** 默认展开全部（默认 true） */
+    defaultExpandAll?: boolean
+  }
 }
 
 /**

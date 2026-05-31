@@ -38,6 +38,23 @@ export function useSchemaTable<TRow extends object>(
   const sortField = ref<string | undefined>(undefined)
   const sortOrder = ref<'asc' | 'desc' | undefined>(undefined)
 
+  /** 树形模式：存在 schema.tree 即启用，走 resource.tree、不分页 */
+  const isTree = !!schema.tree
+  const childrenKey = schema.tree?.childrenKey ?? 'children'
+
+  /** 递归统计树节点总数（用于「共 N 条」展示） */
+  function countTreeNodes(list: TRow[]): number {
+    let count = 0
+    for (const node of list) {
+      count += 1
+      const children = (node as Record<string, unknown>)[childrenKey] as TRow[] | undefined
+      if (children?.length) {
+        count += countTreeNodes(children)
+      }
+    }
+    return count
+  }
+
   function buildParams(): SchemaQueryParams {
     return {
       page: page.value,
@@ -51,7 +68,21 @@ export function useSchemaTable<TRow extends object>(
   async function load() {
     loading.value = true
     try {
-      const result = await schema.resource.page(buildParams())
+      if (isTree) {
+        const treeFn = schema.resource.tree
+        if (!treeFn) {
+          throw new Error('[SchemaPage] 树形模式需在 resource.tree 提供取数函数')
+        }
+        const items = await treeFn(buildParams())
+        rows.value = items
+        total.value = countTreeNodes(items)
+        return
+      }
+      const pageFn = schema.resource.page
+      if (!pageFn) {
+        throw new Error('[SchemaPage] 列表模式需在 resource.page 提供取数函数')
+      }
+      const result = await pageFn(buildParams())
       rows.value = result.items
       total.value = result.page?.totalCount ?? 0
     }
@@ -116,6 +147,7 @@ export function useSchemaTable<TRow extends object>(
     filters,
     sortField,
     sortOrder,
+    isTree,
     load,
     search,
     reset,

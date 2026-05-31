@@ -88,6 +88,10 @@ export function toColumns<TRow extends object>(
       ellipsis: { tooltip: true },
       render: (row: TRow) => renderFieldCell(field, row),
     }
+    // 树形列：承载展开箭头（仅当 schema.tree 启用、页面 schema 标记 treeColumn）
+    if (field.treeColumn) {
+      column.tree = true
+    }
     if (field.width !== undefined) {
       column.width = field.width
     }

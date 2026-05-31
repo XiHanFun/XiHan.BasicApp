@@ -293,7 +293,7 @@ defineExpose({
           </NButton>
         </div>
 
-        <!-- 表格：底部分页左侧承载内置工具按钮 -->
+        <!-- 表格：列表/树形两种模式（树形不分页、按 childrenKey 展开） -->
         <SchemaTablePanel
           v-model:checked-keys="checkedKeys"
           :columns="columns"
@@ -306,6 +306,9 @@ defineExpose({
           :scroll-x="schema.scrollX"
           :selectable="batchActions.length > 0"
           :total="total"
+          :tree="!!schema.tree"
+          :children-key="schema.tree?.childrenKey ?? 'children'"
+          :default-expand-all="schema.tree?.defaultExpandAll ?? true"
           @sort="changeSort"
           @update:page="changePage"
           @update:page-size="changePageSize"
