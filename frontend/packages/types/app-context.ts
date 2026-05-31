@@ -19,6 +19,7 @@ import type {
   LoginLogPage,
   TwoFactorSetupResult,
   UpdateProfileParams,
+  UserActivity,
   UserProfile,
   UserSessionItem,
 } from './profile'
@@ -108,6 +109,7 @@ export interface AppContextApis extends Record<string, unknown> {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
   }
+  getActivityApi: () => Promise<UserActivity>
   getLinkedAccountsApi: () => Promise<ExternalLoginItem[]>
   getLoginConfigApi: () => Promise<LoginConfig>
   getLoginLogsApi: (page: number, pageSize: number) => Promise<LoginLogPage & { page: number, pageSize: number }>

@@ -101,3 +101,29 @@ export interface ExternalLoginItem {
   avatarUrl?: string
   lastLoginTime?: string
 }
+
+export interface UserActivityPeriod {
+  loginCount: number
+  accessCount: number
+  operationCount: number
+  /** 在线时长（秒） */
+  onlineTime: number
+}
+
+export interface UserActivityTrendPoint {
+  date: string
+  accessCount: number
+  operationCount: number
+  /** 在线时长（分钟） */
+  onlineMinutes: number
+}
+
+export interface UserActivity {
+  today: UserActivityPeriod
+  thisWeek: UserActivityPeriod
+  thisMonth: UserActivityPeriod
+  lastLoginTime?: string
+  lastAccessTime?: string
+  lastOperationTime?: string
+  trend: UserActivityTrendPoint[]
+}

@@ -28,6 +28,8 @@ public sealed class ProfileQueryService
 {
     private const int UserNameChangeIntervalDays = 90;
 
+    private const int ActivityTrendDays = 7;
+
     private readonly IExternalLoginRepository _externalLoginRepository;
 
     private readonly ISqlSugarClientResolver _clientResolver;
@@ -38,6 +40,8 @@ public sealed class ProfileQueryService
 
     private readonly IUserSessionRepository _userSessionRepository;
 
+    private readonly IUserStatisticsRepository _userStatisticsRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -46,12 +50,14 @@ public sealed class ProfileQueryService
         IUserSecurityRepository userSecurityRepository,
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
+        IUserStatisticsRepository userStatisticsRepository,
         ISqlSugarClientResolver clientResolver)
     {
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
         _userSessionRepository = userSessionRepository;
         _externalLoginRepository = externalLoginRepository;
+        _userStatisticsRepository = userStatisticsRepository;
         _clientResolver = clientResolver;
     }
 
@@ -71,6 +77,50 @@ public sealed class ProfileQueryService
             ?? throw new InvalidOperationException("用户安全记录不存在。");
 
         return new ProfileUserSecurityContext(user, security);
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileActivityDto> GetActivityAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var stats = await _userStatisticsRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
+        var result = new ProfileActivityDto();
+        if (stats.Count == 0)
+        {
+            return result;
+        }
+
+        // 各周期取最新统计日期的快照（由定时任务按周期预聚合写入）
+        result.Today = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.Today));
+        result.ThisWeek = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisWeek));
+        result.ThisMonth = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisMonth));
+
+        // 最后行为时间：跨全部周期取最大值
+        result.LastLoginTime = stats.Where(item => item.LastLoginTime.HasValue).Max(item => item.LastLoginTime);
+        result.LastAccessTime = stats.Where(item => item.LastAccessTime.HasValue).Max(item => item.LastAccessTime);
+        result.LastOperationTime = stats.Where(item => item.LastOperationTime.HasValue).Max(item => item.LastOperationTime);
+
+        // 趋势：取最近 N 天的「今日」粒度日快照，按日期升序
+        var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddDays(-(ActivityTrendDays - 1));
+        result.Trend = [.. stats
+            .Where(item => item.Period == StatisticsPeriod.Today && item.StatisticsDate >= fromDate)
+            .GroupBy(item => item.StatisticsDate)
+            .OrderBy(group => group.Key)
+            .Select(group => new ProfileActivityTrendPointDto
+            {
+                Date = group.Key,
+                AccessCount = group.Sum(item => item.AccessCount),
+                OperationCount = group.Sum(item => item.OperationCount),
+                OnlineMinutes = group.Sum(item => item.OnlineTime) / 60
+            })];
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -173,6 +223,30 @@ public sealed class ProfileQueryService
                 LastActivityTime = session.LastActivityTime,
                 IsCurrent = string.Equals(session.UserSessionId, currentSessionId, StringComparison.Ordinal)
             })];
+    }
+
+    private static SysUserStatistics? GetLatestSnapshot(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
+    {
+        return stats
+            .Where(item => item.Period == period)
+            .OrderByDescending(item => item.StatisticsDate)
+            .FirstOrDefault();
+    }
+
+    private static ProfileActivityPeriodDto ToPeriodDto(SysUserStatistics? stats)
+    {
+        if (stats is null)
+        {
+            return new ProfileActivityPeriodDto();
+        }
+
+        return new ProfileActivityPeriodDto
+        {
+            LoginCount = stats.LoginCount,
+            AccessCount = stats.AccessCount,
+            OperationCount = stats.OperationCount,
+            OnlineTime = stats.OnlineTime
+        };
     }
 
     private static bool CanChangeUserName(SysUserSecurity security, DateTimeOffset now)

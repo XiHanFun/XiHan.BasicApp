@@ -501,3 +501,96 @@ public sealed class ProfilePasswordConfirmDto
     /// </summary>
     public string Password { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// 当前用户活跃度周期统计 DTO
+/// </summary>
+public sealed class ProfileActivityPeriodDto
+{
+    /// <summary>
+    /// 登录次数
+    /// </summary>
+    public int LoginCount { get; set; }
+
+    /// <summary>
+    /// 访问次数
+    /// </summary>
+    public int AccessCount { get; set; }
+
+    /// <summary>
+    /// 操作次数
+    /// </summary>
+    public int OperationCount { get; set; }
+
+    /// <summary>
+    /// 在线时长（秒）
+    /// </summary>
+    public long OnlineTime { get; set; }
+}
+
+/// <summary>
+/// 当前用户活跃度趋势点 DTO
+/// </summary>
+public sealed class ProfileActivityTrendPointDto
+{
+    /// <summary>
+    /// 统计日期
+    /// </summary>
+    public DateOnly Date { get; set; }
+
+    /// <summary>
+    /// 访问次数
+    /// </summary>
+    public int AccessCount { get; set; }
+
+    /// <summary>
+    /// 操作次数
+    /// </summary>
+    public int OperationCount { get; set; }
+
+    /// <summary>
+    /// 在线时长（分钟）
+    /// </summary>
+    public long OnlineMinutes { get; set; }
+}
+
+/// <summary>
+/// 当前用户活跃度统计 DTO
+/// </summary>
+public sealed class ProfileActivityDto
+{
+    /// <summary>
+    /// 今日活跃度
+    /// </summary>
+    public ProfileActivityPeriodDto Today { get; set; } = new();
+
+    /// <summary>
+    /// 本周活跃度
+    /// </summary>
+    public ProfileActivityPeriodDto ThisWeek { get; set; } = new();
+
+    /// <summary>
+    /// 本月活跃度
+    /// </summary>
+    public ProfileActivityPeriodDto ThisMonth { get; set; } = new();
+
+    /// <summary>
+    /// 最后登录时间
+    /// </summary>
+    public DateTimeOffset? LastLoginTime { get; set; }
+
+    /// <summary>
+    /// 最后访问时间
+    /// </summary>
+    public DateTimeOffset? LastAccessTime { get; set; }
+
+    /// <summary>
+    /// 最后操作时间
+    /// </summary>
+    public DateTimeOffset? LastOperationTime { get; set; }
+
+    /// <summary>
+    /// 最近若干天的每日趋势（按日期升序）
+    /// </summary>
+    public List<ProfileActivityTrendPointDto> Trend { get; set; } = [];
+}

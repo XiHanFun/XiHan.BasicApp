@@ -20,6 +20,7 @@ import type {
   PhoneLoginParams,
   TwoFactorSetupResult,
   UpdateProfileParams,
+  UserActivity,
   UserInfo,
   UserProfile,
   UserSessionItem,
@@ -155,6 +156,9 @@ function createProfileApis() {
     },
     enable2FAApi(method: number | string, code: string) {
       return requestClient.post('/Profile/Enable2FA', { code, method })
+    },
+    getActivityApi() {
+      return requestClient.get<UserActivity>('/Profile/Activity')
     },
     getLinkedAccountsApi() {
       return getWithFallback<ExternalLoginItem[]>('/Profile/LinkedAccounts', [])

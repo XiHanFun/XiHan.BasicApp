@@ -45,4 +45,9 @@ public interface IProfileQueryService
     /// 获取当前用户第三方账号绑定
     /// </summary>
     Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户活跃度统计
+    /// </summary>
+    Task<ProfileActivityDto> GetActivityAsync(long userId, CancellationToken cancellationToken = default);
 }
