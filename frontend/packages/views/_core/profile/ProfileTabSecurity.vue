@@ -4,13 +4,9 @@ import type { LoginLogItem, UserProfile } from '~/types'
 import {
   NAlert,
   NButton,
-  NCard,
-  NDivider,
   NEmpty,
   NForm,
   NFormItem,
-  NGrid,
-  NGridItem,
   NIcon,
   NInput,
   NInputOtp,
@@ -79,7 +75,7 @@ const pwdStrength = computed(() => {
     s++
   if (/\d/.test(p) && /[^a-z\d]/i.test(p))
     s++
-  const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e']
+  const colors = ['', 'var(--color-error)', 'var(--color-warning)', 'var(--color-info)', 'var(--color-success)']
   const labels = ['', '弱', '一般', '较强', '强']
   return { score: s, color: colors[s] || '', label: labels[s] || '' }
 })
@@ -491,128 +487,139 @@ onMounted(() => {
 
 <template>
   <div class="pf-tab-body">
-    <NGrid cols="1 m:2" responsive="screen" :x-gap="12" :y-gap="12">
-      <!-- 修改密码 -->
-      <NGridItem>
-        <NCard :bordered="false" size="small" class="pf-card">
-          <template #header>
-            <div class="pf-card-header">
-              <Icon icon="lucide:key-round" width="16" />
-              <span>修改密码</span>
-            </div>
-          </template>
-          <template #header-extra>
-            <span v-if="profile?.lastPasswordChangeTime" class="pf-hint">
-              上次修改：{{ formatDate(profile.lastPasswordChangeTime) }}
-            </span>
-          </template>
-          <NForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules">
-            <NFormItem path="oldPassword" :show-label="false">
-              <NInput v-model:value="pwdForm.oldPassword" type="password" placeholder="当前密码" show-password-on="click" />
-            </NFormItem>
-            <NFormItem path="newPassword" :show-label="false">
-              <div class="pf-full">
-                <NInput v-model:value="pwdForm.newPassword" type="password" placeholder="新密码" show-password-on="click" />
-                <div v-if="pwdForm.newPassword" class="pf-strength">
-                  <div class="pf-strength-bars">
-                    <div v-for="i in 4" :key="i" class="pf-strength-bar" :style="{ background: i <= pwdStrength.score ? pwdStrength.color : 'var(--border-color)' }" />
-                  </div>
-                  <span class="pf-strength-label" :style="{ color: pwdStrength.color }">{{ pwdStrength.label }}</span>
+    <!-- 修改密码 -->
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:key-round" width="16" />
+            <span>修改密码</span>
+          </div>
+          <div class="pf-section__desc">
+            定期更换密码以保护账号安全，建议使用大小写字母、数字与符号组合。
+          </div>
+        </div>
+        <div v-if="profile?.lastPasswordChangeTime" class="pf-section__extra pf-hint">
+          上次修改：{{ formatDate(profile.lastPasswordChangeTime) }}
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <NForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" class="pf-pwd-form">
+          <NFormItem path="oldPassword" :show-label="false">
+            <NInput v-model:value="pwdForm.oldPassword" type="password" placeholder="当前密码" show-password-on="click" />
+          </NFormItem>
+          <NFormItem path="newPassword" :show-label="false">
+            <div class="pf-full">
+              <NInput v-model:value="pwdForm.newPassword" type="password" placeholder="新密码" show-password-on="click" />
+              <div v-if="pwdForm.newPassword" class="pf-strength">
+                <div class="pf-strength-bars">
+                  <div v-for="i in 4" :key="i" class="pf-strength-bar" :style="{ background: i <= pwdStrength.score ? pwdStrength.color : 'var(--border-color)' }" />
                 </div>
+                <span class="pf-strength-label" :style="{ color: pwdStrength.color }">{{ pwdStrength.label }}</span>
               </div>
-            </NFormItem>
-            <NFormItem path="confirmPassword" :show-label="false">
-              <NInput v-model:value="pwdForm.confirmPassword" type="password" placeholder="确认新密码" show-password-on="click" />
-            </NFormItem>
-          </NForm>
-          <template #action>
-            <NButton type="primary" block :loading="pwdSaving" @click="changePassword">
-              更新密码
-            </NButton>
-          </template>
-        </NCard>
-      </NGridItem>
-
-      <!-- 两步验证 -->
-      <NGridItem>
-        <NCard :bordered="false" size="small" class="pf-card">
-          <template #header>
-            <div class="pf-card-header">
-              <Icon icon="lucide:shield-check" width="16" />
-              <span>两步验证</span>
             </div>
-          </template>
-          <template #header-extra>
-            <NTag v-if="enabledCount > 0" type="success" size="small" :bordered="false">
-              {{ enabledCount }} 种已启用
-            </NTag>
-          </template>
+          </NFormItem>
+          <NFormItem path="confirmPassword" :show-label="false">
+            <NInput v-model:value="pwdForm.confirmPassword" type="password" placeholder="确认新密码" show-password-on="click" />
+          </NFormItem>
+        </NForm>
+      </div>
+      <div class="pf-section__actions">
+        <NButton type="primary" :loading="pwdSaving" @click="changePassword">
+          更新密码
+        </NButton>
+      </div>
+    </section>
 
-          <div class="pf-hint" style="margin-bottom: 12px">
-            您可以同时启用多种两步验证方式，登录时自由选择使用哪种
+    <!-- 两步验证 -->
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:shield-check" width="16" />
+            <span>两步验证</span>
+          </div>
+          <div class="pf-section__desc">
+            您可以同时启用多种两步验证方式，登录时自由选择使用哪种。
+          </div>
+        </div>
+        <div v-if="enabledCount > 0" class="pf-section__extra">
+          <NTag type="success" size="small" :bordered="false">
+            {{ enabledCount }} 种已启用
+          </NTag>
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <!-- TOTP 方式 -->
+        <div class="pf-setting-row pf-setting-row--wrap">
+          <div class="pf-setting-row__main">
+            <div class="pf-setting-row__label">
+              <Icon icon="lucide:smartphone" width="16" />
+              <span>Authenticator App (TOTP)</span>
+              <NTag v-if="hasTotpEnabled" type="success" size="tiny" :bordered="false">
+                已启用
+              </NTag>
+            </div>
+            <div class="pf-setting-row__desc">
+              使用验证器 App 生成动态口令，安全性最高。
+            </div>
+          </div>
+          <div class="pf-setting-row__control">
+            <NSwitch
+              :value="hasTotpEnabled"
+              :loading="tfLoading && (tfTotpSettingUp || tfDisableTarget === TF_TOTP)"
+              @update:value="(v: boolean) => v ? startTotpSetup() : startDisable(TF_TOTP)"
+            />
           </div>
 
-          <!-- TOTP 方式 -->
-          <div class="pf-2fa-method">
-            <div class="pf-2fa-method-header">
-              <div class="pf-2fa-method-info">
-                <Icon icon="lucide:smartphone" width="16" />
-                <span>Authenticator App (TOTP)</span>
+          <!-- TOTP 设置中 -->
+          <template v-if="tfTotpSettingUp && !hasTotpEnabled">
+            <div v-if="tfTotpSetup" class="pf-inline-form pf-2fa-setup">
+              <div class="pf-2fa-qr">
+                <NQrCode
+                  :value="tfTotpSetup.authenticatorUri"
+                  :size="120"
+                  :padding="0"
+                  background-color="transparent"
+                  error-correction-level="M"
+                />
+                <span class="pf-hint">扫描二维码</span>
               </div>
-              <NSwitch
-                :value="hasTotpEnabled"
-                :loading="tfLoading && (tfTotpSettingUp || tfDisableTarget === TF_TOTP)"
-                @update:value="(v: boolean) => v ? startTotpSetup() : startDisable(TF_TOTP)"
-              />
+              <div class="pf-2fa-manual">
+                <span class="pf-hint">手动输入密钥：</span>
+                <div class="pf-secret-row">
+                  <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
+                  <NTooltip>
+                    <template #trigger>
+                      <NButton size="small" quaternary @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => message.success('已复制'))">
+                        <template #icon>
+                          <NIcon>
+                            <Icon icon="lucide:copy" />
+                          </NIcon>
+                        </template>
+                      </NButton>
+                    </template>
+                    复制密钥
+                  </NTooltip>
+                </div>
+                <span class="pf-hint" style="margin-top: 10px; display: block">输入 6 位验证码：</span>
+                <div class="pf-otp-row">
+                  <NInputOtp v-model:value="tfTotpCode" :length="6" @complete="confirmEnableTotp" />
+                  <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnableTotp">
+                    启用
+                  </NButton>
+                  <NButton size="small" quaternary @click="cancelTotpSetup">
+                    取消
+                  </NButton>
+                </div>
+              </div>
             </div>
+          </template>
 
-            <!-- TOTP 设置中 -->
-            <template v-if="tfTotpSettingUp && !hasTotpEnabled">
-              <div v-if="tfTotpSetup" class="pf-2fa-setup">
-                <div class="pf-2fa-qr">
-                  <NQrCode
-                    :value="tfTotpSetup.authenticatorUri"
-                    :size="120"
-                    :padding="0"
-                    background-color="transparent"
-                    error-correction-level="M"
-                  />
-                  <span class="pf-hint">扫描二维码</span>
-                </div>
-                <div class="pf-2fa-manual">
-                  <span class="pf-hint">手动输入密钥：</span>
-                  <div class="pf-secret-row">
-                    <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
-                    <NTooltip>
-                      <template #trigger>
-                        <NButton size="small" quaternary @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => message.success('已复制'))">
-                          <template #icon>
-                            <NIcon>
-                              <Icon icon="lucide:copy" />
-                            </NIcon>
-                          </template>
-                        </NButton>
-                      </template>
-                      复制密钥
-                    </NTooltip>
-                  </div>
-                  <span class="pf-hint" style="margin-top: 10px; display: block">输入 6 位验证码：</span>
-                  <div class="pf-otp-row">
-                    <NInputOtp v-model:value="tfTotpCode" :length="6" @complete="confirmEnableTotp" />
-                    <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnableTotp">
-                      启用
-                    </NButton>
-                    <NButton size="small" quaternary @click="cancelTotpSetup">
-                      取消
-                    </NButton>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- TOTP 禁用流程 -->
-            <template v-if="tfDisableTarget === TF_TOTP">
-              <NAlert type="warning" :bordered="false" style="margin-top: 8px">
+          <!-- TOTP 禁用流程 -->
+          <template v-if="tfDisableTarget === TF_TOTP">
+            <div class="pf-inline-form">
+              <NAlert type="warning" :bordered="false" class="pf-full">
                 请输入 Authenticator App 中的 6 位验证码以禁用
               </NAlert>
               <div class="pf-otp-row">
@@ -624,32 +631,40 @@ onMounted(() => {
                   取消
                 </NButton>
               </div>
-            </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- 邮箱方式 -->
+        <div class="pf-setting-row pf-setting-row--wrap">
+          <div class="pf-setting-row__main">
+            <div class="pf-setting-row__label">
+              <Icon icon="lucide:mail" width="16" />
+              <span>邮箱验证码</span>
+              <NTag v-if="hasEmailEnabled" type="success" size="tiny" :bordered="false">
+                已启用
+              </NTag>
+              <NTag v-else-if="!profile?.emailVerified" type="warning" size="tiny" :bordered="false">
+                未验证
+              </NTag>
+            </div>
+            <div class="pf-setting-row__desc">
+              登录时通过邮箱接收一次性验证码。
+            </div>
+          </div>
+          <div class="pf-setting-row__control">
+            <NSwitch
+              :value="hasEmailEnabled"
+              :disabled="!profile?.emailVerified && !hasEmailEnabled"
+              :loading="tfLoading && (tfEmailSettingUp || tfDisableTarget === TF_EMAIL)"
+              @update:value="(v: boolean) => v ? startEmailSetup() : startDisable(TF_EMAIL)"
+            />
           </div>
 
-          <NDivider style="margin: 8px 0" />
-
-          <!-- 邮箱方式 -->
-          <div class="pf-2fa-method">
-            <div class="pf-2fa-method-header">
-              <div class="pf-2fa-method-info">
-                <Icon icon="lucide:mail" width="16" />
-                <span>邮箱验证码</span>
-                <NTag v-if="!profile?.emailVerified" type="warning" size="tiny" :bordered="false">
-                  未验证
-                </NTag>
-              </div>
-              <NSwitch
-                :value="hasEmailEnabled"
-                :disabled="!profile?.emailVerified && !hasEmailEnabled"
-                :loading="tfLoading && (tfEmailSettingUp || tfDisableTarget === TF_EMAIL)"
-                @update:value="(v: boolean) => v ? startEmailSetup() : startDisable(TF_EMAIL)"
-              />
-            </div>
-
-            <!-- 邮箱设置中 -->
-            <template v-if="tfEmailSettingUp && !hasEmailEnabled">
-              <div class="pf-hint" style="margin-top: 6px">
+          <!-- 邮箱设置中 -->
+          <template v-if="tfEmailSettingUp && !hasEmailEnabled">
+            <div class="pf-inline-form">
+              <div class="pf-hint pf-full">
                 验证码已发送至 {{ profile?.email }}
               </div>
               <div class="pf-otp-row">
@@ -668,11 +683,13 @@ onMounted(() => {
                   取消
                 </NButton>
               </div>
-            </template>
+            </div>
+          </template>
 
-            <!-- 邮箱禁用流程 -->
-            <template v-if="tfDisableTarget === TF_EMAIL">
-              <NAlert type="warning" :bordered="false" style="margin-top: 8px">
+          <!-- 邮箱禁用流程 -->
+          <template v-if="tfDisableTarget === TF_EMAIL">
+            <div class="pf-inline-form">
+              <NAlert type="warning" :bordered="false" class="pf-full">
                 验证码已发送至邮箱，请输入 6 位验证码以禁用
               </NAlert>
               <div class="pf-otp-row">
@@ -691,32 +708,40 @@ onMounted(() => {
                   取消
                 </NButton>
               </div>
-            </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- 手机方式 -->
+        <div class="pf-setting-row pf-setting-row--wrap">
+          <div class="pf-setting-row__main">
+            <div class="pf-setting-row__label">
+              <Icon icon="lucide:phone" width="16" />
+              <span>手机短信验证码</span>
+              <NTag v-if="hasPhoneEnabled" type="success" size="tiny" :bordered="false">
+                已启用
+              </NTag>
+              <NTag v-else-if="!profile?.phoneVerified" type="warning" size="tiny" :bordered="false">
+                未验证
+              </NTag>
+            </div>
+            <div class="pf-setting-row__desc">
+              登录时通过短信接收一次性验证码。
+            </div>
+          </div>
+          <div class="pf-setting-row__control">
+            <NSwitch
+              :value="hasPhoneEnabled"
+              :disabled="!profile?.phoneVerified && !hasPhoneEnabled"
+              :loading="tfLoading && (tfPhoneSettingUp || tfDisableTarget === TF_PHONE)"
+              @update:value="(v: boolean) => v ? startPhoneSetup() : startDisable(TF_PHONE)"
+            />
           </div>
 
-          <NDivider style="margin: 8px 0" />
-
-          <!-- 手机方式 -->
-          <div class="pf-2fa-method">
-            <div class="pf-2fa-method-header">
-              <div class="pf-2fa-method-info">
-                <Icon icon="lucide:phone" width="16" />
-                <span>手机短信验证码</span>
-                <NTag v-if="!profile?.phoneVerified" type="warning" size="tiny" :bordered="false">
-                  未验证
-                </NTag>
-              </div>
-              <NSwitch
-                :value="hasPhoneEnabled"
-                :disabled="!profile?.phoneVerified && !hasPhoneEnabled"
-                :loading="tfLoading && (tfPhoneSettingUp || tfDisableTarget === TF_PHONE)"
-                @update:value="(v: boolean) => v ? startPhoneSetup() : startDisable(TF_PHONE)"
-              />
-            </div>
-
-            <!-- 手机设置中 -->
-            <template v-if="tfPhoneSettingUp && !hasPhoneEnabled">
-              <div class="pf-hint" style="margin-top: 6px">
+          <!-- 手机设置中 -->
+          <template v-if="tfPhoneSettingUp && !hasPhoneEnabled">
+            <div class="pf-inline-form">
+              <div class="pf-hint pf-full">
                 验证码已发送至 {{ profile?.phone }}
               </div>
               <div class="pf-otp-row">
@@ -735,11 +760,13 @@ onMounted(() => {
                   取消
                 </NButton>
               </div>
-            </template>
+            </div>
+          </template>
 
-            <!-- 手机禁用流程 -->
-            <template v-if="tfDisableTarget === TF_PHONE">
-              <NAlert type="warning" :bordered="false" style="margin-top: 8px">
+          <!-- 手机禁用流程 -->
+          <template v-if="tfDisableTarget === TF_PHONE">
+            <div class="pf-inline-form">
+              <NAlert type="warning" :bordered="false" class="pf-full">
                 验证码已发送至手机，请输入 6 位验证码以禁用
               </NAlert>
               <div class="pf-otp-row">
@@ -758,160 +785,178 @@ onMounted(() => {
                   取消
                 </NButton>
               </div>
-            </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </section>
+
+    <!-- 登录日志 -->
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:file-clock" width="16" />
+            <span>登录日志</span>
           </div>
-        </NCard>
-      </NGridItem>
-
-
-      <!-- 登录日志 -->
-      <NGridItem :span="2">
-        <NCard :bordered="false" size="small" class="pf-card">
-          <template #header>
-            <div class="pf-card-header">
-              <Icon icon="lucide:file-clock" width="16" />
-              <span>登录日志</span>
-            </div>
-          </template>
-          <NSpin :show="loginLogLoading">
-            <div v-if="loginLogs.length === 0 && !loginLogLoading" style="padding: 20px 0">
-              <NEmpty description="暂无登录记录" />
-            </div>
-            <div v-else class="pf-list">
-              <div v-for="(log, idx) in loginLogs" :key="idx" class="pf-list-item">
-                <div class="pf-list-icon" :class="{ 'pf-list-icon--danger': log.loginResult !== 0 }">
-                  <Icon :icon="log.loginResult === 0 ? 'lucide:log-in' : 'lucide:shield-alert'" width="14" />
-                </div>
-                <div class="pf-list-body">
-                  <div class="pf-list-title">
-                    <NTag :type="log.loginResult === 0 ? 'success' : 'error'" size="tiny" :bordered="false">
-                      {{ loginResultLabel[log.loginResult] || `状态${log.loginResult}` }}
-                    </NTag>
-                    <span v-if="log.message" style="margin-left: 6px; font-size: 12px; color: var(--text-secondary)">{{ log.message }}</span>
-                  </div>
-                  <div class="pf-list-desc">
-                    {{ log.loginIp || '未知IP' }}
-                    <template v-if="log.loginLocation">
-                      · {{ log.loginLocation }}
-                    </template>
-                    <template v-if="log.browser">
-                      · {{ log.browser }}
-                    </template>
-                    <template v-if="log.os">
-                      · {{ log.os }}
-                    </template>
-                  </div>
-                </div>
-                <span class="pf-list-time">{{ formatDate(log.loginTime) }}</span>
-              </div>
-            </div>
-            <div v-if="loginLogTotal > 10" style="display: flex; justify-content: flex-end; margin-top: 12px">
-              <NPagination
-                :page="loginLogPage"
-                :page-size="10"
-                :item-count="loginLogTotal"
-                simple
-                @update:page="loadLoginLogs"
-              />
-            </div>
-          </NSpin>
-        </NCard>
-      </NGridItem>
-
-      <!-- 安全状态 -->
-      <NGridItem :span="2">
-        <NCard :bordered="false" size="small" class="pf-card">
-          <template #header>
-            <div class="pf-card-header">
-              <Icon icon="lucide:shield-alert" width="16" />
-              <span>安全状态</span>
-            </div>
-          </template>
-          <div class="pf-sec-status">
-            <div class="pf-sec-status__item">
-              <span class="pf-sec-status__label">账号锁定</span>
-              <NTag :type="profile?.isLocked ? 'error' : 'success'" size="small" :bordered="false">
-                {{ profile?.isLocked ? '已锁定' : '正常' }}
-              </NTag>
-            </div>
-            <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-sec-status__item">
-              <span class="pf-sec-status__label">锁定结束</span>
-              <span class="pf-sec-status__value">{{ formatDate(profile.lockoutEndTime) }}</span>
-            </div>
-            <div class="pf-sec-status__item">
-              <span class="pf-sec-status__label">连续失败登录</span>
-              <span class="pf-sec-status__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
-                {{ profile?.failedLoginAttempts ?? 0 }} 次
-              </span>
-            </div>
-            <div v-if="profile?.lastFailedLoginTime" class="pf-sec-status__item">
-              <span class="pf-sec-status__label">最后失败登录</span>
-              <span class="pf-sec-status__value">{{ formatDate(profile.lastFailedLoginTime) }}</span>
-            </div>
-            <div class="pf-sec-status__item">
-              <span class="pf-sec-status__label">最后修改密码</span>
-              <span class="pf-sec-status__value">{{ profile?.lastPasswordChangeTime ? formatDate(profile.lastPasswordChangeTime) : '—' }}</span>
-            </div>
-            <div class="pf-sec-status__item">
-              <span class="pf-sec-status__label">最后修改用户名</span>
-              <span class="pf-sec-status__value">{{ profile?.lastUserNameChangeTime ? formatDate(profile.lastUserNameChangeTime) : '—' }}</span>
-            </div>
+          <div class="pf-section__desc">
+            最近的登录记录，发现异常请及时修改密码并登出可疑设备。
           </div>
-        </NCard>
-      </NGridItem>
-
-      <!-- 账号管理 -->
-      <NGridItem :span="2">
-        <NCard :bordered="false" size="small" class="pf-card">
-          <template #header>
-            <div class="pf-card-header">
-              <Icon icon="lucide:user-cog" width="16" />
-              <span>账号管理</span>
-            </div>
-          </template>
-          <div class="pf-list">
-            <div class="pf-list-item">
-              <div class="pf-list-icon">
-                <Icon icon="lucide:user-x" width="14" />
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <NSpin :show="loginLogLoading">
+          <div v-if="loginLogs.length === 0 && !loginLogLoading" style="padding: 20px 0">
+            <NEmpty description="暂无登录记录" />
+          </div>
+          <div v-else class="pf-list">
+            <div v-for="(log, idx) in loginLogs" :key="idx" class="pf-list-item">
+              <div class="pf-list-icon" :class="{ 'pf-list-icon--danger': log.loginResult !== 0 }">
+                <Icon :icon="log.loginResult === 0 ? 'lucide:log-in' : 'lucide:shield-alert'" width="16" />
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
-                  停用账号
+                  <NTag :type="log.loginResult === 0 ? 'success' : 'error'" size="tiny" :bordered="false">
+                    {{ loginResultLabel[log.loginResult] || `状态${log.loginResult}` }}
+                  </NTag>
+                  <span v-if="log.message" style="font-size: 12px; color: var(--text-secondary)">{{ log.message }}</span>
                 </div>
                 <div class="pf-list-desc">
-                  无法登录，数据保留，需管理员恢复
+                  {{ log.loginIp || '未知IP' }}
+                  <template v-if="log.loginLocation">
+                    · {{ log.loginLocation }}
+                  </template>
+                  <template v-if="log.browser">
+                    · {{ log.browser }}
+                  </template>
+                  <template v-if="log.os">
+                    · {{ log.os }}
+                  </template>
                 </div>
               </div>
-              <NButton size="small" type="warning" ghost @click="handleDeactivateAccount">
-                停用
-              </NButton>
-            </div>
-            <div class="pf-list-item">
-              <div class="pf-list-icon pf-list-icon--danger">
-                <Icon icon="lucide:trash-2" width="14" />
-              </div>
-              <div class="pf-list-body">
-                <div class="pf-list-title" style="color: var(--color-error)">
-                  注销账号
-                </div>
-                <div class="pf-list-desc">
-                  永久删除所有数据，此操作不可恢复
-                </div>
-              </div>
-              <NButton size="small" type="error" ghost @click="handleDeleteAccount">
-                注销
-              </NButton>
+              <span class="pf-list-time">{{ formatDate(log.loginTime) }}</span>
             </div>
           </div>
-        </NCard>
-      </NGridItem>
-    </NGrid>
+          <div v-if="loginLogTotal > 10" style="display: flex; justify-content: flex-end; margin-top: 12px">
+            <NPagination
+              :page="loginLogPage"
+              :page-size="10"
+              :item-count="loginLogTotal"
+              simple
+              @update:page="loadLoginLogs"
+            />
+          </div>
+        </NSpin>
+      </div>
+    </section>
+
+    <!-- 安全状态 -->
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:shield-alert" width="16" />
+            <span>安全状态</span>
+          </div>
+          <div class="pf-section__desc">
+            账号锁定、失败登录与关键变更时间的实时概览。
+          </div>
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <div class="pf-status-grid">
+          <div class="pf-status-item">
+            <span class="pf-status-item__label">账号锁定</span>
+            <NTag :type="profile?.isLocked ? 'error' : 'success'" size="small" :bordered="false">
+              {{ profile?.isLocked ? '已锁定' : '正常' }}
+            </NTag>
+          </div>
+          <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-status-item">
+            <span class="pf-status-item__label">锁定结束</span>
+            <span class="pf-status-item__value">{{ formatDate(profile.lockoutEndTime) }}</span>
+          </div>
+          <div class="pf-status-item">
+            <span class="pf-status-item__label">连续失败登录</span>
+            <span class="pf-status-item__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
+              {{ profile?.failedLoginAttempts ?? 0 }} 次
+            </span>
+          </div>
+          <div v-if="profile?.lastFailedLoginTime" class="pf-status-item">
+            <span class="pf-status-item__label">最后失败登录</span>
+            <span class="pf-status-item__value">{{ formatDate(profile.lastFailedLoginTime) }}</span>
+          </div>
+          <div class="pf-status-item">
+            <span class="pf-status-item__label">最后修改密码</span>
+            <span class="pf-status-item__value">{{ profile?.lastPasswordChangeTime ? formatDate(profile.lastPasswordChangeTime) : '—' }}</span>
+          </div>
+          <div class="pf-status-item">
+            <span class="pf-status-item__label">最后修改用户名</span>
+            <span class="pf-status-item__value">{{ profile?.lastUserNameChangeTime ? formatDate(profile.lastUserNameChangeTime) : '—' }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 账号管理 -->
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:user-cog" width="16" />
+            <span>账号管理</span>
+          </div>
+          <div class="pf-section__desc">
+            停用或注销账号，请谨慎操作。
+          </div>
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <div class="pf-list">
+          <div class="pf-list-item">
+            <div class="pf-list-icon">
+              <Icon icon="lucide:user-x" width="16" />
+            </div>
+            <div class="pf-list-body">
+              <div class="pf-list-title">
+                停用账号
+              </div>
+              <div class="pf-list-desc">
+                无法登录，数据保留，需管理员恢复
+              </div>
+            </div>
+            <NButton size="small" type="warning" ghost @click="handleDeactivateAccount">
+              停用
+            </NButton>
+          </div>
+          <div class="pf-list-item">
+            <div class="pf-list-icon pf-list-icon--danger">
+              <Icon icon="lucide:trash-2" width="16" />
+            </div>
+            <div class="pf-list-body">
+              <div class="pf-list-title" style="color: var(--color-error)">
+                注销账号
+              </div>
+              <div class="pf-list-desc">
+                永久删除所有数据，此操作不可恢复
+              </div>
+            </div>
+            <NButton size="small" type="error" ghost @click="handleDeleteAccount">
+              注销
+            </NButton>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <style src="./profile-shared.css" />
 
 <style scoped>
+.pf-pwd-form {
+  max-width: 420px;
+}
+
 .pf-strength {
   display: flex;
   align-items: center;
@@ -937,28 +982,10 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.pf-2fa-method {
-  padding: 6px 0;
-}
-
-.pf-2fa-method-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.pf-2fa-method-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
 .pf-2fa-setup {
   display: flex;
   gap: 16px;
-  margin-top: 10px;
+  align-items: flex-start;
 }
 
 .pf-2fa-qr {
@@ -968,8 +995,9 @@ onMounted(() => {
   gap: 6px;
   padding: 16px;
   border-radius: 8px;
+  /* 二维码功能性白底，非主题色 */
   background: #fff;
-  border: 1px solid var(--n-border-color, #e5e7eb);
+  border: 1px solid var(--border-color);
   flex-shrink: 0;
   width: fit-content;
 }
@@ -999,46 +1027,13 @@ onMounted(() => {
 .pf-otp-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
 }
 
 @media (max-width: 900px) {
   .pf-2fa-setup {
     flex-direction: column;
-  }
-}
-
-/* 安全状态网格 */
-.pf-sec-status {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px 24px;
-}
-
-.pf-sec-status__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.pf-sec-status__label {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.pf-sec-status__value {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-@media (max-width: 640px) {
-  .pf-sec-status {
-    grid-template-columns: 1fr;
   }
 }
 </style>

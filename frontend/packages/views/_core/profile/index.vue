@@ -126,25 +126,25 @@ onMounted(() => {
 
 <style scoped>
 .pf-page {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  max-width: 1120px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .pf-layout {
   display: grid;
-  grid-template-columns: 248px 1fr;
-  gap: 14px;
+  grid-template-columns: 264px 1fr;
+  gap: 28px;
   align-items: start;
 }
 
 /* 左侧栏：用户卡 + 导航，整体 sticky */
 .pf-aside {
   position: sticky;
-  top: 12px;
+  top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 /* 导航 */
@@ -153,12 +153,13 @@ onMounted(() => {
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
 }
 
 .pf-nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -245,34 +246,61 @@ onMounted(() => {
   min-width: 0;
 }
 
-/* 移动端：左栏转为顶部、导航横向 */
-@media (max-width: 860px) {
+/* 平板：左栏收窄、隐藏副说明 */
+@media (max-width: 1023px) {
+  .pf-layout {
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+  }
+
+  .pf-nav-desc,
+  .pf-nav-arrow {
+    display: none;
+  }
+}
+
+/* 手机：左栏转顶部、导航横向滚动 Tab 条 */
+@media (max-width: 768px) {
   .pf-layout {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .pf-aside {
     position: static;
+    gap: 12px;
   }
 
   .pf-nav {
     flex-direction: row;
     overflow-x: auto;
     padding: 6px;
+    scrollbar-width: none;
+  }
+
+  .pf-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .pf-nav-item {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    min-width: 88px;
+    min-width: 76px;
     padding: 10px 8px;
     text-align: center;
   }
 
-  .pf-nav-desc,
-  .pf-nav-arrow {
-    display: none;
+  /* 激活态底部主色条 */
+  .pf-nav-item.is-active::after {
+    content: "";
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 2px;
+    height: 2px;
+    border-radius: 2px;
+    background: hsl(var(--primary));
   }
 }
 </style>

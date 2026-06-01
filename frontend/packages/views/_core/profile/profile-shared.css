@@ -1,45 +1,65 @@
-/* 个人中心子组件共享样式 —— ChatGPT 设置卡片风格 */
+/* 个人中心子组件共享样式 —— 设置区块 / 设置行 系统（宽松现代型，全程令牌化） */
 
+/* ===== Tab 容器 ===== */
 .pf-tab-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-top: 4px;
+  gap: 24px;
 }
 
-/* 卡片：轻边框、中等圆角、无阴影、中性底（ChatGPT 设置卡观感） */
-.pf-card.n-card {
+/* ===== 设置区块（统一卡片，替代散乱的 NCard 双栏） ===== */
+.pf-section {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  box-shadow: none;
+  border-radius: var(--radius-lg);
 }
 
-.pf-card.n-card .n-card-header {
-  padding: 16px 20px 8px;
+.pf-section__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px 0;
 }
 
-.pf-card.n-card .n-card__content {
-  padding: 4px 20px 18px;
+.pf-section__heading {
+  min-width: 0;
 }
 
-/* 卡片标题：克制、次要色调 */
-.pf-card-header {
+.pf-section__title {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 13.5px;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.4;
 }
 
-.pf-card-actions {
+.pf-section__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.pf-section__extra {
+  flex-shrink: 0;
+}
+
+.pf-section__body {
+  padding: 8px 24px 20px;
+}
+
+.pf-section__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
 }
 
-/* ── 设置行（ChatGPT 风：左标题/说明，右控件，细分隔线） ── */
+/* ===== 设置行（左标题/说明，右控件 + 细分隔线） ===== */
 .pf-setting-list {
   display: flex;
   flex-direction: column;
@@ -49,8 +69,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
+  gap: 24px;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -60,7 +80,7 @@
 
 .pf-setting-row:last-child {
   border-bottom: none;
-  padding-bottom: 0;
+  padding-bottom: 4px;
 }
 
 .pf-setting-row__main {
@@ -79,47 +99,109 @@
 }
 
 .pf-setting-row__desc {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.5;
   margin-top: 3px;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pf-setting-row__control {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  gap: 12px;
 }
 
-/* 右侧只读值文本 */
 .pf-setting-row__value {
   font-size: 13.5px;
   color: var(--text-secondary);
   text-align: right;
 }
 
-.pf-hint {
-  font-size: 12px;
+/* 右侧定宽控件 */
+.pf-field {
+  width: 260px;
+  max-width: 48vw;
+}
+
+/* 行内展开表单（验证码等） */
+.pf-inline-form {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 整块行（标题上、控件下占满，如简介） */
+.pf-setting-row--block {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.pf-setting-row--block .pf-setting-row__main {
+  flex: none;
+}
+
+/* 允许行内换行（控件 + 展开表单） */
+.pf-setting-row--wrap {
+  flex-wrap: wrap;
+}
+
+/* ===== 表单网格（资料 / 开发者，桌面 2 列、窄屏 1 列） ===== */
+.pf-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+}
+
+.pf-form-span2 {
+  grid-column: 1 / -1;
+}
+
+/* ===== 状态网格（安全状态） ===== */
+.pf-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 24px;
+}
+
+.pf-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pf-status-item__label {
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
-.pf-full {
-  width: 100%;
+.pf-status-item__value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
+/* ===== 条目列表（设备 / 日志 / 租户 / 绑定 / 通知） ===== */
 .pf-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pf-list-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: var(--radius);
   border: 1px solid var(--border-color);
   background: var(--bg-surface);
@@ -127,18 +209,18 @@
 }
 
 .pf-list-item:hover {
-  border-color: hsl(var(--primary) / 25%);
+  border-color: hsl(var(--primary) / 28%);
 }
 
 .pf-list-item--active {
-  border-color: hsl(var(--primary) / 30%);
-  background: hsl(var(--primary) / 4%);
+  border-color: hsl(var(--primary) / 36%);
+  background: hsl(var(--primary) / 5%);
 }
 
 .pf-list-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,12 +230,12 @@
 }
 
 .pf-list-icon--active {
-  background: hsl(var(--primary) / 10%);
+  background: hsl(var(--primary) / 12%);
   color: hsl(var(--primary));
 }
 
 .pf-list-icon--danger {
-  background: hsl(0 80% 55% / 10%);
+  background: hsl(0 80% 55% / 12%);
   color: var(--color-error);
 }
 
@@ -163,26 +245,81 @@
 }
 
 .pf-list-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .pf-list-desc {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--text-secondary);
-  margin-top: 1px;
+  margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .pf-list-time {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+/* ===== 通用小工具 ===== */
+.pf-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pf-full {
+  width: 100%;
+}
+
+/* ===== 响应式（统一断点 1023 / 768） ===== */
+@media (max-width: 1023px) {
+  .pf-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .pf-tab-body {
+    gap: 16px;
+  }
+
+  .pf-section__head {
+    padding: 16px 16px 0;
+  }
+
+  .pf-section__body {
+    padding: 8px 16px 16px;
+  }
+
+  .pf-section__actions {
+    padding: 14px 16px;
+  }
+
+  .pf-setting-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .pf-setting-row__control {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .pf-field {
+    width: 100%;
+    max-width: none;
+  }
+
+  .pf-status-grid {
+    grid-template-columns: 1fr;
+  }
 }
