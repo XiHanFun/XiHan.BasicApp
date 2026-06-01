@@ -13,9 +13,11 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
+using SqlSugar;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Pipelines;
@@ -34,6 +36,8 @@ public sealed class AuthLoginEventHandler
 
     private readonly IUserNotificationDispatchService _notificationDispatchService;
 
+    private readonly ISqlSugarClientResolver _clientResolver;
+
     private readonly ILogger<AuthLoginEventHandler> _logger;
 
     /// <summary>
@@ -42,10 +46,12 @@ public sealed class AuthLoginEventHandler
     public AuthLoginEventHandler(
         ILoginLogPipeline loginLogPipeline,
         IUserNotificationDispatchService notificationDispatchService,
+        ISqlSugarClientResolver clientResolver,
         ILogger<AuthLoginEventHandler> logger)
     {
         _loginLogPipeline = loginLogPipeline;
         _notificationDispatchService = notificationDispatchService;
+        _clientResolver = clientResolver;
         _logger = logger;
     }
     /// <inheritdoc />
@@ -73,6 +79,20 @@ public sealed class AuthLoginEventHandler
             eventData.SessionRecordId,
             "lucide:log-in",
             "/workbench/profile");
+
+        // 新设备登录安全告警：当前设备/IP 此前从未成功登录过时额外提醒
+        if (await IsNewDeviceLoginAsync(eventData))
+        {
+            await DispatchNotificationAsync(
+                eventData.UserId,
+                "新设备登录提醒",
+                BuildAuthNotificationContent("检测到您的账号在新设备或新位置登录。如非本人操作，请立即修改密码。", eventData),
+                NotificationType.Warning,
+                "auth.login.new_device",
+                eventData.SessionRecordId,
+                "lucide:shield-alert",
+                "/workbench/profile");
+        }
     }
 
     /// <inheritdoc />
@@ -117,6 +137,44 @@ public sealed class AuthLoginEventHandler
             eventData.SessionRecordId,
             "lucide:log-out",
             "/workbench/profile");
+    }
+
+    /// <summary>
+    /// 判定是否新设备登录：当前 (IP + 浏览器 + 操作系统) 组合在本次登录之前从未成功登录过。
+    /// 首次登录（无任何历史成功记录）不视为"新设备告警"，避免每个新用户首登都收告警。
+    /// </summary>
+    private async Task<bool> IsNewDeviceLoginAsync(AuthLoginSucceededDomainEvent eventData)
+    {
+        try
+        {
+            var client = _clientResolver.GetCurrentClient();
+            // 本次登录时间之前的成功登录历史（排除当前这条，规避写入时序）
+            var history = await client.Queryable<SysLoginLog>()
+                .Where(log => log.UserId == eventData.UserId
+                    && log.LoginResult == LoginResult.Success
+                    && log.LoginTime < eventData.LoginTime)
+                .SplitTable()
+                .Select(log => new { log.LoginIp, log.Browser, log.Os })
+                .ToListAsync();
+
+            // 无历史成功登录 = 首次登录，不告警
+            if (history.Count == 0)
+            {
+                return false;
+            }
+
+            // 当前设备指纹此前是否出现过
+            return !history.Any(log =>
+                string.Equals(log.LoginIp, eventData.IpAddress, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(log.Browser, eventData.Browser, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(log.Os, eventData.OperatingSystem, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            // 判定失败不阻断登录流程，且不误发告警
+            _logger.LogWarning(ex, "新设备登录判定失败，用户：{UserId}", eventData.UserId);
+            return false;
+        }
     }
 
     private static string BuildAuthNotificationContent(string prefix, AuthLoginSucceededDomainEvent eventData)
