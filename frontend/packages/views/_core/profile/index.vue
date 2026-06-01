@@ -126,9 +126,9 @@ onMounted(() => {
 
 <style scoped>
 .pf-page {
-  max-width: 1120px;
+  width: 80%;
+  max-width: 1280px;
   margin: 0 auto;
-  width: 100%;
 }
 
 .pf-layout {
@@ -136,6 +136,8 @@ onMounted(() => {
   grid-template-columns: 264px 1fr;
   gap: 28px;
   align-items: start;
+  /* 切换 Tab 时撑住最小高度，避免内容高度跳变导致滚动条出现/消失引起的页面抖动 */
+  min-height: calc(100vh - 160px);
 }
 
 /* 左侧栏：用户卡 + 导航，整体 sticky */
