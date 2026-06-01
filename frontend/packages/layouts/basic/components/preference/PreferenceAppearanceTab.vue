@@ -129,21 +129,20 @@ const transitionItems = computed(() => [
                 class="theme-color-card custom-color-card"
                 :class="{ 'is-active': !allPresetColors.includes(appStore.themeColor) }"
               >
-                <div class="theme-color-dot custom-dot">
-                  <NIcon size="16">
-                    <Icon icon="lucide:pipette" />
-                  </NIcon>
-                </div>
                 <NColorPicker
                   :value="appStore.themeColor"
                   :modes="['hex']"
                   :show-alpha="false"
                   :actions="['confirm']"
-                  class="custom-color-overlay"
+                  class="custom-color-picker"
                   @update:value="(value) => appStore.setThemeColor(value)"
                 >
                   <template #label>
-                    <span />
+                    <span class="custom-dot">
+                      <NIcon size="16">
+                        <Icon icon="lucide:pipette" />
+                      </NIcon>
+                    </span>
                   </template>
                 </NColorPicker>
               </div>
@@ -462,15 +461,6 @@ const transitionItems = computed(() => [
   pointer-events: none;
 }
 
-/* 取色器占位 */
-.custom-dot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-}
-
 .theme-color-label {
   font-size: 10px;
   color: hsl(var(--muted-foreground));
@@ -478,18 +468,51 @@ const transitionItems = computed(() => [
   white-space: nowrap;
 }
 
-/* 自定义卡片：relative 以便遮罩定位；虚线边框区分"非预设" */
+/* 自定义卡片：虚线边框区分"非预设" */
 .custom-color-card {
   position: relative;
   border-style: dashed;
 }
 
-/* NColorPicker 透明遮罩：绝对覆盖整张卡片，点击即弹出取色器 */
-.custom-color-overlay {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
+/* NColorPicker 作为整卡触发器：填满卡片、隐藏自带边框/背景，仅显示 label(pipette) */
+.custom-color-picker {
+  width: 100%;
+  height: 100%;
   cursor: pointer;
+}
+
+.custom-color-picker :deep(.n-color-picker-trigger) {
+  width: 100%;
+  height: 100%;
+  min-height: 42px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.custom-color-picker :deep(.n-color-picker-trigger__fill) {
+  inset: 0;
+  border: none;
+  background: transparent;
+}
+
+.custom-color-picker :deep(.n-color-picker-trigger__value) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* pipette 占位圆点 */
+.custom-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 /* 圆角按钮 */
