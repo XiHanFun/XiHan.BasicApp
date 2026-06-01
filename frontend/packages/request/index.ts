@@ -61,12 +61,15 @@ export function bindLogoutHook(hook: () => void) {
 export class RequestClient {
   private instance: AxiosInstance
   private apiPrefix: string
+  private refreshTokenUrl: string
   private isRefreshing = false
   private pendingRequests: Array<(token: string | null) => void> = []
   private readonly securityConfig = resolveApiSecurityRuntimeConfig()
 
-  constructor(config?: AxiosRequestConfig & { apiPrefix?: string }) {
+  constructor(config?: AxiosRequestConfig & { apiPrefix?: string, refreshTokenUrl?: string }) {
     this.apiPrefix = config?.apiPrefix ?? '/api'
+    // 刷新令牌端点路径可配置（request 层不可反向依赖 api/modules，故以构造选项集中管理，避免散落硬编码）
+    this.refreshTokenUrl = config?.refreshTokenUrl ?? '/Auth/RefreshToken'
     this.instance = axios.create({
       timeout: 30000,
       ...config,
@@ -273,7 +276,7 @@ export class RequestClient {
     this.isRefreshing = true
     try {
       const { data } = await this.instance.post(
-        this.resolveUrl('/Auth/RefreshToken'),
+        this.resolveUrl(this.refreshTokenUrl),
         { accessToken, refreshToken },
         { _isRefresh: true } as Record<string, unknown>,
       )
