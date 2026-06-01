@@ -109,8 +109,8 @@ onBeforeUnmount(() => {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-sm font-medium text-foreground/80">列设置</span>
-        <NButton size="tiny" quaternary @click="emit('reset')">
+        <span class="text-base font-semibold text-foreground">列设置</span>
+        <NButton size="small" type="primary" secondary @click="emit('reset')">
           恢复默认
         </NButton>
       </div>
