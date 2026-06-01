@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacLoginLogWriter
+// FileName:SaasLoginLogWriter
 // Guid:a1b2c3d4-e5f6-7890-abcd-ef1234567890
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -23,9 +23,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 登录日志写入器
+/// SaaS 登录日志写入器
 /// </summary>
-public class RbacLoginLogWriter : ILoginLogWriter
+public class SaasLoginLogWriter : ILoginLogWriter
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
@@ -34,7 +34,7 @@ public class RbacLoginLogWriter : ILoginLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacLoginLogWriter(
+    public SaasLoginLogWriter(
         ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider)
@@ -60,18 +60,18 @@ public class RbacLoginLogWriter : ILoginLogWriter
         {
             TenantId = tenantId,
             UserId = record.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            SessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
-            TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
-            LoginIp = RbacLogMappingHelper.TrimOrNull(record.LoginIp ?? clientInfo.IpAddress, 50),
-            LoginLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
-            Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
-            UserAgent = RbacLogMappingHelper.TrimOrNull(record.UserAgent ?? clientInfo.UserAgent, 500),
-            Device = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
-            DeviceId = RbacLogMappingHelper.TrimOrNull(record.DeviceId, 200),
+            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            SessionId = SaasLogMappingHelper.TrimOrNull(record.SessionId, 100),
+            TraceId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 64),
+            LoginIp = SaasLogMappingHelper.TrimOrNull(record.LoginIp ?? clientInfo.IpAddress, 50),
+            LoginLocation = SaasLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
+            Browser = SaasLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
+            Os = SaasLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
+            UserAgent = SaasLogMappingHelper.TrimOrNull(record.UserAgent ?? clientInfo.UserAgent, 500),
+            Device = SaasLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
+            DeviceId = SaasLogMappingHelper.TrimOrNull(record.DeviceId, 200),
             LoginResult = (LoginResult)record.LoginResult,
-            Message = RbacLogMappingHelper.TrimOrNull(record.Message, 500),
+            Message = SaasLogMappingHelper.TrimOrNull(record.Message, 500),
             LoginTime = record.LoginTime,
             CreatedTime = record.LoginTime
         };

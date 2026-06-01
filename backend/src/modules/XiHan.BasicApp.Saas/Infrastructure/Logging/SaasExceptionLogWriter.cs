@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacExceptionLogWriter
+// FileName:SaasExceptionLogWriter
 // Guid:cb6f1f6a-5d7e-4f97-8683-5f620847e5da
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -27,9 +27,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 异常日志写入器
+/// SaaS 异常日志写入器
 /// </summary>
-public class RbacExceptionLogWriter : IExceptionLogWriter
+public class SaasExceptionLogWriter : IExceptionLogWriter
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
@@ -40,7 +40,7 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacExceptionLogWriter(
+    public SaasExceptionLogWriter(
         ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider,
@@ -72,40 +72,40 @@ public class RbacExceptionLogWriter : IExceptionLogWriter
         {
             TenantId = tenantId,
             UserId = record.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
-            TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
-            SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
-            ExceptionType = RbacLogMappingHelper.TrimOrDefault(record.ExceptionType, 200, "Exception"),
-            ExceptionMessage = RbacLogMappingHelper.TrimOrDefault(record.ExceptionMessage, 2000, "未捕获异常"),
-            ExceptionStackTrace = RbacLogMappingHelper.TrimOrNull(record.ExceptionStackTrace, 32000),
-            ExceptionLocation = RbacLogMappingHelper.TrimOrNull(BuildExceptionLocation(record), 300),
+            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            RequestId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 100),
+            TraceId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 64),
+            SessionId = SaasLogMappingHelper.TrimOrNull(sessionId, 100),
+            ExceptionType = SaasLogMappingHelper.TrimOrDefault(record.ExceptionType, 200, "Exception"),
+            ExceptionMessage = SaasLogMappingHelper.TrimOrDefault(record.ExceptionMessage, 2000, "未捕获异常"),
+            ExceptionStackTrace = SaasLogMappingHelper.TrimOrNull(record.ExceptionStackTrace, 32000),
+            ExceptionLocation = SaasLogMappingHelper.TrimOrNull(BuildExceptionLocation(record), 300),
             SeverityLevel = record.StatusCode >= StatusCodes.Status500InternalServerError ? 5 : 3,
-            RequestPath = RbacLogMappingHelper.TrimOrNull(record.Path, 500),
-            RequestMethod = RbacLogMappingHelper.TrimOrNull(record.Method, 10),
-            ControllerName = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 100),
-            ActionName = RbacLogMappingHelper.TrimOrNull(record.ActionName, 100),
-            RequestParams = RbacLogMappingHelper.TrimOrNull(record.RequestParams, 32000),
-            RequestBody = RbacLogMappingHelper.TrimOrNull(record.RequestBody, 32000),
-            RequestHeaders = RbacLogMappingHelper.TrimOrNull(record.RequestHeaders, 32000),
+            RequestPath = SaasLogMappingHelper.TrimOrNull(record.Path, 500),
+            RequestMethod = SaasLogMappingHelper.TrimOrNull(record.Method, 10),
+            ControllerName = SaasLogMappingHelper.TrimOrNull(record.ControllerName, 100),
+            ActionName = SaasLogMappingHelper.TrimOrNull(record.ActionName, 100),
+            RequestParams = SaasLogMappingHelper.TrimOrNull(record.RequestParams, 32000),
+            RequestBody = SaasLogMappingHelper.TrimOrNull(record.RequestBody, 32000),
+            RequestHeaders = SaasLogMappingHelper.TrimOrNull(record.RequestHeaders, 32000),
             StatusCode = record.StatusCode,
-            OperationIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
-            OperationLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
-            UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
-            Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
-            DeviceType = RbacLogMappingHelper.ResolveDeviceType(clientInfo.DeviceName),
-            DeviceInfo = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 200),
-            ApplicationName = RbacLogMappingHelper.TrimOrNull(_hostingEnvironment.ApplicationName, 100),
-            ApplicationVersion = RbacLogMappingHelper.TrimOrNull(ResolveApplicationVersion(), 50),
-            EnvironmentName = RbacLogMappingHelper.TrimOrNull(_hostingEnvironment.EnvironmentName, 50),
-            ServerHostName = RbacLogMappingHelper.TrimOrNull(Environment.MachineName, 100),
+            OperationIp = SaasLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
+            OperationLocation = SaasLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
+            UserAgent = SaasLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
+            Browser = SaasLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
+            Os = SaasLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
+            DeviceType = SaasLogMappingHelper.ResolveDeviceType(clientInfo.DeviceName),
+            DeviceInfo = SaasLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 200),
+            ApplicationName = SaasLogMappingHelper.TrimOrNull(_hostingEnvironment.ApplicationName, 100),
+            ApplicationVersion = SaasLogMappingHelper.TrimOrNull(ResolveApplicationVersion(), 50),
+            EnvironmentName = SaasLogMappingHelper.TrimOrNull(_hostingEnvironment.EnvironmentName, 50),
+            ServerHostName = SaasLogMappingHelper.TrimOrNull(Environment.MachineName, 100),
             ThreadId = Environment.CurrentManagedThreadId,
             ProcessId = Environment.ProcessId,
             ExceptionTime = now,
             IsHandled = true,
             HandledTime = now,
-            ErrorCode = RbacLogMappingHelper.TrimOrNull(record.StatusCode.ToString(), 50)
+            ErrorCode = SaasLogMappingHelper.TrimOrNull(record.StatusCode.ToString(), 50)
         };
 
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();

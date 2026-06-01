@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacEntityDiffLogWriter
+// FileName:SaasEntityDiffLogWriter
 // Guid:676be31f-c4ed-4f8d-b4f8-8f79d76b9764
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -24,9 +24,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 实体差异日志写入器
+/// SaaS 实体差异日志写入器
 /// </summary>
-public class RbacEntityDiffLogWriter : IEntityDiffLogWriter
+public class SaasEntityDiffLogWriter : IEntityDiffLogWriter
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly IClientInfoProvider _clientInfoProvider;
@@ -35,7 +35,7 @@ public class RbacEntityDiffLogWriter : IEntityDiffLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacEntityDiffLogWriter(
+    public SaasEntityDiffLogWriter(
         ISqlSugarClientResolver clientResolver,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
@@ -55,18 +55,18 @@ public class RbacEntityDiffLogWriter : IEntityDiffLogWriter
         ArgumentNullException.ThrowIfNull(record);
 
         var clientInfo = _clientInfoProvider.GetCurrent();
-        var operationType = RbacLogMappingHelper.ResolveOperationTypeByName(record.OperationType);
-        var requestId = RbacLogMappingHelper.TrimOrNull(record.RequestId, 100);
-        var entityTypeName = RbacLogMappingHelper.TrimOrDefault(record.EntityType, 100, "UnknownEntity");
-        var entityId = RbacLogMappingHelper.TrimOrNull(record.EntityId, 100);
+        var operationType = SaasLogMappingHelper.ResolveOperationTypeByName(record.OperationType);
+        var requestId = SaasLogMappingHelper.TrimOrNull(record.RequestId, 100);
+        var entityTypeName = SaasLogMappingHelper.TrimOrDefault(record.EntityType, 100, "UnknownEntity");
+        var entityId = SaasLogMappingHelper.TrimOrNull(record.EntityId, 100);
         var sessionId = _httpContextAccessor.HttpContext?.Features.Get<ISessionFeature>()?.Session?.Id;
 
         var entity = new SysDiffLog
         {
             TenantId = record.TenantId ?? 0,
             UserId = record.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            AuditType = RbacLogMappingHelper.TrimOrDefault(record.AuditType, 50, "EntityChange"),
+            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            AuditType = SaasLogMappingHelper.TrimOrDefault(record.AuditType, 50, "EntityChange"),
             OperationType = operationType,
             EntityType = entityTypeName,
             EntityId = entityId,
@@ -74,17 +74,17 @@ public class RbacEntityDiffLogWriter : IEntityDiffLogWriter
             PrimaryKey = nameof(IEntityBase<>.BasicId),
             PrimaryKeyValue = entityId,
             TableName = entityTypeName,
-            Description = RbacLogMappingHelper.TrimOrNull(BuildDescription(record, entityTypeName, entityId), 500),
-            BeforeData = RbacLogMappingHelper.TrimOrNull(record.BeforeData, 32000),
-            AfterData = RbacLogMappingHelper.TrimOrNull(record.AfterData, 32000),
-            ChangedFields = RbacLogMappingHelper.TrimOrNull(record.ChangedFields, 32000),
-            ChangeDescription = RbacLogMappingHelper.TrimOrNull(BuildChangeDescription(record), 1000),
-            OperationIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.OperationIp, 50),
-            SessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
+            Description = SaasLogMappingHelper.TrimOrNull(BuildDescription(record, entityTypeName, entityId), 500),
+            BeforeData = SaasLogMappingHelper.TrimOrNull(record.BeforeData, 32000),
+            AfterData = SaasLogMappingHelper.TrimOrNull(record.AfterData, 32000),
+            ChangedFields = SaasLogMappingHelper.TrimOrNull(record.ChangedFields, 32000),
+            ChangeDescription = SaasLogMappingHelper.TrimOrNull(BuildChangeDescription(record), 1000),
+            OperationIp = SaasLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.OperationIp, 50),
+            SessionId = SaasLogMappingHelper.TrimOrNull(sessionId, 100),
             RequestId = requestId,
-            TraceId = RbacLogMappingHelper.TrimOrNull(requestId, 64),
+            TraceId = SaasLogMappingHelper.TrimOrNull(requestId, 64),
             IsSuccess = true,
-            RiskLevel = (AuditRiskLevel)RbacLogMappingHelper.ResolveRiskLevel(operationType),
+            RiskLevel = (AuditRiskLevel)SaasLogMappingHelper.ResolveRiskLevel(operationType),
             AuditTime = DateTimeOffset.UtcNow
         };
 

@@ -185,13 +185,13 @@ public static class ServiceCollectionExtensions
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasLogWriters(this IServiceCollection services)
     {
-        services.AddScoped<IAccessLogWriter, RbacAccessLogWriter>();
-        services.AddScoped<IApiLogWriter, RbacApiLogWriter>();
-        services.AddScoped<IOperationLogWriter, RbacOperationLogWriter>();
-        services.AddScoped<IExceptionLogWriter, RbacExceptionLogWriter>();
-        services.AddScoped<ILoginLogWriter, RbacLoginLogWriter>();
-        services.AddScoped<IEntityDiffLogWriter, RbacEntityDiffLogWriter>();
-        services.AddScoped<IEntityAuditContextProvider, RbacEntityDiffContextProvider>();
+        services.AddScoped<IAccessLogWriter, SaasAccessLogWriter>();
+        services.AddScoped<IApiLogWriter, SaasApiLogWriter>();
+        services.AddScoped<IOperationLogWriter, SaasOperationLogWriter>();
+        services.AddScoped<IExceptionLogWriter, SaasExceptionLogWriter>();
+        services.AddScoped<ILoginLogWriter, SaasLoginLogWriter>();
+        services.AddScoped<IEntityDiffLogWriter, SaasEntityDiffLogWriter>();
+        services.AddScoped<IEntityAuditContextProvider, SaasEntityDiffContextProvider>();
         return services;
     }
 

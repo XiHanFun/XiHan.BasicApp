@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacEntityAuditContextProvider
+// FileName:SaasEntityDiffContextProvider
 // Guid:4f1914a2-0b03-4f00-884e-7d8f75ef7338
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -23,9 +23,9 @@ using XiHan.Framework.Web.Api.Contexts;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 实体审计上下文提供器
+/// SaaS 实体审计上下文提供器
 /// </summary>
-public class RbacEntityDiffContextProvider : IEntityAuditContextProvider
+public class SaasEntityDiffContextProvider : IEntityAuditContextProvider
 {
     private static readonly HashSet<string> ExcludedEntityNames = new(StringComparer.Ordinal)
     {
@@ -47,7 +47,7 @@ public class RbacEntityDiffContextProvider : IEntityAuditContextProvider
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacEntityDiffContextProvider(
+    public SaasEntityDiffContextProvider(
         IHttpContextAccessor httpContextAccessor,
         IRequestContextAccessor requestContextAccessor,
         ICurrentUser currentUser,
@@ -72,12 +72,12 @@ public class RbacEntityDiffContextProvider : IEntityAuditContextProvider
         return new EntityDiffLogRecord
         {
             AuditType = "EntityChange",
-            RequestPath = RbacLogMappingHelper.TrimOrNull(requestContext?.Path ?? httpContext?.Request.Path.ToString(), 500),
-            RequestMethod = RbacLogMappingHelper.TrimOrNull(requestContext?.Method ?? httpContext?.Request.Method, 10),
-            OperationIp = RbacLogMappingHelper.TrimOrNull(requestContext?.RemoteIp ?? httpContext?.Connection.RemoteIpAddress?.ToString(), 50),
+            RequestPath = SaasLogMappingHelper.TrimOrNull(requestContext?.Path ?? httpContext?.Request.Path.ToString(), 500),
+            RequestMethod = SaasLogMappingHelper.TrimOrNull(requestContext?.Method ?? httpContext?.Request.Method, 10),
+            OperationIp = SaasLogMappingHelper.TrimOrNull(requestContext?.RemoteIp ?? httpContext?.Connection.RemoteIpAddress?.ToString(), 50),
             RequestId = requestId,
             UserId = requestContext?.UserId ?? _currentUser.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(requestContext?.UserName ?? _currentUser.UserName, 50),
+            UserName = SaasLogMappingHelper.TrimOrNull(requestContext?.UserName ?? _currentUser.UserName, 50),
             TenantId = tenantId
         };
     }
@@ -116,6 +116,6 @@ public class RbacEntityDiffContextProvider : IEntityAuditContextProvider
         var traceId = requestContext?.TraceId
             ?? httpContext?.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString()
             ?? httpContext?.TraceIdentifier;
-        return RbacLogMappingHelper.TrimOrNull(traceId, 100);
+        return SaasLogMappingHelper.TrimOrNull(traceId, 100);
     }
 }
