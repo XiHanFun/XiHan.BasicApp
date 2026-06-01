@@ -78,7 +78,8 @@ export class RequestClient {
   private resolveUrl(url: string) {
     if (!url.startsWith('/'))
       return url
-    if (url.startsWith('/api/'))
+    // 已带 apiPrefix 前缀则不重复拼接（用配置值判断，避免硬编码 '/api/' 在自定义网关前缀下绕过拼接）
+    if (this.apiPrefix && url.startsWith(`${this.apiPrefix}/`))
       return url
     return `${this.apiPrefix}${url}`
   }
