@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Application.AppServices;
 using XiHan.BasicApp.Saas.Infrastructure.Extensions;
-using XiHan.BasicApp.Saas.Infrastructure.Tasks.Jobs;
+using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
