@@ -48,21 +48,14 @@ function accessResultType(result: AccessResult) {
 const fields: ListFieldSchema[] = [
   // 仅搜索（不作为列）
   { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索路径/用户', width: 220, order: 0 },
-  // 常用搜索 + 列
-  {
-    key: 'accessResult',
-    title: '访问结果',
-    dataType: 'enum',
-    searchable: true,
-    options: accessResultOptions,
-    searchPlaceholder: '访问结果',
-    width: 110,
-    order: 10,
-    render: (row) => {
-      const r = row as unknown as AccessLogListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions, r.accessResult))
-    },
-  },
+  // 列（顺序对齐实体 SysAccessLog 属性声明）
+  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
+  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
+  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
+  { key: 'resourcePath', title: '资源路径', dataType: 'string', advancedSearch: true, minWidth: 240, order: 14 },
+  { key: 'resourceName', title: '资源名称', dataType: 'string', minWidth: 120, order: 15 },
+  { key: 'resourceType', title: '资源类型', dataType: 'string', advancedSearch: true, minWidth: 100, order: 16 },
   {
     key: 'method',
     title: '请求方法',
@@ -71,31 +64,36 @@ const fields: ListFieldSchema[] = [
     options: methodOptions,
     searchPlaceholder: '请求方法',
     width: 100,
-    order: 11,
+    order: 17,
   },
-  // 高级搜索 + 列
-  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 12 },
-  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 13 },
-  { key: 'resourcePath', title: '资源路径', dataType: 'string', advancedSearch: true, minWidth: 240, order: 14 },
-  { key: 'resourceType', title: '资源类型', dataType: 'string', advancedSearch: true, minWidth: 100, order: 15 },
-  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 16 },
-  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 17 },
-  { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 18 },
-  // 仅高级搜索（不作为列）
-  { key: 'minExecutionTime', title: '最小耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最小耗时(ms)', order: 19 },
-  { key: 'maxExecutionTime', title: '最大耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最大耗时(ms)', order: 20 },
-  { key: 'accessTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 21 },
-  { key: 'accessTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 22 },
-  // 仅列（不搜索）
-  { key: 'resourceName', title: '资源名称', dataType: 'string', minWidth: 120, order: 30 },
-  { key: 'accessIp', title: '访问 IP', dataType: 'string', minWidth: 130, order: 31 },
-  { key: 'accessLocation', title: '访问位置', dataType: 'string', minWidth: 160, order: 32 },
-  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 33 },
-  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 34 },
-  { key: 'device', title: '设备', dataType: 'string', minWidth: 120, order: 35 },
-  { key: 'executionTime', title: '执行耗时', dataType: 'number', sortable: true, width: 110, order: 36, render: row => `${(row as unknown as AccessLogListItemDto).executionTime}ms` },
-  { key: 'accessTime', title: '访问时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 37 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 38 },
+  {
+    key: 'accessResult',
+    title: '访问结果',
+    dataType: 'enum',
+    searchable: true,
+    options: accessResultOptions,
+    searchPlaceholder: '访问结果',
+    width: 110,
+    order: 18,
+    render: (row) => {
+      const r = row as unknown as AccessLogListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions, r.accessResult))
+    },
+  },
+  { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 19 },
+  { key: 'accessIp', title: '访问 IP', dataType: 'string', minWidth: 130, order: 20 },
+  { key: 'accessLocation', title: '访问位置', dataType: 'string', minWidth: 160, order: 21 },
+  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 22 },
+  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 23 },
+  { key: 'device', title: '设备', dataType: 'string', minWidth: 120, order: 24 },
+  { key: 'executionTime', title: '执行耗时', dataType: 'number', sortable: true, width: 110, order: 25, render: row => `${(row as unknown as AccessLogListItemDto).executionTime}ms` },
+  { key: 'accessTime', title: '访问时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 26 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 27 },
+  // 仅高级搜索（不作为列，范围条件置于高级区末尾）
+  { key: 'minExecutionTime', title: '最小耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最小耗时(ms)', order: 40 },
+  { key: 'maxExecutionTime', title: '最大耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最大耗时(ms)', order: 41 },
+  { key: 'accessTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 42 },
+  { key: 'accessTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 43 },
 ]
 
 /** 过滤值辅助：trim 字符串 / 转数字 / 时间戳转 ISO */

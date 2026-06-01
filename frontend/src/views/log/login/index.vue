@@ -50,6 +50,27 @@ function loginResultType(result: LoginResult) {
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields: ListFieldSchema[] = [
   { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索用户/会话/链路', order: 0 },
+  // 列（顺序对齐实体 SysLoginLog 属性声明）
+  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
+  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
+  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
+  { key: 'loginIp', title: '登录 IP', dataType: 'string', minWidth: 130, order: 14 },
+  { key: 'loginLocation', title: '登录位置', dataType: 'string', minWidth: 160, order: 15 },
+  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 16 },
+  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 17 },
+  { key: 'device', title: '设备', dataType: 'string', minWidth: 120, order: 18 },
+  { key: 'deviceId', title: '设备标识', dataType: 'string', minWidth: 160, order: 19 },
+  {
+    key: 'isRiskLogin',
+    title: '是否风险登录',
+    dataType: 'boolean',
+    advancedSearch: true,
+    options: riskOptions,
+    width: 120,
+    order: 20,
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'error' : 'info' }, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? '是' : '否'),
+  },
   {
     key: 'loginResult',
     title: '登录/登出结果',
@@ -58,37 +79,15 @@ const fields: ListFieldSchema[] = [
     options: loginResultOptions,
     searchPlaceholder: '登录/登出结果',
     width: 120,
-    order: 10,
+    order: 21,
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions, (row as unknown as LoginLogListItemDto).loginResult)),
   },
-  // 高级搜索 + 列
-  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
-  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 12 },
-  {
-    key: 'isRiskLogin',
-    title: '是否风险登录',
-    dataType: 'boolean',
-    advancedSearch: true,
-    options: riskOptions,
-    width: 120,
-    order: 13,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'error' : 'info' }, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? '是' : '否'),
-  },
-  { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
-  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 15 },
-  // 仅高级搜索
-  { key: 'loginTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 16 },
-  { key: 'loginTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 17 },
-  // 仅列
-  { key: 'loginIp', title: '登录 IP', dataType: 'string', minWidth: 130, order: 30 },
-  { key: 'loginLocation', title: '登录位置', dataType: 'string', minWidth: 160, order: 31 },
-  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 32 },
-  { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 33 },
-  { key: 'device', title: '设备', dataType: 'string', minWidth: 120, order: 34 },
-  { key: 'deviceId', title: '设备标识', dataType: 'string', minWidth: 160, order: 35 },
-  { key: 'message', title: '消息', dataType: 'string', minWidth: 220, order: 36 },
-  { key: 'loginTime', title: '登录时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 37 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 38 },
+  { key: 'message', title: '消息', dataType: 'string', minWidth: 220, order: 22 },
+  { key: 'loginTime', title: '登录时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 24 },
+  // 仅高级搜索（不作为列，范围条件置于高级区末尾）
+  { key: 'loginTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 40 },
+  { key: 'loginTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 41 },
 ]
 
 function toStr(v: unknown): string | undefined {
