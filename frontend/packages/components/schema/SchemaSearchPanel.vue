@@ -1,11 +1,14 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { ListFieldSchema } from './types'
-import { NButton, NDatePicker, NIcon, NInput, NSelect, NTooltip } from 'naive-ui'
+import { NButton, NDatePicker, NIcon, NInput, NSelect, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaSearchPanel' })
+
+/** 主题变量：高级浮层背景/边框/文字随明暗主题切换（避免硬编码白底导致暗色模式露白） */
+const themeVars = useThemeVars()
 
 const props = defineProps<{
   /** 常用搜索字段（始终展示） */
@@ -184,7 +187,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 .xh-search__label {
   font-size: 12px;
   line-height: 1.4;
-  color: var(--n-text-color-3, inherit);
+  color: v-bind('themeVars.textColor3');
 }
 
 /* 操作按钮：作为流最后一项，margin-left:auto 推到所在行右侧，随条件自适应流动 */
@@ -209,9 +212,10 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   gap: 10px 12px;
   margin-top: 12px;
   padding: 14px 16px;
-  border-radius: var(--n-border-radius, 6px);
-  background: var(--n-card-color, #fff);
-  box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);
+  border: 1px solid v-bind('themeVars.borderColor');
+  border-radius: v-bind('themeVars.borderRadius');
+  background: v-bind('themeVars.cardColor');
+  box-shadow: v-bind('themeVars.boxShadow2');
 }
 
 /* 展开/收起动画 */
