@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 曦寒基础应用代码生成应用模块
 /// </summary>
 [DependsOn(
-    typeof(XiHanBasicAppRbacModule)
+    typeof(XiHanBasicAppSaasModule)
 )]
 public class XiHanBasicAppCodeGenerationModule : XiHanModule
 {

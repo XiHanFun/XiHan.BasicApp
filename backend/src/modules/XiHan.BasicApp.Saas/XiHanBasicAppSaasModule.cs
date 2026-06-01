@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanBasicAppRbacModule
+// FileName:XiHanBasicAppSaasModule
 // Guid:9b39d543-6e3f-46b8-a288-40076def6e6a
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -27,13 +27,13 @@ using XiHan.Framework.Tasks.ScheduledJobs.Extensions;
 namespace XiHan.BasicApp.Saas;
 
 /// <summary>
-/// 曦寒基础应用 SaaS 权限模块
+/// 曦寒基础应用 SaaS 模块
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
     typeof(XiHanBasicAppWebCoreModule)
 )]
-public class XiHanBasicAppRbacModule : XiHanModule
+public class XiHanBasicAppSaasModule : XiHanModule
 {
     /// <summary>
     /// 服务配置
@@ -75,7 +75,7 @@ public class XiHanBasicAppRbacModule : XiHanModule
     public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
     {
         var scheduler = context.ServiceProvider.GetRequiredService<IJobScheduler>();
-        var logger = context.ServiceProvider.GetRequiredService<ILogger<XiHanBasicAppRbacModule>>();
+        var logger = context.ServiceProvider.GetRequiredService<ILogger<XiHanBasicAppSaasModule>>();
 
         // 1. 扫描当前程序集中的 [JobName] 特性标注的 IJobWorker 实现（如 DynamicJobWorker）
         var jobAssembly = typeof(DynamicJobWorker).Assembly;
