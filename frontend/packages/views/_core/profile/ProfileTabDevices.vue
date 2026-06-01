@@ -2,7 +2,6 @@
 import type { UserSessionItem } from '~/types'
 import {
   NButton,
-  NCard,
   NEmpty,
   NIcon,
   NPopconfirm,
@@ -94,69 +93,76 @@ onMounted(loadSessions)
 
 <template>
   <div class="pf-tab-body">
-    <NCard :bordered="false" size="small" class="pf-card">
-      <template #header>
-        <div class="pf-card-header">
-          <Icon icon="lucide:monitor-smartphone" width="16" />
-          <span>登录设备管理</span>
-        </div>
-      </template>
-      <template #header-extra>
-        <NSpace :size="8">
-          <NButton size="tiny" quaternary @click="loadSessions">
-            <template #icon>
-              <NIcon>
-                <Icon icon="lucide:refresh-cw" />
-              </NIcon>
-            </template>
-          </NButton>
-          <NButton size="tiny" @click="handleRevokeOthers">
-            登出其他设备
-          </NButton>
-        </NSpace>
-      </template>
-      <NSpin :show="sessionsLoading">
-        <NEmpty v-if="sessions.length === 0 && sessionsLoaded" description="暂无在线设备" />
-        <div v-else class="pf-list">
-          <div
-            v-for="s in sessions"
-            :key="s.sessionId"
-            class="pf-list-item"
-            :class="{ 'pf-list-item--active': s.isCurrent }"
-          >
-            <div class="pf-list-icon" :class="{ 'pf-list-icon--active': s.isCurrent }">
-              <Icon :icon="deviceIcon(s.deviceType)" width="16" />
-            </div>
-            <div class="pf-list-body">
-              <div class="pf-list-title">
-                {{ s.deviceName || s.browser || '未知设备' }}
-                <NTag v-if="s.isCurrent" type="success" size="tiny" :bordered="false">
-                  当前
-                </NTag>
-              </div>
-              <div class="pf-list-desc">
-                {{ s.ipAddress }}
-                <template v-if="s.location">
-                  · {{ s.location }}
-                </template>
-                <template v-if="s.operatingSystem">
-                  · {{ s.operatingSystem }}
-                </template>
-                · {{ s.isCurrent ? '在线' : formatDate(s.lastActivityTime, 'MM-DD HH:mm') }}
-              </div>
-            </div>
-            <NPopconfirm v-if="!s.isCurrent" @positive-click="handleRevokeSession(s.sessionId)">
-              <template #trigger>
-                <NButton size="tiny" type="error" text>
-                  踢下线
-                </NButton>
-              </template>
-              确定登出该设备？
-            </NPopconfirm>
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:monitor-smartphone" width="16" />
+            <span>登录设备管理</span>
+          </div>
+          <div class="pf-section__desc">
+            查看当前账号已登录的设备，可远程登出可疑设备。
           </div>
         </div>
-      </NSpin>
-    </NCard>
+        <div class="pf-section__extra">
+          <NSpace :size="8">
+            <NButton size="tiny" quaternary @click="loadSessions">
+              <template #icon>
+                <NIcon>
+                  <Icon icon="lucide:refresh-cw" />
+                </NIcon>
+              </template>
+            </NButton>
+            <NButton size="tiny" @click="handleRevokeOthers">
+              登出其他设备
+            </NButton>
+          </NSpace>
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <NSpin :show="sessionsLoading">
+          <NEmpty v-if="sessions.length === 0 && sessionsLoaded" description="暂无在线设备" />
+          <div v-else class="pf-list">
+            <div
+              v-for="s in sessions"
+              :key="s.sessionId"
+              class="pf-list-item"
+              :class="{ 'pf-list-item--active': s.isCurrent }"
+            >
+              <div class="pf-list-icon" :class="{ 'pf-list-icon--active': s.isCurrent }">
+                <Icon :icon="deviceIcon(s.deviceType)" width="16" />
+              </div>
+              <div class="pf-list-body">
+                <div class="pf-list-title">
+                  {{ s.deviceName || s.browser || '未知设备' }}
+                </div>
+                <div class="pf-list-desc">
+                  {{ s.ipAddress }}
+                  <template v-if="s.location">
+                    · {{ s.location }}
+                  </template>
+                  <template v-if="s.operatingSystem">
+                    · {{ s.operatingSystem }}
+                  </template>
+                  · {{ s.isCurrent ? '在线' : formatDate(s.lastActivityTime, 'MM-DD HH:mm') }}
+                </div>
+              </div>
+              <NTag v-if="s.isCurrent" type="success" size="small" :bordered="false">
+                当前
+              </NTag>
+              <NPopconfirm v-else @positive-click="handleRevokeSession(s.sessionId)">
+                <template #trigger>
+                  <NButton size="tiny" type="error" text>
+                    踢下线
+                  </NButton>
+                </template>
+                确定登出该设备？
+              </NPopconfirm>
+            </div>
+          </div>
+        </NSpin>
+      </div>
+    </section>
   </div>
 </template>
 

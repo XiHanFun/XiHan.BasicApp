@@ -105,8 +105,8 @@ const metaItems = computed(() => {
 
 <style scoped>
 .pf-usercard {
-  padding: 16px;
-  border-radius: var(--radius);
+  padding: 18px;
+  border-radius: var(--radius-lg);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
 }

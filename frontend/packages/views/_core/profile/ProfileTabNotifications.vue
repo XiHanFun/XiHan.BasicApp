@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { NotificationPreference } from '~/types'
-import { NButton, NCard, NSpin, NSwitch, NTag, useMessage } from 'naive-ui'
+import { NButton, NSpin, NSwitch, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -80,68 +80,81 @@ onMounted(loadPreference)
 <template>
   <div class="pf-tab-body">
     <NSpin :show="loading">
-      <NCard :bordered="false" size="small" class="pf-card">
-        <template #header>
-          <div class="pf-card-header">
-            <Icon icon="lucide:send" width="16" /><span>接收渠道</span>
-          </div>
-        </template>
-        <div class="pf-list">
-          <div v-for="ch in channels" :key="ch.key" class="pf-list-item">
-            <div class="pf-list-icon">
-              <Icon :icon="ch.icon" width="16" />
+      <section class="pf-section">
+        <div class="pf-section__head">
+          <div class="pf-section__heading">
+            <div class="pf-section__title">
+              接收渠道
             </div>
-            <div class="pf-list-body">
-              <div class="pf-list-title">
-                {{ ch.label }}
-              </div>
-              <div class="pf-list-desc">
-                {{ ch.desc }}
-              </div>
+            <div class="pf-section__desc">
+              选择接收通知的方式
             </div>
-            <NSwitch v-model:value="pref[ch.key]" />
           </div>
         </div>
-      </NCard>
-
-      <NCard :bordered="false" size="small" class="pf-card">
-        <template #header>
-          <div class="pf-card-header">
-            <Icon icon="lucide:bell-ring" width="16" /><span>通知类型</span>
-          </div>
-        </template>
-        <div class="pf-list">
-          <div v-for="t in types" :key="t.key" class="pf-list-item">
-            <div class="pf-list-icon">
-              <Icon :icon="t.icon" width="16" />
-            </div>
-            <div class="pf-list-body">
-              <div class="pf-list-title">
-                {{ t.label }}
-                <NTag v-if="t.marketing" size="tiny" :bordered="false">
-                  营销
-                </NTag>
+        <div class="pf-section__body">
+          <div class="pf-list">
+            <div v-for="ch in channels" :key="ch.key" class="pf-list-item">
+              <div class="pf-list-icon">
+                <Icon :icon="ch.icon" width="16" />
               </div>
-              <div class="pf-list-desc">
-                {{ t.desc }}
+              <div class="pf-list-body">
+                <div class="pf-list-title">
+                  {{ ch.label }}
+                </div>
+                <div class="pf-list-desc">
+                  {{ ch.desc }}
+                </div>
               </div>
+              <NSwitch v-model:value="pref[ch.key]" />
             </div>
-            <NSwitch v-model:value="pref[t.key]" />
           </div>
         </div>
-      </NCard>
+      </section>
 
-      <div class="pf-card-actions">
-        <NButton @click="loadPreference">
-          重置
-        </NButton>
-        <NButton type="primary" :loading="saving" @click="savePreference">
-          <template #icon>
-            <Icon icon="lucide:save" width="16" />
-          </template>
-          保存偏好
-        </NButton>
-      </div>
+      <section class="pf-section">
+        <div class="pf-section__head">
+          <div class="pf-section__heading">
+            <div class="pf-section__title">
+              通知类型
+            </div>
+            <div class="pf-section__desc">
+              按消息类型订阅或退订
+            </div>
+          </div>
+        </div>
+        <div class="pf-section__body">
+          <div class="pf-list">
+            <div v-for="t in types" :key="t.key" class="pf-list-item">
+              <div class="pf-list-icon">
+                <Icon :icon="t.icon" width="16" />
+              </div>
+              <div class="pf-list-body">
+                <div class="pf-list-title">
+                  {{ t.label }}
+                  <NTag v-if="t.marketing" size="tiny" :bordered="false">
+                    营销
+                  </NTag>
+                </div>
+                <div class="pf-list-desc">
+                  {{ t.desc }}
+                </div>
+              </div>
+              <NSwitch v-model:value="pref[t.key]" />
+            </div>
+          </div>
+        </div>
+        <div class="pf-section__actions">
+          <NButton @click="loadPreference">
+            重置
+          </NButton>
+          <NButton type="primary" :loading="saving" @click="savePreference">
+            <template #icon>
+              <Icon icon="lucide:save" width="16" />
+            </template>
+            保存偏好
+          </NButton>
+        </div>
+      </section>
     </NSpin>
   </div>
 </template>

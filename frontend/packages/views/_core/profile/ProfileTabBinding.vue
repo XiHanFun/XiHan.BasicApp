@@ -2,9 +2,7 @@
 import type { ExternalLoginItem } from '~/types'
 import {
   NButton,
-  NCard,
   NEmpty,
-  NIcon,
   NPopconfirm,
   NSpin,
   useMessage,
@@ -71,63 +69,72 @@ onMounted(loadLinkedAccounts)
 
 <template>
   <div class="pf-tab-body">
-    <NCard :bordered="false" size="small" class="pf-card">
-      <template #header>
-        <div class="pf-card-header">
-          <Icon icon="lucide:link" width="16" />
-          <span>关联第三方账号</span>
-        </div>
-      </template>
-      <template #header-extra>
-        <NButton size="tiny" quaternary @click="loadLinkedAccounts">
-          <template #icon>
-            <NIcon>
-              <Icon icon="lucide:refresh-cw" />
-            </NIcon>
-          </template>
-        </NButton>
-      </template>
-      <NSpin :show="linkedLoading">
-        <NEmpty v-if="linkedAccounts.length === 0 && linkedLoaded" description="暂无绑定的第三方账号" />
-        <div v-else class="pf-list">
-          <div v-for="item in linkedAccounts" :key="item.provider" class="pf-list-item">
-            <div class="pf-list-icon">
-              <Icon :icon="providerIcon(item.provider)" width="16" />
-            </div>
-            <div class="pf-list-body">
-              <div class="pf-list-title">
-                {{ item.providerDisplayName || item.provider }}
-              </div>
-              <div class="pf-list-desc">
-                {{ item.email || '未关联邮箱' }}
-                <template v-if="item.lastLoginTime">
-                  · 最后登录 {{ formatDate(item.lastLoginTime) }}
-                </template>
-              </div>
-            </div>
-            <NPopconfirm @positive-click="handleUnlinkAccount(item.provider)">
-              <template #trigger>
-                <NButton size="tiny" type="warning" text>
-                  解除绑定
-                </NButton>
-              </template>
-              确定解除与 {{ item.providerDisplayName || item.provider }} 的绑定？
-            </NPopconfirm>
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:link" width="16" />
+            <span>关联第三方账号</span>
+          </div>
+          <div class="pf-section__desc">
+            绑定第三方账号后，可使用其快速登录
           </div>
         </div>
-        <div style="margin-top: 10px">
-          <NButton size="small" dashed @click="handleLinkNewAccount('')">
+        <div class="pf-section__extra">
+          <NButton size="tiny" quaternary @click="loadLinkedAccounts">
             <template #icon>
-              <NIcon>
-                <Icon icon="lucide:plus" />
-              </NIcon>
+              <Icon icon="lucide:refresh-cw" />
             </template>
-            绑定新账号
           </NButton>
         </div>
-      </NSpin>
-    </NCard>
+      </div>
+      <div class="pf-section__body">
+        <NSpin :show="linkedLoading">
+          <NEmpty v-if="linkedAccounts.length === 0 && linkedLoaded" description="暂无绑定的第三方账号" />
+          <div v-else class="pf-list">
+            <div v-for="item in linkedAccounts" :key="item.provider" class="pf-list-item">
+              <div class="pf-list-icon pf-list-icon--active">
+                <Icon :icon="providerIcon(item.provider)" width="18" />
+              </div>
+              <div class="pf-list-body">
+                <div class="pf-list-title">
+                  {{ item.providerDisplayName || item.provider }}
+                </div>
+                <div class="pf-list-desc">
+                  {{ item.email || '未关联邮箱' }}
+                  <template v-if="item.lastLoginTime">
+                    · 最后登录 {{ formatDate(item.lastLoginTime) }}
+                  </template>
+                </div>
+              </div>
+              <NPopconfirm @positive-click="handleUnlinkAccount(item.provider)">
+                <template #trigger>
+                  <NButton size="tiny" type="warning" text>
+                    解除绑定
+                  </NButton>
+                </template>
+                确定解除与 {{ item.providerDisplayName || item.provider }} 的绑定？
+              </NPopconfirm>
+            </div>
+          </div>
+          <div class="pf-section__add">
+            <NButton size="small" dashed @click="handleLinkNewAccount('')">
+              <template #icon>
+                <Icon icon="lucide:plus" />
+              </template>
+              绑定新账号
+            </NButton>
+          </div>
+        </NSpin>
+      </div>
+    </section>
   </div>
 </template>
 
 <style src="./profile-shared.css" />
+
+<style scoped>
+.pf-section__add {
+  margin-top: 12px;
+}
+</style>

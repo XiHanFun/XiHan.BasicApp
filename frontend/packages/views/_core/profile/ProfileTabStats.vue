@@ -94,35 +94,57 @@ const recentTimes = computed(() => {
 <template>
   <div class="pf-tab-body">
     <NSpin :show="loading && !activity">
-      <!-- 本月概览卡片 -->
-      <div class="pf-stat-grid">
-        <div
-          v-for="card in statCards"
-          :key="card.key"
-          class="pf-stat-card"
-          :data-tone="card.tone"
-        >
-          <span class="pf-stat-card__icon">
-            <Icon :icon="card.icon" width="18" />
-          </span>
-          <div class="pf-stat-card__value">
-            {{ card.value }}
-          </div>
-          <div class="pf-stat-card__label">
-            {{ card.label }}
+      <!-- 本月概览 -->
+      <section class="pf-section">
+        <div class="pf-section__head">
+          <div class="pf-section__heading">
+            <div class="pf-section__title">
+              <Icon icon="lucide:calendar-range" width="16" />
+              <span>本月概览</span>
+            </div>
+            <div class="pf-section__desc">
+              本月累计的登录、访问、操作次数与在线时长。
+            </div>
           </div>
         </div>
-      </div>
+        <div class="pf-section__body">
+          <div class="pf-stat-grid">
+            <div
+              v-for="card in statCards"
+              :key="card.key"
+              class="pf-stat-card"
+              :data-tone="card.tone"
+            >
+              <span class="pf-stat-card__icon">
+                <Icon :icon="card.icon" width="18" />
+              </span>
+              <div class="pf-stat-card__value">
+                {{ card.value }}
+              </div>
+              <div class="pf-stat-card__label">
+                {{ card.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <!-- 趋势 + 概要 -->
+      <!-- 近 7 日趋势 + 活跃概要 -->
       <div class="pf-stat-cols">
         <!-- 近 7 日趋势 -->
-        <div class="pf-panel">
-          <div class="pf-panel__header">
-            <Icon icon="lucide:bar-chart-3" width="16" />
-            <span>近 7 日操作趋势</span>
+        <section class="pf-section">
+          <div class="pf-section__head">
+            <div class="pf-section__heading">
+              <div class="pf-section__title">
+                <Icon icon="lucide:bar-chart-3" width="16" />
+                <span>近 7 日操作趋势</span>
+              </div>
+              <div class="pf-section__desc">
+                按每日操作量绘制，反映近期活跃走势。
+              </div>
+            </div>
           </div>
-          <div class="pf-panel__body">
+          <div class="pf-section__body">
             <div v-if="hasTrend" class="pf-bars">
               <div
                 v-for="point in trend"
@@ -140,15 +162,22 @@ const recentTimes = computed(() => {
             </div>
             <NEmpty v-else description="暂无趋势数据" class="pf-stat-empty" />
           </div>
-        </div>
+        </section>
 
         <!-- 周期概要 + 最近活动 -->
-        <div class="pf-panel">
-          <div class="pf-panel__header">
-            <Icon icon="lucide:activity" width="16" />
-            <span>活跃概要</span>
+        <section class="pf-section">
+          <div class="pf-section__head">
+            <div class="pf-section__heading">
+              <div class="pf-section__title">
+                <Icon icon="lucide:activity" width="16" />
+                <span>活跃概要</span>
+              </div>
+              <div class="pf-section__desc">
+                今日 / 本周活跃数据与最近活动时间。
+              </div>
+            </div>
           </div>
-          <div class="pf-panel__body">
+          <div class="pf-section__body">
             <div class="pf-period-grid">
               <div v-for="item in periodSummary" :key="item.key" class="pf-period">
                 <div class="pf-period__title">
@@ -176,7 +205,7 @@ const recentTimes = computed(() => {
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </NSpin>
   </div>
@@ -185,7 +214,7 @@ const recentTimes = computed(() => {
 <style src="./profile-shared.css" />
 
 <style scoped>
-/* 概览卡片 */
+/* 概览卡片网格 */
 .pf-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -214,13 +243,13 @@ const recentTimes = computed(() => {
 }
 
 .pf-stat-card[data-tone='sky'] .pf-stat-card__icon {
-  background: hsl(200 80% 45% / 12%);
-  color: hsl(200 80% 42%);
+  background: hsl(var(--primary) / 12%);
+  color: hsl(var(--primary));
 }
 
 .pf-stat-card[data-tone='amber'] .pf-stat-card__icon {
-  background: hsl(35 90% 50% / 14%);
-  color: hsl(35 80% 42%);
+  background: hsl(var(--primary) / 14%);
+  color: hsl(var(--primary));
 }
 
 .pf-stat-card__value {
@@ -236,33 +265,11 @@ const recentTimes = computed(() => {
   margin-top: 5px;
 }
 
-/* 两栏 */
+/* 两栏（趋势 + 概要），间距与区块体系一致 */
 .pf-stat-cols {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.pf-panel {
-  border-radius: var(--radius);
-  background: var(--bg-card, var(--bg-surface));
-  border: 1px solid var(--border-color);
-}
-
-.pf-panel__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.pf-panel__body {
-  padding: 18px;
+  gap: 24px;
 }
 
 /* 柱状图 */
@@ -365,12 +372,19 @@ const recentTimes = computed(() => {
   font-weight: 500;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .pf-stat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .pf-stat-cols {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pf-stat-grid {
     grid-template-columns: 1fr;
   }
 }
