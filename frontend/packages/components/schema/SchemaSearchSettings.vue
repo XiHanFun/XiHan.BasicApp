@@ -100,19 +100,17 @@ onBeforeUnmount(() => {
           >
             {{ item.title }}
           </NCheckbox>
-          <NSwitch
-            :value="item.pinned"
-            :disabled="!item.visible"
-            size="small"
-            @update:value="(value) => emit('togglePin', item.key, value as boolean)"
-          >
-            <template #checked>
-              常用
+          <NTooltip>
+            <template #trigger>
+              <NSwitch
+                :value="item.pinned"
+                :disabled="!item.visible"
+                size="small"
+                @update:value="(value) => emit('togglePin', item.key, value as boolean)"
+              />
             </template>
-            <template #unchecked>
-              高级
-            </template>
-          </NSwitch>
+            {{ item.pinned ? '常用搜索区' : '高级搜索区' }}
+          </NTooltip>
         </div>
       </div>
 

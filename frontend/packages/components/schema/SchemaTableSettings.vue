@@ -163,6 +163,9 @@ onBeforeUnmount(() => {
           </NButton>
         </div>
       </div>
+
+      <NDivider class="!my-1" />
+      <span class="text-xs text-foreground/40">取消勾选=隐藏该列；点钉选图标可固定到左/右</span>
     </div>
   </NPopover>
 </template>
