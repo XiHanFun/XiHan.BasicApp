@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SearchFieldSetting } from './useSearchSettings'
-import { NButton, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
+import { NButton, NCheckbox, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
 import Sortable from 'sortablejs'
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
@@ -14,6 +14,7 @@ defineProps<{
 
 const emit = defineEmits<{
   'togglePin': [key: string, value: boolean]
+  'toggleVisible': [key: string, value: boolean]
   'move': [fromIndex: number, toIndex: number]
   'reset': []
 }>()
@@ -77,7 +78,7 @@ onBeforeUnmount(() => {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-xs text-foreground/60">搜索条件（固定=常用区，拖拽排序）</span>
+        <span class="text-xs text-foreground/60">搜索条件（勾选=显示，固定=常用区）</span>
         <NButton size="tiny" quaternary @click="emit('reset')">
           恢复默认
         </NButton>
@@ -92,18 +93,31 @@ onBeforeUnmount(() => {
           <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
             <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
           </span>
-          <span class="xh-set-row__label flex-1 truncate">{{ item.title }}</span>
-          <span class="text-xs text-foreground/45">{{ item.pinned ? '常用' : '高级' }}</span>
+          <NCheckbox
+            :checked="item.visible"
+            class="xh-set-row__check flex-1"
+            @update:checked="(value) => emit('toggleVisible', item.key, value)"
+          >
+            {{ item.title }}
+          </NCheckbox>
           <NSwitch
             :value="item.pinned"
+            :disabled="!item.visible"
             size="small"
             @update:value="(value) => emit('togglePin', item.key, value as boolean)"
-          />
+          >
+            <template #checked>
+              常用
+            </template>
+            <template #unchecked>
+              高级
+            </template>
+          </NSwitch>
         </div>
       </div>
 
       <NDivider class="!my-1" />
-      <span class="text-xs text-foreground/40">关闭「固定」的条件将收入高级搜索</span>
+      <span class="text-xs text-foreground/40">取消勾选=隐藏该条件；固定=常用区，否则收入高级搜索</span>
     </div>
   </NPopover>
 </template>
@@ -115,8 +129,8 @@ onBeforeUnmount(() => {
   border-radius: 6px;
 }
 
-/* 行标题钉死 14px，避免 rem(Tailwind) 与 px(Naive 控件) 不一致 */
-.xh-set-row__label {
+/* 复选框标题钉死 14px，与列设置行标题字号一致 */
+.xh-set-row__check :deep(.n-checkbox__label) {
   font-size: 14px;
 }
 
