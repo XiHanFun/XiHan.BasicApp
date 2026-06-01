@@ -551,7 +551,7 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <!-- TOTP 方式 -->
-        <div class="pf-setting-row pf-setting-row--wrap">
+        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method">
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
               <Icon icon="lucide:smartphone" width="16" />
@@ -636,7 +636,7 @@ onMounted(() => {
         </div>
 
         <!-- 邮箱方式 -->
-        <div class="pf-setting-row pf-setting-row--wrap">
+        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method">
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
               <Icon icon="lucide:mail" width="16" />
@@ -713,7 +713,7 @@ onMounted(() => {
         </div>
 
         <!-- 手机方式 -->
-        <div class="pf-setting-row pf-setting-row--wrap">
+        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method">
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
               <Icon icon="lucide:phone" width="16" />
@@ -955,6 +955,33 @@ onMounted(() => {
 <style src="./profile-shared.css" />
 
 <style scoped>
+/* 两步验证：每种方式独立卡片（覆盖设置行默认底边线，改卡片间距） */
+.pf-2fa-method {
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  transition: border-color 0.2s;
+}
+
+/* 覆盖 .pf-setting-row 的底边线与首尾 padding 特例 */
+.pf-2fa-method,
+.pf-2fa-method:first-child,
+.pf-2fa-method:last-child {
+  border-bottom: 1px solid var(--border-color);
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.pf-2fa-method:last-child {
+  margin-bottom: 0;
+}
+
+.pf-2fa-method:hover {
+  border-color: hsl(var(--primary) / 28%);
+}
+
 .pf-pwd-form {
   max-width: 420px;
 }
