@@ -174,6 +174,7 @@ onBeforeUnmount(() => {
 
       <NDivider class="!my-1" />
       <span class="text-xs text-foreground/40">勾选=显示该列；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序</span>
+      <NDivider class="!my-1" />
     </div>
   </NPopover>
 </template>
