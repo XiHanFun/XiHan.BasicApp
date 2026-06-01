@@ -269,6 +269,128 @@
   white-space: nowrap;
 }
 
+/* ===== 字段卡网格（个人信息等，标题在上、控件在下） ===== */
+.pf-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.pf-field-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.pf-field-card__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.pf-field-card--block {
+  grid-column: 1 / -1;
+}
+
+/* ===== 方法卡（两步验证三方式等，可横向并列） ===== */
+.pf-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.pf-method-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  transition: border-color 0.2s;
+}
+
+.pf-method-card.is-on {
+  border-color: hsl(var(--primary) / 40%);
+  background: hsl(var(--primary) / 4%);
+}
+
+.pf-method-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-method-card__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: hsl(var(--muted));
+  color: var(--text-secondary);
+}
+
+.pf-method-card.is-on .pf-method-card__icon {
+  background: hsl(var(--primary) / 12%);
+  color: hsl(var(--primary));
+}
+
+.pf-method-card__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pf-method-card__desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.pf-method-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* ===== 卡片信息项（只读摘要，如安全状态） ===== */
+.pf-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.pf-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.pf-info-card__label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.pf-info-card__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 /* ===== 通用小工具 ===== */
 .pf-hint {
   font-size: 13px;
@@ -321,5 +443,21 @@
 
   .pf-status-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pf-field-grid,
+  .pf-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-method-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 方法卡：平板下 3→并列仍可，过窄时单列由上面的 768 规则接管 */
+@media (max-width: 1023px) and (min-width: 769px) {
+  .pf-method-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

@@ -694,53 +694,25 @@ function cancelChange() {
         </div>
       </div>
       <div class="pf-section__body">
-        <div class="pf-setting-list">
-          <div class="pf-setting-row">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                性别
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NSelect v-model:value="profileForm.gender" :options="genderOptions" class="pf-field" />
-            </div>
+        <div class="pf-field-grid">
+          <div class="pf-field-card">
+            <span class="pf-field-card__label">性别</span>
+            <NSelect v-model:value="profileForm.gender" :options="genderOptions" />
           </div>
-          <div class="pf-setting-row">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                国家 / 地区
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NInput v-model:value="profileForm.country" placeholder="例如：中国" class="pf-field" />
-            </div>
+          <div class="pf-field-card">
+            <span class="pf-field-card__label">国家 / 地区</span>
+            <NInput v-model:value="profileForm.country" placeholder="例如：中国" />
           </div>
-          <div class="pf-setting-row">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                语言
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NSelect v-model:value="profileForm.language" :options="languageOptions" class="pf-field" />
-            </div>
+          <div class="pf-field-card">
+            <span class="pf-field-card__label">语言</span>
+            <NSelect v-model:value="profileForm.language" :options="languageOptions" />
           </div>
-          <div class="pf-setting-row">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                时区
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NSelect v-model:value="profileForm.timeZone" :options="timezoneOptions" class="pf-field" />
-            </div>
+          <div class="pf-field-card">
+            <span class="pf-field-card__label">时区</span>
+            <NSelect v-model:value="profileForm.timeZone" :options="timezoneOptions" />
           </div>
-          <div class="pf-setting-row pf-setting-row--block">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                个人简介
-              </div>
-            </div>
+          <div class="pf-field-card pf-field-card--block">
+            <span class="pf-field-card__label">个人简介</span>
             <NInput
               v-model:value="profileForm.remark"
               type="textarea"

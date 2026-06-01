@@ -864,34 +864,36 @@ onMounted(() => {
         </div>
       </div>
       <div class="pf-section__body">
-        <div class="pf-status-grid">
-          <div class="pf-status-item">
-            <span class="pf-status-item__label">账号锁定</span>
-            <NTag :type="profile?.isLocked ? 'error' : 'success'" size="small" :bordered="false">
-              {{ profile?.isLocked ? '已锁定' : '正常' }}
-            </NTag>
+        <div class="pf-info-grid">
+          <div class="pf-info-card">
+            <span class="pf-info-card__label">账号锁定</span>
+            <span class="pf-info-card__value">
+              <NTag :type="profile?.isLocked ? 'error' : 'success'" size="small" :bordered="false">
+                {{ profile?.isLocked ? '已锁定' : '正常' }}
+              </NTag>
+            </span>
           </div>
-          <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-status-item">
-            <span class="pf-status-item__label">锁定结束</span>
-            <span class="pf-status-item__value">{{ formatDate(profile.lockoutEndTime) }}</span>
+          <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-info-card">
+            <span class="pf-info-card__label">锁定结束</span>
+            <span class="pf-info-card__value">{{ formatDate(profile.lockoutEndTime) }}</span>
           </div>
-          <div class="pf-status-item">
-            <span class="pf-status-item__label">连续失败登录</span>
-            <span class="pf-status-item__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
+          <div class="pf-info-card">
+            <span class="pf-info-card__label">连续失败登录</span>
+            <span class="pf-info-card__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
               {{ profile?.failedLoginAttempts ?? 0 }} 次
             </span>
           </div>
-          <div v-if="profile?.lastFailedLoginTime" class="pf-status-item">
-            <span class="pf-status-item__label">最后失败登录</span>
-            <span class="pf-status-item__value">{{ formatDate(profile.lastFailedLoginTime) }}</span>
+          <div v-if="profile?.lastFailedLoginTime" class="pf-info-card">
+            <span class="pf-info-card__label">最后失败登录</span>
+            <span class="pf-info-card__value">{{ formatDate(profile.lastFailedLoginTime) }}</span>
           </div>
-          <div class="pf-status-item">
-            <span class="pf-status-item__label">最后修改密码</span>
-            <span class="pf-status-item__value">{{ profile?.lastPasswordChangeTime ? formatDate(profile.lastPasswordChangeTime) : '—' }}</span>
+          <div class="pf-info-card">
+            <span class="pf-info-card__label">最后修改密码</span>
+            <span class="pf-info-card__value">{{ profile?.lastPasswordChangeTime ? formatDate(profile.lastPasswordChangeTime) : '—' }}</span>
           </div>
-          <div class="pf-status-item">
-            <span class="pf-status-item__label">最后修改用户名</span>
-            <span class="pf-status-item__value">{{ profile?.lastUserNameChangeTime ? formatDate(profile.lastUserNameChangeTime) : '—' }}</span>
+          <div class="pf-info-card">
+            <span class="pf-info-card__label">最后修改用户名</span>
+            <span class="pf-info-card__value">{{ profile?.lastUserNameChangeTime ? formatDate(profile.lastUserNameChangeTime) : '—' }}</span>
           </div>
         </div>
       </div>
