@@ -84,6 +84,8 @@ onBeforeUnmount(() => {
         </NButton>
       </div>
 
+      <NDivider class="!my-1" />
+
       <!-- 表头 -->
       <div class="xh-set-head flex gap-2 items-center">
         <span class="xh-set-head__handle" />
@@ -125,7 +127,6 @@ onBeforeUnmount(() => {
 
       <NDivider class="!my-1" />
       <span class="text-xs text-foreground/40">勾选=显示该条件；开关切换「常用 / 高级」搜索区；拖拽手柄可排序</span>
-      <NDivider class="!my-1" />
     </div>
   </NPopover>
 </template>
