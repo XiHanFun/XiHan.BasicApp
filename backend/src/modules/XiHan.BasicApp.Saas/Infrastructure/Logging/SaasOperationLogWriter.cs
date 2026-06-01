@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacOperationLogWriter
+// FileName:SaasOperationLogWriter
 // Guid:786da5ad-8cd6-4e66-bfd1-5c5206eb2fdd
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -28,9 +28,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 操作日志写入器
+/// SaaS 操作日志写入器
 /// </summary>
-public class RbacOperationLogWriter : IOperationLogWriter
+public class SaasOperationLogWriter : IOperationLogWriter
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
@@ -40,7 +40,7 @@ public class RbacOperationLogWriter : IOperationLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacOperationLogWriter(
+    public SaasOperationLogWriter(
         ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider,
@@ -62,8 +62,8 @@ public class RbacOperationLogWriter : IOperationLogWriter
         ArgumentNullException.ThrowIfNull(record);
 
         var clientInfo = _clientInfoProvider.GetCurrent();
-        var operationType = RbacLogMappingHelper.ResolveOperationTypeByHttpMethod(record.Method);
-        var elapsedMilliseconds = RbacLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
+        var operationType = SaasLogMappingHelper.ResolveOperationTypeByHttpMethod(record.Method);
+        var elapsedMilliseconds = SaasLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
         var title = BuildTitle(record);
         var description = BuildDescription(record);
 
@@ -82,24 +82,24 @@ public class RbacOperationLogWriter : IOperationLogWriter
         {
             TenantId = tenantId,
             UserId = record.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            TraceId = RbacLogMappingHelper.TrimOrNull(traceId, 64),
-            UserSessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
+            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            TraceId = SaasLogMappingHelper.TrimOrNull(traceId, 64),
+            UserSessionId = SaasLogMappingHelper.TrimOrNull(sessionId, 100),
             OperationType = operationType,
-            Module = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 50),
-            Function = RbacLogMappingHelper.TrimOrNull(record.ActionName, 50),
-            Title = RbacLogMappingHelper.TrimOrNull(title, 200),
-            Description = RbacLogMappingHelper.TrimOrNull(description, 500),
-            Method = RbacLogMappingHelper.TrimOrNull(record.Method, 10),
-            RequestUrl = RbacLogMappingHelper.TrimOrNull(record.Path, 500),
+            Module = SaasLogMappingHelper.TrimOrNull(record.ControllerName, 50),
+            Function = SaasLogMappingHelper.TrimOrNull(record.ActionName, 50),
+            Title = SaasLogMappingHelper.TrimOrNull(title, 200),
+            Description = SaasLogMappingHelper.TrimOrNull(description, 500),
+            Method = SaasLogMappingHelper.TrimOrNull(record.Method, 10),
+            RequestUrl = SaasLogMappingHelper.TrimOrNull(record.Path, 500),
             ExecutionTime = elapsedMilliseconds,
-            OperationIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
-            OperationLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
-            Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
-            UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
-            Result = RbacLogMappingHelper.ResolveResult(record.StatusCode, record.ErrorMessage),
-            ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
+            OperationIp = SaasLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
+            OperationLocation = SaasLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
+            Browser = SaasLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
+            Os = SaasLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
+            UserAgent = SaasLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
+            Result = SaasLogMappingHelper.ResolveResult(record.StatusCode, record.ErrorMessage),
+            ErrorMessage = SaasLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
             OperationTime = DateTimeOffset.UtcNow
         };
 

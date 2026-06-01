@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacAccessLogWriter
+// FileName:SaasAccessLogWriter
 // Guid:1a2b8f30-c377-4ff9-9488-7d6ea5f41f53
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -24,9 +24,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 访问日志写入器
+/// SaaS 访问日志写入器
 /// </summary>
-public class RbacAccessLogWriter : IAccessLogWriter
+public class SaasAccessLogWriter : IAccessLogWriter
 {
     private const int ExtendDataLimit = 32000;
 
@@ -37,7 +37,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacAccessLogWriter(
+    public SaasAccessLogWriter(
         ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider)
@@ -57,7 +57,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
         ArgumentNullException.ThrowIfNull(record);
 
         var now = DateTimeOffset.UtcNow;
-        var elapsedMilliseconds = RbacLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
+        var elapsedMilliseconds = SaasLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
         var clientInfo = _clientInfoProvider.GetCurrent();
         var accessTime = now.AddMilliseconds(-elapsedMilliseconds);
 
@@ -65,25 +65,25 @@ public class RbacAccessLogWriter : IAccessLogWriter
         {
             TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            UserSessionId = RbacLogMappingHelper.TrimOrNull(record.SessionId, 100),
-            TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
-            ResourcePath = RbacLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
-            ResourceName = RbacLogMappingHelper.TrimOrNull(record.ResourceName, 200),
+            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            UserSessionId = SaasLogMappingHelper.TrimOrNull(record.SessionId, 100),
+            TraceId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 64),
+            ResourcePath = SaasLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
+            ResourceName = SaasLogMappingHelper.TrimOrNull(record.ResourceName, 200),
             ResourceType = "HttpApi",
-            Method = RbacLogMappingHelper.TrimOrNull(record.Method, 10),
-            AccessResult = RbacLogMappingHelper.ResolveAccessResult(record.StatusCode),
+            Method = SaasLogMappingHelper.TrimOrNull(record.Method, 10),
+            AccessResult = SaasLogMappingHelper.ResolveAccessResult(record.StatusCode),
             StatusCode = record.StatusCode,
-            AccessIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
-            AccessLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
-            UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
-            Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Os = RbacLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
-            Device = RbacLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
-            Referer = RbacLogMappingHelper.TrimOrNull(record.Referer, 500),
+            AccessIp = SaasLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
+            AccessLocation = SaasLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
+            UserAgent = SaasLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
+            Browser = SaasLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
+            Os = SaasLogMappingHelper.TrimOrNull(clientInfo.OperatingSystem, 100),
+            Device = SaasLogMappingHelper.TrimOrNull(clientInfo.DeviceName, 50),
+            Referer = SaasLogMappingHelper.TrimOrNull(record.Referer, 500),
             ExecutionTime = elapsedMilliseconds,
             AccessTime = accessTime,
-            ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
+            ErrorMessage = SaasLogMappingHelper.TrimOrNull(record.ErrorMessage, 1000),
             ExtendData = BuildExtendData(record)
         };
 
@@ -111,7 +111,7 @@ public class RbacAccessLogWriter : IAccessLogWriter
         try
         {
             var json = JsonSerializer.Serialize(payload);
-            return RbacLogMappingHelper.TrimOrNull(json, ExtendDataLimit);
+            return SaasLogMappingHelper.TrimOrNull(json, ExtendDataLimit);
         }
         catch
         {

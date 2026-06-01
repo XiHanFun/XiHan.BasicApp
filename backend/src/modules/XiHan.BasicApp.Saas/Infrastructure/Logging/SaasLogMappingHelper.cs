@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacLogMappingHelper
+// FileName:SaasLogMappingHelper
 // Guid:7f2d4c9e-a3f4-4bdb-9d42-6b6b9a1d4e30
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -19,9 +19,9 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 日志映射辅助方法
+/// SaaS 日志映射辅助方法
 /// </summary>
-internal static class RbacLogMappingHelper
+internal static class SaasLogMappingHelper
 {
     /// <summary>
     /// 字符串裁剪并转空

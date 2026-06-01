@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:RbacApiLogWriter
+// FileName:SaasApiLogWriter
 // Guid:3b4c5d6e-7f80-91a2-b3c4-d5e6f7081920
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -25,9 +25,9 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 
 /// <summary>
-/// RBAC 接口日志写入器
+/// SaaS 接口日志写入器
 /// </summary>
-public class RbacApiLogWriter : IApiLogWriter
+public class SaasApiLogWriter : IApiLogWriter
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
@@ -37,7 +37,7 @@ public class RbacApiLogWriter : IApiLogWriter
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RbacApiLogWriter(
+    public SaasApiLogWriter(
         ISqlSugarClientResolver clientResolver,
         ICurrentTenant currentTenant,
         IClientInfoProvider clientInfoProvider,
@@ -70,34 +70,34 @@ public class RbacApiLogWriter : IApiLogWriter
         {
             TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
-            UserName = RbacLogMappingHelper.TrimOrNull(record.UserName, 50),
-            RequestId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 100),
-            UserSessionId = RbacLogMappingHelper.TrimOrNull(sessionId, 100),
-            TraceId = RbacLogMappingHelper.TrimOrNull(record.TraceId, 64),
-            ClientId = RbacLogMappingHelper.TrimOrNull(record.ClientId, 100),
-            AppId = RbacLogMappingHelper.TrimOrNull(record.AppId, 100),
+            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            RequestId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 100),
+            UserSessionId = SaasLogMappingHelper.TrimOrNull(sessionId, 100),
+            TraceId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 64),
+            ClientId = SaasLogMappingHelper.TrimOrNull(record.ClientId, 100),
+            AppId = SaasLogMappingHelper.TrimOrNull(record.AppId, 100),
             IsSignatureValid = record.IsSignatureValid,
             SignatureType = ResolveSignatureType(record.SignatureAlgorithm),
-            ApiPath = RbacLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
-            Method = RbacLogMappingHelper.TrimOrDefault(record.Method, 10, "GET"),
-            ControllerName = RbacLogMappingHelper.TrimOrNull(record.ControllerName, 100),
-            ActionName = RbacLogMappingHelper.TrimOrNull(record.ActionName, 100),
-            RequestParams = RbacLogMappingHelper.TrimOrNull(record.RequestParams, 32000),
-            RequestBody = RbacLogMappingHelper.TrimOrNull(record.RequestBody, 32000),
-            ResponseBody = RbacLogMappingHelper.TrimOrNull(record.ResponseBody, 32000),
+            ApiPath = SaasLogMappingHelper.TrimOrDefault(record.Path, 500, "/"),
+            Method = SaasLogMappingHelper.TrimOrDefault(record.Method, 10, "GET"),
+            ControllerName = SaasLogMappingHelper.TrimOrNull(record.ControllerName, 100),
+            ActionName = SaasLogMappingHelper.TrimOrNull(record.ActionName, 100),
+            RequestParams = SaasLogMappingHelper.TrimOrNull(record.RequestParams, 32000),
+            RequestBody = SaasLogMappingHelper.TrimOrNull(record.RequestBody, 32000),
+            ResponseBody = SaasLogMappingHelper.TrimOrNull(record.ResponseBody, 32000),
             StatusCode = record.StatusCode,
-            RequestIp = RbacLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
-            RequestLocation = RbacLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
-            UserAgent = RbacLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
-            Browser = RbacLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
-            Referer = RbacLogMappingHelper.TrimOrNull(record.Referer, 500),
+            RequestIp = SaasLogMappingHelper.TrimOrNull(clientInfo.IpAddress ?? record.RemoteIp, 50),
+            RequestLocation = SaasLogMappingHelper.TrimOrNull(clientInfo.Location, 200),
+            UserAgent = SaasLogMappingHelper.TrimOrNull(clientInfo.UserAgent ?? record.UserAgent, 500),
+            Browser = SaasLogMappingHelper.TrimOrNull(clientInfo.Browser, 100),
+            Referer = SaasLogMappingHelper.TrimOrNull(record.Referer, 500),
             RequestTime = requestTime,
             ResponseTime = now,
             ExecutionTime = elapsedMilliseconds,
             RequestSize = record.RequestSize < 0 ? 0 : record.RequestSize,
             ResponseSize = record.ResponseSize < 0 ? 0 : record.ResponseSize,
             IsSuccess = record.IsSuccess,
-            ErrorMessage = RbacLogMappingHelper.TrimOrNull(record.ErrorMessage, 2000)
+            ErrorMessage = SaasLogMappingHelper.TrimOrNull(record.ErrorMessage, 2000)
         };
 
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
