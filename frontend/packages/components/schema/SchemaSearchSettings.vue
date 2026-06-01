@@ -78,10 +78,17 @@ onBeforeUnmount(() => {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-xs text-foreground/60">搜索条件（勾选=显示，固定=常用区）</span>
+        <span class="text-sm font-medium text-foreground/80">搜索设置</span>
         <NButton size="tiny" quaternary @click="emit('reset')">
           恢复默认
         </NButton>
+      </div>
+
+      <!-- 表头 -->
+      <div class="xh-set-head flex gap-2 items-center">
+        <span class="xh-set-head__handle" />
+        <span class="flex-1">搜索条件</span>
+        <span class="xh-set-head__col">常用 / 高级</span>
       </div>
 
       <div ref="listRef" class="flex flex-col max-h-72 overflow-auto">
@@ -102,25 +109,54 @@ onBeforeUnmount(() => {
           </NCheckbox>
           <NTooltip>
             <template #trigger>
-              <NSwitch
-                :value="item.pinned"
-                :disabled="!item.visible"
-                size="small"
-                @update:value="(value) => emit('togglePin', item.key, value as boolean)"
-              />
+              <span class="xh-set-row__switch">
+                <NSwitch
+                  :value="item.pinned"
+                  :disabled="!item.visible"
+                  size="small"
+                  @update:value="(value) => emit('togglePin', item.key, value as boolean)"
+                />
+              </span>
             </template>
-            {{ item.pinned ? '常用搜索区' : '高级搜索区' }}
+            {{ item.pinned ? '常用搜索区（始终展示）' : '高级搜索区（展开后展示）' }}
           </NTooltip>
         </div>
       </div>
 
       <NDivider class="!my-1" />
-      <span class="text-xs text-foreground/40">取消勾选=隐藏该条件；固定=常用区，否则收入高级搜索</span>
+      <span class="text-xs text-foreground/40">勾选=显示该条件；开关切换「常用 / 高级」搜索区；拖拽手柄可排序</span>
     </div>
   </NPopover>
 </template>
 
 <style scoped>
+/* 表头 */
+.xh-set-head {
+  padding: 2px 6px 6px;
+  font-size: 12px;
+  color: var(--n-text-color-3, rgb(148 163 184));
+  border-bottom: 1px solid rgb(var(--primary) / 0.08);
+}
+
+.xh-set-head__handle {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.xh-set-head__col {
+  width: 64px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 开关列：与表头「常用/高级」列等宽居中对齐 */
+.xh-set-row__switch {
+  width: 64px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 /* 统一设置弹窗行样式（与列设置一致） */
 .xh-set-row {
   padding: 4px 6px;
