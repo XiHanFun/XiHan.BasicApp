@@ -8,6 +8,7 @@ import { invalidateCacheIfBuildTimeChanged, useAccessStore, useUserStore } from 
 import { resetSetupStorePlugin } from '~/stores/plugins'
 import App from './App.vue'
 import { registerApplicationContext } from './app/context'
+import { setupGlobalErrorHandler } from './app/error-handler'
 import { router } from './router'
 import './styles/index.css'
 
@@ -16,6 +17,7 @@ import './styles/index.css'
   invalidateCacheIfBuildTimeChanged()
 
   const app = createApp(App)
+  setupGlobalErrorHandler(app)
   const pinia = createPinia()
   pinia.use(resetSetupStorePlugin())
 
