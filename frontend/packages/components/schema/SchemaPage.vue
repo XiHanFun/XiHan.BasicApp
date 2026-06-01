@@ -227,6 +227,7 @@ defineExpose({
             @move="searchSettings.move"
             @reset="searchSettings.resetDefault"
             @toggle-pin="searchSettings.togglePin"
+            @toggle-visible="searchSettings.toggleVisible"
           />
         </template>
       </SchemaSearchPanel>
