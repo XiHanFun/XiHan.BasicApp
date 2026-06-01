@@ -22,7 +22,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Tasks.ScheduledJobs.Models;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Tasks.Jobs;
+namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 
 /// <summary>
 /// 动态任务执行器，桥接框架 IJobWorker 与 SysTask 实体的 TaskClass/TaskMethod 反射模型
