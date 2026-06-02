@@ -1,4 +1,4 @@
-import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+import type { ApiId, BasicDto, DateTimeString, NumericString, PageRequest } from '../../types'
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum SignatureType {
@@ -46,7 +46,7 @@ export interface ApiLogListItemDto extends BasicDto {
   controllerName?: string | null
   createdTime: DateTimeString
   errorMessage?: string | null
-  executionTime: number
+  executionTime: NumericString
   exceptionStackTrace?: string | null
   extendData?: string | null
   isSignatureValid: boolean
@@ -59,12 +59,12 @@ export interface ApiLogListItemDto extends BasicDto {
   requestIp?: string | null
   requestLocation?: string | null
   requestParams?: string | null
-  requestSize: number
+  requestSize: NumericString
   requestTime: DateTimeString
   remark?: string | null
   responseBody?: string | null
   responseHeaders?: string | null
-  responseSize: number
+  responseSize: NumericString
   responseTime?: DateTimeString | null
   sessionId?: string | null
   signatureType: SignatureType
