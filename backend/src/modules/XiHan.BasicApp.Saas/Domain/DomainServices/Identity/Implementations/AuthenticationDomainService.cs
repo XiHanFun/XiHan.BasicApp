@@ -84,6 +84,41 @@ public sealed class AuthenticationDomainService
             return LoginAuthenticationResult.Failed(LoginResult.RequiresTwoFactor, "用户双因素配置不存在。");
         }
 
+        var access = await ValidateUserAccessAsync(user, security, tenantId, now, cancellationToken);
+        return access ?? LoginAuthenticationResult.Success(user, security);
+    }
+
+    /// <inheritdoc />
+    public async Task<LoginAuthenticationResult> AuthenticateEmailLoginAsync(
+        string email,
+        long? tenantId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        var user = await _userRepository.GetByEmailAsync(email.Trim(), cancellationToken);
+        if (user is null)
+        {
+            return LoginAuthenticationResult.Failed(LoginResult.InvalidCredentials, "邮箱未注册或验证码错误。");
+        }
+
+        var security = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, cancellationToken);
+        var access = await ValidateUserAccessAsync(user, security, tenantId, now, cancellationToken);
+        return access ?? LoginAuthenticationResult.Success(user, security);
+    }
+
+    /// <summary>
+    /// 应用级账号可用性校验（启用状态、租户成员身份、密码有效期），通过返回空，否则返回失败结果
+    /// </summary>
+    private async Task<LoginAuthenticationResult?> ValidateUserAccessAsync(
+        SysUser user,
+        SysUserSecurity? security,
+        long? tenantId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
         if (user.Status != EnableStatus.Enabled)
         {
             return LoginAuthenticationResult.Failed(LoginResult.AccountDisabled, "用户已被禁用。");
@@ -91,7 +126,7 @@ public sealed class AuthenticationDomainService
 
         if (tenantId.HasValue)
         {
-            var membership = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
+            var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
             if (membership is null)
             {
                 return LoginAuthenticationResult.Failed(LoginResult.Failed, "用户不是当前租户成员。");
@@ -118,6 +153,6 @@ public sealed class AuthenticationDomainService
             return LoginAuthenticationResult.Failed(LoginResult.Failed, "密码已过期，请联系管理员重置密码。");
         }
 
-        return LoginAuthenticationResult.Success(user, security);
+        return null;
     }
 }

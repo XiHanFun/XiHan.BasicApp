@@ -3,7 +3,7 @@ import type { LoginFormAlign } from './LoginToolbar.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { CODE_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
+import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
 import { useAppStore } from '~/stores'
 import AuthEntrySwitcher from './AuthEntrySwitcher.vue'
 import LoginToolbar from './LoginToolbar.vue'
@@ -26,7 +26,7 @@ const showFooter = computed(
   () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
 )
 const showEntryTabs = computed(() =>
-  [LOGIN_PATH, CODE_LOGIN_PATH, QRCODE_LOGIN_PATH].includes(route.path),
+  [LOGIN_PATH, CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, QRCODE_LOGIN_PATH].includes(route.path),
 )
 
 const appVersion = __APP_VERSION__

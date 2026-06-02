@@ -20,12 +20,15 @@ export default {
     login_subtitle: 'Enter your credentials to access the admin panel',
     select_account: 'Select demo account',
     mobile_login: 'Phone Login',
+    email_login: 'Email Login',
     qrcode_login: 'QR Login',
     third_party_login: 'Third-party login',
     no_account: 'Don\'t have an account?',
     back_to_login: 'Back to login',
     // Code login
     code_login_subtitle: 'Enter your phone number to receive a verification code',
+    // Email login
+    email_login_subtitle: 'Enter your email to receive a verification code',
     phone_placeholder: 'Enter phone number',
     phone_invalid: 'Please enter a valid 11-digit phone number',
     code_placeholder: 'Enter verification code',

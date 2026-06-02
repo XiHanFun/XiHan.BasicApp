@@ -1,4 +1,5 @@
 import type {
+  EmailLoginParams,
   LoginParams,
   LoginResponse,
   LoginToken,
@@ -110,6 +111,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginByEmailCode(params: EmailLoginParams, redirect?: string) {
+    loginLoading.value = true
+    try {
+      const ctx = useAppContext()
+      const result = await ctx.apis.emailLoginApi(params)
+      await afterLogin(result, redirect)
+    }
+    finally {
+      loginLoading.value = false
+    }
+  }
+
   function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | string) {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
     const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
@@ -197,6 +210,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading,
     login,
     loginByPhoneCode,
+    loginByEmailCode,
     startOAuthLogin,
     handleOAuthCallback,
     logout,

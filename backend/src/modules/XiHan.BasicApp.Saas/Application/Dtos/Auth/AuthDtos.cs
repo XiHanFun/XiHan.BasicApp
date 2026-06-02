@@ -155,6 +155,64 @@ public sealed class LoginTokenDto
 }
 
 /// <summary>
+/// 邮箱登录验证码请求 DTO
+/// </summary>
+public sealed class EmailLoginCodeRequestDto
+{
+    /// <summary>
+    /// 邮箱地址
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 登录租户标识，仅用于登录前建立租户上下文
+    /// </summary>
+    public long? TenantId { get; set; }
+}
+
+/// <summary>
+/// 邮箱验证码登录请求 DTO
+/// </summary>
+public sealed class EmailLoginRequestDto
+{
+    /// <summary>
+    /// 邮箱地址
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 邮箱验证码
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 登录租户标识，仅用于登录前建立租户上下文
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 设备标识
+    /// </summary>
+    public string? DeviceId { get; set; }
+}
+
+/// <summary>
+/// 验证码下发结果 DTO
+/// </summary>
+public sealed class VerificationCodeResultDto
+{
+    /// <summary>
+    /// 验证码有效期（秒）
+    /// </summary>
+    public int ExpiresInSeconds { get; set; }
+
+    /// <summary>
+    /// 调试验证码，仅在未接入真实邮件/短信通道时回显，便于联调；生产接入真实通道后应置空
+    /// </summary>
+    public string? DebugCode { get; set; }
+}
+
+/// <summary>
 /// 刷新令牌请求 DTO
 /// </summary>
 public sealed class RefreshTokenRequestDto

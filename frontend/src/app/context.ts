@@ -9,6 +9,7 @@ import type {
   ChangePasswordParams,
   ChangePhoneParams,
   ChangeUserNameParams,
+  EmailLoginParams,
   ExternalLoginItem,
   LoginConfig,
   LoginLogPage,
@@ -120,6 +121,12 @@ function createAuthApis() {
     },
     phoneLoginApi(input: PhoneLoginParams) {
       return requestClient.post<LoginToken>('/Auth/PhoneLogin', input)
+    },
+    emailLoginApi(input: EmailLoginParams) {
+      return requestClient.post<LoginToken>('/Auth/EmailLogin', input)
+    },
+    sendEmailLoginCodeApi(email: string, tenantId?: null | string) {
+      return requestClient.post<VerificationCodeResult>('/Auth/EmailLoginCode', { email, tenantId })
     },
     registerApi(input: unknown) {
       return requestClient.post('/Auth/Register', input)

@@ -3,6 +3,7 @@
 export const AUTH_PATH = '/auth'
 export const LOGIN_PATH = '/auth/login'
 export const CODE_LOGIN_PATH = '/auth/code-login'
+export const EMAIL_LOGIN_PATH = '/auth/email-login'
 export const QRCODE_LOGIN_PATH = '/auth/qrcode-login'
 export const HOME_PATH = '/workbench/dashboard'
 export const NOT_FOUND_PATH = '/404'

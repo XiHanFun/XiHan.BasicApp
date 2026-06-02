@@ -115,6 +115,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
+        services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
         services.AddScoped<ICacheManagementService, CacheManagementService>();
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
@@ -225,6 +226,7 @@ public static class ServiceCollectionExtensions
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasMessageSenders(this IServiceCollection services)
     {
+        services.AddOptions<EmailSenderOptions>().BindConfiguration(EmailSenderOptions.SectionName);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, EmailMessageSender>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, SmsMessageSender>());
         return services;

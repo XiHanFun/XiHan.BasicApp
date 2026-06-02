@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
 
-defineOptions({ name: 'CodeLoginPage' })
+defineOptions({ name: 'EmailLoginPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
@@ -20,14 +20,14 @@ let timer: ReturnType<typeof setInterval> | null = null
 const defaultTenantId = '1'
 
 const formData = ref({
-  phone: '',
+  email: '',
   code: '',
 })
 
 const rules: FormRules = {
-  phone: [
-    { required: true, message: () => t('page.auth.phone_placeholder'), trigger: 'blur' },
-    { pattern: /^\d{11}$/, message: () => t('page.auth.phone_invalid'), trigger: 'blur' },
+  email: [
+    { required: true, message: () => t('page.auth.email_placeholder'), trigger: 'blur' },
+    { type: 'email', message: () => t('page.auth.email_invalid'), trigger: 'blur' },
   ],
   code: [
     { required: true, message: () => t('page.auth.code_placeholder'), trigger: 'blur' },
@@ -41,7 +41,7 @@ function handleSendCode() {
       if (errors)
         return
       try {
-        const response = await apis.sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
+        const response = await apis.sendEmailLoginCodeApi(formData.value.email, defaultTenantId)
         countdown.value = 60
         timer = setInterval(() => {
           countdown.value--
@@ -60,7 +60,7 @@ function handleSendCode() {
         message.error(error?.message || '发送验证码失败')
       }
     },
-    rule => rule?.key === 'phone',
+    rule => rule?.key === 'email',
   )
 }
 
@@ -68,8 +68,8 @@ async function handleLogin() {
   try {
     await formRef.value?.validate()
     loading.value = true
-    await authStore.loginByPhoneCode({
-      phone: formData.value.phone,
+    await authStore.loginByEmailCode({
+      email: formData.value.email,
       code: formData.value.code,
       tenantId: defaultTenantId,
     })
@@ -102,13 +102,13 @@ onBeforeUnmount(() => {
   <div class="py-1">
     <div class="mb-8">
       <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
-        {{ t('page.auth.mobile_login') }}
+        {{ t('page.auth.email_login') }}
       </h1>
       <p
         class="mt-3 text-[15px] leading-7"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
       >
-        {{ t('page.auth.code_login_subtitle') }}
+        {{ t('page.auth.email_login_subtitle') }}
       </p>
     </div>
 
@@ -121,12 +121,12 @@ onBeforeUnmount(() => {
       :show-label="false"
       @keydown="handleKeydown"
     >
-      <NFormItem path="phone" :show-feedback="false" class="!mb-6">
+      <NFormItem path="email" :show-feedback="false" class="!mb-6">
         <NInput
-          v-model:value="formData.phone"
+          v-model:value="formData.email"
           size="large"
-          :placeholder="t('page.auth.phone_placeholder')"
-          :maxlength="11"
+          :placeholder="t('page.auth.email_placeholder')"
+          :input-props="{ autocomplete: 'email' }"
         />
       </NFormItem>
       <NFormItem path="code" :show-feedback="false" class="!mb-6">
