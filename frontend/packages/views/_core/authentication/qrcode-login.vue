@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import { NButton, NIcon } from 'naive-ui'
+import { NIcon } from 'naive-ui'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 
@@ -11,7 +9,6 @@ defineOptions({ name: 'QrCodeLoginPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
-const router = useRouter()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 function drawQrPlaceholder(canvas: HTMLCanvasElement) {
@@ -118,9 +115,5 @@ watch(isDark, () => {
         {{ t('page.auth.qrcode_prompt') }}
       </p>
     </div>
-
-    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push(LOGIN_PATH)">
-      {{ t('page.auth.back_to_login') }}
-    </NButton>
   </div>
 </template>

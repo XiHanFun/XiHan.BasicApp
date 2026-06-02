@@ -31,6 +31,14 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     Task<SysUser?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 根据当前租户和邮箱获取用户
+    /// </summary>
+    /// <remarks>
+    /// 经 CreateQueryable 的全局租户过滤（AOP）按当前租户上下文隔离。邮箱列为非唯一索引（IX_Em），存在重复时取首条匹配。
+    /// </remarks>
+    Task<SysUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 检查当前租户下用户名是否存在
     /// </summary>
     Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);

@@ -26,6 +26,12 @@ export const coreRoutes: RouteRecordRaw[] = [
         meta: { title: 'page.auth.mobile_login', hidden: true },
       },
       {
+        path: 'email-login',
+        name: 'EmailLogin',
+        component: () => import('~/views/_core/authentication/email-login.vue'),
+        meta: { title: 'page.auth.email_login', hidden: true },
+      },
+      {
         path: 'qrcode-login',
         name: 'QrCodeLogin',
         component: () => import('~/views/_core/authentication/qrcode-login.vue'),

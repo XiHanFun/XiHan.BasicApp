@@ -54,6 +54,12 @@ export interface PhoneLoginParams {
   tenantId?: null | string
 }
 
+export interface EmailLoginParams {
+  email: string
+  code: string
+  tenantId?: null | string
+}
+
 export interface VerificationCodeResult {
   expiresInSeconds: number
   debugCode?: string

@@ -39,6 +39,17 @@ public sealed class UserRepository(
     }
 
     /// <inheritdoc />
+    public async Task<SysUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(user => user.Email == email)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);

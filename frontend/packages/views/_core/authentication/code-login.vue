@@ -3,8 +3,6 @@ import type { FormInst, FormRules } from 'naive-ui'
 import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naive-ui'
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
 
@@ -12,7 +10,6 @@ defineOptions({ name: 'CodeLoginPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
-const router = useRouter()
 const message = useMessage()
 const authStore = useAuthStore()
 const { apis } = useAppContext()
@@ -163,9 +160,5 @@ onBeforeUnmount(() => {
         {{ t('page.login.login_btn') }}
       </NButton>
     </NForm>
-
-    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push(LOGIN_PATH)">
-      {{ t('page.auth.back_to_login') }}
-    </NButton>
   </div>
 </template>

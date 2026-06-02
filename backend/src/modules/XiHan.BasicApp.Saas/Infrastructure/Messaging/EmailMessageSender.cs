@@ -14,7 +14,9 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.Framework.Bot.Providers.Email;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Models;
@@ -33,18 +35,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 public sealed class EmailMessageSender : IMessageSender
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IOptionsMonitor<EmailSenderOptions> _options;
     private readonly ILogger<EmailMessageSender> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="scopeFactory">服务作用域工厂（用于解析 Scoped 服务）</param>
+    /// <param name="options">邮件发送（SMTP）配置</param>
     /// <param name="logger">日志记录器</param>
     public EmailMessageSender(
         IServiceScopeFactory scopeFactory,
+        IOptionsMonitor<EmailSenderOptions> options,
         ILogger<EmailMessageSender> logger)
     {
         _scopeFactory = scopeFactory;
+        _options = options;
         _logger = logger;
     }
 
@@ -146,9 +152,8 @@ public sealed class EmailMessageSender : IMessageSender
 
         try
         {
-            // TODO: 集成 SMTP 发送逻辑
-            // 占位：调用 SMTP 服务发送邮件
-            await Task.CompletedTask;
+            // 通过框架 EmailBot（MailKit/SMTP）真实发送邮件
+            await SendViaSmtpAsync(email, content, cancellationToken);
 
             // 发送成功，更新状态
             await client.Updateable<SysEmail>()
@@ -194,6 +199,68 @@ public sealed class EmailMessageSender : IMessageSender
                 DispatchedAt = DateTimeOffset.UtcNow
             };
         }
+    }
+
+    /// <summary>
+    /// 通过框架 EmailBot（MailKit/SMTP）发送邮件；未配置 SMTP 或发送失败时抛出异常，由调用方记录失败状态
+    /// </summary>
+    private async Task SendViaSmtpAsync(SysEmail email, string? content, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var options = _options.CurrentValue;
+        if (!options.IsConfigured)
+        {
+            throw new InvalidOperationException("邮件发送通道未配置 SMTP（请配置 XiHan:Email）。");
+        }
+
+        var fromMail = !string.IsNullOrWhiteSpace(email.FromEmail) ? email.FromEmail : options.FromEmail;
+        if (string.IsNullOrWhiteSpace(fromMail))
+        {
+            throw new InvalidOperationException("邮件发送缺少发件邮箱（FromEmail）。");
+        }
+
+        var fromName = !string.IsNullOrWhiteSpace(email.FromName) ? email.FromName : options.FromName;
+        var fromModel = new EmailFromModel
+        {
+            SmtpHost = options.SmtpHost,
+            SmtpPort = options.SmtpPort,
+            UseSsl = options.UseSsl,
+            FromMail = fromMail,
+            FromName = fromName ?? string.Empty,
+            FromUserName = options.UserName,
+            FromPassword = options.Password
+        };
+
+        var toModel = new EmailToModel
+        {
+            Subject = email.Subject,
+            Body = content ?? email.Content ?? string.Empty,
+            IsBodyHtml = email.IsHtml,
+            ToMail = [email.ToEmail],
+            CcMail = SplitAddresses(email.CcEmail),
+            BccMail = SplitAddresses(email.BccEmail)
+        };
+
+        var sent = await new EmailBot(fromModel).SendMail(toModel);
+        if (!sent)
+        {
+            throw new InvalidOperationException("SMTP 邮件发送失败，请检查邮件服务配置与网络。");
+        }
+    }
+
+    /// <summary>
+    /// 解析以逗号/分号分隔的多地址字符串
+    /// </summary>
+    private static List<string> SplitAddresses(string? addresses)
+    {
+        if (string.IsNullOrWhiteSpace(addresses))
+        {
+            return [];
+        }
+
+        return [.. addresses
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
     }
 
     /// <summary>

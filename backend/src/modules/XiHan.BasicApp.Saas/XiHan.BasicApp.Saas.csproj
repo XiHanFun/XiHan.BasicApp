@@ -27,9 +27,4 @@
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Web.Core\XiHan.BasicApp.Web.Core.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Messaging\XiHan.Framework.Messaging.csproj" />
-      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Templating\XiHan.Framework.Templating.csproj" />
-    </ItemGroup>
-
 </Project>
