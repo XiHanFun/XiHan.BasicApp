@@ -134,18 +134,20 @@ const transitionItems = computed(() => [
                     <Icon icon="lucide:pipette" />
                   </NIcon>
                 </div>
-                <NColorPicker
-                  :value="appStore.themeColor"
-                  :modes="['hex']"
-                  :show-alpha="false"
-                  :actions="['confirm']"
-                  class="custom-color-overlay"
-                  @update:value="(value) => appStore.setThemeColor(value)"
-                >
-                  <template #label>
-                    <span />
-                  </template>
-                </NColorPicker>
+                <!-- 包裹 div 承载定位 class：NColorPicker 根为 VBinder(teleport)，class 无法直接挂载 -->
+                <div class="custom-color-overlay">
+                  <NColorPicker
+                    :value="appStore.themeColor"
+                    :modes="['hex']"
+                    :show-alpha="false"
+                    :actions="['confirm']"
+                    @update:value="(value) => appStore.setThemeColor(value)"
+                  >
+                    <template #label>
+                      <span />
+                    </template>
+                  </NColorPicker>
+                </div>
               </div>
               <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
             </div>
@@ -485,11 +487,20 @@ const transitionItems = computed(() => [
 }
 
 /* NColorPicker 透明遮罩：绝对覆盖整张卡片，点击即弹出取色器 */
+/* 透明触发层：绝对覆盖整卡（包裹 div，class 挂在此处而非 NColorPicker 上） */
 .custom-color-overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   opacity: 0;
   cursor: pointer;
+}
+
+/* 内部 NColorPicker 触发块充满整层，确保任意位置点击都能弹出取色器 */
+.custom-color-overlay :deep(.n-color-picker),
+.custom-color-overlay :deep(.n-color-picker__fill) {
+  width: 100%;
+  height: 100%;
 }
 
 /* 圆角按钮 */
