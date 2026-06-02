@@ -24,6 +24,10 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// <summary>
     /// 根据当前租户和用户名获取用户
     /// </summary>
+    /// <remarks>
+    /// 经 CreateQueryable 的全局租户过滤（AOP）按当前租户上下文隔离，与唯一索引 UX_TeId_UsNa 语义一致。
+    /// 注：登录路径的用户定位实际走框架 IUserStore（SaasUserStore，显式 WHERE TenantId + UserName）；本方法当前无调用方，仅为仓储能力预留。
+    /// </remarks>
     Task<SysUser?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default);
 
     /// <summary>
