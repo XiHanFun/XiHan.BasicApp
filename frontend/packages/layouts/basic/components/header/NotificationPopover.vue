@@ -2,7 +2,7 @@
 import type { NotificationItem } from '~/stores'
 import { NBadge, NButton, NEmpty, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { NotificationStatus, NotificationType } from '@/api'
+import { NotificationStatus, NotificationType } from '~/types/enums'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
 

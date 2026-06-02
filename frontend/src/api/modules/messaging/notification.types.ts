@@ -1,28 +1,8 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+import { NotificationStatus, NotificationTargetType, NotificationType } from '~/types/enums'
 
-/** 与后端 JsonStringEnumConverter 序列化值一致 */
-export enum NotificationType {
-  System = 'System',
-  User = 'User',
-  Announcement = 'Announcement',
-  Warning = 'Warning',
-  Error = 'Error',
-}
-
-/** 与后端 JsonStringEnumConverter 序列化值一致 */
-export enum NotificationTargetType {
-  All = 'All',
-  Role = 'Role',
-  Department = 'Department',
-  User = 'User',
-}
-
-/** 与后端 JsonStringEnumConverter 序列化值一致 */
-export enum NotificationStatus {
-  Unread = 'Unread',
-  Read = 'Read',
-  Deleted = 'Deleted',
-}
+// 通知契约枚举已下沉到 packages/types/enums（供布局通知中心等 shell 功能复用），此处 re-export 保持 `@/api` 入口不变
+export { NotificationStatus, NotificationTargetType, NotificationType }
 
 export interface NotificationPageQueryDto extends PageRequest {
   businessId?: ApiId | null
