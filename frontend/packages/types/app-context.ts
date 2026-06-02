@@ -9,7 +9,7 @@ import type {
   UserInfo,
   VerificationCodeResult,
 } from './auth'
-import type { NotificationStatus, NotificationType } from '../../src/api'
+import type { NotificationStatus, NotificationType } from './enums'
 import type {
   ChangeEmailParams,
   ChangePasswordParams,

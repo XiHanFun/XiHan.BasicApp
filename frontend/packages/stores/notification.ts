@@ -1,5 +1,5 @@
-import type { NotificationStatus, NotificationType } from '../../src/api'
-import { NotificationStatus as NotificationStatusEnum } from '../../src/api'
+import type { NotificationStatus, NotificationType } from '~/types/enums'
+import { NotificationStatus as NotificationStatusEnum } from '~/types/enums'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
