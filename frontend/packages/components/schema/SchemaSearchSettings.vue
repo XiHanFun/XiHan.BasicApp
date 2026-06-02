@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SearchFieldSetting } from './useSearchSettings'
-import { NButton, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
+import { NButton, NCheckbox, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
 import Sortable from 'sortablejs'
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
@@ -14,6 +14,7 @@ defineProps<{
 
 const emit = defineEmits<{
   'togglePin': [key: string, value: boolean]
+  'toggleVisible': [key: string, value: boolean]
   'move': [fromIndex: number, toIndex: number]
   'reset': []
 }>()
@@ -77,10 +78,19 @@ onBeforeUnmount(() => {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-xs text-foreground/60">搜索条件（固定=常用区，拖拽排序）</span>
-        <NButton size="tiny" quaternary @click="emit('reset')">
+        <span class="text-base font-semibold text-foreground">搜索设置</span>
+        <NButton size="small" type="primary" secondary @click="emit('reset')">
           恢复默认
         </NButton>
+      </div>
+
+      <NDivider class="!my-1" />
+
+      <!-- 表头 -->
+      <div class="xh-set-head flex gap-2 items-center">
+        <span class="xh-set-head__handle" />
+        <span class="flex-1">搜索条件</span>
+        <span class="xh-set-head__col">常用 / 高级</span>
       </div>
 
       <div ref="listRef" class="flex flex-col max-h-72 overflow-auto">
@@ -92,31 +102,71 @@ onBeforeUnmount(() => {
           <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
             <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
           </span>
-          <span class="xh-set-row__label flex-1 truncate">{{ item.title }}</span>
-          <span class="text-xs text-foreground/45">{{ item.pinned ? '常用' : '高级' }}</span>
-          <NSwitch
-            :value="item.pinned"
-            size="small"
-            @update:value="(value) => emit('togglePin', item.key, value as boolean)"
-          />
+          <NCheckbox
+            :checked="item.visible"
+            class="xh-set-row__check flex-1"
+            @update:checked="(value) => emit('toggleVisible', item.key, value)"
+          >
+            {{ item.title }}
+          </NCheckbox>
+          <NTooltip>
+            <template #trigger>
+              <span class="xh-set-row__switch">
+                <NSwitch
+                  :value="item.pinned"
+                  :disabled="!item.visible"
+                  size="small"
+                  @update:value="(value) => emit('togglePin', item.key, value as boolean)"
+                />
+              </span>
+            </template>
+            {{ item.pinned ? '常用搜索区（始终展示）' : '高级搜索区（展开后展示）' }}
+          </NTooltip>
         </div>
       </div>
 
       <NDivider class="!my-1" />
-      <span class="text-xs text-foreground/40">关闭「固定」的条件将收入高级搜索</span>
+      <span class="text-xs text-foreground/40">勾选=显示该条件；开关切换「常用 / 高级」搜索区；拖拽手柄可排序</span>
     </div>
   </NPopover>
 </template>
 
 <style scoped>
+/* 表头 */
+.xh-set-head {
+  padding: 2px 6px 6px;
+  font-size: 12px;
+  color: var(--n-text-color-3, rgb(148 163 184));
+  border-bottom: 1px solid rgb(var(--primary) / 0.08);
+}
+
+.xh-set-head__handle {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.xh-set-head__col {
+  width: 64px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 开关列：与表头「常用/高级」列等宽居中对齐 */
+.xh-set-row__switch {
+  width: 64px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 /* 统一设置弹窗行样式（与列设置一致） */
 .xh-set-row {
   padding: 4px 6px;
   border-radius: 6px;
 }
 
-/* 行标题钉死 14px，避免 rem(Tailwind) 与 px(Naive 控件) 不一致 */
-.xh-set-row__label {
+/* 复选框标题钉死 14px，与列设置行标题字号一致 */
+.xh-set-row__check :deep(.n-checkbox__label) {
   font-size: 14px;
 }
 

@@ -108,9 +108,18 @@ onBeforeUnmount(() => {
     </template>
 
     <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <span class="text-base font-semibold text-foreground">列设置</span>
+        <NButton size="small" type="primary" secondary @click="emit('reset')">
+          恢复默认
+        </NButton>
+      </div>
+
+      <NDivider class="!my-1" />
+
       <!-- 密度 -->
       <div class="flex gap-2 items-center justify-between">
-        <span class="text-xs text-foreground/60">密度</span>
+        <span class="text-xs text-foreground/60">表格密度</span>
         <div class="flex gap-1">
           <NButton
             v-for="opt in densityOptions"
@@ -126,12 +135,11 @@ onBeforeUnmount(() => {
 
       <NDivider class="!my-1" />
 
-      <!-- 列显隐 / 固定 / 拖拽排序 -->
-      <div class="flex items-center justify-between">
-        <span class="text-xs text-foreground/60">列设置（拖拽手柄可排序）</span>
-        <NButton size="tiny" quaternary @click="emit('reset')">
-          恢复默认
-        </NButton>
+      <!-- 表头 -->
+      <div class="xh-set-head flex gap-2 items-center">
+        <span class="xh-set-head__handle" />
+        <span class="flex-1">列名</span>
+        <span class="xh-set-head__col">固定</span>
       </div>
 
       <div ref="listRef" class="flex flex-col max-h-72 overflow-auto">
@@ -145,29 +153,61 @@ onBeforeUnmount(() => {
           </span>
           <NCheckbox
             :checked="col.visible"
+            class="flex-1"
             @update:checked="(value) => emit('toggleVisible', col.key, value)"
           >
             {{ col.title }}
           </NCheckbox>
-          <div class="flex-1" />
-          <NButton
-            size="tiny"
-            quaternary
-            :title="`固定：${fixedLabel(col.fixed)}`"
-            @click="emit('setFixed', col.key, nextFixed(col.fixed))"
-          >
-            <template #icon>
-              <NIcon><Icon icon="lucide:pin" /></NIcon>
-            </template>
-            {{ fixedLabel(col.fixed) }}
-          </NButton>
+          <span class="xh-set-row__fixed">
+            <NButton
+              size="tiny"
+              quaternary
+              :title="`固定：${fixedLabel(col.fixed)}`"
+              @click="emit('setFixed', col.key, nextFixed(col.fixed))"
+            >
+              <template #icon>
+                <NIcon><Icon icon="lucide:pin" /></NIcon>
+              </template>
+              {{ fixedLabel(col.fixed) }}
+            </NButton>
+          </span>
         </div>
       </div>
+
+      <NDivider class="!my-1" />
+      <span class="text-xs text-foreground/40">勾选=显示该列；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序</span>
     </div>
   </NPopover>
 </template>
 
 <style scoped>
+/* 表头 */
+.xh-set-head {
+  padding: 2px 6px 6px;
+  font-size: 12px;
+  color: var(--n-text-color-3, rgb(148 163 184));
+  border-bottom: 1px solid rgb(var(--primary) / 0.08);
+}
+
+.xh-set-head__handle {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.xh-set-head__col {
+  width: 56px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 固定列：与表头「固定」列等宽居中对齐 */
+.xh-set-row__fixed {
+  width: 56px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 /* 统一设置弹窗行样式（与搜索设置一致） */
 .xh-set-row {
   padding: 4px 6px;
