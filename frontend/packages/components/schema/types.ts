@@ -1,6 +1,6 @@
 import type { DataTableColumn } from 'naive-ui'
 import type { VNodeChild } from 'vue'
-import type { ApiId, PageResult } from '@/api'
+import type { ApiId, PageResult } from '~/types/contracts'
 
 /**
  * 下拉/标签选项（与 business 常量、Naive 选项结构兼容）

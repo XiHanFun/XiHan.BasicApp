@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { ApiId } from '@/api'
+import type { ApiId } from '~/types/contracts'
 import type { PageSchema, SchemaQueryParams } from './types'
 import { useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
