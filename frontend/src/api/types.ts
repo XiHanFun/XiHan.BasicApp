@@ -1,5 +1,11 @@
 export type ApiId = string
 
+/**
+ * 后端 long 数值（雪花 ID 之外的耗时/大小等）经全局 LongJsonConverter 统一序列化为字符串。
+ * 前端如实标注为字符串；需数值运算/格式化时显式 `Number()` 转换。
+ */
+export type NumericString = string
+
 export type DateTimeString = string
 
 export type ApiPrimitive = boolean | DateTimeString | null | number | string

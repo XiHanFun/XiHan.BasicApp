@@ -42,14 +42,16 @@ const signatureTypeOptions = [
   { label: 'MD5', value: SignatureType.Md5 },
 ]
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes}B`
+function formatSize(bytes: number | string): string {
+  // requestSize/responseSize 为后端 long，经 LongJsonConverter 序列化为字符串，这里显式转数值
+  const size = Number(bytes)
+  if (size < 1024) {
+    return `${size}B`
   }
-  if (bytes < 1048576) {
-    return `${(bytes / 1024).toFixed(1)}KB`
+  if (size < 1048576) {
+    return `${(size / 1024).toFixed(1)}KB`
   }
-  return `${(bytes / 1048576).toFixed(1)}MB`
+  return `${(size / 1048576).toFixed(1)}MB`
 }
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────

@@ -1,4 +1,4 @@
-import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+import type { ApiId, BasicDto, DateTimeString, NumericString, PageRequest } from '../../types'
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum AuditRiskLevel {
@@ -57,7 +57,7 @@ export interface DiffLogListItemDto extends BasicDto {
   entityType?: string | null
   exceptionMessage?: string | null
   exceptionStackTrace?: string | null
-  executionTime: number
+  executionTime: NumericString
   extendData?: string | null
   isSuccess: boolean
   operationType: AuditOperationType

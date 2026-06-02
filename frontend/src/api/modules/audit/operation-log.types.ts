@@ -1,4 +1,4 @@
-import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+import type { ApiId, BasicDto, DateTimeString, NumericString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
@@ -39,7 +39,7 @@ export interface OperationLogListItemDto extends BasicDto {
   createdTime: DateTimeString
   description?: string | null
   errorMessage?: string | null
-  executionTime: number
+  executionTime: NumericString
   function?: string | null
   method?: string | null
   module?: string | null

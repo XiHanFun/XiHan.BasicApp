@@ -1,4 +1,4 @@
-import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+import type { ApiId, BasicDto, DateTimeString, NumericString, PageRequest } from '../../types'
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum AccessResult {
@@ -36,7 +36,7 @@ export interface AccessLogListItemDto extends BasicDto {
   createdTime: DateTimeString
   device?: string | null
   errorMessage?: string | null
-  executionTime: number
+  executionTime: NumericString
   extendData?: string | null
   method?: string | null
   os?: string | null
