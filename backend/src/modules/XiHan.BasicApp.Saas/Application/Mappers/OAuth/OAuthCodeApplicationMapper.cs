@@ -46,10 +46,10 @@ public static class OAuthCodeApplicationMapper
             RedirectUri = code.RedirectUri,
             Scopes = code.Scopes,
             CodeChallengeMethod = code.CodeChallengeMethod,
-            ExpiresTime = code.ExpiresTime,
-            IsExpired = code.ExpiresTime <= now,
+            ExpirationTime = code.ExpirationTime,
+            IsExpired = code.ExpirationTime <= now,
             IsUsed = code.IsUsed,
-            UsedAt = code.UsedAt,
+            UsedTime = code.UsedTime,
             CreatedTime = code.CreatedTime
         };
     }
@@ -79,10 +79,10 @@ public static class OAuthCodeApplicationMapper
             RedirectUri = item.RedirectUri,
             Scopes = item.Scopes,
             CodeChallengeMethod = item.CodeChallengeMethod,
-            ExpiresTime = item.ExpiresTime,
+            ExpirationTime = item.ExpirationTime,
             IsExpired = item.IsExpired,
             IsUsed = item.IsUsed,
-            UsedAt = item.UsedAt,
+            UsedTime = item.UsedTime,
             CreatedTime = item.CreatedTime,
             CreatedId = code.CreatedId,
             CreatedBy = code.CreatedBy

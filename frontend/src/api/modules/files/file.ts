@@ -76,8 +76,8 @@ export const fileApi = {
 function toFilePageParams(input: FilePageQueryDto) {
   const params = createPageRequestParams(input)
   appendDynamicApiParam(params, 'AccessLevel', input.accessLevel)
-  appendDynamicApiParam(params, 'ExpiresAtEnd', input.expiresAtEnd)
-  appendDynamicApiParam(params, 'ExpiresAtStart', input.expiresAtStart)
+  appendDynamicApiParam(params, 'ExpirationTimeEnd', input.expirationTimeEnd)
+  appendDynamicApiParam(params, 'ExpirationTimeStart', input.expirationTimeStart)
   appendDynamicApiParam(params, 'FileExtension', input.fileExtension)
   appendDynamicApiParam(params, 'FileType', input.fileType)
   appendDynamicApiParam(params, 'IsEncrypted', input.isEncrypted)
@@ -99,8 +99,8 @@ function toFileStoragePageParams(input: FileStoragePageQueryDto) {
   appendDynamicApiParam(params, 'Keyword', input.keyword)
   appendDynamicApiParam(params, 'Status', input.status)
   appendDynamicApiParam(params, 'StorageType', input.storageType)
-  appendDynamicApiParam(params, 'UploadedAtEnd', input.uploadedAtEnd)
-  appendDynamicApiParam(params, 'UploadedAtStart', input.uploadedAtStart)
+  appendDynamicApiParam(params, 'UploadedTimeEnd', input.uploadedTimeEnd)
+  appendDynamicApiParam(params, 'UploadedTimeStart', input.uploadedTimeStart)
   return params
 }
 
@@ -118,7 +118,7 @@ function toFileUploadFormData(input: FileUploadInput) {
   appendFormData(formData, 'AccessPermissions', input.accessPermissions)
   appendFormData(formData, 'IsEncrypted', input.isEncrypted)
   appendFormData(formData, 'EncryptionKeyId', input.encryptionKeyId)
-  appendFormData(formData, 'ExpiresAt', input.expiresAt)
+  appendFormData(formData, 'ExpirationTime', input.expirationTime)
   appendFormData(formData, 'IsTemporary', input.isTemporary)
   appendFormData(formData, 'RetentionDays', input.retentionDays)
   appendFormData(formData, 'Tags', input.tags)

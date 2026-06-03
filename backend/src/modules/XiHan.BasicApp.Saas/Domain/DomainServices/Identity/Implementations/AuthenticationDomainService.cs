@@ -148,7 +148,7 @@ public sealed class AuthenticationDomainService
             }
         }
 
-        if (security is not null && security.PasswordExpiryTime.HasValue && security.PasswordExpiryTime.Value <= now)
+        if (security is not null && security.PasswordExpirationTime.HasValue && security.PasswordExpirationTime.Value <= now)
         {
             return LoginAuthenticationResult.Failed(LoginResult.Failed, "密码已过期，请联系管理员重置密码。");
         }

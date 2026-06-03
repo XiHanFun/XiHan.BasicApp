@@ -65,7 +65,7 @@ public sealed class TenantSwitcherDto
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset? ExpireTime { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 租户成员关系主键

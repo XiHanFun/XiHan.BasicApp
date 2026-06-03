@@ -160,19 +160,19 @@ public sealed class OAuthCodeQueryService
         if (input.IsExpired.HasValue)
         {
             request.Conditions.AddFilter(
-                (SysOAuthCode code) => code.ExpiresTime,
+                (SysOAuthCode code) => code.ExpirationTime,
                 now,
                 input.IsExpired.Value ? QueryOperator.LessThanOrEqual : QueryOperator.GreaterThan);
         }
 
-        if (input.ExpiresTimeStart.HasValue)
+        if (input.ExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysOAuthCode code) => code.ExpiresTime, input.ExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.ExpirationTime, input.ExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.ExpiresTimeEnd.HasValue)
+        if (input.ExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysOAuthCode code) => code.ExpiresTime, input.ExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthCode code) => code.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         if (input.CreatedTimeStart.HasValue)
@@ -186,7 +186,7 @@ public sealed class OAuthCodeQueryService
         }
 
         request.Conditions.AddSort((SysOAuthCode code) => code.IsUsed, SortDirection.Ascending, 0);
-        request.Conditions.AddSort((SysOAuthCode code) => code.ExpiresTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysOAuthCode code) => code.ExpirationTime, SortDirection.Descending, 1);
         request.Conditions.AddSort((SysOAuthCode code) => code.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
@@ -199,7 +199,7 @@ public sealed class OAuthCodeQueryService
     {
         ValidateOptionalId(input.UserId, nameof(input.UserId), "用户主键必须大于 0。");
         ValidateMaxLength(input.ClientId, 100, nameof(input.ClientId), "客户端 ID 长度不能超过 100。");
-        ValidateRange(input.ExpiresTimeStart, input.ExpiresTimeEnd, nameof(input.ExpiresTimeStart), "过期开始时间不能晚于结束时间。");
+        ValidateRange(input.ExpirationTimeStart, input.ExpirationTimeEnd, nameof(input.ExpirationTimeStart), "过期开始时间不能晚于结束时间。");
         ValidateRange(input.CreatedTimeStart, input.CreatedTimeEnd, nameof(input.CreatedTimeStart), "创建开始时间不能晚于结束时间。");
     }
 

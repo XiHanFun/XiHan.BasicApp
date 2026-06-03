@@ -191,14 +191,14 @@ public sealed class FileQueryService
             request.Conditions.AddFilter((SysFile file) => file.Status, input.Status.Value);
         }
 
-        if (input.ExpiresAtStart.HasValue)
+        if (input.ExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysFile file) => file.ExpiresAt, input.ExpiresAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysFile file) => file.ExpirationTime, input.ExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.ExpiresAtEnd.HasValue)
+        if (input.ExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysFile file) => file.ExpiresAt, input.ExpiresAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysFile file) => file.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         request.Conditions.AddSort((SysFile file) => file.CreatedTime, SortDirection.Descending, 0);
@@ -272,19 +272,19 @@ public sealed class FileQueryService
             request.Conditions.AddFilter((SysFileStorage storage) => storage.IsSynced, input.IsSynced.Value);
         }
 
-        if (input.UploadedAtStart.HasValue)
+        if (input.UploadedTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysFileStorage storage) => storage.UploadedAt, input.UploadedAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.UploadedTime, input.UploadedTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.UploadedAtEnd.HasValue)
+        if (input.UploadedTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysFileStorage storage) => storage.UploadedAt, input.UploadedAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysFileStorage storage) => storage.UploadedTime, input.UploadedTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         request.Conditions.AddSort((SysFileStorage storage) => storage.FileId, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysFileStorage storage) => storage.IsPrimary, SortDirection.Descending, 1);
-        request.Conditions.AddSort((SysFileStorage storage) => storage.SortOrder, SortDirection.Ascending, 2);
+        request.Conditions.AddSort((SysFileStorage storage) => storage.Sort, SortDirection.Ascending, 2);
         request.Conditions.AddSort((SysFileStorage storage) => storage.StorageType, SortDirection.Ascending, 3);
         return request;
     }

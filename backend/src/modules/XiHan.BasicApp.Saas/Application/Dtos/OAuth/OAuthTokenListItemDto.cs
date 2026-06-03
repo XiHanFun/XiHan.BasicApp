@@ -86,7 +86,7 @@ public class OAuthTokenListItemDto : BasicAppDto
     /// <summary>
     /// 访问令牌过期时间
     /// </summary>
-    public DateTimeOffset AccessTokenExpiresTime { get; set; }
+    public DateTimeOffset AccessTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 访问令牌是否已过期
@@ -96,7 +96,7 @@ public class OAuthTokenListItemDto : BasicAppDto
     /// <summary>
     /// 刷新令牌过期时间
     /// </summary>
-    public DateTimeOffset? RefreshTokenExpiresTime { get; set; }
+    public DateTimeOffset? RefreshTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 刷新令牌是否已过期

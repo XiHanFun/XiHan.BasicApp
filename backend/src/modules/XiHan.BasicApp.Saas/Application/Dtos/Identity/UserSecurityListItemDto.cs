@@ -50,7 +50,7 @@ public sealed class UserSecurityListItemDto : BasicAppDto
     /// <summary>
     /// 密码过期时间
     /// </summary>
-    public DateTimeOffset? PasswordExpiryTime { get; set; }
+    public DateTimeOffset? PasswordExpirationTime { get; set; }
 
     /// <summary>
     /// 密码是否已过期

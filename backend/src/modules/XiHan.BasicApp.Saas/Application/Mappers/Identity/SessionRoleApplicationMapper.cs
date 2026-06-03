@@ -52,9 +52,9 @@ public static class SessionRoleApplicationMapper
             RoleId = sessionRole.RoleId,
             RoleCode = role?.RoleCode,
             RoleName = role?.RoleName,
-            ActivatedAt = sessionRole.ActivatedAt,
-            DeactivatedAt = sessionRole.DeactivatedAt,
-            ExpiresAt = sessionRole.ExpiresAt,
+            ActivatedTime = sessionRole.ActivatedTime,
+            DeactivatedTime = sessionRole.DeactivatedTime,
+            ExpirationTime = sessionRole.ExpirationTime,
             IsExpired = IsExpired(sessionRole, now),
             Status = sessionRole.Status,
             CreatedTime = sessionRole.CreatedTime
@@ -92,9 +92,9 @@ public static class SessionRoleApplicationMapper
             RoleId = item.RoleId,
             RoleCode = item.RoleCode,
             RoleName = item.RoleName,
-            ActivatedAt = item.ActivatedAt,
-            DeactivatedAt = item.DeactivatedAt,
-            ExpiresAt = item.ExpiresAt,
+            ActivatedTime = item.ActivatedTime,
+            DeactivatedTime = item.DeactivatedTime,
+            ExpirationTime = item.ExpirationTime,
             IsExpired = item.IsExpired,
             Status = item.Status,
             Reason = sessionRole.Reason,
@@ -109,6 +109,6 @@ public static class SessionRoleApplicationMapper
     /// </summary>
     private static bool IsExpired(SysSessionRole sessionRole, DateTimeOffset now)
     {
-        return sessionRole.ExpiresAt.HasValue && sessionRole.ExpiresAt.Value <= now;
+        return sessionRole.ExpirationTime.HasValue && sessionRole.ExpirationTime.Value <= now;
     }
 }

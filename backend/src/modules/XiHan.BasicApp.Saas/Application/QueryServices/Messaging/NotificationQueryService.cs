@@ -208,7 +208,7 @@ public sealed class NotificationQueryService
         }
 
         AddTimeRange(request, nameof(SysNotification.SendTime), input.SendTimeStart, input.SendTimeEnd);
-        AddTimeRange(request, nameof(SysNotification.ExpireTime), input.ExpireTimeStart, input.ExpireTimeEnd);
+        AddTimeRange(request, nameof(SysNotification.ExpirationTime), input.ExpirationTimeStart, input.ExpirationTimeEnd);
         request.Conditions.AddSort((SysNotification notification) => notification.SendTime, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysNotification notification) => notification.CreatedTime, SortDirection.Descending, 1);
         return request;

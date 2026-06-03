@@ -171,27 +171,27 @@ public sealed class SessionRoleQueryService
             request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.Status, input.Status.Value);
         }
 
-        if (input.ActivatedAtStart.HasValue)
+        if (input.ActivatedTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ActivatedAt, input.ActivatedAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ActivatedTime, input.ActivatedTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.ActivatedAtEnd.HasValue)
+        if (input.ActivatedTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ActivatedAt, input.ActivatedAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ActivatedTime, input.ActivatedTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        if (input.ExpiresAtStart.HasValue)
+        if (input.ExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ExpiresAt, input.ExpiresAtStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ExpirationTime, input.ExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.ExpiresAtEnd.HasValue)
+        if (input.ExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ExpiresAt, input.ExpiresAtEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysSessionRole sessionRole) => sessionRole.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort((SysSessionRole sessionRole) => sessionRole.ActivatedAt, SortDirection.Descending, 0);
+        request.Conditions.AddSort((SysSessionRole sessionRole) => sessionRole.ActivatedTime, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysSessionRole sessionRole) => sessionRole.CreatedTime, SortDirection.Descending, 1);
         return request;
     }
@@ -209,8 +209,8 @@ public sealed class SessionRoleQueryService
             ValidateEnum(input.Status.Value, nameof(input.Status));
         }
 
-        ValidateRange(input.ActivatedAtStart, input.ActivatedAtEnd, nameof(input.ActivatedAtStart), "激活开始时间不能晚于结束时间。");
-        ValidateRange(input.ExpiresAtStart, input.ExpiresAtEnd, nameof(input.ExpiresAtStart), "过期开始时间不能晚于结束时间。");
+        ValidateRange(input.ActivatedTimeStart, input.ActivatedTimeEnd, nameof(input.ActivatedTimeStart), "激活开始时间不能晚于结束时间。");
+        ValidateRange(input.ExpirationTimeStart, input.ExpirationTimeEnd, nameof(input.ExpirationTimeStart), "过期开始时间不能晚于结束时间。");
     }
 
     /// <summary>

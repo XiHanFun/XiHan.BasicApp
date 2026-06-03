@@ -40,20 +40,20 @@ public sealed class SessionRolePageQueryDto : BasicAppPRDto
     /// <summary>
     /// 激活开始时间
     /// </summary>
-    public DateTimeOffset? ActivatedAtStart { get; set; }
+    public DateTimeOffset? ActivatedTimeStart { get; set; }
 
     /// <summary>
     /// 激活结束时间
     /// </summary>
-    public DateTimeOffset? ActivatedAtEnd { get; set; }
+    public DateTimeOffset? ActivatedTimeEnd { get; set; }
 
     /// <summary>
     /// 过期开始时间
     /// </summary>
-    public DateTimeOffset? ExpiresAtStart { get; set; }
+    public DateTimeOffset? ExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 过期结束时间
     /// </summary>
-    public DateTimeOffset? ExpiresAtEnd { get; set; }
+    public DateTimeOffset? ExpirationTimeEnd { get; set; }
 }

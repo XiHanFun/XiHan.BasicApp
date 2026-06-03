@@ -40,7 +40,7 @@ public enum SessionStatus
     Revoked = 2,
 
     /// <summary>
-    /// 已过期（超过绝对过期时间 ExpiresAt，自动失效）
+    /// 已过期（超过绝对过期时间 ExpirationTime，自动失效）
     /// </summary>
     [Description("已过期")]
     Expired = 3

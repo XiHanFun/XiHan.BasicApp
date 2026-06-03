@@ -42,7 +42,7 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
 
         return await DbClient.Updateable<SysUserSession>()
             .SetColumns(session => session.Status == SessionStatus.Revoked)
-            .SetColumns(session => session.RevokedAt == DateTimeOffset.UtcNow)
+            .SetColumns(session => session.RevokedTime == DateTimeOffset.UtcNow)
             .Where(session => session.UserId == userId && session.Status == SessionStatus.Active)
             .ExecuteCommandAsync(cancellationToken);
     }

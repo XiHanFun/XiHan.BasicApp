@@ -75,10 +75,10 @@ public sealed class NotificationPageQueryDto : BasicAppPRDto
     /// <summary>
     /// 过期时间起始
     /// </summary>
-    public DateTimeOffset? ExpireTimeStart { get; set; }
+    public DateTimeOffset? ExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 过期时间结束
     /// </summary>
-    public DateTimeOffset? ExpireTimeEnd { get; set; }
+    public DateTimeOffset? ExpirationTimeEnd { get; set; }
 }

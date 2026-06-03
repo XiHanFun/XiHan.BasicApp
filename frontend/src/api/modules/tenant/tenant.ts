@@ -47,8 +47,8 @@ function toTenantPageParams(input: TenantPageQueryDto) {
 
   appendDynamicApiParam(params, 'ConfigStatus', input.configStatus)
   appendDynamicApiParam(params, 'EditionId', input.editionId)
-  appendDynamicApiParam(params, 'ExpireTimeEnd', input.expireTimeEnd)
-  appendDynamicApiParam(params, 'ExpireTimeStart', input.expireTimeStart)
+  appendDynamicApiParam(params, 'ExpirationTimeEnd', input.expirationTimeEnd)
+  appendDynamicApiParam(params, 'ExpirationTimeStart', input.expirationTimeStart)
   appendDynamicApiParam(params, 'Keyword', input.keyword)
   appendDynamicApiParam(params, 'TenantStatus', input.tenantStatus)
 

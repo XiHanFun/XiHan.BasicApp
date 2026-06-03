@@ -108,7 +108,7 @@ export interface UserSelectItemDto extends BasicDto {
 
 export interface UserPasswordResetDto {
   newPassword: string
-  passwordExpiryTime?: DateTimeString | null
+  passwordExpirationTime?: DateTimeString | null
   remark?: string | null
   userId: ApiId
 }

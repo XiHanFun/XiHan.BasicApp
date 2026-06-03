@@ -100,7 +100,7 @@ public sealed class FileUploadedEventHandler : ILocalEventHandler<FileUploadedDo
                 StoragePath = eventData.FileName,
                 IsPrimary = true,
                 Status = FileStorageStatus.Normal,
-                UploadedAt = now,
+                UploadedTime = now,
                 TenantId = eventData.TenantId
             };
 

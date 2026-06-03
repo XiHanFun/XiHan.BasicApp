@@ -62,7 +62,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsRe", nameof(IsRevoked), OrderByType.Asc)]
-[SugarIndex("IX_{table}_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_AcToExTi", nameof(AccessTokenExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_PaTo", nameof(ParentTokenId), OrderByType.Asc)]
 public partial class SysOAuthToken : BasicAppCreationEntity
 {
@@ -148,13 +148,13 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     /// 访问令牌过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "访问令牌过期时间")]
-    public virtual DateTimeOffset AccessTokenExpiresTime { get; set; }
+    public virtual DateTimeOffset AccessTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 刷新令牌过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "刷新令牌过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? RefreshTokenExpiresTime { get; set; }
+    public virtual DateTimeOffset? RefreshTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已撤销

@@ -37,7 +37,7 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
         return await CreateQueryable()
             .Where(storage => storage.FileId == fileId)
             .OrderByDescending(storage => storage.IsPrimary)
-            .OrderBy(storage => storage.SortOrder)
+            .OrderBy(storage => storage.Sort)
             .OrderBy(storage => storage.StorageType)
             .ToListAsync(cancellationToken);
     }
@@ -54,7 +54,7 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
 
         return await CreateQueryable()
             .Where(storage => storage.FileId == fileId && storage.IsPrimary)
-            .OrderBy(storage => storage.SortOrder)
+            .OrderBy(storage => storage.Sort)
             .FirstAsync(cancellationToken);
     }
 

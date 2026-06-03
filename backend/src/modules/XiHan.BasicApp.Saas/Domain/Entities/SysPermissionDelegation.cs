@@ -52,7 +52,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_DrId", nameof(DelegatorUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DeId", nameof(DelegateeUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_DeSt", nameof(TenantId), OrderByType.Asc, nameof(DelegationStatus), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 public partial class SysPermissionDelegation : BasicAppFullAuditedEntity
 {
     /// <summary>

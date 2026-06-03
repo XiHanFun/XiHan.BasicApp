@@ -46,8 +46,8 @@ function toNotificationPageParams(input: NotificationPageQueryDto) {
 
   appendDynamicApiParam(params, 'BusinessId', input.businessId)
   appendDynamicApiParam(params, 'BusinessType', input.businessType)
-  appendDynamicApiParam(params, 'ExpireTimeEnd', input.expireTimeEnd)
-  appendDynamicApiParam(params, 'ExpireTimeStart', input.expireTimeStart)
+  appendDynamicApiParam(params, 'ExpirationTimeEnd', input.expirationTimeEnd)
+  appendDynamicApiParam(params, 'ExpirationTimeStart', input.expirationTimeStart)
   appendDynamicApiParam(params, 'IsPublished', input.isPublished)
   appendDynamicApiParam(params, 'Keyword', input.keyword)
   appendDynamicApiParam(params, 'NeedConfirm', input.needConfirm)

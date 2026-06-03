@@ -36,7 +36,7 @@ public partial class SysFile
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
     [SugarColumn(IsIgnore = true)]
-    public virtual bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < DateTimeOffset.UtcNow;
+    public virtual bool IsExpired => ExpirationTime.HasValue && ExpirationTime.Value < DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 获取主存储
@@ -74,7 +74,7 @@ public partial class SysFile
     /// <returns></returns>
     public List<SysFileStorage> GetAvailableStorages()
     {
-        return Storages?.Where(s => s.Status == FileStorageStatus.Normal).OrderBy(s => s.SortOrder).ToList() ?? [];
+        return Storages?.Where(s => s.Status == FileStorageStatus.Normal).OrderBy(s => s.Sort).ToList() ?? [];
     }
 
     /// <summary>
@@ -221,7 +221,7 @@ public partial class SysFile
     public void SetExpiration(int hours)
     {
         IsTemporary = true;
-        ExpiresAt = DateTimeOffset.UtcNow.AddHours(hours);
+        ExpirationTime = DateTimeOffset.UtcNow.AddHours(hours);
     }
 
     /// <summary>

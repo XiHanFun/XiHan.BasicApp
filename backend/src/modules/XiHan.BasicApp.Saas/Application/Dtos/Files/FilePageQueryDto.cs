@@ -65,10 +65,10 @@ public sealed class FilePageQueryDto : BasicAppPRDto
     /// <summary>
     /// 过期时间起始
     /// </summary>
-    public DateTimeOffset? ExpiresAtStart { get; set; }
+    public DateTimeOffset? ExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 过期时间结束
     /// </summary>
-    public DateTimeOffset? ExpiresAtEnd { get; set; }
+    public DateTimeOffset? ExpirationTimeEnd { get; set; }
 }

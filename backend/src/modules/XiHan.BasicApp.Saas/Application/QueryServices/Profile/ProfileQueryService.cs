@@ -208,7 +208,7 @@ public sealed class ProfileQueryService
         var sessions = await _userSessionRepository.GetListAsync(
             session => session.UserId == userId &&
                        session.Status != SessionStatus.Revoked &&
-                       SqlFunc.IsNull(session.ExpiresAt, expireFallback) > now,
+                       SqlFunc.IsNull(session.ExpirationTime, expireFallback) > now,
             cancellationToken);
 
         return [.. sessions

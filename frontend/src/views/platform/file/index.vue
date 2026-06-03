@@ -826,7 +826,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
             </div>
           </NDescriptionsItem>
           <NDescriptionsItem label="过期时间">
-            {{ formatDateTime(currentFileDetail.expiresAt) }}
+            {{ formatDateTime(currentFileDetail.expirationTime) }}
           </NDescriptionsItem>
           <NDescriptionsItem label="创建时间">
             {{ formatDateTime(currentFileDetail.createdTime) }}
@@ -909,13 +909,13 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
             </div>
           </NDescriptionsItem>
           <NDescriptionsItem label="上传时间">
-            {{ formatDateTime(currentStorageDetail.uploadedAt) }}
+            {{ formatDateTime(currentStorageDetail.uploadedTime) }}
           </NDescriptionsItem>
           <NDescriptionsItem label="最后验证">
-            {{ formatDateTime(currentStorageDetail.lastVerifiedAt) }}
+            {{ formatDateTime(currentStorageDetail.lastVerifiedTime) }}
           </NDescriptionsItem>
           <NDescriptionsItem label="同步时间">
-            {{ formatDateTime(currentStorageDetail.syncedAt) }}
+            {{ formatDateTime(currentStorageDetail.syncedTime) }}
           </NDescriptionsItem>
           <NDescriptionsItem label="创建时间">
             {{ formatDateTime(currentStorageDetail.createdTime) }}
