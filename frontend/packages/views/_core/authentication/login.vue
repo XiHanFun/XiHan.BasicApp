@@ -39,13 +39,19 @@ const loginConfig = ref<LoginConfig>({
 
 // ==================== 2FA 三阶段状态 ====================
 
-/** 阶段：credentials | code-input */
-const tfStage = ref<'code-input' | 'credentials'>('credentials')
+/** 阶段：credentials | method-select | code-input */
+const tfStage = ref<'code-input' | 'credentials' | 'method-select'>('credentials')
 const availableMethods = ref<string[]>([])
 const selectedMethod = ref('')
 const twoFactorCode = ref<string[]>([])
 const codeSent = ref(false)
 const sendingCode = ref(false)
+
+const methodLabels: Record<string, string> = {
+  totp: '认证器（Authenticator）',
+  email: '邮箱验证码',
+  phone: '手机短信验证码',
+}
 
 const methodIcons: Record<string, string> = {
   totp: 'lucide:smartphone',
@@ -126,11 +132,6 @@ function buildLoginParams() {
   }
 }
 
-/** 配置多种 2FA 方式时只采用一种：优先 TOTP（无需发送验证码），否则取第一种 */
-function pickPreferredMethod(methods: string[]) {
-  return methods.includes('totp') ? 'totp' : methods[0]!
-}
-
 async function handleLogin() {
   try {
     if (tfStage.value === 'credentials') {
@@ -154,10 +155,15 @@ async function handleLogin() {
       codeSent.value = result.codeSent ?? false
       tfStage.value = 'code-input'
     }
-    else if (availableMethods.value.length) {
-      // 无论配置了多少种验证方式，都只自动采用一种（优先免发送验证码的 TOTP），不再让用户手动选择
-      selectedMethod.value = pickPreferredMethod(availableMethods.value)
+    else if (availableMethods.value.length === 1) {
+      // 仅一种方式可用，自动选中并进入下一步
+      selectedMethod.value = availableMethods.value[0]!
       await handleSelectMethod()
+    }
+    else if (availableMethods.value.length > 1) {
+      // 配置了多种双因素方式：全部列出，由用户任选一种进行验证
+      tfStage.value = 'method-select'
+      selectedMethod.value = availableMethods.value[0] ?? ''
     }
   }
   catch (err: unknown) {
@@ -174,6 +180,7 @@ async function handleLogin() {
 /** 用户选好方式后，发起带 twoFactorMethod 的登录请求 */
 async function handleSelectMethod() {
   if (!selectedMethod.value) {
+    message.warning('请选择验证方式')
     return
   }
 
@@ -227,6 +234,13 @@ async function handleResendCode() {
 function handleOtpComplete(codes: string[]) {
   twoFactorCode.value = codes
   nextTick(() => handleLogin())
+}
+
+/** 返回双因素方式选择（多种方式时可换一种验证） */
+function handleBackToMethodSelect() {
+  tfStage.value = 'method-select'
+  twoFactorCode.value = []
+  codeSent.value = false
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -310,14 +324,82 @@ onMounted(async () => {
           {{ t('page.auth.two_factor_verify') }}
         </NButton>
 
+        <div class="flex gap-2 mt-3">
+          <NButton
+            v-if="selectedMethod !== 'totp'"
+            class="!h-11 flex-1 !rounded-xl"
+            quaternary
+            :loading="sendingCode"
+            @click="handleResendCode"
+          >
+            重新发送
+          </NButton>
+          <NButton
+            v-if="availableMethods.length > 1"
+            class="!h-11 flex-1 !rounded-xl"
+            quaternary
+            @click="handleBackToMethodSelect"
+          >
+            换种方式
+          </NButton>
+        </div>
+      </div>
+
+      <!-- 阶段2：选择双因素验证方式（配置多种时全部列出，任选其一） -->
+      <div v-else-if="tfStage === 'method-select'" key="method-select">
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div
+              class="flex justify-center items-center w-11 h-11 rounded-xl"
+              :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
+            >
+              <NIcon :size="22" :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'">
+                <Icon icon="lucide:shield-check" />
+              </NIcon>
+            </div>
+            <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
+              选择验证方式
+            </h1>
+          </div>
+          <p
+            class="text-[15px] leading-7"
+            :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+          >
+            您的账号已开启两步验证，请选择一种方式进行身份验证
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 mb-6">
+          <button
+            v-for="m in availableMethods"
+            :key="m"
+            type="button"
+            class="flex items-center gap-3 px-4 w-full h-14 rounded-xl border transition-colors"
+            :class="selectedMethod === m
+              ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)]'
+              : isDark ? 'border-white/10 hover:border-white/25' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)]'"
+            @click="selectedMethod = m"
+          >
+            <NIcon
+              :size="20"
+              :class="selectedMethod === m
+                ? 'text-[hsl(var(--primary))]'
+                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+            >
+              <Icon :icon="methodIcons[m] || 'lucide:shield-check'" />
+            </NIcon>
+            <span class="text-[15px]">{{ methodLabels[m] || m }}</span>
+          </button>
+        </div>
+
         <NButton
-          v-if="selectedMethod !== 'totp'"
-          class="!mt-3 !h-11 w-full !rounded-xl"
-          quaternary
+          type="primary"
+          block
           :loading="sendingCode"
-          @click="handleResendCode"
+          class="!h-12 !rounded-xl !text-[15px] !font-semibold"
+          @click="handleSelectMethod"
         >
-          重新发送
+          继续
         </NButton>
       </div>
 
