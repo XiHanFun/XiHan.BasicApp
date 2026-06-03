@@ -1,4 +1,5 @@
 import type {
+  EmailLoginParams,
   LoginConfig,
   LoginParams,
   LoginResponse,
@@ -122,12 +123,14 @@ export interface AppContextApis extends Record<string, unknown> {
   getProfileApi: () => Promise<UserProfile>
   getSessionsApi: () => Promise<UserSessionItem[]>
   getUserInfoApi: () => Promise<UserInfo>
+  emailLoginApi: (input: EmailLoginParams) => Promise<LoginToken>
   loginApi: (input: LoginParams) => Promise<LoginResponse>
   logoutApi: () => Promise<unknown>
   operationLogApi: {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
   }
   phoneLoginApi: (input: PhoneLoginParams) => Promise<LoginToken>
+  sendEmailLoginCodeApi: (email: string, tenantId?: null | string) => Promise<VerificationCodeResult>
   registerApi: (input: unknown) => Promise<unknown>
   requestPasswordResetApi: (email: string, scopeId?: string) => Promise<PasswordResetResult>
   revokeOtherSessionsApi: () => Promise<unknown>
