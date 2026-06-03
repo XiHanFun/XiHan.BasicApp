@@ -92,7 +92,7 @@ public sealed class ProfileDomainService
         var now = DateTimeOffset.UtcNow;
         security.Password = _passwordHasher.HashPassword(command.NewPassword);
         security.LastPasswordChangeTime = now;
-        security.PasswordExpiryTime = null;
+        security.PasswordExpirationTime = null;
         security.SecurityStamp = NewSecurityStamp();
         security.FailedLoginAttempts = 0;
         security.LastFailedLoginTime = null;
@@ -512,7 +512,7 @@ public sealed class ProfileDomainService
     {
         var now = DateTimeOffset.UtcNow;
         session.Status = SessionStatus.Revoked;
-        session.RevokedAt = now;
+        session.RevokedTime = now;
         session.RevokedReason = NormalizeNullable(reason, 200);
         session.LogoutTime ??= now;
         session.LastActivityTime = now;

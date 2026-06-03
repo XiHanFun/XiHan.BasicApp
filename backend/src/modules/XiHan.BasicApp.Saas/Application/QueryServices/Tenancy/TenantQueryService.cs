@@ -181,14 +181,14 @@ public sealed class TenantQueryService
             request.Conditions.AddFilter((SysTenant tenant) => tenant.EditionId, input.EditionId.Value);
         }
 
-        if (input.ExpireTimeStart.HasValue)
+        if (input.ExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysTenant tenant) => tenant.ExpireTime, input.ExpireTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysTenant tenant) => tenant.ExpirationTime, input.ExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.ExpireTimeEnd.HasValue)
+        if (input.ExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysTenant tenant) => tenant.ExpireTime, input.ExpireTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysTenant tenant) => tenant.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         request.Conditions.AddSort((SysTenant tenant) => tenant.Sort, SortDirection.Ascending, 0);

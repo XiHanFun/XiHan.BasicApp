@@ -75,7 +75,7 @@ public class FileStorageListItemDto : BasicAppDto
     /// <summary>
     /// 上传时间
     /// </summary>
-    public DateTimeOffset? UploadedAt { get; set; }
+    public DateTimeOffset? UploadedTime { get; set; }
 
     /// <summary>
     /// 上传耗时
@@ -90,7 +90,7 @@ public class FileStorageListItemDto : BasicAppDto
     /// <summary>
     /// 最后验证时间
     /// </summary>
-    public DateTimeOffset? LastVerifiedAt { get; set; }
+    public DateTimeOffset? LastVerifiedTime { get; set; }
 
     /// <summary>
     /// 是否已验证
@@ -105,7 +105,7 @@ public class FileStorageListItemDto : BasicAppDto
     /// <summary>
     /// 同步时间
     /// </summary>
-    public DateTimeOffset? SyncedAt { get; set; }
+    public DateTimeOffset? SyncedTime { get; set; }
 
     /// <summary>
     /// 同步源存储主键
@@ -130,7 +130,7 @@ public class FileStorageListItemDto : BasicAppDto
     /// <summary>
     /// 排序号
     /// </summary>
-    public int SortOrder { get; set; }
+    public int Sort { get; set; }
 
     /// <summary>
     /// 创建时间

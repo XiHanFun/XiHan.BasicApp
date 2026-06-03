@@ -70,17 +70,17 @@ public class SessionRoleListItemDto : BasicAppDto
     /// <summary>
     /// 激活时间
     /// </summary>
-    public DateTimeOffset ActivatedAt { get; set; }
+    public DateTimeOffset ActivatedTime { get; set; }
 
     /// <summary>
     /// 停用时间
     /// </summary>
-    public DateTimeOffset? DeactivatedAt { get; set; }
+    public DateTimeOffset? DeactivatedTime { get; set; }
 
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已过期

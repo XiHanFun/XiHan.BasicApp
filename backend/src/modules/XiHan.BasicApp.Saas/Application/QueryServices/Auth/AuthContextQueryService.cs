@@ -61,7 +61,7 @@ public sealed class AuthContextQueryService
             throw new InvalidOperationException("租户尚未完成初始化配置。");
         }
 
-        if (tenant.ExpireTime.HasValue && tenant.ExpireTime.Value <= now)
+        if (tenant.ExpirationTime.HasValue && tenant.ExpirationTime.Value <= now)
         {
             throw new InvalidOperationException("租户已过期。");
         }

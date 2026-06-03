@@ -51,9 +51,9 @@ public static class UserSessionApplicationMapper
             LoginTime = session.LoginTime,
             LastActivityTime = session.LastActivityTime,
             Status = session.Status,
-            RevokedAt = session.RevokedAt,
+            RevokedTime = session.RevokedTime,
             LogoutTime = session.LogoutTime,
-            ExpiresAt = session.ExpiresAt,
+            ExpirationTime = session.ExpirationTime,
             IsExpired = IsExpired(session, now),
             CreatedTime = session.CreatedTime,
             ModifiedTime = session.ModifiedTime
@@ -89,10 +89,10 @@ public static class UserSessionApplicationMapper
             LoginTime = item.LoginTime,
             LastActivityTime = item.LastActivityTime,
             Status = item.Status,
-            RevokedAt = item.RevokedAt,
+            RevokedTime = item.RevokedTime,
             RevokedReason = session.RevokedReason,
             LogoutTime = item.LogoutTime,
-            ExpiresAt = item.ExpiresAt,
+            ExpirationTime = item.ExpirationTime,
             IsExpired = item.IsExpired,
             Remark = session.Remark,
             CreatedTime = item.CreatedTime,
@@ -127,7 +127,7 @@ public static class UserSessionApplicationMapper
     /// </summary>
     private static bool IsExpired(SysUserSession session, DateTimeOffset now)
     {
-        return session.ExpiresAt.HasValue && session.ExpiresAt.Value <= now;
+        return session.ExpirationTime.HasValue && session.ExpirationTime.Value <= now;
     }
 
     /// <summary>

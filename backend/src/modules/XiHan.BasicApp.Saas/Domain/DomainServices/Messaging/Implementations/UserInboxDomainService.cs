@@ -58,7 +58,7 @@ public sealed class UserInboxDomainService
             BusinessType = NormalizeNullable(command.BusinessType, 50),
             BusinessId = command.BusinessId,
             SendTime = now,
-            ExpireTime = null,
+            ExpirationTime = null,
             TargetType = NotificationTargetType.User,
             TargetValue = $"[{command.UserId}]",
             NeedConfirm = command.NeedConfirm,

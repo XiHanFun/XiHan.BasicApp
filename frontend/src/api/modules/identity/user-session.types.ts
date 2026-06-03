@@ -32,7 +32,7 @@ export interface UserSessionListItemDto extends BasicDto {
   deviceIdMasked?: string | null
   deviceName?: string | null
   deviceType: DeviceType
-  expiresAt?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   ipAddressMasked?: string | null
   isExpired: boolean
   isOnline: boolean
@@ -44,7 +44,7 @@ export interface UserSessionListItemDto extends BasicDto {
   nickName?: string | null
   operatingSystem?: string | null
   realName?: string | null
-  revokedAt?: DateTimeString | null
+  revokedTime?: DateTimeString | null
   userId: ApiId
   userName?: string | null
   userSessionId: string

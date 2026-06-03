@@ -68,7 +68,7 @@ public sealed record UserStatusChangeCommand(long BasicId, EnableStatus Status, 
 /// <summary>
 /// 用户密码重置命令
 /// </summary>
-public sealed record UserPasswordResetCommand(long UserId, string NewPassword, DateTimeOffset? PasswordExpiryTime, string? Remark);
+public sealed record UserPasswordResetCommand(long UserId, string NewPassword, DateTimeOffset? PasswordExpirationTime, string? Remark);
 
 /// <summary>
 /// 用户锁定状态变更命令

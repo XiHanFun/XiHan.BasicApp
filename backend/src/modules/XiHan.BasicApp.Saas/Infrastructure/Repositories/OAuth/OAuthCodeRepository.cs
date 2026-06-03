@@ -41,7 +41,7 @@ public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
         cancellationToken.ThrowIfCancellationRequested();
 
         return await DbClient.Deleteable<SysOAuthCode>()
-            .Where(code => code.ExpiresTime < now)
+            .Where(code => code.ExpirationTime < now)
             .ExecuteCommandAsync(cancellationToken);
     }
 }

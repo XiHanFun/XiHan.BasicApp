@@ -61,9 +61,9 @@ public partial class SysFileStorage
     public void MarkUploadSuccess()
     {
         Status = FileStorageStatus.Normal;
-        UploadedAt = DateTimeOffset.UtcNow;
+        UploadedTime = DateTimeOffset.UtcNow;
         IsSynced = true;
-        SyncedAt = DateTimeOffset.UtcNow;
+        SyncedTime = DateTimeOffset.UtcNow;
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public partial class SysFileStorage
     {
         Status = FileStorageStatus.Normal;
         IsSynced = true;
-        SyncedAt = DateTimeOffset.UtcNow;
+        SyncedTime = DateTimeOffset.UtcNow;
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public partial class SysFileStorage
     public void MarkVerified()
     {
         IsVerified = true;
-        LastVerifiedAt = DateTimeOffset.UtcNow;
+        LastVerifiedTime = DateTimeOffset.UtcNow;
         Status = FileStorageStatus.Normal;
     }
 
@@ -137,12 +137,12 @@ public partial class SysFileStorage
             return true;
         }
 
-        if (!LastVerifiedAt.HasValue)
+        if (!LastVerifiedTime.HasValue)
         {
             return true;
         }
 
-        return DateTimeOffset.UtcNow - LastVerifiedAt.Value > TimeSpan.FromHours(verifyIntervalHours);
+        return DateTimeOffset.UtcNow - LastVerifiedTime.Value > TimeSpan.FromHours(verifyIntervalHours);
     }
 
     /// <summary>

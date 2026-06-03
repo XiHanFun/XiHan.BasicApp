@@ -70,7 +70,7 @@ public class NotificationListItemDto : BasicAppDto
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset? ExpireTime { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 通知目标类型

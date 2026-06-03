@@ -55,7 +55,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId", nameof(UserId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_LoEnTi", nameof(LockoutEndTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_LoEnTi", nameof(LockoutEndTime), OrderByType.Desc)]
 public partial class SysUserSecurity : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -82,7 +82,7 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     /// 密码过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "密码过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? PasswordExpiryTime { get; set; }
+    public virtual DateTimeOffset? PasswordExpirationTime { get; set; }
 
     /// <summary>
     /// 失败登录次数

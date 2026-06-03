@@ -10,8 +10,8 @@ import type {
 export interface TenantPageQueryDto extends PageRequest {
   configStatus?: TenantConfigStatus | null
   editionId?: ApiId | null
-  expireTimeEnd?: DateTimeString | null
-  expireTimeStart?: DateTimeString | null
+  expirationTimeEnd?: DateTimeString | null
+  expirationTimeStart?: DateTimeString | null
   keyword?: string | null
   tenantStatus?: TenantStatus | null
 }
@@ -21,7 +21,7 @@ export interface TenantListItemDto extends BasicDto {
   createdTime: DateTimeString
   domain?: string | null
   editionId?: ApiId | null
-  expireTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   isExpired: boolean
   isolationMode: TenantIsolationMode
   logo?: string | null
@@ -45,7 +45,7 @@ export interface TenantDetailDto extends TenantListItemDto {
 export interface TenantCreateDto extends BasicCreateDto {
   domain?: string | null
   editionId?: ApiId | null
-  expireTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   isolationMode: TenantIsolationMode
   logo?: string | null
   remark?: string | null
@@ -60,7 +60,7 @@ export interface TenantCreateDto extends BasicCreateDto {
 export interface TenantUpdateDto extends BasicUpdateDto {
   domain?: string | null
   editionId?: ApiId | null
-  expireTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   isolationMode: TenantIsolationMode
   logo?: string | null
   remark?: string | null
@@ -79,7 +79,7 @@ export interface TenantStatusUpdateDto extends BasicDto {
 export interface TenantSwitcherDto {
   configStatus: TenantConfigStatus
   domain?: string | null
-  expireTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   inviteStatus: TenantMemberInviteStatus
   isCurrent: boolean
   logo?: string | null

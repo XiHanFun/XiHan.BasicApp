@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - 编辑阶段 IsPublished=false；发布后 IsPublished=true + SendTime
 /// - 发布时按 TargetType（All/Role/Department/User）展开生成 SysUserNotification 记录
-/// - 可选 ExpiresAt 控制消息过期自动隐藏
+/// - 可选 ExpirationTime 控制消息过期自动隐藏
 ///
 /// 查询：
 /// - 租户最近发布：IX_TeId_SeTi
@@ -118,7 +118,7 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpireTime { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 通知目标类型（All=全员, Role=角色, Department=部门, User=指定用户）

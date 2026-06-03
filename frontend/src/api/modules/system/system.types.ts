@@ -63,7 +63,7 @@ export interface UserManagementSecurityDto extends BasicDto {
   modifiedId?: ApiId | null
   modifiedTime?: DateTimeString | null
   nickName?: string | null
-  passwordExpiryTime?: DateTimeString | null
+  passwordExpirationTime?: DateTimeString | null
   phoneVerified: boolean
   realName?: string | null
   remark?: string | null

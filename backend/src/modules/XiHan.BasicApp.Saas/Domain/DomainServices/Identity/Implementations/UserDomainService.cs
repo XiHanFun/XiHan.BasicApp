@@ -321,7 +321,7 @@ public sealed class UserDomainService
         var now = DateTimeOffset.UtcNow;
         security.Password = _passwordHasher.HashPassword(command.NewPassword);
         security.LastPasswordChangeTime = now;
-        security.PasswordExpiryTime = command.PasswordExpiryTime;
+        security.PasswordExpirationTime = command.PasswordExpirationTime;
         security.FailedLoginAttempts = 0;
         security.LastFailedLoginTime = null;
         security.SecurityStamp = NewSecurityStamp();
@@ -1017,7 +1017,7 @@ public sealed class UserDomainService
     private static void RevokeSession(SysUserSession session, string reason, DateTimeOffset now)
     {
         session.Status = SessionStatus.Revoked;
-        session.RevokedAt = now;
+        session.RevokedTime = now;
         session.RevokedReason = reason;
         session.LogoutTime ??= now;
         session.LastActivityTime = now;
@@ -1155,7 +1155,7 @@ public sealed class UserDomainService
         }
 
         ArgumentException.ThrowIfNullOrWhiteSpace(command.NewPassword);
-        if (command.PasswordExpiryTime.HasValue && command.PasswordExpiryTime.Value <= DateTimeOffset.UtcNow)
+        if (command.PasswordExpirationTime.HasValue && command.PasswordExpirationTime.Value <= DateTimeOffset.UtcNow)
         {
             throw new ArgumentOutOfRangeException(nameof(command), "密码过期时间必须晚于当前时间。");
         }
