@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { NAvatar } from 'naive-ui'
 import { computed } from 'vue'
-import { useAvatarUrl } from '~/composables'
+import { XUserAvatar } from '~/components'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
@@ -14,17 +13,10 @@ const props = defineProps<{
 }>()
 
 const userStore = useUserStore()
-const avatarDisplayUrl = useAvatarUrl(computed(() => props.profile?.avatar || userStore.avatar))
 
 /** 显示名 / 用户名 */
 const displayName = computed(() => props.profile?.nickName || props.profile?.userName || userStore.nickname || '—')
 const userName = computed(() => props.profile?.userName || '—')
-
-/** 首字母回退 */
-const initials = computed(() => {
-  const n = displayName.value
-  return n && n !== '—' ? n.substring(0, 2) : '?'
-})
 
 /** 状态 chips */
 const chips = computed(() => {
@@ -58,16 +50,11 @@ const metaItems = computed(() => {
   <div class="pf-usercard">
     <div class="pf-usercard__top">
       <div class="pf-usercard__avatar">
-        <NAvatar
-          v-if="avatarDisplayUrl"
-          round
+        <XUserAvatar
           :size="56"
-          :src="avatarDisplayUrl"
-          object-fit="cover"
+          :avatar="props.profile?.avatar || userStore.avatar"
+          :name="displayName"
         />
-        <div v-else class="pf-usercard__avatar-text">
-          {{ initials }}
-        </div>
       </div>
       <div class="pf-usercard__id">
         <div class="pf-usercard__name">
@@ -119,19 +106,6 @@ const metaItems = computed(() => {
 
 .pf-usercard__avatar {
   flex-shrink: 0;
-}
-
-.pf-usercard__avatar-text {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-  font-weight: 700;
-  color: hsl(var(--primary));
-  background: hsl(var(--primary) / 12%);
-  border: 1px solid hsl(var(--primary) / 20%);
 }
 
 .pf-usercard__id {

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
 import {
-  NAvatar,
   NButton,
   NCard,
   NIcon,
@@ -14,7 +13,7 @@ import {
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
 import { fileApi, ResourceAccessLevel } from '@/api'
-import { useAvatarUrl } from '~/composables'
+import { XUserAvatar } from '~/components'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 
@@ -112,8 +111,6 @@ const avatarRemoving = ref(false)
 
 /** 头像原始值（fileId 或旧数据的直链），用于按钮禁用判断与持久化对比 */
 const currentAvatar = computed(() => props.profile?.avatar || userStore.avatar)
-/** 解析后的可显示 URL（fileId → 预签名 URL；直链原样；空值交由 fallback 兜底） */
-const avatarDisplayUrl = useAvatarUrl(currentAvatar)
 
 /** 把头像写入资料并同步全局状态（与 profileForm 合并提交，避免覆盖其它字段） */
 async function persistAvatar(avatar: string) {
@@ -473,10 +470,10 @@ function cancelChange() {
       <div class="pf-section__body">
         <div class="pf-setting-row">
           <div class="pf-avatar-section">
-            <NAvatar
-              round :size="56"
-              :src="avatarDisplayUrl"
-              :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`"
+            <XUserAvatar
+              :size="56"
+              :avatar="currentAvatar"
+              :name="userStore.nickname"
             />
             <div class="pf-avatar-info">
               <div class="pf-setting-row__label">
