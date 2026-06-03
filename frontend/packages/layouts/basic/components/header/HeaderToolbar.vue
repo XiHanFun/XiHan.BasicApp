@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { HeaderToolbarPropsContract } from '../../contracts'
 import type { NotificationItem } from '~/stores'
-import { NAvatar, NDropdown } from 'naive-ui'
-import { computed } from 'vue'
-import { useAvatarUrl } from '~/composables'
+import { NDropdown } from 'naive-ui'
+import { XUserAvatar } from '~/components'
 import { Icon } from '~/iconify'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
@@ -33,9 +32,6 @@ const emit = defineEmits<{
   preferencesOpen: []
   userAction: [key: string]
 }>()
-
-// 头像存 fileId，显示时换取预签名 URL；直链/空值兼容处理
-const avatarDisplayUrl = useAvatarUrl(computed(() => props.userStore.avatar))
 </script>
 
 <template>
@@ -130,11 +126,10 @@ const avatarDisplayUrl = useAvatarUrl(computed(() => props.userStore.avatar))
         type="button"
         class="user-btn ml-1 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1"
       >
-        <NAvatar
-          round
+        <XUserAvatar
           :size="28"
-          :src="avatarDisplayUrl"
-          :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${props.userStore.nickname}`"
+          :avatar="props.userStore.avatar"
+          :name="props.userStore.nickname || props.userStore.username"
         />
         <span class="hidden max-w-[96px] truncate text-sm text-foreground sm:block">
           {{ props.userStore.nickname || props.userStore.username }}
