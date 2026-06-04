@@ -29,6 +29,9 @@ export type {
   ViewSchema,
 } from './types'
 
+export { useSchemaDictionaries } from './useSchemaDictionaries'
+export type { UseSchemaDictionaries } from './useSchemaDictionaries'
+
 export { useSchemaTable } from './useSchemaTable'
 export type { UseSchemaTableOptions } from './useSchemaTable'
 
