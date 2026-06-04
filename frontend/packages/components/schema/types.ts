@@ -210,6 +210,8 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   views?: ViewSchema[]
   /** 行主键字段，默认 'basicId' */
   rowKey?: string
+  /** 启用内置批量删除（依赖 resource.remove；选中后批量浮条出现「批量删除」，框架统一确认/并发删除/刷新） */
+  batchRemovable?: boolean
   /** 表格横向滚动宽度 */
   scrollX?: number
   /** 默认每页数量 */
