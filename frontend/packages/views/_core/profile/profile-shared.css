@@ -1,25 +1,41 @@
-/* 个人中心子组件共享样式 —— 设置区块 / 设置行 系统（宽松现代型，全程令牌化） */
+/* 个人中心子组件共享样式 */
 
 /* ===== Tab 容器 ===== */
 .pf-tab-body {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
 }
 
-/* ===== 设置区块（统一卡片，替代散乱的 NCard 双栏） ===== */
+.pf-tab-body > .n-spin-container {
+  grid-column: 1 / -1;
+}
+
+.pf-tab-body > .n-alert,
+.pf-tab-body > .n-spin-container > .n-spin-content > .n-alert {
+  grid-column: 1 / -1;
+}
+
+.pf-tab-body > .n-spin-container > .n-spin-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+}
+
 .pf-section {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  background: var(--bg-card, var(--bg-surface));
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .pf-section__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 20px 24px 0;
+  gap: 10px;
+  padding: 14px 16px 0;
 }
 
 .pf-section__heading {
@@ -31,9 +47,13 @@
   align-items: center;
   gap: 8px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   line-height: 1.4;
+}
+
+.pf-section__title svg {
+  color: hsl(var(--primary));
 }
 
 .pf-section__desc {
@@ -48,18 +68,18 @@
 }
 
 .pf-section__body {
-  padding: 8px 24px 20px;
+  padding: 10px 16px 16px;
 }
 
 .pf-section__actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 24px;
-  border-top: 1px solid var(--border-color);
+  padding: 0 16px 16px;
+  background: transparent;
 }
 
-/* ===== 设置行（左标题/说明，右控件 + 细分隔线） ===== */
+/* ===== 设置行 ===== */
 .pf-setting-list {
   display: flex;
   flex-direction: column;
@@ -70,8 +90,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 12px 0;
 }
 
 .pf-setting-row:first-child {
@@ -79,7 +98,6 @@
 }
 
 .pf-setting-row:last-child {
-  border-bottom: none;
   padding-bottom: 4px;
 }
 
@@ -122,7 +140,7 @@
 
 /* 右侧定宽控件 */
 .pf-field {
-  width: 260px;
+  width: 280px;
   max-width: 48vw;
 }
 
@@ -167,14 +185,14 @@
 .pf-cols-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px 36px;
-  margin-top: 18px;
+  gap: 8px 28px;
+  margin-top: 14px;
 }
 
 .pf-subgroup__title {
   margin-bottom: 2px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -190,8 +208,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 10px 0;
 }
 
 .pf-status-item__label {
@@ -218,18 +235,18 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
-  transition: border-color 0.2s;
+  background: hsl(var(--muted) / 28%);
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .pf-list-item:hover {
-  border-color: hsl(var(--primary) / 28%);
+  background: hsl(var(--muted) / 42%);
 }
 
 .pf-list-item--active {
-  border-color: hsl(var(--primary) / 36%);
-  background: hsl(var(--primary) / 5%);
+  background: hsl(var(--primary) / 7%);
 }
 
 .pf-list-icon {
@@ -240,7 +257,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: hsl(var(--muted));
+  background: var(--bg-surface);
   color: var(--text-secondary);
 }
 
@@ -275,6 +292,7 @@
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal;
 }
 
 .pf-list-time {
@@ -284,21 +302,17 @@
   white-space: nowrap;
 }
 
-/* ===== 字段卡网格（个人信息等，标题在上、控件在下） ===== */
+/* ===== 字段网格（个人信息等，标题在上、控件在下） ===== */
 .pf-field-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  gap: 18px 20px;
 }
 
 .pf-field-card {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
 }
 
 .pf-field-card__label {
@@ -324,13 +338,11 @@
   gap: 10px;
   padding: 16px;
   border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
-  transition: border-color 0.2s;
+  background: hsl(var(--muted) / 28%);
+  transition: background 0.2s;
 }
 
 .pf-method-card.is-on {
-  border-color: hsl(var(--primary) / 40%);
   background: hsl(var(--primary) / 4%);
 }
 
@@ -343,12 +355,12 @@
 .pf-method-card__icon {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: hsl(var(--muted));
+  background: var(--bg-surface);
   color: var(--text-secondary);
 }
 
@@ -391,8 +403,7 @@
   gap: 4px;
   padding: 14px 16px;
   border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
+  background: hsl(var(--muted) / 28%);
 }
 
 .pf-info-card__label {
@@ -423,9 +434,9 @@
   gap: 10px;
   padding: 14px 16px;
   border-radius: var(--radius);
-  border: 1px dashed var(--border-color);
   color: var(--text-secondary);
   font-size: 13px;
+  background: hsl(var(--muted) / 20%);
 }
 
 .pf-empty__icon {
@@ -435,13 +446,31 @@
   width: 32px;
   height: 32px;
   flex-shrink: 0;
-  border-radius: 9px;
-  background: hsl(var(--muted));
+  border-radius: 8px;
+  background: var(--bg-surface);
   color: var(--text-secondary);
 }
 
-/* ===== 响应式（统一断点 1023 / 768） ===== */
+/* ===== 响应式（统一断点 1399 / 1023 / 768） ===== */
+@media (max-width: 1399px) {
+  .pf-tab-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pf-tab-body > .n-spin-container > .n-spin-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1023px) {
+  .pf-tab-body {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-tab-body > .n-spin-container > .n-spin-content {
+    grid-template-columns: 1fr;
+  }
+
   .pf-form-grid,
   .pf-cols-2 {
     grid-template-columns: 1fr;

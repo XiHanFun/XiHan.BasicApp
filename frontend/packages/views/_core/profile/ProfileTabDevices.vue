@@ -26,9 +26,6 @@ const sessionsLoading = ref(false)
 const sessions = ref<UserSessionItem[]>([])
 const sessionsLoaded = ref(false)
 
-// 暴露给父组件（Banner 在线设备计数）
-defineExpose({ sessions, sessionsLoaded })
-
 async function loadSessions() {
   sessionsLoading.value = true
   try {

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { HeatmapData } from 'naive-ui/es/heatmap'
 import type { UserActivity } from '~/types'
+import { NSpin, useMessage } from 'naive-ui'
 // naive-ui 2.44.1 主入口尚未导出 Heatmap，子模块直引（无 exports 限制，可正常解析）
 import { NHeatmap } from 'naive-ui/es/heatmap'
-import { NSpin, useMessage } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -237,17 +237,16 @@ const recentTimes = computed(() => {
 /* 概览卡片网格 */
 .pf-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 }
 
 .pf-stat-card {
   position: relative;
   overflow: hidden;
-  padding: 16px 18px;
+  padding: 14px 16px;
   border-radius: var(--radius);
-  background: var(--bg-card, var(--bg-surface));
-  border: 1px solid var(--border-color);
+  background: hsl(var(--muted) / 28%);
 }
 
 .pf-stat-card__icon {
@@ -273,7 +272,7 @@ const recentTimes = computed(() => {
 }
 
 .pf-stat-card__value {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   line-height: 1.1;
   color: var(--text-primary);
@@ -325,8 +324,7 @@ const recentTimes = computed(() => {
 .pf-period {
   padding: 12px 14px;
   border-radius: var(--radius-sm, 8px);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  background: hsl(var(--muted) / 28%);
 }
 
 .pf-period__title {

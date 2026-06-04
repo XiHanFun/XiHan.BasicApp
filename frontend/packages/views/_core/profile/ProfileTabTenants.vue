@@ -3,8 +3,8 @@ import type { TenantSwitcherDto } from '@/api'
 import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { tenantApi, TenantMemberType } from '@/api'
-import { Icon } from '~/iconify'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
+import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabTenants' })

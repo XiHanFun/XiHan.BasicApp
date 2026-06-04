@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
-import type { LoginLogItem, UserProfile } from '~/types'
+import type { UserProfile } from '~/types'
 import {
   NAlert,
   NButton,
@@ -9,16 +9,14 @@ import {
   NIcon,
   NInput,
   NInputOtp,
-  NPagination,
   NQrCode,
-  NSpin,
   NSwitch,
   NTag,
   NTooltip,
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -61,35 +59,6 @@ const pwdRules: FormRules = {
     },
   ],
 }
-const pwdStrength = computed(() => {
-  const p = pwdForm.value.newPassword
-  if (!p)
-    return { score: 0, color: '', label: '' }
-  let s = 0
-  if (p.length > 6)
-    s++
-  if (p.length > 10)
-    s++
-  if (/[A-Z]/.test(p))
-    s++
-  if (/\d/.test(p) && /[^a-z\d]/i.test(p))
-    s++
-  const colors = ['', 'var(--color-error)', 'var(--color-warning)', 'var(--color-info)', 'var(--color-success)']
-  const labels = ['', '弱', '一般', '较强', '强']
-  return { score: s, color: colors[s] || '', label: labels[s] || '' }
-})
-
-/** 新密码要求清单（实时校验，填充表单右侧而非留白） */
-const pwdReqs = computed(() => {
-  const p = pwdForm.value.newPassword
-  return [
-    { label: '至少 6 个字符', ok: p.length >= 6 },
-    { label: '包含大写字母', ok: /[A-Z]/.test(p) },
-    { label: '包含数字与符号', ok: /\d/.test(p) && /[^a-z\d]/i.test(p) },
-    { label: '两次输入一致', ok: !!p && p === pwdForm.value.confirmPassword },
-  ]
-})
-
 async function changePassword() {
   await pwdFormRef.value?.validate()
   if (!props.profile)
@@ -368,37 +337,6 @@ function cancelDisable() {
   clearCountdown()
 }
 
-// ==================== 登录日志 ====================
-
-const loginLogs = ref<LoginLogItem[]>([])
-const loginLogTotal = ref(0)
-const loginLogPage = ref(1)
-const loginLogLoading = ref(false)
-
-const loginResultLabel: Record<number, string> = {
-  0: '成功',
-  1: '密码错误',
-  2: '账号锁定',
-  3: '账号禁用',
-  4: '需要两步验证',
-}
-
-async function loadLoginLogs(page = 1) {
-  loginLogLoading.value = true
-  try {
-    const res = await apis.getLoginLogsApi(page, 10)
-    loginLogs.value = res.items
-    loginLogTotal.value = res.total
-    loginLogPage.value = page
-  }
-  catch {
-    // 静默处理
-  }
-  finally {
-    loginLogLoading.value = false
-  }
-}
-
 // ==================== 账号管理 ====================
 
 const accountPassword = ref('')
@@ -487,12 +425,6 @@ function handleDeleteAccount() {
     },
   })
 }
-
-// ==================== 生命周期 ====================
-
-onMounted(() => {
-  loadLoginLogs()
-})
 </script>
 
 <template>
@@ -529,28 +461,6 @@ onMounted(() => {
               更新密码
             </NButton>
           </NForm>
-
-          <aside class="pf-pwd__aside">
-            <div class="pf-pwd__meter">
-              <div class="pf-strength-bars">
-                <div
-                  v-for="i in 4"
-                  :key="i"
-                  class="pf-strength-bar"
-                  :style="{ background: pwdForm.newPassword && i <= pwdStrength.score ? pwdStrength.color : 'var(--border-color)' }"
-                />
-              </div>
-              <span class="pf-pwd__meter-label" :style="{ color: pwdForm.newPassword ? pwdStrength.color : 'var(--text-secondary)' }">
-                {{ pwdForm.newPassword ? (pwdStrength.label || '弱') : '密码强度' }}
-              </span>
-            </div>
-            <ul class="pf-reqs">
-              <li v-for="r in pwdReqs" :key="r.label" class="pf-req" :class="{ 'is-ok': r.ok }">
-                <Icon :icon="r.ok ? 'lucide:check-circle-2' : 'lucide:circle'" width="15" />
-                <span>{{ r.label }}</span>
-              </li>
-            </ul>
-          </aside>
         </div>
       </div>
     </section>
@@ -815,66 +725,6 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- 登录日志 -->
-    <section class="pf-section">
-      <div class="pf-section__head">
-        <div class="pf-section__heading">
-          <div class="pf-section__title">
-            <Icon icon="lucide:file-clock" width="16" />
-            <span>登录日志</span>
-          </div>
-          <div class="pf-section__desc">
-            最近的登录记录，发现异常请及时修改密码并登出可疑设备。
-          </div>
-        </div>
-      </div>
-      <div class="pf-section__body">
-        <NSpin :show="loginLogLoading">
-          <div v-if="loginLogs.length === 0 && !loginLogLoading" class="pf-empty">
-            <span class="pf-empty__icon"><Icon icon="lucide:inbox" width="16" /></span>
-            <span>暂无登录记录</span>
-          </div>
-          <div v-else class="pf-list">
-            <div v-for="(log, idx) in loginLogs" :key="idx" class="pf-list-item">
-              <div class="pf-list-icon" :class="{ 'pf-list-icon--danger': log.loginResult !== 0 }">
-                <Icon :icon="log.loginResult === 0 ? 'lucide:log-in' : 'lucide:shield-alert'" width="16" />
-              </div>
-              <div class="pf-list-body">
-                <div class="pf-list-title">
-                  <NTag :type="log.loginResult === 0 ? 'success' : 'error'" size="tiny" :bordered="false">
-                    {{ loginResultLabel[log.loginResult] || `状态${log.loginResult}` }}
-                  </NTag>
-                  <span v-if="log.message" style="font-size: 12px; color: var(--text-secondary)">{{ log.message }}</span>
-                </div>
-                <div class="pf-list-desc">
-                  {{ log.loginIp || '未知IP' }}
-                  <template v-if="log.loginLocation">
-                    · {{ log.loginLocation }}
-                  </template>
-                  <template v-if="log.browser">
-                    · {{ log.browser }}
-                  </template>
-                  <template v-if="log.os">
-                    · {{ log.os }}
-                  </template>
-                </div>
-              </div>
-              <span class="pf-list-time">{{ formatDate(log.loginTime) }}</span>
-            </div>
-          </div>
-          <div v-if="loginLogTotal > 10" style="display: flex; justify-content: flex-end; margin-top: 12px">
-            <NPagination
-              :page="loginLogPage"
-              :page-size="10"
-              :item-count="loginLogTotal"
-              simple
-              @update:page="loadLoginLogs"
-            />
-          </div>
-        </NSpin>
-      </div>
-    </section>
-
     <!-- 安全状态 -->
     <section class="pf-section">
       <div class="pf-section__head">
@@ -985,10 +835,9 @@ onMounted(() => {
   gap: 14px;
   padding: 16px;
   margin-bottom: 10px;
-  border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  background: var(--bg-surface);
-  transition: border-color 0.2s, background 0.2s;
+  background: hsl(var(--muted) / 28%);
+  transition: background 0.2s;
 }
 
 .pf-2fa-icon {
@@ -1001,11 +850,12 @@ onMounted(() => {
   border-radius: 10px;
   background: hsl(var(--muted));
   color: var(--text-secondary);
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .pf-2fa-method.is-on {
-  border-color: hsl(var(--primary) / 30%);
   background: hsl(var(--primary) / 4%);
 }
 
@@ -1018,7 +868,6 @@ onMounted(() => {
 .pf-2fa-method,
 .pf-2fa-method:first-child,
 .pf-2fa-method:last-child {
-  border-bottom: 1px solid var(--border-color);
   padding-top: 16px;
   padding-bottom: 16px;
 }
@@ -1028,83 +877,25 @@ onMounted(() => {
 }
 
 .pf-2fa-method:hover {
-  border-color: hsl(var(--primary) / 28%);
+  background: hsl(var(--muted) / 42%);
 }
 
-/* 修改密码：左表单 + 右实时要求清单（消除大面积留白） */
+/* 修改密码 */
 .pf-pwd {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 32px;
+  grid-template-columns: 1fr;
   align-items: start;
 }
 
 .pf-pwd__form {
   display: flex;
   flex-direction: column;
-  max-width: 360px;
+  max-width: none;
 }
 
 .pf-pwd__submit {
   align-self: flex-start;
   margin-top: 4px;
-}
-
-.pf-pwd__aside {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px 18px;
-  border-radius: var(--radius);
-  background: hsl(var(--accent));
-}
-
-.pf-pwd__meter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pf-pwd__meter-label {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.pf-strength-bars {
-  display: flex;
-  flex: 1;
-  gap: 4px;
-}
-
-.pf-strength-bar {
-  height: 4px;
-  flex: 1;
-  border-radius: 2px;
-  transition: background 0.2s;
-}
-
-.pf-reqs {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pf-req {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  transition: color 0.2s;
-}
-
-.pf-req.is-ok {
-  color: hsl(var(--primary));
 }
 
 .pf-2fa-setup {
@@ -1162,12 +953,7 @@ onMounted(() => {
   }
 
   .pf-pwd {
-    grid-template-columns: 1fr;
     gap: 18px;
-  }
-
-  .pf-pwd__form {
-    max-width: none;
   }
 }
 </style>
