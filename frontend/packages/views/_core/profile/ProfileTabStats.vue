@@ -1,6 +1,9 @@
 <script lang="ts" setup>
+import type { HeatmapData } from 'naive-ui/es/heatmap'
 import type { UserActivity } from '~/types'
-import { NEmpty, NSpin, useMessage } from 'naive-ui'
+// naive-ui 2.44.1 主入口尚未导出 Heatmap，子模块直引（无 exports 限制，可正常解析）
+import { NHeatmap } from 'naive-ui/es/heatmap'
+import { NSpin, useMessage } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -62,23 +65,41 @@ const periodSummary = computed(() => {
   ]
 })
 
-/** 近 7 日趋势（按操作量取柱高，归一化到 100%） */
+/** 操作趋势：转换为 naive-ui Heatmap 的 { timestamp(ms), value } 数据，覆盖近一年连续日序列 */
 const trend = computed(() => activity.value?.trend ?? [])
-const trendMax = computed(() => Math.max(1, ...trend.value.map(t => t.operationCount)))
-const hasTrend = computed(() => trend.value.some(t => t.operationCount > 0 || t.accessCount > 0))
 
-function barHeight(value: number): number {
-  return Math.max(4, Math.round((value / trendMax.value) * 100))
+function dateKey(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
 }
 
-/** 趋势日期 → 简短星期/日 */
-function shortDay(date: string): string {
-  const d = new Date(date)
-  if (Number.isNaN(d.getTime())) {
-    return date.slice(5)
+const heatmapData = computed<HeatmapData>(() => {
+  const countByDate = new Map<string, number>()
+  for (const point of trend.value) {
+    const key = point.date.slice(0, 10)
+    countByDate.set(key, (countByDate.get(key) ?? 0) + point.operationCount)
   }
-  return `${d.getMonth() + 1}/${d.getDate()}`
-}
+
+  // 近一年连续日序列（本地零点），值取自真实操作量，无记录的日子为 0
+  const end = new Date()
+  end.setHours(0, 0, 0, 0)
+  const start = new Date(end)
+  start.setFullYear(start.getFullYear() - 1)
+  start.setDate(start.getDate() + 1)
+
+  const data: HeatmapData = []
+  const cursor = new Date(start)
+  while (cursor.getTime() <= end.getTime()) {
+    data.push({ timestamp: cursor.getTime(), value: countByDate.get(dateKey(cursor)) ?? 0 })
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return data
+})
+
+/** 热力图底部摘要 */
+const heatActiveDays = computed(() => trend.value.filter(t => t.operationCount > 0).length)
+const heatTotalOps = computed(() => trend.value.reduce((sum, t) => sum + t.operationCount, 0))
 
 /** 最近活动时间行 */
 const recentTimes = computed(() => {
@@ -129,84 +150,83 @@ const recentTimes = computed(() => {
         </div>
       </section>
 
-      <!-- 近 7 日趋势 + 活跃概要 -->
-      <div class="pf-stat-cols">
-        <!-- 近 7 日趋势 -->
-        <section class="pf-section">
-          <div class="pf-section__head">
-            <div class="pf-section__heading">
-              <div class="pf-section__title">
-                <Icon icon="lucide:bar-chart-3" width="16" />
-                <span>近 7 日操作趋势</span>
-              </div>
-              <div class="pf-section__desc">
-                按每日操作量绘制，反映近期活跃走势。
-              </div>
+      <!-- 操作趋势热力图 -->
+      <section class="pf-section">
+        <div class="pf-section__head">
+          <div class="pf-section__heading">
+            <div class="pf-section__title">
+              <Icon icon="lucide:activity" width="16" />
+              <span>操作趋势</span>
+            </div>
+            <div class="pf-section__desc">
+              近一年每日操作活跃度，颜色越深表示当日操作越多。
             </div>
           </div>
-          <div class="pf-section__body">
-            <div v-if="hasTrend" class="pf-bars">
-              <div
-                v-for="point in trend"
-                :key="point.date"
-                class="pf-bar-col"
-              >
-                <div class="pf-bar-val">
-                  {{ point.operationCount }}
-                </div>
-                <div class="pf-bar" :style="{ height: `${barHeight(point.operationCount)}%` }" />
-                <div class="pf-bar-label">
-                  {{ shortDay(point.date) }}
-                </div>
-              </div>
+        </div>
+        <div class="pf-section__body">
+          <div class="pf-heat">
+            <div class="pf-heat__scroll">
+              <NHeatmap
+                :data="heatmapData"
+                :first-day-of-week="0"
+                size="small"
+                :show-week-labels="true"
+                :show-month-labels="true"
+                :show-color-indicator="true"
+                :tooltip="true"
+                :fill-calendar-leading="true"
+              />
             </div>
-            <NEmpty v-else description="暂无趋势数据" class="pf-stat-empty" />
+            <div class="pf-heat__foot">
+              近一年共 {{ heatTotalOps }} 次操作 · {{ heatActiveDays }} 天活跃
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- 周期概要 + 最近活动 -->
-        <section class="pf-section">
-          <div class="pf-section__head">
-            <div class="pf-section__heading">
-              <div class="pf-section__title">
-                <Icon icon="lucide:activity" width="16" />
-                <span>活跃概要</span>
+      <!-- 活跃概要 -->
+      <section class="pf-section">
+        <div class="pf-section__head">
+          <div class="pf-section__heading">
+            <div class="pf-section__title">
+              <Icon icon="lucide:gauge" width="16" />
+              <span>活跃概要</span>
+            </div>
+            <div class="pf-section__desc">
+              今日 / 本周活跃数据与最近活动时间。
+            </div>
+          </div>
+        </div>
+        <div class="pf-section__body">
+          <div class="pf-summary-grid">
+            <div v-for="item in periodSummary" :key="item.key" class="pf-period">
+              <div class="pf-period__title">
+                {{ item.label }}
               </div>
-              <div class="pf-section__desc">
-                今日 / 本周活跃数据与最近活动时间。
+              <div class="pf-period__row">
+                <span>登录</span><b>{{ item.period?.loginCount ?? 0 }}</b>
+              </div>
+              <div class="pf-period__row">
+                <span>访问</span><b>{{ item.period?.accessCount ?? 0 }}</b>
+              </div>
+              <div class="pf-period__row">
+                <span>操作</span><b>{{ item.period?.operationCount ?? 0 }}</b>
+              </div>
+              <div class="pf-period__row">
+                <span>在线</span><b>{{ formatOnline(item.period?.onlineTime ?? 0) }}</b>
+              </div>
+            </div>
+            <div class="pf-period">
+              <div class="pf-period__title">
+                最近活动
+              </div>
+              <div v-for="t in recentTimes" :key="t.key" class="pf-period__row pf-period__row--stack">
+                <span>{{ t.label }}</span><b>{{ t.value }}</b>
               </div>
             </div>
           </div>
-          <div class="pf-section__body">
-            <div class="pf-period-grid">
-              <div v-for="item in periodSummary" :key="item.key" class="pf-period">
-                <div class="pf-period__title">
-                  {{ item.label }}
-                </div>
-                <div class="pf-period__row">
-                  <span>登录</span><b>{{ item.period?.loginCount ?? 0 }}</b>
-                </div>
-                <div class="pf-period__row">
-                  <span>访问</span><b>{{ item.period?.accessCount ?? 0 }}</b>
-                </div>
-                <div class="pf-period__row">
-                  <span>操作</span><b>{{ item.period?.operationCount ?? 0 }}</b>
-                </div>
-                <div class="pf-period__row">
-                  <span>在线</span><b>{{ formatOnline(item.period?.onlineTime ?? 0) }}</b>
-                </div>
-              </div>
-            </div>
-
-            <div class="pf-recent">
-              <div v-for="t in recentTimes" :key="t.key" class="pf-recent__row">
-                <span class="pf-recent__label">{{ t.label }}</span>
-                <span class="pf-recent__value">{{ t.value }}</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </NSpin>
   </div>
 </template>
@@ -265,61 +285,43 @@ const recentTimes = computed(() => {
   margin-top: 5px;
 }
 
-/* 两栏（趋势 + 概要），间距与区块体系一致 */
-.pf-stat-cols {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 24px;
-}
-
-/* 柱状图 */
-.pf-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  height: 168px;
-}
-
-.pf-bar-col {
-  flex: 1;
+/* 操作趋势热力图（naive-ui Heatmap 容器） */
+.pf-heat {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  height: 100%;
+  gap: 12px;
 }
 
-.pf-bar-val {
-  font-size: 11px;
-  font-weight: 600;
+.pf-heat__scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pf-heat__foot {
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
-.pf-bar {
-  width: 100%;
-  max-width: 34px;
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--primary) / 65%));
-  transition: height 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+/* 活跃概要三列（今日 / 本周 / 最近活动） */
+.pf-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.pf-bar-label {
-  font-size: 11px;
-  color: var(--text-secondary);
+.pf-period__row--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
-.pf-stat-empty {
-  padding: 40px 0;
+.pf-period__row--stack b {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 /* 周期概要 */
-.pf-period-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
 .pf-period {
   padding: 12px 14px;
   border-radius: var(--radius-sm, 8px);
@@ -348,38 +350,13 @@ const recentTimes = computed(() => {
   font-weight: 600;
 }
 
-/* 最近活动 */
-.pf-recent {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-color);
-}
-
-.pf-recent__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 0;
-  font-size: 13px;
-}
-
-.pf-recent__label {
-  color: var(--text-secondary);
-}
-
-.pf-recent__value {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
 @media (max-width: 768px) {
   .pf-stat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .pf-stat-cols {
+  .pf-summary-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
   }
 }
 
