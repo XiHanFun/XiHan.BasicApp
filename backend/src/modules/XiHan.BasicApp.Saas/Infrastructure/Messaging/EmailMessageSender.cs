@@ -227,7 +227,6 @@ public sealed class EmailMessageSender : IMessageSender
             SmtpPort = options.SmtpPort,
             UseSsl = options.UseSsl,
             FromMail = fromMail,
-            FromName = fromName ?? string.Empty,
             FromUserName = options.UserName,
             FromPassword = options.Password
         };
